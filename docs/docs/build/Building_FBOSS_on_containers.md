@@ -12,26 +12,28 @@ oncall: fboss_oss
 This document covers how to build FBOSS binaries and all its library
 dependencies on Docker containers.
 
-## Stop any existing containers and clean docker artifacts (optional)
+## Set up the FBOSS Docker image
+
+### Stop existing containers and clean Docker artifacts
 
 This isn't a strictly required step, although in some cases you may want to
 build a completely fresh container to use, in which case the below commands
 will stop any existing docker containers and clean the image cache so that the
-subsequent steps will build the container from scratch.
+subsequent steps will build the container from scratch:
 
 ```
 sudo docker container kill -a && sudo docker container prune -f
 sudo docker image prune -af
 ```
 
-## Building the FBOSS Docker image
+### Build the FBOSS Docker image
 
 The FBOSS GitHub repository contains a Dockerfile that can be used to create
 the Docker container image for building FBOSS binaries. The Dockerfile is
 located under `fboss/oss/docker/Dockerfile`. You can use the below steps to
 build the docker image from this file. Note that the path to the docker file
 is relative, so the below commands assume you are currently running them from
-the root of the FBOSS git repository.
+the root of the FBOSS git repository:
 
 ```
 # This builds a docker container image that is tagged as fboss_docker:latest.
@@ -63,7 +65,9 @@ Once you've executed the above commands, you should be dropped into a root
 shell within the docker container and can proceed with the next steps to start
 the build.
 
-## Loading Published Docker Image from GitHub
+### Load the published Docker image from GitHub
+
+**Skip this step if the previous build step worked, as this is not preferred.**
 
 Instead of building the docker image yourself, you can also obtain an image
 tarball from GitHub (e.g. https://github.com/facebook/fboss/actions/runs/14961317578).
@@ -88,17 +92,18 @@ sudo docker load < fboss_debian_docker_image.tar
 You can then start the container using the same `docker run` and `docker exec`
 command as mentioned above.
 
-## Building FBOSS Binaries
+## Build FBOSS Binaries
 
 Instructions for building FBOSS binaries may have slight differences based on
 which SDK you are linking against.
 
-### Building Fake SAI binaries
+### Build fake SAI binaries
+
+**Skip to the next section if you are building against a precompiled SDK.**
 
 The fake SAI sources are included in the FBOSS git repository, and therefore
-don't require any additional steps. You can start the build by using the
+don't require any additional steps. You can start the build immediately by using the
 commands below:
-
 
 ```
 export BUILD_SAI_FAKE=1
@@ -107,55 +112,32 @@ time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
 --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```
 
-### Building against a precompiled SDK
+### Build against a precompiled SDK
 
 This section assumes that you have a precompiled SDK library which you want to
 link against. More specifically, you'll need the static library `libsai_impl.a`
 for the SDK which you are trying to link against, as well as the associated set
 of SAI headers. In order to run the build:
 
-#### Making the SDK artifacts available within the container
+#### Make the SDK artifacts available within the container
 
-You can mount directories from you VM to the container in order to make the SDK
+You can mount directories from your VM to the container in order to make the SDK
 artifacts available. This is done during the run step:
 
 ```
 # Assuming the existence of /path/to/sdk/lib/libsai_impl.a and /path/to/sdk/include/*.h
-for the static library and headers respectively, the below command will mount
-those paths to /opt/sdk/lib/libsai_impl.a and /opt/sdk/include/*.h respectively.
+# for the static library and headers respectively, the below command will mount
+# those paths to /opt/sdk/lib/libsai_impl.a and /opt/sdk/include/*.h respectively.
 sudo docker run -d -v /path/to/sdk:/opt/sdk:z -it --name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-
 ```
 
-With the SDK artifacts mounted into the container, you can now perform the build:
+With the SDK artifacts mounted into the container, you are almost ready to perform the build.
 
-#### Running the build against the SDK
-
-```
-# Run the build helper to stage the SDK in preparation for the build step.
-./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output
-
-
-# Run the build
-cd /var/FBOSS/fboss
-
-# SDK specific environment variable should be set
-export SAI_BRCM_IMPL=1
-
-# Start the build
-time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
---extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
---scratch-path /var/FBOSS/tmp_bld_dir fboss
-```
-
+#### Run the build helper
 
 By default, `build-helper.py` will use SAI version 1.14.0. If you are planning
-on building against a different version of SAI, you add another param to the
-build-helper.py command (example below).
-
-```
-./build-helper.py $HOME/brcm-sai/build/lib/libsai_impl.a $HOME/brcm-sai/headers/experimental/ $HOME/sai_impl_output 1.15.3
-```
+on building against a different version of SAI, you must add another param to the
+build-helper.py command.
 
 Supported values:
 
@@ -165,7 +147,15 @@ Supported values:
 1. 1.15.3
 1. 1.16.0
 
-#### Important Environment Variables
+```
+# Run the build helper to stage the SDK in preparation for the build step.
+./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output
+
+# Run the build helper using SAI version 1.15.3
+./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output 1.15.3
+```
+
+#### Set important environment variables
 
 The following environment variables should be set depending on which platform and SDK version you are building:
 
@@ -196,15 +186,29 @@ but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_
 1. `SAI_VERSION` - can be omitted if you are using SAI 1.14.0. If using a more
 recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
 
-### Build Options
+#### Build against the SDK
 
-#### Limiting the build to a specific target
+Navigate to the right directory, set your relevant environment variables, and proceed to build:
+
+```
+# Navigate to the right directory
+cd /var/FBOSS/fboss
+
+# Set environment variables
+export SAI_BRCM_IMPL=1
+
+# Start the build
+time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
+--extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
+--scratch-path /var/FBOSS/tmp_bld_dir fboss
+```
+
+#### Limit the build to a specific target
 
 You can limit the build to a specific target by using the `--cmake-target` flag.
 Buildable targets can be found by examining the cmake scripts in the repository.
 Any buildable target will be specified in the cmake scripts either by
 `add_executable` or `add_library`. Example command below:
-
 
 ```
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
