@@ -766,6 +766,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPorts = 22136;
     maxVoqs = 65284;
   } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
+    // Total System Ports in the cluster
+    // =================================
+    //
     // 1 Global recycle port
     // 1 Management port
     // RDSW: 36 x 400G NIF ports. Thus, 1 + 1 + 36 = 38 ports.
@@ -776,6 +779,30 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // Thus, Max local system PortID (starting 0) = 184.
     //
     // Max System Ports = 185 + (38 x 192) + (20 x 32) = 8121.
+    //
+    // System Port ID assignment
+    // =========================
+    //   Local Ports
+    //   -----------
+    //      [0-3]: CPU ports
+    //      [4-7]: Recycle ports
+    //          8: Eventor port
+    //    [9-168]: 160 Fabric link monitoring ports (in the future)
+    //  [169-184]: 16 Hyper ports (in the future)
+    //
+    //   The above assignment is same for ALL the RDSWs, EDSWs.
+    //
+    //   Global Ports for RDSW 1, base offset 184
+    //   ----------------------------------------
+    //        185: Recycle port for inband
+    //        186: Management port
+    //  [187-222]: One for each of the 36 x 400G NIF ports
+    //
+    //   Global Ports for EDSW 1, base offset 7480
+    //   -----------------------------------------
+    //        7481: Recycle port for inband
+    //        7482: Management port
+    //  [7483-7500: One for each of the 16 x 800G NIF ports
     maxSystemPortId = 8120;
     maxLocalSystemPortId = 184;
     maxSystemPorts = 8121;
