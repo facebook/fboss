@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include <deque>
 #include <fstream>
 #include <map>
 #include <mutex>
@@ -21,6 +22,7 @@
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
+#include <folly/Synchronized.h>
 #include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
 
@@ -4346,6 +4348,16 @@ void BcmSwitch::collectHighFrequencyStats() {
                                     .value());
   while (std::chrono::steady_clock::now() < endTime) {
     HwHighFrequencyStats stats = getHighFrequencyStats();
+    {
+      auto wlock = highFreqStatsData_.wlock();
+      if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
+        wlock->pop_front();
+      }
+      wlock->emplace_back(std::move(stats));
+    }
+    if (std::chrono::steady_clock::now() >= endTime) {
+      break;
+    }
     std::this_thread::sleep_for(
         std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
                                       ->statsWaitDurationInMicroseconds()

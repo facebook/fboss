@@ -9,12 +9,14 @@
  */
 #pragma once
 
+#include <deque>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <thread>
 
 #include <boost/container/flat_map.hpp>
+#include <folly/Synchronized.h>
 #include <folly/executors/FunctionScheduler.h>
 #include <folly/json/dynamic.h>
 #include <gtest/gtest_prod.h>
@@ -1241,6 +1243,8 @@ class BcmSwitch : public BcmSwitchIf {
   static constexpr int64_t kHfMinWaitDurationUs_{20000};
   static constexpr int64_t kHfMaxCollectionDurationUs_{10000000};
   std::unique_ptr<folly::FunctionScheduler> highFreqStatsThread_;
+  constexpr static int kHighFreqStatsDataMaxSize_{1024};
+  folly::Synchronized<std::deque<HwHighFrequencyStats>> highFreqStatsData_{};
   /*
    * Lock to synchronize access to all BCM* data structures
    */
