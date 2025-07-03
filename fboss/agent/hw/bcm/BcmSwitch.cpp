@@ -4361,14 +4361,16 @@ void BcmSwitch::collectHighFrequencyStats() {
                                     ->statsCollectionDurationInMicroseconds()
                                     .value());
   while (std::chrono::steady_clock::now() < endTime) {
-    HwHighFrequencyStats stats = getHighFrequencyStats();
-    {
-      auto wlock = highFreqStatsData_.wlock();
-      if (wlock->empty() || !highFrequencyStatsEquals(wlock->back(), stats)) {
-        if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
-          wlock->pop_front();
+    for (int i = 0; i < 2; ++i) {
+      HwHighFrequencyStats stats = getHighFrequencyStats();
+      {
+        auto wlock = highFreqStatsData_.wlock();
+        if (wlock->empty() || !highFrequencyStatsEquals(wlock->back(), stats)) {
+          if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
+            wlock->pop_front();
+          }
+          wlock->emplace_back(std::move(stats));
         }
-        wlock->emplace_back(std::move(stats));
       }
     }
     if (std::chrono::steady_clock::now() >= endTime) {
