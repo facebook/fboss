@@ -9,8 +9,9 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-#include <deque>
+#include <algorithm>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -4395,6 +4396,41 @@ void BcmSwitch::startHighFrequencyStatsThread(
 void BcmSwitch::stopHighFrequencyStatsThread() {
   std::lock_guard<std::mutex> lock(lock_);
   highFreqStatsThread_->shutdown();
+}
+
+void BcmSwitch::getHighFrequencyTimeseriesStats(
+    std::vector<HwHighFrequencyStats>& stats,
+    const std::unique_ptr<GetHighFrequencyStatsOptions>& options) const {
+  {
+    auto rlock = highFreqStatsData_.rlock();
+    auto begin = rlock->begin();
+    auto end = rlock->end();
+    if (options->beginTimestampUs().has_value()) {
+      begin = std::lower_bound(
+          begin,
+          end,
+          options->beginTimestampUs().value(),
+          [](const HwHighFrequencyStats& stats, int64_t timestamp) {
+            return stats.timestampUs().value() < timestamp;
+          });
+    }
+    if (options->endTimestampUs().has_value()) {
+      end = std::upper_bound(
+          begin,
+          end,
+          options->endTimestampUs().value(),
+          [](int64_t timestamp, const HwHighFrequencyStats& stats) {
+            return timestamp <= stats.timestampUs().value();
+          });
+    }
+    int64_t length{std::min(
+        std::distance(begin, end), std::max(options->limit().value(), 0l))};
+    if (options->beginTimestampUs().has_value()) {
+      stats = std::vector<HwHighFrequencyStats>(begin, begin + length);
+    } else {
+      stats = std::vector<HwHighFrequencyStats>(end - length, end);
+    }
+  }
 }
 
 } // namespace facebook::fboss

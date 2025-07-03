@@ -677,6 +677,9 @@ class BcmSwitch : public BcmSwitchIf {
   void startHighFrequencyStatsThread(
       const HighFrequencyStatsCollectionConfig& config);
   void stopHighFrequencyStatsThread();
+  void getHighFrequencyTimeseriesStats(
+      std::vector<HwHighFrequencyStats>& stats,
+      const std::unique_ptr<GetHighFrequencyStatsOptions>& options) const;
 
  private:
   enum Flags : uint32_t {
