@@ -30,9 +30,20 @@ HwAgentEventSyncStatus createHwAgentStatusEntry() {
 
 SwHwAgentCounters createSwHwAgentCounters() {
   SwHwAgentCounters counters;
-  counters.FBSwCounters = {{"switch.0.link_event_received.sum", 10}};
+  counters.FBSwCounters = {
+      {"switch.0.link_event_received.sum", 10},
+      {"switch.0.tx_pkt_event_sent.sum", 20},
+      {"switch.0.rx_pkt_event_received.sum", 30},
+      {"switch.0.fdb_event_received.sum", 40},
+      {"switch.0.stats_event_received.sum", 50},
+      {"switch.0.switch_reachability_change_event_received.sum", 60}};
   counters.FBHwCountersVec = {
-      {{"LinkChangeEventThriftSyncer.events_sent.sum", 15}}};
+      {{"LinkChangeEventThriftSyncer.events_sent.sum", 15},
+       {"TxPktEventThriftSyncer.events_received.sum", 25},
+       {"RxPktEventThriftSyncer.events_sent.sum", 35},
+       {"FdbEventThriftSyncer.events_sent.sum", 45},
+       {"HwSwitchStatsSinkClient.events_sent.sum", 55},
+       {"SwitchReachabilityChangeEventThriftSyncer.events_sent.sum", 65}}};
   return counters;
 }
 
@@ -49,8 +60,18 @@ cli::ShowHwAgentStatusModel createHwAgentStatusModel() {
   statusEntry.fdbSyncActive() = 1;
   statusEntry.rxPktSyncActive() = 1;
   statusEntry.txPktSyncActive() = 1;
+  statusEntry.rxPktEventsSent() = 35;
+  statusEntry.rxPktEventsReceived() = 30;
+  statusEntry.txPktEventsReceived() = 25;
+  statusEntry.txPktEventsSent() = 20;
   statusEntry.linkEventsSent() = 15;
   statusEntry.linkEventsReceived() = 10;
+  statusEntry.fdbEventsSent() = 45;
+  statusEntry.fdbEventsReceived() = 40;
+  statusEntry.HwSwitchStatsEventsSent() = 55;
+  statusEntry.HwSwitchStatsEventsReceived() = 50;
+  statusEntry.switchReachabilityChangeEventsSent() = 65;
+  statusEntry.switchReachabilityChangeEventsReceived() = 60;
   model.hwAgentStatusEntries() = {statusEntry};
   return model;
 }

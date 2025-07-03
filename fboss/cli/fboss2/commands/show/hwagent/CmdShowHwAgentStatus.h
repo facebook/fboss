@@ -117,11 +117,11 @@ class CmdShowHwAgentStatus
          "SwitchId",
          "State",
          "Link",
-         "Stats Sync",
-         "Fdb Sync",
-         "RxPkt Sync",
-         "TxPkt Sync",
-         "SwitchReachability Sync"});
+         "Stats",
+         "Fdb",
+         "RxPkt",
+         "TxPkt",
+         "SwitchReachability"});
 
     for (auto const& statusEntry : model.hwAgentStatusEntries().value()) {
       table.addRow(
@@ -136,15 +136,38 @@ class CmdShowHwAgentStatus
                "|",
                folly::copy(statusEntry.linkEventsReceived().value())),
            folly::to<std::string>(
-               folly::copy(statusEntry.statsSyncActive().value())),
+               statusEntry.statsSyncActive().value() ? "Y" : "N",
+               "|",
+               folly::copy(statusEntry.HwSwitchStatsEventsSent().value()),
+               "|",
+               folly::copy(statusEntry.HwSwitchStatsEventsReceived().value())),
            folly::to<std::string>(
-               folly::copy(statusEntry.fdbSyncActive().value())),
+               statusEntry.fdbSyncActive().value() ? "Y" : "N",
+               "|",
+               folly::copy(statusEntry.fdbEventsSent().value()),
+               "|",
+               folly::copy(statusEntry.fdbEventsReceived().value())),
            folly::to<std::string>(
-               folly::copy(statusEntry.rxPktSyncActive().value())),
+               statusEntry.rxPktSyncActive().value() ? "Y" : "N",
+               "|",
+               folly::copy(statusEntry.rxPktEventsSent().value()),
+               "|",
+               folly::copy(statusEntry.rxPktEventsReceived().value())),
            folly::to<std::string>(
-               folly::copy(statusEntry.txPktSyncActive().value())),
-           folly::to<std::string>(folly::copy(
-               statusEntry.switchReachabilityChangeSyncActive().value()))});
+               statusEntry.txPktSyncActive().value() ? "Y" : "N",
+               "|",
+               folly::copy(statusEntry.txPktEventsSent().value()),
+               "|",
+               folly::copy(statusEntry.txPktEventsReceived().value())),
+           folly::to<std::string>(
+               statusEntry.switchReachabilityChangeSyncActive().value() ? "Y"
+                                                                        : "N",
+               "|",
+               folly::copy(
+                   statusEntry.switchReachabilityChangeEventsSent().value()),
+               "|",
+               folly::copy(statusEntry.switchReachabilityChangeEventsReceived()
+                               .value()))});
     }
     out << table << std::endl;
   }
@@ -205,6 +228,40 @@ class CmdShowHwAgentStatus
           FBSwHwCounters.FBHwCountersVec[switchIndex],
           switchIndex,
           "LinkChangeEventThriftSyncer.events_sent.sum");
+      hwStatusEntry.txPktEventsSent() = getCounterValue(
+          FBSwHwCounters.FBSwCounters, switchIndex, "tx_pkt_event_sent.sum");
+      hwStatusEntry.txPktEventsReceived() = getCounterValue(
+          FBSwHwCounters.FBHwCountersVec[switchIndex],
+          switchIndex,
+          "TxPktEventThriftSyncer.events_received.sum");
+      hwStatusEntry.rxPktEventsReceived() = getCounterValue(
+          FBSwHwCounters.FBSwCounters,
+          switchIndex,
+          "rx_pkt_event_received.sum");
+      hwStatusEntry.rxPktEventsSent() = getCounterValue(
+          FBSwHwCounters.FBHwCountersVec[switchIndex],
+          switchIndex,
+          "RxPktEventThriftSyncer.events_sent.sum");
+      hwStatusEntry.fdbEventsReceived() = getCounterValue(
+          FBSwHwCounters.FBSwCounters, switchIndex, "fdb_event_received.sum");
+      hwStatusEntry.fdbEventsSent() = getCounterValue(
+          FBSwHwCounters.FBHwCountersVec[switchIndex],
+          switchIndex,
+          "FdbEventThriftSyncer.events_sent.sum");
+      hwStatusEntry.HwSwitchStatsEventsReceived() = getCounterValue(
+          FBSwHwCounters.FBSwCounters, switchIndex, "stats_event_received.sum");
+      hwStatusEntry.HwSwitchStatsEventsSent() = getCounterValue(
+          FBSwHwCounters.FBHwCountersVec[switchIndex],
+          switchIndex,
+          "HwSwitchStatsSinkClient.events_sent.sum");
+      hwStatusEntry.switchReachabilityChangeEventsReceived() = getCounterValue(
+          FBSwHwCounters.FBSwCounters,
+          switchIndex,
+          "switch_reachability_change_event_received.sum");
+      hwStatusEntry.switchReachabilityChangeEventsSent() = getCounterValue(
+          FBSwHwCounters.FBHwCountersVec[switchIndex],
+          switchIndex,
+          "SwitchReachabilityChangeEventThriftSyncer.events_sent.sum");
       model.hwAgentStatusEntries()->push_back(hwStatusEntry);
       switchIndex++;
     }
