@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_GTE_11_0) && !defined(IS_OSS_BRCM_SAI)
