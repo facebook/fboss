@@ -86,13 +86,17 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
        * |    BCM     |   Disabled   |         1             |      1        |
        * |    Tajo    |   Enabled    |         1             |      1        |
        * |    Tajo    |   Disabled   |         0             |      0        |
+       * |   Chenab   |   Enabled    |         0             |      1        |
+       * |   Chenab   |   Disabled   |         0             |      0        |
        * ---------------------------------------------------------------------
        */
       auto expectedPktCount = !enableRxPause &&
               (getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
                    cfg::AsicType::ASIC_TYPE_EBRO ||
                getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
-                   cfg::AsicType::ASIC_TYPE_YUBA)
+                   cfg::AsicType::ASIC_TYPE_YUBA ||
+               getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
+                   cfg::AsicType::ASIC_TYPE_CHENAB)
           ? 0
           : 1;
       auto expectedDiscardsIncrement =

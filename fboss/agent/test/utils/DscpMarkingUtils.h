@@ -29,11 +29,16 @@ std::string kDscpCounterAclName();
 std::string kCounterName();
 std::string getIngressAclTableGroupName();
 uint8_t kIcpDscp();
+uint8_t kNcnfDscp();
 
 void addDscpMarkingAcls(
     const HwAsic* hwAsic,
     cfg::SwitchConfig* config,
     bool isSai);
+void addDscpReclassificationAcls(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig* config,
+    const PortID& portId);
 void addDscpCounterAcl(
     const HwAsic* hwAsic,
     cfg::SwitchConfig* config,

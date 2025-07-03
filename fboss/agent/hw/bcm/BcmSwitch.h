@@ -426,6 +426,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
   HwSwitchPipelineStats getSwitchPipelineStats() const override;
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
   HwFlowletStats getHwFlowletStats() const override;
 
   HwResourceStats getResourceStats() const override;
@@ -1169,6 +1170,9 @@ class BcmSwitch : public BcmSwitchIf {
   void processDefaultAclgroupForUdf(std::set<bcm_udf_id_t>& udfAclIds);
   void initialStateApplied() override;
 
+  void updateHighFrequencyStatsThreadConfig(
+      const HighFrequencyStatsCollectionConfig& config);
+
   HwHighFrequencyStats getHighFrequencyStats();
 
   /*
@@ -1230,6 +1234,12 @@ class BcmSwitch : public BcmSwitchIf {
 
   static constexpr std::string_view kHighFreqStatsThreadName_{
       "HighFrequencyStatsThread"};
+  static constexpr std::string_view kHighFreqStatsFunctionName_{
+      "collectHighFrequencyStats"};
+  void collectHighFrequencyStats();
+  HighFrequencyStatsCollectionConfig highFreqStatsThreadConfig_{};
+  static constexpr int64_t kHfMinWaitDurationUs_{20000};
+  static constexpr int64_t kHfMaxCollectionDurationUs_{10000000};
   std::unique_ptr<folly::FunctionScheduler> highFreqStatsThread_;
   /*
    * Lock to synchronize access to all BCM* data structures

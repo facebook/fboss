@@ -303,9 +303,15 @@ void PlatformProductInfo::parse(std::string data) {
   if (info.count(kVersion)) {
     productInfo_.version() = info[kVersion].asInt();
   }
-  productInfo_.subVersion() = info[kSubVersion].asInt();
-  productInfo_.productionState() = info[kProductionState].asInt();
-  productInfo_.productVersion() = info[kProdVersion].asInt();
+  if (info.count(kSubVersion)) {
+    productInfo_.subVersion() = info[kSubVersion].asInt();
+  }
+  if (info.count(kProductionState)) {
+    productInfo_.productionState() = info[kProductionState].asInt();
+  }
+  if (info.count(kProdVersion)) {
+    productInfo_.productVersion() = info[kProdVersion].asInt();
+  }
 
   // There are different keys for these values in BMC
   // and BMC-Lite platforms.

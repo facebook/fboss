@@ -2,6 +2,7 @@
 load("//fboss/agent/fbpkg:agent.bzl", "get_all_wedge_agent_nvda_path_actions")
 load(
     "//fboss/agent/fbpkg:test_artifacts.bzl",
+    "build_test_artifacts_fbpkg",
     "get_all_agent_test_path_actions",
     "get_all_fsdb_integration_test_path_actions",
     "get_all_hw_test_path_actions",
@@ -9,6 +10,7 @@ load(
     "get_all_link_test_path_actions",
 )
 load("//fboss/build:fbpkg.bzl", "fboss_fbpkg_builder")
+load("//fboss/build:sdk.thrift.bzl", "ProductLine")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_agent_push")
@@ -130,3 +132,5 @@ fboss_fbpkg_builder(
     # TODO: fix split_debuginfo for wedge_agent_nvda
     split_debuginfo = False,
 )
+
+build_test_artifacts_fbpkg(product_line = ProductLine.NVIDIA_SAI_SDK)

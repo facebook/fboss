@@ -97,11 +97,11 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     XLOG(ERR) << "cannot load thrift rate limit settings from agent config";
   }
   if (!method2QpsLimit.empty()) {
-    auto rateLimiter = std::make_unique<ThriftMethodRateLimit>(
+    auto rateLimiter = std::make_shared<ThriftMethodRateLimit>(
         method2QpsLimit, FLAGS_thrift_rate_limit_shadow_mode);
     auto preprocessFunc =
         ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
-            std::move(rateLimiter));
+            rateLimiter);
     server->addPreprocessFunc(
         "ThriftMethodRateLimit", std::move(preprocessFunc));
   }

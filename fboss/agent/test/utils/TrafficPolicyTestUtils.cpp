@@ -79,6 +79,20 @@ void addSetDscpAndEgressQueueActionToCfg(
   utility::addMatcher(config, aclName, matchAction);
 }
 
+void addSetDscpActionToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    uint8_t dscp) {
+  cfg::MatchAction matchAction;
+
+  // set specific dscp value action
+  cfg::SetDscpMatchAction setDscpMatchAction;
+  setDscpMatchAction.dscpValue() = dscp;
+  matchAction.setDscp() = std::move(setDscpMatchAction);
+
+  utility::addMatcher(config, aclName, matchAction);
+}
+
 void addL2ClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,

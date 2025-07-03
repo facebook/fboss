@@ -19054,9 +19054,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19064,6 +19061,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19143,9 +19143,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19153,6 +19150,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19232,9 +19232,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19242,6 +19239,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19321,9 +19321,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19331,6 +19328,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19410,9 +19410,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19420,6 +19417,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19499,9 +19499,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19509,6 +19506,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19588,9 +19588,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19598,6 +19595,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19677,9 +19677,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19687,6 +19684,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19766,9 +19766,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19776,6 +19773,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19855,9 +19855,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19865,6 +19862,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -19941,9 +19941,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -19951,6 +19948,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20027,9 +20027,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20037,6 +20034,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20113,9 +20113,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20123,6 +20120,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20199,9 +20199,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20209,6 +20206,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20285,9 +20285,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20295,6 +20292,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20371,9 +20371,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20381,6 +20378,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20457,9 +20457,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20467,6 +20464,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20543,9 +20543,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20553,6 +20550,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20629,9 +20629,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20639,6 +20636,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20715,9 +20715,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20725,6 +20722,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -20801,9 +20801,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -20811,6 +20808,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -22472,9 +22472,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -22482,6 +22479,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -22561,9 +22561,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -22571,6 +22568,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -22650,9 +22650,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -22660,6 +22657,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -22739,9 +22739,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -22749,6 +22746,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -22828,9 +22828,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -22838,6 +22835,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -22917,9 +22917,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -22927,6 +22924,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23006,9 +23006,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23016,6 +23013,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23095,9 +23095,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23105,6 +23102,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23184,9 +23184,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23194,6 +23191,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23273,9 +23273,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23283,6 +23280,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23359,9 +23359,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23369,6 +23366,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23445,9 +23445,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23455,6 +23452,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23531,9 +23531,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23541,6 +23538,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23617,9 +23617,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23627,6 +23624,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23703,9 +23703,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23713,6 +23710,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23789,9 +23789,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23799,6 +23796,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23875,9 +23875,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23885,6 +23882,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -23961,9 +23961,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -23971,6 +23968,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -24047,9 +24047,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -24057,6 +24054,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -24133,9 +24133,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -24143,6 +24140,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -24219,9 +24219,6 @@
           "test_name_regex": "SpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
           "test_name_regex": "PtpTests.verifyPtpTc.*$"
         },
         {
@@ -24229,6 +24226,9 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*DR4_400G.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
