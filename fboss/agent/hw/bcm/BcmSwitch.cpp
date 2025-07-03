@@ -3201,6 +3201,11 @@ HwHighFrequencyStats BcmSwitch::getHighFrequencyStats() {
   stats.timestampUs() = std::chrono::duration_cast<std::chrono::microseconds>(
                             std::chrono::steady_clock::now().time_since_epoch())
                             .count();
+  portTable_->populateHighFrequencyPortStats(
+      highFreqStatsThreadConfig_.statsConfig()->portStatsConfig().value(),
+      *stats.portStats());
+  bstStatsMgr_->populateHighFrequencyBstStats(
+      highFreqStatsThreadConfig_.statsConfig().value(), stats);
   return stats;
 }
 
