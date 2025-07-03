@@ -4342,6 +4342,19 @@ HwResourceStats BcmSwitch::getResourceStats() const {
   return bcmStatUpdater_->getHwTableStats();
 }
 
+HwHighFrequencyStats BcmSwitch::zeroTimestamp(
+    const HwHighFrequencyStats& stats) {
+  HwHighFrequencyStats zeroed = stats;
+  zeroed.timestampUs() = 0;
+  return zeroed;
+}
+
+bool BcmSwitch::highFrequencyStatsEquals(
+    const HwHighFrequencyStats& statsA,
+    const HwHighFrequencyStats& statsB) {
+  return zeroTimestamp(statsA) == zeroTimestamp(statsB);
+}
+
 void BcmSwitch::collectHighFrequencyStats() {
   auto endTime = std::chrono::steady_clock::now() +
       std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
@@ -4351,10 +4364,12 @@ void BcmSwitch::collectHighFrequencyStats() {
     HwHighFrequencyStats stats = getHighFrequencyStats();
     {
       auto wlock = highFreqStatsData_.wlock();
-      if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
-        wlock->pop_front();
+      if (wlock->empty() || !highFrequencyStatsEquals(wlock->back(), stats)) {
+        if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
+          wlock->pop_front();
+        }
+        wlock->emplace_back(std::move(stats));
       }
-      wlock->emplace_back(std::move(stats));
     }
     if (std::chrono::steady_clock::now() >= endTime) {
       break;

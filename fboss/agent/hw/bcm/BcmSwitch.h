@@ -1241,6 +1241,10 @@ class BcmSwitch : public BcmSwitchIf {
       "HighFrequencyStatsThread"};
   static constexpr std::string_view kHighFreqStatsFunctionName_{
       "collectHighFrequencyStats"};
+  static HwHighFrequencyStats zeroTimestamp(const HwHighFrequencyStats& stats);
+  static bool highFrequencyStatsEquals(
+      const HwHighFrequencyStats& a,
+      const HwHighFrequencyStats& b);
   void collectHighFrequencyStats();
   HighFrequencyStatsCollectionConfig highFreqStatsThreadConfig_{};
   static constexpr int64_t kHfMinWaitDurationUs_{20000};
