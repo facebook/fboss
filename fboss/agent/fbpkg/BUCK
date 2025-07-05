@@ -59,6 +59,7 @@ fboss_fbpkg_builder(
         config = {
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_hw_test_path_actions(),
@@ -73,6 +74,7 @@ fboss_fbpkg_builder(
         config = {
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_agent_test_path_actions(),
@@ -87,6 +89,7 @@ fboss_fbpkg_builder(
         config = {
             "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_link_test_path_actions(),
@@ -101,6 +104,7 @@ fboss_fbpkg_builder(
         config = {
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_fsdb_integration_test_path_actions(),
@@ -115,6 +119,7 @@ fboss_fbpkg_builder(
         config = {
             "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_invariant_test_path_actions(),
