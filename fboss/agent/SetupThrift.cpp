@@ -11,6 +11,8 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/lib/ThriftMethodRateLimit.h"
 
+#include <fb303/ExportType.h>
+#include <fb303/ServiceData.h>
 #include <folly/io/async/EventBase.h>
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp2/async/MultiplexAsyncProcessor.h>
@@ -97,8 +99,22 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     XLOG(ERR) << "cannot load thrift rate limit settings from agent config";
   }
   if (!method2QpsLimit.empty()) {
+    auto odsCounterUpdateFunc = [](const std::string& method,
+                                   uint64_t count,
+                                   uint64_t aggCount) {
+      XLOG(DBG2) << "Thrift method " << method << " rate limited " << count
+                 << " times" << ", total number of thrift rate limit deny "
+                 << aggCount;
+      // Update ODS counter for rate-limited thrift methods
+      facebook::fb303::fbData->addStatValue(
+          "thrift.method." + method + ".rate_limited", 1, facebook::fb303::SUM);
+      facebook::fb303::fbData->addStatValue(
+          "thrift.method.aggregate.rate_limited", 1, facebook::fb303::SUM);
+    };
     auto rateLimiter = std::make_shared<ThriftMethodRateLimit>(
-        method2QpsLimit, FLAGS_thrift_rate_limit_shadow_mode);
+        method2QpsLimit,
+        FLAGS_thrift_rate_limit_shadow_mode,
+        odsCounterUpdateFunc);
     auto preprocessFunc =
         ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
             rateLimiter);
