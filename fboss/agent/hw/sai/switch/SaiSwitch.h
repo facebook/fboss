@@ -356,6 +356,9 @@ class SaiSwitch : public HwSwitch {
   folly::dynamic toFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;
 
+  folly::dynamic sysPortShelStateToFollyDynamicLocked(
+      const std::lock_guard<std::mutex>& lock) const;
+
   void switchRunStateChangedImplLocked(
       const std::lock_guard<std::mutex>& lock,
       SwitchRunState newState);
