@@ -41,7 +41,8 @@
         72,
         73,
         74,
-        82
+        82,
+        83
     ],
     "ebro": [
         2,
@@ -281,7 +282,6 @@
         69,
         71,
         72,
-        78,
         80,
         81,
         82
@@ -429,7 +429,8 @@
         "MODIFY_ACL_QUALIFIERS",
         "ERSPANv4_SAMPLING",
         "ERSPANv6_SAMPLING",
-        "ARS_SPRAY"
+        "ARS_SPRAY",
+        "ROUTER_INTERFACE_COUNTERS"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -669,7 +670,6 @@
         "PTP_TC",
         "L4_DST_PORT_ACL",
         "MODIFY_ACL_QUALIFIERS",
-        "ECMP_RANDOM_SPRAY",
         "PFC_WATCHDOG_GRANULARITY",
         "ARS_FLOWLET",
         "ARS_SPRAY"
