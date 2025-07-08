@@ -9,6 +9,7 @@
  */
 #pragma once
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/PreUpdateStateModifier.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -59,7 +60,7 @@ class NextHopGroupInfo {
   int routeUsageCount_{kInvalidRouteUsageCount};
 };
 
-class EcmpResourceManager {
+class EcmpResourceManager : public PreUpdateStateModifier {
  public:
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
@@ -73,6 +74,8 @@ class EcmpResourceManager {
       std::pair<RouterID, folly::CIDRNetwork>,
       std::shared_ptr<NextHopGroupInfo>>;
 
+  std::vector<StateDelta> modifyState(
+      const std::vector<StateDelta>& deltas) override;
   std::vector<StateDelta> consolidate(const StateDelta& delta);
   std::vector<StateDelta> reconstructFromSwitchState(
       const std::shared_ptr<SwitchState>& curState);
