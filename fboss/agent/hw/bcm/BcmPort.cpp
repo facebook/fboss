@@ -1810,16 +1810,16 @@ void BcmPort::populateHighFrequencyPortPfcStats(
   for (PfcPriority pfcPriority : pfcPriorities) {
     if (portStatsConfig.includePfcRx().value() &&
         portStatsConfig.includePfcTx().value()) {
-      std::vector<uint64_t> pfcStats = getMultiHighFrequencyStats(std::array{
+      std::vector<uint64_t> pfcStats = getMultiStats(std::array{
           kInPfcStats.at(pfcPriority), kOutPfcStats.at(pfcPriority)});
       stats.pfcStats()[pfcPriority].inPfc() = pfcStats.at(0);
       stats.pfcStats()[pfcPriority].outPfc() = pfcStats.at(1);
     } else if (portStatsConfig.includePfcTx().value()) {
       stats.pfcStats()[pfcPriority].inPfc() =
-          getHighFrequencyStat(kInPfcStats.at(pfcPriority));
+          getStat(kInPfcStats.at(pfcPriority));
     } else if (portStatsConfig.includePfcRx().value()) {
       stats.pfcStats()[pfcPriority].outPfc() =
-          getHighFrequencyStat(kOutPfcStats.at(pfcPriority));
+          getStat(kOutPfcStats.at(pfcPriority));
     }
   }
 }
@@ -1888,7 +1888,7 @@ void BcmPort::updateStat(
   *statVal = value;
 }
 
-int64_t BcmPort::getHighFrequencyStat(bcm_stat_val_t type) const {
+int64_t BcmPort::getStat(bcm_stat_val_t type) const {
   uint64_t stat{0};
   int ret = bcm_stat_sync_get(unit_, port_, type, &stat);
   if (BCM_FAILURE(ret)) {
@@ -1899,7 +1899,7 @@ int64_t BcmPort::getHighFrequencyStat(bcm_stat_val_t type) const {
   return stat;
 }
 
-std::vector<uint64_t> BcmPort::getMultiHighFrequencyStats(
+std::vector<uint64_t> BcmPort::getMultiStats(
     std::span<const bcm_stat_val_t> types) const {
   std::vector<uint64_t> stats(types.size());
   int ret = bcm_stat_sync_multi_get(

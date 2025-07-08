@@ -169,8 +169,8 @@ class BcmPort {
       const HfPortStatsCollectionConfig& portStatsConfig,
       std::span<const PfcPriority> pfcPriorities,
       HwHighFrequencyPortStats& stats) const;
-  int64_t getHighFrequencyStat(bcm_stat_val_t type) const;
-  std::vector<uint64_t> getMultiHighFrequencyStats(
+  int64_t getStat(bcm_stat_val_t type) const;
+  std::vector<uint64_t> getMultiStats(
       std::span<const bcm_stat_val_t> types) const;
 
   /**
