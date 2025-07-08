@@ -248,6 +248,7 @@ def split_file(input_file, output_dir, max_lines):
     output = open_new_output_cpp(output_dir, output_file_num)
 
     pre_code_section = True
+    prev_line_close_brace = False
 
     for line in open(input_file, "r"):
         line = line.strip()
@@ -330,7 +331,13 @@ def split_file(input_file, output_dir, max_lines):
         output.write(line + "\n")
         line_num += 1
 
-    # Outro already written from source file
+        # Track if the braces were closed
+        if line:
+            prev_line_close_brace = "}" in line
+
+    if not prev_line_close_brace:
+        output.write(get_file_outro())
+    # Else, outro already written from source file
     output.close()
 
     extern_variables = [
