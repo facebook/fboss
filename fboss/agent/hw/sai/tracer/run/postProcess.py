@@ -365,8 +365,12 @@ def split_file(input_file, output_dir, max_lines):
 
 
 def print_summary(input_sailog, input_bzl, output_dir, max_lines):
+    source_files = [input_sailog]
+    if input_bzl:
+        source_files.append(input_bzl)
+
     print("\nSUMMARY")
-    print("Source files: " + input_sailog + (", " + input_bzl) if input_bzl else "")
+    print("Source files: {}".format(", ".join(source_files)))
     print("Max number of lines per file: " + str(max_lines))
     print("Generated {} files.".format(len(GENERATED_FILES)))
 
