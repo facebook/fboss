@@ -51,6 +51,13 @@ EcmpResourceManager::EcmpResourceManager(
   }
 }
 
+std::vector<StateDelta> EcmpResourceManager::modifyState(
+    const std::vector<StateDelta>& deltas) {
+  // TODO: Handle list of deltas instead of single delta
+  CHECK_EQ(deltas.size(), 1);
+  return consolidate(*deltas.begin());
+}
+
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   CHECK(!preUpdateState_.has_value());

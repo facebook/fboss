@@ -109,9 +109,9 @@
         "SMB_SLOT@0": {
           "slotType": "SMB_SLOT",
           "outgoingI2cBusNames": [
-            "SCM_IOB1_I2C_0",
+            "SCM_IOB_I2C_0",
             "CPU@1",
-            "scm_mux1@0"
+            "SCM_MUX1@0"
           ]
         }
       }
@@ -209,7 +209,7 @@
           "numOutgoingChannels": 2
         },
         {
-          "busName": "yolo_mux2@1",
+          "busName": "YOLO_MUX2@1",
           "address": "0x12",
           "kernelDeviceName": "lm75",
           "pmUnitScopedName": "YOLO_SENSOR2"
@@ -235,27 +235,27 @@
         "PSU_SLOT@0": {
           "slotType": "PSU_SLOT",
           "outgoingI2cBusNames": [
-            "SCM_IOB2_I2C_2",
-            "yolo_mux1@1"
+            "YOLO_DOM_I2C_0",
+            "YOLO_MUX1@1"
           ]
         },
         "PSU_SLOT@1": {
           "slotType": "PSU_SLOT",
           "outgoingI2cBusNames": [
-            "yolo_mux1@2",
-            "yolo_mux1@3"
+            "YOLO_MUX1@2",
+            "YOLO_MUX1@3"
           ]
         },
         "PIM_SLOT@0": {
           "slotType": "PIM_SLOT",
           "outgoingI2cBusNames": [
-            "yolo_mux2@0"
+            "YOLO_MUX2@0"
           ]
         },
         "PIM_SLOT@1": {
           "slotType": "PIM_SLOT",
           "outgoingI2cBusNames": [
-            "yolo_mux2@1"
+            "YOLO_MUX2@1"
           ]
         }
       }

@@ -153,3 +153,49 @@ TEST_F(ThriftMethodRateLimitTest, MultipleMethodsTest) {
   EXPECT_EQ(rateLimiter->getDenyCounter(methodName1), 1);
   EXPECT_EQ(rateLimiter->getAggDenyCounter(), 2);
 }
+
+TEST_F(ThriftMethodRateLimitTest, OdsCounterUpdateFuncTest) {
+  std::map<std::string, double> methodLimits = {
+      {"method1", 10},
+      {"method2", 20},
+  };
+
+  std::map<std::string, uint64_t> odsCounters;
+  auto odsUpdateFunc = [&odsCounters](
+                           const std::string& method,
+                           uint64_t denyCount,
+                           uint64_t aggDenyCount) {
+    odsCounters[method] = denyCount;
+    odsCounters["aggDeny"] = aggDenyCount;
+  };
+
+  ThriftMethodRateLimit rateLimiter(methodLimits, false, odsUpdateFunc);
+
+  // Increment counter for method1
+  rateLimiter.incrementDenyCounter("method1");
+  EXPECT_EQ(odsCounters["method1"], 1);
+  EXPECT_EQ(odsCounters["aggDeny"], 1);
+  EXPECT_EQ(rateLimiter.getDenyCounter("method1"), 1);
+  EXPECT_EQ(rateLimiter.getAggDenyCounter(), 1);
+
+  // Increment counter for method1 again
+  rateLimiter.incrementDenyCounter("method1");
+  EXPECT_EQ(odsCounters["method1"], 2);
+  EXPECT_EQ(odsCounters["aggDeny"], 2);
+  EXPECT_EQ(rateLimiter.getDenyCounter("method1"), 2);
+  EXPECT_EQ(rateLimiter.getAggDenyCounter(), 2);
+
+  // Increment counter for method2
+  rateLimiter.incrementDenyCounter("method2");
+  EXPECT_EQ(odsCounters["method2"], 1);
+  EXPECT_EQ(odsCounters["aggDeny"], 3);
+  EXPECT_EQ(rateLimiter.getDenyCounter("method2"), 1);
+  EXPECT_EQ(rateLimiter.getAggDenyCounter(), 3);
+
+  // Increment counter for unknown method (should not update ODS)
+  rateLimiter.incrementDenyCounter("unknown_method");
+  EXPECT_EQ(odsCounters.find("unknown_method"), odsCounters.end());
+  EXPECT_EQ(odsCounters["aggDeny"], 3);
+  EXPECT_EQ(rateLimiter.getDenyCounter("unknown_method"), 0);
+  EXPECT_EQ(rateLimiter.getAggDenyCounter(), 3);
+}

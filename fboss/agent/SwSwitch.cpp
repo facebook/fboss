@@ -1597,6 +1597,22 @@ void SwSwitch::removeStateObserver(StateObserver* observer) {
   }
 }
 
+void SwSwitch::registerStateModifier(
+    PreUpdateStateModifier* modifier,
+    const std::string& name) {
+  if (stateModifiers_.find(modifier) != stateModifiers_.end()) {
+    throw FbossError("State modifier add failed: ", name, " already exists");
+  }
+  stateModifiers_.emplace(modifier, name);
+}
+
+void SwSwitch::unregisterStateModifier(PreUpdateStateModifier* modifier) {
+  auto erased = stateModifiers_.erase(modifier);
+  if (!erased) {
+    throw FbossError("State modifier remove failed: modifier does not exist");
+  }
+}
+
 void SwSwitch::addStateObserver(StateObserver* observer, const string& name) {
   DCHECK(updateEventBase_.isInEventBaseThread());
   if (stateObserverRegistered(observer)) {

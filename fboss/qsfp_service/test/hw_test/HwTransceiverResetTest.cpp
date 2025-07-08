@@ -263,7 +263,14 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
   }
 }
 
-TEST_F(HwTransceiverResetTest, verifyResetControl) {
+class HwTransceiverResetBmcLiteTest : public HwTransceiverResetTest {
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+  getProductionFeatures() const override {
+    return {qsfp_production_features::QsfpProductionFeature::BMC_LITE};
+  }
+};
+
+TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
   // 1. Put the transceivers in reset one at a time.
   // 2. Verify absence of Transceiver. Read byte 0 10 times and ensure
   //    - for sff, all reads fail

@@ -8,6 +8,7 @@ include "thrift/annotation/cpp.thrift"
 
 include "fboss/platform/platform_manager/platform_manager_snapshot.thrift"
 include "fboss/platform/platform_manager/platform_manager_config.thrift"
+include "fboss/platform/weutil/if/eeprom_contents.thrift"
 
 enum ExplorationStatus {
   SUCCEEDED = 0,
@@ -21,6 +22,7 @@ enum PlatformManagerErrorCode {
   NONE = 0,
   EXPLORATION_NOT_SUCCEEDED = 1,
   PM_UNIT_NOT_FOUND = 2,
+  EEPROM_CONTENTS_NOT_FOUND = 3,
 }
 
 exception PlatformManagerError {
@@ -64,6 +66,10 @@ struct BspVersionResponse {
   3: string kernelVersion;
 }
 
+struct EepromContentResponse {
+  1: eeprom_contents.EepromContents eepromContents;
+}
+
 service PlatformManagerService {
   platform_manager_snapshot.PlatformSnapshot getPlatformSnapshot();
   PlatformManagerStatus getLastPMStatus();
@@ -73,4 +79,7 @@ service PlatformManagerService {
   PmUnitsResponse getAllPmUnits();
   BspVersionResponse getBspVersion();
   string getPlatformName();
+  EepromContentResponse getEepromContents(1: PmUnitInfoRequest req) throws (
+    1: PlatformManagerError pmError,
+  );
 }

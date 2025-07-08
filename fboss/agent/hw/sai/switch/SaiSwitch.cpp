@@ -3895,6 +3895,16 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
   return hwSwitch;
 }
 
+folly::dynamic SaiSwitch::sysPortShelStateToFollyDynamicLocked(
+    const std::lock_guard<std::mutex>& /* lock */) const {
+  folly::dynamic shelState = folly::dynamic::object;
+  for (const auto& [sysPortId, portState] :
+       std::as_const(concurrentIndices().sysPortShelState)) {
+    shelState[folly::to<std::string>(sysPortId)] = static_cast<int>(portState);
+  }
+  return shelState;
+}
+
 bool SaiSwitch::isFullyInitialized() const {
   auto state = getSwitchRunState();
   return state >= SwitchRunState::INITIALIZED &&

@@ -32,6 +32,21 @@ double ThriftMethodRateLimit::getQpsLimit(const std::string& method) {
   return 0.0;
 }
 
+void ThriftMethodRateLimit::incrementDenyCounter(const std::string& method) {
+  auto it = method2DenyCounter_.find(method);
+  if (it == method2DenyCounter_.end()) {
+    return;
+  }
+  it->second.fetch_add(1, std::memory_order_relaxed);
+  aggDenyCounter_.fetch_add(1, std::memory_order_relaxed);
+  if (populateCounterFunc_) {
+    populateCounterFunc_(
+        method,
+        it->second.load(std::memory_order_relaxed),
+        aggDenyCounter_.load(std::memory_order_relaxed));
+  }
+}
+
 apache::thrift::PreprocessFunc
 ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
     std::shared_ptr<ThriftMethodRateLimit> rateLimiter) {

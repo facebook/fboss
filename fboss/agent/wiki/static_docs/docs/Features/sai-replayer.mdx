@@ -110,22 +110,78 @@ If the return status is not the same, it will print out this message with the se
 
 To enable compilation with compilers which do not support large files, exceedingly large SAI replayer logs (several millions of LOC) may need be split into multiple smaller logs.
 
-The script [`postProcess.py`](https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/tracer/run/postProcess.py) splits a single file into multiple smaller files and a header, to be compiled together into a single output binary:
-```bash
-./postProcess.py
-```
+The script [`postProcess.py`](https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/tracer/run/postProcess.py) splits a single file into multiple smaller files and a header, to be compiled together into a single output binary.
 
 By default, the script will consume a SAI Replayer log named `SaiLog.cpp` in the same directory as the executing shell, and will output the split files in the `output/` directory.
 
-Additional options are available to customize the script's behavior:
+Split and compile the logs with the following:
 ```bash
-./postProcess.py --help
+export DEVICE_LOGS_SOURCE=
+
+cd ~/fbsource/fbcode/fboss/agent/hw/sai/tracer/run/
+
+# Gather the logs into a single file
+sush2 --skip-reason root@$DEVICE_LOGS_SOURCE
+  cd /var/facebook/logs/fboss/sdk/
+  # NOTE: Pause here to copy the relevant logs from ./sai_replayer.log and/or ./archive/ into a single directory for aggregation
+  tar -cvf sai_replayer.log.tar
+  mv sai_replayer.log.tar /root/
+
+suscp2 --skip-oversight root@$DEVICE_LOGS_SOURCE:/root/sai_replayer.log.tar .
+tar xf sai_replayer.log.tar
+cat sai_replayer.log-* > SaiLog.cpp  # postProcess.py input must be named SaiLog.cpp
+
+# Split the logs into compileable files
+./postProcess.py --clean --max_lines 400000 --generate_run_bzl
+
+# Compile to an executable
+export SAI_REPLAYER=$HOME/fbsource/`cd ~/fbsource/fbcode && buck2 build --show-output @//mode/dbg //fboss/agent/hw/sai/tracer/run/output:sai_replayer-brcm-12.2.0.0_dnx_odp | awk '{print $2}'`
+echo "SAI Replayer executable location: $SAI_REPLAYER"
+
+# Copy to the device on which the SAI replayer will be run
+export DEVICE=
+suscp2 --skip-oversight $SAI_REPLAYER root@$DEVICE:/root/
 ```
 
-For buck compilation, the flag `--generate_run_bzl` can be added which will also consume a `run.bzl` file from the same input directory. An example compilation command would be:
+Alternatively, compile using GCC with the `sai_replayer_gcc_build.py` script:
 ```bash
-buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/tracer/run/output:sai_replayer-brcm-10.2.0.0_odp
+# Consumes the split SAI replayer logs from ~/fbsource/fbcode/fboss/agent/hw/sai/tracer/run/output/
+
+export PLATFORM_DIR=$HOME/fbsource/fbcode/third-party-buck/platform010-compat/build
+export BRCM_SAI=12.2.0.0_dnx_odp
+
+cd ~/fbsource/fbcode/fboss/util
+
+python3 sai_replayer_gcc_build.py \
+  --sai_replayer_log ~/fbsource/fbcode/fboss/agent/hw/sai/tracer/run/output/ \
+  --sai_headers $PLATFORM_DIR/brcm-sai/$BRCM_SAI/include/inc,$PLATFORM_DIR/brcm-sai/$BRCM_SAI/include/experimental \
+  --sai_lib $PLATFORM_DIR/brcm-sai/$BRCM_SAI/lib/libsai.a \
+  --brcm_lib $PLATFORM_DIR/broadcom-xgs-robo/6.5.26/lib/libxgs_robo.a \
+  --brcm_epdm_lib $PLATFORM_DIR/broadcom-plp-epdm/4.1.2/lib/libepdm.a \
+  --brcm_phymode_lib $PLATFORM_DIR/broadcom-plp-millenio/5.5/lib/libphymodepil.a \
+  --yaml_lib $PLATFORM_DIR/yaml/lib/libyaml.a
 ```
+
+Prepare the test device for execution:
+```bash
+# Find a production device
+netwhoami find role=rdsw,dc=nao5 | head -n10
+export PROD_DEVICE=rdsw007.u007.c083.nao5
+
+# Copy the hardware config
+suscp2 root@$PROD_DEVICE:/dev/shm/fboss/hw_config_idx0 root@$DEVICE:/dev/shm/fboss/hw_config_idx0
+
+# J3/R3 only: Copy the database
+suscp2 root@$PROD_DEVICE:/etc/packages/neteng-fboss-wedge_agent/current/db root@$DEVICE:/tmp/
+```
+
+Run the SAI replayer executable:
+```bash
+sush2 --skip-reason root@$DEVICE
+  ./sai_replayer-brcm-12.2.0.0_dnx_odp 2>&1 | tee /tmp/sai_replayer_output
+```
+
+If running into an unexpected error (e.g. segfault), use lldb to backtrace the line number.
 
 
 ### Adding support for new APIs & Attributes

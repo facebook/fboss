@@ -12043,6 +12043,16 @@
           "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
         }
     ],
+    "chenab/116.132.2506.10/116.132.2506.10/chenab/mono": [
+        {
+          "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        }
+    ],
+    "chenab/116.132.2506.10/116.132.2506.10/chenab/multi_switch": [
+        {
+          "test_name_regex": "AgentIngressBufferPoolTest.validateIngressPoolParamChange$"
+        }
+    ],
     "leaba/1.42.8/1.42.8/gibraltar/mono": [
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"

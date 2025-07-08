@@ -47,10 +47,10 @@
           "commandType": "flashrom",
           "flashromArgs": {
             "programmer_type": "linux_spi:dev=",
-            "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
             "chip": [
               "N25Q128..3E",
-              "IS25LP128"
+              "W25Q128.V..M"
             ]
           }
         }
@@ -59,10 +59,10 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
           "chip": [
             "N25Q128..3E",
-            "IS25LP128"
+            "W25Q128.V..M"
           ]
         }
       },
@@ -70,16 +70,16 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1",
           "chip": [
             "N25Q128..3E",
-            "IS25LP128"
+            "W25Q128.V..M"
           ]
         }
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/inforoms/SMB_IOB_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MCB_IOB_INFO_ROM/fw_ver"
       },
       "priority": 2
     },
@@ -88,9 +88,17 @@
         {
           "commandType": "gpioset",
           "gpiosetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
             "gpioChipValue": "1",
-            "gpioChipPin": "9"
+            "gpioChipPin": "65"
+          }
+        },
+        {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "1",
+            "gpioChipPin": "10"
           }
         }
       ],
@@ -99,10 +107,10 @@
           "commandType": "flashrom",
           "flashromArgs": {
             "programmer_type": "linux_spi:dev=",
-            "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1",
             "chip": [
               "N25Q128..3E",
-              "IS25LP128"
+              "W25Q128.V..M"
             ]
           }
         }
@@ -111,8 +119,15 @@
         {
           "commandType": "gpioget",
           "gpiogetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
-            "gpioChipPin": "9"
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "10"
+          }
+        },
+        {
+          "commandType": "gpioget",
+          "gpiogetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "65"
           }
         }
       ],
@@ -120,10 +135,10 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1",
           "chip": [
             "N25Q128..3E",
-            "IS25LP128"
+            "W25Q128.V..M"
           ]
         }
       },
@@ -131,25 +146,25 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1",
           "chip": [
             "N25Q128..3E",
-            "IS25LP128"
+            "W25Q128.V..M"
           ]
         }
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/inforoms/SMB_DOM_INFO_ROM/fw_ver"
+        "path": "/run/devmap/inforoms/MCB_DOM_INFO_ROM/fw_ver"
       },
       "priority": 3
     },
-    "pwr_cpld": {
+    "mcb_cpld": {
       "preUpgrade": [
         {
           "commandType": "gpioset",
           "gpiosetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
             "gpioChipValue": "1",
             "gpioChipPin": "3"
           }
@@ -160,7 +175,7 @@
           "commandType": "flashrom",
           "flashromArgs": {
             "programmer_type": "linux_spi:dev=",
-            "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_4_DEVICE_1",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1",
             "chip": [
               "W25X20"
             ]
@@ -171,7 +186,7 @@
         {
           "commandType": "gpioget",
           "gpiogetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
             "gpioChipPin": "3"
           }
         }
@@ -180,7 +195,7 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_4_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1",
           "chip": [
             "W25X20"
           ]
@@ -190,7 +205,7 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_4_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1",
           "chip": [
             "W25X20"
           ]
@@ -198,18 +213,18 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/cplds/PWR_CPLD/fw_ver"
+        "path": "/run/devmap/cplds/MCB_CPLD/fw_ver"
       },
       "priority": 4
     },
-    "smb_cpld1": {
+    "smb_cpld": {
       "preUpgrade": [
         {
           "commandType": "gpioset",
           "gpiosetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
             "gpioChipValue": "1",
-            "gpioChipPin": "1"
+            "gpioChipPin": "7"
           }
         }
       ],
@@ -218,7 +233,7 @@
           "commandType": "flashrom",
           "flashromArgs": {
             "programmer_type": "linux_spi:dev=",
-            "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
             "chip": [
               "W25X20"
             ]
@@ -229,8 +244,8 @@
         {
           "commandType": "gpioget",
           "gpiogetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
-            "gpioChipPin": "1"
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "7"
           }
         }
       ],
@@ -238,7 +253,7 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
           "chip": [
             "W25X20"
           ]
@@ -248,7 +263,7 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
           "chip": [
             "W25X20"
           ]
@@ -256,18 +271,18 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/cplds/SMB_CPLD_1/fw_ver"
+        "path": "/run/devmap/cplds/SMB_CPLD/fw_ver"
       },
       "priority": 5
     },
-    "smb_cpld2": {
+    "scm_cpld": {
       "preUpgrade": [
         {
           "commandType": "gpioset",
           "gpiosetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
             "gpioChipValue": "1",
-            "gpioChipPin": "7"
+            "gpioChipPin": "1"
           }
         }
       ],
@@ -276,7 +291,7 @@
           "commandType": "flashrom",
           "flashromArgs": {
             "programmer_type": "linux_spi:dev=",
-            "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_5_DEVICE_1",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
             "chip": [
               "W25X20"
             ]
@@ -287,8 +302,8 @@
         {
           "commandType": "gpioget",
           "gpiogetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
-            "gpioChipPin": "7"
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "1"
           }
         }
       ],
@@ -296,7 +311,7 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_5_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
           "chip": [
             "W25X20"
           ]
@@ -306,7 +321,7 @@
         "commandType": "flashrom",
         "flashromArgs": {
           "programmer_type": "linux_spi:dev=",
-          "programmer": "/run/devmap/flashes/SMB_SPI_MASTER_5_DEVICE_1",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1",
           "chip": [
             "W25X20"
           ]
@@ -314,64 +329,9 @@
       },
       "version": {
         "versionType": "sysfs",
-        "path": "/run/devmap/cplds/JANGA_SMB_CPLD/fw_ver"
+        "path": "/run/devmap/cplds/SCM_CPLD/fw_ver"
       },
       "priority": 6
-    },
-    "oob_eeprom": {
-      "preUpgrade": [
-        {
-          "commandType": "gpioset",
-          "gpiosetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
-            "gpioChipValue": "1",
-            "gpioChipPin": "55"
-          }
-        },
-        {
-          "commandType": "i2cBusRead",
-          "path": "/run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_6"
-        },
-        {
-          "commandType": "createI2cDevice",
-          "deviceId": "24c02",
-          "deviceAddress": "0x50",
-          "path": "/sys/bus/i2c/devices/{BUS}/new_device"
-        }
-      ],
-      "upgrade": [
-        {
-          "commandType": "ddDynamicBus",
-          "ddArgs": {
-            "if": "/sys/bus/i2c/devices/${oob_bus}/*-0050/eeprom"
-          }
-        }
-      ],
-      "read": {
-        "commandType": "ddDynamicBus",
-        "ddArgs": {
-          "if": "/sys/bus/i2c/devices/${oob_bus}/*-0050/eeprom"
-        }
-      },
-      "postUpgrade": [
-        {
-          "commandType": "deleteI2cdevice",
-          "deviceAddress": "0x50",
-          "path": "/sys/bus/i2c/devices/{BUS}/delete_device"
-        },
-        {
-          "commandType": "gpioset",
-          "gpiosetArgs": {
-            "gpioChip": "fboss_iob_pci.gpioChip.*",
-            "gpioChipValue": "0",
-            "gpioChipPin": "55"
-          }
-        }
-      ],
-      "version": {
-        "versionType": "Not Applicable"
-      },
-      "priority": 7
     }
   }
 }

@@ -1,4 +1,5 @@
 namespace cpp2 facebook.fboss.platform
+namespace py3 facebook.fboss.platform
 
 // This is a common thrift struct for both V5 and V6 EEPROMs
 // See https://facebook.github.io/fboss/docs/platform/meta_eeprom_format_v6/ for details.
