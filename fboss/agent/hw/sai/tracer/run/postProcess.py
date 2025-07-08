@@ -304,11 +304,11 @@ def split_file(input_file, output_dir, max_lines):
             if assign == -1:
                 # Declaration only
                 variables.append(line)
+                continue
             else:
                 # Separate definition from declaration
                 variables.append(line[:assign] + ";")
                 line = line[index_of_var_name(line) :]
-            continue
 
         # Modify the run_trace line
         if re.search(REGEX_RUN_TRACE_FUNC, line) is not None:
