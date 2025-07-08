@@ -1453,6 +1453,19 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pre_update_state_modifier",
+    headers = [
+        "PreUpdateStateModifier.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
     name = "hwagent",
     srcs = [
         "HwAgent.cpp",
