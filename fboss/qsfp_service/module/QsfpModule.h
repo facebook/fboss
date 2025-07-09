@@ -467,7 +467,7 @@ class QsfpModule : public Transceiver {
   /*
    * Gather the vendor info for thrift queries
    */
-  virtual Vendor getVendorInfo() = 0;
+  virtual Vendor getVendorInfo() const = 0;
   /*
    * Gather the cable info for thrift queries
    */

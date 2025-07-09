@@ -339,7 +339,7 @@ GlobalSensors SffModule::getSensorInfo() {
   return info;
 }
 
-Vendor SffModule::getVendorInfo() {
+Vendor SffModule::getVendorInfo() const {
   Vendor vendor = Vendor();
   *vendor.name() = getQsfpString(SffField::VENDOR_NAME);
   *vendor.oui() = getQsfpString(SffField::VENDOR_OUI);

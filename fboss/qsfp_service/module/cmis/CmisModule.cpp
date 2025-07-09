@@ -582,7 +582,7 @@ GlobalSensors CmisModule::getSensorInfo() {
   return info;
 }
 
-Vendor CmisModule::getVendorInfo() {
+Vendor CmisModule::getVendorInfo() const {
   Vendor vendor = Vendor();
   *vendor.name() = getQsfpString(CmisField::VENDOR_NAME);
   *vendor.oui() = getQsfpString(CmisField::VENDOR_OUI);

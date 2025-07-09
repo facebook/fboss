@@ -302,7 +302,7 @@ class CmisModule : public QsfpModule {
   /*
    * Gather the vendor info for thrift queries
    */
-  Vendor getVendorInfo() override;
+  Vendor getVendorInfo() const override;
   /*
    * Gather the cable info for thrift queries
    */
