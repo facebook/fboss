@@ -26,6 +26,7 @@
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -358,6 +359,11 @@ class SaiSwitch : public HwSwitch {
 
   folly::dynamic sysPortShelStateToFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;
+
+  void reconstructSysPortShelStateLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const folly::dynamic& shelStateJson,
+      folly::ConcurrentHashMap<SystemPortID, cfg::PortState>& sysPortShelState);
 
   void switchRunStateChangedImplLocked(
       const std::lock_guard<std::mutex>& lock,

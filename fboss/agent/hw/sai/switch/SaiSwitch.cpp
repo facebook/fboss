@@ -3910,6 +3910,19 @@ folly::dynamic SaiSwitch::sysPortShelStateToFollyDynamicLocked(
   return shelState;
 }
 
+void SaiSwitch::reconstructSysPortShelStateLocked(
+    const std::lock_guard<std::mutex>& /* lock */,
+    const folly::dynamic& shelStateJson,
+    folly::ConcurrentHashMap<SystemPortID, cfg::PortState>& sysPortShelState) {
+  for (const auto& [sysPortId, portState] : shelStateJson.items()) {
+    auto sysPortIdInt = sysPortId.asInt();
+    auto portStateInt = portState.asInt();
+    sysPortShelState.insert_or_assign(
+        static_cast<SystemPortID>(sysPortIdInt),
+        static_cast<cfg::PortState>(portStateInt));
+  }
+}
+
 bool SaiSwitch::isFullyInitialized() const {
   auto state = getSwitchRunState();
   return state >= SwitchRunState::INITIALIZED &&
