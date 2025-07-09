@@ -468,3 +468,14 @@ struct HwHighFrequencyStats {
   2: map<string, HwHighFrequencyPortStats> portStats;
   3: map<i16, i64> itmPoolSharedWatermarkBytes = {};
 }
+
+struct HwRouterInterfaceStats {
+  1: i64 inBytes_;
+  2: i64 inPkts_;
+  3: i64 outBytes_;
+  4: i64 outPkts_;
+  5: i64 inErrorBytes_;
+  6: i64 inErrorPkts_;
+  7: i64 outErrorBytes_;
+  8: i64 outErrorPkts_;
+}

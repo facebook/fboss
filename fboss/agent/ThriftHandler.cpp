@@ -3095,6 +3095,13 @@ void ThriftHandler::getHwPortStats(
   sw_->getAllHwPortStats(hwPortStats);
 }
 
+void ThriftHandler::getHwRouterInterfaceStats(
+    std::map<std::string, HwRouterInterfaceStats>& hwPortStats) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  // TODO(pshaikh) : implement this
+}
+
 void ThriftHandler::getFabricReachabilityStats(
     FabricReachabilityStats& fabricReachabilityStats) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
