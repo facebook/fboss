@@ -1605,22 +1605,6 @@ void SwSwitch::removeStateObserver(StateObserver* observer) {
   }
 }
 
-void SwSwitch::registerStateModifier(
-    PreUpdateStateModifier* modifier,
-    const std::string& name) {
-  if (stateModifiers_.find(modifier) != stateModifiers_.end()) {
-    throw FbossError("State modifier add failed: ", name, " already exists");
-  }
-  stateModifiers_.emplace(modifier, name);
-}
-
-void SwSwitch::unregisterStateModifier(PreUpdateStateModifier* modifier) {
-  auto erased = stateModifiers_.erase(modifier);
-  if (!erased) {
-    throw FbossError("State modifier remove failed: modifier does not exist");
-  }
-}
-
 void SwSwitch::addStateObserver(StateObserver* observer, const string& name) {
   DCHECK(updateEventBase_.isInEventBaseThread());
   if (stateObserverRegistered(observer)) {
@@ -1650,6 +1634,45 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
     }
   }
   runFsdbSyncFunction([&delta](auto& syncer) { syncer->stateUpdated(delta); });
+}
+
+void SwSwitch::registerStateModifier(
+    PreUpdateStateModifier* modifier,
+    const std::string& name) {
+  if (stateModifiers_.find(modifier) != stateModifiers_.end()) {
+    throw FbossError("State modifier add failed: ", name, " already exists");
+  }
+  stateModifiers_.emplace(modifier, name);
+}
+
+void SwSwitch::unregisterStateModifier(PreUpdateStateModifier* modifier) {
+  auto erased = stateModifiers_.erase(modifier);
+  if (!erased) {
+    throw FbossError("State modifier remove failed: modifier does not exist");
+  }
+}
+
+bool SwSwitch::preUpdateModifyState(std::vector<StateDelta>& deltas) {
+  CHECK_EQ(deltas.size(), 1);
+  auto oldState = deltas.begin()->oldState();
+  for (auto modifierIter = stateModifiers_.begin();
+       modifierIter != stateModifiers_.end();
+       modifierIter++) {
+    try {
+      deltas = modifierIter->first->modifyState(deltas);
+    } catch (const FbossError& e) {
+      XLOG(DBG2) << modifierIter->second
+                 << " StateModifier rejected update: " << e.what();
+      for (auto rollbackIter = stateModifiers_.begin();
+           rollbackIter != modifierIter;
+           rollbackIter++) {
+        XLOG(DBG2) << "Notify " << rollbackIter->second << " update failed";
+        rollbackIter->first->updateFailed(oldState);
+      }
+      return false;
+    }
+  }
+  return true;
 }
 
 template <typename FsdbFunc>

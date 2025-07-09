@@ -1090,6 +1090,11 @@ class SwSwitch : public HwSwitchCallback {
    */
   void notifyStateObservers(const StateDelta& delta);
 
+  /*
+   * Invoke State modifier to modify state prior to update.
+   */
+  bool preUpdateModifyState(std::vector<StateDelta>& deltas);
+
   void logLinkStateEvent(PortID port, bool up);
 
   void logSwitchRunStateChange(
