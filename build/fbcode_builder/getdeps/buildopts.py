@@ -58,6 +58,7 @@ class BuildOptions(object):
         facebook_internal=None,
         free_up_disk: bool = False,
         build_type: Optional[str] = None,
+        cache_config: Optional[str] = None,
     ) -> None:
         """fbcode_builder_dir - the path to either the in-fbsource fbcode_builder dir,
                              or for shipit-transformed repos, the build dir that
@@ -74,6 +75,7 @@ class BuildOptions(object):
         shared_libs - whether to build shared libraries
         free_up_disk - take extra actions to save runner disk space
         build_type - CMAKE_BUILD_TYPE, used by cmake and cargo builders
+        cache_config - path to cache config file
         """
 
         if not install_dir:
@@ -113,6 +115,7 @@ class BuildOptions(object):
         self.lfs_path = lfs_path
         self.shared_libs = shared_libs
         self.free_up_disk = free_up_disk
+        self.cache_config = cache_config
 
         if build_type is None:
             build_type = "RelWithDebInfo"
@@ -667,6 +670,7 @@ def setup_build_options(args, host_type=None) -> BuildOptions:
             "shared_libs",
             "free_up_disk",
             "build_type",
+            "cache_config",
         }
     }
 
