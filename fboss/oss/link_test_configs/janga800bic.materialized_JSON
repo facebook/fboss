@@ -7074,18 +7074,6 @@
         "etherType": 34525
       },
       {
-        "dstIp": "fe80::/10",
-        "name": "cpuPolicing-mid-linkLocal-v6",
-        "actionType": 1,
-        "etherType": 34525
-      },
-      {
-        "dstIp": "ff02::/16",
-        "name": "cpuPolicing-mid-ff02::/16",
-        "actionType": 1,
-        "etherType": 34525
-      },
-      {
         "icmpType": 133,
         "name": "cpuPolicing-high-ndp-router-solicit",
         "actionType": 1,
@@ -7214,6 +7202,24 @@
         "actionType": 1,
         "lookupClassRoute": 1,
         "etherType": 34525
+      },
+      {
+        "dstIp": "fe80::/10",
+        "name": "cpuPolicing-mid-linkLocal-v6",
+        "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "dstIp": "ff02::/16",
+        "name": "cpuPolicing-mid-ff02::/16",
+        "actionType": 1,
+        "etherType": 34525
+      },
+      {
+        "name": "cpuPolicing-low-unresolved-route",
+        "actionType": 1,
+        "lookupClassRoute": 2,
+        "etherType": 34525
       }
     ],
     "maxNeighborProbes": 300,
@@ -7314,6 +7320,18 @@
               "toCpuAction": 1,
               "setTc": {
                 "tcValue": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-low-unresolved-route",
+            "action": {
+              "sendToQueue": {
+                "queueId": 0
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 0
               }
             }
           },
