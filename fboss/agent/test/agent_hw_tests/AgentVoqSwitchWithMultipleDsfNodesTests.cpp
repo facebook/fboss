@@ -797,22 +797,62 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
 };
 
 TEST_F(AgentVoqShelSwitchTest, init) {
-  auto setup = []() {};
-  auto verify = [this]() {
+  auto verifyShelEnabled = [this](bool enabled) {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
         if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
           EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
-          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().value());
+          EXPECT_EQ(
+              port.second->getSelfHealingECMPLagEnable().value(), enabled);
         }
       }
     }
   };
-  auto setupPostWarmboot = [this]() {
+
+  auto verifyShelPortState = [this](bool enabled) {
+    WITH_RETRIES({
+      auto stats = getHwSwitchStats();
+      auto state = getProgrammedState();
+      for (const auto& portMap : std::as_const(*state->getPorts())) {
+        for (const auto& port : std::as_const(*portMap.second)) {
+          if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+            auto switchId = scopeResolver().scope(port.second).switchId();
+            EXPECT_EVENTUALLY_TRUE(stats.contains(switchId));
+            auto globalSystemPortOffset = *getSw()
+                                               ->getSwitchInfoTable()
+                                               .getSwitchInfo(switchId)
+                                               .globalSystemPortOffset();
+            if (stats.contains(switchId)) {
+              auto sysPortShelState = stats.at(switchId).sysPortShelState();
+              auto systemPortId = globalSystemPortOffset + port.first;
+              EXPECT_EVENTUALLY_TRUE(sysPortShelState->contains(systemPortId));
+              if (sysPortShelState->contains(systemPortId)) {
+                EXPECT_EVENTUALLY_EQ(
+                    sysPortShelState->at(systemPortId),
+                    (enabled ? cfg::PortState::ENABLED
+                             : cfg::PortState::DISABLED));
+              }
+            }
+          }
+        }
+      }
+    });
+  };
+
+  auto setup = []() {};
+  auto verify = [&, this]() {
+    verifyShelEnabled(true /*enabled*/);
+    verifyShelPortState(true /*enabled*/);
+  };
+  auto setupPostWarmboot = [&, this]() {
+    // Verify SHEL port state is reconstructed after WB
+    verifyShelPortState(true /*enabled*/);
+
+    // Disable selfHealingEcmpLag on Interface Ports
     auto config = getSw()->getConfig();
     config.switchSettings()->selfHealingEcmpLagConfig().reset();
-    // Disable selfHealingEcmpLag on Interface Ports
+
     for (auto& port : *config.ports()) {
       if (port.portType() == cfg::PortType::INTERFACE_PORT) {
         port.selfHealingECMPLagEnable() = false;
@@ -820,16 +860,8 @@ TEST_F(AgentVoqShelSwitchTest, init) {
     }
     applyNewConfig(config);
   };
-  auto verifyPostWarmboot = [this]() {
-    auto state = getProgrammedState();
-    for (const auto& portMap : std::as_const(*state->getPorts())) {
-      for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
-          EXPECT_FALSE(port.second->getSelfHealingECMPLagEnable().value());
-        }
-      }
-    }
+  auto verifyPostWarmboot = [&, this]() {
+    verifyShelEnabled(false /*enabled*/);
   };
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
