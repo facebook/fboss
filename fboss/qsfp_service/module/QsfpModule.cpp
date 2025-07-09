@@ -563,6 +563,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (diagCapability.has_value()) {
       tcvrState.diagCapability() = diagCapability.value();
     }
+    tcvrState.lpoModule() = isLpoModule();
   }
 
   tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;

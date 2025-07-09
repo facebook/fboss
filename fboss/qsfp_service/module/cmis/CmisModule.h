@@ -657,7 +657,7 @@ class CmisModule : public QsfpModule {
       override;
 
   // Returns true if the current module is LPO
-  bool isLpoModule() const;
+  bool isLpoModule() const override;
 
   std::time_t vdmIntervalStartTime_{0};
 };

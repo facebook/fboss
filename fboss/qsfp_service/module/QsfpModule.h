@@ -499,6 +499,14 @@ class QsfpModule : public Transceiver {
     return std::nullopt;
   }
 
+  /*
+   * Return if the module is LPO or Non LPO.
+   * LPO Transceivers have no DSP in them.
+   */
+  virtual bool isLpoModule() const {
+    return false;
+  }
+
   double mwToDb(double value);
 
   /*
