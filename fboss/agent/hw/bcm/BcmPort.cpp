@@ -1808,24 +1808,20 @@ void BcmPort::populateHighFrequencyPortPfcStats(
     std::span<const PfcPriority> pfcPriorities,
     HwHighFrequencyPortStats& stats) const {
   for (PfcPriority pfcPriority : pfcPriorities) {
-    if (portStatsConfig.includePfcRx().value() &&
-        portStatsConfig.includePfcTx().value()) {
-      std::set<bcm_stat_val_t> pfcStatTypes{
-          kInPfcStats.at(pfcPriority), kOutPfcStats.at(pfcPriority)};
-      std::map<bcm_stat_val_t, uint64_t> pfcStats{getMultiStats(pfcStatTypes)};
-      for (auto& [stat, value] : pfcStats) {
-        if (stat == kInPfcStats.at(pfcPriority)) {
-          stats.pfcStats()[pfcPriority].inPfc() = value;
-        } else if (stat == kOutPfcStats.at(pfcPriority)) {
-          stats.pfcStats()[pfcPriority].outPfc() = value;
-        }
+    std::set<bcm_stat_val_t> pfcStatTypes{};
+    if (portStatsConfig.includePfcRx().value()) {
+      pfcStatTypes.insert(kInPfcStats.at(pfcPriority));
+    }
+    if (portStatsConfig.includePfcTx().value()) {
+      pfcStatTypes.insert(kOutPfcStats.at(pfcPriority));
+    }
+    std::map<bcm_stat_val_t, uint64_t> pfcStats{getMultiStats(pfcStatTypes)};
+    for (auto& [stat, value] : pfcStats) {
+      if (stat == kInPfcStats.at(pfcPriority)) {
+        stats.pfcStats()[pfcPriority].inPfc() = value;
+      } else if (stat == kOutPfcStats.at(pfcPriority)) {
+        stats.pfcStats()[pfcPriority].outPfc() = value;
       }
-    } else if (portStatsConfig.includePfcTx().value()) {
-      stats.pfcStats()[pfcPriority].inPfc() =
-          getStat(kInPfcStats.at(pfcPriority));
-    } else if (portStatsConfig.includePfcRx().value()) {
-      stats.pfcStats()[pfcPriority].outPfc() =
-          getStat(kOutPfcStats.at(pfcPriority));
     }
   }
 }
