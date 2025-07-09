@@ -1,7 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include "fboss/platform/rackmon/Register.h"
+#include "Register.h"
 
 using namespace std;
 using namespace testing;

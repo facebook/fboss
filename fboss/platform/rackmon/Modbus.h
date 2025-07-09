@@ -6,9 +6,9 @@
 #include <mutex>
 #include <set>
 #include <sstream>
-#include "fboss/platform/rackmon/Msg.h"
-#include "fboss/platform/rackmon/PollThread.h"
-#include "fboss/platform/rackmon/UARTDevice.h"
+#include "Msg.h"
+#include "PollThread.h"
+#include "UARTDevice.h"
 
 namespace rackmon {
 

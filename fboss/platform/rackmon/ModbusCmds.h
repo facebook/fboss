@@ -3,8 +3,8 @@
 
 #include <nlohmann/json.hpp>
 #include <optional>
-#include "fboss/platform/rackmon/ModbusError.h"
-#include "fboss/platform/rackmon/Msg.h"
+#include "ModbusError.h"
+#include "Msg.h"
 
 namespace rackmon {
 

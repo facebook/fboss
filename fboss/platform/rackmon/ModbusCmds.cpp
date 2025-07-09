@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/ModbusCmds.h"
+#include "ModbusCmds.h"
 #include <algorithm>
 
 namespace rackmon {
