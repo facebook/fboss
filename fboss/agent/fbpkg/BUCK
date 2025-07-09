@@ -127,6 +127,13 @@ fboss_fbpkg_builder(
 
 fboss_fbpkg_builder(
     name = "neteng.fboss.wedge_agent_nvda",
+    buck_opts = fbpkg.buck_opts(
+        config = {
+            "fbcode.dwp": "true",
+            "fbcode.enable_distributed_thinlto": "true",
+            "fbcode.split-dwarf": "true",
+        },
+    ),
     fail_on_redundant_configerator_fbpkg = False,
     override_log_paths = [
         "fboss/agent",
@@ -134,8 +141,7 @@ fboss_fbpkg_builder(
         "neteng/fboss/tools/wrapper_scripts",
     ],
     path_actions = get_all_wedge_agent_nvda_path_actions(),
-    # TODO: fix split_debuginfo for wedge_agent_nvda
-    split_debuginfo = False,
+    split_debuginfo = True,
 )
 
 build_test_artifacts_fbpkg(product_line = ProductLine.NVIDIA_SAI_SDK)
