@@ -2350,6 +2350,11 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
+  if (getSwitchType() == cfg::SwitchType::VOQ) {
+    // SHEL callback already unregistered, hence safe to store in gracefulExit.
+    follySwitchState[kSysPortShelState] =
+        sysPortShelStateToFollyDynamicLocked(lock);
+  }
   platform_->getWarmBootHelper()->storeHwSwitchWarmBootState(follySwitchState);
   std::chrono::steady_clock::time_point wbSaiSwitchWrite =
       std::chrono::steady_clock::now();
