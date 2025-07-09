@@ -787,4 +787,18 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return SAI_SWITCH_ATTR_MODULE_ID_TO_CREDIT_REQUEST_PROFILE_PARAM_LIST;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccCorrectableError::operator()() {
+  return SAI_SWITCH_ATTR_TRIGGER_SIMULATED_ECC_CORRECTABLE_ERROR;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccUnCorrectableError::operator()() {
+  return SAI_SWITCH_ATTR_TRIGGER_SIMULATED_ECC_UNCORRECTABLE_ERROR;
+}
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
+  return SAI_SWITCH_ATTR_DEFAULT_CPU_EGRESS_BUFFER_POOL;
+}
+
 } // namespace facebook::fboss

@@ -362,4 +362,17 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccCorrectableError::operator()() {
+  return std::nullopt;
+}
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccUnCorrectableError::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss
