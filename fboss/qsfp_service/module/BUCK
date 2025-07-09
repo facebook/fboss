@@ -10,6 +10,7 @@ cpp_library(
         "QsfpUtil.cpp",
         "cmis/CmisFieldInfo.cpp",
         "cmis/CmisModule.cpp",
+        "facebook/CmisModule.cpp",
         "facebook/QsfpModule.cpp",
         "facebook/SffModule.cpp",
         "sff/Sff8472FieldInfo.cpp",

@@ -2894,7 +2894,10 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         firstModuleCapability->moduleMediaInterface);
     if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
-      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+      if (isLpoModule()) {
+        moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
+      } else if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+        // Lite Modules are not LPO modules but have a reach of 500m.
         moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
       } else {
         moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
