@@ -645,6 +645,12 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   pktObservers_.reset();
   l2LearnEventObservers_.reset();
 
+  // Unregister and reset PreUpdateStateModifiers
+  if (FLAGS_enable_ecmp_resource_manager && ecmpResourceManager_) {
+    unregisterStateModifier(ecmpResourceManager_.get());
+    ecmpResourceManager_.reset();
+  }
+
   // reset tunnel manager only after pkt thread is stopped
   // as there could be state updates in progress which will
   // access entries in tunnel manager
@@ -1338,6 +1344,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
 
         ecmpResourceManager_ = std::make_unique<EcmpResourceManager>(
             maxEcmps, 0, switchingMode, stats());
+        registerStateModifier(
+            ecmpResourceManager_.get(), "Ecmp Resource Manager");
       }
     }
   }
