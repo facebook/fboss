@@ -758,4 +758,11 @@ void AgentArsBase::verifyFwdSwitchingMode(
       { EXPECT_EVENTUALLY_EQ(getFwdSwitchingMode(prefix), switchingMode); });
 }
 
+uint32_t AgentArsBase::getMaxDlbEcmpGroups() const {
+  auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+  auto maxDlbGroups = asic->getMaxDlbEcmpGroups();
+  CHECK(maxDlbGroups.has_value());
+  return maxDlbGroups.value();
+}
+
 } // namespace facebook::fboss
