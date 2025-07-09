@@ -2963,6 +2963,15 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
+    // Recover Shel Port State from HW State
+    if (getSwitchType() == cfg::SwitchType::VOQ &&
+        switchStateJson.find(kSysPortShelState) !=
+            switchStateJson.items().end()) {
+      reconstructSysPortShelStateLocked(
+          lock,
+          switchStateJson[kSysPortShelState],
+          concurrentIndices_->sysPortShelState);
+    }
   }
   initStoreAndManagersLocked(
       lock,
