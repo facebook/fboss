@@ -379,7 +379,7 @@ class BcmPort {
       const bcm_cosq_pfc_deadlock_control_t control,
       const int value,
       const std::string& controlStr);
-  std::vector<PfcPriority> getLastConfiguredPfcPriorities();
+  std::vector<PfcPriority> getLastConfiguredPfcPriorities() const;
   void programFlowletPortQuality(std::optional<PortFlowletCfgPtr> portFlowlet);
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);
@@ -466,8 +466,6 @@ class BcmPort {
   std::atomic<int> numLanes_{0};
 
   phy::PhyInfo lastPhyInfo_;
-
-  const std::array<PfcPriority, 1> kHighFrequencyPfcPriorities{PfcPriority{2}};
 };
 
 } // namespace facebook::fboss

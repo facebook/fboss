@@ -1617,7 +1617,7 @@ void BcmPort::populateHighFrequencyPortStats(
   std::shared_ptr<Port> settings = getProgrammedSettings();
   if (settings && settings->getPfc().has_value()) {
     populateHighFrequencyPortPfcStats(
-        portStatsConfig, kHighFrequencyPfcPriorities, stats);
+        portStatsConfig, getLastConfiguredPfcPriorities(), stats);
   }
 }
 
@@ -2680,7 +2680,7 @@ void BcmPort::getProgrammedPfcWatchdogParams(
   pfcWatchdogControls[bcmCosqPFCDeadlockDetectionAndRecoveryEnable] = value;
 }
 
-std::vector<PfcPriority> BcmPort::getLastConfiguredPfcPriorities() {
+std::vector<PfcPriority> BcmPort::getLastConfiguredPfcPriorities() const {
   std::vector<PfcPriority> enabledPfcPriorities;
   auto savedPort = getProgrammedSettings();
   if (savedPort) {
