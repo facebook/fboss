@@ -1675,6 +1675,19 @@ bool SwSwitch::preUpdateModifyState(std::vector<StateDelta>& deltas) {
   return true;
 }
 
+void SwSwitch::notifyStateModifierUpdateFailed(
+    const std::shared_ptr<SwitchState>& state) {
+  for (auto [modifier, _] : stateModifiers_) {
+    modifier->updateFailed(state);
+  }
+}
+
+void SwSwitch::notifyStateModifierUpdateDone() {
+  for (auto [modifier, _] : stateModifiers_) {
+    modifier->updateDone();
+  }
+}
+
 template <typename FsdbFunc>
 void SwSwitch::runFsdbSyncFunction(FsdbFunc&& fn) {
   fsdbSyncer_.withWLock([&](auto& syncer) {
