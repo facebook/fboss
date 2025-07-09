@@ -851,9 +851,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -932,9 +929,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -1017,9 +1011,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -1098,9 +1089,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -1183,9 +1171,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -1264,9 +1249,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -1349,9 +1331,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -1430,9 +1409,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -1515,9 +1491,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -1596,9 +1569,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -1681,9 +1651,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -1762,9 +1729,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -2621,9 +2585,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -2702,9 +2663,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -2787,9 +2745,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -2868,9 +2823,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -2953,9 +2905,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -3034,9 +2983,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -3119,9 +3065,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -3200,9 +3143,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -3285,9 +3225,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -3366,9 +3303,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -3451,9 +3385,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -3532,9 +3463,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -4391,9 +4319,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -4472,9 +4397,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -4557,9 +4479,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -4638,9 +4557,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -4723,9 +4639,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -4804,9 +4717,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -4889,9 +4799,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -4970,9 +4877,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -5055,9 +4959,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -5136,9 +5037,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -5221,9 +5119,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -5302,9 +5197,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -6203,9 +6095,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -6292,9 +6181,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -6373,9 +6259,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -6464,9 +6347,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -6553,9 +6433,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -6634,9 +6511,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -6725,9 +6599,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -6814,9 +6685,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -6895,9 +6763,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -6986,9 +6851,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -7075,9 +6937,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -7156,9 +7015,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -8057,9 +7913,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -8146,9 +7999,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -8227,9 +8077,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -8318,9 +8165,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -8407,9 +8251,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -8488,9 +8329,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -8579,9 +8417,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -8668,9 +8503,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -8749,9 +8581,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -8840,9 +8669,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -8929,9 +8755,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -9010,9 +8833,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -10197,9 +10017,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10310,9 +10127,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
@@ -10423,9 +10237,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp": [
@@ -10536,9 +10347,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10649,9 +10457,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-11.7.0.0_odp/11.7.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
@@ -10762,9 +10567,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp": [
@@ -10875,9 +10677,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10988,9 +10787,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-8.2.0.0_odp/11.7.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
@@ -11101,9 +10897,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -11214,9 +11007,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11327,9 +11117,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.9.0/credo-0.9.0": [
@@ -11440,9 +11227,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -11996,12 +11780,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -12074,12 +11852,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -12156,12 +11928,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -12234,12 +12000,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -12316,12 +12076,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -12394,12 +12148,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -12476,12 +12224,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -12554,12 +12296,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.iPhyInfoTest$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -13116,9 +12852,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -13191,9 +12924,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -13270,9 +13000,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -13345,9 +13072,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -13424,9 +13148,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -13499,9 +13220,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -13578,9 +13296,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -13653,9 +13368,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -13762,9 +13474,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -13867,9 +13576,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -13976,9 +13682,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -14081,9 +13784,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -14190,9 +13890,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -14295,9 +13992,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -14404,9 +14098,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -14511,9 +14202,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -14616,9 +14304,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -14755,9 +14440,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -14890,9 +14572,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -15029,9 +14708,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -15164,9 +14840,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -15303,9 +14976,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -15438,9 +15108,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -15577,9 +15244,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -15712,9 +15376,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -15851,9 +15512,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -15983,9 +15641,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -16119,9 +15774,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -16251,9 +15903,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -16387,9 +16036,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -16519,9 +16165,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -16655,9 +16298,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -16787,9 +16427,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -16923,9 +16560,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -17057,9 +16691,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -17183,9 +16814,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -17313,9 +16941,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -17439,9 +17064,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -17569,9 +17191,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -17695,9 +17314,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -17825,9 +17441,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -17951,9 +17564,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -18081,9 +17691,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -18209,9 +17816,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -18296,9 +17900,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -18387,9 +17988,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -18474,9 +18072,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -18565,9 +18160,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -18652,9 +18244,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -18743,9 +18332,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -18830,9 +18416,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -18921,9 +18504,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -19008,9 +18588,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -19897,9 +19474,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -19981,9 +19555,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -20069,9 +19640,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -20153,9 +19721,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -20241,9 +19806,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -20325,9 +19887,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -20413,9 +19972,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -20497,9 +20053,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -20585,9 +20138,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -20669,9 +20219,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -20757,9 +20304,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -20841,9 +20385,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -21910,9 +21451,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -21982,9 +21520,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -22058,9 +21593,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -22130,9 +21662,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -22206,9 +21735,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -22278,9 +21804,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -22354,9 +21877,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -22426,9 +21946,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -23315,9 +22832,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -23399,9 +22913,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -23487,9 +22998,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -23571,9 +23079,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -23659,9 +23164,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -23743,9 +23245,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -23831,9 +23330,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -23915,9 +23411,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -24003,9 +23496,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -24087,9 +23577,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -24175,9 +23662,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -24259,9 +23743,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -25982,9 +25463,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -26075,9 +25553,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -26172,9 +25647,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -26265,9 +25737,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -26362,9 +25831,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -26455,9 +25921,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -26552,9 +26015,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -26645,9 +26105,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -26742,9 +26199,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -26835,9 +26289,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -26932,9 +26383,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -27025,9 +26473,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -27884,9 +27329,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -27965,9 +27407,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -28050,9 +27489,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -28131,9 +27567,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -28216,9 +27649,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -28297,9 +27727,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -28382,9 +27809,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -28463,9 +27887,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -28548,9 +27969,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -28629,9 +28047,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -28714,9 +28129,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -28795,9 +28207,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -29954,9 +29363,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -30065,9 +29471,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -30180,9 +29583,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -30291,9 +29691,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -30406,9 +29803,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -30517,9 +29911,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -30632,9 +30023,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -30743,9 +30131,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -30858,9 +30243,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -30969,9 +30351,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -31084,9 +30463,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -31195,9 +30571,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -33368,9 +32741,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -33470,9 +32840,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -33576,9 +32943,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -33678,9 +33042,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -33784,9 +33145,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -33886,9 +33244,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -33992,9 +33347,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -34094,9 +33446,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -34200,9 +33549,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -34302,9 +33648,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -34408,9 +33751,6 @@
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
         },
         {
-          "test_name_regex": "LacpTest.lacpFlap$"
-        },
-        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -34510,9 +33850,6 @@
         },
         {
           "test_name_regex": "CheckInit.MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LacpTest.lacpFlap$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
