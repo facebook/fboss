@@ -1810,10 +1810,16 @@ void BcmPort::populateHighFrequencyPortPfcStats(
   for (PfcPriority pfcPriority : pfcPriorities) {
     if (portStatsConfig.includePfcRx().value() &&
         portStatsConfig.includePfcTx().value()) {
-      std::vector<uint64_t> pfcStats = getMultiStats(std::array{
-          kInPfcStats.at(pfcPriority), kOutPfcStats.at(pfcPriority)});
-      stats.pfcStats()[pfcPriority].inPfc() = pfcStats.at(0);
-      stats.pfcStats()[pfcPriority].outPfc() = pfcStats.at(1);
+      std::set<bcm_stat_val_t> pfcStatTypes{
+          kInPfcStats.at(pfcPriority), kOutPfcStats.at(pfcPriority)};
+      std::map<bcm_stat_val_t, uint64_t> pfcStats{getMultiStats(pfcStatTypes)};
+      for (auto& [stat, value] : pfcStats) {
+        if (stat == kInPfcStats.at(pfcPriority)) {
+          stats.pfcStats()[pfcPriority].inPfc() = value;
+        } else if (stat == kOutPfcStats.at(pfcPriority)) {
+          stats.pfcStats()[pfcPriority].outPfc() = value;
+        }
+      }
     } else if (portStatsConfig.includePfcTx().value()) {
       stats.pfcStats()[pfcPriority].inPfc() =
           getStat(kInPfcStats.at(pfcPriority));
@@ -1899,21 +1905,26 @@ int64_t BcmPort::getStat(bcm_stat_val_t type) const {
   return stat;
 }
 
-std::vector<uint64_t> BcmPort::getMultiStats(
-    std::span<const bcm_stat_val_t> types) const {
+std::map<bcm_stat_val_t, uint64_t> BcmPort::getMultiStats(
+    const std::set<bcm_stat_val_t>& types) const {
+  std::vector<bcm_stat_val_t> typesVec(types.begin(), types.end());
   std::vector<uint64_t> stats(types.size());
   int ret = bcm_stat_sync_multi_get(
       unit_,
       port_,
-      static_cast<int>(types.size()),
-      const_cast<bcm_stat_val_t*>(types.data()),
+      static_cast<int>(typesVec.size()),
+      const_cast<bcm_stat_val_t*>(typesVec.data()),
       stats.data());
   if (BCM_FAILURE(ret)) {
     XLOG(ERR) << "Failed to get multi stats for port " << port_ << " :"
               << bcm_errmsg(ret);
     return {};
   }
-  return stats;
+  std::map<bcm_stat_val_t, uint64_t> statsMap;
+  for (int i = 0; i < typesVec.size(); ++i) {
+    statsMap[typesVec.at(i)] = stats.at(i);
+  }
+  return statsMap;
 }
 
 void BcmPort::updateInCongestionDiscardStats(

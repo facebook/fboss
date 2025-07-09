@@ -170,8 +170,8 @@ class BcmPort {
       std::span<const PfcPriority> pfcPriorities,
       HwHighFrequencyPortStats& stats) const;
   int64_t getStat(bcm_stat_val_t type) const;
-  std::vector<uint64_t> getMultiStats(
-      std::span<const bcm_stat_val_t> types) const;
+  std::map<bcm_stat_val_t, uint64_t> getMultiStats(
+      const std::set<bcm_stat_val_t>& types) const;
 
   /**
    * Take actions on this port (especially if it is up), so that it will not
