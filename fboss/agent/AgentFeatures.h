@@ -57,6 +57,7 @@ DECLARE_bool(force_init_fp);
 DECLARE_bool(flowletSwitchingEnable);
 DECLARE_bool(enable_ecmp_random_spray);
 DECLARE_bool(dlbResourceCheckEnable);
+DECLARE_bool(use_full_dlb_scale);
 DECLARE_bool(disable_neighbor_solicitation);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(detect_wrong_fabric_connections);
