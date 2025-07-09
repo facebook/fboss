@@ -7621,8 +7621,9 @@
       },
       {
         "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
-        "actionType": 1
+        "name": "cpuPolicing-high-NetworkControl-dstLocal",
+        "actionType": 1,
+        "lookupClassRoute": 1
       },
       {
         "dstIp": "fe80::/10",
@@ -7633,6 +7634,136 @@
         "dstIp": "ff02::/16",
         "name": "cpuPolicing-mid-ff02::/16",
         "actionType": 1
+      },
+      {
+        "icmpType": 133,
+        "name": "cpuPolicing-high-ndp-router-solicit",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 134,
+        "name": "cpuPolicing-high-ndp-router-advertisement",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 135,
+        "name": "cpuPolicing-high-ndp-neighbor-solicit",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 136,
+        "name": "cpuPolicing-high-ndp-neighbor-advertisement",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "icmpType": 137,
+        "name": "cpuPolicing-high-ndp-redirect",
+        "actionType": 1,
+        "ttl": {
+          "value": 255,
+          "mask": 255
+        },
+        "etherType": 34525
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
+        "actionType": 1,
+        "l4SrcPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "proto": 6,
+        "name": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
+        "actionType": 1,
+        "l4DstPort": 179,
+        "lookupClassRoute": 1,
+        "etherType": 34525
+      },
+      {
+        "name": "cpuPolicing-high-arp-request",
+        "actionType": 1,
+        "ipType": 4,
+        "etherType": 2054
+      },
+      {
+        "name": "cpuPolicing-high-arp-reply",
+        "actionType": 1,
+        "ipType": 5,
+        "etherType": 2054
+      },
+      {
+        "name": "cpuPolicing-high-lacp",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:02",
+        "etherType": 34825
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac0E",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:0e",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac03",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:03",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-lldp-dstMac00",
+        "actionType": 1,
+        "dstMac": "01:80:c2:00:00:00",
+        "etherType": 35020
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip4",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 2048
+      },
+      {
+        "name": "cpuPolicing-mid-Ip2Me-Ip6",
+        "actionType": 1,
+        "lookupClassRoute": 1,
+        "etherType": 34525
       },
       {
         "dstIp": "ff00::/8",
@@ -7732,7 +7863,7 @@
             }
           },
           {
-            "matcher": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
+            "matcher": "cpuPolicing-high-NetworkControl-dstLocal",
             "action": {
               "sendToQueue": {
                 "queueId": 7
@@ -7757,6 +7888,210 @@
           },
           {
             "matcher": "cpuPolicing-mid-ff02::/16",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-router-solicit",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-router-advertisement",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-neighbor-solicit",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-neighbor-advertisement",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-ndp-redirect",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPSrcPort-dstLocalIp4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPDstPort-dstLocalIp4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPSrcPort-dstLocalIp6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-BGPDstPort-dstLocalIp6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-arp-request",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-arp-reply",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-lacp",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-lldp-dstMac0E",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-lldp-dstMac03",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-lldp-dstMac00",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip4",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-Ip2Me-Ip6",
             "action": {
               "sendToQueue": {
                 "queueId": 2
