@@ -406,7 +406,8 @@ std::pair<strings::timeCollected, Child<::std::int64_t, ::apache::thrift::type_c
 std::pair<strings::diagCapability, ChildThriftPath<::facebook::fboss::DiagsCapability, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::fwUpgradeInProgress, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::interfaces, ChildThriftPath<::std::set<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::tcvrName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<strings::tcvrName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::lpoModule, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::TransceiverType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::TransceiverType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -430,7 +431,8 @@ std::pair<strings::tcvrName, Child<::std::string, ::apache::thrift::type_class::
    std::pair<std::integral_constant<apache::thrift::field_id_t, 24>, ChildThriftPath<::facebook::fboss::DiagsCapability, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 25>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 26>, ChildThriftPath<::std::set<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 27>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 27>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 28>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::present, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::transceiver, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -455,7 +457,8 @@ std::pair<strings::timeCollected, std::integral_constant<apache::thrift::field_i
 std::pair<strings::diagCapability, std::integral_constant<apache::thrift::field_id_t, 24>>,
 std::pair<strings::fwUpgradeInProgress, std::integral_constant<apache::thrift::field_id_t, 25>>,
 std::pair<strings::interfaces, std::integral_constant<apache::thrift::field_id_t, 26>>,
-std::pair<strings::tcvrName, std::integral_constant<apache::thrift::field_id_t, 27>>>::template type_of<Name>;
+std::pair<strings::tcvrName, std::integral_constant<apache::thrift::field_id_t, 27>>,
+std::pair<strings::lpoModule, std::integral_constant<apache::thrift::field_id_t, 28>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -485,6 +488,7 @@ std::pair<strings::tcvrName, std::integral_constant<apache::thrift::field_id_t, 
     STRUCT_CHILD_GETTERS(fwUpgradeInProgress, 25);
     STRUCT_CHILD_GETTERS(interfaces, 26);
     STRUCT_CHILD_GETTERS(tcvrName, 27);
+    STRUCT_CHILD_GETTERS(lpoModule, 28);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -512,6 +516,7 @@ std::pair<strings::tcvrName, std::integral_constant<apache::thrift::field_id_t, 
     else if constexpr (__id == 25) { return fwUpgradeInProgress(); }
     else if constexpr (__id == 26) { return interfaces(); }
     else if constexpr (__id == 27) { return tcvrName(); }
+    else if constexpr (__id == 28) { return lpoModule(); }
   }
 
   template <typename T, T... Values>

@@ -556,6 +556,7 @@ struct TcvrState {
   25: bool fwUpgradeInProgress;
   26: set<string> interfaces;
   27: string tcvrName;
+  28: bool lpoModule;
 }
 
 struct TcvrStats {
