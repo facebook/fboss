@@ -499,6 +499,26 @@ struct LaneInfo {
   12: optional i32 cdrLockChangedCount;
 }
 
+struct SerdesParameters {
+  1: i16 lane;
+  2: optional i32 rvga;
+  3: optional i32 dco;
+  4: optional i32 tpChn0;
+  5: optional i32 tpChn1;
+  6: optional i32 tpChn2;
+  7: optional i32 rxPf;
+  8: optional i32 rxFltM;
+  9: optional i32 rxFltS;
+  10: optional i32 rxTap1;
+  11: optional i32 rxTap2;
+  12: optional i32 rxEq3;
+  13: optional i32 rxEq2;
+  14: optional i32 rxEq1;
+  15: optional i32 rxEqM;
+  16: optional i32 rxEqP1;
+  17: optional i32 rxEqP2;
+}
+
 struct LaneState {
   1: i16 lane;
   2: optional bool signalDetectLive;
@@ -507,6 +527,7 @@ struct LaneState {
   5: optional bool cdrLockChanged;
   6: TxSettings txSettings;
   7: optional i16 rxFrequencyPPM;
+  8: SerdesParameters serdesParameters;
 }
 
 struct LaneStats {
