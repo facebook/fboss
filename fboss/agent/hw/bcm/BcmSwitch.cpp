@@ -4342,17 +4342,18 @@ HwResourceStats BcmSwitch::getResourceStats() const {
   return bcmStatUpdater_->getHwTableStats();
 }
 
-HwHighFrequencyStats BcmSwitch::zeroTimestamp(
+HwHighFrequencyStats BcmSwitch::zeroHighFrequencyStatsTimestamp(
     const HwHighFrequencyStats& stats) {
   HwHighFrequencyStats zeroed = stats;
   zeroed.timestampUs() = 0;
   return zeroed;
 }
 
-bool BcmSwitch::highFrequencyStatsEquals(
+bool BcmSwitch::hasHighFrequencyStatsChanged(
     const HwHighFrequencyStats& statsA,
     const HwHighFrequencyStats& statsB) {
-  return zeroTimestamp(statsA) == zeroTimestamp(statsB);
+  return zeroHighFrequencyStatsTimestamp(statsA) ==
+      zeroHighFrequencyStatsTimestamp(statsB);
 }
 
 void BcmSwitch::collectHighFrequencyStats() {
@@ -4365,7 +4366,8 @@ void BcmSwitch::collectHighFrequencyStats() {
       HwHighFrequencyStats stats = getHighFrequencyStats();
       {
         auto wlock = highFreqStatsData_.wlock();
-        if (wlock->empty() || !highFrequencyStatsEquals(wlock->back(), stats)) {
+        if (wlock->empty() ||
+            !hasHighFrequencyStatsChanged(wlock->back(), stats)) {
           if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
             wlock->pop_front();
           }

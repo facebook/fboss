@@ -1241,8 +1241,9 @@ class BcmSwitch : public BcmSwitchIf {
       "HighFrequencyStatsThread"};
   static constexpr std::string_view kHighFreqStatsFunctionName_{
       "collectHighFrequencyStats"};
-  static HwHighFrequencyStats zeroTimestamp(const HwHighFrequencyStats& stats);
-  static bool highFrequencyStatsEquals(
+  static HwHighFrequencyStats zeroHighFrequencyStatsTimestamp(
+      const HwHighFrequencyStats& stats);
+  static bool hasHighFrequencyStatsChanged(
       const HwHighFrequencyStats& a,
       const HwHighFrequencyStats& b);
   void collectHighFrequencyStats();
