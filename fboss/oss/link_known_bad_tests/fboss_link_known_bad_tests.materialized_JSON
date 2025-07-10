@@ -26615,6 +26615,9 @@
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
         },
         {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -26675,6 +26678,9 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -26739,6 +26745,9 @@
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
         },
         {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -26799,6 +26808,9 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -26863,6 +26875,9 @@
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
         },
         {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -26923,6 +26938,9 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -26987,6 +27005,9 @@
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
         },
         {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -27047,6 +27068,9 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -27111,6 +27135,9 @@
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
         },
         {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -27171,6 +27198,9 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
@@ -27235,6 +27265,9 @@
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
         },
         {
+          "test_name_regex": "Prbs.*TCVR.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
@@ -27295,6 +27328,9 @@
         },
         {
           "test_name_regex": "Prbs.*TRANSCEIVER.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TCVR.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
