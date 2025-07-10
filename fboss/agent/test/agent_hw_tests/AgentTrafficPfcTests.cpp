@@ -799,21 +799,18 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
           getAgentEnsemble(), txOffPortId, false);
-      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
-      validatePfcCounterIncrement(port, kLosslessPriority);
-    }
-  }
 
-  void validatePfcCounterIncrement(const PortID& port, const int pfcPriority) {
-    // CS00012381334 - MAC loopback doesn't work on TH5 and Rx PFC counters
-    // doesn't increase. Tx counters should work for all platforms.
-    int txPfcCtrOld =
-        folly::get_default(*getLatestPortStats(port).outPfc_(), pfcPriority, 0);
-    WITH_RETRIES_N_TIMED(3, std::chrono::milliseconds(1000), {
-      int txPfcCtrNew = folly::get_default(
-          *getLatestPortStats(port).outPfc_(), pfcPriority, 0);
-      EXPECT_EVENTUALLY_GT(txPfcCtrNew, txPfcCtrOld);
-    });
+      // CS00012381334 - MAC loopback doesn't work on TH5 and Rx PFC counters
+      // doesn't increase. Tx counters should work for all platforms.
+      auto txPfcCtrOld = folly::get_default(
+          *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
+      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
+      WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+        auto txPfcCtrNew = folly::get_default(
+            *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
+        EXPECT_EVENTUALLY_GT(txPfcCtrNew, txPfcCtrOld);
+      });
+    }
   }
 
   std::tuple<int, int> getPfcDeadlockCounters(const PortID& portId) {
