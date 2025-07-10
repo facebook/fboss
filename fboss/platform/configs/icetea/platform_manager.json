@@ -1595,12 +1595,6 @@
           "pmUnitScopedName": "PWR_BRICK_INLET_TSENSOR"
         },
         {
-          "busName": "MCB_IOB_I2C_MASTER_13",
-          "address": "0x4e",
-          "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "COME_OUTLET_TSENSOR"
-        },
-        {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x33",
           "kernelDeviceName": "icetea_fancpld",
@@ -1630,12 +1624,6 @@
           "address": "0x4d",
           "kernelDeviceName": "lm75b",
           "pmUnitScopedName": "MCB_TSENSOR1"
-        },
-        {
-          "busName": "MCB_IOB_I2C_MASTER_22",
-          "address": "0x4f",
-          "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "MCB_TSENSOR2"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_24",
@@ -1687,7 +1675,7 @@
             "MCB_IOB_I2C_MASTER_19",
             "MCB_IOB_I2C_MASTER_20",
             "MCB_IOB_I2C_MASTER_23",
-            "MCB_IOB_I2C_MASTER_27"
+            "MCB_IOB_I2C_MASTER_26"
           ]
         },
         "PIC_SLOT@0": {
@@ -1844,18 +1832,6 @@
           "pmUnitScopedName": "PIC_CPLD"
         },
         {
-          "busName": "INCOMING@2",
-          "address": "0x66",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PIC_XP3R3V_L_MONITOR"
-        },
-        {
-          "busName": "INCOMING@2",
-          "address": "0x70",
-          "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "PIC_XP3R3V_R_MONITOR"
-        },
-        {
           "busName": "INCOMING@1",
           "address": "0x1f",
           "kernelDeviceName": "adc128d818",
@@ -1880,6 +1856,18 @@
           "address": "0x49",
           "kernelDeviceName": "lm75b",
           "pmUnitScopedName": "PIC_TSENSOR_2"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x66",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PIC_XP3R3V_L_MONITOR"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x70",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PIC_XP3R3V_R_MONITOR"
         }
       ]
     },
@@ -2027,7 +2015,6 @@
     "/run/devmap/sensors/MCB_PMBUS_2": "/[MCB_PMBUS_2]",
     "/run/devmap/sensors/COME_INLET_TSENSOR": "/[COME_INLET_TSENSOR]",
     "/run/devmap/sensors/PWR_BRICK_INLET_TSENSOR": "/[PWR_BRICK_INLET_TSENSOR]",
-    "/run/devmap/sensors/COME_OUTLET_TSENSOR": "/[COME_OUTLET_TSENSOR]",
     "/run/devmap/sensors/MCB_FAN_CPLD": "/[MCB_FAN_CPLD]",
     "/run/devmap/sensors/MCB_LOAD_SWITCH_MONITOR": "/[MCB_LOAD_SWITCH_MONITOR]",
     "/run/devmap/sensors/FCB_VOLTAGE_MONITOR1": "/FCB_SLOT@0/[FCB_VOLTAGE_MONITOR1]",
@@ -2038,7 +2025,6 @@
     "/run/devmap/sensors/MCB_ADC1_MONITOR": "/[MCB_ADC1_MONITOR]",
     "/run/devmap/sensors/MCB_ADC2_MONITOR": "/[MCB_ADC2_MONITOR]",
     "/run/devmap/sensors/MCB_TSENSOR1": "/[MCB_TSENSOR1]",
-    "/run/devmap/sensors/MCB_TSENSOR2": "/[MCB_TSENSOR2]",
     "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[RUNBMC_THERMAL_SENSOR]",
     "/run/devmap/sensors/PIC_XP3R3V_L_MONITOR": "/PIC_SLOT@0/[PIC_XP3R3V_L_MONITOR]",
     "/run/devmap/sensors/PIC_XP3R3V_R_MONITOR": "/PIC_SLOT@0/[PIC_XP3R3V_R_MONITOR]",
