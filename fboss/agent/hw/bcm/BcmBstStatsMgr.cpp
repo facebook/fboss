@@ -8,6 +8,10 @@
  *
  */
 
+#include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
+
+#include <algorithm>
+
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
@@ -61,20 +65,57 @@ void BcmBstStatsMgr::syncStats() const {
   }
 }
 
-void BcmBstStatsMgr::syncHighFrequencyStats() const {
-  auto rv = bcm_cosq_bst_stat_sync(
-      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
-  bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
+void BcmBstStatsMgr::syncHighFrequencyStats(
+    const HfStatsConfig& statsConfig) const {
+  if (statsConfig.includeDeviceWatermark().value()) {
+    int rv = bcm_cosq_bst_stat_sync(
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
+  }
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
   }
   // All the below are PG related and available on platforms supporting PFC
-  rv = bcm_cosq_bst_stat_sync(
-      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared);
-  bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupShared stat");
-  rv = bcm_cosq_bst_stat_sync(
-      hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
-  bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
+  bool syncPg{false};
+  bool syncQueue{false};
+  switch (statsConfig.portStatsConfig()->getType()) {
+    case HfPortStatsConfig::Type::allPortsConfig: {
+      syncPg = statsConfig.portStatsConfig()
+                   ->allPortsConfig()
+                   ->includePgWatermark()
+                   .value();
+      syncQueue = statsConfig.portStatsConfig()
+                      ->allPortsConfig()
+                      ->includeQueueWatermark()
+                      .value();
+      break;
+    }
+    case HfPortStatsConfig::Type::filterConfig: {
+      syncPg = std::ranges::any_of(
+          statsConfig.portStatsConfig()->filterConfig().value(),
+          [](const auto& portConfig) {
+            return portConfig.second.includePgWatermark().value();
+          });
+      syncQueue = std::ranges::any_of(
+          statsConfig.portStatsConfig()->filterConfig().value(),
+          [](const auto& portConfig) {
+            return portConfig.second.includeQueueWatermark().value();
+          });
+      break;
+    }
+    default:
+      break;
+  }
+  if (syncPg) {
+    int rv = bcm_cosq_bst_stat_sync(
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdPriGroupShared stat");
+  }
+  if (syncQueue) {
+    int rv = bcm_cosq_bst_stat_sync(
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
+  }
 }
 
 void BcmBstStatsMgr::getAndPublishDeviceWatermark() {
@@ -316,7 +357,7 @@ void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
 void BcmBstStatsMgr::populateHighFrequencyBstStats(
     const HfStatsConfig& statsConfig,
     HwHighFrequencyStats& stats) const {
-  syncHighFrequencyStats();
+  syncHighFrequencyStats(statsConfig);
   switch (statsConfig.portStatsConfig()->getType()) {
     case HfPortStatsConfig::Type::allPortsConfig: {
       for (const auto& [portId, bcmPort] : *hw_->getPortTable()) {
