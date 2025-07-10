@@ -360,6 +360,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
     case MediaInterfaceCode::FR4_LITE_2x400G:
+    case MediaInterfaceCode::FR4_LPO_2x400G:
     case MediaInterfaceCode::DR4_400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
@@ -396,6 +397,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::CR8_400G:
     case MediaInterfaceCode::FR4_2x400G:
     case MediaInterfaceCode::FR4_LITE_2x400G:
+    case MediaInterfaceCode::FR4_LPO_2x400G:
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
@@ -561,6 +563,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (diagCapability.has_value()) {
       tcvrState.diagCapability() = diagCapability.value();
     }
+    tcvrState.lpoModule() = isLpoModule();
   }
 
   tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;

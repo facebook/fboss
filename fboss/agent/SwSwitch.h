@@ -81,6 +81,7 @@ class NeighborUpdater;
 class PacketLogger;
 class RouteUpdateLogger;
 class StateObserver;
+class PreUpdateStateModifier;
 class TunManager;
 class MirrorManager;
 class PhySnapshotManager;
@@ -417,6 +418,11 @@ class SwSwitch : public HwSwitchCallback {
   void registerStateObserver(StateObserver* observer, const std::string& name)
       override;
   void unregisterStateObserver(StateObserver* observer) override;
+
+  void registerStateModifier(
+      PreUpdateStateModifier* modifier,
+      const std::string& name);
+  void unregisterStateModifier(PreUpdateStateModifier* modifier);
 
   /*
    * Signal to the switch that initial config is applied.
@@ -1084,6 +1090,16 @@ class SwSwitch : public HwSwitchCallback {
    */
   void notifyStateObservers(const StateDelta& delta);
 
+  /*
+   * Invoke State modifier to modify state prior to update.
+   */
+  bool preUpdateModifyState(std::vector<StateDelta>& deltas);
+
+  void notifyStateModifierUpdateFailed(
+      const std::shared_ptr<SwitchState>& state);
+
+  void notifyStateModifierUpdateDone();
+
   void logLinkStateEvent(PortID port, bool up);
 
   void logSwitchRunStateChange(
@@ -1301,6 +1317,7 @@ class SwSwitch : public HwSwitchCallback {
   std::map<StateObserver*, std::string> stateObservers_;
   std::unique_ptr<PacketObservers> pktObservers_;
   std::unique_ptr<L2LearnEventObservers> l2LearnEventObservers_;
+  std::unordered_map<PreUpdateStateModifier*, std::string> stateModifiers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;

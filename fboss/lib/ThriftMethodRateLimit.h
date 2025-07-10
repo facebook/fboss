@@ -22,30 +22,30 @@ class ThriftMethodRateLimit {
    * and record it to ods.
    */
  public:
+  using PopulateCounterFunc = std::function<void(
+      const std::string& /*method name*/,
+      uint64_t /*method deny count*/,
+      uint64_t /*agg deny count*/)>;
+
   explicit ThriftMethodRateLimit(
       const std::map<std::string, double>& methood2QpsLimit,
-      bool shadowMode = false) {
+      bool shadowMode = false,
+      const PopulateCounterFunc& populateCounterFunc = nullptr) {
     for (const auto& it : methood2QpsLimit) {
       method2QpsLimitAndTokenBucket_.emplace(
           it.first, std::make_pair(it.second, folly::DynamicTokenBucket(0)));
       method2DenyCounter_[it.first] = 0;
     }
     shadowMode_ = shadowMode;
+    populateCounterFunc_ = populateCounterFunc;
     aggDenyCounter_ = 0;
   }
 
   bool isQpsLimitExceeded(const std::string& method);
+  void incrementDenyCounter(const std::string& method);
   double getQpsLimit(const std::string& method);
   bool getShadowMode() {
     return shadowMode_;
-  }
-  void incrementDenyCounter(const std::string& method) {
-    auto it = method2DenyCounter_.find(method);
-    if (it == method2DenyCounter_.end()) {
-      return;
-    }
-    it->second.fetch_add(1, std::memory_order_relaxed);
-    aggDenyCounter_.fetch_add(1, std::memory_order_relaxed);
   }
   uint64_t getDenyCounter(const std::string& method) {
     auto it = method2DenyCounter_.find(method);
@@ -66,6 +66,7 @@ class ThriftMethodRateLimit {
   std::unordered_map<std::string, std::atomic<uint64_t>> method2DenyCounter_;
   std::atomic<uint64_t> aggDenyCounter_;
   bool shadowMode_;
+  PopulateCounterFunc populateCounterFunc_{nullptr};
 };
 
 } // namespace facebook::fboss

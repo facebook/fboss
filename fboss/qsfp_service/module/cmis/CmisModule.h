@@ -302,7 +302,7 @@ class CmisModule : public QsfpModule {
   /*
    * Gather the vendor info for thrift queries
    */
-  Vendor getVendorInfo() override;
+  Vendor getVendorInfo() const override;
   /*
    * Gather the cable info for thrift queries
    */
@@ -655,6 +655,9 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
+
+  // Returns true if the current module is LPO
+  bool isLpoModule() const override;
 
   std::time_t vdmIntervalStartTime_{0};
 };

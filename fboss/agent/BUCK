@@ -279,6 +279,8 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//fb303:export_type",
+        "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
         "//folly:network_address",
         "//folly/io/async:async_base",
@@ -748,6 +750,7 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":fib_helpers",
+        ":pre_update_state_modifier",
         ":stats",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
@@ -1441,6 +1444,19 @@ cpp_library(
     name = "state_observer",
     headers = [
         "StateObserver.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
+    name = "pre_update_state_modifier",
+    headers = [
+        "PreUpdateStateModifier.h",
     ],
     exported_deps = [
         "//fboss/agent/state:state",

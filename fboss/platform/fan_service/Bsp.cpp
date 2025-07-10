@@ -207,6 +207,7 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
         break;
       case MediaInterfaceCode::FR4_2x400G:
       case MediaInterfaceCode::FR4_LITE_2x400G:
+      case MediaInterfaceCode::FR4_LPO_2x400G:
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::FR8_800G:
       case MediaInterfaceCode::LR4_2x400G_10KM:

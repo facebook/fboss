@@ -9,12 +9,14 @@
  */
 #pragma once
 
+#include <deque>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <thread>
 
 #include <boost/container/flat_map.hpp>
+#include <folly/Synchronized.h>
 #include <folly/executors/FunctionScheduler.h>
 #include <folly/json/dynamic.h>
 #include <gtest/gtest_prod.h>
@@ -675,6 +677,9 @@ class BcmSwitch : public BcmSwitchIf {
   void startHighFrequencyStatsThread(
       const HighFrequencyStatsCollectionConfig& config);
   void stopHighFrequencyStatsThread();
+  void getHighFrequencyTimeseriesStats(
+      std::vector<HwHighFrequencyStats>& stats,
+      const std::unique_ptr<GetHighFrequencyStatsOptions>& options) const;
 
  private:
   enum Flags : uint32_t {
@@ -1236,11 +1241,17 @@ class BcmSwitch : public BcmSwitchIf {
       "HighFrequencyStatsThread"};
   static constexpr std::string_view kHighFreqStatsFunctionName_{
       "collectHighFrequencyStats"};
+  static HwHighFrequencyStats zeroTimestamp(const HwHighFrequencyStats& stats);
+  static bool highFrequencyStatsEquals(
+      const HwHighFrequencyStats& a,
+      const HwHighFrequencyStats& b);
   void collectHighFrequencyStats();
   HighFrequencyStatsCollectionConfig highFreqStatsThreadConfig_{};
   static constexpr int64_t kHfMinWaitDurationUs_{20000};
   static constexpr int64_t kHfMaxCollectionDurationUs_{10000000};
   std::unique_ptr<folly::FunctionScheduler> highFreqStatsThread_;
+  constexpr static int kHighFreqStatsDataMaxSize_{1024};
+  folly::Synchronized<std::deque<HwHighFrequencyStats>> highFreqStatsData_{};
   /*
    * Lock to synchronize access to all BCM* data structures
    */

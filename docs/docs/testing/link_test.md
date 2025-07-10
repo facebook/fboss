@@ -9,7 +9,7 @@ During platform bring-up, the agent hardware tests and QSFP hardware tests are t
 
 ## Topology
 
-Link Tests are conducted on a snake topology as defined in the [Link Test Topology document](https://facebook.github.io/fboss/docs/testing/qsfp_and_link_test_topology/).
+Link Tests are conducted on a snake topology as defined in the [Link Test Topology document](/docs/testing/qsfp_and_link_test_topology/).
 
 ## Test Cases
 
@@ -28,9 +28,8 @@ Link Tests include the following scenarios:
 1. **Build Link Test Topology**: Set up the physical topology required for the tests.
 2. **Generate Agent Config**: Create the agent configuration based on the cable connections.
 3. **Generate QSFP Config**: Prepare the QSFP configuration.
-4. **Build FBOSS qsfp_service Binary**: Compile the `qsfp_service` binary.
-5. **Build FBOSS link_test Binary**: Compile the `link_test` binary.
-6. **Bring up QSFP Service on Standalone Device**: Start the QSFP service on the device.
-7. **Run Link Test Binary**: Execute the link test binary and verify that all tests pass.
+4. **Build FBOSS qsfp_service and link_test Binaries**: Compile the `qsfp_service` and `link_test` binaries by following instructions on the [build page](/docs/build/building_fboss_on_docker_containers/).
+5. **Bring up QSFP Service on Standalone Device**: Start the QSFP service on the device.
+6. **Run Link Test Binary**: Execute the link test binary and verify that all tests pass.
 
 By following these steps, you can ensure that the integration between the ASIC, transceivers, and the software services is functioning correctly and that the links are reliable.

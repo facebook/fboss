@@ -464,7 +464,7 @@ std::string Sff8472Module::getSfpString(Sff8472Field field) const {
   return validateQsfpString(value) ? value : "UNKNOWN";
 }
 
-Vendor Sff8472Module::getVendorInfo() {
+Vendor Sff8472Module::getVendorInfo() const {
   Vendor vendor = Vendor();
   vendor.name() = getSfpString(Sff8472Field::VENDOR_NAME);
   vendor.oui() = getSfpString(Sff8472Field::VENDOR_OUI);

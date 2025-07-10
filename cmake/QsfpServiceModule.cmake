@@ -27,6 +27,7 @@ add_library(qsfp_module STATIC
   fboss/qsfp_service/module/sff/SffModule.cpp
   fboss/qsfp_service/module/sff/Sff8472Module.cpp
   fboss/qsfp_service/module/sff/Sff8472FieldInfo.cpp
+  fboss/qsfp_service/module/oss/CmisModule.cpp
   fboss/qsfp_service/module/oss/SffModule.cpp
   fboss/qsfp_service/module/cmis/CmisFieldInfo.cpp
   fboss/qsfp_service/module/cmis/CmisModule.cpp

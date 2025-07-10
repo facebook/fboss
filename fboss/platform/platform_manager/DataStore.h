@@ -87,10 +87,10 @@ class DataStore {
       const FbossEepromInterface& contents);
 
   // Get eeprom contents at a given SlotPath.
-  FbossEepromInterface getEepromContents(const std::string& devicePath);
+  FbossEepromInterface getEepromContents(const std::string& devicePath) const;
 
   // Returns true if eeprom contents have been stored at the given DevicePath.
-  bool hasEepromContents(const std::string& devicePath);
+  bool hasEepromContents(const std::string& devicePath) const;
 
   std::map<std::string, PmUnitInfo> getSlotPathToPmUnitInfo() const;
 

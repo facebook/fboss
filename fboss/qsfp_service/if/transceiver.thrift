@@ -227,6 +227,7 @@ enum MediaInterfaceCode {
   DR4_800G = 22,
   DR4_2x800G = 23,
   DR1_200G = 24,
+  FR4_LPO_2x400G = 25,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -555,6 +556,7 @@ struct TcvrState {
   25: bool fwUpgradeInProgress;
   26: set<string> interfaces;
   27: string tcvrName;
+  28: bool lpoModule;
 }
 
 struct TcvrStats {

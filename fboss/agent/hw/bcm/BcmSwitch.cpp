@@ -9,7 +9,9 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include <algorithm>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -21,6 +23,7 @@
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
+#include <folly/Synchronized.h>
 #include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
 
@@ -3201,6 +3204,11 @@ HwHighFrequencyStats BcmSwitch::getHighFrequencyStats() {
   stats.timestampUs() = std::chrono::duration_cast<std::chrono::microseconds>(
                             std::chrono::steady_clock::now().time_since_epoch())
                             .count();
+  portTable_->populateHighFrequencyPortStats(
+      highFreqStatsThreadConfig_.statsConfig()->portStatsConfig().value(),
+      *stats.portStats());
+  bstStatsMgr_->populateHighFrequencyBstStats(
+      highFreqStatsThreadConfig_.statsConfig().value(), stats);
   return stats;
 }
 
@@ -4334,13 +4342,40 @@ HwResourceStats BcmSwitch::getResourceStats() const {
   return bcmStatUpdater_->getHwTableStats();
 }
 
+HwHighFrequencyStats BcmSwitch::zeroTimestamp(
+    const HwHighFrequencyStats& stats) {
+  HwHighFrequencyStats zeroed = stats;
+  zeroed.timestampUs() = 0;
+  return zeroed;
+}
+
+bool BcmSwitch::highFrequencyStatsEquals(
+    const HwHighFrequencyStats& statsA,
+    const HwHighFrequencyStats& statsB) {
+  return zeroTimestamp(statsA) == zeroTimestamp(statsB);
+}
+
 void BcmSwitch::collectHighFrequencyStats() {
   auto endTime = std::chrono::steady_clock::now() +
       std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
                                     ->statsCollectionDurationInMicroseconds()
                                     .value());
   while (std::chrono::steady_clock::now() < endTime) {
-    HwHighFrequencyStats stats = getHighFrequencyStats();
+    for (int i = 0; i < 2; ++i) {
+      HwHighFrequencyStats stats = getHighFrequencyStats();
+      {
+        auto wlock = highFreqStatsData_.wlock();
+        if (wlock->empty() || !highFrequencyStatsEquals(wlock->back(), stats)) {
+          if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
+            wlock->pop_front();
+          }
+          wlock->emplace_back(std::move(stats));
+        }
+      }
+    }
+    if (std::chrono::steady_clock::now() >= endTime) {
+      break;
+    }
     std::this_thread::sleep_for(
         std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
                                       ->statsWaitDurationInMicroseconds()
@@ -4378,6 +4413,41 @@ void BcmSwitch::startHighFrequencyStatsThread(
 void BcmSwitch::stopHighFrequencyStatsThread() {
   std::lock_guard<std::mutex> lock(lock_);
   highFreqStatsThread_->shutdown();
+}
+
+void BcmSwitch::getHighFrequencyTimeseriesStats(
+    std::vector<HwHighFrequencyStats>& stats,
+    const std::unique_ptr<GetHighFrequencyStatsOptions>& options) const {
+  {
+    auto rlock = highFreqStatsData_.rlock();
+    auto begin = rlock->begin();
+    auto end = rlock->end();
+    if (options->beginTimestampUs().has_value()) {
+      begin = std::lower_bound(
+          begin,
+          end,
+          options->beginTimestampUs().value(),
+          [](const HwHighFrequencyStats& stats, int64_t timestamp) {
+            return stats.timestampUs().value() < timestamp;
+          });
+    }
+    if (options->endTimestampUs().has_value()) {
+      end = std::upper_bound(
+          begin,
+          end,
+          options->endTimestampUs().value(),
+          [](int64_t timestamp, const HwHighFrequencyStats& stats) {
+            return timestamp <= stats.timestampUs().value();
+          });
+    }
+    int64_t length{std::min(
+        std::distance(begin, end), std::max(options->limit().value(), 0l))};
+    if (options->beginTimestampUs().has_value()) {
+      stats = std::vector<HwHighFrequencyStats>(begin, begin + length);
+    } else {
+      stats = std::vector<HwHighFrequencyStats>(end - length, end);
+    }
+  }
 }
 
 } // namespace facebook::fboss

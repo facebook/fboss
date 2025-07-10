@@ -169,9 +169,9 @@ class BcmPort {
       const HfPortStatsCollectionConfig& portStatsConfig,
       std::span<const PfcPriority> pfcPriorities,
       HwHighFrequencyPortStats& stats) const;
-  int64_t getHighFrequencyStat(bcm_stat_val_t type) const;
-  std::vector<uint64_t> getMultiHighFrequencyStats(
-      std::span<const bcm_stat_val_t> types) const;
+  int64_t getStat(bcm_stat_val_t type) const;
+  std::map<bcm_stat_val_t, uint64_t> getMultiStats(
+      const std::set<bcm_stat_val_t>& types) const;
 
   /**
    * Take actions on this port (especially if it is up), so that it will not
@@ -379,7 +379,7 @@ class BcmPort {
       const bcm_cosq_pfc_deadlock_control_t control,
       const int value,
       const std::string& controlStr);
-  std::vector<PfcPriority> getLastConfiguredPfcPriorities();
+  std::vector<PfcPriority> getLastConfiguredPfcPriorities() const;
   void programFlowletPortQuality(std::optional<PortFlowletCfgPtr> portFlowlet);
 
   void setTxSetting(const std::shared_ptr<Port>& swPort);
@@ -466,8 +466,6 @@ class BcmPort {
   std::atomic<int> numLanes_{0};
 
   phy::PhyInfo lastPhyInfo_;
-
-  const std::array<PfcPriority, 1> kHighFrequencyPfcPriorities{PfcPriority{2}};
 };
 
 } // namespace facebook::fboss

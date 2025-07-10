@@ -44,6 +44,7 @@ cpp_binary(
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-default",
+        "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly/gen:base",
         "//folly/init:init",
     ],

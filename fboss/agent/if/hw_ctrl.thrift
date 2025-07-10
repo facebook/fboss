@@ -5,6 +5,7 @@ namespace py neteng.fboss.hw_ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.hw_ctrl
 
+include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
@@ -164,4 +165,8 @@ service FbossHwCtrl {
   void stopHighFrequencyStatsCollection() throws (
     1: fboss.FbossBaseError error,
   );
+
+  list<hardware_stats.HwHighFrequencyStats> getHighFrequencyStats(
+    1: highfreq.GetHighFrequencyStatsOptions options,
+  ) throws (1: fboss.FbossBaseError error);
 }

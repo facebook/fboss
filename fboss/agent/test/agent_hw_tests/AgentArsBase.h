@@ -82,6 +82,7 @@ class AgentArsBase : public AgentHwTest {
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
       cfg::SwitchingMode switchingMode) const;
+  uint32_t getMaxDlbEcmpGroups() const;
 
  protected:
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};

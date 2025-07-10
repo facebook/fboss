@@ -27,7 +27,6 @@
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
-#include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 

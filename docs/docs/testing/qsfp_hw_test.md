@@ -39,7 +39,10 @@ The QSFP hardware tests cover various aspects of the transceivers, including:
 - BSP Kmods loaded
 - Switch cabled per QSFP/Link Test Topology guidelines
 - QSFP Test Config created per cabled topology
+- Compiled QSFP hardware tests
+    - Follow the instructions on the [build page](/docs/build/building_fboss_on_docker_containers).
+    - When running the build step, you can pass this optional flag to save time: `--cmake-target qsfp_hw_test`
 
 ## Command to Run QSFP Hardware Tests
 
-Refer to this [documentation](https://facebook.github.io/fboss/docs/build/packaging_and_running_fboss_hw_tests_on_switch/#qsfp-hardware-tests).
+Refer to this [documentation](/docs/build/packaging_and_running_fboss_hw_tests_on_switch/#qsfp-hardware-tests).

@@ -40,6 +40,7 @@ add_fbthrift_cpp_library(
   DEPENDS
    platform_manager_snapshot_cpp2
    platform_manager_config_cpp2
+   weutil_eeprom_contents_cpp2
 )
 
 add_library(platform_manager_i2c_explorer

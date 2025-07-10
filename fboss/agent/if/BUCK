@@ -281,6 +281,7 @@ thrift_library(
         ":fboss",
         ":highfreq",
         "//fboss/agent:switch_state",
+        "//fboss/agent/hw:hardware_stats",
         "//fboss/lib/phy:phy",
         "//fboss/lib/phy:prbs",
     ],

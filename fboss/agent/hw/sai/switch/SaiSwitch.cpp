@@ -2350,6 +2350,11 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
+  if (getSwitchType() == cfg::SwitchType::VOQ) {
+    // SHEL callback already unregistered, hence safe to store in gracefulExit.
+    follySwitchState[kSysPortShelState] =
+        sysPortShelStateToFollyDynamicLocked(lock);
+  }
   platform_->getWarmBootHelper()->storeHwSwitchWarmBootState(follySwitchState);
   std::chrono::steady_clock::time_point wbSaiSwitchWrite =
       std::chrono::steady_clock::now();
@@ -2957,6 +2962,15 @@ HwInitResult SaiSwitch::initLocked(
         switchStateJson[kHwSwitch].items().end()) {
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
+    }
+    // Recover Shel Port State from HW State
+    if (getSwitchType() == cfg::SwitchType::VOQ &&
+        switchStateJson.find(kSysPortShelState) !=
+            switchStateJson.items().end()) {
+      reconstructSysPortShelStateLocked(
+          lock,
+          switchStateJson[kSysPortShelState],
+          concurrentIndices_->sysPortShelState);
     }
   }
   initStoreAndManagersLocked(
@@ -3893,6 +3907,29 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
   hwSwitch[kAdapterKey2AdapterHostKey] =
       saiStore_->adapterKeys2AdapterHostKeysFollyDynamic();
   return hwSwitch;
+}
+
+folly::dynamic SaiSwitch::sysPortShelStateToFollyDynamicLocked(
+    const std::lock_guard<std::mutex>& /* lock */) const {
+  folly::dynamic shelState = folly::dynamic::object;
+  for (const auto& [sysPortId, portState] :
+       std::as_const(concurrentIndices().sysPortShelState)) {
+    shelState[folly::to<std::string>(sysPortId)] = static_cast<int>(portState);
+  }
+  return shelState;
+}
+
+void SaiSwitch::reconstructSysPortShelStateLocked(
+    const std::lock_guard<std::mutex>& /* lock */,
+    const folly::dynamic& shelStateJson,
+    folly::ConcurrentHashMap<SystemPortID, cfg::PortState>& sysPortShelState) {
+  for (const auto& [sysPortId, portState] : shelStateJson.items()) {
+    auto sysPortIdInt = sysPortId.asInt();
+    auto portStateInt = portState.asInt();
+    sysPortShelState.insert_or_assign(
+        static_cast<SystemPortID>(sysPortIdInt),
+        static_cast<cfg::PortState>(portStateInt));
+  }
 }
 
 bool SaiSwitch::isFullyInitialized() const {

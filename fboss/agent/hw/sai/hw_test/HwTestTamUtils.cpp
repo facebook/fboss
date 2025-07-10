@@ -89,6 +89,19 @@ void triggerCiscoParityError(HwSwitchEnsemble* ensemble) {
         switchId, initiateError);
   }
 }
+
+void triggerChenabParityError(HwSwitchEnsemble* ensemble) {
+  XLOG(INFO) << "Triggering Correctable Parity Error";
+  SaiSwitchEnsemble* saiEnsemble = static_cast<SaiSwitchEnsemble*>(ensemble);
+  if (SaiSwitchTraits::Attributes::TriggerSimulatedEccCorrectableError::
+          AttributeId()()) {
+    SaiSwitchTraits::Attributes::TriggerSimulatedEccCorrectableError
+        initiateError{true};
+    auto switchId = static_cast<SwitchSaiId>(saiEnsemble->getSdkSwitchId());
+    SaiApiTable::getInstance()->switchApi().setAttribute(
+        switchId, initiateError);
+  }
+}
 } // namespace
 
 namespace utility {
@@ -99,9 +112,9 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case cfg::AsicType::ASIC_TYPE_CHENAB:
       XLOG(FATAL) << "Unsupported HwAsic: "
                   << ensemble->getPlatform()->getAsic()->getAsicTypeStr();
+      break;
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       triggerBcmRamonParityError(ensemble);
@@ -124,6 +137,9 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
       triggerBcmJericho3ParityError(ensemble);
+      break;
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+      triggerChenabParityError(ensemble);
       break;
   }
 }

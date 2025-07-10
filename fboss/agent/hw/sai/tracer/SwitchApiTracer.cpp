@@ -162,6 +162,9 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, AsicRevision);
   SAI_EXT_ATTR_MAP(Switch, CreditRequestProfileSchedulerMode);
   SAI_EXT_ATTR_MAP(Switch, ModuleIdToCreditRequestProfileParamList);
+  SAI_EXT_ATTR_MAP(Switch, TriggerSimulatedEccCorrectableError)
+  SAI_EXT_ATTR_MAP(Switch, TriggerSimulatedEccUnCorrectableError)
+  SAI_EXT_ATTR_MAP(Switch, DefaultCpuEgressBufferPool)
 }
 
 } // namespace
