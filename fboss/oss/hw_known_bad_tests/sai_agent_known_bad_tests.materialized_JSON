@@ -95,6 +95,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -201,6 +204,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -433,6 +439,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -530,6 +539,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -789,6 +801,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -895,6 +910,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1070,6 +1088,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -1167,6 +1188,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1426,6 +1450,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1532,6 +1559,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1857,6 +1887,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -1954,6 +1987,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2243,6 +2279,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2349,6 +2388,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2551,6 +2593,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -2648,6 +2693,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2982,6 +3030,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3088,6 +3139,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3386,6 +3440,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -3483,6 +3540,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3661,6 +3721,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3767,6 +3830,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3920,6 +3986,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -4026,6 +4095,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4192,6 +4264,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -4289,6 +4364,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4388,9 +4466,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch": [
@@ -4486,6 +4561,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -4596,6 +4674,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -4663,9 +4744,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
@@ -4768,6 +4846,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -4874,6 +4955,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5094,6 +5178,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -5191,6 +5278,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5522,6 +5612,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -5628,6 +5721,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5923,6 +6019,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -6022,6 +6121,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -6119,9 +6221,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono/fap": [
@@ -6219,6 +6318,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -6316,6 +6418,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6415,9 +6520,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch": [
@@ -6515,6 +6617,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -6623,6 +6728,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -6690,9 +6798,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
@@ -6790,6 +6895,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -6898,6 +7006,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -6965,9 +7076,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
@@ -7086,6 +7194,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -7194,6 +7305,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -7279,9 +7393,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -7382,6 +7493,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -7488,6 +7602,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7657,6 +7774,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -7763,6 +7883,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7932,6 +8055,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -8031,6 +8157,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -8128,9 +8257,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/mono/fap": [
@@ -8228,6 +8354,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -8325,6 +8454,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8424,9 +8556,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/multi_switch": [
@@ -8524,6 +8653,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -8632,6 +8764,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -8699,9 +8834,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/multi_switch/fap": [
@@ -8799,6 +8931,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -8907,6 +9042,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -8974,9 +9112,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/mono": [
@@ -9095,6 +9230,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -9203,6 +9341,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -9288,9 +9429,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
-        },
-        {
-          "test_name_regex": "AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -9391,6 +9529,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -9497,6 +9638,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9666,6 +9810,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -9772,6 +9919,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9995,6 +10145,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -10092,6 +10245,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10360,6 +10516,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -10466,6 +10625,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10650,6 +10812,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -10747,6 +10912,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11012,6 +11180,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -11118,6 +11289,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11452,6 +11626,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -11549,6 +11726,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11856,6 +12036,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -11962,6 +12145,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12346,6 +12532,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -12640,6 +12829,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -12944,6 +13136,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -13232,6 +13427,9 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirrorEventorTest.VerifyEventorMtu$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
