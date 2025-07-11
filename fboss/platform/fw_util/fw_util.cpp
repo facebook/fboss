@@ -11,6 +11,7 @@
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/InitCli.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 
 using namespace facebook::fboss::platform::fw_util;
 using namespace facebook::fboss::platform;
@@ -127,8 +128,18 @@ int main(int argc, char* argv[]) {
   FwUtilImpl fwUtilImpl(
       fw_binary_file, config_file_path, verify_sha1sum, dry_run);
 
+  auto lowerCasePlatformName =
+      toLower(helpers::PlatformNameLib().getPlatformName().value());
+  // When dealing with Darwin firmware target names, don't change them to
+  // lowercase. This is because the fw_util configuration file for Darwin
+  // requires these names to be in uppercase to function correctly with the AnR
+  // tool.
+  if (lowerCasePlatformName != "darwin") {
+    fw_target_name = toLower(fw_target_name);
+  }
+
   if (fw_action == "version" && !fw_target_name.empty()) {
-    fwUtilImpl.printVersion(toLower(fw_target_name));
+    fwUtilImpl.printVersion(fw_target_name);
   } else if (
       fw_action == "program" || fw_action == "verify" || fw_action == "read") {
     // For actions which involve more than just reading versions/config, we want
@@ -136,7 +147,7 @@ int main(int argc, char* argv[]) {
     folly::LoggerDB::get()
         .getCategory("fboss.platform.helpers.PlatformUtils")
         ->setLevel(folly::LogLevel::DBG2);
-    fwUtilImpl.doFirmwareAction(toLower(fw_target_name), toLower(fw_action));
+    fwUtilImpl.doFirmwareAction(fw_target_name, toLower(fw_action));
   } else if (fw_action == "list") {
     XLOG(INFO) << "supported Binary names are: " << fwUtilImpl.printFpdList();
   } else if (fw_action == "audit") {
