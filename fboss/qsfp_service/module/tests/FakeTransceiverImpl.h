@@ -181,5 +181,10 @@ class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
 };
 
+class CmisCredo800AEC : public FakeTransceiverImpl {
+ public:
+  explicit CmisCredo800AEC(int module, TransceiverManager* mgr);
+};
+
 } // namespace fboss
 } // namespace facebook
