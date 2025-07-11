@@ -84,14 +84,19 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
     CHECK(fsdbSubMgr_);
     fsdbSubMgr_->addPath(path);
     fsdbSubMgr_->subscribe([processData = std::move(processData)](auto update) {
-      const T& swPortMaps =
+      auto swPortMaps =
           *update.data->toThrift().agent()->switchState()->portMaps();
+      XLOG(DBG5)
+          << "QsfpFsdbSubscriber: patch: swPortMaps: "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 swPortMaps);
       processData(swPortMaps);
     });
   }
 
   XLOG(INFO) << "QsfpFsdbSubscriber: subscribed to switch state "
-             << folly::join("/", path.tokens());
+             << folly::join("/", path.tokens())
+             << " using patch=" << FLAGS_enable_fsdb_patch_subscriber;
 }
 
 void QsfpFsdbSubscriber::stop() {
