@@ -12,7 +12,7 @@
       "absentLedColor": 4,
       "absentLedSysfsPath": "/sys/class/leds/fan_led:amber:status/brightness"
     },
-    "PSU": {
+    "PWR": {
       "presentLedColor": 3,
       "presentLedSysfsPath": "/sys/class/leds/psu_led:blue:status/brightness",
       "absentLedColor": 4,
@@ -62,6 +62,26 @@
       "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "PWR",
+      "fruType": "PWR",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/cplds/MCB_CPLD/hs_48v_pg",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "SMB",
+      "fruType": "SMB",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/cplds/MCB_CPLD/smb_present",
           "desiredValue": 1
         }
       }
