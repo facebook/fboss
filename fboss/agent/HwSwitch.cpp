@@ -200,7 +200,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.switchPipelineStats() = getSwitchPipelineStats();
   hwSwitchStats.switchTemperatureStats() = getSwitchTemperatureStats();
   hwSwitchStats.sysPortShelState() = getSysPortShelState();
-
+  hwSwitchStats.hwRouterInterfaceStats() = getRouterInterfaceStats();
   return hwSwitchStats;
 }
 

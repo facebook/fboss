@@ -127,6 +127,12 @@ class SaiSwitch : public HwSwitch {
 
   std::map<int, cfg::PortState> getSysPortShelState() const override;
 
+  folly::F14FastMap<std::string, HwRouterInterfaceStats>
+  getRouterInterfaceStats() const override {
+    // TODO: implement this
+    return {};
+  }
+
   HwResourceStats getResourceStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
