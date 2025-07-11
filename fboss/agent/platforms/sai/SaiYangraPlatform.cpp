@@ -19,6 +19,8 @@
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 
+#include "fboss/agent/Utils.h"
+
 #include <algorithm>
 
 namespace facebook::fboss {
@@ -70,6 +72,11 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair("SAI_KEY_EXTERNAL_SXD_DRIVER_MANAGEMENT", "1"));
   kv_map.insert(std::make_pair("SAI_INTERNAL_LOOPBACK_TOGGLE_ENABLED", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ENABLE_HEALTH_DATA_TYPE_SER", "1"));
+  utilCreateDir(getDirectoryUtil()->getCrashInfoDir());
+  kv_map.insert(std::make_pair(
+      "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
+  kv_map.insert(std::make_pair("SAI_DUMP_STORE_AMOUNT", "1"));
+
   return kv_map;
 }
 

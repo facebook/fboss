@@ -589,6 +589,16 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_PORT_PTP_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
+    using RegFatalSwitchAsicSdkHealthCategory = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY,
+        std::vector<sai_int32_t>,
+        SaiU32ListDefault>;
+    using RegNoticeSwitchAsicSdkHealthCategory = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY,
+        std::vector<sai_int32_t>,
+        SaiU32ListDefault>;
 #endif
     struct AttributeReachabilityGroupList {
       std::optional<sai_attr_id_t> operator()();
@@ -1057,6 +1067,8 @@ SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(Switch, PtpMode)
+SAI_ATTRIBUTE_NAME(Switch, RegFatalSwitchAsicSdkHealthCategory)
+SAI_ATTRIBUTE_NAME(Switch, RegNoticeSwitchAsicSdkHealthCategory)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList)
 SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold)
@@ -1247,7 +1259,7 @@ class SwitchApi : public SaiApi<SwitchApi> {
     registerSwitchHardResetNotifyCallback(id, nullptr);
   }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   void registerSwitchAsicSdkHealthEventCallback(
       const SwitchSaiId& id,
       sai_switch_asic_sdk_health_event_notification_fn function) const;
