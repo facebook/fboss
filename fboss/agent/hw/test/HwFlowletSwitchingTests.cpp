@@ -607,12 +607,6 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetExceed) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-
-// This is as close to real case as possible
-// Ensure that when multiple ECMP objects are created and flowset table gets
-// full things snap back in when first ECMP object is removed, enough space is
-// created for the second object to insert itself
-
 // verify if all 16 ECMP groups are in DLB mode
 TEST_F(HwArsFlowletTest, ValidateFlowsetTableFull) {
   if (this->skipTest()) {

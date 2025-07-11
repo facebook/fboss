@@ -1,24 +1,30 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include <vector>
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentArsBase.h"
+
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+
+#include "fboss/agent/test/utils/ConfigUtils.h"
+
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 using namespace facebook::fboss::utility;
 
 namespace facebook::fboss {
-const int KMaxFlowsetTableSize = 32768;
-const int kFlowletTableSize2 = 2048;
-folly::CIDRNetwork kAddr2Prefix{folly::IPAddress("2803:6080:d038:3000::"), 64};
-
-static folly::IPAddressV6 kAddr1{"2803:6080:d038:3063::"};
-static folly::IPAddressV6 kAddr2{"2803:6080:d038:3000::"};
-std::vector<NextHopWeight> swSwitchWeights_ = {
-    ECMP_WEIGHT,
-    ECMP_WEIGHT,
-    ECMP_WEIGHT,
-    ECMP_WEIGHT};
 
 using namespace ::testing;
 class AgentArsFlowletTest : public AgentArsBase {
  public:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_flowletSwitchingEnable = true;
+    FLAGS_force_init_fp = false;
+  }
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {
@@ -31,22 +37,20 @@ class AgentArsFlowletTest : public AgentArsBase {
     AgentArsBase::SetUp();
   }
 
-  // SAI is multiple of port speed
-  int kScalingFactor1() const {
-    return getAgentEnsemble()->isSai() ? 10 : 100;
-  }
-
-  void addRoute(
-      const folly::IPAddressV6 prefix,
-      uint8_t mask,
-      const std::vector<PortDescriptor>& ports) {
-    auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(
-        &wrapper,
-        flat_set<PortDescriptor>(
-            std::make_move_iterator(ports.begin()),
-            std::make_move_iterator(ports.begin() + ports.size())),
-        {RoutePrefixV6{prefix, mask}});
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    utility::addFlowletConfigs(
+        cfg,
+        ensemble.masterLogicalPortIds(),
+        ensemble.isSai(),
+        cfg::SwitchingMode::FLOWLET_QUALITY,
+        ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+                         : cfg::SwitchingMode::PER_PACKET_RANDOM);
+    return cfg;
   }
 
   void resolveNextHop(const PortDescriptor& port) {
@@ -55,85 +59,60 @@ class AgentArsFlowletTest : public AgentArsBase {
     });
   }
 
-  void resolveNextHopsAddRoute(
-      const std::vector<PortID>& masterLogicalPortsIds,
-      const folly::IPAddressV6 addr) {
-    std::vector<PortDescriptor> portDescriptorIds;
-    for (auto& portId : masterLogicalPortsIds) {
-      this->resolveNextHop(PortDescriptor(portId));
-      portDescriptorIds.emplace_back(portId);
+  void generateTestPrefixes(
+      std::vector<RoutePrefixV6>& testPrefixes,
+      std::vector<flat_set<PortDescriptor>>& testNhopSets,
+      int kTotalPrefixesNeeded) {
+    AgentArsBase::generatePrefixes();
+
+    testPrefixes = std::vector<RoutePrefixV6>{
+        prefixes.begin(), prefixes.begin() + kTotalPrefixesNeeded};
+    testNhopSets = std::vector<flat_set<PortDescriptor>>{
+        nhopSets.begin(), nhopSets.begin() + kTotalPrefixesNeeded};
+  }
+
+  void unprogramRoute(const std::vector<RoutePrefixV6>& prefixesToUnprogram) {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->unprogramRoutes(&wrapper, prefixesToUnprogram);
+  }
+
+  void verifyPrefixes(
+      const std::vector<RoutePrefixV6>& allPrefixes,
+      int startIdx,
+      int endIdx) {
+    for (int i = startIdx; i < allPrefixes.size() && i < endIdx; i++) {
+      const auto& prefix = allPrefixes[i];
+      verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::FLOWLET_QUALITY);
     }
-    this->addRoute(addr, 64, portDescriptorIds);
-  }
-
-  cfg::PortFlowletConfig getPortFlowletConfig(
-      int scalingFactor,
-      int loadWeight,
-      int queueWeight) const {
-    cfg::PortFlowletConfig portFlowletConfig;
-    portFlowletConfig.scalingFactor() = scalingFactor;
-    portFlowletConfig.loadWeight() = loadWeight;
-    portFlowletConfig.queueWeight() = queueWeight;
-    return portFlowletConfig;
-  }
-
-  bool verifyEcmpForFlowletSwitching(
-      const folly::CIDRNetwork& ip,
-      const cfg::FlowletSwitchingConfig& flowletCfg,
-      const bool flowletEnable) {
-    AgentEnsemble* ensemble = getAgentEnsemble();
-    const auto port = ensemble->masterLogicalPortIds()[0];
-    auto switchId = ensemble->scopeResolver().scope(port).switchId();
-    auto client = ensemble->getHwAgentTestClient(switchId);
-    facebook::fboss::utility::CIDRNetwork cidr;
-    cidr.IPAddress() = ip.first.str();
-    cidr.mask() = ip.second;
-    state::SwitchSettingsFields settings;
-    settings.flowletSwitchingConfig() = flowletCfg;
-    return client->sync_verifyEcmpForFlowletSwitchingHandler(
-        cidr, settings, flowletEnable);
   }
 };
 
+/*
+This is as close to real case as possible. Ensure that when multiple ECMP
+objects are created and flowset table gets full things snap back in when first
+ECMP object is removed, enough space is created for the second object to insert
+itself
+ */
 TEST_F(AgentArsFlowletTest, ValidateFlowsetExceedForceFix) {
-  auto setup = [&]() {
-    int numEcmp = int(KMaxFlowsetTableSize / kFlowletTableSize2);
-    int totalEcmp = 1;
-    for (int i = 1; i < 8 && totalEcmp < numEcmp; i++) {
-      for (int j = i + 1; j < 8 && totalEcmp < numEcmp; j++) {
-        std::vector<PortID> portIds;
-        portIds.push_back(masterLogicalPortIds()[0]);
-        portIds.push_back(masterLogicalPortIds()[i]);
-        portIds.push_back(masterLogicalPortIds()[j]);
-      }
-    }
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[2]}, kAddr1);
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[2], masterLogicalPortIds()[3]}, kAddr2);
-  };
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
 
-  auto verify = [&]() {
-    auto cfg = initialConfig(*getAgentEnsemble());
-    if (!cfg.flowletSwitchingConfig()) {
-      // Skip verification if flowlet switching config is not set
-      return;
-    }
+  generateTestPrefixes(testPrefixes, testNhopSets, 17);
 
-    // ensure that DLB is not programmed for 17th route as we already have
-    // ECMP objects with DLB. Expect flowset size is zero for the 17th
-    // object
-    if (getAgentEnsemble()->getBootType() != BootType::WARM_BOOT) {
-      EXPECT_FALSE(verifyEcmpForFlowletSwitching(
-          kAddr2Prefix, // second route
-          *cfg.flowletSwitchingConfig(),
-          true /* flowletEnable */));
-    }
+  auto setup = [=, this]() {
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->unprogramRoutes(&wrapper, {RoutePrefixV6{kAddr1, 64}});
-    EXPECT_TRUE(verifyEcmpForFlowletSwitching(
-        kAddr2Prefix, *cfg.flowletSwitchingConfig(), true /* flowletEnable */));
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+    XLOG(INFO) << "Programmed " << testPrefixes.size() << " prefixes across "
+               << testNhopSets.size() << " ECMP groups";
+    verifyPrefixes(testPrefixes, 0, 17);
+    unprogramRoute({testPrefixes[0]});
   };
+
+  auto verify = [=, this] {
+    // Verify remaining prefixes (skip the first one that was unprogrammed)
+    verifyPrefixes(testPrefixes, 1, 17);
+  };
+
   verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
