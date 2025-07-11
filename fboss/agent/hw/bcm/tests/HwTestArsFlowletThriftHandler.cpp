@@ -3,8 +3,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
-#include <glog/logging.h>
-
 extern "C" {
 #include <bcm/l3.h>
 }

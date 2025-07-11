@@ -651,7 +651,6 @@ cpp_library(
         "//fboss/agent/test/utils:udf_test_utils",
     ],
     exported_external_deps = [
-        "glog",
         ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )
