@@ -12,6 +12,7 @@
 
 #include <algorithm>
 
+#include <folly/Indestructible.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
@@ -367,19 +368,31 @@ void BcmBstStatsMgr::populateHighFrequencyBstStats(
       break;
     }
   }
-  static std::map<int, bcm_port_t> itmToPortMap;
-  createItmToPortMap(itmToPortMap);
+  static const folly::Indestructible<std::map<int, bcm_port_t>> itmToPortMap{
+      [&]() {
+        /*
+         * ITM to port map not available, need to populate it first!
+         * Global headroom/shared buffer stats are per ITM, but as
+         * the counters are to be read per port, we need to keep track
+         * of one port per ITM for which stats can be read. This mapping
+         * is static and doesn't change.
+         */
+        std::map<int, bcm_port_t> itmToPortMapRet{};
+        for (const auto& entry : *hw_->getPortTable()) {
+          BcmPort* bcmPort = entry.second;
+          int itm = hw_->getPlatform()->getPortItm(bcmPort);
+          bcm_port_t bcmPortId = bcmPort->getBcmPortId();
+          if (itmToPortMapRet.try_emplace(itm, bcmPortId).second) {
+            XLOG(DBG2) << "ITM " << itm << " mapped to bcmport " << bcmPortId;
+          }
+        }
+        return itmToPortMapRet;
+      }()};
   if (statsConfig.includeDeviceWatermark().value()) {
     BcmCosManager* cosMgr = hw_->getCosMgr();
-    for (int itm : kHfItms) {
-      auto it = itmToPortMap.find(itm);
-      if (it == itmToPortMap.end()) {
-        XLOG(ERR) << "ITM" << itm << " not found in itmToPortMap";
-        continue;
-      }
+    for (auto& [itm, port] : *itmToPortMap) {
       stats.itmPoolSharedWatermarkBytes()[itm] =
-          cosMgr->statGetExtended(
-              itm, PortID(it->second), -1, bcmBstStatIdIngPool) *
+          cosMgr->statGetExtended(itm, PortID(port), -1, bcmBstStatIdIngPool) *
           hw_->getMMUCellBytes();
     }
   }

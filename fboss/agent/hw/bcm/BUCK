@@ -179,6 +179,7 @@ cpp_library(
         "//fboss/agent/hw/bcm:sdk_tracer",
         "//fboss/agent/hw/facebook:buffer_stats_scuba",
         "//fboss/lib/phy:phy_utils",
+        "//folly:indestructible",
         "//folly/container:enumerate",
         "//folly/container:f14_hash",
         "//folly/executors:function_scheduler",
