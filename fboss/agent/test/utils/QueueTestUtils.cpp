@@ -144,7 +144,7 @@ int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
 }
 
 int getAqmGranularThreshold(const HwAsic& asic, int value) {
-  return ceil(value / asic.getThresholdGranularity()) *
+  return ceil(static_cast<double>(value) / asic.getThresholdGranularity()) *
       asic.getThresholdGranularity();
 }
 
