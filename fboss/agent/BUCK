@@ -762,6 +762,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "shel_manager",
+    srcs = [
+        "ShelManager.cpp",
+    ],
+    exported_deps = [
+        ":pre_update_state_modifier",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",

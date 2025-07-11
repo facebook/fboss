@@ -218,6 +218,14 @@ target_link_libraries(ecmp_resource_manager
   Folly::folly
 )
 
+add_library(shel_manager
+  fboss/agent/ShelManager.cpp
+)
+
+target_link_libraries(shel_manager
+  state
+)
+
 add_library(core
   fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
