@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
   std::string fw_target_name;
   std::string fw_action;
   std::string fw_binary_file;
+  std::string config_file_path;
   bool verify_sha1sum = false;
   bool dry_run = false;
 
@@ -56,6 +57,9 @@ int main(int argc, char* argv[]) {
       "--fw_binary_file",
       fw_binary_file,
       "Firmware binary file path to be programmed");
+
+  fwGroup->add_option(
+      "--config_file", config_file_path, "Path to the fw_util config flie");
 
   // Group: Flags
   auto flagsGroup = app.add_option_group("Flags", "Additional flags");
@@ -120,7 +124,8 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  FwUtilImpl fwUtilImpl(fw_binary_file, verify_sha1sum, dry_run);
+  FwUtilImpl fwUtilImpl(
+      fw_binary_file, config_file_path, verify_sha1sum, dry_run);
 
   if (fw_action == "version" && !fw_target_name.empty()) {
     fwUtilImpl.printVersion(toLower(fw_target_name));
@@ -138,7 +143,7 @@ int main(int argc, char* argv[]) {
     fwUtilImpl.doVersionAudit();
   } else {
     XLOG(ERR)
-        << "Wrong usage. please run fw_util --helpon=Flags for the flags needed for proper usage";
+        << "Wrong usage. please run fw_util --help for the flags needed for proper usage";
     exit(1);
   }
 
