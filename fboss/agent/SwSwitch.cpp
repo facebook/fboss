@@ -1862,15 +1862,13 @@ void SwSwitch::handlePendingUpdates() {
     std::tie(newAppliedState, newDesiredState) =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
-      if (ecmpResourceManager_) {
-        /*
-         * Send newAppliedState to EcmpResourceManager to reconstruct its
-         * data structures from. In case of platforms where we have transactions
-         * newAppliedState will be the same as oldState. In others HW will get
-         * to the point of failure and return that state.
-         */
-        ecmpResourceManager_->updateFailed(newAppliedState);
-      }
+      /*
+       * Send newAppliedState to State Modifier to reconstruct its
+       * data structures from. In case of platforms where we have
+       * transactions newAppliedState will be the same as oldState. In
+       * others HW will get to the point of failure and return that state.
+       */
+      notifyStateModifierUpdateFailed(newAppliedState);
       if (isExiting()) {
         /*
          * If we started exit, applyUpdate will reject updates leading
@@ -1910,9 +1908,7 @@ void SwSwitch::handlePendingUpdates() {
                "HW failure protection";
       }
     } else {
-      if (ecmpResourceManager_) {
-        ecmpResourceManager_->updateDone();
-      }
+      notifyStateModifierUpdateDone();
       // Update successful, update hw update counter to zero.
       fb303::fbData->setCounter(kHwUpdateFailures, 0);
     }
@@ -1966,18 +1962,11 @@ SwSwitch::applyUpdate(
     return std::make_pair(oldState, newDesiredState);
   }
   std::vector<StateDelta> deltas;
-  if (ecmpResourceManager_) {
-    try {
-      deltas = ecmpResourceManager_->consolidate(
-          StateDelta(oldState, newDesiredState));
-    } catch (const FbossError& e) {
-      XLOG(DBG2) << " Ecmp resource manager rejected update: " << e.what();
-      return std::make_pair(oldState, newDesiredState);
-    }
-    newDesiredState = deltas.back().newState();
-  } else {
-    deltas.emplace_back(oldState, newDesiredState);
+  deltas.emplace_back(oldState, newDesiredState);
+  if (!preUpdateModifyState(deltas)) {
+    return std::make_pair(oldState, newDesiredState);
   }
+  newDesiredState = deltas.back().newState();
 
   StateDelta delta(oldState, newDesiredState);
   if (!resourceAccountant_->isValidUpdate(delta)) {
