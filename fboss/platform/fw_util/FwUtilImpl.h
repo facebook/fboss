@@ -30,9 +30,11 @@ class FwUtilImpl {
  public:
   explicit FwUtilImpl(
       const std::string& fwBinaryFile,
+      const std::string& configFilePath,
       bool verifySha1sum,
       bool dryRun)
       : fwBinaryFile_(fwBinaryFile),
+        configFilePath_(configFilePath),
         verifySha1sum_(verifySha1sum),
         dryRun_(dryRun) {
     init();
@@ -98,6 +100,7 @@ class FwUtilImpl {
   std::map<std::string, std::vector<std::string>> spiChip_;
   std::string platformName_;
   std::string fwBinaryFile_;
+  std::string configFilePath_;
   bool verifySha1sum_;
   bool dryRun_;
 

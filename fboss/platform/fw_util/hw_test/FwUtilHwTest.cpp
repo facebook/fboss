@@ -13,7 +13,7 @@ FwUtilHwTest::~FwUtilHwTest() {}
 
 void FwUtilHwTest::SetUp() {
   // TODO: Add arguments for testing
-  fwUtilImpl_ = std::make_unique<FwUtilImpl>("", true, true);
+  fwUtilImpl_ = std::make_unique<FwUtilImpl>("", "", true, true);
 }
 
 TEST_F(FwUtilHwTest, ListFirmwareDevices) {

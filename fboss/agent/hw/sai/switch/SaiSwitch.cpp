@@ -3255,7 +3255,7 @@ void SaiSwitch::initSwitchReachabilityChangeLocked(
   setSwitchReachabilityChangePending();
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
   CHECK(platform_->getAsic()->isSupported(
@@ -3268,6 +3268,19 @@ void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   switchApi.registerSwitchAsicSdkHealthEventCallback(
       saiSwitchId_, __gSwitchAsicSdkHealthNotificationCallBack);
+
+  // register for categories of asic sdk health events
+  std::vector<sai_int32_t> categories{
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_SW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_FW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_CPU_HW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_ASIC_HW};
+  SaiSwitchTraits::Attributes::RegFatalSwitchAsicSdkHealthCategory fatalEvents =
+      categories;
+  SaiSwitchTraits::Attributes::RegNoticeSwitchAsicSdkHealthCategory
+      noticeEvents = categories;
+  switchApi.setAttribute(saiSwitchId_, fatalEvents);
+  switchApi.setAttribute(saiSwitchId_, noticeEvents);
 }
 #endif
 
@@ -3613,7 +3626,7 @@ void SaiSwitch::unregisterCallbacksLocked(
 
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     switchApi.unregisterSwitchAsicSdkHealthEventCallback(saiSwitchId_);
 #endif
   }
@@ -4034,7 +4047,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
         initSwitchAsicSdkHealthNotificationLocked(lock);
 #endif
       }

@@ -11,6 +11,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -46,17 +47,20 @@ void addAggPort(
   std::set<uint32_t> memberPorts(ports.begin(), ports.end());
   std::optional<int32_t> aggVlan;
   for (auto& vlanPort : *config->vlanPorts()) {
-    if (memberPorts.find(*vlanPort.logicalPort()) != memberPorts.end()) {
+    if (memberPorts.contains(vlanPort.logicalPort().value())) {
       if (!aggVlan) {
-        aggVlan = *vlanPort.vlanID();
+        aggVlan = vlanPort.vlanID().value();
       }
-      *vlanPort.vlanID() = aggVlan.value();
+      vlanPort.vlanID() = *aggVlan;
     }
   }
   // Set ingress VLAN for all members to be the same
   for (auto& port : *config->ports()) {
-    if (memberPorts.find(*port.logicalID()) != memberPorts.end()) {
-      *port.ingressVlan() = aggVlan.value();
+    if (memberPorts.contains(port.logicalID().value())) {
+      if (!aggVlan) {
+        throw FbossError("No VLAN found for aggregate port in addAggPort");
+      }
+      port.ingressVlan() = *aggVlan;
     }
   }
 }

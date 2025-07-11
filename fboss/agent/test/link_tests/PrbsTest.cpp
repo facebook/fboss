@@ -15,6 +15,14 @@
 using namespace ::testing;
 using namespace facebook::fboss;
 
+#define CONVERT_PRBS_STRING(prbsString) CONVERT_PRBS_STRING_IMPL(prbsString)
+#define CONVERT_PRBS_STRING_IMPL(prbsString) \
+  CONVERT_PRBS_STRING_EXTRACT(prbsString, P)
+#define CONVERT_PRBS_STRING_EXTRACT(prbsString, prefix) \
+  CONVERT_PRBS_STRING_MATCH_##prbsString(prefix)
+#define CONVERT_PRBS_STRING_MATCH_PRBS31(prefix) prefix##31
+#define CONVERT_PRBS_STRING_MATCH_PRBS31Q(prefix) prefix##31Q
+
 struct TestPort {
   std::string portName;
   phy::PortComponent component;
@@ -730,8 +738,9 @@ class AsicToAsicPrbsTest : public PrbsTest {
               BOOST_PP_CAT(                                                  \
                   _,                                                         \
                   BOOST_PP_CAT(                                              \
-                      POLYNOMIAL_A, BOOST_PP_CAT(_TO_, COMPONENT_Z)))),      \
-          BOOST_PP_CAT(_, POLYNOMIAL_Z)))
+                      CONVERT_PRBS_STRING(POLYNOMIAL_A),                     \
+                      BOOST_PP_CAT(_TO_, COMPONENT_Z)))),                    \
+          BOOST_PP_CAT(_, CONVERT_PRBS_STRING(POLYNOMIAL_Z))))
 
 #define PRBS_TRANSCEIVER_TEST_NAME(                                         \
     MEDIA, COMPONENT_A, COMPONENT_Z, POLYNOMIAL_A, POLYNOMIAL_Z)            \
@@ -742,33 +751,33 @@ class AsicToAsicPrbsTest : public PrbsTest {
 #define PRBS_ASIC_TEST_NAME(COMPONENT_A, POLYNOMIAL_A) \
   PRBS_TEST_NAME(COMPONENT_A, COMPONENT_A, POLYNOMIAL_A, POLYNOMIAL_A)
 
-#define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL)        \
-  struct PRBS_TRANSCEIVER_TEST_NAME(                                          \
-      MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL, POLYNOMIAL)      \
-      : public TransceiverLineToTransceiverLinePrbsTest<                      \
-            MediaInterfaceCode::MEDIA,                                        \
-            prbs::PrbsPolynomial::POLYNOMIAL> {};                             \
-  TEST_F(                                                                     \
-      PRBS_TRANSCEIVER_TEST_NAME(                                             \
-          MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL, POLYNOMIAL), \
-      prbsSanity) {                                                           \
-    runTest();                                                                \
+#define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL) \
+  struct PRBS_TRANSCEIVER_TEST_NAME(                                   \
+      MEDIA, TCVR_L, TCVR_L, POLYNOMIAL, POLYNOMIAL)                   \
+      : public TransceiverLineToTransceiverLinePrbsTest<               \
+            MediaInterfaceCode::MEDIA,                                 \
+            prbs::PrbsPolynomial::POLYNOMIAL> {};                      \
+  TEST_F(                                                              \
+      PRBS_TRANSCEIVER_TEST_NAME(                                      \
+          MEDIA, TCVR_L, TCVR_L, POLYNOMIAL, POLYNOMIAL),              \
+      prbsSanity) {                                                    \
+    runTest();                                                         \
   }
 
-#define PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(                                   \
-    MEDIA, POLYNOMIALA, COMPONENTA, POLYNOMIALB)                            \
-  struct PRBS_TRANSCEIVER_TEST_NAME(                                        \
-      MEDIA, COMPONENTA, TRANSCEIVER_SYSTEM, POLYNOMIALA, POLYNOMIALB)      \
-      : public PhyToTransceiverSystemPrbsTest<                              \
-            MediaInterfaceCode::MEDIA,                                      \
-            prbs::PrbsPolynomial::POLYNOMIALA,                              \
-            phy::PortComponent::COMPONENTA,                                 \
-            prbs::PrbsPolynomial::POLYNOMIALB> {};                          \
-  TEST_F(                                                                   \
-      PRBS_TRANSCEIVER_TEST_NAME(                                           \
-          MEDIA, COMPONENTA, TRANSCEIVER_SYSTEM, POLYNOMIALA, POLYNOMIALB), \
-      prbsSanity) {                                                         \
-    runTest();                                                              \
+#define PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(                       \
+    MEDIA, POLYNOMIALA, COMPONENTA, POLYNOMIALB)                \
+  struct PRBS_TRANSCEIVER_TEST_NAME(                            \
+      MEDIA, COMPONENTA, TCVR_S, POLYNOMIALA, POLYNOMIALB)      \
+      : public PhyToTransceiverSystemPrbsTest<                  \
+            MediaInterfaceCode::MEDIA,                          \
+            prbs::PrbsPolynomial::POLYNOMIALA,                  \
+            phy::PortComponent::COMPONENTA,                     \
+            prbs::PrbsPolynomial::POLYNOMIALB> {};              \
+  TEST_F(                                                       \
+      PRBS_TRANSCEIVER_TEST_NAME(                               \
+          MEDIA, COMPONENTA, TCVR_S, POLYNOMIALA, POLYNOMIALB), \
+      prbsSanity) {                                             \
+    runTest();                                                  \
   }
 
 #define PRBS_ASIC_ASIC_TEST(POLYNOMIAL)                                 \

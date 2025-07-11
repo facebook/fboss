@@ -61,13 +61,12 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
           src: 'img/logo.svg',
         },
         items: [
-          {label: 'Onboarding', position: 'left', docId: 'onboarding/platform_onboarding', type: 'doc'},
+          {label: 'Onboard', position: 'left', docId: 'onboarding/platform_onboarding', type: 'doc'},
+          {label: 'Manuals', position: 'left', docId: 'manuals/add_platform_manager_support', type: 'doc'},
           {label: 'Build', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
           {label: 'Develop', position: 'left', docId: 'developing/platform_mapping', type: 'doc'},
           {label: 'Test', position: 'left', docId: 'testing/sensor_service_hw_test', type: 'doc'},
-          {label: 'Debugging', position: 'left', docId: 'debugging/clis_for_l1_debugging', type: 'doc'},
-          // TODO: change docId when populated
-          // {label: 'Contribute', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
+          {label: 'Debug', position: 'left', docId: 'debugging/clis_for_l1_debugging', type: 'doc'},
           {label: 'Architecture', position: 'left', docId: 'architecture/meta_switch_architecture', type: 'doc'},
           {
             href: 'https://github.com/facebook/fboss',

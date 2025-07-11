@@ -21,7 +21,11 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] [Add Platform Manager Support](https://facebook.github.io/fboss/docs/platform/platform_manager/)
+   - [ ] [Add platform manager support](/docs/manuals/add_platform_manager_support/)
+   - [ ] Add BSP support
+   - [ ] Build platform services
+   - [ ] Ensure platform manager can start
+   - [ ] Run HW tests for platform services
 
    **Outcomes:**
 
