@@ -294,64 +294,47 @@ void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
   std::map<int16_t, int64_t> queueIdToPGWatermarkBytes;
   bcm_gport_t gport = bcmPort->getBcmGport();
   uint32_t options = BCM_COSQ_STAT_CLEAR;
+  // A 1:1 mapping between the priority group and queue is assumed
   for (int16_t queue : kHfQueueIds) {
-    if (portStatsConfig.includePgWatermark().value() &&
-        portStatsConfig.includeQueueWatermark().value()) {
-      std::array<uint64_t, 2> value{};
-      auto rv = bcm_cosq_bst_stat_multi_get(
-          hw_->getUnit(),
-          gport,
-          queue,
-          options,
-          kHfBstStats.size(),
-          const_cast<bcm_bst_stat_id_t*>(kHfBstStats.data()),
-          value.data());
-      bcmCheckError(
-          rv, "Failed to get BST stat for port: ", portId, " cosq: ", queue);
-      queueIdToPGWatermarkBytes[queue] = value.at(1) * hw_->getMMUCellBytes();
-      queueIdToWatermarkBytes[queue] = value.at(0) * hw_->getMMUCellBytes();
-      stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
-          queueIdToPGWatermarkBytes;
-      stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
-          queueIdToWatermarkBytes;
-    } else if (portStatsConfig.includePgWatermark().value()) {
-      uint64_t value;
-      auto rv = bcm_cosq_bst_stat_get(
-          hw_->getUnit(),
-          gport,
-          queue,
-          (bcm_bst_stat_id_t)bcmBstStatIdPriGroupShared,
-          options,
-          &value);
-      bcmCheckError(
-          rv,
-          "Failed to get PG shared watermark for port: ",
-          portId,
-          " cosq: ",
-          queue);
-      queueIdToPGWatermarkBytes[queue] = rv * hw_->getMMUCellBytes();
-      stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
-          queueIdToPGWatermarkBytes;
-    } else if (portStatsConfig.includeQueueWatermark().value()) {
-      uint64_t value;
-      auto rv = bcm_cosq_bst_stat_get(
-          hw_->getUnit(),
-          gport,
-          queue,
-          (bcm_bst_stat_id_t)bcmBstStatIdUcast,
-          options,
-          &value);
-      bcmCheckError(
-          rv,
-          "Failed to get queue watermark for port: ",
-          portId,
-          " cosq: ",
-          queue);
-      queueIdToWatermarkBytes[queue] = rv * hw_->getMMUCellBytes();
-      stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
-          queueIdToWatermarkBytes;
+    std::vector<bcm_bst_stat_id_t> bstStatTypes{};
+    if (portStatsConfig.includePgWatermark().value()) {
+      if (bcmPort->isPortPgConfigured()) {
+        bstStatTypes.push_back(bcmBstStatIdPriGroupShared);
+      } else {
+        XLOG(ERR) << "PG watermark stats requested for port " << portId
+                  << ", but port is not configured for PG";
+      }
+    }
+    if (portStatsConfig.includeQueueWatermark().value()) {
+      bstStatTypes.push_back(bcmBstStatIdUcast);
+    }
+    std::vector<uint64_t> bstStatValues(bstStatTypes.size());
+    auto rv = bcm_cosq_bst_stat_multi_get(
+        hw_->getUnit(),
+        gport,
+        queue,
+        options,
+        static_cast<int>(bstStatTypes.size()),
+        const_cast<bcm_bst_stat_id_t*>(bstStatTypes.data()),
+        bstStatValues.data());
+    bcmCheckError(
+        rv, "Failed to get BST stat for port: ", portId, " cosq: ", queue);
+    for (int i = 0; i < bstStatTypes.size(); i++) {
+      if (bstStatTypes.at(i) == bcmBstStatIdPriGroupShared) {
+        // The PG ID has a 1:1 mapping to the queue ID
+        uint16_t pgId = queue;
+        queueIdToPGWatermarkBytes[pgId] =
+            bstStatValues.at(i) * hw_->getMMUCellBytes();
+      } else if (bstStatTypes.at(i) == bcmBstStatIdUcast) {
+        queueIdToWatermarkBytes[queue] =
+            bstStatValues.at(i) * hw_->getMMUCellBytes();
+      }
     }
   }
+  stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
+      queueIdToPGWatermarkBytes;
+  stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
+      queueIdToWatermarkBytes;
 }
 
 void BcmBstStatsMgr::populateHighFrequencyBstStats(
