@@ -17,7 +17,7 @@ std::vector<NextHopWeight> swSwitchWeights_ = {
     ECMP_WEIGHT};
 
 using namespace ::testing;
-class HwArsFlowletTest : public AgentArsBase {
+class AgentArsFlowletTest : public AgentArsBase {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -95,7 +95,7 @@ class HwArsFlowletTest : public AgentArsBase {
   }
 };
 
-TEST_F(HwArsFlowletTest, ValidateFlowsetExceedForceFix) {
+TEST_F(AgentArsFlowletTest, ValidateFlowsetExceedForceFix) {
   auto setup = [&]() {
     int numEcmp = int(KMaxFlowsetTableSize / kFlowletTableSize2);
     int totalEcmp = 1;
