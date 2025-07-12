@@ -14,7 +14,6 @@
 
 DEFINE_bool(netos, false, "Execute netos native environment");
 DEFINE_int32(switch_index, 0, "Applicable for hardware agent, switch index");
-DEFINE_bool(cpp_wedge_agent_wrapper, false, "Execute cpp wedge agent wrapper");
 
 namespace facebook::fboss {
 

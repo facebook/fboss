@@ -7,6 +7,8 @@
 #include <folly/system/Shell.h>
 #include <exception>
 
+DEFINE_bool(cpp_wedge_agent_wrapper, false, "Execute cpp wedge agent wrapper");
+
 using namespace folly::literals::shell_literals;
 
 namespace facebook::fboss {
