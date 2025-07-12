@@ -38,6 +38,7 @@ struct PortPgFields {
   // Allowing configuring an absolute value at which to send XON in such cases.
   14: optional i64 resumeBytes;
   15: optional string sramScalingFactor;
+  16: optional i64 staticLimitBytes;
 }
 
 struct MKASakKey {

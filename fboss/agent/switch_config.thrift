@@ -1960,6 +1960,8 @@ struct PortPgConfig {
   13: optional i32 resumeBytes;
   // Scaling factor for SRAM usage
   14: optional MMUScalingFactor sramScalingFactor;
+  // Static shared buffer threshold. If this is set, scalingFactor is ignored.
+  15: optional i64 staticLimitBytes;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI
