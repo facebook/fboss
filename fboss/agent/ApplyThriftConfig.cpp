@@ -2053,6 +2053,9 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
   if (const auto sramScalingFactor = cfg->sramScalingFactor()) {
     pgCfg->setSramScalingFactor(*sramScalingFactor);
   }
+  if (const auto staticLimitBytes = cfg->staticLimitBytes()) {
+    pgCfg->setStaticLimitBytes(*staticLimitBytes);
+  }
   return pgCfg;
 }
 
