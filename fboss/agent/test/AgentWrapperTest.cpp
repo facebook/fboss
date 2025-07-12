@@ -44,6 +44,11 @@ using TestTypes =
 template <typename T>
 void AgentWrapperTest<T>::SetUp() {
   whoami_ = std::make_unique<AgentNetWhoAmI>();
+  if constexpr (!T::kCppWrapper) {
+    if (whoami_->isChenabPlatform()) {
+      GTEST_SKIP() << "Chenab platform will have only cpp wrapper";
+    }
+  }
   config_ = AgentConfig::fromFile("/etc/coop/agent/current");
   createDirectoryTree(util_.getWarmBootDir());
   if constexpr (T::kCppWrapper) {
