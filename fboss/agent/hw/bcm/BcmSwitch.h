@@ -1255,7 +1255,7 @@ class BcmSwitch : public BcmSwitchIf {
   static constexpr int64_t kHfMinWaitDurationUs_{20000};
   static constexpr int64_t kHfMaxCollectionDurationUs_{10000000};
   std::unique_ptr<folly::FunctionScheduler> highFreqStatsThread_;
-  constexpr static int kHighFreqStatsDataMaxSize_{1024};
+  constexpr static int kHighFreqStatsDataMaxSize_{4096};
   folly::Synchronized<std::deque<HwHighFrequencyStats>> highFreqStatsData_{};
   /*
    * Lock to synchronize access to all BCM* data structures

@@ -189,6 +189,16 @@ DEFINE_int32(qcm_ifp_pri, -1, "Group priority for ACL field group");
 
 DECLARE_int32(update_watermark_stats_interval_s);
 
+// The default of 1024 high frequency stats size was chosen because a serialized
+// stats object with the full set of stats is about 7 KB. With 1024 stats, we
+// use approximately 7 MB to keep it reasonably sized. This is underestimate
+// because the data is stored as C++ structs instead of serialized thrift
+// structs.
+DEFINE_int32(
+    high_freq_stats_data_size,
+    1024,
+    "The maximum number of high frequency stats data to store in memory in a deque.");
+
 enum : uint8_t {
   kRxCallbackPriority = 1,
 };
@@ -4361,6 +4371,18 @@ void BcmSwitch::collectHighFrequencyStats() {
       std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
                                     ->statsCollectionDurationInMicroseconds()
                                     .value());
+  // Guard the high frequency stats data size with a hard limit of
+  // kHighFreqStatsDataMaxSize_.
+  int maxDataSize =
+      std::min(FLAGS_high_freq_stats_data_size, kHighFreqStatsDataMaxSize_);
+  {
+    // Perform a bulk delete at the front of the deque if the size is too large.
+    auto wlock = highFreqStatsData_.wlock();
+    if (wlock->size() > maxDataSize) {
+      wlock->erase(
+          wlock->begin(), wlock->begin() + (wlock->size() - maxDataSize));
+    }
+  }
   while (std::chrono::steady_clock::now() < endTime) {
     for (int i = 0; i < 2; ++i) {
       HwHighFrequencyStats stats = getHighFrequencyStats();
@@ -4368,7 +4390,7 @@ void BcmSwitch::collectHighFrequencyStats() {
         auto wlock = highFreqStatsData_.wlock();
         if (wlock->empty() ||
             !hasHighFrequencyStatsChanged(wlock->back(), stats)) {
-          if (wlock->size() >= kHighFreqStatsDataMaxSize_) {
+          while (wlock->size() >= maxDataSize) {
             wlock->pop_front();
           }
           wlock->emplace_back(std::move(stats));
