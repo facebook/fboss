@@ -27,11 +27,6 @@
 
 DECLARE_bool(flowletSwitchingEnable);
 
-const std::string kSflowMirrorName = "sflow_mirror";
-const std::string sflowDestinationVIP = "2001::101";
-const std::string aclMirror = "acl_mirror";
-const std::string aclDestinationVIP = "2002::101";
-
 namespace facebook::fboss {
 
 class AgentFlowletSwitchingTest : public AgentArsBase {
@@ -118,17 +113,10 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     auto cfg = AgentFlowletSwitchingTest::initialConfig(ensemble);
     std::vector<std::string> udfGroups = getUdfGroupsForAcl(AclType::UDF_NAK);
     addAclTableConfig(cfg, udfGroups);
-    addAclAndStat(&cfg, AclType::UDF_NAK, ensemble.isSai());
-    // overwrite existing traffic policy which only has a counter action
-    // It is added in addAclAndStat above
-    cfg.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
-    std::string counterName = getCounterName(AclType::UDF_NAK);
-    utility::addAclMirrorAction(
-        &cfg, getAclName(AclType::UDF_NAK), counterName, aclMirror);
 
     // mirror session for acl
     utility::configureSflowMirror(
-        cfg, aclMirror, false /* truncate */, aclDestinationVIP, 6344);
+        cfg, kAclMirror, false /* truncate */, aclDestinationVIP, 6344);
 
     return cfg;
   }
@@ -607,7 +595,12 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfAndSendQueueAction) {
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
   auto setup = [this]() {
     this->setup();
-    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
+    addAclAndStat(
+        &newCfg, AclType::UDF_NAK, ensemble.isSai(), true /* addMirror */);
+    applyNewConfig(newCfg);
+    resolveMirror(kAclMirror, utility::kMirrorToPortIndex);
   };
 
   auto verify = [this]() { verifyMirror(MirrorScope::MIRROR_ONLY); };
@@ -618,7 +611,10 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowSameVip) {
   auto setup = [this]() {
     this->setup();
-    auto newCfg{initialConfig(*getAgentEnsemble())};
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
+    addAclAndStat(
+        &newCfg, AclType::UDF_NAK, ensemble.isSai(), true /* addMirror */);
 
     // mirror session for ingress port sflow
     // use same VIP as ACL mirror, only dst port varies
@@ -628,7 +624,7 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowSameVip) {
     addSamplingConfig(newCfg);
 
     applyNewConfig(newCfg);
-    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+    resolveMirror(kAclMirror, utility::kMirrorToPortIndex);
   };
 
   auto verify = [this]() { verifyMirror(MirrorScope::MIRROR_SFLOW_SAME_VIP); };
@@ -639,7 +635,10 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowSameVip) {
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowDifferentVip) {
   auto setup = [this]() {
     this->setup();
-    auto newCfg{initialConfig(*getAgentEnsemble())};
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
+    addAclAndStat(
+        &newCfg, AclType::UDF_NAK, ensemble.isSai(), true /* addMirror */);
 
     // mirror session for ingress port sflow
     utility::configureSflowMirror(
@@ -648,7 +647,7 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowDifferentVip) {
     addSamplingConfig(newCfg);
 
     applyNewConfig(newCfg);
-    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+    resolveMirror(kAclMirror, utility::kMirrorToPortIndex);
     resolveMirror(kSflowMirrorName, utility::kSflowToPortIndex);
   };
 

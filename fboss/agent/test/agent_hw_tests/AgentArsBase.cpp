@@ -396,7 +396,8 @@ void AgentArsBase::addRoceAcl(
     const std::optional<int>& roceOpcode,
     const std::optional<int>& roceBytes,
     const std::optional<int>& roceMask,
-    const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable) const {
+    const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable,
+    bool addMirror) const {
   cfg::AclEntry aclEntry;
   aclEntry.name() = aclName;
   aclEntry.actionType() = aclActionType_;
@@ -465,6 +466,9 @@ void AgentArsBase::addRoceAcl(
         config, aclName, counterName, kDscp, kOutQueue);
   } else if (aclName == getAclName(AclType::ECMP_HASH_CANCEL)) {
     utility::addAclEcmpHashCancelAction(config, aclName, counterName);
+  } else if (aclName == getAclName(AclType::UDF_NAK) && addMirror) {
+    // mirror session only present for mirror related tests
+    utility::addAclMirrorAction(config, aclName, counterName, kAclMirror);
   } else {
     utility::addAclStat(
         config, aclName, counterName, std::move(setCounterTypes));
@@ -516,7 +520,8 @@ std::vector<std::string> AgentArsBase::getUdfGroupsForAcl(
 void AgentArsBase::addAclAndStat(
     cfg::SwitchConfig* config,
     AclType aclType,
-    bool isSai) const {
+    bool isSai,
+    bool addMirror) const {
   auto aclName = getAclName(aclType);
   auto counterName = getCounterName(aclType);
   const signed char bm = 0xFF;
@@ -554,7 +559,8 @@ void AgentArsBase::addAclAndStat(
           std::nullopt,
           std::nullopt,
           std::nullopt,
-          std::move(udfTable));
+          std::move(udfTable),
+          addMirror);
     } break;
     case AclType::UDF_WR_IMM_ZERO: {
       config->udfConfig() = utility::addUdfAclConfig(
