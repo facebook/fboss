@@ -346,7 +346,8 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
       auto reassignmentCounterBefore =
           flowletStats.l3EcmpDlbPortReassignmentCount().value();
 
-      auto egressPort = helper_->ecmpPortDescriptorAt(8).phyPortID();
+      auto egressPort =
+          helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
       int packetCount = 200000;
       auto vlanId = getVlanIDForTx();
       auto intfMac =
@@ -475,7 +476,8 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
 
       std::vector<uint8_t> rethHdr(16);
       rethHdr[15] = 0xFF; // non-zero sized packet
-      auto egressPort = helper_->ecmpPortDescriptorAt(4).phyPortID();
+      auto egressPort =
+          helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
       sendRoceTraffic(
           egressPort,
           utility::kUdfRoceOpcodeWriteImmediate,

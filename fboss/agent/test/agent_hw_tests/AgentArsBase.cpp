@@ -127,6 +127,12 @@ void AgentArsBase::setup(int ecmpWidth) {
   auto wrapper = getSw()->getRouteUpdater();
   helper_->programRoutes(&wrapper, portDescs);
 
+  // make front panel port for test routable
+  portDescs.emplace(portIds[kFrontPanelPortForTest]);
+  applyNewState([&portDescs, this](const std::shared_ptr<SwitchState>& in) {
+    return helper_->resolveNextHops(in, portDescs);
+  });
+
   XLOG(DBG3) << "setting ECMP Member Status: ";
   applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     auto out = in->clone();
@@ -147,7 +153,7 @@ RoutePrefixV6 AgentArsBase::getMirrorDestRoutePrefix(
 
 void AgentArsBase::addSamplingConfig(cfg::SwitchConfig& config) {
   auto trafficPort = getAgentEnsemble()->masterLogicalPortIds(
-      {cfg::PortType::INTERFACE_PORT})[utility::kTrafficPortIndex];
+      {cfg::PortType::INTERFACE_PORT})[kFrontPanelPortForTest];
   std::vector<PortID> samplePorts = {trafficPort};
   utility::configureSflowSampling(config, kSflowMirrorName, samplePorts, 1);
 }
@@ -254,7 +260,8 @@ size_t AgentArsBase::sendRoceTraffic(
 }
 
 auto AgentArsBase::verifyAclType(bool bumpOnHit, AclType aclType) {
-  auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+  auto egressPort =
+      helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
   auto pktsBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts__ref();
   auto aclPktCountBefore =
       utility::getAclInOutPackets(getSw(), getCounterName(aclType));
@@ -404,6 +411,9 @@ void AgentArsBase::addRoceAcl(
   auto acl = utility::addAcl(config, aclEntry, cfg::AclStage::INGRESS);
   std::vector<cfg::CounterType> setCounterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  acl->srcPort() =
+      PortDescriptor(masterLogicalInterfacePortIds()[kFrontPanelPortForTest])
+          .phyPortID();
   if (udfTable.has_value()) {
     acl->udfTable() = udfTable.value();
   }

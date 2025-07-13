@@ -97,6 +97,7 @@ class AgentArsBase : public AgentHwTest {
   static inline constexpr auto kAclMirror = "acl_mirror";
   static inline constexpr auto sflowDestinationVIP = "2001::101";
   static inline constexpr auto aclDestinationVIP = "2002::101";
+  static inline constexpr auto kFrontPanelPortForTest = 8;
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> helper_;
   std::vector<flat_set<PortDescriptor>> nhopSets;
   std::vector<RoutePrefixV6> prefixes;
