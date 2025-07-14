@@ -25,6 +25,11 @@ class ShelManager : public PreUpdateStateModifier {
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& newRoute,
       const std::shared_ptr<SwitchState>& origState);
+  template <typename AddrT>
+  void routeDeleted(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& removedRoute,
+      const std::shared_ptr<SwitchState>& origState);
   std::unordered_map<InterfaceID, uint64_t> intf2RefCnt_;
   std::unordered_map<InterfaceID, uint64_t> preUpdateIntf2RefCnt_;
 };

@@ -65,4 +65,18 @@ void ShelManager::routeAdded(
   }
 }
 
+template <typename AddrT>
+void ShelManager::routeDeleted(
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& removedRoute,
+    const std::shared_ptr<SwitchState>& origState) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(removedRoute->isResolved());
+  CHECK(removedRoute->isPublished());
+  const auto& routeNhops = removedRoute->getForwardInfo().normalizedNextHops();
+  if (routeNhops.size() > 1) {
+    updateRefCount(routeNhops, origState, false /*add*/);
+  }
+}
+
 } // namespace facebook::fboss
