@@ -250,6 +250,7 @@ class ConfigTest(unittest.TestCase):
             "janga800bic": "fboss",
             "meru800bfa": "arista",
             "meru800bia": "arista",
+            "glath05a-64o": "arista",
             "montblanc": "fboss",
             "morgan800cc": "cisco",
             "tahan800bc": "fboss",
