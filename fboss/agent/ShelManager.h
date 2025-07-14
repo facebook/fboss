@@ -30,6 +30,8 @@ class ShelManager : public PreUpdateStateModifier {
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& removedRoute,
       const std::shared_ptr<SwitchState>& origState);
+  void processRouteUpdates(const StateDelta& delta);
+
   std::unordered_map<InterfaceID, uint64_t> intf2RefCnt_;
   std::unordered_map<InterfaceID, uint64_t> preUpdateIntf2RefCnt_;
 };

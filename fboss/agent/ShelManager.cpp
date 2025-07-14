@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/ShelManager.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -77,6 +78,38 @@ void ShelManager::routeDeleted(
   if (routeNhops.size() > 1) {
     updateRefCount(routeNhops, origState, false /*add*/);
   }
+}
+
+void ShelManager::processRouteUpdates(const StateDelta& delta) {
+  processFibsDeltaInHwSwitchOrder(
+      delta,
+      [this, &delta](RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        if (!oldRoute->isResolved() && !newRoute->isResolved()) {
+          return;
+        }
+        if (oldRoute->isResolved() && !newRoute->isResolved()) {
+          routeDeleted(rid, oldRoute, delta.newState());
+          return;
+        }
+        if (!oldRoute->isResolved() && newRoute->isResolved()) {
+          routeAdded(rid, newRoute, delta.newState());
+          return;
+        }
+        // Both old and new are resolved
+        CHECK(oldRoute->isResolved() && newRoute->isResolved());
+        routeDeleted(rid, oldRoute, delta.newState());
+        routeAdded(rid, newRoute, delta.newState());
+      },
+      [this, &delta](RouterID rid, const auto& newRoute) {
+        if (newRoute->isResolved()) {
+          routeAdded(rid, newRoute, delta.newState());
+        }
+      },
+      [this, &delta](RouterID rid, const auto& oldRoute) {
+        if (oldRoute->isResolved()) {
+          routeDeleted(rid, oldRoute, delta.newState());
+        }
+      });
 }
 
 } // namespace facebook::fboss
