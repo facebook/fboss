@@ -11,6 +11,8 @@ std::vector<StateDelta> ShelManager::modifyState(
     const std::vector<StateDelta>& deltas) {
   // TODO: Handle list of deltas instead of single delta
   CHECK_EQ(deltas.size(), 1);
+  preUpdateIntf2RefCnt_ = intf2RefCnt_;
+  processRouteUpdates(*deltas.begin());
 
   // TODO(zecheng): implement this function
   std::vector<StateDelta> retDeltas;
