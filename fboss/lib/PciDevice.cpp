@@ -16,7 +16,6 @@
 #include <folly/Exception.h>
 #include <folly/Format.h>
 #include <folly/Singleton.h>
-#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 namespace {
