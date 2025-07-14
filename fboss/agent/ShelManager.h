@@ -20,6 +20,11 @@ class ShelManager : public PreUpdateStateModifier {
       const RouteNextHopEntry::NextHopSet& routeNhops,
       const std::shared_ptr<SwitchState>& origState,
       bool add);
+  template <typename AddrT>
+  void routeAdded(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& newRoute,
+      const std::shared_ptr<SwitchState>& origState);
   std::unordered_map<InterfaceID, uint64_t> intf2RefCnt_;
   std::unordered_map<InterfaceID, uint64_t> preUpdateIntf2RefCnt_;
 };

@@ -51,4 +51,18 @@ void ShelManager::updateRefCount(
   }
 }
 
+template <typename AddrT>
+void ShelManager::routeAdded(
+    RouterID rid,
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    const std::shared_ptr<SwitchState>& origState) {
+  CHECK_EQ(rid, RouterID(0));
+  CHECK(newRoute->isResolved());
+  CHECK(newRoute->isPublished());
+  const auto& routeNhops = newRoute->getForwardInfo().normalizedNextHops();
+  if (routeNhops.size() > 1) {
+    updateRefCount(routeNhops, origState, true /*add*/);
+  }
+}
+
 } // namespace facebook::fboss
