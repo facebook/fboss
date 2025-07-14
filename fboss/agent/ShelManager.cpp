@@ -2,6 +2,7 @@
 
 #include "fboss/agent/ShelManager.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -22,6 +23,32 @@ void ShelManager::updateDone() {
 void ShelManager::updateFailed(
     const std::shared_ptr<SwitchState>& /*curState*/) {
   // TODO(zecheng): implement this function
+}
+
+void ShelManager::updateRefCount(
+    const RouteNextHopEntry::NextHopSet& routeNhops,
+    const std::shared_ptr<SwitchState>& origState,
+    bool add) {
+  for (const auto& nhop : routeNhops) {
+    // NextHops that is resolved to local interfaces
+    if (nhop.isResolved() &&
+        origState->getSystemPorts()->getNodeIf(SystemPortID(nhop.intf()))) {
+      auto iter = intf2RefCnt_.find(nhop.intf());
+      if (add) {
+        if (iter == intf2RefCnt_.end()) {
+          intf2RefCnt_[nhop.intf()] = 1;
+        } else {
+          iter->second++;
+        }
+      } else {
+        CHECK(iter != intf2RefCnt_.end() && iter->second > 0);
+        iter->second--;
+        if (iter->second == 0) {
+          intf2RefCnt_.erase(iter);
+        }
+      }
+    }
+  }
 }
 
 } // namespace facebook::fboss

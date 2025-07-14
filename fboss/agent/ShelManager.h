@@ -16,6 +16,12 @@ class ShelManager : public PreUpdateStateModifier {
   void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
 
  private:
+  void updateRefCount(
+      const RouteNextHopEntry::NextHopSet& routeNhops,
+      const std::shared_ptr<SwitchState>& origState,
+      bool add);
+  std::unordered_map<InterfaceID, uint64_t> intf2RefCnt_;
+  std::unordered_map<InterfaceID, uint64_t> preUpdateIntf2RefCnt_;
 };
 
 } // namespace facebook::fboss
