@@ -325,3 +325,8 @@ DEFINE_bool(
     dsf_single_stage_r192_f40_e32,
     false,
     "Use platform mapping for DSF Single Stage with 192 RDSWs, 40 FDSWs, 32 EDSWs");
+
+DEFINE_bool(
+    enable_high_frequency_stats_polling,
+    false,
+    "Enable high frequency stats polling");
