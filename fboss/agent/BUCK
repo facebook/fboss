@@ -767,6 +767,7 @@ cpp_library(
         "ShelManager.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         ":fib_helpers",
         ":pre_update_state_modifier",
         "//fboss/agent/state:state",

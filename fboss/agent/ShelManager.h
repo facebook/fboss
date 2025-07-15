@@ -4,6 +4,8 @@
 
 #include "fboss/agent/PreUpdateStateModifier.h"
 
+#include <gtest/gtest.h>
+
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
@@ -34,6 +36,8 @@ class ShelManager : public PreUpdateStateModifier {
 
   std::unordered_map<InterfaceID, uint64_t> intf2RefCnt_;
   std::unordered_map<InterfaceID, uint64_t> preUpdateIntf2RefCnt_;
+
+  FRIEND_TEST(ShelManagerTest, RefCountAndIntf2AddDel);
 };
 
 } // namespace facebook::fboss
