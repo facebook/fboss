@@ -20,7 +20,7 @@ git clone https://github.com/facebook/fboss.git
 cd fboss
 ```
 
-## Set Up the FBOSS Docker Image
+## Set Up the FBOSS Container
 
 ### Stop Existing Containers and Clean Docker Artifacts
 
@@ -38,7 +38,7 @@ sudo docker image prune -af
 
 The FBOSS GitHub repository contains a Dockerfile that can be used to create
 the Docker container image for building FBOSS binaries. The Dockerfile is
-located under `fboss/oss/docker/Dockerfile`. Use the below steps to
+located under `fboss/oss/docker/Dockerfile`. Use the below command to
 build the image, which installs required dependencies. Note that the path
 to the Dockerfile is relative, so the below commands assume you are currently running
 them from the root of the repository:
@@ -47,38 +47,6 @@ them from the root of the repository:
 # Builds a docker container image that is tagged as fboss_docker:latest
 sudo docker build . -t fboss_docker -f fboss/oss/docker/Dockerfile
 ```
-
-**If you are using fake SAI, continue reading this step. If you are building against a precompiled
-SDK, proceed to the next step. There will be different instructions in the "Build Against a Precompiled
-SDK" step for starting the container.**
-
-Start the container:
-
-```
-# Starts the docker container using the previously built image and runs a detached bash shell
-sudo docker run -d -it --name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-
-# A full FBOSS build may take significant space (> 50GB of storage), in which
-# case you may want to choose a more specific location for the output (e.g. a
-# disk with more space). You can do this by mounting a volume inside the
-# container using the `-v` flag as shown below. In this example,
-# the path `/opt/app/localbuild` from the base VM is mounted in the container
-# as /var/FBOSS/tmp_bld_dir
-sudo docker run -d -v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
---name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-```
-
-Enter the container:
-
-```
-# Attaches our current terminal to a new bash shell in the docker container so
-# that we can perform the build within it
-sudo docker exec -it FBOSS_DOCKER_CONTAINER bash
-```
-
-Once you've executed the above commands, you should be dropped into a root
-shell within the Docker container and can proceed with the next steps to start
-the build.
 
 ### Load the Published Docker Image from GitHub
 
@@ -104,8 +72,72 @@ You can then load the image via:
 sudo docker load < fboss_debian_docker_image.tar
 ```
 
-You can then start the container using the same `docker run` and `docker exec`
-command as mentioned above.
+## Start the FBOSS Container
+
+We will now start the container using the FBOSS image. There are various things to consider
+when starting the container, so be sure to read through the different commands here and choose
+what seems appropriate for your situation.
+
+### Simple Start
+
+If you know your host has enough space for the build, this is the simplest command you can
+run to start the container:
+
+```
+sudo docker run -d -it --name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
+```
+
+### Allocate More Space
+
+A full FBOSS build may take significant space (> 50GB of storage), in which
+case you may want to choose a more specific location for the output (e.g. a
+disk with more space). You can do this by mounting a volume inside the
+container using the `-v` flag as shown below. In this example,
+the path `/opt/app/localbuild` from the host is mounted in the container
+as `/var/FBOSS/tmp_bld_dir`:
+
+```
+sudo docker run -d -v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
+--name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
+```
+
+### Make SDK Artifacts Available
+
+**Skip to the next section if you are building using fake SAI.**
+
+When building against a precompiled SDK, you can mount directories from your host to the
+container in order to make the SDK artifacts available.
+
+Assuming the existence of `/path/to/sdk/lib/libsai_impl.a` and `/path/to/sdk/include/*.h`
+for the static library and headers respectively, the below command will mount
+those paths to `/opt/sdk/lib/libsai_impl.a` and `/opt/sdk/include/*.h` respectively:
+
+```
+sudo docker run -d -v /path/to/sdk:/opt/sdk:z -it \
+--name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
+```
+
+If you need to allocate more space, you can mount another volume within the container like
+in the steps shown in [Allocate More Space](./#allocate-more-space):
+
+```
+sudo docker run -d -v /path/to/sdk:/opt/sdk:z \
+-v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
+--name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
+```
+
+## Enter the FBOSS Container
+
+We can now enter the container:
+
+```
+# Attaches our current terminal to a new bash shell in the docker container so
+# that we can perform the build within it
+sudo docker exec -it FBOSS_DOCKER_CONTAINER bash
+```
+
+At this point, you should be dropped into a root shell within the Docker container
+and can proceed with the next steps to start the build.
 
 ## Build FBOSS Binaries
 
@@ -133,36 +165,6 @@ This section assumes that you have a precompiled SDK library which you want to
 link against. More specifically, you'll need the static library `libsai_impl.a`
 for the SDK which you are trying to link against, as well as the associated set
 of SAI headers. In order to run the build:
-
-#### Make the SDK Artifacts Available Within the Container
-
-You can mount directories from your VM to the container in order to make the SDK
-artifacts available. This is done during the run step:
-
-```
-# Assuming the existence of /path/to/sdk/lib/libsai_impl.a and /path/to/sdk/include/*.h
-# for the static library and headers respectively, the below command will mount
-# those paths to /opt/sdk/lib/libsai_impl.a and /opt/sdk/include/*.h respectively
-sudo docker run -d -v /path/to/sdk:/opt/sdk:z -it --name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-
-# A full FBOSS build may take significant space (> 50GB of storage), in which
-# case you may want to choose a more specific location for the output (e.g. a
-# disk with more space). You can do this by mounting a volume inside the
-# container using the `-v` flag as shown below. In this example,
-# the path `/opt/app/localbuild` from the base VM is mounted in the container
-# as /var/FBOSS/tmp_bld_dir
-sudo docker run -d -v /path/to/sdk:/opt/sdk:z \
--v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
---name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-```
-
-Enter the container:
-
-```
-# Attaches our current terminal to a new bash shell in the docker container so
-# that we can perform the build within it
-sudo docker exec -it FBOSS_DOCKER_CONTAINER bash
-```
 
 #### Run the Build Helper
 
@@ -245,4 +247,17 @@ Any buildable target will be specified in the cmake scripts either by
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
 --extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
 --scratch-path /var/FBOSS/tmp_bld_dir --cmake-target qsfp_service fboss
+```
+
+### Build with Local Changes
+
+If you want to make changes locally and then build, you will need another flag which tells
+`getdeps.py` to pick them up. You can use the flag `--src-dir` to tell it where changes are
+located. Because you will be making changes to the FBOSS repo, you can add the flag like seen
+in this example command:
+
+```
+time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
+--extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
+--scratch-path /var/FBOSS/tmp_bld_dir --cmake-target qsfp_service --src-dir . fboss
 ```

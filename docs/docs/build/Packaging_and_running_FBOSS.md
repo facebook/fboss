@@ -41,7 +41,8 @@ This package directory or tarball can now be copied over to the test switch for 
 
 ## Copy the Directory or Tarball to the Switch
 
-From the host VM of the container, use the appropriate command to copy the FBOSS package directory or tarball to the switch:
+From the host that the container is running on, use the appropriate command to copy the FBOSS package directory or tarball
+to the switch:
 
 ```
 # Copy the directory
@@ -105,7 +106,8 @@ cd /opt/fboss
 ./bin/setup.py
 ```
 
-Running single HW test using HW test binary:
+We recommend using the test runner to run tests, but you may also run tests using the binary
+directly. This is an example of running a single HW test using the HW test binary:
 
 ```
 ./bin/sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.init
