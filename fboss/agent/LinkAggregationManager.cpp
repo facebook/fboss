@@ -406,7 +406,6 @@ LinkAggregationManager::getControllersFor(
     controllers[i] = it->second;
   }
 
-  // TODO(samank): does this move?
   return controllers;
 }
 
