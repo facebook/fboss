@@ -16,8 +16,10 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -193,10 +195,23 @@ void AgentArsBase::resolveMirror(
 }
 
 void AgentArsBase::generateApplyConfig(AclType aclType) {
-  auto newCfg{initialConfig(*getAgentEnsemble())};
+  const auto& ensemble = *getAgentEnsemble();
+  auto newCfg{initialConfig(ensemble)};
+  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto streamType =
+      *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+  utility::addNetworkAIQueueConfig(
+      &newCfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
+  utility::addNetworkAIQosMaps(newCfg, ensemble.getL3Asics());
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    utility::addCpuQueueConfig(newCfg, ensemble.getL3Asics(), ensemble.isSai());
+  }
+
+  // add ACL entry after above config since addNetworkAIQosMaps overwrites
+  // dataPlaneTrafficPolicy
   std::vector<std::string> udfGroups = getUdfGroupsForAcl(aclType);
   addAclTableConfig(newCfg, udfGroups);
-  addAclAndStat(&newCfg, aclType, getAgentEnsemble()->isSai());
+  addAclAndStat(&newCfg, aclType, ensemble.isSai());
   applyNewConfig(newCfg);
 }
 
