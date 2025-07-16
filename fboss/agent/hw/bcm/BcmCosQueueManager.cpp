@@ -18,7 +18,6 @@
 #include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 

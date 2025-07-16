@@ -10,8 +10,6 @@
 
 #include "fboss/agent/hw/bcm/BcmCinter.h"
 
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
-
 #include <array>
 #include <iomanip>
 #include <iterator>
@@ -26,8 +24,6 @@
 #include <folly/MapUtil.h>
 #include <folly/Singleton.h>
 #include <folly/String.h>
-
-#include "fboss/agent/SysError.h"
 
 extern "C" {
 #if (defined(IS_OPENNSA))

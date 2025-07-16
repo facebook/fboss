@@ -444,7 +444,6 @@ cpp_library(
         ":load_agent_config",
         ":switch_config-cpp2-types",
         ":switch_state-cpp2-types",
-        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//folly:range",
         "//folly/logging:logging",
