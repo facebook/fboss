@@ -13,9 +13,6 @@
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
-#include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/hw/bcm/BcmQcmManager.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/SwitchState.h"
 

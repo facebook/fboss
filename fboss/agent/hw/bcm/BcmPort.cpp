@@ -40,7 +40,6 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
-#include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmPrbs.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
