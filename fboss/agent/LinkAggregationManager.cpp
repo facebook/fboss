@@ -24,7 +24,6 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 
 #include <algorithm>

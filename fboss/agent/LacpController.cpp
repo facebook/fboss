@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/LacpController.h"
-#include "fboss/agent/LacpTypes-defs.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <cstring>

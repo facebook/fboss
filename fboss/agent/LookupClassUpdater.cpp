@@ -17,7 +17,6 @@
 #include "fboss/agent/NeighborTableDeltaCallbackGenerator.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 

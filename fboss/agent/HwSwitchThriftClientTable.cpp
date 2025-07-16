@@ -9,9 +9,7 @@
  */
 #include "fboss/agent/HwSwitchThriftClientTable.h"
 
-#include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
-#include <netinet/in.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/ReconnectingRequestChannel.h>
 #include <thrift/lib/cpp2/async/RetryingRequestChannel.h>

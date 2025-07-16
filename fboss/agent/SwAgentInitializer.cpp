@@ -7,9 +7,6 @@
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/CommonUtils.h"
-
-#include <folly/io/async/EventBase.h>
 
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
