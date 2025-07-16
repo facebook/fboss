@@ -491,7 +491,9 @@ void SaiSwitch::processCreditRequestProfileDelta(
       if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
         expectedScheduling = scheduling;
         paramVal = static_cast<int>(param.value().spPriority().value());
-      } else if (scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+      } else if (
+          scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN ||
+          scheduling == cfg::QueueScheduling::DEFICIT_ROUND_ROBIN) {
         expectedScheduling = scheduling;
         paramVal = param.value().wrrWeight().value();
       }
