@@ -2823,6 +2823,19 @@ std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
 std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
     PortSaiId saiPortId,
     uint8_t numPmdLanes) const {
+  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(saiPortId);
+  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
+    XLOG(WARNING) << "Unknown PortSaiId: " << saiPortId;
+    return std::vector<sai_port_snr_values_t>();
+  }
+  // TH5 Management port doesn't support RX SNR
+  // If we do end up with management ports supporting rxSNR we may need to
+  // support per-core HwAsic::Feature definitions instead of setting them at the
+  // asic level.
+  auto portID = portItr->second.portID;
+  if (getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    return std::vector<sai_port_snr_values_t>();
+  }
   if (!rxSNRSupported()) {
     return std::vector<sai_port_snr_values_t>();
   }
