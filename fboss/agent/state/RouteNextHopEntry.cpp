@@ -190,11 +190,11 @@ std::string RouteNextHopEntry::str() const {
 
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
   return (
-      a.getAction() == b.getAction() and
-      a.getNextHopSet() == b.getNextHopSet() and
-      a.getAdminDistance() == b.getAdminDistance() and
-      a.getCounterID() == b.getCounterID() and
-      a.getClassID() == b.getClassID() and
+      a.getAction() == b.getAction() &&
+      a.getNextHopSet() == b.getNextHopSet() &&
+      a.getAdminDistance() == b.getAdminDistance() &&
+      a.getCounterID() == b.getCounterID() &&
+      a.getClassID() == b.getClassID() &&
       a.getOverrideEcmpSwitchingMode() == b.getOverrideEcmpSwitchingMode());
 }
 
