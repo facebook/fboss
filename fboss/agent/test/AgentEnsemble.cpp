@@ -272,6 +272,10 @@ void AgentEnsemble::unprogramRoutes(
   }
 }
 
+void AgentEnsemble::stopStatsThread() {
+  agentInitializer()->stopStatsThread();
+}
+
 void AgentEnsemble::gracefulExit() {
   auto* initializer = agentInitializer();
   // exit for warm boot

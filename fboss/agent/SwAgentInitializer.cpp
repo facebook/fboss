@@ -89,9 +89,11 @@ SwitchFlags SwSwitchInitializer::setupFlags() {
 }
 
 void SwSwitchInitializer::stopFunctionScheduler() {
+  XLOG(DBG2) << "Stopping stats FunctionScheduler";
   if (fs_) {
     fs_->shutdown();
   }
+  XLOG(DBG2) << "Stopped stats FunctionScheduler";
 }
 
 void SwSwitchInitializer::waitForInitDone() {
@@ -189,8 +191,13 @@ void SwAgentInitializer::stopServices() {
   if (initializer_) {
     initializer_->stopFunctionScheduler();
   }
-  XLOG(DBG2) << "Stopped stats FunctionScheduler";
   fbossFinalize();
+}
+
+void SwAgentInitializer::stopStatsThread() {
+  if (initializer_) {
+    initializer_->stopFunctionScheduler();
+  }
 }
 
 void SwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {

@@ -122,6 +122,7 @@ class AgentEnsemble : public TestEnsembleIf {
       const utility::RouteDistributionGenerator::ThriftRouteChunks&
           routeChunks);
 
+  void stopStatsThread();
   void gracefulExit();
 
   static void enableExactMatch(bcm::BcmConfig& config);
