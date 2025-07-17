@@ -285,12 +285,16 @@ void BaseEcmpResourceManagerTest::SetUp() {
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
   // Taken from mock asic
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
-  // Backup ecmp group type will com from default flowlet confg
-  if (cfg.flowletSwitchingConfig()->backupSwitchingMode().has_value()) {
-    EXPECT_EQ(
-        *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
-        *cfg.flowletSwitchingConfig()->backupSwitchingMode());
+  // Backup ecmp group type will come from default flowlet confg
+  std::optional<cfg::SwitchingMode> expectedBackupSwitchingMode;
+  if (cfg.flowletSwitchingConfig() &&
+      cfg.flowletSwitchingConfig()->backupSwitchingMode().has_value()) {
+    expectedBackupSwitchingMode =
+        *cfg.flowletSwitchingConfig()->backupSwitchingMode();
   }
+  EXPECT_EQ(
+      sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
+      expectedBackupSwitchingMode);
   EXPECT_EQ(
       sw_->getEcmpResourceManager()->getEcmpCompressionThresholdPct(),
       cfg.switchSettings()->ecmpCompressionThresholdPct().value_or(0));
