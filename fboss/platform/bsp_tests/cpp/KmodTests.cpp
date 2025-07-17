@@ -53,6 +53,24 @@ TEST_F(KmodTest, UnloadKmods) {
   EXPECT_TRUE(loadedKmods.empty()) << "Some kernel modules were not unloaded";
 }
 
+// Test fixture for kmod stress tests
+class KmodStressTest : public KmodTest {};
+
+// Stress test for loading and unloading modules
+TEST_F(KmodStressTest, KmodLoadUnloadStress) {
+  const auto& kmods = *GetRuntimeConfig().kmods();
+
+  for (int i = 0; i < 10; i++) {
+    XLOG(INFO) << "Stress test iteration " << i + 1;
+    KmodUtils::loadKmods(kmods);
+    KmodUtils::unloadKmods(kmods);
+  }
+
+  auto loadedKmods = KmodUtils::getLoadedKmods(kmods);
+  EXPECT_TRUE(loadedKmods.empty())
+      << "Some kernel modules were not unloaded after stress test";
+}
+
 // Test fbsp-remove script
 TEST_F(KmodTest, FbspRemove) {
   const auto& kmods = *GetRuntimeConfig().kmods();
@@ -67,7 +85,8 @@ TEST_F(KmodTest, FbspRemove) {
 
   auto loadedKmods = KmodUtils::getLoadedKmods(kmods);
   EXPECT_TRUE(loadedKmods.empty())
-      << "Some kernel modules were not unloaded by fbsp-remove";
+      << "Some kernel modules were not unloaded by fbsp-remove. Loaded kmods: "
+      << folly::join(", ", loadedKmods);
 }
 
 } // namespace facebook::fboss::platform::bsp_tests::cpp
