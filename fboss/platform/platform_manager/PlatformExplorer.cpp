@@ -2,7 +2,6 @@
 
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 
-#include <algorithm>
 #include <chrono>
 #include <exception>
 #include <filesystem>

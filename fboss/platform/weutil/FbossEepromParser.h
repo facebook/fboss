@@ -1,9 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #pragma once
-#include <memory>
 #include <string>
-#include <vector>
 
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 
