@@ -990,8 +990,19 @@ void SaiSwitch::tamEventCallback(
 
 void SaiSwitch::hardResetSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
-    const void* /*buffer*/) {
-  XLOG(FATAL) << " ASIC had a hard reset. Aborting !!!";
+    const void* buffer) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_2)
+  const sai_switch_hard_reset_event_info_t* eventInfo =
+      static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
+  /*
+   * Flags has the ORed value for all reason codes for hard resets
+   * For exact values, look at saiswitchextensions.h file
+   */
+  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset, with flag:"
+              << eventInfo->flags;
+#else
+  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset event";
+#endif
 }
 
 } // namespace facebook::fboss
