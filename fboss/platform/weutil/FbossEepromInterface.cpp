@@ -175,7 +175,7 @@ EepromContents FbossEepromInterface::getEepromContents() const {
       result.vendorDefinedField2() = fieldMap_.at(102).value;
       result.vendorDefinedField3() = fieldMap_.at(103).value;
     }
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw std::runtime_error("Invalid FbossEepromInterface structure");
   }
   return result;
