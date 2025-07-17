@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <optional>
 
 #include "fboss/platform/bsp_tests/cpp/BspTestEnvironment.h"
+#include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
 #include "fboss/platform/bsp_tests/cpp/utils/KmodUtils.h"
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
 
@@ -38,6 +40,34 @@ class BspTest : public ::testing::Test {
 
   void SetUp() override {
     BspTest::loadKmods();
+  }
+
+  // Track devices created during tests for automatic cleanup
+  struct DeviceToCleanup {
+    PciDeviceInfo pciDevice;
+    fbiob::AuxData auxDevice;
+    int id;
+  };
+  std::vector<DeviceToCleanup> devicesToCleanup_;
+
+  void TearDown() override {
+    // Clean up all created devices
+    for (const auto& device : devicesToCleanup_) {
+      try {
+        CdevUtils::deleteDevice(device.pciDevice, device.auxDevice, device.id);
+      } catch (const std::exception& e) {
+        XLOG(ERR) << "Failed to delete device during cleanup: " << e.what();
+      }
+    }
+    devicesToCleanup_.clear();
+  }
+
+  // Helper to register a device for cleanup
+  void registerDeviceForCleanup(
+      const PciDeviceInfo& pciDevice,
+      const fbiob::AuxData& auxDevice,
+      const int id) {
+    devicesToCleanup_.push_back({pciDevice, auxDevice, id});
   }
 
   const RuntimeConfig& GetRuntimeConfig() const {

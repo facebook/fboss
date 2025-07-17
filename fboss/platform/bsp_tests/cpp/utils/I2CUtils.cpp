@@ -15,21 +15,62 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <folly/FileUtil.h>
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
+namespace fs = std::filesystem;
 namespace facebook::fboss::platform::bsp_tests::cpp {
+
+std::string I2CUtils::findPciDirectory(PciDeviceInfo pci) {
+  for (const auto& dirEntry : fs::directory_iterator("/sys/bus/pci/devices")) {
+    std::string vendor, device, subSystemVendor, subSystemDevice;
+    auto deviceFilePath = dirEntry.path() / "device";
+    auto vendorFilePath = dirEntry.path() / "vendor";
+    auto subSystemVendorFilePath = dirEntry.path() / "subsystem_vendor";
+    auto subSystemDeviceFilePath = dirEntry.path() / "subsystem_device";
+    if (!folly::readFile(vendorFilePath.c_str(), vendor)) {
+      XLOG(ERR) << "Failed to read vendor file from " << dirEntry.path();
+    }
+    if (!folly::readFile(deviceFilePath.c_str(), device)) {
+      XLOG(ERR) << "Failed to read device file from " << dirEntry.path();
+    }
+    if (!folly::readFile(subSystemVendorFilePath.c_str(), subSystemVendor)) {
+      XLOG(ERR) << "Failed to read subsystem_vendor file from "
+                << dirEntry.path();
+    }
+    if (!folly::readFile(subSystemDeviceFilePath.c_str(), subSystemDevice)) {
+      XLOG(ERR) << "Failed to read subsystem_device file from "
+                << dirEntry.path();
+    }
+    if (folly::trimWhitespace(vendor).str() == *pci.vendorId() &&
+        folly::trimWhitespace(device).str() == *pci.deviceId() &&
+        folly::trimWhitespace(subSystemVendor).str() ==
+            *pci.subSystemVendorId() &&
+        folly::trimWhitespace(subSystemDevice).str() ==
+            *pci.subSystemDeviceId()) {
+      return dirEntry.path().string();
+    }
+  }
+  throw std::runtime_error(fmt::format(
+      "No sysfs path found for vendorId: {}, deviceId: {}, "
+      "subSystemVendorId: {}, subSystemDeviceId: {}",
+      *pci.vendorId(),
+      *pci.deviceId(),
+      *pci.subSystemVendorId(),
+      *pci.subSystemDeviceId()));
+}
 
 // Returns map {channel_num -> I2CBus}
 // Creates an adapter AND its parents e.g. a mux adapter that
 // depends on a parent PCI adapter
 std::map<int, I2CBus> I2CUtils::createI2CAdapter(
-    // const PciDevice& pciDevice,
     const I2CAdapter& adapter,
     int32_t id) {
+  // TODO: Check if it already exists
   if (*adapter.isCpuAdapter()) {
     // No need to create, just return the bus
     auto existingBuses = findI2CBuses();
@@ -41,39 +82,48 @@ std::map<int, I2CBus> I2CUtils::createI2CAdapter(
     throw std::runtime_error(
         fmt::format("CPU adapter {} not found", *adapter.busName()));
   } else if (adapter.pciAdapterInfo().has_value()) {
+    auto pci = *adapter.pciAdapterInfo();
     // Ensure the adapter has I2C info
     if (!adapter.pciAdapterInfo()->auxData()->i2cData()) {
       throw std::runtime_error("I2C adapter does not have I2C info");
     }
-    int numBuses =
-        *adapter.pciAdapterInfo()->auxData()->i2cData()->numChannels();
-    PciDeviceInfo pci;
-    pci.vendorId() = *adapter.pciAdapterInfo()->pciInfo()->vendorId();
-    pci.deviceId() = *adapter.pciAdapterInfo()->pciInfo()->deviceId();
-    pci.subSystemVendorId() =
-        *adapter.pciAdapterInfo()->pciInfo()->subSystemVendorId();
-    pci.subSystemDeviceId() =
-        *adapter.pciAdapterInfo()->pciInfo()->subSystemDeviceId();
-    CdevUtils::createNewDevice(pci, *adapter.pciAdapterInfo()->auxData(), id);
+    int numBuses = *pci.auxData()->i2cData()->numChannels();
+    CdevUtils::createNewDevice(*pci.pciInfo(), *pci.auxData(), id);
 
     // find new buses from pci device path
-    std::string pciDir = CdevUtils::makePciPath(pci);
+    std::string pciDir = findPciDirectory(*pci.pciInfo());
     std::string i2cDir = findI2cDir(pciDir, adapter, id);
     std::map<int, I2CBus> newBuses;
-    for (int i = 0; i < numBuses; i++) {
-      std::string channelFile = fmt::format("{}/channel-{}", i2cDir, i);
-      if (!std::filesystem::exists(channelFile) ||
-          !std::filesystem::is_symlink(channelFile)) {
-        throw std::runtime_error(
-            fmt::format("{} does not exist or is not symlink", channelFile));
+    if (numBuses > 1) {
+      for (int i = 0; i < numBuses; i++) {
+        std::string channelFile = fmt::format("{}/channel-{}", i2cDir, i);
+        if (!fs::exists(channelFile) || !fs::is_symlink(channelFile)) {
+          throw std::runtime_error(
+              fmt::format("{} does not exist or is not symlink", channelFile));
+        }
+        I2CBus bus;
+        bus.busNum = platform_manager::I2cExplorer().extractBusNumFromPath(
+            fs::read_symlink(channelFile));
+        bus.name = getBusNameFromNum(bus.busNum);
+        newBuses.insert({i, bus});
       }
+      return newBuses;
+    } else {
+      std::string i2cBusDir;
+      for (const auto& dirEntry : fs::directory_iterator(i2cDir)) {
+        if (dirEntry.path().filename().string().find("i2c-") !=
+            std::string::npos) {
+          i2cBusDir = dirEntry.path().string();
+          break;
+        }
+      }
+
       I2CBus bus;
-      bus.busNum = platform_manager::I2cExplorer().extractBusNumFromPath(
-          std::filesystem::read_symlink(channelFile));
+      bus.busNum =
+          platform_manager::I2cExplorer().extractBusNumFromPath(i2cBusDir);
       bus.name = getBusNameFromNum(bus.busNum);
-      newBuses.at(i) = bus;
+      return {{0, bus}};
     }
-    return newBuses;
   } else if (adapter.muxAdapterInfo().has_value()) {
     // create parent adapter
     int parentId = id + 1;
@@ -95,7 +145,8 @@ std::map<int, I2CBus> I2CUtils::createI2CAdapter(
     for (const auto& [channel, bus] : createdBuses) {
       I2CBus newBus;
       newBus.busNum = bus;
-      newMuxBuses.at(channel) = newBus;
+      newBus.name = getBusNameFromNum(bus);
+      newMuxBuses.insert({channel, newBus});
     }
     return newMuxBuses;
   } else {
@@ -105,7 +156,7 @@ std::map<int, I2CBus> I2CUtils::createI2CAdapter(
 
 std::string I2CUtils::getBusNameFromNum(int busNum) {
   auto busName = PlatformFsUtils().getStringFileContent(
-      fmt::format("/sys/bus/i2c/devices/i2c-{}", busNum));
+      fmt::format("/sys/bus/i2c/devices/i2c-{}/name", busNum));
   if (busName->empty()) {
     throw std::runtime_error(
         fmt::format("Failed to open bus name file for bus {}", busNum));
@@ -117,8 +168,8 @@ std::string I2CUtils::findI2cDir(
     const std::string& pciDir,
     const I2CAdapter& adapter,
     int id) {
-  std::string expectedEnding =
-      fmt::format(".{}.{}", *adapter.pciAdapterInfo()->auxData()->name(), id);
+  std::string expectedEnding = fmt::format(
+      ".{}.{}", *adapter.pciAdapterInfo()->auxData()->id()->deviceName(), id);
   for (const auto& dirEntry : std::filesystem::directory_iterator(pciDir)) {
     if ((dirEntry.path().string().ends_with(expectedEnding))) {
       return dirEntry.path().string();
@@ -184,6 +235,7 @@ bool I2CUtils::detectI2CDevice(int bus, const std::string& hexAddr) {
       auto [exitCode, output] =
           PlatformUtils().execCommand(folly::join(" ", cmd));
       if (exitCode != 0) {
+        XLOG(WARN) << "i2cdetect command failed with exit code " << exitCode;
         continue; // Try next option if command failed
       }
 
@@ -204,7 +256,8 @@ bool I2CUtils::detectI2CDevice(int bus, const std::string& hexAddr) {
         }
       }
     } catch (const std::exception& e) {
-      XLOG(WARN) << "Error running i2cdetect: " << e.what();
+      XLOG(WARN) << "Error running i2cdetect with " << folly::join(" ", cmd)
+                 << ": " << e.what();
       // Continue to the next option
     }
   }

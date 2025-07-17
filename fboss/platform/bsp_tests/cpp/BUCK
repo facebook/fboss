@@ -22,6 +22,7 @@ cpp_library(
         "//fboss/platform/platform_manager:i2c_misc",
         "//fboss/platform/platform_manager:pkg_manager",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly:file_util",
         "//folly:format",
         "//folly/logging:logging",
     ],
@@ -36,6 +37,7 @@ cpp_binary(
         "BspTest.cpp",
         "BspTestRunner.cpp",
         "CdevTests.cpp",
+        "I2CTests.cpp",
         "KmodTests.cpp",
     ],
     deps = [
@@ -53,6 +55,7 @@ cpp_binary(
     ],
     external_deps = [
         "gflags",
+        "re2",
     ],
 )
 

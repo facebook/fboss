@@ -93,7 +93,6 @@ RuntimeConfigBuilder::findAdapter(
         adapters,
     const std::string& unitName,
     const std::string& scopedName) {
-  XLOG(INFO) << "Looking for adapter " << unitName << "." << scopedName;
   std::string pmName = fmt::format("{}.{}", unitName, scopedName);
   if (!adapters.contains(pmName)) {
     throw std::runtime_error(
@@ -166,8 +165,18 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
     const PlatformConfig& pmConfig,
     const BspKmodsFile& kmods) {
   RuntimeConfig config;
+
+  auto kmodsToUse = kmods;
   config.platform() = *testConfig.platform();
-  config.kmods() = kmods;
+  if (*testConfig.platform() == "meru800bfa" ||
+      *testConfig.platform() == "meru800bia") {
+    auto& kmodsList = kmodsToUse.bspKmods().value();
+    auto it = std::find(kmodsList.begin(), kmodsList.end(), "bp4a_lm90");
+    if (it != kmodsList.end()) {
+      kmodsList.erase(it);
+    }
+  }
+  config.kmods() = kmodsToUse;
 
   std::vector<PciDevice> devices;
   std::map<std::string, I2CAdapter> i2cAdapters;

@@ -83,6 +83,7 @@ class I2CUtils {
 
   static std::string
   findI2cDir(const std::string& pciDir, const I2CAdapter& adapter, int id);
+  static std::string findPciDirectory(PciDeviceInfo pci);
 
   static std::string getBusNameFromNum(int busNum);
 };
