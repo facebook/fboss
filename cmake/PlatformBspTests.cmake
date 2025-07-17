@@ -19,6 +19,20 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_library(kmod_utils
+  fboss/platform/bsp_tests/cpp/utils/KmodUtils.cpp
+)
+
+target_link_libraries(kmod_utils
+  fmt::fmt
+  ${GTEST}
+  platform_utils
+  platform_manager_pkg_manager
+  platform_manager_config_cpp2
+  Folly::folly
+  ${RE2}
+)
+
 add_library(bsp_test_environment
   fboss/platform/bsp_tests/cpp/BspTestEnvironment.cpp
   fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.cpp
@@ -38,13 +52,16 @@ target_link_libraries(bsp_test_environment
 add_executable(bsp_tests
   fboss/platform/bsp_tests/cpp/BspTest.cpp
   fboss/platform/bsp_tests/cpp/BspTestRunner.cpp
+  fboss/platform/bsp_tests/cpp/KmodTests.cpp
 )
 
 target_link_libraries(bsp_tests
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
   bsp_test_environment
+  kmod_utils
   platform_name_lib
+  platform_manager_config_cpp2
   Folly::folly
 )
 
