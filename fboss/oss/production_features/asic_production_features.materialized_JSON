@@ -338,7 +338,8 @@
         72,
         80,
         81,
-        82
+        82,
+        84
     ],
     "yuba": [
         2,
@@ -726,7 +727,8 @@
         "MODIFY_ACL_QUALIFIERS",
         "PFC_WATCHDOG_GRANULARITY",
         "ARS_FLOWLET",
-        "ARS_SPRAY"
+        "ARS_SPRAY",
+        "STATIC_PG_SHARED_LIMIT"
     ],
     "yuba": [
         "CPU_RX_TX",
