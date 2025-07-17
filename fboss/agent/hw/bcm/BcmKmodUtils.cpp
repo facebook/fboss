@@ -1,32 +1,38 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/bcm/BcmKmodUtils.h"
+
+#include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
-#include "common/process/Process.h"
+#include <folly/system/Shell.h>
 
 namespace facebook::fboss {
 
-std::string getBcmKmodParam(std::string param) {
-  std::string resultStr;
-  std::string errStr;
-  std::string cmd = "cat /sys/module/linux_user_bde/parameters/" + param;
-  bool ret = facebook::process::Process::execShellCmd(cmd, &resultStr, &errStr);
-  if (!ret || resultStr.empty()) {
-    XLOG(ERR) << "Failed in getting kmod pamameter. Error: " << errStr;
+using folly::literals::shell_literals::operator""_shellify;
+
+std::string getBcmKmodParam(const std::string& param) {
+  folly::Subprocess p(
+      "cat /sys/module/linux_user_bde/parameters/{}"_shellify(param),
+      folly::Subprocess::Options().pipeStdout());
+  auto [stdOut, stdErr] = p.communicate();
+  int exitStatus = p.wait().exitStatus();
+  if (exitStatus != 0 || stdOut.empty()) {
+    XLOG(ERR) << "Failed in getting kmod pamameter. Error: " << stdErr;
   }
-  return resultStr;
+  return stdOut;
 }
 
-bool setBcmKmodParam(std::string param, std::string val) {
-  std::string resultStr;
-  std::string errStr;
-  std::string cmd = folly::to<std::string>(
-      "echo ", val, " > /sys/module/linux_user_bde/parameters/", param);
-  bool ret = facebook::process::Process::execShellCmd(cmd, &resultStr, &errStr);
-  if (!ret) {
-    XLOG(ERR) << "Failed in setting kmod pamameter. Error: " << errStr;
+bool setBcmKmodParam(const std::string& param, const std::string& val) {
+  folly::Subprocess p(
+      "echo {} > /sys/module/linux_user_bde/parameters/{}"_shellify(val, param),
+      folly::Subprocess::Options().pipeStdout());
+  auto [_, stdErr] = p.communicate();
+  int exitStatus = p.wait().exitStatus();
+  if (exitStatus != 0) {
+    XLOG(ERR) << "Failed in setting kmod pamameter. Error: " << stdErr;
+    return false;
   }
-  return ret;
+  return true;
 }
 
 } // namespace facebook::fboss
