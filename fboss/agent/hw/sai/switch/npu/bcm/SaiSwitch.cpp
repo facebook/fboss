@@ -34,6 +34,8 @@ std::string eventName(uint32_t eventID) {
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT";
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED";
+    case SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET:
+      return "SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET";
 #endif
   }
   return folly::to<std::string>("unknown event type: ", eventID);
@@ -970,6 +972,7 @@ void SaiSwitch::switchEventCallback(
     }
     case SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET:
       XLOG(ERR) << " Got soft reset event";
+      logEventDetails();
       getSwitchStats()->asicSoftResetError();
       break;
 #endif
