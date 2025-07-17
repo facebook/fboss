@@ -451,6 +451,7 @@ struct SwitchSettingsFields {
   57: optional map<i32, i32> tcToRateLimitKbps;
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   58: optional i32 pfcWatchdogTimerGranularityMsec;
+  59: optional i32 ecmpCompressionThresholdPct;
 }
 
 struct RoutePrefix {
