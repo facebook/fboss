@@ -985,4 +985,10 @@ void SaiSwitch::tamEventCallback(
   // no-op
 }
 
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* /*buffer*/) {
+  XLOG(FATAL) << " ASIC had a hard reset. Aborting !!!";
+}
+
 } // namespace facebook::fboss

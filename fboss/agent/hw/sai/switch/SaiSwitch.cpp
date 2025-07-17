@@ -4891,12 +4891,6 @@ void SaiSwitch::vendorSwitchEventNotificationCallback(
       bufferSize, buffer, eventType);
 }
 
-void SaiSwitch::hardResetSwitchEventNotificationCallback(
-    sai_size_t /*bufferSize*/,
-    const void* /*buffer*/) {
-  XLOG(FATAL) << " ASIC had a hard reset. Aborting !!!";
-}
-
 TeFlowStats SaiSwitch::getTeFlowStats() const {
   // not implemented in SAI. Return empty stats
   return TeFlowStats();
