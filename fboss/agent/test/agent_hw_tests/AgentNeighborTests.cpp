@@ -257,10 +257,21 @@ class AgentNeighborTest : public AgentHwTest {
     auto ip = getNeighborAddress(linkLocal);
     auto outState{inState->clone()};
     auto neighborTable = getNeighborTable(outState);
+    auto switchType =
+        checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
+    PortDescriptor port = portDescriptor();
+    SystemPortID systemPortID;
+    // VOQ switches stores system port ID in switch state
+    if (switchType == cfg::SwitchType::VOQ) {
+      systemPortID = SystemPortID(kIntfID());
+      port = PortDescriptor(SystemPortID(systemPortID));
+    }
+
     neighborTable->updateEntry(
         ip,
         kNeighborMac,
-        portDescriptor(),
+        port,
         kIntfID(),
         NeighborState::REACHABLE,
         lookupClass);
