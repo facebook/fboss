@@ -45,7 +45,9 @@ std::shared_ptr<RouteV6> makeRoute(
   return rt;
 }
 
-cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
+cfg::SwitchConfig onePortPerIntfConfig(
+    int numIntfs,
+    int32_t ecmpCompressionThresholdPct) {
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(numIntfs);
   cfg.vlans()->resize(numIntfs);
@@ -71,9 +73,13 @@ cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
     cfg.interfaces()[p].ipAddresses()[0] =
         folly::sformat("2400:db00:2110:{}::1/64", p);
   }
-  cfg::FlowletSwitchingConfig flowletConfig;
-  flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
-  cfg.flowletSwitchingConfig() = flowletConfig;
+  if (ecmpCompressionThresholdPct) {
+    // TODO
+  } else {
+    cfg::FlowletSwitchingConfig flowletConfig;
+    flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+    cfg.flowletSwitchingConfig() = flowletConfig;
+  }
   return cfg;
 }
 
@@ -272,7 +278,7 @@ void BaseEcmpResourceManagerTest::SetUp() {
   FLAGS_ars_resource_percentage = 100;
   FLAGS_flowletSwitchingEnable = true;
   FLAGS_dlbResourceCheckEnable = false;
-  auto cfg = onePortPerIntfConfig(kNumIntfs);
+  auto cfg = onePortPerIntfConfig(kNumIntfs, getEcmpCompressionThresholdPct());
   handle_ = createTestHandle(&cfg);
   sw_ = handle_->getSw();
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);

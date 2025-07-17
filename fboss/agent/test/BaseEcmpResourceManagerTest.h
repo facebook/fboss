@@ -48,7 +48,9 @@ inline HwSwitchMatcher hwMatcher() {
   return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
 }
 
-cfg::SwitchConfig onePortPerIntfConfig(int numIntfs);
+cfg::SwitchConfig onePortPerIntfConfig(
+    int numIntfs,
+    int32_t ecmpCompressionThresholdPct = 0);
 
 class BaseEcmpResourceManagerTest : public ::testing::Test {
  public:
@@ -92,6 +94,9 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   }
 
  public:
+  int32_t virtual getEcmpCompressionThresholdPct() const {
+    return 0;
+  }
   void updateFlowletSwitchingConfig(
       const std::shared_ptr<SwitchState>& newState);
   void updateRoutes(const std::shared_ptr<SwitchState>& newState);
