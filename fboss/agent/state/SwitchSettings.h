@@ -737,6 +737,13 @@ class SwitchSettings
           *voqOutOfBoundsLatencyNs);
     }
   }
+  std::optional<int32_t> getEcmpCompressionThresholdPct() const {
+    if (auto ecmpCompressionThresholdPct =
+            cref<switch_state_tags::ecmpCompressionThresholdPct>()) {
+      return ecmpCompressionThresholdPct->toThrift();
+    }
+    return std::nullopt;
+  }
 
   std::optional<std::map<int32_t, int32_t>> getTcToRateLimitKbps() const {
     if (auto tcToRateLimitKbps = cref<switch_state_tags::tcToRateLimitKbps>()) {
