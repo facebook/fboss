@@ -95,7 +95,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     AdminDistance distance,
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID,
-    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode) {
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
+    std::optional<NextHopSet> originalUnprunedNextHops) {
   auto data = getRouteNextHopEntryThrift(
       action,
       distance,
@@ -111,7 +112,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     AdminDistance distance,
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID,
-    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode) {
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
+    std::optional<NextHopSet> originalUnprunedNextHops) {
   auto data = getRouteNextHopEntryThrift(
       Action::NEXTHOPS,
       distance,
@@ -127,7 +129,8 @@ RouteNextHopEntry::RouteNextHopEntry(
     AdminDistance distance,
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID,
-    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode) {
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
+    std::optional<NextHopSet> originalUnprunedNextHops) {
   if (nhopSet.empty()) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
