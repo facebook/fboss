@@ -599,6 +599,26 @@ TYPED_TEST(AgentNeighborTest, LinkDownAndUpOnResolvedEntry) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST_SUITE(AgentNeighborResolutionTest, NeighborTypes);
+// This test verifies that the neighbor cache is populated correctly
+// from the switchState. This is done by adding a neighbor entry
+// and then populating the cache. The cache is then verified to
+// have the correct port associated with the neighbor entry
+TYPED_TEST(AgentNeighborResolutionTest, ResolveNeighborAndCheckCache) {
+  auto setup = [this]() {
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return this->resolveNeighbor(this->addNeighbor(in));
+    });
+
+    this->populateNeighborsCache(this->portDescriptor());
+  };
+  auto verify = [this]() {
+    this->verifyNeighborCache(
+        this->portDescriptor(), this->getProgrammedState());
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 template <bool enableIntfNbrTable>
 struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
