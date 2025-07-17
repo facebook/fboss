@@ -7,6 +7,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/NeighborTestUtils.h"
@@ -330,6 +331,120 @@ class AgentNeighborTest : public AgentHwTest {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2};
   const cfg::AclLookupClass kLookupClass2{
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3};
+};
+
+template <typename NeighborT>
+class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
+ protected:
+  using IPAddrT = typename NeighborT::IPAddrT;
+  static auto constexpr isIntfNbrTable = NeighborT::isIntfNbrTable;
+  using NTable = typename std::conditional_t<
+      std::is_same<IPAddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable;
+    AgentHwTest::setCmdLineFlagOverrides();
+    // Enable neighbor cache so that class id is set
+    FLAGS_disable_neighbor_updates = false;
+    // enable neighbor update failure protection
+    FLAGS_enable_hw_update_protection = true;
+  }
+
+  // Get the neighbor cache for the given address family
+  template <typename AddrT = IPAddrT>
+  auto getNeighborCache(std::shared_ptr<SwitchState> state) {
+    auto switchType =
+        checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
+
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
+        return this->getSw()
+            ->getNeighborUpdater()
+            ->getNdpCacheDataForIntf()
+            .get();
+      } else if (switchType == cfg::SwitchType::NPU) {
+        return this->getSw()->getNeighborUpdater()->getNdpCacheData().get();
+      } else {
+        XLOG(FATAL) << "Unexpected switch type "
+                    << static_cast<int>(switchType);
+      }
+    } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
+        return this->getSw()
+            ->getNeighborUpdater()
+            ->getArpCacheDataForIntf()
+            .get();
+      } else if (switchType == cfg::SwitchType::NPU) {
+        return this->getSw()->getNeighborUpdater()->getArpCacheData().get();
+      } else {
+        XLOG(FATAL) << "Unexpected switch type "
+                    << static_cast<int>(switchType);
+      }
+    } else {
+      XLOG(FATAL) << "Unsupported address type";
+    }
+  }
+
+  // Verify that neighbor entries are programmed in the neighbor cache and
+  // switchState neighbor table has the correct port
+  void verifyNeighborCache(
+      const PortDescriptor& port,
+      const std::shared_ptr<SwitchState>& inState) {
+    auto outState{inState->clone()};
+    auto ipAddress = this->getNeighborAddress(false);
+    auto neighborTable = this->getNeighborTable(outState);
+    auto switchType =
+        checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
+
+    WITH_RETRIES({
+      auto neighborCache = getNeighborCache(outState);
+
+      auto cacheEntry = std::find_if(
+          neighborCache.begin(),
+          neighborCache.end(),
+          [&ipAddress](const auto& entry) {
+            return entry.ip() == network::toBinaryAddress(ipAddress);
+          });
+      EXPECT_EVENTUALLY_TRUE(cacheEntry != neighborCache.end());
+      auto nbrEntry = neighborTable->getEntryIf(ipAddress);
+      EXPECT_EVENTUALLY_TRUE(nbrEntry != nullptr);
+
+      if (nbrEntry) {
+        XLOG(DBG2) << "NDP : " << ipAddress.str() << " " << nbrEntry->str()
+                   << " port " << nbrEntry->getPort().intID() << " port type "
+                   << (int)nbrEntry->getPort().type();
+        XLOG(DBG2) << "Neighbor port in cache: " << cacheEntry->port().value()
+                   << " Port in switchState: " << port.intID();
+        if (switchType == cfg::SwitchType::VOQ) {
+          // VOQ switches store physical port ID in neighbor cache
+          EXPECT_EVENTUALLY_EQ(cacheEntry->port().value(), port.intID());
+          // VOQ switches store system port ID in switch state which is same as
+          // interface ID
+          EXPECT_EVENTUALLY_EQ(
+              nbrEntry->getPort().intID(), cacheEntry->interfaceID().value());
+        } else {
+          EXPECT_EVENTUALLY_EQ(
+              cacheEntry->port().value(), nbrEntry->getPort().intID());
+        }
+      }
+    });
+  }
+
+  // Populate the neighbor cache from the switchState
+  template <typename AddrT = IPAddrT>
+  void populateNeighborsCache(const PortDescriptor& port) {
+    auto interface =
+        this->getProgrammedState()->getInterfaces()->getNodeIf(this->kIntfID());
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      this->populateNdpNeighborsToCache(interface);
+    } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      this->populateArpNeighborsToCache(interface);
+    }
+  }
 };
 
 TYPED_TEST_SUITE(AgentNeighborTest, NeighborTypes);
