@@ -28,6 +28,7 @@ target_link_libraries(bsp_test_utils
   fmt::fmt
   ${GTEST}
   bsp_tests_config_cpp2
+  fbiob_device_config_cpp2
   platform_utils
   platform_manager_pkg_manager
   platform_manager_config_cpp2
@@ -54,6 +55,7 @@ target_link_libraries(bsp_test_environment
 add_executable(bsp_tests
   fboss/platform/bsp_tests/cpp/BspTest.cpp
   fboss/platform/bsp_tests/cpp/BspTestRunner.cpp
+  fboss/platform/bsp_tests/cpp/CdevTests.cpp
   fboss/platform/bsp_tests/cpp/KmodTests.cpp
 )
 

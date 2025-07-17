@@ -32,14 +32,17 @@ cpp_binary(
     srcs = [
         "BspTest.cpp",
         "BspTestRunner.cpp",
+        "CdevTests.cpp",
         "KmodTests.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
         ":bsp_test_environment",
         ":utils",
+        "//fboss/platform/bsp_tests:bsp_tests_config-cpp2-types",
         "//fboss/platform/helpers:init",
         "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/platform_manager:fbiob_ioctl_h",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly:format",
         "//folly/init:init",
