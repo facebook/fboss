@@ -107,9 +107,6 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
           cfg::AsicType::ASIC_TYPE_MOCK ||
       getPlatform()->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
     return;
   }
   auto setup = [=, this]() {
