@@ -5099,6 +5099,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  {
+    std::optional<int32_t> newEcmpCompressionThresholdPct;
+    if (cfg_->switchSettings()->ecmpCompressionThresholdPct()) {
+      newEcmpCompressionThresholdPct =
+          *cfg_->switchSettings()->ecmpCompressionThresholdPct();
+    }
+    if (newEcmpCompressionThresholdPct !=
+        origSwitchSettings->getEcmpCompressionThresholdPct()) {
+      newSwitchSettings->setEcmpCompressionThresholdPct(
+          newEcmpCompressionThresholdPct);
+      switchSettingsChange = true;
+    }
+  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;

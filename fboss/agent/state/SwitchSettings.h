@@ -745,6 +745,15 @@ class SwitchSettings
     return std::nullopt;
   }
 
+  void setEcmpCompressionThresholdPct(
+      std::optional<int32_t> ecmpCompressionThresholdPct) {
+    if (!ecmpCompressionThresholdPct) {
+      ref<switch_state_tags::ecmpCompressionThresholdPct>().reset();
+    } else {
+      set<switch_state_tags::ecmpCompressionThresholdPct>(
+          *ecmpCompressionThresholdPct);
+    }
+  }
   std::optional<std::map<int32_t, int32_t>> getTcToRateLimitKbps() const {
     if (auto tcToRateLimitKbps = cref<switch_state_tags::tcToRateLimitKbps>()) {
       return tcToRateLimitKbps->toThrift();
