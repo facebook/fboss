@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_platform")
 
@@ -19,19 +20,35 @@ cpp_binary(
     ],
 )
 
+cpp_unittest(
+    name = "runtime_config_builder_test",
+    srcs = [
+        "RuntimeConfigBuilderTest.cpp",
+    ],
+    deps = [
+        ":bsp_test_environment",
+        "//fboss/platform/config_lib:config_lib",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
 cpp_library(
     name = "bsp_test_environment",
     srcs = [
         "BspTestEnvironment.cpp",
+        "RuntimeConfigBuilder.cpp",
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/platform/bsp_tests:bsp_tests_config-cpp2-types",
+        "//fboss/platform/bsp_tests:fbiob_device_config-cpp2-types",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/platform_manager:config_utils",
         "//fboss/platform/platform_manager:pkg_manager",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly:file_util",
+        "//folly:format",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",

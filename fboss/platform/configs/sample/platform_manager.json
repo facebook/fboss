@@ -310,8 +310,7 @@
     ]
   },
   "i2cAdaptersFromCpu": [
-    "CPU@0",
-    "CPU@1"
+    "CPU"
   ],
   "symbolicLinkToDevicePath": {
     "/run/devmap/eeproms/CHASSIS_EEPROM": "/SMB_SLOT@0/[CHASSIS_EEPROM]",

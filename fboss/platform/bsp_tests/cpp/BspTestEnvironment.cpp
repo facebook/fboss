@@ -5,6 +5,7 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 
@@ -31,6 +32,11 @@ BspTestEnvironment::BspTestEnvironment(const std::string& platform) {
   pkgManager_ =
       std::make_unique<platform_manager::PkgManager>(platformManagerConfig_);
   kmods_ = pkgManager_->readKmodsFile();
+
+  // Build runtime configuration using RuntimeConfigBuilder
+  RuntimeConfigBuilder configBuilder;
+  runtimeConfig_ = configBuilder.buildRuntimeConfig(
+      testConfig_, platformManagerConfig_, kmods_);
 }
 
 const platform_manager::PlatformConfig&

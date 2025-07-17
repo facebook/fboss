@@ -21,6 +21,7 @@ add_fbthrift_cpp_library(
 
 add_library(bsp_test_environment
   fboss/platform/bsp_tests/cpp/BspTestEnvironment.cpp
+  fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.cpp
 )
 
 target_link_libraries(bsp_test_environment
@@ -45,4 +46,16 @@ target_link_libraries(bsp_tests
   bsp_test_environment
   platform_name_lib
   Folly::folly
+)
+
+add_executable(runtime_config_builder_test
+  fboss/platform/bsp_tests/cpp/RuntimeConfigBuilderTest.cpp
+)
+
+target_link_libraries(runtime_config_builder_test
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+  bsp_test_environment
+  Folly::folly
+  FBThrift::thriftcpp2
 )
