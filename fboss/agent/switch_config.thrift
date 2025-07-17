@@ -1913,6 +1913,7 @@ struct SwitchSettings {
   31: optional map<i32, i32> tcToRateLimitKbps;
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   32: optional i32 pfcWatchdogTimerGranularityMsec;
+  33: optional i32 ecmpCompressionThresholdPct;
 }
 
 // Global buffer pool

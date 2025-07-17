@@ -16576,7 +16576,8 @@ std::pair<strings::remoteL2VoqMaxExpectedLatencyNsec, Child<::std::int32_t, ::ap
 std::pair<strings::voqOutOfBoundsLatencyNsec, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::numberOfSflowSamplesPerPacket, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<strings::tcToRateLimitKbps, ChildThriftPath<::std::map<::std::int32_t, ::std::int32_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::pfcWatchdogTimerGranularityMsec, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::pfcWatchdogTimerGranularityMsec, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::ecmpCompressionThresholdPct, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::L2LearningMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::L2LearningMode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -16608,7 +16609,8 @@ std::pair<strings::pfcWatchdogTimerGranularityMsec, Child<::std::int32_t, ::apac
    std::pair<std::integral_constant<apache::thrift::field_id_t, 29>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 30>, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 31>, ChildThriftPath<::std::map<::std::int32_t, ::std::int32_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 32>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 32>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 33>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::l2LearningMode, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::qcmEnable, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -16641,7 +16643,8 @@ std::pair<strings::remoteL2VoqMaxExpectedLatencyNsec, std::integral_constant<apa
 std::pair<strings::voqOutOfBoundsLatencyNsec, std::integral_constant<apache::thrift::field_id_t, 29>>,
 std::pair<strings::numberOfSflowSamplesPerPacket, std::integral_constant<apache::thrift::field_id_t, 30>>,
 std::pair<strings::tcToRateLimitKbps, std::integral_constant<apache::thrift::field_id_t, 31>>,
-std::pair<strings::pfcWatchdogTimerGranularityMsec, std::integral_constant<apache::thrift::field_id_t, 32>>>::template type_of<Name>;
+std::pair<strings::pfcWatchdogTimerGranularityMsec, std::integral_constant<apache::thrift::field_id_t, 32>>,
+std::pair<strings::ecmpCompressionThresholdPct, std::integral_constant<apache::thrift::field_id_t, 33>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -16679,6 +16682,7 @@ std::pair<strings::pfcWatchdogTimerGranularityMsec, std::integral_constant<apach
     STRUCT_CHILD_GETTERS(numberOfSflowSamplesPerPacket, 30);
     STRUCT_CHILD_GETTERS(tcToRateLimitKbps, 31);
     STRUCT_CHILD_GETTERS(pfcWatchdogTimerGranularityMsec, 32);
+    STRUCT_CHILD_GETTERS(ecmpCompressionThresholdPct, 33);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -16714,6 +16718,7 @@ std::pair<strings::pfcWatchdogTimerGranularityMsec, std::integral_constant<apach
     else if constexpr (__id == 30) { return numberOfSflowSamplesPerPacket(); }
     else if constexpr (__id == 31) { return tcToRateLimitKbps(); }
     else if constexpr (__id == 32) { return pfcWatchdogTimerGranularityMsec(); }
+    else if constexpr (__id == 33) { return ecmpCompressionThresholdPct(); }
   }
 
   template <typename T, T... Values>
