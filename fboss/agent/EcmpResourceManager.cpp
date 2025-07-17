@@ -41,8 +41,10 @@ EcmpResourceManager::EcmpResourceManager(
       switchStats_(stats) {
   CHECK_GT(
       maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
-  CHECK_EQ(compressionPenaltyThresholdPct_, 0)
-      << " Group compression algo is WIP";
+  if (compressionPenaltyThresholdPct_ > 0 && backupEcmpGroupType_.has_value()) {
+    throw FbossError(
+        "Only one of compression penalty threshold or backup switching mode can be specified");
+  }
   if (switchStats_) {
     switchStats_->setPrimaryEcmpGroupsExhausted(false);
     switchStats_->setPrimaryEcmpGroupsCount(0);
