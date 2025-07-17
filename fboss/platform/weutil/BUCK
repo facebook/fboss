@@ -41,7 +41,6 @@ cpp_library(
         "FbossEepromParser.cpp",
     ],
     headers = [
-        "CachedFbossEepromParser.h",
         "FbossEepromInterface.h",
         "FbossEepromParser.h",
     ],

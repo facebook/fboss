@@ -19,6 +19,7 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
+#include "fboss/platform/weutil/FbossEepromParser.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -347,19 +348,14 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     try {
       dataStore_.updateEepromContents(
           Utils().createDevicePath(slotPath, "IDPROM"),
-          eepromParser_.getContents(eepromPath, *idpromConfig.offset()));
-      pmUnitNameInEeprom =
-          eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
-      // TODO: Avoid this side effect in this function.
-      // I think we can refactor this simpler once I2CDevicePaths are also
-      // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
-      // stored in DataStore.
-      productionStateInEeprom =
-          eepromParser_.getProductionState(eepromPath, *idpromConfig.offset());
-      productVersionInEeprom = eepromParser_.getProductionSubState(
-          eepromPath, *idpromConfig.offset());
-      productSubVersionInEeprom =
-          eepromParser_.getVariantVersion(eepromPath, *idpromConfig.offset());
+          FbossEepromParser(eepromPath, *idpromConfig.offset()).getContents());
+      const auto& eepromContents = dataStore_.getEepromContents(
+          Utils().createDevicePath(slotPath, "IDPROM"));
+      pmUnitNameInEeprom = eepromContents.getProductName();
+      productionStateInEeprom = std::stoi(eepromContents.getProductionState());
+      productVersionInEeprom =
+          std::stoi(eepromContents.getProductionSubState());
+      productSubVersionInEeprom = std::stoi(eepromContents.getVariantVersion());
       XLOG(INFO) << fmt::format(
           "Found ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
           productionStateInEeprom ? std::to_string(*productionStateInEeprom)
