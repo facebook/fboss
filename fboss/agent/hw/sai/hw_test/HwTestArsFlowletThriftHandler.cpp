@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
-#include <glog/logging.h>
-
 namespace facebook::fboss::utility {
 
 bool verifyArs(
