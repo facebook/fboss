@@ -64,6 +64,7 @@ target_link_libraries(platform_config_lib_config_generator
   sensor_service_config_validator
   data_corral_service_config_validator
   sensor_config_cpp2
+  showtech_config_cpp2
   weutil_config_cpp2
   weutil_config_validator
   Folly::folly

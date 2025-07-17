@@ -1,6 +1,19 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_platform")
+
+thrift_library(
+    name = "showtech_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = [
+        "json",
+        "reflection",
+    ],
+    thrift_srcs = {"showtech_config.thrift": []},
+)
 
 cpp_binary(
     name = "showtech",
