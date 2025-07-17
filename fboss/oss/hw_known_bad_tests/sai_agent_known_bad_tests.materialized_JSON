@@ -4463,9 +4463,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch": [
@@ -4741,9 +4738,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
@@ -6218,9 +6212,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono/fap": [
@@ -6517,9 +6508,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch": [
@@ -6795,9 +6783,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
@@ -7073,9 +7058,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
@@ -7374,9 +7356,6 @@
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         },
         {
-          "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
-        },
-        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -7390,9 +7369,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -7673,9 +7649,6 @@
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         },
         {
-          "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
         }
     ],
@@ -7952,9 +7925,6 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
-        },
-        {
-          "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -8254,9 +8224,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/mono/fap": [
@@ -8553,9 +8520,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/multi_switch": [
@@ -8831,9 +8795,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/multi_switch/fap": [
@@ -9109,9 +9070,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/mono": [
@@ -9410,9 +9368,6 @@
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         },
         {
-          "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
-        },
-        {
           "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
         },
         {
@@ -9426,9 +9381,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentVoqSwitchTest.sendPacketCpuAndFrontPanel$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
@@ -9709,9 +9661,6 @@
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
         },
         {
-          "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
-        },
-        {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
         }
     ],
@@ -9988,9 +9937,6 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
-        },
-        {
-          "test_name_regex": "AgentHwParityErrorTest.verifyParityError$"
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
