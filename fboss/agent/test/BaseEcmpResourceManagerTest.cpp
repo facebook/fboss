@@ -74,7 +74,8 @@ cfg::SwitchConfig onePortPerIntfConfig(
         folly::sformat("2400:db00:2110:{}::1/64", p);
   }
   if (ecmpCompressionThresholdPct) {
-    // TODO
+    cfg.switchSettings()->ecmpCompressionThresholdPct() =
+        ecmpCompressionThresholdPct;
   } else {
     cfg::FlowletSwitchingConfig flowletConfig;
     flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
@@ -285,9 +286,14 @@ void BaseEcmpResourceManagerTest::SetUp() {
   // Taken from mock asic
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
   // Backup ecmp group type will com from default flowlet confg
+  if (cfg.flowletSwitchingConfig()->backupSwitchingMode().has_value()) {
+    EXPECT_EQ(
+        *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
+        *cfg.flowletSwitchingConfig()->backupSwitchingMode());
+  }
   EXPECT_EQ(
-      *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
-      *cfg.flowletSwitchingConfig()->backupSwitchingMode());
+      sw_->getEcmpResourceManager()->getEcmpCompressionThresholdPct(),
+      cfg.switchSettings()->ecmpCompressionThresholdPct().value_or(0));
   consolidator_ = makeResourceMgr();
   state_ = sw_->getState();
   state_->publish();

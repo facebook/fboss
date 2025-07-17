@@ -88,6 +88,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
     return backupEcmpGroupType_;
   }
+  int32_t getEcmpCompressionThresholdPct() const {
+    return compressionPenaltyThresholdPct_;
+  }
   uint32_t getMaxPrimaryEcmpGroups() const {
     return maxEcmpGroups_;
   }
