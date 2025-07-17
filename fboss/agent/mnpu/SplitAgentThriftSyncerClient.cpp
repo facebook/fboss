@@ -10,8 +10,6 @@
 #include "fboss/agent/mnpu/SplitAgentThriftSyncerClient.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
-#include <folly/IPAddress.h>
-#include <netinet/in.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 

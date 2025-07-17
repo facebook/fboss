@@ -1593,7 +1593,6 @@ cpp_library(
         "//fboss/lib:common_thrift_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:cancellation_token",
-        "//folly:network_address",
         "//folly:synchronized",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
