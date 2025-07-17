@@ -177,11 +177,12 @@ void BcmCinter::setupGlobals() {
 template <typename C>
 void BcmCinter::writeCintLines(C&& lines) {
   auto constexpr kSeparator = ";\n";
+  auto numLines = lines.size();
   auto cint = join(kSeparator, std::forward<C>(lines)) + kSeparator;
   if (FLAGS_enable_bcm_cinter) {
     asyncLogger_->appendLog(cint.c_str(), cint.size());
   }
-  linesWritten_ += lines.size();
+  linesWritten_ += numLines;
 }
 
 void BcmCinter::writeCintLine(const std::string& cint) {
