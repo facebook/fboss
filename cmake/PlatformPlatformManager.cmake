@@ -3,6 +3,13 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(platform_manager_fbiob_ioctl_h INTERFACE)
+
+target_sources(platform_manager_fbiob_ioctl_h
+  INTERFACE
+    fboss/platform/platform_manager/fbiob_ioctl.h
+)
+
 add_fbthrift_cpp_library(
   platform_manager_snapshot_cpp2
   fboss/platform/platform_manager/platform_manager_snapshot.thrift

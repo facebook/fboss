@@ -5,19 +5,21 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 oncall("fboss_platform")
 
 cpp_library(
-    name = "kmod_utils",
+    name = "utils",
     srcs = [
+        "utils/CdevUtils.cpp",
         "utils/KmodUtils.cpp",
     ],
-    headers = {
-        "utils/KmodUtils.h": "utils/KmodUtils.h",
-    },
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
+        "//fboss/platform/bsp_tests:bsp_tests_config-cpp2-types",
+        "//fboss/platform/bsp_tests:fbiob_device_config-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/platform_manager:fbiob_ioctl_h",
         "//fboss/platform/platform_manager:pkg_manager",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly:format",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
@@ -35,13 +37,16 @@ cpp_binary(
     deps = [
         "fbsource//third-party/googletest:gtest",
         ":bsp_test_environment",
-        ":kmod_utils",
+        ":utils",
         "//fboss/platform/helpers:init",
         "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly:format",
         "//folly/init:init",
         "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
 
