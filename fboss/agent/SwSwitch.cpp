@@ -1327,8 +1327,18 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
           ? asic->getMaxDlbEcmpGroups()
           : asic->getMaxEcmpGroups();
       std::optional<cfg::SwitchingMode> switchingMode;
+      std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
       if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
         switchingMode = flowletSwitchingConfig->getBackupSwitchingMode();
+      }
+      if (auto switchId = asic->getSwitchId()) {
+        const auto& switchSettings =
+            state->getSwitchSettings()->getSwitchSettings(HwSwitchMatcher(
+                std::unordered_set<SwitchID>({SwitchID(*switchId)})));
+        if (switchSettings) {
+          ecmpCompressionPenaltyThresholPct =
+              switchSettings->getEcmpCompressionThresholdPct();
+        }
       }
       if (maxEcmpGroups.has_value()) {
         auto percentage = FLAGS_flowletSwitchingEnable
@@ -1343,7 +1353,10 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
                            : "None");
 
         ecmpResourceManager_ = std::make_unique<EcmpResourceManager>(
-            maxEcmps, 0, switchingMode, stats());
+            maxEcmps,
+            ecmpCompressionPenaltyThresholPct.value_or(0),
+            switchingMode,
+            stats());
         registerStateModifier(
             ecmpResourceManager_.get(), "Ecmp Resource Manager");
       }
