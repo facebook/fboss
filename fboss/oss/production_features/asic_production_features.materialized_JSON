@@ -284,7 +284,8 @@
         72,
         80,
         81,
-        82
+        82,
+        78
     ],
     "tomahawk5": [
         2,
@@ -673,7 +674,8 @@
         "MODIFY_ACL_QUALIFIERS",
         "PFC_WATCHDOG_GRANULARITY",
         "ARS_FLOWLET",
-        "ARS_SPRAY"
+        "ARS_SPRAY",
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
