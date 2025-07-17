@@ -76,7 +76,7 @@ int HwAsic::getDefaultACLGroupID() const {
 }
 
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
-    std::optional<int64_t> switchId,
+    int64_t switchId,
     const cfg::SwitchInfo& switchInfo,
     std::optional<cfg::SdkVersion> sdkVersion,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
