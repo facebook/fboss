@@ -22,6 +22,7 @@ add_fbthrift_cpp_library(
 add_library(bsp_test_utils
   fboss/platform/bsp_tests/cpp/utils/CdevUtils.cpp
   fboss/platform/bsp_tests/cpp/utils/KmodUtils.cpp
+  fboss/platform/bsp_tests/cpp/utils/I2CUtils.cpp
 )
 
 target_link_libraries(bsp_test_utils

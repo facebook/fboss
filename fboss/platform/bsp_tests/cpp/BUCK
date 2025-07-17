@@ -8,6 +8,7 @@ cpp_library(
     name = "utils",
     srcs = [
         "utils/CdevUtils.cpp",
+        "utils/I2CUtils.cpp",
         "utils/KmodUtils.cpp",
     ],
     exported_deps = [
@@ -17,6 +18,8 @@ cpp_library(
         "//fboss/platform/bsp_tests:fbiob_device_config-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:fbiob_ioctl_h",
+        "//fboss/platform/platform_manager:i2c_explorer",
+        "//fboss/platform/platform_manager:i2c_misc",
         "//fboss/platform/platform_manager:pkg_manager",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly:format",
