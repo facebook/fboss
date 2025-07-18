@@ -57,6 +57,8 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
         num_threads = 20,  # reduce compile parallelism
@@ -72,6 +74,8 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
         num_threads = 20,  # reduce compile parallelism
@@ -87,6 +91,8 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow issues
             "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
         num_threads = 20,  # reduce compile parallelism
@@ -102,6 +108,8 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
         num_threads = 20,  # reduce compile parallelism
@@ -117,6 +125,8 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
         num_threads = 20,  # reduce compile parallelism
