@@ -15622,11 +15622,11 @@ constexpr auto kJsonSingleNpuTestPlatformMappingStr = R"(
           }
         }
     },
-    "32769": {
+    "32772": {
         "mapping": {
-          "id": 32769,
+          "id": 32772,
           "name": "rcy1/1/442",
-          "controllingPort": 32769,
+          "controllingPort": 32772,
           "pins": [
             {
               "a": {
@@ -15656,11 +15656,11 @@ constexpr auto kJsonSingleNpuTestPlatformMappingStr = R"(
           }
         }
     },
-    "32770": {
+    "32773": {
         "mapping": {
-          "id": 32770,
+          "id": 32773,
           "name": "rcy1/1/443",
-          "controllingPort": 32770,
+          "controllingPort": 32773,
           "pins": [
             {
               "a": {
@@ -15690,11 +15690,11 @@ constexpr auto kJsonSingleNpuTestPlatformMappingStr = R"(
           }
         }
     },
-    "32771": {
+    "32774": {
         "mapping": {
-          "id": 32771,
+          "id": 32774,
           "name": "rcy1/1/444",
-          "controllingPort": 32771,
+          "controllingPort": 32774,
           "pins": [
             {
               "a": {
@@ -15724,11 +15724,11 @@ constexpr auto kJsonSingleNpuTestPlatformMappingStr = R"(
           }
         }
     },
-    "32772": {
+    "32775": {
         "mapping": {
-          "id": 32772,
+          "id": 32775,
           "name": "rcy1/1/445",
-          "controllingPort": 32772,
+          "controllingPort": 32775,
           "pins": [
             {
               "a": {
@@ -15758,11 +15758,11 @@ constexpr auto kJsonSingleNpuTestPlatformMappingStr = R"(
           }
         }
     },
-    "32773": {
+    "32776": {
         "mapping": {
-          "id": 32773,
+          "id": 32776,
           "name": "evt1/1/506",
-          "controllingPort": 32773,
+          "controllingPort": 32776,
           "pins": [
             {
               "a": {
