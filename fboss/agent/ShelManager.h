@@ -40,7 +40,6 @@ class ShelManager : public PreUpdateStateModifier {
       const std::vector<StateDelta>& deltas);
 
   std::unordered_map<InterfaceID, uint64_t> intf2RefCnt_;
-  std::unordered_map<InterfaceID, uint64_t> preUpdateIntf2RefCnt_;
 
   FRIEND_TEST(ShelManagerTest, RefCountAndIntf2AddDel);
 };

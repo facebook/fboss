@@ -10,7 +10,6 @@ namespace facebook::fboss {
 
 std::vector<StateDelta> ShelManager::modifyState(
     const std::vector<StateDelta>& deltas) {
-  preUpdateIntf2RefCnt_ = intf2RefCnt_;
   return modifyStateImpl(deltas);
 }
 
@@ -23,11 +22,12 @@ std::vector<StateDelta> ShelManager::reconstructFromSwitchState(
 }
 
 void ShelManager::updateDone() {
-  // TODO(zecheng): implement this function
+  XLOG(DBG2) << "ShelManager Update done";
 }
-void ShelManager::updateFailed(
-    const std::shared_ptr<SwitchState>& /*curState*/) {
-  // TODO(zecheng): implement this function
+
+void ShelManager::updateFailed(const std::shared_ptr<SwitchState>& curState) {
+  XLOG(DBG2) << "ShelManager Update failed";
+  reconstructFromSwitchState(curState);
 }
 
 void ShelManager::updateRefCount(
