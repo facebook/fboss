@@ -1405,13 +1405,9 @@ void SwSwitch::init(
   auto origInitialState = initialState;
   emptyState->publish();
   std::vector<StateDelta> deltas;
-  if (ecmpResourceManager_) {
-    deltas = ecmpResourceManager_->reconstructFromSwitchState(initialState);
-    initialState = deltas.back().newState();
-  } else {
-    deltas.emplace_back(emptyState, initialState);
-  }
-  const auto initialStateDelta = StateDelta(emptyState, initialState);
+  deltas = reconstructStateModifierFromSwitchState(initialState);
+  const auto initialStateDelta =
+      StateDelta(emptyState, deltas.back().newState());
 
   // Notify resource accountant of the initial state.
   if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
