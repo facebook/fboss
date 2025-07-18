@@ -50,6 +50,8 @@ inline HwSwitchMatcher hwMatcher() {
 
 cfg::SwitchConfig onePortPerIntfConfig(
     int numIntfs,
+    std::optional<cfg::SwitchingMode> backupSwitchingMode =
+        cfg::SwitchingMode::PER_PACKET_RANDOM,
     int32_t ecmpCompressionThresholdPct = 0);
 
 class BaseEcmpResourceManagerTest : public ::testing::Test {
@@ -96,6 +98,9 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
  public:
   int32_t virtual getEcmpCompressionThresholdPct() const {
     return 0;
+  }
+  virtual std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
+    return cfg::SwitchingMode::PER_PACKET_RANDOM;
   }
   void updateFlowletSwitchingConfig(
       const std::shared_ptr<SwitchState>& newState);

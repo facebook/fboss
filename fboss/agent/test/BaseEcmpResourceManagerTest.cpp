@@ -47,6 +47,7 @@ std::shared_ptr<RouteV6> makeRoute(
 
 cfg::SwitchConfig onePortPerIntfConfig(
     int numIntfs,
+    std::optional<cfg::SwitchingMode> backupSwitchingMode,
     int32_t ecmpCompressionThresholdPct) {
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(numIntfs);
@@ -76,7 +77,8 @@ cfg::SwitchConfig onePortPerIntfConfig(
   if (ecmpCompressionThresholdPct) {
     cfg.switchSettings()->ecmpCompressionThresholdPct() =
         ecmpCompressionThresholdPct;
-  } else {
+  }
+  if (backupSwitchingMode.has_value()) {
     cfg::FlowletSwitchingConfig flowletConfig;
     flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
     cfg.flowletSwitchingConfig() = flowletConfig;
@@ -279,7 +281,10 @@ void BaseEcmpResourceManagerTest::SetUp() {
   FLAGS_ars_resource_percentage = 100;
   FLAGS_flowletSwitchingEnable = true;
   FLAGS_dlbResourceCheckEnable = false;
-  auto cfg = onePortPerIntfConfig(kNumIntfs, getEcmpCompressionThresholdPct());
+  auto cfg = onePortPerIntfConfig(
+      kNumIntfs,
+      getBackupEcmpSwitchingMode(),
+      getEcmpCompressionThresholdPct());
   handle_ = createTestHandle(&cfg);
   sw_ = handle_->getSw();
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
