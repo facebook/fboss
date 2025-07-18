@@ -1153,6 +1153,8 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   if (auto asicRevision = getAsicRevision()) {
     hwFb303Stats.asic_revision() = *asicRevision;
   }
+  hwFb303Stats.sram_low_buffer_limit_hit_count() =
+      getCumulativeValue(sramLowBufferLimitHitCount_);
   return hwFb303Stats;
 }
 
@@ -1180,6 +1182,8 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
         vsqResourceExhaustionDrops_,
         *globalStats.vsq_resource_exhaustion_drops());
   }
+  // NOTE: sramLowBufferLimitHitCount_ is a derived counter and hence will
+  // be incremented separately with sramLowBufferLimitHitCount() API.
   updateValue(
       switchReachabilityChangeCount_,
       *globalStats.switch_reachability_change());

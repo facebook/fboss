@@ -321,6 +321,12 @@ void accumulateFb303GlobalStats(
       toAdd.fabric_reachability_mismatch().value();
   *accumulated.switch_reachability_change() +=
       toAdd.switch_reachability_change().value();
+  if (toAdd.sram_low_buffer_limit_hit_count().has_value()) {
+    uint64_t hitCount =
+        accumulated.sram_low_buffer_limit_hit_count().value_or(0);
+    hitCount += toAdd.sram_low_buffer_limit_hit_count().value();
+    accumulated.sram_low_buffer_limit_hit_count() = hitCount;
+  }
 }
 
 void accumulateGlobalCpuStats(
