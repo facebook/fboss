@@ -487,4 +487,18 @@ TEST_F(BaseEcmpResourceManagerTest, UpdateFailed) {
   auto nhopId = getNhopId(nhops);
   EXPECT_FALSE(nhopId.has_value());
 }
+
+TEST_F(BaseEcmpResourceManagerTest, reloadInvalidConfigs) {
+  {
+    // Both compression threshold and backup group type set
+    auto newCfg = onePortPerIntfConfig(42, getBackupEcmpSwitchingMode());
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
+  {
+    // Resetting backup ecmp type is not allowed
+    auto newCfg =
+        onePortPerIntfConfig(getEcmpCompressionThresholdPct(), std::nullopt);
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
+}
 } // namespace facebook::fboss

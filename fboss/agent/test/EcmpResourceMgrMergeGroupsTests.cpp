@@ -13,7 +13,7 @@
 namespace facebook::fboss {
 
 class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
- private:
+ public:
   int32_t getEcmpCompressionThresholdPct() const override {
     return 100;
   }
@@ -24,4 +24,20 @@ class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
 };
 
 TEST_F(EcmpResourceMgrMergeGroupsTest, init) {}
+
+TEST_F(EcmpResourceMgrMergeGroupsTest, reloadInvalidConfigs) {
+  {
+    // Both compression threshold and backup group type set
+    auto newCfg = onePortPerIntfConfig(
+        getEcmpCompressionThresholdPct(),
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
+  {
+    // Changing compression threshold is not allowed
+    auto newCfg = onePortPerIntfConfig(
+        getEcmpCompressionThresholdPct() + 42, getBackupEcmpSwitchingMode());
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
+}
 } // namespace facebook::fboss
