@@ -147,6 +147,7 @@ struct PortFields {
   // DSF option to enable FEC error detection on port to prevent any
   // errored cells from making it to the forwarding pipeline.
   58: optional bool fecErrorDetectEnable;
+  59: optional bool desiredSelfHealingECMPLagEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

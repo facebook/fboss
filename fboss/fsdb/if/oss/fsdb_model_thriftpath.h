@@ -5836,7 +5836,8 @@ std::pair<strings::reachabilityGroupId, Child<::std::int32_t, ::apache::thrift::
 std::pair<strings::conditionalEntropyRehash, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::selfHealingECMPLagEnable_DEPRECATED, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::selfHealingECMPLagEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-std::pair<strings::fecErrorDetectEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::fecErrorDetectEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::desiredSelfHealingECMPLagEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
@@ -5892,7 +5893,8 @@ std::pair<strings::fecErrorDetectEnable, Child<bool, ::apache::thrift::type_clas
    std::pair<std::integral_constant<apache::thrift::field_id_t, 55>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 56>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 57>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 58>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 58>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 59>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::portId, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::portName, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -5949,7 +5951,8 @@ std::pair<strings::reachabilityGroupId, std::integral_constant<apache::thrift::f
 std::pair<strings::conditionalEntropyRehash, std::integral_constant<apache::thrift::field_id_t, 55>>,
 std::pair<strings::selfHealingECMPLagEnable_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 56>>,
 std::pair<strings::selfHealingECMPLagEnable, std::integral_constant<apache::thrift::field_id_t, 57>>,
-std::pair<strings::fecErrorDetectEnable, std::integral_constant<apache::thrift::field_id_t, 58>>>::template type_of<Name>;
+std::pair<strings::fecErrorDetectEnable, std::integral_constant<apache::thrift::field_id_t, 58>>,
+std::pair<strings::desiredSelfHealingECMPLagEnable, std::integral_constant<apache::thrift::field_id_t, 59>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -6011,6 +6014,7 @@ std::pair<strings::fecErrorDetectEnable, std::integral_constant<apache::thrift::
     STRUCT_CHILD_GETTERS(selfHealingECMPLagEnable_DEPRECATED, 56);
     STRUCT_CHILD_GETTERS(selfHealingECMPLagEnable, 57);
     STRUCT_CHILD_GETTERS(fecErrorDetectEnable, 58);
+    STRUCT_CHILD_GETTERS(desiredSelfHealingECMPLagEnable, 59);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -6070,6 +6074,7 @@ std::pair<strings::fecErrorDetectEnable, std::integral_constant<apache::thrift::
     else if constexpr (__id == 56) { return selfHealingECMPLagEnable_DEPRECATED(); }
     else if constexpr (__id == 57) { return selfHealingECMPLagEnable(); }
     else if constexpr (__id == 58) { return fecErrorDetectEnable(); }
+    else if constexpr (__id == 59) { return desiredSelfHealingECMPLagEnable(); }
   }
 
   template <typename T, T... Values>
