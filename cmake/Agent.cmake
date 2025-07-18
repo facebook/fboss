@@ -223,6 +223,7 @@ add_library(shel_manager
 )
 
 target_link_libraries(shel_manager
+  utils
   fib_helpers
   state
   ${GTEST}

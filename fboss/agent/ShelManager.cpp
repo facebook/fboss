@@ -2,6 +2,7 @@
 
 #include "fboss/agent/ShelManager.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -124,6 +125,35 @@ void ShelManager::processRouteUpdates(const StateDelta& delta) {
           routeDeleted(rid, oldRoute, delta.newState());
         }
       });
+}
+
+std::shared_ptr<SwitchState> ShelManager::processDelta(
+    const StateDelta& delta) {
+  auto beforeIntf2RefCnt = intf2RefCnt_;
+  processRouteUpdates(delta);
+  auto modifiedState = delta.newState()->clone();
+
+  auto processIntfDiff =
+      [&](const auto& fromMap, const auto& toMap, bool enable) {
+        for (const auto& [intf, _] : toMap) {
+          if (fromMap.find(intf) == fromMap.end()) {
+            auto portId =
+                getPortID(static_cast<SystemPortID>(intf), delta.newState());
+            auto port = modifiedState->getPorts()->getNodeIf(portId);
+            CHECK(port);
+            auto desiredShelState = port->getDesiredSelfHealingECMPLagEnable();
+            if (desiredShelState.has_value() && desiredShelState.value()) {
+              auto newPort = port->modify(&modifiedState);
+              newPort->setSelfHealingECMPLagEnable(enable);
+            }
+          }
+        }
+      };
+
+  processIntfDiff(beforeIntf2RefCnt, intf2RefCnt_, true);
+  processIntfDiff(intf2RefCnt_, beforeIntf2RefCnt, false);
+  modifiedState->publish();
+  return modifiedState;
 }
 
 } // namespace facebook::fboss
