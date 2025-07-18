@@ -93,7 +93,7 @@
       }
     },
     {
-      "sensorName": "POWER_BRICK3_TEMP1",
+      "sensorName": "MCB_POWER_BRICK3_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
@@ -222,7 +222,7 @@
         "CPU_UNCORE_TEMP",
         "PIC_T_U13_INLET_LM75_2_TEMP",
         "PIC_B_U12_INLET_LM75_1_TEMP",
-        "POWER_BRICK3_TEMP1"
+        "MCB_POWER_BRICK3_TEMP"
       ],
       "fanNames": [
         "FAN_1_F",

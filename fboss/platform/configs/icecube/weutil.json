@@ -18,6 +18,9 @@
     },
     "PIC_B": {
       "path": "/run/devmap/eeproms/PIC_B_EEPROM"
+    },
+    "SMB": {
+      "path": "/run/devmap/eeproms/SMB_EEPROM"
     }
   }
 }
