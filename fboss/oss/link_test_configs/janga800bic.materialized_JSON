@@ -6661,7 +6661,7 @@
         "conditionalEntropyRehash": false
       },
       {
-        "logicalID": 32769,
+        "logicalID": 32772,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6697,7 +6697,7 @@
         "conditionalEntropyRehash": false
       },
       {
-        "logicalID": 32770,
+        "logicalID": 32773,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
@@ -6733,14 +6733,14 @@
         "conditionalEntropyRehash": false
       },
       {
-        "logicalID": 32771,
+        "logicalID": 32774,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 100000,
+        "speed": 400000,
         "name": "rcy1/1/444",
         "description": "",
         "queues_DEPRECATED": [
@@ -6759,7 +6759,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 49,
+        "profileID": 38,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6769,14 +6769,14 @@
         "conditionalEntropyRehash": false
       },
       {
-        "logicalID": 32772,
+        "logicalID": 32775,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 100000,
+        "speed": 400000,
         "name": "rcy1/1/445",
         "description": "",
         "queues_DEPRECATED": [
@@ -6795,7 +6795,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 49,
+        "profileID": 38,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6805,14 +6805,14 @@
         "conditionalEntropyRehash": false
       },
       {
-        "logicalID": 32773,
+        "logicalID": 32776,
         "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 100000,
+        "speed": 400000,
         "name": "evt1/1/506",
         "description": "",
         "queues_DEPRECATED": [
@@ -6831,7 +6831,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 49,
+        "profileID": 38,
         "portType": 5,
         "expectedNeighborReachability": [
           
