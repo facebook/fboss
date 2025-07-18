@@ -1,22 +1,22 @@
 {
-  "pwmBoostOnNumDeadFan" : 1,
-  "pwmBoostOnNumDeadSensor" : 0,
-  "pwmBoostOnNoQsfpAfterInSec" : 31,
-  "pwmBoostValue" : 60,
-  "pwmTransitionValue" : 50,
-  "pwmLowerThreshold" : 40,
-  "pwmUpperThreshold" : 100,
-  "optics" : [
+  "pwmBoostOnNumDeadFan": 1,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 31,
+  "pwmBoostValue": 65,
+  "pwmTransitionValue": 50,
+  "pwmLowerThreshold": 7,
+  "pwmUpperThreshold": 100,
+  "optics": [
     {
-      "opticName" : "osfp_group_1",
-      "access" : {
-        "accessType" : "ACCESS_TYPE_QSFP"
+      "opticName": "osfp_group_1",
+      "access": {
+        "accessType": "ACCESS_TYPE_QSFP"
       },
-      "portList" : [],
-      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
-      "tempToPwmMaps" : {
-        "OPTIC_TYPE_800_GENERIC" : {
-          "5" : 35,
+      "portList": [],
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps": {
+        "OPTIC_TYPE_800_GENERIC": {
+          "5": 40,
           "67": 41,
           "68": 50,
           "69": 67,
@@ -26,7 +26,7 @@
       }
     }
   ],
-  "sensors" : [
+  "sensors": [
     {
       "sensorName": "SMB_INLET_TEMP",
       "access": {
@@ -34,19 +34,19 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "15": 28,
+        "15": 40,
         "110": 80
       },
       "normalDownTable": {
-        "15": 28,
+        "15": 40,
         "110": 80
       },
       "failUpTable": {
-        "15": 28,
+        "15": 40,
         "110": 80
       },
       "failDownTable": {
-        "15": 28,
+        "15": 40,
         "110": 80
       }
     },
@@ -102,6 +102,33 @@
         "15": 7,
         "70": 10,
         "80": 100
+      }
+    },
+    {
+      "sensorName": "CPU_PACKAGE_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "15": 40,
+        "80": 60,
+        "90": 100
+      },
+      "normalDownTable": {
+        "15": 40,
+        "80": 60,
+        "90": 100
+      },
+      "failUpTable": {
+        "15": 40,
+        "80": 60,
+        "90": 100
+      },
+      "failDownTable": {
+        "15": 40,
+        "80": 60,
+        "90": 100
       }
     }
   ],
@@ -271,7 +298,7 @@
         "R3_0_TEMP",
         "R3_1_TEMP"
       ],
-      "fanNames":[
+      "fanNames": [
         "fan_1",
         "fan_2",
         "fan_3",
@@ -283,6 +310,7 @@
       "zoneType": "ZONE_TYPE_MAX",
       "zoneName": "system_zone",
       "sensorNames": [
+        "CPU_PACKAGE_TEMP",
         "SMB_INLET_TEMP",
         "osfp_group_1"
       ],
