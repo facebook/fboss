@@ -156,4 +156,17 @@ std::shared_ptr<SwitchState> ShelManager::processDelta(
   return modifiedState;
 }
 
+std::vector<StateDelta> ShelManager::modifyStateImpl(
+    const std::vector<StateDelta>& deltas) {
+  std::vector<StateDelta> retDeltas;
+  retDeltas.reserve(deltas.size());
+  auto oldState = deltas.begin()->oldState();
+  for (const auto& delta : deltas) {
+    auto modifiedState = processDelta(StateDelta(oldState, delta.newState()));
+    retDeltas.emplace_back(oldState, modifiedState);
+    oldState = modifiedState;
+  }
+  return retDeltas;
+}
+
 } // namespace facebook::fboss
