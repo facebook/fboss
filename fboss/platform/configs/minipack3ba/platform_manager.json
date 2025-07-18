@@ -3609,6 +3609,7 @@
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",
+    "fboss_iob_i2c",
     "ledtrig_timer"
   ]
 }
