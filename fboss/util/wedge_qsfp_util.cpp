@@ -2849,7 +2849,6 @@ std::unique_ptr<WedgeQsfp> fetchDataFromLocalI2CBus(
       port - 1, i2cInfo.bus, i2cInfo.transceiverManager, std::move(logBuffer));
 
   domDataOut = getDOMDataUnionI2CBus(i2cInfo, port, qsfpImpl.get());
-  auto cmisData = domDataOut.get_cmis();
 
   auto mgmtIf = qsfpImpl->getTransceiverManagementInterface();
   Vendor vend;
@@ -2859,6 +2858,7 @@ std::unique_ptr<WedgeQsfp> fetchDataFromLocalI2CBus(
 
   switch (mgmtIf) {
     case TransceiverManagementInterface::CMIS: {
+      auto cmisData = domDataOut.get_cmis();
       auto dataUpper = cmisData.page0()->data();
       auto dataLower = cmisData.lower()->data();
       std::array<uint8_t, 16> vendorArray{0};
