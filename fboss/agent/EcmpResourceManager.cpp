@@ -70,6 +70,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   // No relevant change return early
   if (delta.getFlowletSwitchingConfigDelta().getOld() ==
           delta.getFlowletSwitchingConfigDelta().getNew() &&
+      DeltaFunctions::isEmpty(delta.getSwitchSettingsDelta()) &&
       DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     return makeRet(delta);
   }
@@ -77,6 +78,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   preUpdateState_ =
       PreUpdateState(mergedGroups_, nextHopGroup2Id_, backupEcmpGroupType_);
 
+  handleSwitchSettingsDelta(delta);
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     if (switchingModeChangeResult.has_value()) {
@@ -871,5 +873,45 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
     }
   }
   return changed ? std::move(inOutState) : std::optional<InputOutputState>();
+}
+
+void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
+  if (DeltaFunctions::isEmpty(delta.getSwitchSettingsDelta())) {
+    return;
+  }
+  std::optional<int32_t> newEcmpCompressionThresholdPct;
+  std::vector<std::optional<int32_t>> newEcmpCompressionThresholdPcts;
+  for (const auto& [_, switchSettings] :
+       std::as_const(*delta.newState()->getSwitchSettings())) {
+    newEcmpCompressionThresholdPcts.emplace_back(
+        switchSettings->getEcmpCompressionThresholdPct());
+  }
+  if (newEcmpCompressionThresholdPcts.size()) {
+    newEcmpCompressionThresholdPct = *newEcmpCompressionThresholdPcts.begin();
+    std::for_each(
+        newEcmpCompressionThresholdPcts.begin(),
+        newEcmpCompressionThresholdPcts.end(),
+        [&newEcmpCompressionThresholdPct](
+            const auto& ecmpCompressionThresholdPct) {
+          if (ecmpCompressionThresholdPct != newEcmpCompressionThresholdPct) {
+            throw FbossError(
+                "All switches must have same ecmp compression threshold value");
+          }
+        });
+  }
+  if (newEcmpCompressionThresholdPct.value_or(0) ==
+      compressionPenaltyThresholdPct_) {
+    return;
+  }
+  /*
+   * compressionPenaltyThresholdPct_ was already non-zero. Changing
+   * is not allowed. Otherwise we may now get some routes that are out
+   * of compliance
+   */
+  if (compressionPenaltyThresholdPct_ != 0) {
+    throw FbossError(
+        "Changing compression penalty threshold on the fly is not supported");
+  }
+  compressionPenaltyThresholdPct_ = newEcmpCompressionThresholdPct.value_or(0);
 }
 } // namespace facebook::fboss

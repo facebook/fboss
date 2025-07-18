@@ -175,6 +175,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   };
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
       const StateDelta& delta);
+  void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
       InputOutputState* inOutState);
