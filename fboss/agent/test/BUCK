@@ -956,6 +956,7 @@ cpp_unittest(
         "BaseEcmpResourceManagerTest.cpp",
         "EcmpResourceMgrBackupGrpTests.cpp",
         "EcmpResourceMgrGroupIdAllocationTests.cpp",
+        "EcmpResourceMgrMergeGroupsTests.cpp",
         "EcmpResourceMgrRibFibTests.cpp",
     ],
     headers = ["BaseEcmpResourceManagerTest.h"],
