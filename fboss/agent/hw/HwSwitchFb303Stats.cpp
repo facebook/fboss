@@ -184,6 +184,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "dram_data_path_packet_error",
           SUM,
           RATE),
+      sramLowBufferLimitHitCount_(
+          map,
+          getCounterPrefix() + "sram_low_buffer_limit_hit_count",
+          SUM,
+          RATE),
       fabricConnectivityMissingCount_(
           map,
           getCounterPrefix() + "fabric_connectivity_missing"),

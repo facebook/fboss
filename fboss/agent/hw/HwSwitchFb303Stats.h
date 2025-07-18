@@ -471,6 +471,7 @@ class HwSwitchFb303Stats {
   TLTimeseries tc0RateLimitDrops_;
   // DDP errors
   TLTimeseries dramDataPathPacketError_;
+  TLTimeseries sramLowBufferLimitHitCount_;
   // fabric connectivity errors
   TLCounter fabricConnectivityMissingCount_;
   TLCounter fabricConnectivityMismatchCount_;
