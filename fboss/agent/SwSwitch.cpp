@@ -1694,6 +1694,16 @@ bool SwSwitch::preUpdateModifyState(std::vector<StateDelta>& deltas) {
   return true;
 }
 
+std::vector<StateDelta> SwSwitch::reconstructStateModifierFromSwitchState(
+    const std::shared_ptr<SwitchState>& initialState) {
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(std::make_shared<SwitchState>(), initialState);
+  for (auto [modifier, _] : stateModifiers_) {
+    deltas = modifier->reconstructFromSwitchState(deltas.back().newState());
+  }
+  return deltas;
+}
+
 void SwSwitch::notifyStateModifierUpdateFailed(
     const std::shared_ptr<SwitchState>& state) {
   for (auto [modifier, _] : stateModifiers_) {

@@ -1095,6 +1095,12 @@ class SwSwitch : public HwSwitchCallback {
    */
   bool preUpdateModifyState(std::vector<StateDelta>& deltas);
 
+  /*
+   * Reconstruct state modifier from initial switch state.
+   */
+  std::vector<StateDelta> reconstructStateModifierFromSwitchState(
+      const std::shared_ptr<SwitchState>& initialState);
+
   void notifyStateModifierUpdateFailed(
       const std::shared_ptr<SwitchState>& state);
 
