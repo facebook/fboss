@@ -41,10 +41,8 @@ EcmpResourceManager::EcmpResourceManager(
       switchStats_(stats) {
   CHECK_GT(
       maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
-  if (compressionPenaltyThresholdPct_ > 0 && backupEcmpGroupType_.has_value()) {
-    throw FbossError(
-        "Only one of compression penalty threshold or backup switching mode can be specified");
-  }
+  validateCfgUpdate(compressionPenaltyThresholdPct_, backupEcmpGroupType_);
+
   if (switchStats_) {
     switchStats_->setPrimaryEcmpGroupsExhausted(false);
     switchStats_->setPrimaryEcmpGroupsCount(0);
@@ -822,6 +820,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
              << " to: " << apache::thrift::util::enumNameSafe(*newMode);
 
   auto oldBackupEcmpMode = backupEcmpGroupType_;
+  validateCfgUpdate(compressionPenaltyThresholdPct_, newMode);
   backupEcmpGroupType_ = newMode;
   if (!oldBackupEcmpMode.has_value()) {
     // No backup ecmp type value for old group.
@@ -912,6 +911,17 @@ void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
     throw FbossError(
         "Changing compression penalty threshold on the fly is not supported");
   }
+  validateCfgUpdate(
+      newEcmpCompressionThresholdPct.value_or(0), backupEcmpGroupType_);
   compressionPenaltyThresholdPct_ = newEcmpCompressionThresholdPct.value_or(0);
+}
+
+void EcmpResourceManager::validateCfgUpdate(
+    int32_t compressionPenaltyThresholdPct,
+    const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const {
+  if (compressionPenaltyThresholdPct && backupEcmpGroupType.has_value()) {
+    throw FbossError(
+        "Setting both compression threshold pct and backup ecmp group type is not supported");
+  }
 }
 } // namespace facebook::fboss

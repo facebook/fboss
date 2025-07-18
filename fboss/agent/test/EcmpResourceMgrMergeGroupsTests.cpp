@@ -17,6 +17,10 @@ class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
   int32_t getEcmpCompressionThresholdPct() const override {
     return 100;
   }
+  std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode()
+      const override {
+    return std::nullopt;
+  }
 };
 
 TEST_F(EcmpResourceMgrMergeGroupsTest, init) {}

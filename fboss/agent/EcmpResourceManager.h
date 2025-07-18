@@ -231,6 +231,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   NextHopGroupId findCachedOrNewIdForNhops(
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
+  void validateCfgUpdate(
+      int32_t compressionPenaltyThresholdPct,
+      const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
   NextHopGroupId findNextAvailableId() const;
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
