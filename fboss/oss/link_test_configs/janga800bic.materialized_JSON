@@ -6740,7 +6740,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 100000,
         "name": "rcy1/1/444",
         "description": "",
         "queues_DEPRECATED": [
@@ -6759,7 +6759,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 49,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6776,7 +6776,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 100000,
         "name": "rcy1/1/445",
         "description": "",
         "queues_DEPRECATED": [
@@ -6795,7 +6795,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 49,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -6812,7 +6812,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 100000,
         "name": "evt1/1/506",
         "description": "",
         "queues_DEPRECATED": [
@@ -6831,7 +6831,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 49,
         "portType": 5,
         "expectedNeighborReachability": [
           
