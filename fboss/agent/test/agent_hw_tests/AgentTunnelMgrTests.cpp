@@ -631,6 +631,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
       const std::vector<std::string>& intfOldIPs) {
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::ENABLED;
+      auto portType = config.ports()[i].portType().value();
+      config.ports()[i].loopbackMode() =
+          getAsics().cbegin()->second->getDesiredLoopbackMode(portType);
     }
     // Apply the config
     applyNewConfig(config);
@@ -1152,6 +1155,9 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDownUp) {
 
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::ENABLED;
+      auto portType = config.ports()[i].portType().value();
+      config.ports()[i].loopbackMode() =
+          getAsics().cbegin()->second->getDesiredLoopbackMode(portType);
     }
 
     // Apply the config
@@ -1219,6 +1225,9 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6EntriesPortsDownUp) {
 
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::ENABLED;
+      auto portType = config.ports()[i].portType().value();
+      config.ports()[i].loopbackMode() =
+          getAsics().cbegin()->second->getDesiredLoopbackMode(portType);
     }
 
     // Apply the config
@@ -1301,6 +1310,9 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
     checkKernelIpEntriesRemoved(intfID, intfOldIPv4s[0], true);
 
     config.ports()[0].state() = cfg::PortState::ENABLED;
+    auto portType = config.ports()[0].portType().value();
+    config.ports()[0].loopbackMode() =
+        getAsics().cbegin()->second->getDesiredLoopbackMode(portType);
     // Apply the config
     applyNewConfig(config);
     waitForStateUpdates(getAgentEnsemble()->getSw());
@@ -1355,6 +1367,9 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     checkKernelIpEntriesRemoved(intfID, intfOldIPv6s[0], false);
 
     config.ports()[0].state() = cfg::PortState::ENABLED;
+    auto portType = config.ports()[0].portType().value();
+    config.ports()[0].loopbackMode() =
+        getAsics().cbegin()->second->getDesiredLoopbackMode(portType);
     // Apply the config
     applyNewConfig(config);
     waitForStateUpdates(getAgentEnsemble()->getSw());
