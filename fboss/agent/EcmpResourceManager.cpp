@@ -914,6 +914,16 @@ void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
   validateCfgUpdate(
       newEcmpCompressionThresholdPct.value_or(0), backupEcmpGroupType_);
   compressionPenaltyThresholdPct_ = newEcmpCompressionThresholdPct.value_or(0);
+  if (compressionPenaltyThresholdPct_) {
+    std::vector<NextHopGroupId> grpIds;
+    std::for_each(
+        nextHopGroupIdToInfo_.begin(),
+        nextHopGroupIdToInfo_.end(),
+        [&grpIds](const auto& grpIdAndInfo) {
+          grpIds.emplace_back(grpIdAndInfo.first);
+        });
+    computeCandidateMerges(grpIds);
+  }
 }
 
 void EcmpResourceManager::validateCfgUpdate(
@@ -922,6 +932,34 @@ void EcmpResourceManager::validateCfgUpdate(
   if (compressionPenaltyThresholdPct && backupEcmpGroupType.has_value()) {
     throw FbossError(
         "Setting both compression threshold pct and backup ecmp group type is not supported");
+  }
+}
+
+void EcmpResourceManager::computeCandidateMerges(
+    const std::vector<NextHopGroupId>& groupIds) {
+  NextHopGroupIds alreadyMergedGroups;
+  std::for_each(
+      mergedGroups_.begin(),
+      mergedGroups_.end(),
+      [&alreadyMergedGroups](const auto& mergedGroupsAndPenalty) {
+        alreadyMergedGroups.insert(
+            mergedGroupsAndPenalty.first.begin(),
+            mergedGroupsAndPenalty.first.end());
+      });
+  for (auto grpId : groupIds) {
+    if (alreadyMergedGroups.contains(grpId)) {
+      continue;
+    }
+    for (const auto& [grpToMergeWith, _] : nextHopGroupIdToInfo_) {
+      if (grpToMergeWith == grpId) {
+        continue;
+      }
+      // TODO: compute consolidation penalty
+    }
+    for (const auto& [grpsToMergeWith, _] : mergedGroups_) {
+      DCHECK(!grpsToMergeWith.contains(grpId));
+      // TODO: compute consolidation penalty
+    }
   }
 }
 } // namespace facebook::fboss

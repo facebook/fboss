@@ -68,7 +68,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
       SwitchStats* stats = nullptr);
   using NextHopGroupId = uint32_t;
-  using NextHopGroupIds = boost::container::flat_set<NextHopGroupId>;
+  using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
   using PrefixToGroupInfo = std::unordered_map<
       std::pair<RouterID, folly::CIDRNetwork>,
@@ -235,6 +235,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       int32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
   NextHopGroupId findNextAvailableId() const;
+  void computeCandidateMerges(const std::vector<NextHopGroupId>& groupIds);
+
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   PrefixToGroupInfo prefixToGroupInfo_;
