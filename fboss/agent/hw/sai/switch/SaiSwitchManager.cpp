@@ -1257,10 +1257,41 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
   if (updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
+    updateSramLowBufferLimitHitCounter();
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
+}
+
+void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK) ||
+      !switchWatermarkStats_.sramMinBufferWatermarkBytes().has_value()) {
+    return;
+  }
+  // getSramSizeBytes() returns the SRAM buffers in all cores combined
+  // and SramFreePercentXoffTh is the percentage SRAM buffer utilization
+  // at which PFC will be triggered on all ports.
+  auto sramFreeBufferPctToTriggerXoff = std::get<
+      std::optional<SaiSwitchTraits::Attributes::SramFreePercentXoffTh>>(
+      switch_->attributes());
+  if (!sramFreeBufferPctToTriggerXoff.has_value()) {
+    // Optional attribute not configured
+    return;
+  }
+
+  uint64_t sramBufferLowerLimit = platform_->getAsic()->getSramSizeBytes() *
+      sramFreeBufferPctToTriggerXoff.value().value() /
+      (platform_->getAsic()->getNumCores() * 100);
+  if (*switchWatermarkStats_.sramMinBufferWatermarkBytes() <=
+      sramBufferLowerLimit) {
+    // Low buffer limit in SRAM was hit and all ports in the core will
+    // be sending PFC XOFF, increment counter to flag this event.
+    platform_->getHwSwitch()->getSwitchStats()->sramLowBufferLimitHitCount();
+  }
+#endif
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
