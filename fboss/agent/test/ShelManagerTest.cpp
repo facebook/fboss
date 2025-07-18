@@ -24,6 +24,7 @@ class ShelManagerTest : public ::testing::Test {
         std::make_shared<MultiSwitchSystemPortMap>();
     for (int i = 0; i < localSysPortMax; i++) {
       auto sysPort = std::make_shared<SystemPort>(SystemPortID(i + 1));
+      sysPort->setScope(cfg::Scope::GLOBAL);
       multiSwitchSysPorts->addNode(sysPort, HwSwitchMatcher());
     }
     std::shared_ptr<SwitchState> switchState = std::make_shared<SwitchState>();

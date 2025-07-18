@@ -42,21 +42,24 @@ void ShelManager::updateRefCount(
     const std::shared_ptr<SwitchState>& origState,
     bool add) {
   for (const auto& nhop : routeNhops) {
-    // NextHops that is resolved to local interfaces
-    if (nhop.isResolved() &&
-        origState->getSystemPorts()->getNodeIf(SystemPortID(nhop.intf()))) {
-      auto iter = intf2RefCnt_.find(nhop.intf());
-      if (add) {
-        if (iter == intf2RefCnt_.end()) {
-          intf2RefCnt_[nhop.intf()] = 1;
+    // NextHops that is resolved to local interfaces with global scope
+    if (nhop.isResolved()) {
+      auto sysPort =
+          origState->getSystemPorts()->getNodeIf(SystemPortID(nhop.intf()));
+      if (sysPort && sysPort->getScope() == cfg::Scope::GLOBAL) {
+        auto iter = intf2RefCnt_.find(nhop.intf());
+        if (add) {
+          if (iter == intf2RefCnt_.end()) {
+            intf2RefCnt_[nhop.intf()] = 1;
+          } else {
+            iter->second++;
+          }
         } else {
-          iter->second++;
-        }
-      } else {
-        CHECK(iter != intf2RefCnt_.end() && iter->second > 0);
-        iter->second--;
-        if (iter->second == 0) {
-          intf2RefCnt_.erase(iter);
+          CHECK(iter != intf2RefCnt_.end() && iter->second > 0);
+          iter->second--;
+          if (iter->second == 0) {
+            intf2RefCnt_.erase(iter);
+          }
         }
       }
     }
