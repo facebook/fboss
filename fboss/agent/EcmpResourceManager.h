@@ -78,7 +78,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::vector<StateDelta>& deltas) override;
   std::vector<StateDelta> consolidate(const StateDelta& delta);
   std::vector<StateDelta> reconstructFromSwitchState(
-      const std::shared_ptr<SwitchState>& curState);
+      const std::shared_ptr<SwitchState>& curState) override;
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }

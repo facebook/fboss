@@ -14,6 +14,8 @@ class ShelManager : public PreUpdateStateModifier {
  public:
   std::vector<StateDelta> modifyState(
       const std::vector<StateDelta>& deltas) override;
+  std::vector<StateDelta> reconstructFromSwitchState(
+      const std::shared_ptr<SwitchState>& curState) override;
   void updateDone() override;
   void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
 

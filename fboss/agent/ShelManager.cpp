@@ -20,6 +20,15 @@ std::vector<StateDelta> ShelManager::modifyState(
       deltas.begin()->oldState(), deltas.begin()->newState());
   return retDeltas;
 }
+
+std::vector<StateDelta> ShelManager::reconstructFromSwitchState(
+    const std::shared_ptr<SwitchState>& curState) {
+  // TODO(zecheng): implement this function
+  std::vector<StateDelta> retDeltas;
+  retDeltas.emplace_back(std::make_shared<SwitchState>(), curState);
+  return retDeltas;
+}
+
 void ShelManager::updateDone() {
   // TODO(zecheng): implement this function
 }
