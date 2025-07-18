@@ -2,8 +2,12 @@
 
 #pragma once
 
+#include <memory>
+
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
@@ -48,5 +52,9 @@ void setupPfcBuffers(
 void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId);
 
 std::string pfcStatsString(const HwPortStats& stats);
+
+std::unique_ptr<TxPacket> makePfcFramePacket(
+    const AgentEnsemble& ensemble,
+    uint8_t classVector);
 
 } // namespace facebook::fboss::utility
