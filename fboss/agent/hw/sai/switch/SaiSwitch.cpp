@@ -2561,6 +2561,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // details. So, need to force trigger clearing neighbor cache
           // associated with the agg port here.
           swPortId2DownAggPort[swPortId] = swAggPort;
+          XLOG(DBG2) << "link down for agg port " << swAggPort.value();
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
