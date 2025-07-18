@@ -1418,8 +1418,8 @@ void SwSwitch::init(
         "but possible if calculation or threshold changes across warmboot.");
   }
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
+  notifyStateModifierUpdateDone();
   if (ecmpResourceManager_) {
-    ecmpResourceManager_->updateDone();
     updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
   }
   // For cold boot there will be discripancy between applied state and state
