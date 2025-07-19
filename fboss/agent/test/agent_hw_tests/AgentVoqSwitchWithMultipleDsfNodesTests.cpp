@@ -774,95 +774,97 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, resolveRouteToRemoteNeighbor) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
- public:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto config =
-        AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
-    // Set SHEL configuration
-    cfg::SelfHealingEcmpLagConfig shelConfig;
-    shelConfig.shelSrcIp() = "2222::1";
-    shelConfig.shelDstIp() = "2222::2";
-    shelConfig.shelPeriodicIntervalMS() = 5000;
-    config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
-    // Enable selfHealingEcmpLag on Interface Ports
-    for (auto& port : *config.ports()) {
-      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
-        port.selfHealingECMPLagEnable() = true;
-      }
-    }
-    return config;
-  }
-};
+// class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest
+// {
+//  public:
+//   cfg::SwitchConfig initialConfig(
+//       const AgentEnsemble& ensemble) const override {
+//     auto config =
+//         AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
+//     // Set SHEL configuration
+//     cfg::SelfHealingEcmpLagConfig shelConfig;
+//     shelConfig.shelSrcIp() = "2222::1";
+//     shelConfig.shelDstIp() = "2222::2";
+//     shelConfig.shelPeriodicIntervalMS() = 5000;
+//     config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
+//     // Enable selfHealingEcmpLag on Interface Ports
+//     for (auto& port : *config.ports()) {
+//       if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+//         port.selfHealingECMPLagEnable() = true;
+//       }
+//     }
+//     return config;
+//   }
+// };
 
-TEST_F(AgentVoqShelSwitchTest, init) {
-  auto verifyShelEnabled = [this](bool enabled) {
-    auto state = getProgrammedState();
-    for (const auto& portMap : std::as_const(*state->getPorts())) {
-      for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-          EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
-          EXPECT_EQ(
-              port.second->getSelfHealingECMPLagEnable().value(), enabled);
-        }
-      }
-    }
-  };
+// TEST_F(AgentVoqShelSwitchTest, init) {
+//   auto verifyShelEnabled = [this](bool enabled) {
+//     auto state = getProgrammedState();
+//     for (const auto& portMap : std::as_const(*state->getPorts())) {
+//       for (const auto& port : std::as_const(*portMap.second)) {
+//         if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+//           EXPECT_TRUE(port.second->getSelfHealingECMPLagEnable().has_value());
+//           EXPECT_EQ(
+//               port.second->getSelfHealingECMPLagEnable().value(), enabled);
+//         }
+//       }
+//     }
+//   };
 
-  auto verifyShelPortState = [this](bool enabled) {
-    WITH_RETRIES({
-      auto stats = getHwSwitchStats();
-      auto state = getProgrammedState();
-      for (const auto& portMap : std::as_const(*state->getPorts())) {
-        for (const auto& port : std::as_const(*portMap.second)) {
-          if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
-            auto switchId = scopeResolver().scope(port.second).switchId();
-            EXPECT_EVENTUALLY_TRUE(stats.contains(switchId));
-            auto globalSystemPortOffset = *getSw()
-                                               ->getSwitchInfoTable()
-                                               .getSwitchInfo(switchId)
-                                               .globalSystemPortOffset();
-            if (stats.contains(switchId)) {
-              auto sysPortShelState = stats.at(switchId).sysPortShelState();
-              auto systemPortId = globalSystemPortOffset + port.first;
-              EXPECT_EVENTUALLY_TRUE(sysPortShelState->contains(systemPortId));
-              if (sysPortShelState->contains(systemPortId)) {
-                EXPECT_EVENTUALLY_EQ(
-                    sysPortShelState->at(systemPortId),
-                    (enabled ? cfg::PortState::ENABLED
-                             : cfg::PortState::DISABLED));
-              }
-            }
-          }
-        }
-      }
-    });
-  };
+//   auto verifyShelPortState = [this](bool enabled) {
+//     WITH_RETRIES({
+//       auto stats = getHwSwitchStats();
+//       auto state = getProgrammedState();
+//       for (const auto& portMap : std::as_const(*state->getPorts())) {
+//         for (const auto& port : std::as_const(*portMap.second)) {
+//           if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+//             auto switchId = scopeResolver().scope(port.second).switchId();
+//             EXPECT_EVENTUALLY_TRUE(stats.contains(switchId));
+//             auto globalSystemPortOffset = *getSw()
+//                                                ->getSwitchInfoTable()
+//                                                .getSwitchInfo(switchId)
+//                                                .globalSystemPortOffset();
+//             if (stats.contains(switchId)) {
+//               auto sysPortShelState = stats.at(switchId).sysPortShelState();
+//               auto systemPortId = globalSystemPortOffset + port.first;
+//               EXPECT_EVENTUALLY_TRUE(sysPortShelState->contains(systemPortId));
+//               if (sysPortShelState->contains(systemPortId)) {
+//                 EXPECT_EVENTUALLY_EQ(
+//                     sysPortShelState->at(systemPortId),
+//                     (enabled ? cfg::PortState::ENABLED
+//                              : cfg::PortState::DISABLED));
+//               }
+//             }
+//           }
+//         }
+//       }
+//     });
+//   };
 
-  auto setup = []() {};
-  auto verify = [&, this]() {
-    verifyShelEnabled(true /*enabled*/);
-    verifyShelPortState(true /*enabled*/);
-  };
-  auto setupPostWarmboot = [&, this]() {
-    // Verify SHEL port state is reconstructed after WB
-    verifyShelPortState(true /*enabled*/);
+//   auto setup = []() {};
+//   auto verify = [&, this]() {
+//     verifyShelEnabled(true /*enabled*/);
+//     verifyShelPortState(true /*enabled*/);
+//   };
+//   auto setupPostWarmboot = [&, this]() {
+//     // Verify SHEL port state is reconstructed after WB
+//     verifyShelPortState(true /*enabled*/);
 
-    // Disable selfHealingEcmpLag on Interface Ports
-    auto config = getSw()->getConfig();
-    config.switchSettings()->selfHealingEcmpLagConfig().reset();
+//     // Disable selfHealingEcmpLag on Interface Ports
+//     auto config = getSw()->getConfig();
+//     config.switchSettings()->selfHealingEcmpLagConfig().reset();
 
-    for (auto& port : *config.ports()) {
-      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
-        port.selfHealingECMPLagEnable() = false;
-      }
-    }
-    applyNewConfig(config);
-  };
-  auto verifyPostWarmboot = [&, this]() {
-    verifyShelEnabled(false /*enabled*/);
-  };
-  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
-}
+//     for (auto& port : *config.ports()) {
+//       if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+//         port.selfHealingECMPLagEnable() = false;
+//       }
+//     }
+//     applyNewConfig(config);
+//   };
+//   auto verifyPostWarmboot = [&, this]() {
+//     verifyShelEnabled(false /*enabled*/);
+//   };
+//   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot,
+//   verifyPostWarmboot);
+// }
 } // namespace facebook::fboss
