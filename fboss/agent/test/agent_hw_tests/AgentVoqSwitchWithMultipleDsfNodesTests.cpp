@@ -79,6 +79,24 @@ class AgentVoqSwitchWithMultipleDsfNodesTest : public AgentVoqSwitchTest {
     });
     checkStatsStabilize(10);
   }
+
+  cfg::SwitchConfig getShelEnabledConfig(
+      const cfg::SwitchConfig& inputConfig) const {
+    auto config = inputConfig;
+    // Set SHEL configuration
+    cfg::SelfHealingEcmpLagConfig shelConfig;
+    shelConfig.shelSrcIp() = "2222::1";
+    shelConfig.shelDstIp() = "2222::2";
+    shelConfig.shelPeriodicIntervalMS() = 5000;
+    config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
+    // Enable selfHealingEcmpLag on Interface Ports
+    for (auto& port : *config.ports()) {
+      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+        port.selfHealingECMPLagEnable() = true;
+      }
+    }
+    return config;
+  }
 };
 
 TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
@@ -780,19 +798,7 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
       const AgentEnsemble& ensemble) const override {
     auto config =
         AgentVoqSwitchWithMultipleDsfNodesTest::initialConfig(ensemble);
-    // Set SHEL configuration
-    cfg::SelfHealingEcmpLagConfig shelConfig;
-    shelConfig.shelSrcIp() = "2222::1";
-    shelConfig.shelDstIp() = "2222::2";
-    shelConfig.shelPeriodicIntervalMS() = 5000;
-    config.switchSettings()->selfHealingEcmpLagConfig() = shelConfig;
-    // Enable selfHealingEcmpLag on Interface Ports
-    for (auto& port : *config.ports()) {
-      if (port.portType() == cfg::PortType::INTERFACE_PORT) {
-        port.selfHealingECMPLagEnable() = true;
-      }
-    }
-    return config;
+    return getShelEnabledConfig(config);
   }
 
  protected:
