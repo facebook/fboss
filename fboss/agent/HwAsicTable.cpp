@@ -168,7 +168,7 @@ std::unordered_set<SwitchID> HwAsicTable::getL3SwitchIds() const {
 
 std::vector<const HwAsic*> HwAsicTable::getL3Asics() const {
   std::vector<const HwAsic*> l3Asics;
-  for (auto switchId : getL3SwitchIds()) {
+  for (const auto& switchId : getL3SwitchIds()) {
     l3Asics.push_back(getHwAsic(switchId));
   }
   return l3Asics;
@@ -177,10 +177,21 @@ std::vector<const HwAsic*> HwAsicTable::getL3Asics() const {
 std::vector<const HwAsic*> HwAsicTable::getFabricAsics() const {
   auto fabricSwitchIds = getSwitchIdsOfType(cfg::SwitchType::FABRIC);
   std::vector<const HwAsic*> fabricAsics;
-  for (auto switchId : fabricSwitchIds) {
+  fabricAsics.reserve(fabricSwitchIds.size());
+  for (const auto& switchId : fabricSwitchIds) {
     fabricAsics.push_back(getHwAsic(switchId));
   }
   return fabricAsics;
+}
+
+std::vector<const HwAsic*> HwAsicTable::getVoqAsics() const {
+  auto voqSwitchIds = getSwitchIdsOfType(cfg::SwitchType::VOQ);
+  std::vector<const HwAsic*> voqAsics;
+  voqAsics.reserve(voqSwitchIds.size());
+  for (const auto& switchId : voqSwitchIds) {
+    voqAsics.push_back(getHwAsic(switchId));
+  }
+  return voqAsics;
 }
 
 std::set<cfg::StreamType> HwAsicTable::getQueueStreamTypes(
