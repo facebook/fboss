@@ -110,6 +110,7 @@ class HwSwitchThriftClientTable;
 class ResourceAccountant;
 class RemoteNeighborUpdater;
 class EcmpResourceManager;
+class ShelManager;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -1369,6 +1370,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
+  std::unique_ptr<ShelManager> shelManager_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

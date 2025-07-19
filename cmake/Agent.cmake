@@ -380,6 +380,7 @@ set(core_libs
   build_info_wrapper
   ecmp_resource_manager
   thrift_method_rate_limit
+  shel_manager
 )
 
 target_link_libraries(core ${core_libs})

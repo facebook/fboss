@@ -35,6 +35,7 @@
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/ResourceAccountant.h"
+#include "fboss/agent/ShelManager.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -655,6 +656,11 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   if (FLAGS_enable_ecmp_resource_manager && ecmpResourceManager_) {
     unregisterStateModifier(ecmpResourceManager_.get());
     ecmpResourceManager_.reset();
+  }
+
+  if (!hwAsicTable_->getVoqAsics().empty() && shelManager_) {
+    unregisterStateModifier(shelManager_.get());
+    shelManager_.reset();
   }
 
   // reset tunnel manager only after pkt thread is stopped
@@ -1367,6 +1373,11 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
             ecmpResourceManager_.get(), "Ecmp Resource Manager");
       }
     }
+  }
+  if (!hwAsicTable_->getVoqAsics().empty()) {
+    // Register ShelManager
+    shelManager_ = std::make_unique<ShelManager>();
+    registerStateModifier(shelManager_.get(), "Shel Manager");
   }
   XLOG(DBG2)
       << "Time to init switch and start all threads "

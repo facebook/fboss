@@ -890,6 +890,7 @@ cpp_library(
         ":packet_observer",
         ":phy_snapshot_lib",
         ":route_update_wrapper",
+        ":shel_manager",
         ":state_observer",
         ":stats",
         ":sw_switch_warmboot_helper",
