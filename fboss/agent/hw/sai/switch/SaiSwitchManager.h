@@ -169,6 +169,7 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedCreditStats() const;
   const std::vector<sai_stat_id_t>& supportedErrorStats() const;
+  const std::vector<sai_stat_id_t>& supportedSaiExtensionDropStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineStats() const;
   const std::vector<sai_attr_id_t>& supportedTemperatureStats() const;
@@ -219,6 +220,9 @@ void fillHwSwitchPipelineStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     int idx,
     HwSwitchPipelineStats& switchPipelineStats);
+void fillHwSwitchSaiExtensionDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
 void publishSwitchTemperatureStats(HwSwitchTemperatureStats& temperatureStats);

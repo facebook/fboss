@@ -931,6 +931,27 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedSaiExtensionDropStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_DROP_STATS) &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::packetIntegrityError().begin(),
+        SaiSwitchTraits::packetIntegrityError().end());
+  }
+#endif
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
   static std::vector<sai_stat_id_t> stats;
   if (stats.size()) {
