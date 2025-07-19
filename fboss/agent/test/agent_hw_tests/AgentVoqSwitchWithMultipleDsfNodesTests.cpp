@@ -912,4 +912,45 @@ TEST_F(AgentVoqShelSwitchTest, init) {
   };
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
+
+TEST_F(AgentVoqShelSwitchTest, routeChurn) {
+  const auto numChurn = 100;
+  auto setup = []() {};
+  auto verify = [&, this]() {
+    verifyShelEnabled(true /*desiredShelEnable*/, false /*shelEnabled*/);
+
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
+    auto portDescriptors = flat_set<PortDescriptor>(
+        std::make_move_iterator(localSysPortDescs.begin()),
+        std::make_move_iterator(localSysPortDescs.end()));
+    auto routeUpdater = getSw()->getRouteUpdater();
+
+    for (int i = 0; i < numChurn; i++) {
+      ecmpHelper.programRoutes(&routeUpdater, portDescriptors);
+      verifyShelEnabled(true /*desiredShelEnable*/, true /*shelEnabled*/);
+      ecmpHelper.unprogramRoutes(&routeUpdater);
+      verifyShelEnabled(true /*desiredShelEnable*/, false /*shelEnabled*/);
+    }
+    ecmpHelper.programRoutes(&routeUpdater, portDescriptors);
+
+    // Toggle ports to trigger callback
+    auto state = getProgrammedState();
+    for (const auto& portMap : std::as_const(*state->getPorts())) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT &&
+            port.second->getSelfHealingECMPLagEnable()) {
+          bringDownPort(port.second->getID());
+          bringUpPort(port.second->getID());
+        }
+      }
+    }
+
+    verifyShelPortState(true /*enabled*/);
+    ecmpHelper.unprogramRoutes(&routeUpdater);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
