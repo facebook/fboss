@@ -951,6 +951,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& egressNonFabricCellUnpackError();
   static const std::vector<sai_stat_id_t>& egressParityCellError();
   static const std::vector<sai_stat_id_t>& ddpPacketError();
+  static const std::vector<sai_stat_id_t>& packetIntegrityError();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
