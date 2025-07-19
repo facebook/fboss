@@ -794,10 +794,9 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
     }
     return config;
   }
-};
 
-TEST_F(AgentVoqShelSwitchTest, init) {
-  auto verifyShelEnabled = [this](bool desiredShelEnable, bool shelEnabled) {
+ protected:
+  void verifyShelEnabled(bool desiredShelEnable, bool shelEnabled) {
     auto state = getProgrammedState();
     for (const auto& portMap : std::as_const(*state->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
@@ -822,9 +821,9 @@ TEST_F(AgentVoqShelSwitchTest, init) {
         }
       }
     }
-  };
+  }
 
-  auto verifyShelPortState = [this](bool enabled) {
+  void verifyShelPortState(bool enabled) {
     WITH_RETRIES({
       auto stats = getHwSwitchStats();
       auto state = getProgrammedState();
@@ -851,9 +850,11 @@ TEST_F(AgentVoqShelSwitchTest, init) {
           }
         }
       }
-    });
-  };
+    })
+  }
+};
 
+TEST_F(AgentVoqShelSwitchTest, init) {
   auto setup = []() {};
   auto verify = [&, this]() {
     verifyShelEnabled(true /*desiredShelEnable*/, false /*shelEnabled*/);
