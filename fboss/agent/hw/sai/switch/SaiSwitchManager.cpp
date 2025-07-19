@@ -839,11 +839,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
         stats.end(),
         SaiSwitchTraits::CounterIdsToRead.begin(),
         SaiSwitchTraits::CounterIdsToRead.end());
-    if (!platform_->getAsic()->isSupported(
+    if (platform_->getAsic()->isSupported(
             HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS)) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-      stats.erase(std::find(
-          stats.begin(), stats.end(), SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP));
+#if not defined(BRCM_SAI_SDK_DNX_GTE_12_0) && \
+    SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      stats.push_back(SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP);
 #endif
     }
     if (isJerichoAsic(platform_->getAsic()->getAsicType())) {
@@ -1234,6 +1234,21 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     switchDropStats_.tc0RateLimitDrops() =
         switchDropStats_.tc0RateLimitDrops().value_or(0) +
         dropStats.tc0RateLimitDrops().value_or(0);
+  }
+  auto switchSaiExtensionDropStats = supportedSaiExtensionDropStats();
+  if (switchSaiExtensionDropStats.size()) {
+    switch_->updateStats(switchSaiExtensionDropStats, SAI_STATS_MODE_READ);
+    HwSwitchDropStats dropStats;
+    fillHwSwitchSaiExtensionDropStats(
+        switch_->getStats(switchSaiExtensionDropStats), dropStats);
+    // Packet integrity drop stats is supported in 11.7 with
+    // SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP and in 12.2 with
+    // SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR which is a SAI
+    // extension hence switchDropStats_.packetIntegrityDrops is
+    // incremented in multiple places.
+    switchDropStats_.packetIntegrityDrops() =
+        switchDropStats_.packetIntegrityDrops().value_or(0) +
+        dropStats.packetIntegrityDrops().value_or(0);
   }
   auto errorDropStats = supportedErrorStats();
   if (errorDropStats.size()) {
