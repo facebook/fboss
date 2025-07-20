@@ -24,6 +24,47 @@
 
 namespace facebook::fboss {
 
+namespace {
+HwRouterInterfaceStats fillHwRouterInterfaceStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& stats) {
+  HwRouterInterfaceStats rifStats{};
+  for (const auto& [id, value] : stats) {
+    switch (id) {
+      case SAI_ROUTER_INTERFACE_STAT_IN_OCTETS:
+        rifStats.inBytes_() = value;
+        break;
+      case SAI_ROUTER_INTERFACE_STAT_IN_PACKETS:
+        rifStats.inPkts_() = value;
+        break;
+      case SAI_ROUTER_INTERFACE_STAT_OUT_OCTETS:
+        rifStats.outBytes_() = value;
+        break;
+      case SAI_ROUTER_INTERFACE_STAT_OUT_PACKETS:
+        rifStats.outPkts_() = value;
+        break;
+      case SAI_ROUTER_INTERFACE_STAT_IN_ERROR_OCTETS:
+        rifStats.inErrorBytes_() = value;
+        break;
+      case SAI_ROUTER_INTERFACE_STAT_IN_ERROR_PACKETS:
+        rifStats.inErrorPkts_() = value;
+        break;
+      case SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_OCTETS:
+        rifStats.outErrorBytes_() = value;
+        break;
+      case SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_PACKETS:
+        rifStats.outErrorPkts_() = value;
+        break;
+    }
+  }
+  return rifStats;
+}
+} // namespace
+
+SaiRouterInterfaceHandle::SaiRouterInterfaceHandle(
+    const std::string& intfName,
+    cfg::InterfaceType type)
+    : intfType(type), fb303Stats(intfName) {}
+
 SaiRouterInterfaceManager::SaiRouterInterfaceManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -86,8 +127,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
   auto& store = saiStore_->get<SaiVlanRouterInterfaceTraits>();
   std::shared_ptr<SaiVlanRouterInterface> vlanRouterInterface =
       store.setObject(k, attributes, swInterface->getID());
-  auto vlanRouterInterfaceHandle =
-      std::make_unique<SaiRouterInterfaceHandle>(swInterface->getType());
+  auto vlanRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>(
+      swInterface->getName(), swInterface->getType());
   vlanRouterInterfaceHandle->routerInterface = vlanRouterInterface;
   vlanRouterInterfaceHandle->setLocal(isLocal);
 
@@ -153,8 +194,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
   auto& store = saiStore_->get<SaiPortRouterInterfaceTraits>();
   std::shared_ptr<SaiPortRouterInterface> portRouterInterface =
       store.setObject(k, attributes, swInterface->getID());
-  auto portRouterInterfaceHandle =
-      std::make_unique<SaiRouterInterfaceHandle>(swInterface->getType());
+  auto portRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>(
+      swInterface->getName(), swInterface->getType());
   portRouterInterfaceHandle->routerInterface = portRouterInterface;
   portRouterInterfaceHandle->setLocal(isLocal);
   if (isLocal) {
@@ -310,9 +351,17 @@ void SaiRouterInterfaceManager::updateStats() {
           HwAsic::Feature::ROUTER_INTERFACE_STATISTICS)) {
     return;
   }
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+
   for (auto& [_, handle] : handles_) {
     std::visit(
-        [](auto& rif) { return rif->updateStats(); }, handle->routerInterface);
+        [handle = handle.get(), now](auto& rif) {
+          rif->updateStats();
+          handle->fb303Stats.updateStats(
+              fillHwRouterInterfaceStats(rif->getStats()), now);
+        },
+        handle->routerInterface);
   }
 }
 
@@ -339,36 +388,7 @@ SaiRouterInterfaceManager::getRouterInterfaceStats() const {
         [](const auto& rif) { return rif->getStats(); },
         handle->routerInterface);
 
-    auto rifStats = HwRouterInterfaceStats{};
-    for (const auto& [id, value] : stats) {
-      switch (id) {
-        case SAI_ROUTER_INTERFACE_STAT_IN_OCTETS:
-          rifStats.inBytes_() = value;
-          break;
-        case SAI_ROUTER_INTERFACE_STAT_IN_PACKETS:
-          rifStats.inPkts_() = value;
-          break;
-        case SAI_ROUTER_INTERFACE_STAT_OUT_OCTETS:
-          rifStats.outBytes_() = value;
-          break;
-        case SAI_ROUTER_INTERFACE_STAT_OUT_PACKETS:
-          rifStats.outPkts_() = value;
-          break;
-        case SAI_ROUTER_INTERFACE_STAT_IN_ERROR_OCTETS:
-          rifStats.inErrorBytes_() = value;
-          break;
-        case SAI_ROUTER_INTERFACE_STAT_IN_ERROR_PACKETS:
-          rifStats.inErrorPkts_() = value;
-          break;
-        case SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_OCTETS:
-          rifStats.outErrorBytes_() = value;
-          break;
-        case SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_PACKETS:
-          rifStats.outErrorPkts_() = value;
-          break;
-      }
-      out.emplace(_, rifStats);
-    }
+    out.emplace(_, fillHwRouterInterfaceStats(stats));
   }
   return out;
 }

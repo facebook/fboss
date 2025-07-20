@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/HwRouterInterfaceFb303Stats.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
@@ -42,8 +43,10 @@ struct SaiRouterInterfaceHandle {
   using SaiRouterInterface = std::variant<
       std::shared_ptr<SaiVlanRouterInterface>,
       std::shared_ptr<SaiPortRouterInterface>>;
-  SaiRouterInterface routerInterface;
-  SaiRouterInterfaceHandle(cfg::InterfaceType type) : intfType(type) {}
+  SaiRouterInterfaceHandle(
+      const std::string& intfName,
+      cfg::InterfaceType type);
+
   RouterInterfaceSaiId adapterKey() const {
     return std::visit(
         [](auto& handle) { return handle->adapterKey(); }, routerInterface);
@@ -65,9 +68,11 @@ struct SaiRouterInterfaceHandle {
     return std::get<std::shared_ptr<SaiVlanRouterInterface>>(routerInterface);
   }
 
-  std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
-  bool isLocalRif{true};
   cfg::InterfaceType intfType{cfg::InterfaceType::VLAN};
+  HwRouterInterfaceFb303Stats fb303Stats;
+  bool isLocalRif{true};
+  SaiRouterInterface routerInterface{};
+  std::vector<std::shared_ptr<SaiRoute>> toMeRoutes{};
 };
 
 class SaiRouterInterfaceManager {

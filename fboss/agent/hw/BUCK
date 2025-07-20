@@ -197,6 +197,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "hw_rif_fb303_stats",
+    srcs = [
+        "HwRouterInterfaceFb303Stats.cpp",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        ":hw_fb303_stats",
+    ],
+)
+
+cpp_library(
     name = "hw_cpu_fb303_stats",
     srcs = [
         "HwCpuFb303Stats.cpp",
