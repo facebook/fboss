@@ -11,7 +11,7 @@
 #pragma once
 
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
-#include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -33,8 +33,10 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 
-using SaiVlanRouterInterface = SaiObject<SaiVlanRouterInterfaceTraits>;
-using SaiPortRouterInterface = SaiObject<SaiPortRouterInterfaceTraits>;
+using SaiVlanRouterInterface =
+    SaiObjectWithCounters<SaiVlanRouterInterfaceTraits>;
+using SaiPortRouterInterface =
+    SaiObjectWithCounters<SaiPortRouterInterfaceTraits>;
 
 struct SaiRouterInterfaceHandle {
   using SaiRouterInterface = std::variant<
