@@ -112,6 +112,10 @@ class SaiRouterInterfaceManager {
 
   std::optional<InterfaceID> getRouterPortInterfaceIDIf(PortSaiId port) const;
 
+  void updateStats();
+
+  void clearStats();
+
  private:
   RouterInterfaceSaiId addRouterInterface(
       const std::shared_ptr<Interface>& swInterface,

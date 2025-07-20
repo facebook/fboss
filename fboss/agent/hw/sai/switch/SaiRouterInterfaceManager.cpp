@@ -305,4 +305,26 @@ SaiRouterInterfaceManager::getRouterPortInterfaceIDIf(PortSaiId port) const {
   return itr->first;
 }
 
+void SaiRouterInterfaceManager::updateStats() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::ROUTER_INTERFACE_STATISTICS)) {
+    return;
+  }
+  for (auto& [_, handle] : handles_) {
+    std::visit(
+        [](auto& rif) { return rif->updateStats(); }, handle->routerInterface);
+  }
+}
+
+void SaiRouterInterfaceManager::clearStats() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::ROUTER_INTERFACE_STATISTICS)) {
+    return;
+  }
+  for (auto& [_, handle] : handles_) {
+    std::visit(
+        [](auto& rif) { return rif->clearStats(); }, handle->routerInterface);
+  }
+}
+
 } // namespace facebook::fboss
