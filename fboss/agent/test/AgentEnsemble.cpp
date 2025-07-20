@@ -376,6 +376,21 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
   return portIdStatsMap;
 }
 
+std::map<InterfaceID, HwRouterInterfaceStats>
+AgentEnsemble::getLatestInterfaceStats(
+    const std::vector<InterfaceID>& interfaces) {
+  std::map<InterfaceID, HwRouterInterfaceStats> intfIdStatsMap;
+  checkWithRetry(
+      [&intfIdStatsMap, &interfaces, this]() {
+        intfIdStatsMap = getSw()->getHwRouterInterfaceStats(interfaces);
+        return !intfIdStatsMap.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch interface stats");
+  return intfIdStatsMap;
+}
+
 std::map<SystemPortID, HwSysPortStats> AgentEnsemble::getLatestSysPortStats(
     const std::vector<SystemPortID>& ports) {
   return getSw()->getHwSysPortStats(ports);
