@@ -105,13 +105,14 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& newRoute) const;
 
-  struct ConsolidationPenalty {
+  struct ConsolidationInfo {
+    RouteNextHopSet mergedNhops;
     int maxPenalty() const;
     int avgPenalty() const;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
   struct PreUpdateState {
-    std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups;
+    std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups;
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
@@ -240,8 +241,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   PrefixToGroupInfo prefixToGroupInfo_;
-  std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups_;
-  std::map<NextHopGroupIds, ConsolidationPenalty> candidateMergeGroups_;
+  std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups_;
+  std::map<NextHopGroupIds, ConsolidationInfo> candidateMergeGroups_;
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;
