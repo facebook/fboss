@@ -93,6 +93,7 @@ enum ProductionFeature {
   PFC_WATCHDOG_GRANULARITY = 80,
   ARS_FLOWLET = 81,
   ARS_SPRAY = 82,
+  ROUTER_INTERFACE_COUNTERS = 83,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
