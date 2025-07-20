@@ -1853,6 +1853,26 @@ std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
   return portStatsMap;
 }
 
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getRouterInterfaceStatsLocked(lock);
+}
+
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStatsLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) const {
+  folly::F14FastMap<std::string, HwRouterInterfaceStats> rifStatsMap;
+  const auto& statsMap =
+      managerTable_->routerInterfaceManager().getRouterInterfaceStats();
+  auto state = getProgrammedState();
+  for (const auto& entry : statsMap) {
+    auto intf = state->getInterfaces()->getNodeIf(entry.first);
+    rifStatsMap.emplace(intf->getName(), entry.second);
+  }
+  return rifStatsMap;
+}
+
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoImpl() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return updateAllPhyInfoLocked();

@@ -327,4 +327,64 @@ void SaiRouterInterfaceManager::clearStats() {
   }
 }
 
+std::map<InterfaceID, HwRouterInterfaceStats>
+SaiRouterInterfaceManager::getRouterInterfaceStats() const {
+  std::map<InterfaceID, HwRouterInterfaceStats> out{};
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::ROUTER_INTERFACE_STATISTICS)) {
+    return out;
+  }
+  for (const auto& [_, handle] : handles_) {
+    auto stats = std::visit(
+        [](const auto& rif) { return rif->getStats(); },
+        handle->routerInterface);
+
+    auto rifStats = HwRouterInterfaceStats{};
+    for (const auto& [id, value] : stats) {
+      switch (id) {
+        case SAI_ROUTER_INTERFACE_STAT_IN_OCTETS:
+          rifStats.inBytes_() = value;
+          break;
+        case SAI_ROUTER_INTERFACE_STAT_IN_PACKETS:
+          rifStats.inPkts_() = value;
+          break;
+        case SAI_ROUTER_INTERFACE_STAT_OUT_OCTETS:
+          rifStats.outBytes_() = value;
+          break;
+        case SAI_ROUTER_INTERFACE_STAT_OUT_PACKETS:
+          rifStats.outPkts_() = value;
+          break;
+        case SAI_ROUTER_INTERFACE_STAT_IN_ERROR_OCTETS:
+          rifStats.inErrorBytes_() = value;
+          break;
+        case SAI_ROUTER_INTERFACE_STAT_IN_ERROR_PACKETS:
+          rifStats.inErrorPkts_() = value;
+          break;
+        case SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_OCTETS:
+          rifStats.outErrorBytes_() = value;
+          break;
+        case SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_PACKETS:
+          rifStats.outErrorPkts_() = value;
+          break;
+      }
+      out.emplace(_, rifStats);
+    }
+  }
+  return out;
+}
+
+HwRouterInterfaceStats SaiRouterInterfaceManager::getRouterInterfaceStats(
+    const InterfaceID& intfID) const {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::ROUTER_INTERFACE_STATISTICS)) {
+    return HwRouterInterfaceStats{};
+  }
+  auto stats = getRouterInterfaceStats();
+  auto iter = stats.find(intfID);
+  if (iter != stats.end()) {
+    return iter->second;
+  }
+  XLOG(DBG4) << "No stats found for interface " << intfID;
+  return HwRouterInterfaceStats{};
+}
 } // namespace facebook::fboss

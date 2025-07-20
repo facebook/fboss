@@ -982,6 +982,8 @@ class SwSwitch : public HwSwitchCallback {
 
   std::map<PortID, HwPortStats> getHwPortStats(
       std::vector<PortID> portId) const;
+  std::map<InterfaceID, HwRouterInterfaceStats> getHwRouterInterfaceStats(
+      const std::vector<InterfaceID>& intfIds) const;
   void getAllHwSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) const;
   std::map<SystemPortID, HwSysPortStats> getHwSysPortStats(

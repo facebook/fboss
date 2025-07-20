@@ -116,6 +116,11 @@ class SaiRouterInterfaceManager {
 
   void clearStats();
 
+  std::map<InterfaceID, HwRouterInterfaceStats> getRouterInterfaceStats() const;
+
+  HwRouterInterfaceStats getRouterInterfaceStats(
+      const InterfaceID& intfID) const;
+
  private:
   RouterInterfaceSaiId addRouterInterface(
       const std::shared_ptr<Interface>& swInterface,

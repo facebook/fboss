@@ -4050,6 +4050,39 @@ std::map<PortID, HwPortStats> SwSwitch::getHwPortStats(
   return hwPortsStats;
 }
 
+std::map<InterfaceID, HwRouterInterfaceStats>
+SwSwitch::getHwRouterInterfaceStats(
+    const std::vector<InterfaceID>& intfIds) const {
+  std::map<InterfaceID, HwRouterInterfaceStats> hwRifStats;
+  for (const auto& intfId : intfIds) {
+    auto state = getState();
+    auto intf = state->getInterfaces()->getNodeIf(intfId);
+    auto switchIds = getScopeResolver()->scope(intf, state).switchIds();
+    CHECK_EQ(switchIds.size(), 1);
+    auto switchIndex =
+        getSwitchInfoTable().getSwitchIndexFromSwitchId(*switchIds.cbegin());
+    if (!getHwAsicTable()->isFeatureSupported(
+            *switchIds.cbegin(),
+            HwAsic::Feature::ROUTER_INTERFACE_STATISTICS)) {
+      // if ASIC for a given rif doesn't support rif stats, ignore it
+      continue;
+    }
+
+    auto hwswitchStatsMap = hwSwitchStats_.rlock();
+    auto hwswitchStats = hwswitchStatsMap->find(switchIndex);
+    if (hwswitchStats != hwswitchStatsMap->end()) {
+      auto statsMap = hwswitchStats->second.hwRouterInterfaceStats();
+      auto entry = statsMap->find(intf->getName());
+      if (entry == statsMap->end()) {
+        XLOG(ERR) << "Stats do not exist for intfId: " << intfId;
+        continue;
+      }
+      hwRifStats.insert({intfId, entry->second});
+    }
+  }
+  return hwRifStats;
+}
+
 std::map<SystemPortID, HwSysPortStats> SwSwitch::getHwSysPortStats(
     const std::vector<SystemPortID>& ports) const {
   std::map<SystemPortID, HwSysPortStats> hwPortsStats;
