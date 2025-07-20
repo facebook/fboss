@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 
 extern "C" {
@@ -991,14 +992,18 @@ void SaiSwitch::tamEventCallback(
 void SaiSwitch::hardResetSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
     const void* buffer) {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_2)
+/*
+ * TODO: Change this to BRCM_SAI_SDK_DNX_GTE_12_0 once
+ * 13.0 has this change
+ */
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
   const sai_switch_hard_reset_event_info_t* eventInfo =
       static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
   /*
    * Flags has the ORed value for all reason codes for hard resets
    * For exact values, look at saiswitchextensions.h file
    */
-  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset, with flag:"
+  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset, with flag: "
               << eventInfo->flags;
 #else
   XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset event";
