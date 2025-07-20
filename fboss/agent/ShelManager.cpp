@@ -15,6 +15,7 @@ std::vector<StateDelta> ShelManager::modifyState(
 
 std::vector<StateDelta> ShelManager::reconstructFromSwitchState(
     const std::shared_ptr<SwitchState>& curState) {
+  XLOG(DBG2) << "ShelManager reconstructing from switch state";
   intf2RefCnt_.clear();
   std::vector<StateDelta> deltas;
   deltas.emplace_back(std::make_shared<SwitchState>(), curState);

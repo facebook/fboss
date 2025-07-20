@@ -1415,8 +1415,7 @@ void SwSwitch::init(
   auto emptyState = std::make_shared<SwitchState>();
   auto origInitialState = initialState;
   emptyState->publish();
-  std::vector<StateDelta> deltas;
-  deltas = reconstructStateModifierFromSwitchState(initialState);
+  auto deltas = reconstructStateModifierFromSwitchState(initialState);
   const auto initialStateDelta =
       StateDelta(emptyState, deltas.back().newState());
 
@@ -1499,7 +1498,9 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   if (!getHwSwitchHandler()->waitUntilHwSwitchConnected()) {
     throw FbossError("Waiting for HwSwitch to be connected cancelled");
   }
-  const auto initialStateDelta = StateDelta(emptyState, initialState);
+  auto deltas = reconstructStateModifierFromSwitchState(initialState);
+  const auto initialStateDelta =
+      StateDelta(emptyState, deltas.back().newState());
   // Notify resource accountant of the initial state.
   if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     stats()->resourceAccountantRejectedUpdates();
