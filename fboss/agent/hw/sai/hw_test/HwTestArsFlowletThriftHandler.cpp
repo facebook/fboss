@@ -109,4 +109,10 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
       hwSwitch_, follyPrefix, *flowletCfg, flowletEnabled);
 }
 
+bool HwTestThriftHandler::validateFlowSetTable(
+    const bool expectFlowsetSizeZero) {
+  // Not applicable for SAI
+  return true;
+}
+
 } // namespace facebook::fboss::utility

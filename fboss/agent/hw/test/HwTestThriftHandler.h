@@ -158,6 +158,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
       bool flowletEnable) override;
 
+  bool validateFlowSetTable(const bool expectFlowsetSizeZero) override;
+
  private:
   HwSwitch* hwSwitch_;
 };

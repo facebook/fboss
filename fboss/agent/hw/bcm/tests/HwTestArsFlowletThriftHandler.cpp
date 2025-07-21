@@ -1,10 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 extern "C" {
 #include <bcm/l3.h>
+#include <bcm/switch.h>
 }
 
 namespace facebook::fboss::utility {
@@ -86,4 +88,62 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
   }
   return isVerified;
 }
+
+bool HwTestThriftHandler::validateFlowSetTable(
+    const bool expectFlowsetSizeZero) {
+  bool isVerified = true;
+
+  XLOG(DBG2) << "validateFlowSetTable with "
+             << "expectFlowsetSizeZero: " << expectFlowsetSizeZero;
+#if (                                      \
+    defined(BCM_SDK_VERSION_GTE_6_5_26) && \
+    !defined(BCM_SDK_VERSION_GTE_6_5_28))
+
+  int maxEntries = 0;
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+
+  int rv = bcm_switch_object_count_get(
+      bcmSwitch->getUnit(), bcmSwitchObjectEcmpDynamicFlowSetMax, &maxEntries);
+  bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetMax");
+
+  int usedEntries = 0;
+  rv = bcm_switch_object_count_get(
+      bcmSwitch->getUnit(),
+      bcmSwitchObjectEcmpDynamicFlowSetUsed,
+      &usedEntries);
+  bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetUsed");
+
+  int freeEntries = 0;
+  rv = bcm_switch_object_count_get(
+      bcmSwitch->getUnit(),
+      bcmSwitchObjectEcmpDynamicFlowSetFree,
+      &freeEntries);
+  bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetFree");
+
+  XLOG(DBG2) << "version check passed - maxEntries: " << maxEntries
+             << ", usedEntries: " << usedEntries
+             << ", freeEntries: " << freeEntries;
+
+  if (expectFlowsetSizeZero) {
+    CHECK_EQ(freeEntries, 0);
+  }
+
+  if (maxEntries != 32768) {
+    XLOG(ERR) << "Max Entries are not as expected: " << maxEntries;
+    isVerified = false;
+  }
+
+  if ((maxEntries - usedEntries) != freeEntries) {
+    XLOG(ERR) << "Free entries: " << freeEntries
+              << ", unexpected when looking at the used entries : "
+              << usedEntries << " , max entries: " << maxEntries;
+    isVerified = false;
+  }
+#else
+  XLOG(DBG2)
+      << "version check failed - required BCM_SDK_VERSION_GTE_6_5_26 && !BCM_SDK_VERSION_GTE_6_5_28";
+#endif
+  return isVerified;
+}
+
 } // namespace facebook::fboss::utility

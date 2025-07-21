@@ -156,4 +156,5 @@ service AgentHwTestCtrl {
     2: switch_state.SwitchSettingsFields settings,
     3: bool flowletEnable,
   );
+  bool validateFlowSetTable(1: bool expectFlowsetSizeZero);
 }
