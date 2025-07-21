@@ -11,6 +11,7 @@
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
+#include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
@@ -97,6 +98,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "icecube800bc") {
+      auto systemContainer =
+          BspGenericSystemContainer<Icecube800bcBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "minipack3n") {
       auto systemContainer =
           BspGenericSystemContainer<Minipack3NBspPlatformMapping>::getInstance()
@@ -162,6 +169,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_ICECUBE800BC) {
+    auto systemContainer =
+        BspGenericSystemContainer<Icecube800bcBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
   } else if (mode == PlatformType::PLATFORM_MINIPACK3N) {
     auto systemContainer =
         BspGenericSystemContainer<Minipack3NBspPlatformMapping>::getInstance()
@@ -210,6 +223,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_JANGA800BIC;
     } else if (FLAGS_platform == "tahan800bc") {
       mode = PlatformType::PLATFORM_TAHAN800BC;
+    } else if (FLAGS_platform == "icecube800bc") {
+      mode = PlatformType::PLATFORM_ICECUBE800BC;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
@@ -258,6 +273,12 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
   } else if (mode == PlatformType::PLATFORM_MORGAN800CC) {
     auto systemContainer =
         BspGenericSystemContainer<Morgan800ccBspPlatformMapping>::getInstance()
+            .get();
+    return std::make_pair(
+        std::make_unique<BspTransceiverApi>(systemContainer), 0);
+  } else if (mode == PlatformType::PLATFORM_ICECUBE800BC) {
+    auto systemContainer =
+        BspGenericSystemContainer<Icecube800bcBspPlatformMapping>::getInstance()
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
