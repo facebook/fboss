@@ -21,6 +21,7 @@ const int kFlowletTableSize1 = 1024;
 const int kInactivityIntervalUsecs1 = 128;
 const int kLoadWeight1 = 70;
 const int kQueueWeight1 = 30;
+const int KMaxFlowsetTableSize = 32768;
 
 using namespace ::testing;
 class AgentArsFlowletTest : public AgentArsBase {
@@ -273,6 +274,64 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetExceedForceFix) {
     verifyPrefixes(testPrefixes, 1, 17);
   };
 
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+/**
+ * @brief Test flowset table size limit handling and recovery
+ *
+ * This test exercises the scenario where the flowset table runs out of space
+ * due to excessive size requirements.
+ *
+ * @details Test procedure:
+ * 1. Ensure that ECMP object is created but operates in non-dynamic mode
+ *    when flowset table is exhausted
+ * 2. Once the size is corrected through configuration changes, verify that
+ *    the system transitions back to dynamic mode
+ *
+ * @note This validates the system's graceful degradation and recovery
+ * capabilities when hardware resources are constrained.
+ */
+TEST_F(AgentArsFlowletTest, ValidateFlowsetExceed) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
+
+  auto setup = [=, this]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    applyNewConfig(cfg);
+    // Program the prefixes
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+    XLOG(INFO) << "Programmed " << testPrefixes.size() << " prefixes across "
+               << testNhopSets.size() << " ECMP groups";
+  };
+  auto verify = [=, this] {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    updateFlowletConfigs(
+        cfg,
+        cfg::SwitchingMode::FLOWLET_QUALITY,
+        KMaxFlowsetTableSize + 1,
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
+    applyNewConfig(cfg);
+    initialConfig(*getAgentEnsemble());
+    EXPECT_FALSE(verifyEcmpForFlowletSwitching(
+        testPrefixes[0].toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+
+    // Now modify the config to go back to dynamic mode
+    updateFlowletConfigs(
+        cfg,
+        cfg::SwitchingMode::FLOWLET_QUALITY,
+        KMaxFlowsetTableSize,
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
+
+    // Verify that the prefix is now in dynamic mode
+    EXPECT_TRUE(verifyEcmpForFlowletSwitching(
+        testPrefixes[0].toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+    EXPECT_TRUE(validateFlowSetTable(true));
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
