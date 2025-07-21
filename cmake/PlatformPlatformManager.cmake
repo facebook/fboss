@@ -186,14 +186,7 @@ target_link_libraries(platform_manager_handler
 )
 
 add_executable(platform_manager
-  fboss/platform/platform_manager/DataStore.cpp
-  fboss/platform/platform_manager/I2cExplorer.cpp
   fboss/platform/platform_manager/Main.cpp
-  fboss/platform/platform_manager/PciExplorer.cpp
-  fboss/platform/platform_manager/PlatformExplorer.cpp
-  fboss/platform/platform_manager/DevicePathResolver.cpp
-  fboss/platform/platform_manager/PresenceChecker.cpp
-  fboss/platform/platform_manager/ExplorationSummary.cpp
 )
 
 target_link_libraries(platform_manager
@@ -207,6 +200,7 @@ target_link_libraries(platform_manager
   platform_manager_config_validator
   platform_manager_handler
   platform_manager_pkg_manager
+  platform_manager_platform_explorer
   platform_manager_presence_cpp2
   platform_manager_service_cpp2
   platform_manager_snapshot_cpp2
