@@ -14,8 +14,10 @@
 using namespace facebook::fboss::utility;
 
 namespace facebook::fboss {
-
 const int kMaxLinks = 4;
+
+const int kLoadWeight2 = 60;
+const int kQueueWeight2 = 20;
 
 const int kFlowletTableSize1 = 1024;
 const int kInactivityIntervalUsecs1 = 128;
@@ -357,4 +359,41 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetTableFull) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
+
+  auto setup = [=, this]() {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+    XLOG(INFO) << "Programmed " << testPrefixes.size() << " prefixes across "
+               << testNhopSets.size() << " ECMP groups";
+  };
+
+  auto verify = [&]() {
+    // switchingMode starts out as FLOWLET_QUALITY
+    auto cfg = initialConfig(*getAgentEnsemble());
+    verifyConfig(testPrefixes[0], cfg);
+    XLOG(INFO) << "Verified config change";
+    // Modify the flowlet config switching mode to PER_PACKET_QUALITY
+    modifyFlowletSwitchingConfig(cfg);
+    // Modify the port flowlet config
+    updatePortFlowletConfigs(
+        cfg, kScalingFactor2(), kLoadWeight2, kQueueWeight2);
+    applyNewConfig(cfg);
+    verifyConfig(testPrefixes[0], cfg);
+    XLOG(INFO) << "Verified modified config change";
+    // Modify to initial config to verify after warmboot
+    // switching mode back to FLOWLET_QUALITY
+    cfg = initialConfig(*getAgentEnsemble());
+    applyNewConfig(cfg);
+    verifyConfig(prefixes[0], cfg);
+    XLOG(INFO) << "Verified config change";
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
