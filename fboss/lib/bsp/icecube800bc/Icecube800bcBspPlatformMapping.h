@@ -10,7 +10,8 @@ namespace fboss {
 class Icecube800bcBspPlatformMapping : public BspPlatformMapping {
  public:
   Icecube800bcBspPlatformMapping();
-  explicit Icecube800bcBspPlatformMapping(const std::string& platformMappingStr);
+  explicit Icecube800bcBspPlatformMapping(
+      const std::string& platformMappingStr);
 };
 
 } // namespace fboss

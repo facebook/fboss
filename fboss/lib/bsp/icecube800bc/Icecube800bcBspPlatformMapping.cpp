@@ -3087,7 +3087,8 @@ Icecube800bcBspPlatformMapping::Icecube800bcBspPlatformMapping()
 
 Icecube800bcBspPlatformMapping::Icecube800bcBspPlatformMapping(
     const std::string& platformMappingStr)
-    : BspPlatformMapping(buildIcecube800bcPlatformMapping(platformMappingStr)) {}
+    : BspPlatformMapping(buildIcecube800bcPlatformMapping(platformMappingStr)) {
+}
 
 } // namespace fboss
 } // namespace facebook

@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/BspIOBus.h"
 #include "fboss/lib/bsp/BspTransceiverApi.h"
+#include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
@@ -11,7 +12,6 @@
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
-#include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
@@ -99,9 +99,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "icecube800bc") {
-      auto systemContainer =
-          BspGenericSystemContainer<Icecube800bcBspPlatformMapping>::getInstance()
-              .get();
+      auto systemContainer = BspGenericSystemContainer<
+                                 Icecube800bcBspPlatformMapping>::getInstance()
+                                 .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "minipack3n") {
