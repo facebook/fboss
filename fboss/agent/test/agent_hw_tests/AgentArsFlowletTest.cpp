@@ -1,25 +1,48 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+#include "fboss/agent/AsicUtils.h"
 
 #include <vector>
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/test/agent_hw_tests/AgentArsBase.h"
-
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-
+#include "fboss/agent/test/agent_hw_tests/AgentArsBase.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
-
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 using namespace facebook::fboss::utility;
 
 namespace facebook::fboss {
 
+const int kMaxLinks = 4;
+
+const int kFlowletTableSize1 = 1024;
+const int kInactivityIntervalUsecs1 = 128;
+const int kLoadWeight1 = 70;
+const int kQueueWeight1 = 30;
+
 using namespace ::testing;
 class AgentArsFlowletTest : public AgentArsBase {
  public:
+  int kDefaultSamplingRate() const {
+    return getAgentEnsemble()->isSai() ? 1 : 500000;
+  }
+
+  int kScalingFactor1() const {
+    return getAgentEnsemble()->isSai() ? 10 : 100;
+  }
+  int kScalingFactor2() const {
+    return getAgentEnsemble()->isSai() ? 20 : 200;
+  }
+
+  int kMinSamplingRate() const {
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+
+    bool isTH4 = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
+    return getAgentEnsemble()->isSai() ? 1 : isTH4 ? 1953125 : 1000000;
+  }
+
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_flowletSwitchingEnable = true;
@@ -78,20 +101,157 @@ class AgentArsFlowletTest : public AgentArsBase {
 
   void verifyPrefixes(
       const std::vector<RoutePrefixV6>& allPrefixes,
-      int startIdx,
-      int endIdx) {
-    for (int i = startIdx; i < allPrefixes.size() && i < endIdx; i++) {
+      int startIdx = 0,
+      int endIdx = INT_MAX) {
+    endIdx = std::min(endIdx, (int)allPrefixes.size());
+    for (int i = startIdx; i < endIdx; i++) {
       const auto& prefix = allPrefixes[i];
       verifyFwdSwitchingMode(prefix, cfg::SwitchingMode::FLOWLET_QUALITY);
     }
   }
+
+  void updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const {
+    auto allPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> ports(
+        allPorts.begin(), allPorts.begin() + allPorts.size());
+    for (const auto& portId : ports) {
+      auto portCfg = utility::findCfgPort(cfg, portId);
+      portCfg->flowletConfigName() = "default";
+    }
+  }
+  cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
+      cfg::SwitchingMode switchingMode,
+      uint16_t inactivityIntervalUsecs,
+      int flowletTableSize,
+      int samplingRate) const {
+    cfg::FlowletSwitchingConfig flowletCfg;
+    flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
+    flowletCfg.flowletTableSize() = flowletTableSize;
+    flowletCfg.dynamicEgressLoadExponent() = 3;
+    flowletCfg.dynamicQueueExponent() = 3;
+    flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
+    flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
+    flowletCfg.dynamicSampleRate() = samplingRate;
+    flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
+    flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
+    flowletCfg.dynamicPhysicalQueueExponent() = 4;
+    flowletCfg.maxLinks() = kMaxLinks;
+    flowletCfg.switchingMode() = switchingMode;
+    return flowletCfg;
+  }
+
+  cfg::PortFlowletConfig getPortFlowletConfig(
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight) const {
+    cfg::PortFlowletConfig portFlowletConfig;
+    portFlowletConfig.scalingFactor() = scalingFactor;
+    portFlowletConfig.loadWeight() = loadWeight;
+    portFlowletConfig.queueWeight() = queueWeight;
+    return portFlowletConfig;
+  }
+
+  void updatePortFlowletConfigs(
+      cfg::SwitchConfig& cfg,
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight) const {
+    std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
+    auto portFlowletConfig =
+        getPortFlowletConfig(scalingFactor, loadWeight, queueWeight);
+    portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
+    cfg.portFlowletConfigs() = portFlowletCfgMap;
+  }
+
+  void updateFlowletConfigs(
+      cfg::SwitchConfig& cfg,
+      const cfg::SwitchingMode switchingMode =
+          cfg::SwitchingMode::FLOWLET_QUALITY,
+      const int flowletTableSize = kFlowletTableSize1,
+      const cfg::SwitchingMode backupSwitchingMode =
+          cfg::SwitchingMode::FIXED_ASSIGNMENT) const {
+    auto flowletCfg = getFlowletSwitchingConfig(
+        switchingMode,
+        kInactivityIntervalUsecs1,
+        flowletTableSize,
+        kDefaultSamplingRate());
+    flowletCfg.backupSwitchingMode() = backupSwitchingMode;
+    cfg.flowletSwitchingConfig() = flowletCfg;
+    updatePortFlowletConfigs(
+        cfg, kScalingFactor1(), kLoadWeight1, kQueueWeight1);
+  }
+
+  bool validateFlowSetTable(const bool expectFlowsetSizeZero) {
+    AgentEnsemble* ensemble = getAgentEnsemble();
+    auto switchId = SwitchID(0);
+    auto client = ensemble->getHwAgentTestClient(switchId);
+    return client->sync_validateFlowSetTable(expectFlowsetSizeZero);
+  }
+
+  bool verifyEcmpForFlowletSwitching(
+      const folly::CIDRNetwork& ip,
+      const cfg::FlowletSwitchingConfig& flowletCfg,
+      const bool flowletEnable) {
+    AgentEnsemble* ensemble = getAgentEnsemble();
+    const auto port = ensemble->masterLogicalPortIds()[0];
+    auto switchId = ensemble->scopeResolver().scope(port).switchId();
+    auto client = ensemble->getHwAgentTestClient(switchId);
+    facebook::fboss::utility::CIDRNetwork cidr;
+    cidr.IPAddress() = ip.first.str();
+    cidr.mask() = ip.second;
+    state::SwitchSettingsFields settings;
+    settings.flowletSwitchingConfig() = flowletCfg;
+    return client->sync_verifyEcmpForFlowletSwitchingHandler(
+        cidr, settings, flowletEnable);
+  }
+
+  bool verifyPortFlowletConfig(
+      const folly::CIDRNetwork& ip,
+      cfg::PortFlowletConfig& portFlowletConfig) {
+    AgentEnsemble* ensemble = getAgentEnsemble();
+    auto switchId = SwitchID(0);
+    auto client = ensemble->getHwAgentTestClient(switchId);
+
+    facebook::fboss::utility::CIDRNetwork cidr;
+    cidr.IPAddress() = ip.first.str();
+    cidr.mask() = ip.second;
+
+    return client->sync_verifyPortFlowletConfig(cidr, portFlowletConfig, true);
+  }
+
+  void verifyConfig(
+      const RoutePrefixV6& testPrefix,
+      const cfg::SwitchConfig& cfg) {
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
+    EXPECT_TRUE(
+        verifyPortFlowletConfig(testPrefix.toCidrNetwork(), portFlowletConfig));
+
+    EXPECT_TRUE(verifyEcmpForFlowletSwitching(
+        testPrefix.toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+  }
+
+  void modifyFlowletSwitchingConfig(cfg::SwitchConfig& cfg) const {
+    auto flowletCfg = getFlowletSwitchingConfig(
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        kInactivityIntervalUsecs1,
+        kFlowletTableSize1,
+        kDefaultSamplingRate());
+    flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+    cfg.flowletSwitchingConfig() = flowletCfg;
+  }
 };
 
-/*
-This is as close to real case as possible. Ensure that when multiple ECMP
-objects are created and flowset table gets full things snap back in when first
-ECMP object is removed, enough space is created for the second object to insert
-itself
+/**
+ * @brief Test flowset table recovery when ECMP objects are removed
+ *
+ * This test simulates a real-world scenario where multiple ECMP objects are
+ * created and the flowset table becomes full. It ensures that when the first
+ * ECMP object is removed, sufficient space is created for subsequent objects
+ * to insert themselves properly.
+ *
+ * @details The test verifies the system's ability to recover from flowset
+ * table exhaustion by removing entries and allowing new ones to be inserted.
  */
 TEST_F(AgentArsFlowletTest, ValidateFlowsetExceedForceFix) {
   std::vector<RoutePrefixV6> testPrefixes;
