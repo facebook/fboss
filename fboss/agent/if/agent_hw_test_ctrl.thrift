@@ -156,5 +156,12 @@ service AgentHwTestCtrl {
     2: switch_state.SwitchSettingsFields settings,
     3: bool flowletEnable,
   );
+
+  bool verifyPortFlowletConfig(
+    1: CIDRNetwork prefix,
+    2: switch_config.PortFlowletConfig cfg,
+    3: bool flowletEnable,
+  );
+
   bool validateFlowSetTable(1: bool expectFlowsetSizeZero);
 }

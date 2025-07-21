@@ -89,6 +89,75 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
   return isVerified;
 }
 
+/**
+ * @brief Verifies the port flowlet configuration for a given network prefix
+ * @param prefix Network prefix (CIDRNetwork) to verify flowlet configuration
+ * for
+ * @param cfg Port flowlet configuration containing scaling factor, load weight,
+ * and queue weight
+ * @param flowletEnable Boolean indicating whether flowlet switching is enabled
+ * @return True if the port flowlet configuration in hardware matches the
+ * expected configuration, false otherwise. For TH3 devices, verifies that
+ * scaling factor, load weight, and queue weight match the provided
+ * configuration. For TH4 devices (with ARS_PORT_ATTRIBUTES support), verifies
+ * that default values (-1) are set since port flowlet configs are not set in
+ * the egress object.
+ */
+
+bool HwTestThriftHandler::verifyPortFlowletConfig(
+    std::unique_ptr<CIDRNetwork> prefix,
+    std::unique_ptr<cfg::PortFlowletConfig> cfg,
+    bool flowletEnable) {
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+
+  // Convert CIDRNetwork to folly::CIDRNetwork
+  folly::CIDRNetwork follyPrefix{
+      folly::IPAddress(*prefix->IPAddress()),
+      static_cast<uint8_t>(*prefix->mask())};
+
+  auto ecmp = getEgressIdForRoute(
+      bcmSwitch, follyPrefix.first, follyPrefix.second, kRid);
+  int pathsInHwCount;
+  bool isVerified = true;
+
+  bcm_l3_egress_ecmp_t existing;
+  bcm_l3_egress_ecmp_t_init(&existing);
+  existing.ecmp_intf = ecmp;
+  existing.flags |= BCM_L3_WITH_ID;
+  bcm_l3_ecmp_get(bcmSwitch->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
+
+  auto ecmp_members = getEcmpGroupInHw(bcmSwitch, ecmp, pathsInHwCount);
+  for (const auto& ecmp_member : ecmp_members) {
+    int status = -1;
+    bcm_l3_egress_ecmp_member_status_get(
+        bcmSwitch->getUnit(), ecmp_member, &status);
+    if (flowletEnable) {
+      if (status < BCM_L3_ECMP_DYNAMIC_MEMBER_HW) {
+        isVerified = false;
+      }
+    }
+    bcm_l3_egress_t egress;
+    bcm_l3_egress_t_init(&egress);
+    bcm_l3_egress_get(0, ecmp_member, &egress);
+    if (flowletEnable &&
+        !(hwSwitch_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES))) {
+      // verify the port flowlet config values only in TH3
+      // since this port flowlet configs are set in egress object in TH3
+      CHECK_EQ(egress.dynamic_scaling_factor, *cfg->scalingFactor());
+      CHECK_EQ(egress.dynamic_load_weight, *cfg->loadWeight());
+      CHECK_EQ(egress.dynamic_queue_size_weight, *cfg->queueWeight());
+    } else {
+      // verify the default values in TH4
+      // since this won't be set in egress object in TH4
+      CHECK_EQ(egress.dynamic_scaling_factor, -1);
+      CHECK_EQ(egress.dynamic_load_weight, -1);
+      CHECK_EQ(egress.dynamic_queue_size_weight, -1);
+    }
+  }
+  return isVerified;
+}
+
 bool HwTestThriftHandler::validateFlowSetTable(
     const bool expectFlowsetSizeZero) {
   bool isVerified = true;
