@@ -87,7 +87,7 @@ class AgentArsFlowletTest : public AgentArsBase {
       std::vector<RoutePrefixV6>& testPrefixes,
       std::vector<flat_set<PortDescriptor>>& testNhopSets,
       int kTotalPrefixesNeeded) {
-    AgentArsBase::generatePrefixes();
+    generatePrefixes();
 
     testPrefixes = std::vector<RoutePrefixV6>{
         prefixes.begin(), prefixes.begin() + kTotalPrefixesNeeded};
@@ -330,6 +330,29 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetExceed) {
     // Verify that the prefix is now in dynamic mode
     EXPECT_TRUE(verifyEcmpForFlowletSwitching(
         testPrefixes[0].toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+    EXPECT_TRUE(validateFlowSetTable(true));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+/**
+ * @brief Test flowset table size limit handling. 16 is the limit.
+ */
+
+TEST_F(AgentArsFlowletTest, ValidateFlowsetTableFull) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets, 16);
+
+  auto setup = [=, this]() {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+    XLOG(INFO) << "Programmed " << testPrefixes.size() << " prefixes across "
+               << testNhopSets.size() << " ECMP groups";
+  };
+  auto verify = [=, this] {
+    // Verify remaining prefixes (skip the first one that was unprogrammed)
+    verifyPrefixes(testPrefixes);
     EXPECT_TRUE(validateFlowSetTable(true));
   };
   verifyAcrossWarmBoots(setup, verify);
