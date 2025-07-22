@@ -38,7 +38,20 @@ folly::coro::Task<void> FsdbStatePublisher::serveStream(StreamT&& stream) {
                 "StatePublisher disconnectReason: GR");
             break;
           }
-          co_yield *pubUnit;
+          if (pubUnit && !pubUnit->metadata().has_value()) {
+            pubUnit->isHeartbeat() = true;
+            pubUnit->metadata() = OperMetadata();
+            pubUnit->metadata()->lastConfirmedAt() = lastConfirmedAt_;
+            pubUnit->metadata()->lastPublishedAt() =
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch())
+                    .count();
+          } else if (!initialSyncComplete_) {
+            initialSyncComplete_ = true;
+          }
+          if (pubUnit) {
+            co_yield *pubUnit;
+          }
         }
         co_return;
       }());

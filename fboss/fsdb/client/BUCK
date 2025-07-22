@@ -64,6 +64,7 @@ cpp_library(
         "//folly/concurrency:dynamic_bounded_queue",
         "//folly/coro:async_generator",
         "//folly/coro:async_pipe",
+        "//folly/executors:function_scheduler",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:logging",
     ],

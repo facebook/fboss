@@ -49,7 +49,21 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
             break;
           }
           PublisherMessage message;
-          message.set_patch(std::move(*patch));
+          if (!patch->metadata()->lastPublishedAt().has_value()) {
+            Heartbeat heartbeat;
+            auto ts = std::chrono::system_clock::now().time_since_epoch();
+            heartbeat.metadata() = OperMetadata();
+            heartbeat.metadata()->lastConfirmedAt() = lastConfirmedAt_;
+            heartbeat.metadata()->lastPublishedAt() =
+                std::chrono::duration_cast<std::chrono::milliseconds>(ts)
+                    .count();
+            message.set_heartbeat(std::move(heartbeat));
+          } else {
+            message.set_patch(std::move(*patch));
+            if (!initialSyncComplete_) {
+              initialSyncComplete_ = true;
+            }
+          }
           co_yield std::move(message);
         }
         co_return;
