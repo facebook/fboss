@@ -21,6 +21,12 @@ class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
       const override {
     return std::nullopt;
   }
+  std::shared_ptr<EcmpResourceManager> makeResourceMgr() const override {
+    return std::make_shared<EcmpResourceManager>(
+        sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(),
+        getEcmpCompressionThresholdPct(),
+        getBackupEcmpSwitchingMode());
+  }
 };
 
 TEST_F(EcmpResourceMgrMergeGroupsTest, init) {}
