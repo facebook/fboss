@@ -943,6 +943,8 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.switchPipelineStats()});
       agentStats.fabricReachabilityStatsMap()->insert(
           {switchIdx, *hwSwitchStats.fabricReachabilityStats()});
+      agentStats.sysPortShelStateMap()->insert(
+          {switchIdx, *hwSwitchStats.sysPortShelState()});
       for (auto&& statEntry :
            *hwSwitchStats.switchTemperatureStats()->value()) {
         auto temp = *hwSwitchStats.switchTemperatureStats()->timeStamp();
