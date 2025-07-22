@@ -334,7 +334,8 @@ class PathSubscription : public BasePathSubscription,
   }
 
   std::optional<FsdbErrorCode> flush(
-      const SubscriptionMetadataServer& /*metadataServer*/) override {
+      const SubscriptionMetadataServer& metadataServer) override {
+    updateMetadata(metadataServer);
     // no-op, we write directly to the pipe in offer
     return std::nullopt;
   }

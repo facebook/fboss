@@ -176,6 +176,13 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
+  void publisherHeartbeat(
+      PathIter begin,
+      PathIter end,
+      const OperMetadata& metadata) {
+    updateMetadata(begin, end, metadata);
+  }
+
   size_t numSubscriptions() const {
     return subMgr().numSubscriptions();
   }
