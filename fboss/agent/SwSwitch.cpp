@@ -1498,6 +1498,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   if (!getHwSwitchHandler()->waitUntilHwSwitchConnected()) {
     throw FbossError("Waiting for HwSwitch to be connected cancelled");
   }
+  auto origInitialState = initialState;
   auto deltas = reconstructStateModifierFromSwitchState(initialState);
   const auto initialStateDelta =
       StateDelta(emptyState, deltas.back().newState());
@@ -1518,6 +1519,10 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
     } catch (const std::exception& ex) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }
+  }
+  notifyStateModifierUpdateDone();
+  if (ecmpResourceManager_) {
+    updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
   }
   // for cold boot discrepancy may exist between applied state in software
   // switch and state that already exist in hardware. this discrepancy is
