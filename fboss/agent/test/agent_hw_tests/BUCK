@@ -331,6 +331,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -365,6 +366,7 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -398,6 +400,7 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nv_sai_sdk" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -429,6 +432,7 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
