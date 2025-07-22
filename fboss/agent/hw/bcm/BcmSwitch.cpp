@@ -4423,10 +4423,15 @@ void BcmSwitch::updateHighFrequencyStatsThreadConfig(
   auto schedulerConfig = highFreqStatsThreadConfig_.schedulerConfig();
   if (schedulerConfig->statsWaitDurationInMicroseconds().value() <
       kHfMinWaitDurationUs_) {
+    XLOG(WARN) << "statsWaitDurationInMicroseconds is too small, updating to "
+               << kHfMinWaitDurationUs_ << " us";
     schedulerConfig->statsWaitDurationInMicroseconds() = kHfMinWaitDurationUs_;
   }
   if (schedulerConfig->statsCollectionDurationInMicroseconds().value() >
       kHfMaxCollectionDurationUs_) {
+    XLOG(WARN)
+        << "statsCollectionDurationInMicroseconds is too large, updating to "
+        << kHfMaxCollectionDurationUs_ << " us";
     schedulerConfig->statsCollectionDurationInMicroseconds() =
         kHfMaxCollectionDurationUs_;
   }
