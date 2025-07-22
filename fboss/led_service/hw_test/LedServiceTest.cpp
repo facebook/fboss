@@ -10,9 +10,9 @@
 
 #include <gtest/gtest.h>
 
+#include <folly/init/Init.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include "common/init/Init.h"
 #include "fboss/agent/EnumUtils.h"
 #include "fboss/led_service/LedManager.h"
 #include "fboss/led_service/hw_test/LedServiceTest.h"
@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
 
-  facebook::initFacebook(&argc, &argv);
+  folly::Init init(&argc, &argv);
 
   return RUN_ALL_TESTS();
 }
