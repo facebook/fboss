@@ -15,6 +15,9 @@
 namespace facebook::fboss {
 
 class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
+ private:
+  void setupFlags() const override;
+
  public:
   int32_t getEcmpCompressionThresholdPct() const override {
     return 100;
@@ -29,6 +32,12 @@ class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
         getEcmpCompressionThresholdPct(),
         getBackupEcmpSwitchingMode());
   }
+  static constexpr auto kNumStartRoutes = 5;
+  int numStartRoutes() const override {
+    return kNumStartRoutes;
+  }
+  std::vector<RouteNextHopSet> defaultNhopSets() const;
+  void SetUp() override;
 };
 
 } // namespace facebook::fboss

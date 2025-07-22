@@ -95,6 +95,9 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
     EXPECT_EQ(consolidator_->getRouteUsageCount(nhopId.value()), expectedCount);
   }
 
+ private:
+  virtual void setupFlags() const;
+
  public:
   int32_t virtual getEcmpCompressionThresholdPct() const {
     return 0;

@@ -274,13 +274,17 @@ RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
   CHECK(false) << " Should never get here";
 }
 
-void BaseEcmpResourceManagerTest::SetUp() {
-  XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
+void BaseEcmpResourceManagerTest::setupFlags() const {
   FLAGS_enable_ecmp_resource_manager = true;
   FLAGS_ecmp_resource_percentage = 100;
   FLAGS_ars_resource_percentage = 100;
   FLAGS_flowletSwitchingEnable = true;
   FLAGS_dlbResourceCheckEnable = false;
+}
+
+void BaseEcmpResourceManagerTest::SetUp() {
+  XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
+  setupFlags();
   auto cfg = onePortPerIntfConfig(
       kNumIntfs,
       getBackupEcmpSwitchingMode(),
@@ -289,7 +293,11 @@ void BaseEcmpResourceManagerTest::SetUp() {
   sw_ = handle_->getSw();
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
   // Taken from mock asic
-  EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
+  if (getBackupEcmpSwitchingMode()) {
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
+  } else {
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 18);
+  }
   // Backup ecmp group type will come from default flowlet confg
   std::optional<cfg::SwitchingMode> expectedBackupSwitchingMode;
   if (cfg.flowletSwitchingConfig() &&
