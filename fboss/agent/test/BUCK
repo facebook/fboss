@@ -959,7 +959,10 @@ cpp_unittest(
         "EcmpResourceMgrMergeGroupsTests.cpp",
         "EcmpResourceMgrRibFibTests.cpp",
     ],
-    headers = ["BaseEcmpResourceManagerTest.h"],
+    headers = [
+        "BaseEcmpResourceManagerTest.h",
+        "EcmpResourceMgrMergeGroupsTests.h",
+    ],
     deps = [
         ":hw_test_handle",
         ":utils",

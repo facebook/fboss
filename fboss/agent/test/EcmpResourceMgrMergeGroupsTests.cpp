@@ -8,26 +8,9 @@
  *
  */
 
-#include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include "fboss/agent/test/EcmpResourceMgrMergeGroupsTests.h"
 
 namespace facebook::fboss {
-
-class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
- public:
-  int32_t getEcmpCompressionThresholdPct() const override {
-    return 100;
-  }
-  std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode()
-      const override {
-    return std::nullopt;
-  }
-  std::shared_ptr<EcmpResourceManager> makeResourceMgr() const override {
-    return std::make_shared<EcmpResourceManager>(
-        sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(),
-        getEcmpCompressionThresholdPct(),
-        getBackupEcmpSwitchingMode());
-  }
-};
 
 TEST_F(EcmpResourceMgrMergeGroupsTest, init) {}
 
