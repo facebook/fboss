@@ -1088,6 +1088,7 @@ void CmisModule::getApplicationCapabilities() {
     } else {
       applicationAdvertisingField.moduleMediaInterface = data[1];
     }
+    applicationAdvertisingField.moduleHostInterface = data[0];
     applicationAdvertisingField.hostLaneCount =
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
     applicationAdvertisingField.mediaLaneCount =
@@ -2892,11 +2893,12 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     auto firstModuleCapability = moduleCapabilities_.begin();
     auto smfCode = static_cast<SMFMediaInterfaceCode>(
         firstModuleCapability->moduleMediaInterface);
-    if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
+    if (isLpoModule()) {
+      moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
-      if (isLpoModule()) {
-        moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
-      } else if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
         // Lite Modules are not LPO modules but have a reach of 500m.
         moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
       } else {

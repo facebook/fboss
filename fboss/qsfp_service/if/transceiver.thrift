@@ -314,9 +314,12 @@ enum ActiveCuMediaInterfaceCode {
   ACTIVE_BER_E_6 = 0x4,
 }
 
-// Active Electrical Cable Host Interface Code.
+// Host Interface Code.
 enum ActiveCuHostInterfaceCode {
   UNKNOWN = 0x0,
+  LPO_100G = 0x20,
+  LPO_400G = 0x22,
+  LPO_800G = 0x23,
   AUI_PAM4_1S_100G = 0x4B,
   AUI_PAM4_2S_200G = 0x4D,
   AUI_PAM4_4S_400G = 0x4F,
