@@ -935,6 +935,40 @@ void EcmpResourceManager::validateCfgUpdate(
   }
 }
 
+EcmpResourceManager::ConsolidationInfo
+EcmpResourceManager::computeConsolidationInfo(
+    const NextHopGroupIds& grpIds) const {
+  CHECK_GE(grpIds.size(), 2);
+  auto firstGrpInfo = nextHopGroupIdToInfo_.ref(*grpIds.begin());
+  CHECK(firstGrpInfo);
+
+  RouteNextHopSet mergedNhops(firstGrpInfo->getNhops());
+  for (auto grpIdsItr = ++grpIds.begin(); grpIdsItr != grpIds.end();
+       ++grpIdsItr) {
+    RouteNextHopSet tmpMergeNhops;
+    const auto& grpNhops = nextHopGroupIdToInfo_.ref(*grpIdsItr)->getNhops();
+    std::set_intersection(
+        mergedNhops.begin(),
+        mergedNhops.end(),
+        grpNhops.begin(),
+        grpNhops.end(),
+        tmpMergeNhops.begin());
+    mergedNhops = std::move(tmpMergeNhops);
+  }
+  ConsolidationInfo consolidationInfo;
+  for (auto grpId : grpIds) {
+    const auto grpInfo = nextHopGroupIdToInfo_.ref(grpId);
+    CHECK_GE(grpInfo->getNhops().size(), mergedNhops.size());
+    auto nhopsPctLoss = std::ceil(
+        ((grpInfo->getNhops().size() - mergedNhops.size()) * 100.0) /
+        grpInfo->getNhops().size());
+    auto penalty = grpInfo->getRouteUsageCount() * nhopsPctLoss;
+    consolidationInfo.groupId2Penalty.insert({grpId, penalty});
+  }
+  consolidationInfo.mergedNhops = std::move(mergedNhops);
+  return consolidationInfo;
+}
+
 void EcmpResourceManager::computeCandidateMerges(
     const std::vector<NextHopGroupId>& groupIds) {
   NextHopGroupIds alreadyMergedGroups;

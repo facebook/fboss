@@ -51,6 +51,9 @@ class NextHopGroupInfo {
   void setIsBackupEcmpGroupType(bool isBackupEcmp) {
     isBackupEcmpGroupType_ = isBackupEcmp;
   }
+  const RouteNextHopSet& getNhops() const {
+    return ngItr_->first;
+  }
 
  private:
   static constexpr int kInvalidRouteUsageCount = 0;
@@ -236,6 +239,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       int32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
   NextHopGroupId findNextAvailableId() const;
+  ConsolidationInfo computeConsolidationInfo(
+      const NextHopGroupIds& grpIds) const;
   void computeCandidateMerges(const std::vector<NextHopGroupId>& groupIds);
 
   NextHops2GroupId nextHopGroup2Id_;
