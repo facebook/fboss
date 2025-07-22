@@ -20,7 +20,6 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/Table.h"
-#include "folly/container/Access.h"
 
 namespace facebook::fboss {
 
