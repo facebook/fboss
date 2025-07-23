@@ -363,6 +363,7 @@ set(core_libs
   fsdb_model
   fsdb_stream_client
   fsdb_pub_sub
+  fsdb_sub_mgr
   fsdb_flags
   ${IPROUTE2}
   ${NETLINK3}

@@ -93,8 +93,12 @@ cpp_library(
 # templated FsdbSubManager. Users should use one of the instantiations below
 cpp_library(
     name = "fsdb_sub_manager",
+    srcs = [
+        "FsdbSubManagerBase.cpp",
+    ],
     headers = [
         "FsdbSubManager.h",
+        "FsdbSubManagerBase.h",
     ],
     exported_deps = [
         ":fsdb_pub_sub",
