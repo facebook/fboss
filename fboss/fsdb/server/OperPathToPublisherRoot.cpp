@@ -73,7 +73,7 @@ std::string OperPathToPublisherRoot::publisherRoot(
         });
     return folly::join('_', elements);
   } else {
-    return *begin->raw_ref();
+    return *begin->raw();
   }
 }
 
