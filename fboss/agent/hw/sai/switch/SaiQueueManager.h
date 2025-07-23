@@ -42,7 +42,7 @@ struct SaiQueueHandle {
   void resetQueue();
   std::shared_ptr<SaiScheduler> scheduler;
   std::shared_ptr<SaiWred> wredProfile;
-  std::shared_ptr<SaiBufferProfile> bufferProfile;
+  std::shared_ptr<SaiBufferProfileHandle> bufferProfile;
   std::shared_ptr<SaiQueue> queue;
 };
 

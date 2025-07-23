@@ -26,14 +26,14 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _BufferPoolMap{
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _BufferProfileMap{
-    SAI_ATTR_MAP(BufferProfile, PoolId),
-    SAI_ATTR_MAP(BufferProfile, ReservedBytes),
-    SAI_ATTR_MAP(BufferProfile, ThresholdMode),
-    SAI_ATTR_MAP(BufferProfile, SharedDynamicThreshold),
-    SAI_ATTR_MAP(BufferProfile, SharedStaticThreshold),
-    SAI_ATTR_MAP(BufferProfile, XoffTh),
-    SAI_ATTR_MAP(BufferProfile, XonTh),
-    SAI_ATTR_MAP(BufferProfile, XonOffsetTh),
+    SAI_ATTR_MAP(StaticBufferProfile, PoolId),
+    SAI_ATTR_MAP(StaticBufferProfile, ReservedBytes),
+    SAI_ATTR_MAP(StaticBufferProfile, ThresholdMode),
+    SAI_ATTR_MAP(StaticBufferProfile, SharedStaticThreshold),
+    SAI_ATTR_MAP(StaticBufferProfile, XoffTh),
+    SAI_ATTR_MAP(StaticBufferProfile, XonTh),
+    SAI_ATTR_MAP(StaticBufferProfile, XonOffsetTh),
+    SAI_ATTR_MAP(DynamicBufferProfile, SharedDynamicThreshold),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _IngressPriorityGroupMap{
@@ -43,12 +43,19 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _IngressPriorityGroupMap{
 };
 
 void handleExtensionAttributes() {
-  SAI_EXT_ATTR_MAP(BufferProfile, SharedFadtMaxTh)
-  SAI_EXT_ATTR_MAP(BufferProfile, SharedFadtMinTh)
-  SAI_EXT_ATTR_MAP(BufferProfile, SramFadtMaxTh)
-  SAI_EXT_ATTR_MAP(BufferProfile, SramFadtMinTh)
-  SAI_EXT_ATTR_MAP(BufferProfile, SramFadtXonOffset)
-  SAI_EXT_ATTR_MAP(BufferProfile, SramDynamicTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SharedFadtMaxTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SharedFadtMinTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SramFadtMaxTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SramFadtMinTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SramFadtXonOffset)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, StaticBufferProfile, SramDynamicTh)
+
+  SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SharedFadtMaxTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SharedFadtMinTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramFadtMaxTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramFadtMinTh)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramFadtXonOffset)
+  SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramDynamicTh)
 }
 
 } // namespace

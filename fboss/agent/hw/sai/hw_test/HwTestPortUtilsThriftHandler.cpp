@@ -143,8 +143,7 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
             pgConfig->cref<switch_state_tags::resumeBytes>()) {
       auto want = resumeBytesOpt->cref();
       auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
-          bufferProfile->adapterKey(),
-          SaiBufferProfileTraits::Attributes::XonTh{});
+          bufferProfile->adapterKey(), SaiBufferProfileAttributes::XonTh{});
       if (got != want) {
         XLOG(DBG2) << "Resume threshold mismatch for pg " << id
                    << ", got=" << got << ", want=" << want;
@@ -156,7 +155,7 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
       auto want = resumeOffsetBytesOpt->cref();
       auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
           bufferProfile->adapterKey(),
-          SaiBufferProfileTraits::Attributes::XonOffsetTh{});
+          SaiBufferProfileAttributes::XonOffsetTh{});
       if (got != want) {
         XLOG(DBG2) << "Resume offset mismatch for pg " << id << ", got=" << got
                    << ", want=" << want;
@@ -167,7 +166,7 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
       auto want = pgConfig->cref<switch_state_tags::minLimitBytes>()->cref();
       auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
           bufferProfile->adapterKey(),
-          SaiBufferProfileTraits::Attributes::ReservedBytes{});
+          SaiBufferProfileAttributes::ReservedBytes{});
       if (got != want) {
         XLOG(DBG2) << "Min limit mismatch for pg " << id << ", got=" << got
                    << ", want=" << want;
@@ -178,8 +177,7 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
             pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
       auto want = pgHdrmOpt->cref();
       auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
-          bufferProfile->adapterKey(),
-          SaiBufferProfileTraits::Attributes::XoffTh{});
+          bufferProfile->adapterKey(), SaiBufferProfileAttributes::XoffTh{});
       if (got != want) {
         XLOG(DBG2) << "Headroom mismatch for pg " << id << ", got=" << got
                    << ", want=" << want;
