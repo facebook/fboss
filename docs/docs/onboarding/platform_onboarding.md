@@ -15,6 +15,12 @@ oncall: fboss_oss
 
 This document describes the steps involved in onboarding a new platform to FBOSS using OSS.
 
+## Preparation Steps
+1. Request access of [FBOSS OSS New Platform Onboarding Tracker Template](https://docs.google.com/spreadsheets/d/1jZiAA9cBWnQml0frf4mC5cnWqsJRL4EK7w3qiYwl5Fo/edit?usp=sharing)
+2. Make a copy of this template for your new platform
+3. Fill in project details in the Tracker copy and share the file to External Vendor/Meta Workplace Group
+4. Regularly update the project tracker to cover new platform development/testing progress
+
 ## Steps
 
 1. **Add Initial Support for Platform Services**
