@@ -601,9 +601,7 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
         pool,
         reservedBytes,
         mode,
-#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
-        // TODO(nivinl): Get rid of the check once support is
-        // available in SAI 8.2/11.3 - CS00012374846.
+#if defined(BRCM_SAI_SDK_GTE_11_0) || not defined(BRCM_SAI_SDK_XGS_AND_DNX)
         staticThresh,
 #endif
         0,
@@ -768,9 +766,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
         pool,
         reservedBytes,
         mode,
-#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
-        // TODO(nivinl): Get rid of the check once support is
-        // available in SAI 8.2/11.3 - CS00012374846.
+#if defined(BRCM_SAI_SDK_GTE_11_0) || not defined(BRCM_SAI_SDK_XGS_AND_DNX)
         staticThresh,
 #endif
         xoffTh,

@@ -150,9 +150,7 @@ struct SaiBufferProfileTraits<SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC> {
       typename Attributes::PoolId,
       std::optional<typename Attributes::ReservedBytes>,
       std::optional<typename Attributes::ThresholdMode>,
-#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
-      // TODO(nivinl): Get rid of the check once support is
-      // available in SAI 8.2/11.3 - CS00012374846.
+#if defined(BRCM_SAI_SDK_GTE_11_0) || not defined(BRCM_SAI_SDK_XGS_AND_DNX)
       std::optional<typename Attributes::SharedStaticThreshold>,
 #endif
       std::optional<typename Attributes::XoffTh>,
