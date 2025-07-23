@@ -157,24 +157,28 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeVisit) {
 
   std::vector<std::string> path = {"inlineBool"};
   auto result = visitPath(fields, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
+  ASSERT_EQ(
+      result.code(), ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER);
 
   path = {"inlineInt"};
   result = visitPath(fields, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
+  ASSERT_EQ(
+      result.code(), ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER);
 
   path = {"inlineString"};
   result = visitPath(fields, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
+  ASSERT_EQ(result.toString(), "ThriftTraverseResult::OK");
   ASSERT_EQ(out, "HelloThere");
 
   path = {"inlineStruct", "min"};
   result = visitPath(fields, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
+  ASSERT_EQ(
+      result.code(), ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER);
 
   path = {"inlineStruct", "max"};
   result = visitPath(fields, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
+  ASSERT_EQ(
+      result.code(), ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER);
 }
 
 TEST(ThriftUnionNodeTests, ThriftUnionNodeClone) {
