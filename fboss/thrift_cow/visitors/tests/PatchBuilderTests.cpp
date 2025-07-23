@@ -147,8 +147,8 @@ TEST(PatchBuilderTests, ModifyVariantType) {
   structA.inlineVariant() = v;
   auto structB = structA;
   v.set_inlineStruct();
-  v.inlineStruct_ref()->min() = 111;
-  v.inlineStruct_ref()->max() = 123;
+  v.inlineStruct()->min() = 111;
+  v.inlineStruct()->max() = 123;
   structB.inlineVariant() = v;
 
   auto patch = patchRoot(structA, structB);
@@ -182,10 +182,10 @@ TEST(PatchBuilderTests, ModifyVariantStructVal) {
   auto structA = createSimpleTestStruct();
   TestUnion v;
   v.set_inlineStruct();
-  v.inlineStruct_ref()->min() = 123;
+  v.inlineStruct()->min() = 123;
   structA.inlineVariant() = v;
   auto structB = structA;
-  v.inlineStruct_ref()->min() = 321;
+  v.inlineStruct()->min() = 321;
   structB.inlineVariant() = v;
 
   auto patch = patchRoot(structA, structB);
