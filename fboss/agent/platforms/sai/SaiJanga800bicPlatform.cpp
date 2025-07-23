@@ -28,6 +28,12 @@ constexpr std::array<uint32_t, kNumCpuPorts> kCpuUcodePorts = {
     202 /**< CPU port 3 - Core 3 */
 };
 
+/** CPU port speed in Mbps (10 Gbps) */
+constexpr auto kCpuPortSpeed = 10000;
+
+/** Number of Virtual Output Queues (VoQs) per CPU port */
+constexpr auto kCpuPortNumVoqs = 8;
+
 /** Regex pattern for parsing CPU port configuration from BCM config
  * Matches format: "CPU.<channel>:core_<core>.<port>"
  * Captures: channel number, core index (0-3), port index within core */
@@ -123,7 +129,20 @@ std::vector<sai_system_port_config_t>
 SaiJanga800bicPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
   CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
-  return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 0, 0, 10000, 8}};
+
+  const uint32_t switchId = static_cast<uint32_t>(*asic_->getSwitchId());
+  auto cpuPortsCoreAndPortIdx = getCpuPortsCoreAndPortIdx();
+
+  CHECK(cpuPortsCoreAndPortIdx.size() == kNumCpuPorts)
+      << "Create one CPU port for each core";
+
+  std::vector<sai_system_port_config_t> sysPortConfig;
+  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
+    auto [core, port] = coreAndPortIdx;
+    sysPortConfig.push_back(
+        {cpuPortID, switchId, core, port, kCpuPortSpeed, kCpuPortNumVoqs});
+  }
+  return sysPortConfig;
 }
 SaiJanga800bicPlatform::~SaiJanga800bicPlatform() = default;
 
