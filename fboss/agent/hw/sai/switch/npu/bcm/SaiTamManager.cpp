@@ -32,7 +32,6 @@ const std::map<MirrorOnDropReasonAggregation, std::vector<sai_int32_t>>
         {
             MirrorOnDropReasonAggregation::UNEXPECTED_REASON_DISCARDS,
             {
-                SAI_PACKET_DROP_TYPE_MMU_DROP_PRECEDENCE_LEVEL,
                 SAI_PACKET_DROP_TYPE_MMU_LAG_PROTECTION,
                 SAI_PACKET_DROP_TYPE_MMU_LAG_REMOTE,
                 SAI_PACKET_DROP_TYPE_MMU_LATENCY,
@@ -61,6 +60,7 @@ const std::map<MirrorOnDropReasonAggregation, std::vector<sai_int32_t>>
         {
             MirrorOnDropReasonAggregation::INGRESS_MISC_DISCARDS,
             {
+                SAI_PACKET_DROP_TYPE_MMU_DROP_PRECEDENCE_LEVEL,
                 SAI_PACKET_DROP_TYPE_MMU_EXTERNAL_ERROR,
                 SAI_PACKET_DROP_TYPE_MMU_ITPP_DELTA_ERROR,
                 SAI_PACKET_DROP_TYPE_MMU_PACKET_SIZE_ERROR,
