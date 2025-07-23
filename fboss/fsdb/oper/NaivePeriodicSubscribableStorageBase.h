@@ -66,6 +66,11 @@ class NaivePeriodicSubscribableStorageBase {
           serveGetRequestsWithLastPublishedState_(
               serveGetRequestsWithLastPublishedState) {}
 
+    StorageParams& setServeGetRequestsWithLastPublishedState(bool val) {
+      serveGetRequestsWithLastPublishedState_ = val;
+      return *this;
+    }
+
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
     const bool trackMetadata_;
@@ -73,7 +78,7 @@ class NaivePeriodicSubscribableStorageBase {
     bool convertSubsToIDPaths_;
     const bool requireResponseOnInitialSync_;
     const bool exportPerSubscriberMetrics_;
-    const bool serveGetRequestsWithLastPublishedState_;
+    bool serveGetRequestsWithLastPublishedState_;
   };
 
   explicit NaivePeriodicSubscribableStorageBase(
@@ -81,6 +86,10 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<OperPathToPublisherRoot> pathToRootHelper = std::nullopt);
 
   virtual ~NaivePeriodicSubscribableStorageBase() {}
+
+  const StorageParams& params() const {
+    return params_;
+  }
 
   FsdbOperTreeMetadataTracker getMetadata() const;
 
