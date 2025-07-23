@@ -216,7 +216,7 @@ void PlatformExplorer::explorePmUnit(
       "Exploring Slots for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
       slotPath,
-      pmUnitConfig.outgoingSlotConfigs_ref()->size());
+      pmUnitConfig.outgoingSlotConfigs()->size());
   for (const auto& [slotName, slotConfig] :
        *pmUnitConfig.outgoingSlotConfigs()) {
     exploreSlot(slotPath, slotName, slotConfig);
@@ -293,14 +293,14 @@ void PlatformExplorer::exploreSlot(
 std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     const std::string& slotType,
     const std::string& slotPath) {
-  auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
+  auto slotTypeConfig = platformConfig_.slotTypeConfigs()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   std::optional<int> productionStateInEeprom{std::nullopt};
   std::optional<int> productVersionInEeprom{std::nullopt};
   std::optional<int> productSubVersionInEeprom{std::nullopt};
-  if (slotTypeConfig.idpromConfig_ref()) {
-    auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
+  if (slotTypeConfig.idpromConfig()) {
+    auto idpromConfig = *slotTypeConfig.idpromConfig();
     auto eepromI2cBusNum =
         dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
     std::string eepromPath;
