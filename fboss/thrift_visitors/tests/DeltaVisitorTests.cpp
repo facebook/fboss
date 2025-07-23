@@ -210,7 +210,7 @@ TEST(DeltaVisitorTests, EditVariantField) {
 
   auto testStruct = createTestStruct();
   auto otherStruct = testStruct;
-  otherStruct.variantMember()->integral_ref() = 1000;
+  otherStruct.variantMember()->integral() = 1000;
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
@@ -234,7 +234,7 @@ TEST(DeltaVisitorTests, SwitaghVariantField) {
 
   auto testStruct = createTestStruct();
   auto otherStruct = testStruct;
-  otherStruct.variantMember()->boolean_ref() = true;
+  otherStruct.variantMember()->boolean() = true;
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
