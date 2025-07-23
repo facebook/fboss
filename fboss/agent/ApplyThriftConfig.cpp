@@ -4675,8 +4675,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
   std::vector<state::BlockedNeighbor> cfgBlockNeighbors;
   for (const auto& blockNeighbor : *cfg_->switchSettings()->blockNeighbors()) {
     state::BlockedNeighbor neighbor{};
-    neighbor.blockNeighborVlanID_ref() = *blockNeighbor.vlanID();
-    neighbor.blockNeighborIP_ref() =
+    neighbor.blockNeighborVlanID() = *blockNeighbor.vlanID();
+    neighbor.blockNeighborIP() =
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }

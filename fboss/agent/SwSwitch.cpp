@@ -3476,7 +3476,7 @@ void SwSwitch::applyConfig(
     CHECK(agentConfigLocked->get());
     agentConfigThrift = agentConfigLocked->get()->thrift;
   }
-  agentConfigThrift.sw_ref() = newConfig;
+  agentConfigThrift.sw() = newConfig;
   auto newAgentConfig = std::make_unique<AgentConfig>(agentConfigThrift);
   applyConfigImpl(reason, newConfig);
   /* apply and reset software switch config in the already applied agent

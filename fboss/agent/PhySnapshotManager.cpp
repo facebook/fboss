@@ -9,7 +9,7 @@ void PhySnapshotManager::updatePhyInfoLocked(
     PortID portID,
     const phy::PhyInfo& phyInfo) {
   phy::LinkSnapshot snapshot;
-  snapshot.phyInfo_ref() = phyInfo;
+  snapshot.phyInfo() = phyInfo;
   CHECK(phyInfo.state().has_value());
 
   CHECK(!phyInfo.state()->get_name().empty());
