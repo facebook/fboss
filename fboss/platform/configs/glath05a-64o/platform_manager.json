@@ -210,6 +210,50 @@
           "outgoingI2cBusNames": [
             "SMB_I2C_MASTER0@4"
           ]
+        },
+        "FAN_SLOT@0": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan1_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
+        },
+        "FAN_SLOT@1": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan2_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
+        },
+        "FAN_SLOT@2": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan3_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
+        },
+        "FAN_SLOT@3": {
+          "slotType": "FAN_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
+              "presenceFileName": "fan4_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": []
         }
       },
       "pciDeviceConfigs": [
@@ -2385,7 +2429,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 64,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.9-1",
+  "bspKmodsRpmVersion": "0.7.12-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
