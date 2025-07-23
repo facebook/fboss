@@ -94,6 +94,8 @@ enum ProductionFeature {
   ARS_FLOWLET = 81,
   ARS_SPRAY = 82,
   ROUTER_INTERFACE_COUNTERS = 83,
+  STATIC_PG_SHARED_LIMIT = 84,
+  HIGH_FREQUENCY_CPU_POLLING_STATS = 85,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
