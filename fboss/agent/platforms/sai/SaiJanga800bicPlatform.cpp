@@ -13,8 +13,31 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 
-#include <cstdio>
-#include <cstring>
+#include <re2/re2.h>
+
+namespace {
+/** Number of CPU ports configured for the Janga platform (one per core) */
+constexpr auto kNumCpuPorts = 4;
+
+/** CPU ucode port numbers used by the Janga platform (chip config P1877668165)
+ * These ports are mapped to cores 0-3 respectively */
+constexpr std::array<uint32_t, kNumCpuPorts> kCpuUcodePorts = {
+    0, /**< CPU port 0 - Core 0 */
+    200, /**< CPU port 1 - Core 1 */
+    201, /**< CPU port 2 - Core 2 */
+    202 /**< CPU port 3 - Core 3 */
+};
+
+/** Regex pattern for parsing CPU port configuration from BCM config
+ * Matches format: "CPU.<channel>:core_<core>.<port>"
+ * Captures: channel number, core index (0-3), port index within core */
+constexpr auto kCpuPortConfig =
+    "CPU.([0-9]{1,2})\\:core_([0-3])\\.([0-9]{1,2})";
+
+/** Compiled regex for CPU port configuration parsing */
+static const re2::RE2 kCpuPortConfigRegex(kCpuPortConfig);
+} // namespace
+
 namespace facebook::fboss {
 
 SaiJanga800bicPlatform::SaiJanga800bicPlatform(
@@ -41,6 +64,61 @@ HwAsic* SaiJanga800bicPlatform::getAsic() const {
   return asic_.get();
 }
 
+/**
+ * @brief Retrieves CPU port core and port index mapping from BCM configuration
+ *
+ * Parses the BCM configuration to extract CPU port assignments to specific
+ * cores and port indices. This method looks for ucode_port configurations
+ * matching the kCpuUcodePorts array and extracts the core and port index
+ * information using regex pattern matching.
+ *
+ * @return std::map<uint32_t, std::pair<uint32_t, uint32_t>> Map where:
+ *         - Key: CPU port ID (0-3)
+ *         - Value: Pair of (core index, port index within core)
+ */
+std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+SaiJanga800bicPlatform::getCpuPortsCoreAndPortIdx() const {
+  std::map<uint32_t, std::pair<uint32_t, uint32_t>> cpuPortsCoreAndPortIdx;
+  const auto& bcmConfig = getConfig()
+                              ->thrift.platform()
+                              ->chip()
+                              ->get_asicConfig()
+                              .common()
+                              ->get_config();
+  for (const auto& [key, value] : std::as_const(bcmConfig)) {
+    for (auto cpuPortID = 0; cpuPortID < kCpuUcodePorts.size(); cpuPortID++) {
+      auto cpuUcodePort = kCpuUcodePorts[cpuPortID];
+      if (key ==
+          folly::to<std::string>("ucode_port_", cpuUcodePort, ".BCM8889X")) {
+        uint32_t channel = 0, coreIdx = 0, corePortIdx = 0;
+        if (re2::RE2::PartialMatch(
+                value, kCpuPortConfigRegex, &channel, &coreIdx, &corePortIdx)) {
+        } else {
+          XLOG(FATAL) << "Failed to match CPU port config: " << value;
+        }
+        cpuPortsCoreAndPortIdx[cpuPortID] =
+            std::make_pair(coreIdx, corePortIdx);
+      }
+    }
+  }
+  return cpuPortsCoreAndPortIdx;
+}
+
+/**
+ * @brief Generates internal system port configuration for CPU ports
+ *
+ * Creates SAI system port configurations for all CPU ports on the Janga
+ * platform. This method retrieves CPU port core and port index mappings from
+ * the BCM configuration and generates corresponding SAI system port
+ * configurations with the appropriate switch ID, core assignment, port speed,
+ * and VoQ settings.
+
+ *
+ * @return std::vector<sai_system_port_config_t> Vector of SAI system port
+ *         configurations for all CPU ports
+ * @throws CHECK failure if ASIC or switch ID is not set, or if the number
+ *         of configured CPU ports doesn't match kNumCpuPorts
+ */
 std::vector<sai_system_port_config_t>
 SaiJanga800bicPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
