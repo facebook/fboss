@@ -12,13 +12,8 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
-#include <folly/json/dynamic.h>
-#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
