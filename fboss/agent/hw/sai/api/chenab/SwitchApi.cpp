@@ -2,9 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
-#if !defined(CHENAB_SAI_SDK_VERSION_1_15_7_2)
 #include "saiswitchcustom.h"
-#endif
 
 namespace facebook::fboss {
 
@@ -340,5 +338,30 @@ SaiSwitchTraits::Attributes::AttributeDisableSllAndHllTimeout::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeAsicRevision::operator()() {
   return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCreditRequestProfileSchedulerMode::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeModuleIdToCreditRequestProfileParamList::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccCorrectableError::operator()() {
+  return SAI_SWITCH_ATTR_TRIGGER_SIMULATED_ECC_CORRECTABLE_ERROR;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccUnCorrectableError::operator()() {
+  return SAI_SWITCH_ATTR_TRIGGER_SIMULATED_ECC_UNCORRECTABLE_ERROR;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
+  return SAI_SWITCH_ATTR_DEFAULT_CPU_EGRESS_BUFFER_POOL;
 }
 } // namespace facebook::fboss

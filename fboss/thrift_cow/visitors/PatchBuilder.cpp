@@ -3,8 +3,6 @@
 #include "fboss/thrift_cow/visitors/PatchBuilder.h"
 #include "fboss/thrift_cow/visitors/PatchHelpers.h"
 
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-
 namespace facebook::fboss::thrift_cow {
 
 namespace detail_pb {

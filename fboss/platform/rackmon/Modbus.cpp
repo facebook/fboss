@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/Modbus.h"
+#include "Modbus.h"
 #include <fstream>
 #include <thread>
 #include "Log.h"

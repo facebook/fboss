@@ -45,7 +45,10 @@ std::shared_ptr<RouteV6> makeRoute(
   return rt;
 }
 
-cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
+cfg::SwitchConfig onePortPerIntfConfig(
+    int numIntfs,
+    std::optional<cfg::SwitchingMode> backupSwitchingMode,
+    int32_t ecmpCompressionThresholdPct) {
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(numIntfs);
   cfg.vlans()->resize(numIntfs);
@@ -71,9 +74,15 @@ cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
     cfg.interfaces()[p].ipAddresses()[0] =
         folly::sformat("2400:db00:2110:{}::1/64", p);
   }
-  cfg::FlowletSwitchingConfig flowletConfig;
-  flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
-  cfg.flowletSwitchingConfig() = flowletConfig;
+  if (ecmpCompressionThresholdPct) {
+    cfg.switchSettings()->ecmpCompressionThresholdPct() =
+        ecmpCompressionThresholdPct;
+  }
+  if (backupSwitchingMode.has_value()) {
+    cfg::FlowletSwitchingConfig flowletConfig;
+    flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+    cfg.flowletSwitchingConfig() = flowletConfig;
+  }
   return cfg;
 }
 
@@ -265,23 +274,43 @@ RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
   CHECK(false) << " Should never get here";
 }
 
-void BaseEcmpResourceManagerTest::SetUp() {
-  XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
+void BaseEcmpResourceManagerTest::setupFlags() const {
   FLAGS_enable_ecmp_resource_manager = true;
   FLAGS_ecmp_resource_percentage = 100;
   FLAGS_ars_resource_percentage = 100;
   FLAGS_flowletSwitchingEnable = true;
   FLAGS_dlbResourceCheckEnable = false;
-  auto cfg = onePortPerIntfConfig(kNumIntfs);
+}
+
+void BaseEcmpResourceManagerTest::SetUp() {
+  XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
+  setupFlags();
+  auto cfg = onePortPerIntfConfig(
+      kNumIntfs,
+      getBackupEcmpSwitchingMode(),
+      getEcmpCompressionThresholdPct());
   handle_ = createTestHandle(&cfg);
   sw_ = handle_->getSw();
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
   // Taken from mock asic
-  EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
-  // Backup ecmp group type will com from default flowlet confg
+  if (getBackupEcmpSwitchingMode()) {
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
+  } else {
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 18);
+  }
+  // Backup ecmp group type will come from default flowlet confg
+  std::optional<cfg::SwitchingMode> expectedBackupSwitchingMode;
+  if (cfg.flowletSwitchingConfig() &&
+      cfg.flowletSwitchingConfig()->backupSwitchingMode().has_value()) {
+    expectedBackupSwitchingMode =
+        *cfg.flowletSwitchingConfig()->backupSwitchingMode();
+  }
   EXPECT_EQ(
-      *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
-      *cfg.flowletSwitchingConfig()->backupSwitchingMode());
+      sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
+      expectedBackupSwitchingMode);
+  EXPECT_EQ(
+      sw_->getEcmpResourceManager()->getEcmpCompressionThresholdPct(),
+      cfg.switchSettings()->ecmpCompressionThresholdPct().value_or(0));
   consolidator_ = makeResourceMgr();
   state_ = sw_->getState();
   state_->publish();
@@ -465,5 +494,19 @@ TEST_F(BaseEcmpResourceManagerTest, UpdateFailed) {
   // After update failure, the next hop set should not exist
   auto nhopId = getNhopId(nhops);
   EXPECT_FALSE(nhopId.has_value());
+}
+
+TEST_F(BaseEcmpResourceManagerTest, reloadInvalidConfigs) {
+  {
+    // Both compression threshold and backup group type set
+    auto newCfg = onePortPerIntfConfig(42, getBackupEcmpSwitchingMode());
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
+  {
+    // Resetting backup ecmp type is not allowed
+    auto newCfg =
+        onePortPerIntfConfig(getEcmpCompressionThresholdPct(), std::nullopt);
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
 }
 } // namespace facebook::fboss

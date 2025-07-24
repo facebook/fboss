@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
@@ -179,6 +180,10 @@ void SaiSwitch::updateStatsImpl() {
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->switchManager().updateStats(updateWatermarks);
+  }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->routerInterfaceManager().updateStats();
   }
   if (updateWatermarks &&
       platform_->getAsic()->isSupported(

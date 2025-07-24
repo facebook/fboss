@@ -22,15 +22,6 @@ const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
 constexpr auto kPciWaitSecs = std::chrono::seconds(5);
 
-bool hasEnding(std::string const& input, std::string const& ending) {
-  if (input.length() >= ending.length()) {
-    return input.compare(
-               input.length() - ending.length(), ending.length(), ending) == 0;
-  } else {
-    return false;
-  }
-}
-
 fbiob_aux_data getAuxData(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
@@ -415,7 +406,7 @@ std::vector<uint16_t> PciExplorer::getI2cAdapterBusNums(
       instanceId);
   fs::directory_entry fpgaI2cDir{};
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
-    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
       fpgaI2cDir = dirEntry;
     }
   }
@@ -476,7 +467,7 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
       ".{}.{}", *spiMasterConfig.fpgaIpBlockConfig()->deviceName(), instanceId);
   std::string spiMasterPath;
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
-    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
       spiMasterPath = fmt::format(
           "{}/{}",
           dirEntry.path().string(),
@@ -581,7 +572,7 @@ std::string PciExplorer::getGpioChipCharDevPath(
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   std::string gpio;
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
-    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
       return Utils().resolveGpioChipCharDevPath(dirEntry.path().string());
     }
   }
@@ -608,7 +599,7 @@ std::string PciExplorer::getInfoRomSysfsPath(
   std::string expectedEnding =
       fmt::format(".{}.{}", *infoRomConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(auxDevSysfsPath)) {
-    if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
+    if (dirEntry.path().filename().string().ends_with(expectedEnding)) {
       return dirEntry.path().string();
     }
   }
@@ -635,7 +626,7 @@ std::string PciExplorer::getWatchDogCharDevPath(
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
-    if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
+    if (dirEntry.path().filename().string().ends_with(expectedEnding)) {
       return Utils().resolveWatchdogCharDevPath(dirEntry.path().string());
     }
   }
@@ -654,7 +645,7 @@ std::string PciExplorer::getFanPwmCtrlSysfsPath(
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
-    if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
+    if (dirEntry.path().filename().string().ends_with(expectedEnding)) {
       return dirEntry.path();
     }
   }
@@ -673,7 +664,7 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
   auto expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
-    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
       return dirEntry.path().string();
     }
   }
@@ -709,7 +700,7 @@ std::optional<std::string> PciExplorer::getPciSubDeviceIOBlockPath(
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
-    if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
+    if (dirEntry.path().filename().string().ends_with(expectedEnding)) {
       return dirEntry.path();
     }
   }

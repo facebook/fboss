@@ -30,15 +30,15 @@ TEST(QsfpConfigParserTest, rxEqSettingOverride) {
   cfg::Sff8636Overrides sffOverride;
   cfg::CmisOverrides cmisOverride;
 
-  cfgOverride.sff_ref() = sffOverride;
+  cfgOverride.sff() = sffOverride;
   EXPECT_EQ(cmisRxEqualizerSettingOverride(cfgOverride), std::nullopt);
-  cfgOverride.cmis_ref() = cmisOverride;
+  cfgOverride.cmis() = cmisOverride;
   EXPECT_EQ(cmisRxEqualizerSettingOverride(cfgOverride), std::nullopt);
 
   RxEqualizerSettings rxEq;
   rxEq.mainAmplitude() = 2;
   cmisOverride.rxEqualizerSettings() = rxEq;
-  cfgOverride.cmis_ref() = cmisOverride;
+  cfgOverride.cmis() = cmisOverride;
 
   EXPECT_EQ(cmisRxEqualizerSettingOverride(cfgOverride), rxEq);
 }
@@ -48,25 +48,25 @@ TEST(QsfpConfigParserTest, preemphOverride) {
   cfg::Sff8636Overrides sffOverride;
   cfg::CmisOverrides cmisOverride;
 
-  cfgOverride.cmis_ref() = cmisOverride;
+  cfgOverride.cmis() = cmisOverride;
   EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), std::nullopt);
-  cfgOverride.sff_ref() = sffOverride;
+  cfgOverride.sff() = sffOverride;
   EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), std::nullopt);
 
   sffOverride.rxPreemphasis() = 2;
-  cfgOverride.sff_ref() = sffOverride;
+  cfgOverride.sff() = sffOverride;
   EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), 2);
   EXPECT_EQ(sffTxEqualizationOverride(cfgOverride), std::nullopt);
   EXPECT_EQ(sffRxAmplitudeOverride(cfgOverride), std::nullopt);
 
   sffOverride.rxAmplitude() = 1;
-  cfgOverride.sff_ref() = sffOverride;
+  cfgOverride.sff() = sffOverride;
   EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), 2);
   EXPECT_EQ(sffTxEqualizationOverride(cfgOverride), std::nullopt);
   EXPECT_EQ(sffRxAmplitudeOverride(cfgOverride), 1);
 
   sffOverride.txEqualization() = 3;
-  cfgOverride.sff_ref() = sffOverride;
+  cfgOverride.sff() = sffOverride;
   EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), 2);
   EXPECT_EQ(sffTxEqualizationOverride(cfgOverride), 3);
   EXPECT_EQ(sffRxAmplitudeOverride(cfgOverride), 1);

@@ -21,7 +21,6 @@ TRACER_FILES_TO_SEARCH = "fboss/agent/hw/sai/tracer/*ApiTracer.cpp"
 # Exclude these patterns when we audit the attributes.
 PATTERN_TO_EXCLUDE = [
     "RxPacket",
-    "TcBufferLimit",
     # sai api only used to get counters
     "SwitchPipeline",
 ]
@@ -51,9 +50,15 @@ def get_logged_attributes():
     logged_attributes = set()
     for line in grep_output:
         # Due to formatting, there could be multiple SAI_ATTR_MAP on single line
-        attributes = line.split(", SAI_ATTR_MAP")
+        attributes = line.split(", SAI_")
         for attr in attributes:
-            logged_attributes.add(attr.split("(")[1].split(")")[0])
+            if "SAI_EXT_ATTR_MAP_2" in attr:
+                # Extract from SAI_EXT_ATTR_MAP_2(MapType, DataType, Attribute)
+                # We want the last two parameters (DataType, Attribute)
+                parts = attr.split("(")[1].split(")")[0].split(", ")
+                logged_attributes.add(f"{parts[-2]}, {parts[-1]}")
+            else:
+                logged_attributes.add(attr.split("(")[1].split(")")[0])
     return logged_attributes
 
 

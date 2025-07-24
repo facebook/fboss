@@ -393,11 +393,14 @@ class AgentTrafficPfcTest : public AgentHwTest {
         auto ingressDropRaw = *portStats.inDiscardsRaw_();
         uint64_t ingressCongestionDiscards = 0;
         std::string ingressCongestionDiscardLog{};
-        // In congestion discard stats is supported in native impl
-        // and in sai platforms with HwAsic::Feature enabled.
+        // In congestion discard stats is always supported on native. On SAI
+        // it requires either the SAI_PORT_IN_CONGESTION_DISCARDS or
+        // INGRESS_PRIORITY_GROUP_DROPPED_PACKETS feature.
         bool isIngressCongestionDiscardsSupported =
             isSupportedOnAllAsics(
                 HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS) ||
+            isSupportedOnAllAsics(
+                HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS) ||
             !getAgentEnsemble()->isSai();
         if (isIngressCongestionDiscardsSupported) {
           ingressCongestionDiscards = *portStats.inCongestionDiscards_();
@@ -410,11 +413,16 @@ class AgentTrafficPfcTest : public AgentHwTest {
         EXPECT_EVENTUALLY_GT(ingressDropRaw, 0);
         if (isIngressCongestionDiscardsSupported) {
           EXPECT_EVENTUALLY_GT(ingressCongestionDiscards, 0);
-          // Ingress congestion discards should be less than
-          // the total packets received on this port.
-          uint64_t inPackets = *portStats.inUnicastPkts_() +
-              *portStats.inMulticastPkts_() + *portStats.inBroadcastPkts_();
-          EXPECT_EVENTUALLY_LT(ingressCongestionDiscards, inPackets);
+
+          // In packet counters not supported in EDB loopback on TH5.
+          if (checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig()) !=
+              facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+            // Ingress congestion discards should be less than
+            // the total packets received on this port.
+            uint64_t inPackets = *portStats.inUnicastPkts_() +
+                *portStats.inMulticastPkts_() + *portStats.inBroadcastPkts_();
+            EXPECT_EVENTUALLY_LT(ingressCongestionDiscards, inPackets);
+          }
         }
       }
       for (auto [switchId, asic] : getAsics()) {
@@ -791,21 +799,18 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
           getAgentEnsemble(), txOffPortId, false);
-      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
-      validatePfcCounterIncrement(port, kLosslessPriority);
-    }
-  }
 
-  void validatePfcCounterIncrement(const PortID& port, const int pfcPriority) {
-    // CS00012381334 - MAC loopback doesn't work on TH5 and Rx PFC counters
-    // doesn't increase. Tx counters should work for all platforms.
-    int txPfcCtrOld =
-        folly::get_default(*getLatestPortStats(port).outPfc_(), pfcPriority, 0);
-    WITH_RETRIES_N_TIMED(3, std::chrono::milliseconds(1000), {
-      int txPfcCtrNew = folly::get_default(
-          *getLatestPortStats(port).outPfc_(), pfcPriority, 0);
-      EXPECT_EVENTUALLY_GT(txPfcCtrNew, txPfcCtrOld);
-    });
+      // CS00012381334 - MAC loopback doesn't work on TH5 and Rx PFC counters
+      // doesn't increase. Tx counters should work for all platforms.
+      auto txPfcCtrOld = folly::get_default(
+          *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
+      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
+      WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+        auto txPfcCtrNew = folly::get_default(
+            *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
+        EXPECT_EVENTUALLY_GT(txPfcCtrNew, txPfcCtrOld);
+      });
+    }
   }
 
   std::tuple<int, int> getPfcDeadlockCounters(const PortID& portId) {

@@ -25,12 +25,10 @@ class HwPimTest : public HwTest {
 
 TEST_F(HwPimTest, CheckPimPresent) {
   auto phyManager = getHwQsfpEnsemble()->getPhyManager();
-  EXPECT_EQ(
-      phyManager->getNumOfSlot(),
-      phyManager->getSystemContainer()->getNumPims());
 
   auto lastPimState = getHwQsfpEnsemble()->getWedgeManager()->getLastPimState();
-  EXPECT_EQ(lastPimState.size(), phyManager->getNumOfSlot());
+  EXPECT_EQ(
+      lastPimState.size(), phyManager->getSystemContainer()->getNumPims());
   for (auto& [pim, pimState] : lastPimState) {
     EXPECT_TRUE(pimState.errors()->empty());
   }

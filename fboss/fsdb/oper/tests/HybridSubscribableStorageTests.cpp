@@ -1174,7 +1174,7 @@ TYPED_TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
 
   // should fail gracefully
   delta.changes() = {unit};
-  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+  EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
 
   // partially valid path should still fail
   unit.path()->raw() = {"inlineStruct", "invalid", "path"};
@@ -1408,8 +1408,8 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriberMulti) {
   };
 
   folly::coro::AsyncScope backgroundScope;
-  backgroundScope.add(subscribeManyAndUnregister(isPath, 50)
-                          .scheduleOn(folly::getGlobalCPUExecutor()));
+  backgroundScope.add(co_withExecutor(
+      folly::getGlobalCPUExecutor(), subscribeManyAndUnregister(isPath, 50)));
 
   for (int j = 0; j < 5; ++j) {
     for (int i = 0; i < 10; ++i) {

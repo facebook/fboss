@@ -97,6 +97,11 @@ class TestEnsembleIf : public HwSwitchCallback {
   HwPortStats getLatestPortStats(PortID port) {
     return getLatestPortStats(std::vector<PortID>({port}))[port];
   }
+  virtual std::map<InterfaceID, HwRouterInterfaceStats> getLatestInterfaceStats(
+      const std::vector<InterfaceID>& interfaces) = 0;
+  HwRouterInterfaceStats getLatestInterfaceStats(InterfaceID intf) {
+    return getLatestInterfaceStats(std::vector<InterfaceID>({intf}))[intf];
+  }
   virtual std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports) = 0;
   HwSysPortStats getLatestSysPortStats(SystemPortID port) {

@@ -108,5 +108,21 @@ def generate_mappings_without_args() -> None:
     generate_platform_mappings(*get_command_line_args())
 
 
+def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
+    all_vendor_data = {}
+    data_path = INPUT_DIR
+    print(
+        f"Reading all vendor data in {data_path}...",
+        file=sys.stderr,
+    )
+    for filename in os.listdir(data_path):
+        filepath = os.path.join(data_path, filename)
+        if not os.path.isdir(filepath):
+            continue
+        all_vendor_data[filename] = read_vendor_data(filepath)
+
+    return all_vendor_data
+
+
 if __name__ == "__main__":
     generate_mappings_without_args()

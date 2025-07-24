@@ -337,8 +337,9 @@ TEST(LldpManagerTest, MismatchedNeighbor) {
     for (const auto& v : *config.ports()[0].expectedLLDPValues()) {
       auto port_name = std::string("<no name set>");
       auto port_name_opt = config.ports()[0].Port::name();
-      if (port_name_opt)
+      if (port_name_opt) {
         port_name = *port_name_opt;
+      }
 
       XLOG(DBG4) << port_name << ": "
                  << std::to_string(static_cast<int>(v.first)) << " -> "

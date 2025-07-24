@@ -53,13 +53,41 @@ class AgentDscpMarkingTest : public AgentHwTest {
     return cfg;
   }
 
+  void verifyDscpReclassification() {
+    XLOG(DBG2) << "verify DSCP reclassification Acls";
+    auto beforeAclInOutPkts =
+        utility::getAclInOutPackets(getSw(), utility::kCounterName());
+    sendPacket(
+        utility::kNcnfDscp(),
+        true /* frontPanel */,
+        IP_PROTO::IP_PROTO_UDP,
+        std::nullopt,
+        std::nullopt);
+    sendPacket(
+        utility::kNcnfDscp(),
+        true /* frontPanel */,
+        IP_PROTO::IP_PROTO_TCP,
+        std::nullopt,
+        std::nullopt);
+    int64_t afterAclInOutPkts = 0;
+    WITH_RETRIES_N(60, {
+      afterAclInOutPkts =
+          utility::getAclInOutPackets(getSw(), utility::kCounterName());
+
+      // See detailed comment block at the beginning of this function
+      EXPECT_EVENTUALLY_EQ(afterAclInOutPkts - beforeAclInOutPkts, 2);
+    });
+  }
+
   void verifyDscpMarking() {
     /*
      * ACL1:: Matcher: ICP DSCP. Action: Increment stat.
      * ACL2:: Matcher: L4SrcPort/L4DstPort. Action: SET_DSCP, SET_TC.
+     * ACL3:: Matcher: NCNF DSCP, SrcPort. Action: SET_DSCP.
      *
      * ACL1 precedes ACL2.
      * ACL2 mimics prod ACL, ACL1 is used only for test verification.
+     * ACL3 mimics prod ACL, we use ACL1 to verify if prod ACL is hit.
      *
      * Inject a pkt with dscp = 0, l4SrcPort matching ACL2:
      *   - The packet will match ACL2, thus SET_DSCP, SET_TC.
@@ -71,6 +99,15 @@ class AgentDscpMarkingTest : public AgentHwTest {
      * Inject a pkt with dscp = ICP DSCP, l4SrcPort matching ACL2:
      *   - The packet will match ACL1, thus counter incremented.
      *   - Packet dropped after hitting ACL1
+     *
+     * Inject 2 packets(1 TCP and 1 UDP) with dscp = NCNF DSCP and srcPort
+     * matching front panel port
+     *   - The packet bypasses to front panel port and loops back as if
+     * ingressing on that port.
+     *   - The packet will match ACL3, thus SET_DSCP to ICP DSCP. This again
+     * goes out the port.
+     *   - On the second loop, the packet will match ACL1, thus counter
+     * incremented.
      */
 
     auto setup = [=, this]() {
@@ -82,6 +119,13 @@ class AgentDscpMarkingTest : public AgentHwTest {
           false,
           {cfg::PortType::INTERFACE_PORT});
       resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+      // Add the DSCP remarking ACLs
+      auto newCfg{initialConfig(*getAgentEnsemble())};
+      auto l3Asics = getAgentEnsemble()->getL3Asics();
+      auto asic = checkSameAndGetAsic(l3Asics);
+      utility::addDscpReclassificationAcls(
+          asic, &newCfg, ecmpHelper.ecmpPortDescriptorAt(0).phyPortID());
+      applyNewConfig(newCfg);
     };
 
     auto verify = [=, this]() {
@@ -152,6 +196,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
                    utility::kTcpPorts().size()));
         });
       }
+      verifyDscpReclassification();
     };
 
     verifyAcrossWarmBoots(setup, verify);

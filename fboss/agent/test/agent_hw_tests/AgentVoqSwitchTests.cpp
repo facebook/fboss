@@ -248,6 +248,27 @@ void AgentVoqSwitchTest::setForceTrafficOverFabric(bool force) {
   });
 }
 
+void AgentVoqSwitchTest::setupForDramErrorTestFromDiagShell(
+    const SwitchID& switchId) {
+  std::string out;
+  getAgentEnsemble()->runDiagCommand(
+      "s CGM_DRAM_BOUND_STATE_TH 0\n", out, switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "m CGM_DRAM_BOUND_STATE_TH  DRAM_BOUND_TOTAL_FREE_SRAM_BUFFERS_TH=0xFFF DRAM_BOUND_TOTAL_FREE_SRAM_PDBS_TH=0xFFF\n",
+      out,
+      switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "mod CGM_VOQ_DRAM_BOUND_PRMS 0 127 SRAM_BUFFERS_BOUND_FREE_MAX_TH=0x0 SRAM_BUFFERS_BOUND_FREE_MIN_TH=0x0 SRAM_BUFFERS_BOUND_MAX_TH=0x0 SRAM_BUFFERS_BOUND_MIN_TH=0x0\n",
+      out,
+      switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "m IPS_DRAM_ONLY_PROFILE  DRAM_ONLY_PROFILE=-1\n", out, switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "mod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\n",
+      out,
+      switchId);
+}
+
 TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
   auto verify = [this]() {
     std::string out;
@@ -806,27 +827,12 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
   auto verify = [&]() {
     // The DRAM error will only be for the switchID on which packet
     // is egressing, hence the test is limited to a single switchId.
-    auto switchId = scopeResolver().scope(kPortDesc.phyPortID()).switchId();
+    SwitchID switchId = scopeResolver().scope(kPortDesc.phyPortID()).switchId();
     auto switchIndex =
         getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
-    std::string out;
     WITH_RETRIES({
-      getAgentEnsemble()->runDiagCommand(
-          "s CGM_DRAM_BOUND_STATE_TH 0\n", out, switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "m CGM_DRAM_BOUND_STATE_TH  DRAM_BOUND_TOTAL_FREE_SRAM_BUFFERS_TH=0xFFF DRAM_BOUND_TOTAL_FREE_SRAM_PDBS_TH=0xFFF\n",
-          out,
-          switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "mod CGM_VOQ_DRAM_BOUND_PRMS 0 127 SRAM_BUFFERS_BOUND_FREE_MAX_TH=0x0 SRAM_BUFFERS_BOUND_FREE_MIN_TH=0x0 SRAM_BUFFERS_BOUND_MAX_TH=0x0 SRAM_BUFFERS_BOUND_MIN_TH=0x0\n",
-          out,
-          switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "m IPS_DRAM_ONLY_PROFILE  DRAM_ONLY_PROFILE=-1\n", out, switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "mod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\n",
-          out,
-          switchId);
+      std::string out;
+      setupForDramErrorTestFromDiagShell(switchId);
       getAgentEnsemble()->runDiagCommand(
           "m DDP_ERR_INITIATE BUFF_CRC_INITIATE_ERR=1\n", out, switchId);
       getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
@@ -837,6 +843,41 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
       ASSERT_EVENTUALLY_TRUE(
           switchStats.hwAsicErrors()->dramErrors().has_value());
       EXPECT_EVENTUALLY_GT(switchStats.hwAsicErrors()->dramErrors().value(), 0);
+      XLOG(DBG0) << "Dram Error count: "
+                 << switchStats.hwAsicErrors()->dramErrors().value();
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, verifyDramDataPathPacketErrorCounter) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [&]() { addRemoveNeighbor(kPortDesc, NeighborOp::ADD); };
+  auto verify = [&]() {
+    // The DRAM error will only be for the switchID on which packet
+    // is egressing, hence the test is limited to a single switchId.
+    SwitchID switchId = scopeResolver().scope(kPortDesc.phyPortID()).switchId();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    std::string out;
+    WITH_RETRIES({
+      setupForDramErrorTestFromDiagShell(switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m DDP_ERR_INITIATE INITIATE_PKT_ERR=1\n", out, switchId);
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+      sendPacket(
+          ecmpHelper.ip(kPortDesc), std::nullopt, std::vector<uint8_t>(4000));
+      getSw()->updateStats();
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      ASSERT_EVENTUALLY_TRUE(
+          switchStats.switchDropStats()->dramDataPathPacketError().has_value());
+      EXPECT_EVENTUALLY_GT(
+          switchStats.switchDropStats()->dramDataPathPacketError().value(), 0);
+      XLOG(DBG0)
+          << "Dram Data Path Packet Error count: "
+          << switchStats.switchDropStats()->dramDataPathPacketError().value();
     });
   };
   verifyAcrossWarmBoots(setup, verify);

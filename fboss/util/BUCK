@@ -44,6 +44,7 @@ cpp_binary(
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-default",
+        "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly/gen:base",
         "//folly/init:init",
     ],
@@ -294,5 +295,27 @@ python_binary(
     par_style = "xar",
     deps = [
         ":process_known_bad_test_lib",
+    ],
+)
+
+python_library(
+    name = "post_weekly_known_bad_test_lib",
+    srcs = [
+        "facebook/post_weekly_known_bad_test.py",
+    ],
+    deps = [
+        ":process_known_bad_test_lib",
+        "//groups/submit_post:PostToInternalGroup-py-deprecated",
+        "//libfb/py:employee",
+        "//libfb/py/thrift_clients:post_to_internal_group_thrift_client",
+    ],
+)
+
+python_binary(
+    name = "post_weekly_known_bad_test",
+    main_function = "fboss.util.facebook.post_weekly_known_bad_test.main",
+    par_style = "xar",
+    deps = [
+        ":post_weekly_known_bad_test_lib",
     ],
 )

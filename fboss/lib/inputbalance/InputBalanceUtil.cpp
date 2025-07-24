@@ -162,11 +162,13 @@ getNeighborFabricPortsToSelf(
       }
     }
   }
-  std::cout
-      << "[WARNING] No expected neighbor or more than one expected neighbor for following port(s). "
-      << "This could happen on LAB devices but should not occur in PROD. \n"
-      << "Port: " << folly::join(" ", noExpectedNeighbor) << "\n\n"
-      << std::endl;
+  if (!noExpectedNeighbor.empty()) {
+    std::cout
+        << "[WARNING] No expected neighbor or more than one expected neighbor for following port(s). "
+        << "This could happen on LAB devices but should not occur in PROD. \n"
+        << "Port: " << folly::join(" ", noExpectedNeighbor) << "\n\n"
+        << std::endl;
+  }
   return switchNameToPorts;
 }
 
@@ -187,6 +189,20 @@ std::unordered_map<int, std::vector<std::string>> groupFabricDevicesByCluster(
     }
   }
   return clusterToFabricDevices;
+}
+
+std::vector<std::string> getInterfaceDevicesInCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode,
+    int clusterID) {
+  std::vector<std::string> intfDevices;
+  for (const auto& [name, dsfNode] : nameToDsfNode) {
+    if (dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE &&
+        dsfNode.clusterId().has_value() &&
+        dsfNode.clusterId().value() == clusterID) {
+      intfDevices.emplace_back(name);
+    }
+  }
+  return intfDevices;
 }
 
 std::map<std::string, std::string> getPortToNeighbor(

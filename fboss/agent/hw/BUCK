@@ -29,6 +29,7 @@ thrift_library(
     thrift_srcs = {"hardware_stats.thrift": []},
     deps = [
         "//fboss/mka_service/if:mka_structs",
+        "//thrift/annotation:cpp",
     ],
 )
 
@@ -192,6 +193,17 @@ cpp_library(
         "//folly/container:f14_hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "hw_rif_fb303_stats",
+    srcs = [
+        "HwRouterInterfaceFb303Stats.cpp",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        ":hw_fb303_stats",
     ],
 )
 

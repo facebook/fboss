@@ -53,6 +53,15 @@ set(fsdb_pub_sub_libs
 
 target_link_libraries(fsdb_pub_sub ${fsdb_pub_sub_libs})
 
+add_library(fsdb_sub_mgr
+  fboss/fsdb/client/FsdbSubManagerBase.cpp
+)
+
+target_link_libraries(fsdb_sub_mgr
+  fsdb_pub_sub
+  fsdb_model
+)
+
 add_library(fsdb_syncer
   fboss/fsdb/client/FsdbSyncManager.h
   fboss/fsdb/client/FsdbSyncManager.cpp

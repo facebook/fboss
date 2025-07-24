@@ -175,6 +175,51 @@ TEST(PortPgConfig, TestResumeByteSetting) {
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
 
+// Configure staticLimitBytes and make sure it's set correctly.
+TEST(PortPgConfig, TestStaticLimitBytesConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  constexpr folly::StringPiece kBufferPoolName = "bufferPool";
+  constexpr folly::StringPiece kPgConfigName = "testPgConfig";
+  constexpr int64_t kStaticLimitBytesValue = 12345678;
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+
+  std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+  cfg::BufferPoolConfig tmpPoolConfig;
+  bufferPoolCfgMap.insert(make_pair(kBufferPoolName.str(), tmpPoolConfig));
+  config.bufferPoolConfigs() = bufferPoolCfgMap;
+
+  std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+  std::vector<cfg::PortPgConfig> portPgConfigs;
+  cfg::PortPgConfig pgConfig;
+  pgConfig.id() = 0;
+  pgConfig.name() = "pg0";
+  pgConfig.minLimitBytes() = 1000;
+  pgConfig.bufferPoolName() = kBufferPoolName;
+  pgConfig.staticLimitBytes() = kStaticLimitBytesValue;
+  portPgConfigs.emplace_back(pgConfig);
+  portPgConfigMap[kPgConfigName.str()] = portPgConfigs;
+  config.portPgConfigs() = portPgConfigMap;
+
+  cfg::PortPfc pfc;
+  pfc.portPgConfigName() = kPgConfigName.str();
+  config.ports()[0].pfc() = pfc;
+
+  // Apply the config
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+
+  // Verify that the switch state contains the correct staticLimitBytes value
+  auto pgCfgs = stateV1->getPort(PortID(1))->getPortPgConfigs();
+  EXPECT_EQ(
+      kStaticLimitBytesValue,
+      pgCfgs->at(0)->cref<switch_state_tags::staticLimitBytes>()->cref());
+}
+
 TEST(PortPgConfig, applyConfig) {
   int pgId = 0;
   auto platform = createMockPlatform();

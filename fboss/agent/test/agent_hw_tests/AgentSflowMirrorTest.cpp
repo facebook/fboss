@@ -515,8 +515,11 @@ class AgentSflowMirrorTest : public AgentHwTest {
     uint64_t expectedSampleCount = 0;
     auto port = getDataTrafficPort();
     const auto& portStats = stats.at(port);
-    expectedSampleCount = (*portStats.inUnicastPkts_() / FLAGS_sflow_test_rate);
-    XLOG(DBG2) << "total packets rx " << *portStats.inUnicastPkts_();
+    // In theory it's more correct to calcuate this based on inUnicastPkts, but
+    // Rx counters are not supported on TH5 in EDB loopback, so use Tx.
+    expectedSampleCount =
+        (*portStats.outUnicastPkts_() / FLAGS_sflow_test_rate);
+    XLOG(DBG2) << "total packets tx " << *portStats.outUnicastPkts_();
     return expectedSampleCount;
   }
 
@@ -528,7 +531,13 @@ class AgentSflowMirrorTest : public AgentHwTest {
       getAgentEnsemble()->sendPacketAsync(
           std::move(pkt), PortDescriptor(trafficPort), std::nullopt);
     }
-    getAgentEnsemble()->waitForLineRateOnPort(trafficPort);
+    const uint64_t portSpeedBps =
+        static_cast<uint64_t>(getProgrammedState()
+                                  ->getPorts()
+                                  ->getNodeIf(trafficPort)
+                                  ->getSpeed()) *
+        1000 * 1000 * 0.99; // 99% is good enough
+    getAgentEnsemble()->waitForSpecificRateOnPort(trafficPort, portSpeedBps);
 
     auto ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
@@ -1098,13 +1107,16 @@ class AgentSflowMirrorEventorTest
     // Set truncation using shell command, since this is not supported by SDK.
     std::string out;
     for (int core = 0; core < 4; ++core) {
-      getAgentEnsemble()->runDiagCommand(
-          fmt::format(
-              "dbal entry commit table=SNIF_COMMAND_TABLE core_id={} "
-              "snif_command_id=1 SNIF_TYPE=STATISTICAL_SAMPLE CROP_ENABLE={}\n",
-              core,
-              truncate ? "1" : "0"),
-          out);
+      for (const auto& [switchId, _] : getAsics()) {
+        getAgentEnsemble()->runDiagCommand(
+            fmt::format(
+                "dbal entry commit table=SNIF_COMMAND_TABLE core_id={} "
+                "snif_command_id=1 SNIF_TYPE=STATISTICAL_SAMPLE CROP_ENABLE={}\n",
+                core,
+                truncate ? "1" : "0"),
+            out,
+            switchId);
+      }
     }
   }
 

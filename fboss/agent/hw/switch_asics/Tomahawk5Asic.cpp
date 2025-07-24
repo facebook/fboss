@@ -108,6 +108,8 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
+    case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
+    case HwAsic::Feature::TEMPERATURE_MONITORING:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -206,6 +208,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
+    case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
       return false;
   }
   return false;

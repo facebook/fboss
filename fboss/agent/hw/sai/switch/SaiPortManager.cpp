@@ -220,6 +220,9 @@ void fillHwPortStats(
       case SAI_PORT_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.wredDroppedPackets_() = value;
         break;
+      case SAI_PORT_STAT_IN_DROPPED_PKTS:
+        hwPortStats.inCongestionDiscards_() = value;
+        break;
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES:
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
@@ -1265,7 +1268,9 @@ void SaiPortManager::changeQueue(
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
     if (!queueHandle) {
       throw FbossError(
-          "unable to change non-existent queue ",
+          "unable to change non-existent ",
+          apache::thrift::util::enumNameSafe(newPortQueue->getStreamType()),
+          " queue ",
           newPortQueue->getID(),
           " of port ",
           swId);
@@ -2820,6 +2825,19 @@ std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
 std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
     PortSaiId saiPortId,
     uint8_t numPmdLanes) const {
+  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(saiPortId);
+  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
+    XLOG(WARNING) << "Unknown PortSaiId: " << saiPortId;
+    return std::vector<sai_port_snr_values_t>();
+  }
+  // TH5 Management port doesn't support RX SNR
+  // If we do end up with management ports supporting rxSNR we may need to
+  // support per-core HwAsic::Feature definitions instead of setting them at the
+  // asic level.
+  auto portID = portItr->second.portID;
+  if (getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    return std::vector<sai_port_snr_values_t>();
+  }
   if (!rxSNRSupported()) {
     return std::vector<sai_port_snr_values_t>();
   }
@@ -3202,21 +3220,25 @@ void SaiPortManager::incrementPfcCounter(
   auto curPortStats = portStatItr->second->portStats();
 
   // Increment the appropriate counter based on the counter type.
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   if (counterType == PfcCounterType::DEADLOCK) {
     if (!curPortStats.pfcDeadlockDetection_().has_value()) {
+      // Make sure the counter is initialized to 0 if it doesn't exist.
       curPortStats.pfcDeadlockDetection_() = 0;
+      portStatItr->second->updateStats(curPortStats, now);
     }
     curPortStats.pfcDeadlockDetection_() =
         *curPortStats.pfcDeadlockDetection_() + 1;
   } else { // PfcCounterType::RECOVERY
     if (!curPortStats.pfcDeadlockRecovery_().has_value()) {
+      // Make sure the counter is initialized to 0 if it doesn't exist.
       curPortStats.pfcDeadlockRecovery_() = 0;
+      portStatItr->second->updateStats(curPortStats, now);
     }
     curPortStats.pfcDeadlockRecovery_() =
         *curPortStats.pfcDeadlockRecovery_() + 1;
   }
 
-  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   portStatItr->second->updateStats(curPortStats, now);
 }
 

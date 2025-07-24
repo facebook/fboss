@@ -87,7 +87,6 @@ cpp_unittest(
         "//folly:network_address",
         "//folly/functional:partial",
         "//folly/json:dynamic",
-        "//folly/logging:logging",
     ],
 )
 

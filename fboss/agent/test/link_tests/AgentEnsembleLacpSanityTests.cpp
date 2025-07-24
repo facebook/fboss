@@ -91,8 +91,9 @@ class AgentEnsembleLacpTest : public AgentEnsembleLinkTest {
         }
         for (const auto& memberAndState : aggPort->subportAndFwdState()) {
           // Verify that member port is enabled
-          if (memberAndState.second != AggregatePort::Forwarding::ENABLED)
+          if (memberAndState.second != AggregatePort::Forwarding::ENABLED) {
             return false;
+          }
           // Verify that partner has synced
           if ((aggPort->getPartnerState(memberAndState.first).state &
                LacpState::IN_SYNC) == 0) {

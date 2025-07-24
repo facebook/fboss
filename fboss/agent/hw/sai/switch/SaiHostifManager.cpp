@@ -364,6 +364,16 @@ void SaiHostifManager::processRxReasonToQueueDelta(
      */
     auto priority = newRxReasonToQueue->size() - index;
     CHECK_GT(priority, 0);
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Chenab has following hardware limitations -
+      //  - CPU queues in Chenab are 0...3.
+      //  - trap priorities are in range of 0...3.
+      //  - A trap group is per queue and all traps in same trap group have same
+      //  priority.
+      // Simplifying with queueId as priority.
+      priority = newRxReasonEntry->cref<switch_config_tags::queueId>()->cref();
+    }
     if (oldRxReasonEntryIter != oldRxReasonToQueue->cend()) {
       /*
        * If old reason exists and does not match the index, priority of the trap

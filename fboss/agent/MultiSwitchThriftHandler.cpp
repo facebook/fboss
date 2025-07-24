@@ -6,7 +6,6 @@
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -72,6 +71,7 @@ void MultiSwitchThriftHandler::processLinkState(
   }
   if (linkStateEvent.aggPortId()) {
     aggPortId = AggregatePortID(*linkStateEvent.aggPortId());
+    XLOG(DBG2) << "link event change for agg port " << aggPortId.value();
   }
   sw_->linkStateChanged(
       portId, *linkStateEvent.up(), portType, faultStatus, aggPortId);

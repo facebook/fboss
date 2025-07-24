@@ -11,7 +11,7 @@ namespace filesystem = experimental::filesystem;
 #else
 #include <filesystem>
 #endif
-#include "fboss/platform/rackmon/Register.h"
+#include "Register.h"
 
 using namespace std;
 using namespace testing;

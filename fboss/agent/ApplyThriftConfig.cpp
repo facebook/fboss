@@ -2053,6 +2053,9 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
   if (const auto sramScalingFactor = cfg->sramScalingFactor()) {
     pgCfg->setSramScalingFactor(*sramScalingFactor);
   }
+  if (const auto staticLimitBytes = cfg->staticLimitBytes()) {
+    pgCfg->setStaticLimitBytes(*staticLimitBytes);
+  }
   return pgCfg;
 }
 
@@ -2636,7 +2639,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+          orig->getDesiredSelfHealingECMPLagEnable().value_or(false) &&
       portConf->fecErrorDetectEnable().value_or(false) ==
           orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
@@ -2690,9 +2693,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           newPort->getName(),
           " to have selfHealingEcmpLag enable");
     }
-    newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
+    newPort->setDesiredSelfHealingECMPLagEnable(
+        selfHealingECMPLagEnable.value());
   } else {
-    newPort->setSelfHealingECMPLagEnable(std::nullopt);
+    newPort->setDesiredSelfHealingECMPLagEnable(std::nullopt);
   }
   if (portConf->fecErrorDetectEnable().has_value()) {
     newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
@@ -4671,8 +4675,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
   std::vector<state::BlockedNeighbor> cfgBlockNeighbors;
   for (const auto& blockNeighbor : *cfg_->switchSettings()->blockNeighbors()) {
     state::BlockedNeighbor neighbor{};
-    neighbor.blockNeighborVlanID_ref() = *blockNeighbor.vlanID();
-    neighbor.blockNeighborIP_ref() =
+    neighbor.blockNeighborVlanID() = *blockNeighbor.vlanID();
+    neighbor.blockNeighborIP() =
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }
@@ -5093,6 +5097,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         origSwitchSettings->getPfcWatchdogTimerGranularity()) {
       newSwitchSettings->setPfcWatchdogTimerGranularity(
           newPfcWatchdogTimerGranularity);
+      switchSettingsChange = true;
+    }
+  }
+  {
+    std::optional<int32_t> newEcmpCompressionThresholdPct;
+    if (cfg_->switchSettings()->ecmpCompressionThresholdPct()) {
+      newEcmpCompressionThresholdPct =
+          *cfg_->switchSettings()->ecmpCompressionThresholdPct();
+    }
+    if (newEcmpCompressionThresholdPct !=
+        origSwitchSettings->getEcmpCompressionThresholdPct()) {
+      newSwitchSettings->setEcmpCompressionThresholdPct(
+          newEcmpCompressionThresholdPct);
       switchSettingsChange = true;
     }
   }

@@ -23,13 +23,14 @@ std::string getCurrentStateJSONForPathHelper(
       thriftPath.end(),
       thrift_cow::PathVisitOptions::visitLeaf(),
       op);
-  switch (traverseResult) {
-    case thrift_cow::ThriftTraverseResult::OK:
-      return op.val->toStdString();
-    case thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION:
-      throw FbossError("Visitor exception when traversing thrift path.");
-    default:
-      throw FbossError("Invalid thrift path provided.");
+  if (traverseResult) {
+    return op.val->toStdString();
+  } else if (
+      traverseResult.code() ==
+      thrift_cow::ThriftTraverseResult::Code::VISITOR_EXCEPTION) {
+    throw FbossError("Visitor exception when traversing thrift path.");
+  } else {
+    throw FbossError("Invalid thrift path provided.");
   }
 }
 void clearSwPortStats(

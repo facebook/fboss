@@ -36,6 +36,10 @@ add_library(hw_port_fb303_stats
   fboss/agent/hw/HwSysPortFb303Stats.cpp
 )
 
+add_library(hw_rif_fb303_stats
+  fboss/agent/hw/HwRouterInterfaceFb303Stats.cpp
+)
+
 add_library(hw_cpu_fb303_stats
   fboss/agent/hw/HwCpuFb303Stats.cpp
 )
@@ -89,6 +93,11 @@ target_link_libraries(hw_port_fb303_stats
   FBThrift::thriftcpp2
   hardware_stats_cpp2
   Folly::folly
+)
+
+target_link_libraries(hw_rif_fb303_stats
+  hardware_stats_cpp2
+  hw_fb303_stats
 )
 
 target_link_libraries(hw_cpu_fb303_stats

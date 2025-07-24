@@ -62,7 +62,6 @@ cpp_library(
         "//folly:exception",
         "//folly:format",
         "//folly:singleton",
-        "//folly:string",
         "//folly/logging:logging",
     ],
     exported_external_deps = [

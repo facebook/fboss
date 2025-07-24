@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/RackmonPlsManager.h"
+#include "RackmonPlsManager.h"
 #include <glog/logging.h>
 #include <nlohmann/json.hpp>
 #include <filesystem>

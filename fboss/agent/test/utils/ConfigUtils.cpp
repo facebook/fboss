@@ -663,6 +663,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           std::optional<int32_t> port = std::nullopt) {
     auto i = config.interfaces()->size();
     config.interfaces()->push_back(cfg::Interface{});
+    config.interfaces()[i].name() = folly::to<std::string>(intfId);
     *config.interfaces()[i].intfID() = intfId;
     *config.interfaces()[i].vlanID() = vlanId;
     *config.interfaces()[i].routerID() = 0;

@@ -6,7 +6,7 @@
 
 namespace facebook::fboss {
 
-std::string getBcmKmodParam(std::string param);
-bool setBcmKmodParam(std::string param, std::string val);
+std::string getBcmKmodParam(const std::string& param);
+bool setBcmKmodParam(const std::string& param, const std::string& val);
 
 } // namespace facebook::fboss

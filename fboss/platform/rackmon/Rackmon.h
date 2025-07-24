@@ -5,9 +5,9 @@
 #include <set>
 #include <shared_mutex>
 #include <thread>
-#include "fboss/platform/rackmon/Modbus.h"
-#include "fboss/platform/rackmon/ModbusDevice.h"
-#include "fboss/platform/rackmon/PollThread.h"
+#include "Modbus.h"
+#include "ModbusDevice.h"
+#include "PollThread.h"
 
 namespace rackmon {
 

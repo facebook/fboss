@@ -17,12 +17,7 @@ namespace facebook::fboss {
 
 class ChenabAsic : public HwAsic {
  public:
-  ChenabAsic(
-      std::optional<int64_t> switchId,
-      cfg::SwitchInfo switchInfo,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : HwAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::NPU}) {}
-
+  using HwAsic::HwAsic;
   AsicVendor getAsicVendor() const override;
   std::string getVendor() const override;
   bool isSupported(Feature feature) const override;

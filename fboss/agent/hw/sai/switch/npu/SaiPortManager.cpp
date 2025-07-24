@@ -205,6 +205,10 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(
           SAI_PORT_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS);
     }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
+      counterIds.emplace_back(SAI_PORT_STAT_IN_DROPPED_PKTS);
+    }
     return counterIds;
   };
   port2SupportedStats_.emplace(port, getSupportedStats());

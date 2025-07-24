@@ -28,21 +28,24 @@ std::string getPlatformName(const std::optional<std::string>& platformName) {
   return platformStr;
 }
 
-std::optional<std::string> getConfigFromFile() {
-  if (!FLAGS_config_file.empty()) {
-    XLOG(INFO) << "Using config file: " << FLAGS_config_file;
+} // namespace
+
+namespace facebook::fboss::platform {
+
+std::optional<std::string> ConfigLib::getConfigFromFile() const {
+  // Use the member variable if provided, otherwise fall back to gflags
+  std::string configFile =
+      !configFilePath_.empty() ? configFilePath_ : FLAGS_config_file;
+  if (!configFile.empty()) {
+    XLOG(INFO) << "Using config file: " << configFile;
     std::string configJson;
-    if (!folly::readFile(FLAGS_config_file.c_str(), configJson)) {
-      throw std::runtime_error(
-          "Can not read config file: " + FLAGS_config_file);
+    if (!folly::readFile(configFile.c_str(), configJson)) {
+      throw std::runtime_error("Can not read config file: " + configFile);
     }
     return configJson;
   }
   return std::nullopt;
 }
-} // namespace
-
-namespace facebook::fboss::platform {
 
 std::string ConfigLib::getSensorServiceConfig(
     const std::optional<std::string>& platformName) const {
@@ -134,6 +137,14 @@ std::string ConfigLib::getBspTestConfig(
     return *configJson;
   }
   return configs::bsp_tests.at(getPlatformName(platformName));
+}
+
+std::string ConfigLib::getShowtechConfig(
+    const std::optional<std::string>& platformName) const {
+  if (auto configJson = getConfigFromFile()) {
+    return *configJson;
+  }
+  return configs::showtech.at(getPlatformName(platformName));
 }
 
 } // namespace facebook::fboss::platform

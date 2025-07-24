@@ -2288,23 +2288,23 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
         "Lanes             1        2        3        4        5        6        7        8\n");
     printf("Datapath de-init  ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page10Buf[0] >> i) & 1);
+      printf("%-9d", (page10Buf[0] >> i) & 1);
     }
     printf("\nTx disable        ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page10Buf[2] >> i) & 1);
+      printf("%-9d", (page10Buf[2] >> i) & 1);
     }
     printf("\nTx squelch bmap   ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page10Buf[4] >> i) & 1);
+      printf("%-9d", (page10Buf[4] >> i) & 1);
     }
     printf("\nRx Out disable    ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page10Buf[10] >> i) & 1);
+      printf("%-9d", (page10Buf[10] >> i) & 1);
     }
     printf("\nRx Sqlch disable  ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page10Buf[11] >> i) & 1);
+      printf("%-9d", (page10Buf[11] >> i) & 1);
     }
     printf("\nHost lane state   ");
     for (i = 0; i < 4; i++) {
@@ -2316,86 +2316,86 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
     }
     printf("\nTx fault          ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[7] >> i) & 1);
+      printf("%-9d", (page11Buf[7] >> i) & 1);
     }
     printf("\nTx LOS            ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[8] >> i) & 1);
+      printf("%-9d", (page11Buf[8] >> i) & 1);
     }
     printf("\nTx LOL            ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[9] >> i) & 1);
+      printf("%-9d", (page11Buf[9] >> i) & 1);
     }
     printf("\nTx PWR alarm Hi   ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[11] >> i) & 1);
+      printf("%-9d", (page11Buf[11] >> i) & 1);
     }
     printf("\nTx PWR alarm Lo   ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[12] >> i) & 1);
+      printf("%-9d", (page11Buf[12] >> i) & 1);
     }
     printf("\nTx PWR warn Hi    ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[13] >> i) & 1);
+      printf("%-9d", (page11Buf[13] >> i) & 1);
     }
     printf("\nTx PWR warn Lo    ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[14] >> i) & 1);
+      printf("%-9d", (page11Buf[14] >> i) & 1);
     }
     printf("\nRx LOS            ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[19] >> i) & 1);
+      printf("%-9d", (page11Buf[19] >> i) & 1);
     }
     printf("\nRx LOL            ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[20] >> i) & 1);
+      printf("%-9d", (page11Buf[20] >> i) & 1);
     }
     printf("\nRx PWR alarm Hi   ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[21] >> i) & 1);
+      printf("%-9d", (page11Buf[21] >> i) & 1);
     }
     printf("\nRx PWR alarm Lo   ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[22] >> i) & 1);
+      printf("%-9d", (page11Buf[22] >> i) & 1);
     }
     printf("\nRx PWR warn Hi    ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[23] >> i) & 1);
+      printf("%-9d", (page11Buf[23] >> i) & 1);
     }
     printf("\nRx PWR warn Lo    ");
     for (i = 0; i < 8; i++) {
-      printf("%d        ", (page11Buf[24] >> i) & 1);
+      printf("%-9d", (page11Buf[24] >> i) & 1);
     }
     printf("\nTX Power (mW)     ");
     for (i = 0; i < 8; i++) {
       printf(
-          "%.3f    ",
+          "%-9.3f",
           ((page11Buf[26 + i * 2] << 8 | page11Buf[27 + i * 2])) * 0.0001);
     }
     printf("\nRX Power (mW)     ");
     for (i = 0; i < 8; i++) {
       printf(
-          "%.3f    ",
+          "%-9.3f",
           ((page11Buf[58 + i * 2] << 8 | page11Buf[59 + i * 2])) * 0.0001);
     }
     printf("\nRx SNR            ");
     for (i = 0; i < 8; i++) {
       printf(
-          "%05.04g    ",
+          "%-9.2f",
           (CmisFieldInfo::getSnr(
               page14Buf[113 + i * 2] << 8 | page14Buf[112 + i * 2])));
     }
     printf("\nRX PreCur (dB)    ");
     for (i = 0; i < 8; i++) {
       printf(
-          "%.1f      ",
+          "%-9.1f",
           CmisFieldInfo::getPreCursor(
               (page11Buf[95 + i / 2] >> ((i % 2) * 4)) & 0x0f));
     }
     printf("\nRX PostCur (dB)   ");
     for (i = 0; i < 8; i++) {
       printf(
-          "%.1f      ",
+          "%-9.1f",
           CmisFieldInfo::getPostCursor(
               (page11Buf[99 + i / 2] >> ((i % 2) * 4)) & 0x0f));
     }
@@ -2849,7 +2849,6 @@ std::unique_ptr<WedgeQsfp> fetchDataFromLocalI2CBus(
       port - 1, i2cInfo.bus, i2cInfo.transceiverManager, std::move(logBuffer));
 
   domDataOut = getDOMDataUnionI2CBus(i2cInfo, port, qsfpImpl.get());
-  auto cmisData = domDataOut.get_cmis();
 
   auto mgmtIf = qsfpImpl->getTransceiverManagementInterface();
   Vendor vend;
@@ -2859,6 +2858,7 @@ std::unique_ptr<WedgeQsfp> fetchDataFromLocalI2CBus(
 
   switch (mgmtIf) {
     case TransceiverManagementInterface::CMIS: {
+      auto cmisData = domDataOut.get_cmis();
       auto dataUpper = cmisData.page0()->data();
       auto dataLower = cmisData.lower()->data();
       std::array<uint8_t, 16> vendorArray{0};

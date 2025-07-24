@@ -60,4 +60,23 @@ void PlatformManagerHandler::getBspVersion(
 void PlatformManagerHandler::getPlatformName(std::string& response) {
   response = *platformConfig_.platformName();
 }
+
+void PlatformManagerHandler::getEepromContents(
+    EepromContentResponse& response,
+    std::unique_ptr<PmUnitInfoRequest> req) {
+  std::string slotPath = *req->slotPath();
+  if (slotPath == "") {
+    slotPath = *platformConfig_.chassisEepromDevicePath();
+  }
+  try {
+    response.eepromContents() =
+        dataStore_.getEepromContents(slotPath).getEepromContents();
+  } catch (std::exception&) {
+    auto error = PlatformManagerError();
+    error.errorCode() = PlatformManagerErrorCode::EEPROM_CONTENTS_NOT_FOUND;
+    error.message() = fmt::format(
+        "Unable to get EepromContents. Reason: Invalid SlotPath {}.", slotPath);
+    throw error;
+  }
+}
 } // namespace facebook::fboss::platform::platform_manager

@@ -29,7 +29,7 @@ bool overrideFactorMatchFound(
 
 std::optional<RxEqualizerSettings> cmisRxEqualizerSettingOverride(
     const cfg::TransceiverOverrides& overrides) {
-  if (auto cmisOverride = overrides.cmis_ref()) {
+  if (auto cmisOverride = overrides.cmis()) {
     if (auto rxEqSetting = cmisOverride->rxEqualizerSettings()) {
       return *rxEqSetting;
     }
@@ -39,7 +39,7 @@ std::optional<RxEqualizerSettings> cmisRxEqualizerSettingOverride(
 
 std::optional<unsigned int> sffRxPreemphasisOverride(
     const cfg::TransceiverOverrides& overrides) {
-  if (auto sffOverride = overrides.sff_ref()) {
+  if (auto sffOverride = overrides.sff()) {
     if (auto preemph = sffOverride->rxPreemphasis()) {
       return *preemph;
     }
@@ -49,7 +49,7 @@ std::optional<unsigned int> sffRxPreemphasisOverride(
 
 std::optional<unsigned int> sffRxAmplitudeOverride(
     const cfg::TransceiverOverrides& overrides) {
-  if (auto sffOverride = overrides.sff_ref()) {
+  if (auto sffOverride = overrides.sff()) {
     if (auto rxamp = sffOverride->rxAmplitude()) {
       return *rxamp;
     }
@@ -59,7 +59,7 @@ std::optional<unsigned int> sffRxAmplitudeOverride(
 
 std::optional<unsigned int> sffTxEqualizationOverride(
     const cfg::TransceiverOverrides& overrides) {
-  if (auto sffOverride = overrides.sff_ref()) {
+  if (auto sffOverride = overrides.sff()) {
     if (auto txeq = sffOverride->txEqualization()) {
       return *txeq;
     }

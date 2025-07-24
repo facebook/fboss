@@ -2,6 +2,7 @@
 load("//fboss/agent/fbpkg:agent.bzl", "get_all_wedge_agent_nvda_path_actions")
 load(
     "//fboss/agent/fbpkg:test_artifacts.bzl",
+    "build_test_artifacts_fbpkg",
     "get_all_agent_test_path_actions",
     "get_all_fsdb_integration_test_path_actions",
     "get_all_hw_test_path_actions",
@@ -9,6 +10,7 @@ load(
     "get_all_link_test_path_actions",
 )
 load("//fboss/build:fbpkg.bzl", "fboss_fbpkg_builder")
+load("//fboss/build:sdk.thrift.bzl", "ProductLine")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_agent_push")
@@ -55,8 +57,11 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_hw_test_path_actions(),
@@ -69,8 +74,11 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_agent_test_path_actions(),
@@ -83,8 +91,11 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow issues
             "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_link_test_path_actions(),
@@ -97,8 +108,11 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_fsdb_integration_test_path_actions(),
@@ -111,8 +125,11 @@ fboss_fbpkg_builder(
     ],
     buck_opts = fbpkg.buck_opts(
         config = {
+            "fbcode.split-dwarf": "true",
+            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
             "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
         },
+        num_threads = 20,  # reduce compile parallelism
     ),
     override_log_paths = ["fboss/agent"],
     path_actions = get_all_invariant_test_path_actions(),
@@ -120,6 +137,13 @@ fboss_fbpkg_builder(
 
 fboss_fbpkg_builder(
     name = "neteng.fboss.wedge_agent_nvda",
+    buck_opts = fbpkg.buck_opts(
+        config = {
+            "fbcode.dwp": "true",
+            "fbcode.enable_distributed_thinlto": "true",
+            "fbcode.split-dwarf": "true",
+        },
+    ),
     fail_on_redundant_configerator_fbpkg = False,
     override_log_paths = [
         "fboss/agent",
@@ -127,6 +151,7 @@ fboss_fbpkg_builder(
         "neteng/fboss/tools/wrapper_scripts",
     ],
     path_actions = get_all_wedge_agent_nvda_path_actions(),
-    # TODO: fix split_debuginfo for wedge_agent_nvda
-    split_debuginfo = False,
+    split_debuginfo = True,
 )
+
+build_test_artifacts_fbpkg(product_line = ProductLine.NVIDIA_SAI_SDK)

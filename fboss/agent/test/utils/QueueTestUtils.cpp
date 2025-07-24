@@ -144,7 +144,7 @@ int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
 }
 
 int getAqmGranularThreshold(const HwAsic& asic, int value) {
-  return ceil(value / asic.getThresholdGranularity()) *
+  return ceil(static_cast<double>(value) / asic.getThresholdGranularity()) *
       asic.getThresholdGranularity();
 }
 
@@ -154,7 +154,7 @@ GetEcnConfig(const HwAsic& asic, int minLength, int maxLength) {
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
   ecnLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
-  ecnAQM.detection()->linear_ref() = ecnLQCD;
+  ecnAQM.detection()->linear() = ecnLQCD;
   ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
@@ -169,7 +169,7 @@ cfg::ActiveQueueManagement GetWredConfig(
   wredLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
   wredLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
   wredLQCD.probability() = probability;
-  wredAQM.detection()->linear_ref() = wredLQCD;
+  wredAQM.detection()->linear() = wredLQCD;
   wredAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return wredAQM;
 }

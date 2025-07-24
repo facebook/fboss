@@ -40,4 +40,5 @@ target_link_libraries(qsfp_platforms_wedge
   qsfp_config
   wedge400_i2c
   io_stats_recorder
+  platform_mapping_utils
 )

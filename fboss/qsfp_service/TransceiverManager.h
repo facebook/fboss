@@ -25,8 +25,11 @@
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
-#include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
+#include "fboss/qsfp_service/SlotThreadHelper.h"
+#include "fboss/qsfp_service/StateMachineController.h"
+#include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
+#include "fboss/qsfp_service/TypedStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
@@ -48,12 +51,13 @@
 
 #define FW_LOG(level, tcvrID) MODULE_LOG(level, "[FWUPG]", tcvrID)
 
+#define SM_LOG(level, tcvrID) MODULE_LOG(level, "[SM]", tcvrID)
+
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
 DECLARE_bool(enable_tcvr_validation);
 
 namespace facebook::fboss {
-
 struct TransceiverConfig;
 
 struct NpuPortStatus {
@@ -69,13 +73,24 @@ class TransceiverManager {
   using PortGroups = std::map<int32_t, std::set<cfg::PlatformPortEntry>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
   using TcvrIdToTcvrNameMap = std::map<TransceiverID, std::string>;
+  using TransceiverStateMachineController = StateMachineController<
+      TransceiverID,
+      TransceiverStateMachineEvent,
+      TransceiverStateMachineState,
+      TransceiverStateMachine>;
+  using TransceiverStateMachineUpdate =
+      TypedStateMachineUpdate<TransceiverStateMachineEvent>;
+  using BlockingTransceiverStateMachineUpdate =
+      BlockingStateMachineUpdate<TransceiverStateMachineEvent>;
 
  public:
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
-      std::unique_ptr<PlatformMapping> platformMapping);
+      const std::shared_ptr<const PlatformMapping> platformMapping,
+      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          threads);
   virtual ~TransceiverManager();
   void gracefulExit();
   void setGracefulExitingFlag() {
@@ -331,11 +346,11 @@ class TransceiverManager {
   void updateStateBlocking(
       TransceiverID id,
       TransceiverStateMachineEvent event);
-  std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+  std::shared_ptr<BlockingStateMachineUpdateResult>
   updateStateBlockingWithoutWait(
       TransceiverID id,
       TransceiverStateMachineEvent event);
-  std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>
+  std::shared_ptr<BlockingStateMachineUpdateResult>
   enqueueStateUpdateForTcvrWithoutExecuting(
       TransceiverID id,
       TransceiverStateMachineEvent event);
@@ -470,9 +485,9 @@ class TransceiverManager {
   // transceiver out of reset by default will stay no op.
   virtual void clearAllTransceiverReset();
 
-  // This function will trigger a hard reset on the specific transceiver, making
-  // use of the specific implementation from each platform.
-  // It will also remove the transceiver from the transceivers_ map.
+  // This function will trigger a hard reset on the specific transceiver,
+  // making use of the specific implementation from each platform. It will
+  // also remove the transceiver from the transceivers_ map.
   void triggerQsfpHardReset(int idx);
 
   // Hold the reset on a specific transceiver. It will also remove the
@@ -654,8 +669,8 @@ class TransceiverManager {
    * Returns true if 2 conditions are met
    *
    * 1) User did not create cold_boot_once_qsfp_service file
-   * 2) can_warm_boot file exists, indicating that qsfp_service saved warm boot
-   *    state and shut down successfully.
+   * 2) can_warm_boot file exists, indicating that qsfp_service saved warm
+   * boot state and shut down successfully.
    *
    * This function also remove the forceColdBoot file but keep the canWarmBoot
    * file so that for future qsfp_service crash, we can still use warm boot
@@ -718,7 +733,7 @@ class TransceiverManager {
    * the components connected on different ports. This handle is populated
    * from this class constructor
    */
-  const std::unique_ptr<const PlatformMapping> platformMapping_;
+  const std::shared_ptr<const PlatformMapping> platformMapping_;
   // A time point until when the remediation of module will be paused.
   // Before reaching that time point, the module is paused
   // and it will resume once the time is reached.
@@ -732,15 +747,16 @@ class TransceiverManager {
   /* This variable stores the TransceiverValidator object which maintains
    * data structures for all transceiver configurations currently deployed
    * in the fleet. This is left as a nullptr if either the feature flag
-   * is not enabled or the relevant structs are not included in the config file.
+   * is not enabled or the relevant structs are not included in the config
+   * file.
    */
   std::unique_ptr<TransceiverValidator> tcvrValidator_;
 
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
 
-  // Use the following bidirectional map to cache the static mapping so that we
-  // don't have to search from PlatformMapping again and again
+  // Use the following bidirectional map to cache the static mapping so that
+  // we don't have to search from PlatformMapping again and again
   PortNameIdMap portNameToPortID_;
 
   TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
@@ -763,7 +779,7 @@ class TransceiverManager {
   TransceiverManager& operator=(TransceiverManager const&) = delete;
 
   using BlockingStateUpdateResultList =
-      std::vector<std::shared_ptr<BlockingTransceiverStateMachineUpdateResult>>;
+      std::vector<std::shared_ptr<BlockingStateMachineUpdateResult>>;
   void waitForAllBlockingStateUpdateDone(
       const BlockingStateUpdateResultList& results);
 
@@ -777,20 +793,15 @@ class TransceiverManager {
    * StateMachine update at the same time and also better starting and
    * terminating these threads.
    */
-  class TransceiverStateMachineHelper {
+  class TransceiverThreadHelper {
    public:
-    TransceiverStateMachineHelper(
-        TransceiverManager* tcvrMgrPtr,
-        TransceiverID tcvrID);
+    explicit TransceiverThreadHelper(const TransceiverID& tcvrID)
+        : tcvrID_(tcvrID) {}
 
     void startThread();
     void stopThread();
     folly::EventBase* getEventBase() const {
       return updateEventBase_.get();
-    }
-    folly::Synchronized<state_machine<TransceiverStateMachine>>&
-    getStateMachine() {
-      return stateMachine_;
     }
 
     std::shared_ptr<ThreadHeartbeat> getThreadHeartbeat() {
@@ -799,18 +810,12 @@ class TransceiverManager {
 
    private:
     TransceiverID tcvrID_;
-    folly::Synchronized<state_machine<TransceiverStateMachine>> stateMachine_;
     // Can't use ScopedEventBaseThread as it won't work well with
     // handcrafted RocketClientChannel client instead of servicerouter client
     std::unique_ptr<std::thread> updateThread_;
     std::unique_ptr<folly::EventBase> updateEventBase_;
     std::shared_ptr<ThreadHeartbeat> heartbeat_;
   };
-
-  using TransceiverToStateMachineHelper = std::unordered_map<
-      TransceiverID,
-      std::unique_ptr<TransceiverStateMachineHelper>>;
-  TransceiverToStateMachineHelper setupTransceiverToStateMachineHelper();
 
   using TransceiverToPortInfo = std::unordered_map<
       TransceiverID,
@@ -832,8 +837,11 @@ class TransceiverManager {
    * in the update thread in order to update the TransceiverStateMachine.
    *
    */
-  bool updateState(std::unique_ptr<TransceiverStateMachineUpdate> update);
+  bool updateState(
+      const TransceiverID& tcvrID,
+      std::unique_ptr<TransceiverStateMachineUpdate> update);
   bool enqueueStateUpdate(
+      const TransceiverID& tcvrID,
       std::unique_ptr<TransceiverStateMachineUpdate> update);
   void executeStateUpdates();
 
@@ -894,6 +902,8 @@ class TransceiverManager {
 
   void ensureTransceiversMapLocked(std::string message) const;
 
+  void drainAllStateMachineUpdates();
+
   // Store the QSFP service state for warm boots.
   // Updated on every refresh of the state machine as well as during graceful
   // exit.
@@ -904,15 +914,6 @@ class TransceiverManager {
   std::map<int32_t, NpuPortStatus> overrideAgentPortStatusForTesting_;
   // This ConfigAppliedInfo is an override of agent getConfigAppliedInfo()
   std::optional<ConfigAppliedInfo> overrideAgentConfigAppliedInfoForTesting_;
-
-  using StateUpdateList = folly::IntrusiveList<
-      TransceiverStateMachineUpdate,
-      &TransceiverStateMachineUpdate::listHook_>;
-  /*
-   * A list of pending state updates to be applied.
-   */
-  folly::SpinLock pendingUpdatesLock_;
-  StateUpdateList pendingUpdates_;
 
   /*
    * A thread for processing TransceiverStateMachine updates.
@@ -947,12 +948,10 @@ class TransceiverManager {
   bool isSystemInitialized_{false};
 
   /*
-   * A map to maintain all transceivers(present and absent) state machines.
-   * As each platform has its own fixed supported module num
-   * (`getNumQsfpModules()`), we'll only setup this map insude constructor,
-   * and no other functions will erase any items from this map.
+   * A map to maintain all threads for all transceivers
    */
-  const TransceiverToStateMachineHelper stateMachines_;
+  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+      threads_;
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port
@@ -962,8 +961,8 @@ class TransceiverManager {
 
   /*
    * A ConfigAppliedInfo to keep track of the last wedge_agent config applied
-   * info. refreshStateMachines() will routinely call wedge_agent thrift api to
-   * getConfigAppliedInfo() thrift api, and then we can use that to tell
+   * info. refreshStateMachines() will routinely call wedge_agent thrift api
+   * to getConfigAppliedInfo() thrift api, and then we can use that to tell
    * whether there's a config change. This will probably:
    * 1) introduce an updated iphy port profile change, like reloading config
    * with new speed;
@@ -988,8 +987,9 @@ class TransceiverManager {
   std::unique_ptr<ThreadHeartbeatWatchdog> heartbeatWatchdog_;
 
   /*
-   * Tracks how many times a heart beat (from any of the state machine threads)
-   * was missed. This counter is periodically published to ODS by StatsPublisher
+   * Tracks how many times a heart beat (from any of the state machine
+   * threads) was missed. This counter is periodically published to ODS by
+   * StatsPublisher
    */
   std::atomic<long> stateMachineThreadHeartbeatMissedCount_{0};
 
@@ -1031,6 +1031,18 @@ class TransceiverManager {
   std::atomic<int> maxTimeTakenForFwUpgrade_{0};
 
   folly::Synchronized<std::unordered_set<TransceiverID>> tcvrsForFwUpgrade;
+
+  using TransceiverToStateMachineControllerMap = std::unordered_map<
+      TransceiverID,
+      std::unique_ptr<TransceiverStateMachineController>>;
+  TransceiverToStateMachineControllerMap
+  setupTransceiverToStateMachineControllerMap();
+
+  /*
+   * Map of TransceiverID to StateMachineController object, which contains state
+   * machine and queue of updates to execute.
+   */
+  const TransceiverToStateMachineControllerMap stateMachineControllers_;
 
   friend class TransceiverStateMachineTest;
 };

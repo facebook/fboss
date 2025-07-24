@@ -127,11 +127,11 @@ ExtendedOperPath parseExtendedOperPath(
   for (auto& tok : rawPath) {
     OperPathElem elem;
     if (tok.size() > 2 && tok[0] == '/' && tok[tok.size() - 1] == '/') {
-      elem.regex_ref() = tok.substr(1, tok.size() - 2);
+      elem.regex() = tok.substr(1, tok.size() - 2);
     } else if (tok == ".*") {
-      elem.any_ref() = true;
+      elem.any() = true;
     } else {
-      elem.raw_ref() = tok;
+      elem.raw() = tok;
     }
     extendedPath.path()->emplace_back(std::move(elem));
   }
@@ -254,8 +254,8 @@ int main(int argc, char** argv) {
       return 1;
     }
   } catch (const FsdbException& e) {
-    std::cerr << "ec=" << apache::thrift::util::enumName(*e.errorCode_ref())
-              << ", error=" << *e.message_ref() << std::endl;
+    std::cerr << "ec=" << apache::thrift::util::enumName(*e.errorCode())
+              << ", error=" << *e.message() << std::endl;
     return 5;
   }
 }

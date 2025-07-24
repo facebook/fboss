@@ -9,17 +9,21 @@
  */
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
-#include <boost/cast.hpp>
-#include <boost/filesystem/operations.hpp>
+#include <algorithm>
 #include <fstream>
+#include <iterator>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <unordered_set>
 #include <utility>
 
+#include <boost/cast.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
+#include <folly/Synchronized.h>
 #include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
 
@@ -27,6 +31,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
@@ -51,6 +56,7 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
+#include "fboss/agent/hw/bcm/BcmHostUtils.h"
 #include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmIntf.h"
 #include "fboss/agent/hw/bcm/BcmLabelMap.h"
@@ -91,8 +97,10 @@
 #include "fboss/agent/hw/bcm/PacketTraceUtils.h"
 #include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -105,29 +113,23 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
-#include "fboss/agent/state/UdfGroup.h"
-#include "fboss/agent/state/UdfPacketMatcher.h"
-
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/TeFlowEntry.h"
-#include "fboss/agent/state/TransceiverMap.h"
-
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/state/TeFlowEntry.h"
+#include "fboss/agent/state/TransceiverMap.h"
+#include "fboss/agent/state/UdfGroup.h"
+#include "fboss/agent/state/UdfPacketMatcher.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 #include "fboss/agent/types.h"
-
-#include "fboss/agent/hw/bcm/BcmHostUtils.h"
-
-#include "fboss/agent/LoadBalancerUtils.h"
 
 extern "C" {
 #include <bcm/link.h>
@@ -186,6 +188,23 @@ DEFINE_int32(
 DEFINE_int32(qcm_ifp_pri, -1, "Group priority for ACL field group");
 
 DECLARE_int32(update_watermark_stats_interval_s);
+
+// The default of 1024 high frequency stats size was chosen because a serialized
+// stats object with the full set of stats is about 7 KB. With 1024 stats, we
+// use approximately 7 MB to keep it reasonably sized. This is underestimate
+// because the data is stored as C++ structs instead of serialized thrift
+// structs.
+DEFINE_int32(
+    high_freq_stats_data_size,
+    1024,
+    "The maximum number of high frequency stats data to store in memory in a "
+    "deque.");
+
+DEFINE_int32(
+    num_consecutive_high_freq_stats_collect,
+    2,
+    "Number of high frequency stats to collect consecutively for each active "
+    "stats collection period");
 
 enum : uint8_t {
   kRxCallbackPriority = 1,
@@ -1002,6 +1021,10 @@ HwInitResult BcmSwitch::initImpl(
   }
 
   macTable_ = std::make_unique<BcmMacTable>(this);
+
+  // Initialize the high frequency stats thread
+  highFreqStatsThread_ = std::make_unique<folly::FunctionScheduler>();
+  highFreqStatsThread_->setThreadName(kHighFreqStatsThreadName_);
 
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -3193,6 +3216,19 @@ TeFlowStats BcmSwitch::getTeFlowStats() const {
   return teFlowTable_->getFlowStats();
 }
 
+HwHighFrequencyStats BcmSwitch::getHighFrequencyStats() {
+  HwHighFrequencyStats stats{};
+  stats.timestampUs() = std::chrono::duration_cast<std::chrono::microseconds>(
+                            std::chrono::steady_clock::now().time_since_epoch())
+                            .count();
+  portTable_->populateHighFrequencyPortStats(
+      highFreqStatsThreadConfig_.statsConfig()->portStatsConfig().value(),
+      *stats.portStats());
+  bstStatsMgr_->populateHighFrequencyBstStats(
+      highFreqStatsThreadConfig_.statsConfig().value(), stats);
+  return stats;
+}
+
 std::vector<EcmpDetails> BcmSwitch::getAllEcmpDetails() const {
   return multiPathNextHopStatsManager_->getAllEcmpDetails();
 }
@@ -3267,6 +3303,10 @@ HwSwitchWatermarkStats BcmSwitch::getSwitchWatermarkStats() const {
 
 HwSwitchPipelineStats BcmSwitch::getSwitchPipelineStats() const {
   return HwSwitchPipelineStats{};
+}
+
+HwSwitchTemperatureStats BcmSwitch::getSwitchTemperatureStats() const {
+  return HwSwitchTemperatureStats{};
 }
 
 bcm_if_t BcmSwitch::getDropEgressId() const {
@@ -4317,6 +4357,136 @@ std::shared_ptr<SwitchState> BcmSwitch::reconstructSwitchState() const {
 
 HwResourceStats BcmSwitch::getResourceStats() const {
   return bcmStatUpdater_->getHwTableStats();
+}
+
+HwHighFrequencyStats BcmSwitch::zeroHighFrequencyStatsTimestamp(
+    const HwHighFrequencyStats& stats) {
+  HwHighFrequencyStats zeroed = stats;
+  zeroed.timestampUs() = 0;
+  return zeroed;
+}
+
+bool BcmSwitch::hasHighFrequencyStatsChanged(
+    const HwHighFrequencyStats& statsA,
+    const HwHighFrequencyStats& statsB) {
+  return zeroHighFrequencyStatsTimestamp(statsA) ==
+      zeroHighFrequencyStatsTimestamp(statsB);
+}
+
+void BcmSwitch::collectHighFrequencyStats() {
+  auto endTime = std::chrono::steady_clock::now() +
+      std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
+                                    ->statsCollectionDurationInMicroseconds()
+                                    .value());
+  // Guard the high frequency stats data size with a hard limit of
+  // kHighFreqStatsDataMaxSize_.
+  int maxDataSize =
+      std::min(FLAGS_high_freq_stats_data_size, kHighFreqStatsDataMaxSize_);
+  {
+    // Perform a bulk delete at the front of the deque if the size is too large.
+    auto wlock = highFreqStatsData_.wlock();
+    if (wlock->size() > maxDataSize) {
+      wlock->erase(
+          wlock->begin(), wlock->begin() + (wlock->size() - maxDataSize));
+    }
+  }
+  int numConsecutiveHighFreqStatsCollect = std::min(
+      FLAGS_num_consecutive_high_freq_stats_collect,
+      kMaxConsecutiveHighFreqStatsCollect_);
+  while (std::chrono::steady_clock::now() < endTime) {
+    for (int i = 0; i < numConsecutiveHighFreqStatsCollect; ++i) {
+      HwHighFrequencyStats stats = getHighFrequencyStats();
+      {
+        auto wlock = highFreqStatsData_.wlock();
+        if (wlock->empty() ||
+            !hasHighFrequencyStatsChanged(wlock->back(), stats)) {
+          while (wlock->size() >= maxDataSize) {
+            wlock->pop_front();
+          }
+          wlock->emplace_back(std::move(stats));
+        }
+      }
+    }
+    if (std::chrono::steady_clock::now() >= endTime) {
+      break;
+    }
+    std::this_thread::sleep_for(
+        std::chrono::microseconds(highFreqStatsThreadConfig_.schedulerConfig()
+                                      ->statsWaitDurationInMicroseconds()
+                                      .value()));
+  }
+}
+
+void BcmSwitch::updateHighFrequencyStatsThreadConfig(
+    const HighFrequencyStatsCollectionConfig& config) {
+  highFreqStatsThreadConfig_ = config;
+  auto schedulerConfig = highFreqStatsThreadConfig_.schedulerConfig();
+  if (schedulerConfig->statsWaitDurationInMicroseconds().value() <
+      kHfMinWaitDurationUs_) {
+    XLOG(WARN) << "statsWaitDurationInMicroseconds is too small, updating to "
+               << kHfMinWaitDurationUs_ << " us";
+    schedulerConfig->statsWaitDurationInMicroseconds() = kHfMinWaitDurationUs_;
+  }
+  if (schedulerConfig->statsCollectionDurationInMicroseconds().value() >
+      kHfMaxCollectionDurationUs_) {
+    XLOG(WARN)
+        << "statsCollectionDurationInMicroseconds is too large, updating to "
+        << kHfMaxCollectionDurationUs_ << " us";
+    schedulerConfig->statsCollectionDurationInMicroseconds() =
+        kHfMaxCollectionDurationUs_;
+  }
+}
+
+void BcmSwitch::startHighFrequencyStatsThread(
+    const HighFrequencyStatsCollectionConfig& config) {
+  std::lock_guard<std::mutex> lock(lock_);
+  updateHighFrequencyStatsThreadConfig(config);
+  highFreqStatsThread_->cancelFunctionAndWait(kHighFreqStatsFunctionName_);
+  // Use addFunctionOnce instead of using periodic function scheduling to allow
+  // for the thread to terminate after collection duration.
+  highFreqStatsThread_->addFunctionOnce(
+      [&]() { collectHighFrequencyStats(); }, kHighFreqStatsFunctionName_);
+  highFreqStatsThread_->start();
+}
+
+void BcmSwitch::stopHighFrequencyStatsThread() {
+  std::lock_guard<std::mutex> lock(lock_);
+  highFreqStatsThread_->shutdown();
+}
+
+void BcmSwitch::getHighFrequencyTimeseriesStats(
+    std::vector<HwHighFrequencyStats>& stats,
+    const std::unique_ptr<GetHighFrequencyStatsOptions>& options) const {
+  {
+    auto rlock = highFreqStatsData_.rlock();
+    auto begin = rlock->begin();
+    auto end = rlock->end();
+    if (options->beginTimestampUs().has_value()) {
+      begin = std::lower_bound(
+          begin,
+          end,
+          options->beginTimestampUs().value(),
+          [](const HwHighFrequencyStats& stats, int64_t timestamp) {
+            return stats.timestampUs().value() < timestamp;
+          });
+    }
+    if (options->endTimestampUs().has_value()) {
+      end = std::upper_bound(
+          begin,
+          end,
+          options->endTimestampUs().value(),
+          [](int64_t timestamp, const HwHighFrequencyStats& stats) {
+            return timestamp <= stats.timestampUs().value();
+          });
+    }
+    int64_t length{std::min(
+        std::distance(begin, end), std::max(options->limit().value(), 0l))};
+    if (options->beginTimestampUs().has_value()) {
+      stats = std::vector<HwHighFrequencyStats>(begin, begin + length);
+    } else {
+      stats = std::vector<HwHighFrequencyStats>(end - length, end);
+    }
+  }
 }
 
 } // namespace facebook::fboss

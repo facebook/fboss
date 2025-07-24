@@ -966,7 +966,7 @@ TEST_F(AgentAqmEcnOnlyTest, verifyEcnTrafficNoDrop) {
   runEcnTrafficNoDropTest();
 }
 
-TEST_F(AgentAqmTest, verifyEcnThreshold) {
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnThreshold) {
   runEcnThresholdTest();
 }
 

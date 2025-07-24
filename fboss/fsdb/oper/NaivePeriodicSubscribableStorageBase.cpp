@@ -116,7 +116,7 @@ void NaivePeriodicSubscribableStorageBase::start_impl() {
       FLAGS_storage_thread_heartbeat_ms,
       heartbeatStatsFunc);
 
-  backgroundScope_.add(serveSubscriptions().scheduleOn(&evb_));
+  backgroundScope_.add(co_withExecutor(&evb_, serveSubscriptions()));
 
   *runningLocked = true;
 }

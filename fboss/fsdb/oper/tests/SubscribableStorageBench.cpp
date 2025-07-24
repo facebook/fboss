@@ -22,8 +22,12 @@ namespace facebook::fboss::fsdb::test {
 class StorageBenchmarkHelper {
  public:
   using RootType = TestStruct;
-  StorageBenchmarkHelper()
-      : storage_(NaivePeriodicSubscribableCowStorage<RootType>({})) {
+  StorageBenchmarkHelper(bool serveGetRequestsWithLastPublishedState = true)
+      : storage_(NaivePeriodicSubscribableCowStorage<RootType>(
+            {},
+            NaivePeriodicSubscribableStorageBase::StorageParams()
+                .setServeGetRequestsWithLastPublishedState(
+                    serveGetRequestsWithLastPublishedState))) {
     storage_.setConvertToIDPaths(true);
     // initialize test data versions
     for (int version = 0; version < 2; version++) {
@@ -46,7 +50,7 @@ class StorageBenchmarkHelper {
 
   folly::coro::Task<void> getRequest(uint32_t numReads) {
     for (auto count = 0; count < numReads; count++) {
-      storage_.get(this->root.structMap());
+      storage_.get_encoded(this->root.structMap(), OperProtocol::BINARY);
     }
     co_return;
   }
@@ -86,7 +90,7 @@ void bm_get(
 
   for (int i = 0; i < numThreads; i++) {
     asyncScope.add(
-        helper.getRequest(numReadsPerTask).scheduleOn(executor.get()));
+        co_withExecutor(executor.get(), helper.getRequest(numReadsPerTask)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -110,8 +114,8 @@ void bm_set(
   suspender.dismiss();
 
   for (int i = 0; i < numThreads; i++) {
-    asyncScope.add(helper.publishData(numWritesPerTask, useLargeData)
-                       .scheduleOn(executor.get()));
+    asyncScope.add(co_withExecutor(
+        executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -124,12 +128,13 @@ void bm_concurrent_get_set(
     uint32_t numThreads,
     uint32_t numReadsPerTask,
     uint32_t numWritesPerTask,
-    bool useLargeData) {
+    bool useLargeData,
+    bool serveGetRequestsWithLastPublishedState = true) {
   CHECK_GT(numThreads, 1);
 
   folly::BenchmarkSuspender suspender;
 
-  StorageBenchmarkHelper helper;
+  StorageBenchmarkHelper helper(serveGetRequestsWithLastPublishedState);
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -137,12 +142,12 @@ void bm_concurrent_get_set(
 
   suspender.dismiss();
 
-  asyncScope.add(helper.publishData(numWritesPerTask, useLargeData)
-                     .scheduleOn(executor.get()));
+  asyncScope.add(co_withExecutor(
+      executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
 
   for (int i = 1; i < numThreads; i++) {
     asyncScope.add(
-        helper.getRequest(numReadsPerTask).scheduleOn(executor.get()));
+        co_withExecutor(executor.get(), helper.getRequest(numReadsPerTask)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -207,6 +212,15 @@ BENCHMARK_NAMED_PARAM(
     kReadsPerTask,
     kWritesPerTask,
     true);
+
+BENCHMARK_NAMED_PARAM(
+    bm_concurrent_get_set,
+    threads_16_serveGetWithCurrentState,
+    16,
+    kReadsPerTask,
+    kWritesPerTask,
+    true,
+    false);
 
 } // namespace facebook::fboss::fsdb::test
 

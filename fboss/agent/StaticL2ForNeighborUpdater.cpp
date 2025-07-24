@@ -12,8 +12,6 @@
 
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/NeighborTableDeltaCallbackGenerator.h"
-#include "fboss/agent/state/ArpEntry.h"
-#include "fboss/agent/state/NdpEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 

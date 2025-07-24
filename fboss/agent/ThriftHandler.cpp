@@ -1443,7 +1443,7 @@ void ThriftHandler::setInterfacePrbs(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component,
     std::unique_ptr<prbs::InterfacePrbsState> state) {
-  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), *portName);
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
@@ -2415,7 +2415,7 @@ void ThriftHandler::getAllLacpPartnerPairs(
 }
 
 SwitchRunState ThriftHandler::getSwitchRunState() {
-  auto log = LOG_THRIFT_CALL(DBG3);
+  auto log = LOG_THRIFT_CALL(DBG2);
   ensureConfigured(__func__);
   return sw_->getSwitchRunState();
 }
@@ -3093,6 +3093,13 @@ void ThriftHandler::getHwPortStats(
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->getAllHwPortStats(hwPortStats);
+}
+
+void ThriftHandler::getHwRouterInterfaceStats(
+    std::map<std::string, HwRouterInterfaceStats>& hwPortStats) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  // TODO(pshaikh) : implement this
 }
 
 void ThriftHandler::getFabricReachabilityStats(

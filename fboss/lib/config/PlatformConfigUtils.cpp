@@ -48,7 +48,7 @@ void recurseGetPinsByChipType(
     std::vector<Pin>& pins) {
   if (chipsMap.find(*pinConn.a()->chip()) != chipsMap.end()) {
     Pin temp;
-    temp.end_ref() = *pinConn.a();
+    temp.end() = *pinConn.a();
     pins.push_back(temp);
     return;
   }
@@ -61,7 +61,7 @@ void recurseGetPinsByChipType(
   if (zPin.getType() == Pin::Type::end) {
     if (chipsMap.find(*zPin.get_end().chip()) != chipsMap.end()) {
       Pin temp;
-      temp.end_ref() = zPin.get_end();
+      temp.end() = zPin.get_end();
       pins.push_back(temp);
       return;
     }
@@ -69,7 +69,7 @@ void recurseGetPinsByChipType(
     auto zJunction = zPin.get_junction();
     if (chipsMap.find(*zJunction.system()->chip()) != chipsMap.end()) {
       Pin temp;
-      temp.junction_ref() = zJunction;
+      temp.junction() = zJunction;
       pins.push_back(temp);
       return;
     }
@@ -129,6 +129,20 @@ std::string getChipName(const Pin& pin) {
     return *pin.get_junction().system()->chip();
   }
   return *pin.get_end().chip();
+}
+
+std::vector<int32_t> getPhysicalIdsByChipType(
+    const std::map<std::string, DataPlanePhyChip>& chipsMap,
+    DataPlanePhyChipType type) {
+  std::vector<int32_t> physicalIds;
+  for (auto chip : chipsMap) {
+    if (*chip.second.type() != type) {
+      continue;
+    }
+    physicalIds.push_back(*chip.second.physicalID());
+  }
+
+  return physicalIds;
 }
 } // unnamed namespace
 
@@ -380,6 +394,16 @@ std::optional<TransceiverID> getTransceiverId(
     return TransceiverID(*transceiverChips.begin()->second.physicalID());
   }
   return std::nullopt;
+}
+
+std::vector<TransceiverID> getTransceiverIds(
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+  std::vector<TransceiverID> transceiverIds;
+  for (auto id : getPhysicalIdsByChipType(
+           chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER)) {
+    transceiverIds.emplace_back(id);
+  }
+  return transceiverIds;
 }
 
 std::vector<cfg::PlatformPortEntry> getPlatformPortsByChip(

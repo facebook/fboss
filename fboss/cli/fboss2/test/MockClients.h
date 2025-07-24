@@ -11,6 +11,7 @@
 #include <fboss/cli/fboss2/options/SSLPolicy.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
@@ -19,6 +20,13 @@ namespace facebook::fboss {
 
 using namespace facebook::neteng::fboss::bgp::thrift;
 extern std::vector<facebook::fboss::ArpEntryThrift> createArpEntries();
+
+class MockAgentCounters : public AgentCountersIf {
+ public:
+  using FbSwHwAgentCounters = struct SwHwAgentCounters;
+  using hostInfo = facebook::fboss::HostInfo;
+  MOCK_METHOD(void, getAgentCounters, (hostInfo, int, FbSwHwAgentCounters&));
+};
 
 class MockFbossCtrlAgent : public FbossCtrlSvIf {
  public:

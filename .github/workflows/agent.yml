@@ -36,7 +36,7 @@ jobs:
           --env-var
           BUILD_SAI_FAKE
           --num-jobs
-          22
+          18
       - name: Package FBOSS binaries and library dependencies
         run: >
           sudo

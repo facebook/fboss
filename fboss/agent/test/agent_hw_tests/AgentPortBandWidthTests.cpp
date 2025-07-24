@@ -63,12 +63,12 @@ class AgentPortBandwidthTest : public AgentHwTest {
     if (isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
       auto& queue0 = config->portQueueConfigs()["queue_config"][kQueueId0()];
       queue0.portQueueRate() = cfg::PortQueueRate();
-      queue0.portQueueRate()->pktsPerSec_ref() =
+      queue0.portQueueRate()->pktsPerSec() =
           utility::getRange(kMinPps(), maxPps);
     }
     auto& queue1 = config->portQueueConfigs()["queue_config"][kQueueId1()];
     queue1.portQueueRate() = cfg::PortQueueRate();
-    queue1.portQueueRate()->kbitsPerSec_ref() =
+    queue1.portQueueRate()->kbitsPerSec() =
         utility::getRange(kMinKbps(), maxKbps);
   }
 

@@ -57,6 +57,7 @@ DECLARE_bool(force_init_fp);
 DECLARE_bool(flowletSwitchingEnable);
 DECLARE_bool(enable_ecmp_random_spray);
 DECLARE_bool(dlbResourceCheckEnable);
+DECLARE_bool(use_full_dlb_scale);
 DECLARE_bool(disable_neighbor_solicitation);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(detect_wrong_fabric_connections);
@@ -109,3 +110,5 @@ DECLARE_bool(update_route_with_dlb_type);
 DECLARE_int32(agent_exit_delay_s);
 
 DECLARE_bool(dsf_single_stage_r192_f40_e32);
+
+DECLARE_bool(enable_high_frequency_stats_polling);

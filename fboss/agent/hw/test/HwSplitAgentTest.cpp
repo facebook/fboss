@@ -57,7 +57,7 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
         getHwSwitch(), masterLogicalPortIds());
   }
 
-  bool skipTest() {
+  bool isNonHwPlatform() {
     return (
         getPlatform()->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_FAKE ||
@@ -74,10 +74,7 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwSplitAgentCallbackTest, linkCallback) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
+  if (isNonHwPlatform()) {
     return;
   }
   EXPECT_NE(getHwSwitchEnsemble()->getTestServer()->getPort(), 0);
@@ -90,10 +87,7 @@ TEST_F(HwSplitAgentCallbackTest, linkCallback) {
 }
 
 TEST_F(HwSplitAgentCallbackTest, txPacket) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
+  if (isNonHwPlatform()) {
     return;
   }
 
@@ -131,10 +125,7 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
 }
 
 TEST_F(HwSplitAgentCallbackTest, operDeltaUpdate) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
+  if (isNonHwPlatform()) {
     return;
   }
   setPortIDAndStateToWaitFor(masterLogicalInterfacePortIds()[0], false);

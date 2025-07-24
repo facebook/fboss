@@ -32,16 +32,32 @@ double ThriftMethodRateLimit::getQpsLimit(const std::string& method) {
   return 0.0;
 }
 
+void ThriftMethodRateLimit::incrementDenyCounter(const std::string& method) {
+  auto it = method2DenyCounter_.find(method);
+  if (it == method2DenyCounter_.end()) {
+    return;
+  }
+  it->second.fetch_add(1, std::memory_order_relaxed);
+  aggDenyCounter_.fetch_add(1, std::memory_order_relaxed);
+  if (populateCounterFunc_) {
+    populateCounterFunc_(
+        method,
+        it->second.load(std::memory_order_relaxed),
+        aggDenyCounter_.load(std::memory_order_relaxed));
+  }
+}
+
 apache::thrift::PreprocessFunc
 ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
-    std::unique_ptr<ThriftMethodRateLimit> rateLimiter) {
-  return [rateLimiter = std::move(rateLimiter)](
+    std::shared_ptr<ThriftMethodRateLimit> rateLimiter) {
+  return [rateLimiter = rateLimiter](
              const apache::thrift::server::PreprocessParams& params)
              -> apache::thrift::PreprocessResult {
     if (rateLimiter->isQpsLimitExceeded(params.method)) {
       XLOG(WARN) << "reject thrift method due to rate limit: "
                  << rateLimiter->getQpsLimit(params.method)
                  << " for method: " << params.method;
+      rateLimiter->incrementDenyCounter(params.method);
       if (!rateLimiter->getShadowMode()) {
         return apache::thrift::AppOverloadedException(
             fmt::format(

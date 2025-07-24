@@ -83,23 +83,23 @@ ModbusRegisterValue ThriftHandler::transformRegisterValue(
       auto& hexValue = std::get<std::vector<uint8_t>>(value.value);
       std::vector<int8_t> conv(hexValue.size());
       std::copy(hexValue.begin(), hexValue.end(), conv.begin());
-      target.value()->rawValue_ref() = conv;
+      target.value()->rawValue() = conv;
     } break;
     case rackmon::RegisterValueType::INTEGER:
       target.type() = RegisterValueType::INTEGER;
-      target.value()->intValue_ref() = std::get<int32_t>(value.value);
+      target.value()->intValue() = std::get<int32_t>(value.value);
       break;
     case rackmon::RegisterValueType::LONG:
       target.type() = RegisterValueType::LONG;
-      target.value()->longValue_ref() = std::get<int64_t>(value.value);
+      target.value()->longValue() = std::get<int64_t>(value.value);
       break;
     case rackmon::RegisterValueType::STRING:
       target.type() = RegisterValueType::STRING;
-      target.value()->strValue_ref() = std::get<std::string>(value.value);
+      target.value()->strValue() = std::get<std::string>(value.value);
       break;
     case rackmon::RegisterValueType::FLOAT:
       target.type() = RegisterValueType::FLOAT;
-      target.value()->floatValue_ref() = std::get<float>(value.value);
+      target.value()->floatValue() = std::get<float>(value.value);
       break;
     case rackmon::RegisterValueType::FLAGS: {
       target.type() = RegisterValueType::FLAGS;
@@ -113,7 +113,7 @@ ModbusRegisterValue ThriftHandler::transformRegisterValue(
         flag.bitOffset() = flagPos;
         flags.emplace_back(flag);
       }
-      target.value()->flagsValue_ref() = flags;
+      target.value()->flagsValue() = flags;
     } break;
     default:
       throw std::runtime_error("Unsupported Value");
@@ -269,13 +269,13 @@ void ThriftHandler::transformMonitorDataFilter(
       apache::thrift::get_pointer(filter.registerFilter());
   latestOnly = folly::copy(filter.latestValueOnly().value());
   if (reqDevFilter) {
-    if (reqDevFilter->addressFilter_ref().has_value()) {
+    if (reqDevFilter->addressFilter().has_value()) {
       std::set<int16_t> devs = reqDevFilter->get_addressFilter();
       devFilter.addrFilter.emplace();
       for (auto& dev : devs) {
         devFilter.addrFilter->insert(uint8_t(dev));
       }
-    } else if (reqDevFilter->typeFilter_ref().has_value()) {
+    } else if (reqDevFilter->typeFilter().has_value()) {
       std::set<ModbusDeviceType> types = reqDevFilter->get_typeFilter();
       devFilter.typeFilter.emplace();
       for (auto& type : types) {
@@ -286,13 +286,13 @@ void ThriftHandler::transformMonitorDataFilter(
     }
   }
   if (reqRegFilter) {
-    if (reqRegFilter->addressFilter_ref().has_value()) {
+    if (reqRegFilter->addressFilter().has_value()) {
       std::set<int32_t> regs = reqRegFilter->get_addressFilter();
       regFilter.addrFilter.emplace();
       for (auto& addr : regs) {
         regFilter.addrFilter->insert(uint16_t(addr));
       }
-    } else if (reqRegFilter->nameFilter_ref().has_value()) {
+    } else if (reqRegFilter->nameFilter().has_value()) {
       regFilter.nameFilter = reqRegFilter->get_nameFilter();
     } else {
       LOG(ERROR) << "Unsupported empty reg filter" << std::endl;
@@ -479,11 +479,11 @@ void ThriftHandler::getPowerLossSiren(PowerLossSiren& pls) {
     throw std::runtime_error("failed to get power state from all 3 ports");
   }
 
-  pls.port1()->powerLost_ref() = plsInfo[0].first;
-  pls.port1()->redundancyLost_ref() = plsInfo[0].second;
-  pls.port2()->powerLost_ref() = plsInfo[1].first;
-  pls.port2()->redundancyLost_ref() = plsInfo[1].second;
-  pls.port3()->powerLost_ref() = plsInfo[2].first;
-  pls.port3()->redundancyLost_ref() = plsInfo[2].second;
+  pls.port1()->powerLost() = plsInfo[0].first;
+  pls.port1()->redundancyLost() = plsInfo[0].second;
+  pls.port2()->powerLost() = plsInfo[1].first;
+  pls.port2()->redundancyLost() = plsInfo[1].second;
+  pls.port3()->powerLost() = plsInfo[2].first;
+  pls.port3()->redundancyLost() = plsInfo[2].second;
 }
 } // namespace rackmonsvc

@@ -11,8 +11,6 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss {
 
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(

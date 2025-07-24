@@ -12,7 +12,6 @@
 #include <folly/MacAddress.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_fatal.h"
-#include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
 
 namespace facebook::fboss {
 

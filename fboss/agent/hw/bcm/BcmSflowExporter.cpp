@@ -18,7 +18,6 @@
 
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
-#include <glog/logging.h>
 #include <optional>
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>

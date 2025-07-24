@@ -17,7 +17,6 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmQcmCollector.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/SwitchState.h"
 

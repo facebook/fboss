@@ -185,7 +185,7 @@ void addQueueShaperConfig(
   kbpsRange.maximum() = maxKbps;
   auto& queue = getPortQueueConfig(*config, queueId, false /* isVoq */);
   queue.portQueueRate() = cfg::PortQueueRate();
-  queue.portQueueRate()->kbitsPerSec_ref() = kbpsRange;
+  queue.portQueueRate()->kbitsPerSec() = kbpsRange;
 }
 
 void addQueueBurstSizeConfig(

@@ -119,7 +119,7 @@ def prepare_output_dir(output_dir, force_clean):
             )
             if confirm != "y":
                 exit("Exiting.")
-        print("Removing existing output directory...")
+        print("Removing existing output directory...\n")
         shutil.rmtree(output_dir)
     os.mkdir(output_dir)
 
@@ -152,6 +152,10 @@ def get_file_outro():
     return "\n}\n\n" + NAMESPACE_END + "\n"
 
 
+def log_generated_file(filename):
+    print(f"Generated file: {filename}")
+
+
 def open_new_output_cpp(output_dir, output_file_num):
     output_file = "SaiLog{}.cpp".format(output_file_num)
     GENERATED_FILES_SAILOGCPP.append(output_file)
@@ -177,6 +181,7 @@ def generate_header_file(contents, output_dir):
         file.write("\n" + NAMESPACE_END + "\n")
 
     GENERATED_FILES.insert(0, filename)
+    log_generated_file(filename)
 
 
 def generate_main_file(variables, output_dir):
@@ -191,6 +196,7 @@ def generate_main_file(variables, output_dir):
         file.write("}\n")
 
     GENERATED_FILES.insert(0, filename)
+    log_generated_file(filename)
 
 
 def generate_run_bzl(input_file, output_dir):
@@ -200,7 +206,6 @@ def generate_run_bzl(input_file, output_dir):
     )
 
     filename = output_dir + "/run.bzl"
-    GENERATED_FILES.insert(0, filename)
 
     with open(filename, "w") as output_file:
         for line in open(input_file, "r"):
@@ -210,10 +215,14 @@ def generate_run_bzl(input_file, output_dir):
             else:
                 output_file.write(line)
 
+    GENERATED_FILES.insert(0, filename)
+    log_generated_file(filename)
+
 
 def generate_targets_file(output_dir):
     filename = output_dir + "/TARGETS"
     GENERATED_FILES.insert(0, filename)
+    log_generated_file(filename)
     with open(filename, "w") as file:
         file.write(
             """
@@ -248,6 +257,7 @@ def split_file(input_file, output_dir, max_lines):
     output = open_new_output_cpp(output_dir, output_file_num)
 
     pre_code_section = True
+    prev_line_close_brace = False
 
     for line in open(input_file, "r"):
         line = line.strip()
@@ -303,11 +313,11 @@ def split_file(input_file, output_dir, max_lines):
             if assign == -1:
                 # Declaration only
                 variables.append(line)
+                continue
             else:
                 # Separate definition from declaration
                 variables.append(line[:assign] + ";")
                 line = line[index_of_var_name(line) :]
-            continue
 
         # Modify the run_trace line
         if re.search(REGEX_RUN_TRACE_FUNC, line) is not None:
@@ -317,6 +327,7 @@ def split_file(input_file, output_dir, max_lines):
         # Spill to next CPP file
         if line_num > max_lines:
             output.write(get_file_outro())
+            log_generated_file(output.name)
             output.close()
 
             output_file_num += 1
@@ -330,7 +341,14 @@ def split_file(input_file, output_dir, max_lines):
         output.write(line + "\n")
         line_num += 1
 
-    # Outro already written from source file
+        # Track if the braces were closed
+        if line:
+            prev_line_close_brace = "}" in line
+
+    if not prev_line_close_brace:
+        output.write(get_file_outro())
+    # Else, outro already written from source file
+    log_generated_file(output.name)
     output.close()
 
     extern_variables = [
@@ -347,12 +365,14 @@ def split_file(input_file, output_dir, max_lines):
 
 
 def print_summary(input_sailog, input_bzl, output_dir, max_lines):
+    source_files = [input_sailog]
+    if input_bzl:
+        source_files.append(input_bzl)
+
     print("\nSUMMARY")
-    print("Source files: " + input_sailog + (", " + input_bzl) if input_bzl else "")
+    print("Source files: {}".format(", ".join(source_files)))
     print("Max number of lines per file: " + str(max_lines))
-    print("Generated {} files:".format(len(GENERATED_FILES)))
-    for f in GENERATED_FILES:
-        print("  " + f)
+    print("Generated {} files.".format(len(GENERATED_FILES)))
 
 
 def main():

@@ -73,8 +73,7 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   void generatePrefixes() override {
     // this generates 4096 prefixes and 512 nhopSets
     AgentArsBase::generatePrefixes();
-    kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
     kMaxDlbEcmpGroup = std::floor(
         kMaxDlbEcmpGroup * static_cast<double>(FLAGS_ars_resource_percentage) /
         100.0);

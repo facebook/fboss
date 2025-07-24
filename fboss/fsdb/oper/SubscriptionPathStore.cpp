@@ -66,7 +66,7 @@ void SubscriptionPathStore::incrementallyResolve(
     return;
   }
 
-  const auto& key = path.at(idx).raw_ref().value();
+  const auto& key = path.at(idx).raw().value();
   if (auto it = children_.find(key); it == children_.end()) {
     children_.emplace(
         key,
@@ -129,7 +129,7 @@ void SubscriptionPathStore::processAddedPath(
 
     if (elem.getType() == OperPathElem::Type::any) {
       matches = true;
-    } else if (auto regexStr = elem.regex_ref()) {
+    } else if (auto regexStr = elem.regex()) {
       matches = re2::RE2::FullMatch(key, *regexStr);
     }
 

@@ -15,6 +15,7 @@ cpp_library(
         "AgentAclPriorityTests.cpp",
         "AgentAqmTests.cpp",
         "AgentArsBase.cpp",
+        "AgentArsFlowletTest.cpp",
         "AgentConfigSetupTest.cpp",
         "AgentConfigVerifyQosTests.cpp",
         "AgentCoppTests.cpp",
@@ -70,8 +71,8 @@ cpp_library(
         "AgentQueuePerHostTests.cpp",
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
-        "AgentRouteScaleTests.cpp",
         "AgentRouteTests.cpp",
+        "AgentRouterInterfaceCounterTest.cpp",
         "AgentRxReasonTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
         "AgentSflowMirrorTest.cpp",
@@ -206,6 +207,7 @@ cpp_library(
     srcs = [
         "AgentAclScaleTests.cpp",
         "AgentEcmpScaleTests.cpp",
+        "AgentRouteScaleTests.cpp",
         "AgentVoqSwitchScaleTests.cpp",
     ],
     headers = [
@@ -222,6 +224,7 @@ cpp_library(
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:production_features-cpp2-types",
+        "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:copp_test_utils",
         "//fboss/agent/test/utils:dsf_config_utils",
@@ -328,6 +331,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -362,6 +366,7 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -395,6 +400,7 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nv_sai_sdk" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -426,6 +432,7 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,

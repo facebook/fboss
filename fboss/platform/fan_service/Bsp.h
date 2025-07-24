@@ -34,7 +34,6 @@ class Bsp {
   // emergencyShutdown: function to shutdown the platform upon overheat
   virtual int emergencyShutdown(bool enable);
   void kickWatchdog();
-  void closeWatchdog();
   virtual bool setFanPwmSysfs(const std::string& path, int pwm);
   virtual bool setFanLedSysfs(const std::string& path, int pwm);
   virtual uint64_t getCurrentTime() const;
@@ -74,7 +73,6 @@ class Bsp {
   int qsfpSvcThriftPort_{5910};
   int agentTempThriftPort_{5972};
   bool initialSensorDataRead_{false};
-  std::optional<int> watchdogFd_{std::nullopt};
 
   bool writeFd(int fd, const std::string& val) {
     auto ret = write(fd, val.c_str(), val.size());

@@ -1,10 +1,10 @@
 {
   "pwmBoostOnNumDeadFan" : 1,
   "pwmBoostOnNumDeadSensor" : 0,
-  "pwmBoostOnNoQsfpAfterInSec" : 0,
+  "pwmBoostOnNoQsfpAfterInSec" : 31,
   "pwmBoostValue" : 60,
   "pwmTransitionValue" : 50,
-  "pwmLowerThreshold" : 7,
+  "pwmLowerThreshold" : 40,
   "pwmUpperThreshold" : 100,
   "optics" : [
     {

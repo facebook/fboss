@@ -73,7 +73,7 @@ class MockSffModule : public SffModule {
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
   MOCK_CONST_METHOD0(customizationSupported, bool());
   MOCK_METHOD0(getModuleStatus, ModuleStatus());
-  MOCK_METHOD0(getVendorInfo, Vendor());
+  MOCK_CONST_METHOD0(getVendorInfo, Vendor());
   MOCK_METHOD0(verifyEepromChecksums, bool());
   MOCK_CONST_METHOD0(getModuleMediaInterface, MediaInterfaceCode());
 

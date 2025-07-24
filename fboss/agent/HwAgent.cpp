@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 

@@ -60,7 +60,7 @@ BaseSubscription::BaseSubscription(
       heartbeatEvb_(heartbeatEvb),
       heartbeatInterval_(heartbeatInterval) {
   if (heartbeatEvb_) {
-    backgroundScope_.add(heartbeatLoop().scheduleOn(heartbeatEvb_));
+    backgroundScope_.add(co_withExecutor(heartbeatEvb_, heartbeatLoop()));
   }
 }
 
@@ -146,6 +146,7 @@ DeltaSubscription::create(
 
 std::optional<FsdbErrorCode> DeltaSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
   std::optional<FsdbErrorCode> ret;
   auto delta = moveFromCurrDelta(metadataServer);
   if (delta) {
@@ -155,7 +156,12 @@ std::optional<FsdbErrorCode> DeltaSubscription::flush(
 }
 
 std::optional<FsdbErrorCode> DeltaSubscription::serveHeartbeat() {
-  return tryWrite(pipe_, OperDelta(), "delta.hb");
+  auto delta = OperDelta();
+  auto md = getLastMetadata();
+  if (md.has_value()) {
+    delta.metadata() = md.value();
+  }
+  return tryWrite(pipe_, delta, "delta.hb");
 }
 
 bool DeltaSubscription::isActive() const {
@@ -319,7 +325,9 @@ void ExtendedPathSubscription::buffer(
 }
 
 std::optional<FsdbErrorCode> ExtendedPathSubscription::flush(
-    const SubscriptionMetadataServer& /*metadataServer*/) {
+    const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
+
   if (!buffered_) {
     return std::nullopt;
   }
@@ -386,7 +394,9 @@ void ExtendedDeltaSubscription::buffer(TaggedOperDelta&& newVal) {
 }
 
 std::optional<FsdbErrorCode> ExtendedDeltaSubscription::flush(
-    const SubscriptionMetadataServer& /*metadataServer*/) {
+    const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
+
   if (!buffered_) {
     return std::nullopt;
   }
@@ -564,6 +574,7 @@ std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
 
 std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
   if (auto chunk = moveCurChunk(metadataServer)) {
     SubscriberMessage msg;
     msg.set_chunk(std::move(*chunk));
@@ -575,6 +586,10 @@ std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
 std::optional<FsdbErrorCode> ExtendedPatchSubscription::serveHeartbeat() {
   SubscriberMessage msg;
   msg.set_heartbeat();
+  auto md = getLastMetadata();
+  if (md.has_value()) {
+    msg.heartbeat()->metadata() = md.value();
+  }
   return tryWrite(pipe_, std::move(msg), "ExtPatch.hb");
 }
 

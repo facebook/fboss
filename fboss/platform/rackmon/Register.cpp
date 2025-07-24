@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/Register.h"
+#include "Register.h"
 #include <fstream>
 #include <iomanip>
 #include <numeric>

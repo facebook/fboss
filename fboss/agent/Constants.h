@@ -69,6 +69,7 @@ inline constexpr folly::StringPiece kUdfInitState{"udfInitStatus"};
 inline constexpr folly::StringPiece kUdfGroupIds{"udfGroupIds"};
 inline constexpr folly::StringPiece kUdfGroupPktMatchers{"udfGroupPktMatchers"};
 inline constexpr folly::StringPiece kUdfPacketMatchers{"udfPacketMatchers"};
+inline constexpr folly::StringPiece kSysPortShelState{"sysPortShelState"};
 
 inline constexpr int32_t kDefaultVrf{0};
 constexpr auto kSingleStageInbandPortId = 1;

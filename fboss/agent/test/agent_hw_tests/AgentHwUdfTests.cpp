@@ -10,6 +10,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 
 namespace facebook::fboss {
@@ -265,6 +266,50 @@ TEST_F(AgentHwUdfTest, checkUdfHashAclConfiguration) {
   };
 
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwUdfTest, UdfCanaryOn) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  const auto port = masterLogicalPortIds()[0];
+  auto switchId = scopeResolver().scope(port).switchId();
+  auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig(*ensemble)};
+    utility::addLoadBalancerToConfig(newCfg, asic, utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig(*ensemble)};
+    newCfg.udfConfig() = setupUdfConfiguration(true, true);
+    utility::addLoadBalancerToConfig(
+        newCfg, asic, utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
+}
+
+TEST_F(AgentHwUdfTest, UdfCanaryOff) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  const auto port = masterLogicalPortIds()[0];
+  auto switchId = scopeResolver().scope(port).switchId();
+  auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+
+  auto setup = [=, this]() {
+    auto newCfg{initialConfig(*ensemble)};
+    newCfg.udfConfig() = setupUdfConfiguration(true, true);
+    utility::addLoadBalancerToConfig(
+        newCfg, asic, utility::LBHash::FULL_HASH_UDF);
+    applyNewConfig(newCfg);
+  };
+  auto setupPostWB = [=, this]() {
+    auto newCfg{initialConfig(*ensemble)};
+    utility::addLoadBalancerToConfig(newCfg, asic, utility::LBHash::FULL_HASH);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, [] {}, setupPostWB, [] {});
 }
 
 } // namespace facebook::fboss

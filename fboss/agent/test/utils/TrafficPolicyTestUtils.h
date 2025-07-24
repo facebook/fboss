@@ -49,6 +49,11 @@ void addSetDscpAndEgressQueueActionToCfg(
     int queueId,
     bool isSai);
 
+void addSetDscpActionToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    uint8_t dscp);
+
 void addL2ClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
     const std::string& aclName,

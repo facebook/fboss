@@ -9,7 +9,6 @@
  */
 
 #include <fb303/ThreadCachedServiceData.h>
-#include <folly/String.h>
 #include "fboss/agent/SwitchStats.h"
 
 using facebook::fb303::SUM;
