@@ -14,6 +14,7 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
@@ -52,8 +53,11 @@ void monitorSensorValue(const SensorData& sensorData) {
 
 SensorServiceImpl::SensorServiceImpl(
     const SensorConfig& sensorConfig,
-    const std::shared_ptr<Utils>& utils)
-    : sensorConfig_(sensorConfig), utils_(utils) {
+    const std::shared_ptr<Utils>& utils,
+    const std::shared_ptr<PlatformUtils>& platformUtils)
+    : sensorConfig_(sensorConfig),
+      utils_(utils),
+      platformUtils_(platformUtils) {
   fsdbSyncer_ = std::make_unique<FsdbSyncer>();
 }
 
@@ -108,6 +112,17 @@ void SensorServiceImpl::fetchSensorData() {
       publishPerSensorStats(sensorName, sensorData.value().to_optional());
     }
   }
+
+  if (sensorConfig_.switchAsicTemp()) {
+    XLOG(INFO) << "Processing Asic Temperature";
+    auto sensorData = getAsicTemp(sensorConfig_.switchAsicTemp().value());
+    polledData[kAsicTemp] = sensorData;
+    if (!sensorData.value()) {
+      readFailures++;
+    }
+    publishPerSensorStats(kAsicTemp, sensorData.value().to_optional());
+  }
+
   fb303::fbData->setCounter(kReadTotal, polledData.size());
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
@@ -201,6 +216,36 @@ void SensorServiceImpl::publishPerSensorStats(
   } else {
     fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
   }
+}
+
+SensorData SensorServiceImpl::getAsicTemp(const SwitchAsicTemp& asicTemp) {
+  SensorData sensorData{};
+  sensorData.name() = kAsicTemp;
+  sensorData.sensorType() = SensorType::TEMPERTURE;
+  if (!asicTemp.vendorId() || !asicTemp.deviceId()) {
+    return sensorData;
+  }
+  auto sbdf = utils_->getPciAddress(*asicTemp.vendorId(), *asicTemp.deviceId());
+  if (!sbdf) {
+    XLOG(ERR) << fmt::format(
+        "Could not find asic device with vendorId: {}, deviceId: {}",
+        *asicTemp.vendorId(),
+        *asicTemp.deviceId());
+    return sensorData;
+  }
+  auto [exitStatus, output] =
+      platformUtils_->runCommand({"/usr/bin/mget_temp", "-d", *sbdf});
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Failed to get ASIC temperature for PCI device {} with error: {}",
+        *sbdf,
+        output);
+    return sensorData;
+  }
+
+  sensorData.timeStamp() = Utils::nowInSecs();
+  sensorData.value() = folly::to<uint16_t>(output);
+  return sensorData;
 }
 
 } // namespace facebook::fboss::platform::sensor_service
