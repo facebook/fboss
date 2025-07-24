@@ -344,9 +344,10 @@
           }
         },
         {
-          "commandType": "gpioget",
-          "gpiogetArgs": {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
             "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "0",
             "gpioChipPin": "9"
           }
         }
