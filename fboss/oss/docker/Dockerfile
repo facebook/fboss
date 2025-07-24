@@ -19,16 +19,14 @@ RUN sudo dnf install -y autoconf automake binutils binutils-devel bzip2 \
     bzip2-devel cmake double-conversion double-conversion-devel libcurl-devel \
     libcurl-minimal libdwarf libdwarf-devel libevent-devel libffi libffi-devel \
     libnghttp2 libnghttp2-devel libnl3 libnl3-devel libsodium-devel \
-    libsodium-static libtool libunwind libunwind-devel libusb libusb-devel \ 
+    libsodium-static libtool libunwind libunwind-devel libusb libusb-devel \
     libzstd libzstd-devel lz4-devel ncurses-devel ninja-build openssl \
     openssl-devel openssl-libs python3 python3-devel re2 re2-devel \
     snappy-devel xxhash-devel xz-devel zlib-devel zlib-static -y --allowerasing
 RUN ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss
 RUN dnf install bison flex -y
 RUN dnf group install "Development Tools" -y
-RUN dnf install openssl* -y --allowerasing
 RUN python3 -m pip install gitpython
 RUN python3 -m pip install meson
 RUN python3 -m pip install jinja2
 RUN dnf install gperf libcap-devel libmount-devel -y
-
