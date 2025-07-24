@@ -178,9 +178,10 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
     // config.
     applyNewConfig(initialConfig_);
   } else {
-    if (FLAGS_prod_invariant_config_test)
+    if (FLAGS_prod_invariant_config_test) {
       // During warmboot, the ports are already up.
       applyNewConfig(initialConfig_);
+    }
   }
 }
 
