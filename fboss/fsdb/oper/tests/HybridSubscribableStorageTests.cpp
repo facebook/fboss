@@ -380,6 +380,63 @@ TYPED_TEST(SubscribableStorageTests, PublishPatchesFromPureCowStorage) {
   patchAndVerify(patch, srcStorage, tgtStorage);
 }
 
+TYPED_TEST(SubscribableStorageTests, HybridStorageDeltaPubSub) {
+  auto srcStorage = this->initHybridStorage(this->testStruct);
+  srcStorage.start();
+  auto tgtStorage = this->initStorage(this->testStruct);
+
+  auto generator = srcStorage.subscribe_delta(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root,
+      OperProtocol::SIMPLE_JSON);
+
+  auto awaitDelta = [](auto& deltaSubStream) -> OperDelta {
+    OperDelta deltaVal = folly::coro::blockingWait(folly::coro::timeout(
+        consumeOne(deltaSubStream), std::chrono::seconds(5)));
+    EXPECT_EQ(deltaVal.changes()->size(), 1);
+    return deltaVal;
+  };
+
+  auto patchAndVerify =
+      [this](OperDelta& delta, const auto& srcStorage, auto& tgtStorage) {
+        TestStruct srcState = srcStorage.get(this->root).value();
+        std::optional<StorageError> result = tgtStorage.patch(std::move(delta));
+        EXPECT_EQ(result.has_value(), false);
+        tgtStorage.publishCurrentState();
+        TestStruct tgtState = tgtStorage.get(this->root).value();
+        EXPECT_EQ(srcState, tgtState);
+      };
+
+  // 1. initial sync: patch initial sync, and verify target storage state
+  OperDelta deltaVal = awaitDelta(generator);
+  patchAndVerify(deltaVal, srcStorage, tgtStorage);
+
+  // 2. add new entry to map
+  int newKey = 99;
+  TestStructSimple newStruct;
+  newStruct.min() = 999;
+  newStruct.max() = 1001;
+  EXPECT_EQ(
+      srcStorage.set(this->root.structMap()[newKey], newStruct), std::nullopt);
+  deltaVal = awaitDelta(generator);
+  patchAndVerify(deltaVal, srcStorage, tgtStorage);
+
+  // 3. deep update existing entry in map
+  int newIntVal = 12345;
+  int oldKey = 3;
+  EXPECT_EQ(
+      srcStorage.set(
+          this->root.structMap()[oldKey].optionalIntegral(), newIntVal),
+      std::nullopt);
+  deltaVal = awaitDelta(generator);
+  patchAndVerify(deltaVal, srcStorage, tgtStorage);
+
+  // 4. delete existing entry from map
+  srcStorage.remove(this->root.structMap()[newKey]);
+  deltaVal = awaitDelta(generator);
+  patchAndVerify(deltaVal, srcStorage, tgtStorage);
+}
+
 TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   using namespace facebook::fboss::fsdb;
   using namespace facebook::fboss::thrift_cow;
