@@ -1,6 +1,5 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <re2/re2.h>
@@ -87,7 +86,7 @@ void runI2CTestTransactions(
     int busNum,
     int repeat,
     std::optional<DeviceTestData> testDataOpt) {
-  if (!testDataOpt.has_value()) {
+  if (!testDataOpt.has_value() || !testDataOpt->i2cTestData().has_value()) {
     return;
   }
 
@@ -199,6 +198,14 @@ TEST_F(I2CTest, I2CAdapterDevicesExist) {
 
       // Check each device is detectable
       for (const auto& device : *adapter.i2cDevices()) {
+        auto reason = getExpectedErrorReason(
+            *device.pmName(), ExpectedErrorType::I2C_NOT_DETECTABLE);
+        if (reason) {
+          recordExpectedError(*device.pmName(), *reason);
+          XLOG(INFO) << "Skipping I2C device " << *device.pmName() << " ";
+          continue;
+        }
+
         int busNum = newBuses.at(*device.channel()).busNum;
 
         EXPECT_TRUE(I2CUtils::detectI2CDevice(busNum, *device.address()))

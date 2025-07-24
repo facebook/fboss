@@ -2,7 +2,6 @@
 
 #include "fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.h"
 
-#include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -338,6 +337,7 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
 
   config.devices() = devices;
   config.i2cAdapters() = i2cAdapters;
+  config.expectedErrors() = *testConfig.expectedErrors();
 
   XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config);

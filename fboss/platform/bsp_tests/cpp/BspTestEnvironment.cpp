@@ -2,7 +2,6 @@
 
 #include "fboss/platform/bsp_tests/cpp/BspTestEnvironment.h"
 
-#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.h"
@@ -70,6 +69,38 @@ BspTestsConfig BspTestEnvironment::loadTestConfig(const std::string& platform) {
   XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config);
   return config;
+}
+
+void BspTestEnvironment::recordExpectedError(
+    const std::string& testName,
+    const std::string& deviceName,
+    const std::string& reason) {
+  RecordedError error;
+  error.testName = testName;
+  error.deviceName = deviceName;
+  error.reason = reason;
+
+  recordedErrors_.push_back(error);
+}
+
+void BspTestEnvironment::printAllRecordedErrors() const {
+  if (recordedErrors_.empty()) {
+    return;
+  }
+
+  XLOG(INFO) << "=== EXPECTED ERRORS SUMMARY ===";
+  XLOG(INFO) << "Total errors recorded: " << recordedErrors_.size();
+
+  for (size_t i = 0; i < recordedErrors_.size(); ++i) {
+    const auto& error = recordedErrors_[i];
+    XLOG(INFO) << "Error " << (i + 1) << ":";
+    XLOG(INFO) << "  Test: " << error.testName;
+    XLOG(INFO) << "  Device: " << error.deviceName;
+    XLOG(INFO) << "  Reason: "
+               << (error.reason.empty() ? "<no reason provided>"
+                                        : error.reason);
+  }
+  XLOG(INFO) << "=== END ERRORS SUMMARY ===";
 }
 
 } // namespace facebook::fboss::platform::bsp_tests::cpp
