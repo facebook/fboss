@@ -5,13 +5,13 @@
 namespace facebook::fboss::utility {
 cfg::MirrorEgressPort getMirrorEgressPort(const std::string& portName) {
   cfg::MirrorEgressPort egressPort;
-  egressPort.name_ref() = portName;
+  egressPort.name() = portName;
   return egressPort;
 }
 
 cfg::MirrorEgressPort getMirrorEgressPort(PortID portID) {
   cfg::MirrorEgressPort egressPort;
-  egressPort.logicalID_ref() = portID;
+  egressPort.logicalID() = portID;
   return egressPort;
 }
 
