@@ -591,12 +591,24 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
                                     : NeighborEntryState::STALE;
 
     switch (entry->getType()) {
-      case state::NeighborEntryType::DYNAMIC_ENTRY:
+      case state::NeighborEntryType::DYNAMIC_ENTRY: {
+        auto port = entry->getPort();
+        auto fields = EntryFields::fromThrift(entry->toThrift());
+        auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
+        // For VOQ switches, the port ID in switchState is system port ID
+        // and neighbor cache stores physical port ID. So, we need to
+        // convert system port ID to physical port ID
+        if (switchType == cfg::SwitchType::VOQ &&
+            port.type() == PortDescriptor::PortType::SYSTEM_PORT) {
+          auto physPortID =
+              getPortID(entry->getPort().sysPortID(), getSw()->getState());
+
+          fields.port = PortDescriptor(physPortID);
+        }
         addOrUpdateEntryInternal(
-            EntryFields::fromThrift(entry->toThrift()),
-            state,
-            state::NeighborEntryType::DYNAMIC_ENTRY);
+            fields, state, state::NeighborEntryType::DYNAMIC_ENTRY);
         break;
+      }
       case state::NeighborEntryType::STATIC_ENTRY:
         // We don't need to run Neighbor entry state machine for static
         // entries. Thus, skip adding to the neighbor cache

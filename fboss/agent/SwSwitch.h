@@ -110,6 +110,7 @@ class HwSwitchThriftClientTable;
 class ResourceAccountant;
 class RemoteNeighborUpdater;
 class EcmpResourceManager;
+class ShelManager;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -981,6 +982,8 @@ class SwSwitch : public HwSwitchCallback {
 
   std::map<PortID, HwPortStats> getHwPortStats(
       std::vector<PortID> portId) const;
+  std::map<InterfaceID, HwRouterInterfaceStats> getHwRouterInterfaceStats(
+      const std::vector<InterfaceID>& intfIds) const;
   void getAllHwSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) const;
   std::map<SystemPortID, HwSysPortStats> getHwSysPortStats(
@@ -1094,6 +1097,12 @@ class SwSwitch : public HwSwitchCallback {
    * Invoke State modifier to modify state prior to update.
    */
   bool preUpdateModifyState(std::vector<StateDelta>& deltas);
+
+  /*
+   * Reconstruct state modifier from initial switch state.
+   */
+  std::vector<StateDelta> reconstructStateModifierFromSwitchState(
+      const std::shared_ptr<SwitchState>& initialState);
 
   void notifyStateModifierUpdateFailed(
       const std::shared_ptr<SwitchState>& state);
@@ -1363,6 +1372,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
+  std::unique_ptr<ShelManager> shelManager_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

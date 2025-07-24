@@ -194,13 +194,16 @@ class CmdShowFabricInputBalance : public CmdHandler<
     for (const auto& entry : *model.inputBalanceEntry()) {
       table.addRow(
           {*entry.destinationSwitchName(),
-           folly::join(" ", *entry.sourceSwitchName()),
+           entry.sourceSwitchName()->size() == 1
+               ? folly::join(" ", *entry.sourceSwitchName())
+               : folly::to<std::string>(
+                     entry.sourceSwitchName()->size(), " devices"),
            folly::to<std::string>(*entry.virtualDeviceID()),
            *entry.balanced() ? "True" : "False",
-           folly::join(" ", *entry.inputCapacity()),
-           folly::join(" ", *entry.outputCapacity()),
-           folly::join(" ", *entry.inputLinkFailure()),
-           folly::join(" ", *entry.outputLinkFailure())});
+           folly::to<std::string>(entry.inputCapacity()->size()),
+           folly::to<std::string>(entry.outputCapacity()->size()),
+           folly::to<std::string>(entry.inputLinkFailure()->size()),
+           folly::to<std::string>(entry.outputLinkFailure()->size())});
     }
     out << table << std::endl;
   }

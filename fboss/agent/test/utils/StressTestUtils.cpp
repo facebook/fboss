@@ -164,8 +164,9 @@ cfg::SwitchConfig bgpRxBenchmarkConfig(const AgentEnsemble& ensemble) {
 
   std::vector<PortID> ports;
   // ECMP needs at least 4 data interfaces
-  for (auto i = 0; i < kEcmpWidth; i++)
+  for (auto i = 0; i < kEcmpWidth; i++) {
     ports.push_back(ensemble.masterLogicalInterfacePortIds()[i]);
+  }
 
   // For J2 and J3, initialize recycle port as well to allow l3 lookup on
   // recycle port

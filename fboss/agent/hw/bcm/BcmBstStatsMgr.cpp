@@ -12,6 +12,7 @@
 
 #include <algorithm>
 
+#include <folly/Indestructible.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
@@ -287,27 +288,27 @@ void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
         portStatsConfig.includeQueueWatermark().value())) {
     return;
   }
-  if (!bcmPort->isUp() || !bcmPort->isPortPgConfigured()) {
+  if (!bcmPort->isUp()) {
     return;
   }
   std::map<int16_t, int64_t> queueIdToWatermarkBytes;
-  std::map<int16_t, int64_t> queueIdToPGWatermarkBytes;
+  std::map<int16_t, int64_t> pgIdToPgWatermarkBytes;
   bcm_gport_t gport = bcmPort->getBcmGport();
   uint32_t options = BCM_COSQ_STAT_CLEAR;
+  std::vector<bcm_bst_stat_id_t> bstStatTypes{};
+  if (portStatsConfig.includePgWatermark().value()) {
+    if (bcmPort->isPortPgConfigured()) {
+      bstStatTypes.push_back(bcmBstStatIdPriGroupShared);
+    } else {
+      XLOG(ERR) << "PG watermark stats requested for port " << portId
+                << ", but port is not configured for PG";
+    }
+  }
+  if (portStatsConfig.includeQueueWatermark().value()) {
+    bstStatTypes.push_back(bcmBstStatIdUcast);
+  }
   // A 1:1 mapping between the priority group and queue is assumed
   for (int16_t queue : kHfQueueIds) {
-    std::vector<bcm_bst_stat_id_t> bstStatTypes{};
-    if (portStatsConfig.includePgWatermark().value()) {
-      if (bcmPort->isPortPgConfigured()) {
-        bstStatTypes.push_back(bcmBstStatIdPriGroupShared);
-      } else {
-        XLOG(ERR) << "PG watermark stats requested for port " << portId
-                  << ", but port is not configured for PG";
-      }
-    }
-    if (portStatsConfig.includeQueueWatermark().value()) {
-      bstStatTypes.push_back(bcmBstStatIdUcast);
-    }
     std::vector<uint64_t> bstStatValues(bstStatTypes.size());
     auto rv = bcm_cosq_bst_stat_multi_get(
         hw_->getUnit(),
@@ -323,7 +324,7 @@ void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
       if (bstStatTypes.at(i) == bcmBstStatIdPriGroupShared) {
         // The PG ID has a 1:1 mapping to the queue ID
         uint16_t pgId = queue;
-        queueIdToPGWatermarkBytes[pgId] =
+        pgIdToPgWatermarkBytes[pgId] =
             bstStatValues.at(i) * hw_->getMMUCellBytes();
       } else if (bstStatTypes.at(i) == bcmBstStatIdUcast) {
         queueIdToWatermarkBytes[queue] =
@@ -331,10 +332,14 @@ void BcmBstStatsMgr::populateHighFrequencyBstPortStats(
       }
     }
   }
-  stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
-      queueIdToPGWatermarkBytes;
-  stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
-      queueIdToWatermarkBytes;
+  if (portStatsConfig.includePgWatermark().value()) {
+    stats.portStats()[bcmPort->getPortName()].pgSharedWatermarkBytes() =
+        pgIdToPgWatermarkBytes;
+  }
+  if (portStatsConfig.includeQueueWatermark().value()) {
+    stats.portStats()[bcmPort->getPortName()].queueWatermarkBytes() =
+        queueIdToWatermarkBytes;
+  }
 }
 
 void BcmBstStatsMgr::populateHighFrequencyBstStats(
@@ -367,19 +372,31 @@ void BcmBstStatsMgr::populateHighFrequencyBstStats(
       break;
     }
   }
-  static std::map<int, bcm_port_t> itmToPortMap;
-  createItmToPortMap(itmToPortMap);
+  static const folly::Indestructible<std::map<int, bcm_port_t>> itmToPortMap{
+      [&]() {
+        /*
+         * ITM to port map not available, need to populate it first!
+         * Global headroom/shared buffer stats are per ITM, but as
+         * the counters are to be read per port, we need to keep track
+         * of one port per ITM for which stats can be read. This mapping
+         * is static and doesn't change.
+         */
+        std::map<int, bcm_port_t> itmToPortMapRet{};
+        for (const auto& entry : *hw_->getPortTable()) {
+          BcmPort* bcmPort = entry.second;
+          int itm = hw_->getPlatform()->getPortItm(bcmPort);
+          bcm_port_t bcmPortId = bcmPort->getBcmPortId();
+          if (itmToPortMapRet.try_emplace(itm, bcmPortId).second) {
+            XLOG(DBG2) << "ITM " << itm << " mapped to bcmport " << bcmPortId;
+          }
+        }
+        return itmToPortMapRet;
+      }()};
   if (statsConfig.includeDeviceWatermark().value()) {
     BcmCosManager* cosMgr = hw_->getCosMgr();
-    for (int itm : kHfItms) {
-      auto it = itmToPortMap.find(itm);
-      if (it == itmToPortMap.end()) {
-        XLOG(ERR) << "ITM" << itm << " not found in itmToPortMap";
-        continue;
-      }
+    for (auto& [itm, port] : *itmToPortMap) {
       stats.itmPoolSharedWatermarkBytes()[itm] =
-          cosMgr->statGetExtended(
-              itm, PortID(it->second), -1, bcmBstStatIdIngPool) *
+          cosMgr->statGetExtended(itm, PortID(port), -1, bcmBstStatIdIngPool) *
           hw_->getMMUCellBytes();
     }
   }

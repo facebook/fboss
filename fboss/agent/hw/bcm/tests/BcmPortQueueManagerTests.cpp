@@ -81,7 +81,7 @@ cfg::ActiveQueueManagement getEarlyDropAqmConfig(int mmuCellBytes) {
   *earlyDropLQCD.minimumLength() = mmuCellBytes;
   *earlyDropLQCD.maximumLength() = 2 * mmuCellBytes;
   earlyDropLQCD.probability() = KProbability / 2;
-  earlyDropAQM.detection()->linear_ref() = earlyDropLQCD;
+  earlyDropAQM.detection()->linear() = earlyDropLQCD;
   *earlyDropAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
@@ -92,7 +92,7 @@ cfg::ActiveQueueManagement getECNAqmConfig(int mmuCellBytes) {
   *ecnLQCD.minimumLength() = 3 * mmuCellBytes;
   *ecnLQCD.maximumLength() = 3 * mmuCellBytes;
   ecnLQCD.probability() = KProbability;
-  ecnAQM.detection()->linear_ref() = ecnLQCD;
+  ecnAQM.detection()->linear() = ecnLQCD;
   *ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }

@@ -153,10 +153,45 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::facebook::fboss::state::TeFlowEntryFields>
           flowEntryFields) override;
 
+  /**
+   * @brief Verifies that ECMP groups are correctly configured for flowlet
+   * switching on BCM hardware
+   *
+   * This function validates that ECMP (Equal Cost Multi-Path) groups have the
+   * proper flowlet switching configuration applied, including dynamic mode,
+   * age, and size parameters. It also checks that ECMP members have the correct
+   * status for flowlet operation.
+   *
+   * @param ip CIDR network prefix to identify the route for verification
+   * @param settings Switch settings containing flowlet switching configuration
+   * @param flowletEnable Boolean indicating whether flowlet switching should be
+   * enabled
+   * @return true if ECMP flowlet configuration verification passes, false
+   * otherwise
+   */
   bool verifyEcmpForFlowletSwitchingHandler(
       std::unique_ptr<CIDRNetwork> ip,
       std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
       bool flowletEnable) override;
+
+  /**
+   * @brief Verifies that port-specific flowlet configuration parameters are
+   * correctly applied to BCM hardware egress objects
+   *
+   * @param prefix CIDR network prefix to identify the route for verification
+   * @param cfg Port flowlet configuration containing scaling factor, load
+   * weight, and queue weight parameters
+   * @param flowletEnable Boolean indicating whether flowlet switching should be
+   * enabled
+   * @return true if port flowlet configuration verification passes, false
+   * otherwise
+   */
+  bool verifyPortFlowletConfig(
+      std::unique_ptr<CIDRNetwork> prefix,
+      std::unique_ptr<cfg::PortFlowletConfig> cfg,
+      bool flowletEnable) override;
+
+  bool validateFlowSetTable(const bool expectFlowsetSizeZero) override;
 
  private:
   HwSwitch* hwSwitch_;

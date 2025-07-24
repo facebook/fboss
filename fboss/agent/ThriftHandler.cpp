@@ -2415,7 +2415,7 @@ void ThriftHandler::getAllLacpPartnerPairs(
 }
 
 SwitchRunState ThriftHandler::getSwitchRunState() {
-  auto log = LOG_THRIFT_CALL(DBG3);
+  auto log = LOG_THRIFT_CALL(DBG2);
   ensureConfigured(__func__);
   return sw_->getSwitchRunState();
 }

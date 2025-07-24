@@ -13,7 +13,6 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
-#include "fboss/agent/state/NodeBase-defs.h"
 
 #include "fboss/agent/state/SwitchState.h"
 

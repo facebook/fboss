@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
-#include <glog/logging.h>
-
 namespace facebook::fboss::utility {
 
 bool verifyArs(
@@ -72,6 +70,30 @@ NextHopGroupSaiId getNextHopGroupSaiId(
       routeHandle->nextHopGroupHandle()->adapterKey());
 }
 
+/**
+ * @brief Verifies the port flowlet configuration for a given network prefix
+ * @param hw HwSwitch pointer to the hardware switch
+ * @param ip Network prefix (folly::CIDRNetwork) to verify flowlet configuration
+ * for
+ * @param cfg Port flowlet configuration containing scaling factor, load weight,
+ * and queue weight
+ * @param flowletEnable Boolean indicating whether flowlet switching is enabled
+ * @return True if the port flowlet configuration in hardware matches the
+ * expected configuration, false otherwise. For SAI implementation, this is a
+ * placeholder that always returns true as port flowlet configuration is handled
+ * differently in SAI compared to BCM.
+ */
+bool verifyPortFlowletConfig(
+    const HwSwitch* hw,
+    const folly::CIDRNetwork& ip,
+    const cfg::PortFlowletConfig& cfg,
+    const bool flowletEnable) {
+  // SAI implementation for port flowlet config verification
+  // Currently, this is a placeholder that always returns true
+  // as port flowlet configuration is handled differently in SAI
+  return true;
+}
+
 bool verifyEcmpForFlowletSwitching(
     const HwSwitch* hw,
     const folly::CIDRNetwork& ip,
@@ -109,6 +131,25 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
   auto flowletCfg = settings->flowletSwitchingConfig();
   return verifyEcmpForFlowletSwitching(
       hwSwitch_, follyPrefix, *flowletCfg, flowletEnabled);
+}
+
+bool HwTestThriftHandler::verifyPortFlowletConfig(
+    std::unique_ptr<CIDRNetwork> prefix,
+    std::unique_ptr<cfg::PortFlowletConfig> cfg,
+    bool flowletEnable) {
+  // Convert CIDRNetwork to folly::CIDRNetwork
+  folly::CIDRNetwork follyPrefix{
+      folly::IPAddress(*prefix->IPAddress()),
+      static_cast<uint8_t>(*prefix->mask())};
+
+  return ::facebook::fboss::utility::verifyPortFlowletConfig(
+      hwSwitch_, follyPrefix, *cfg, flowletEnable);
+}
+
+bool HwTestThriftHandler::validateFlowSetTable(
+    const bool expectFlowsetSizeZero) {
+  // Not applicable for SAI
+  return true;
 }
 
 } // namespace facebook::fboss::utility

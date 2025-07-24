@@ -925,18 +925,18 @@ struct SaiSwitchTraits {
       std::optional<Attributes::CreditRequestProfileSchedulerMode>,
       std::optional<Attributes::ModuleIdToCreditRequestProfileParamList>>;
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
-      SAI_SWITCH_STAT_REACHABILITY_DROP,
-      SAI_SWITCH_STAT_GLOBAL_DROP,
-      SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP,
-  };
-#else
+  // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
+  // both DramPacketError and EgressRcvPacketError. As we now have a
+  // dedicated counter to track DramPacketError, will need to use the
+  // new SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR to get the EgressRcvPacketError
+  // alone which tracks the reassembly drops.
+  // Note: DramPacketError is a COR counter and was getting cleared when
+  // SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP was used, hence had to fork
+  // a new counter for EgressRcvPacketError alone.
   static constexpr std::array<sai_stat_id_t, 2> CounterIdsToRead = {
       SAI_SWITCH_STAT_REACHABILITY_DROP,
       SAI_SWITCH_STAT_GLOBAL_DROP,
   };
-#endif
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
   static const std::vector<sai_stat_id_t>& dramStats();
   static const std::vector<sai_stat_id_t>& rciWatermarkStats();
@@ -951,6 +951,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& egressNonFabricCellUnpackError();
   static const std::vector<sai_stat_id_t>& egressParityCellError();
   static const std::vector<sai_stat_id_t>& ddpPacketError();
+  static const std::vector<sai_stat_id_t>& packetIntegrityError();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

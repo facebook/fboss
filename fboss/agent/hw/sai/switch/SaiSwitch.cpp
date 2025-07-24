@@ -491,7 +491,9 @@ void SaiSwitch::processCreditRequestProfileDelta(
       if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
         expectedScheduling = scheduling;
         paramVal = static_cast<int>(param.value().spPriority().value());
-      } else if (scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+      } else if (
+          scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN ||
+          scheduling == cfg::QueueScheduling::DEFICIT_ROUND_ROBIN) {
         expectedScheduling = scheduling;
         paramVal = param.value().wrrWeight().value();
       }
@@ -1851,6 +1853,26 @@ std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
   return portStatsMap;
 }
 
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getRouterInterfaceStatsLocked(lock);
+}
+
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStatsLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) const {
+  folly::F14FastMap<std::string, HwRouterInterfaceStats> rifStatsMap;
+  const auto& statsMap =
+      managerTable_->routerInterfaceManager().getRouterInterfaceStats();
+  auto state = getProgrammedState();
+  for (const auto& entry : statsMap) {
+    auto intf = state->getInterfaces()->getNodeIf(entry.first);
+    rifStatsMap.emplace(intf->getName(), entry.second);
+  }
+  return rifStatsMap;
+}
+
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoImpl() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return updateAllPhyInfoLocked();
@@ -2559,6 +2581,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // details. So, need to force trigger clearing neighbor cache
           // associated with the agg port here.
           swPortId2DownAggPort[swPortId] = swAggPort;
+          XLOG(DBG2) << "link down for agg port " << swAggPort.value();
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
@@ -4887,12 +4910,6 @@ void SaiSwitch::vendorSwitchEventNotificationCallback(
   // splitting the callback to bottom / top half processing.
   managerTable_->vendorSwitchManager().vendorSwitchEventNotificationCallback(
       bufferSize, buffer, eventType);
-}
-
-void SaiSwitch::hardResetSwitchEventNotificationCallback(
-    sai_size_t /*bufferSize*/,
-    const void* /*buffer*/) {
-  XLOG(FATAL) << " ASIC had a hard reset. Aborting !!!";
 }
 
 TeFlowStats SaiSwitch::getTeFlowStats() const {

@@ -57,6 +57,8 @@ void AgentEnsembleTest::setCmdLineFlagOverrides() const {
   FLAGS_disable_looped_fabric_ports = false;
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
+  // Link snapshots use a huge amount of logspace and aren't human-readable
+  FLAGS_enable_snapshot_debugs = false;
 }
 
 void AgentEnsembleTest::TearDown() {

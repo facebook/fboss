@@ -35,6 +35,7 @@
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/ResourceAccountant.h"
+#include "fboss/agent/ShelManager.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -321,6 +322,12 @@ void accumulateFb303GlobalStats(
       toAdd.fabric_reachability_mismatch().value();
   *accumulated.switch_reachability_change() +=
       toAdd.switch_reachability_change().value();
+  if (toAdd.sram_low_buffer_limit_hit_count().has_value()) {
+    uint64_t hitCount =
+        accumulated.sram_low_buffer_limit_hit_count().value_or(0);
+    hitCount += toAdd.sram_low_buffer_limit_hit_count().value();
+    accumulated.sram_low_buffer_limit_hit_count() = hitCount;
+  }
 }
 
 void accumulateGlobalCpuStats(
@@ -651,6 +658,11 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
     ecmpResourceManager_.reset();
   }
 
+  if (!hwAsicTable_->getVoqAsics().empty() && shelManager_) {
+    unregisterStateModifier(shelManager_.get());
+    shelManager_.reset();
+  }
+
   // reset tunnel manager only after pkt thread is stopped
   // as there could be state updates in progress which will
   // access entries in tunnel manager
@@ -931,6 +943,8 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.switchPipelineStats()});
       agentStats.fabricReachabilityStatsMap()->insert(
           {switchIdx, *hwSwitchStats.fabricReachabilityStats()});
+      agentStats.sysPortShelStateMap()->insert(
+          {switchIdx, *hwSwitchStats.sysPortShelState()});
       for (auto&& statEntry :
            *hwSwitchStats.switchTemperatureStats()->value()) {
         auto temp = *hwSwitchStats.switchTemperatureStats()->timeStamp();
@@ -1327,8 +1341,18 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
           ? asic->getMaxDlbEcmpGroups()
           : asic->getMaxEcmpGroups();
       std::optional<cfg::SwitchingMode> switchingMode;
+      std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
       if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
         switchingMode = flowletSwitchingConfig->getBackupSwitchingMode();
+      }
+      if (auto switchId = asic->getSwitchId()) {
+        const auto& switchSettings =
+            state->getSwitchSettings()->getSwitchSettings(HwSwitchMatcher(
+                std::unordered_set<SwitchID>({SwitchID(*switchId)})));
+        if (switchSettings) {
+          ecmpCompressionPenaltyThresholPct =
+              switchSettings->getEcmpCompressionThresholdPct();
+        }
       }
       if (maxEcmpGroups.has_value()) {
         auto percentage = FLAGS_flowletSwitchingEnable
@@ -1343,11 +1367,19 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
                            : "None");
 
         ecmpResourceManager_ = std::make_unique<EcmpResourceManager>(
-            maxEcmps, 0, switchingMode, stats());
+            maxEcmps,
+            ecmpCompressionPenaltyThresholPct.value_or(0),
+            switchingMode,
+            stats());
         registerStateModifier(
             ecmpResourceManager_.get(), "Ecmp Resource Manager");
       }
     }
+  }
+  if (!hwAsicTable_->getVoqAsics().empty()) {
+    // Register ShelManager
+    shelManager_ = std::make_unique<ShelManager>();
+    registerStateModifier(shelManager_.get(), "Shel Manager");
   }
   XLOG(DBG2)
       << "Time to init switch and start all threads "
@@ -1385,14 +1417,9 @@ void SwSwitch::init(
   auto emptyState = std::make_shared<SwitchState>();
   auto origInitialState = initialState;
   emptyState->publish();
-  std::vector<StateDelta> deltas;
-  if (ecmpResourceManager_) {
-    deltas = ecmpResourceManager_->reconstructFromSwitchState(initialState);
-    initialState = deltas.back().newState();
-  } else {
-    deltas.emplace_back(emptyState, initialState);
-  }
-  const auto initialStateDelta = StateDelta(emptyState, initialState);
+  auto deltas = reconstructStateModifierFromSwitchState(initialState);
+  const auto initialStateDelta =
+      StateDelta(emptyState, deltas.back().newState());
 
   // Notify resource accountant of the initial state.
   if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
@@ -1403,8 +1430,8 @@ void SwSwitch::init(
         "but possible if calculation or threshold changes across warmboot.");
   }
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
+  notifyStateModifierUpdateDone();
   if (ecmpResourceManager_) {
-    ecmpResourceManager_->updateDone();
     updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
   }
   // For cold boot there will be discripancy between applied state and state
@@ -1473,7 +1500,10 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   if (!getHwSwitchHandler()->waitUntilHwSwitchConnected()) {
     throw FbossError("Waiting for HwSwitch to be connected cancelled");
   }
-  const auto initialStateDelta = StateDelta(emptyState, initialState);
+  auto origInitialState = initialState;
+  auto deltas = reconstructStateModifierFromSwitchState(initialState);
+  const auto initialStateDelta =
+      StateDelta(emptyState, deltas.back().newState());
   // Notify resource accountant of the initial state.
   if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
     stats()->resourceAccountantRejectedUpdates();
@@ -1491,6 +1521,10 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
     } catch (const std::exception& ex) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }
+  }
+  notifyStateModifierUpdateDone();
+  if (ecmpResourceManager_) {
+    updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
   }
   // for cold boot discrepancy may exist between applied state in software
   // switch and state that already exist in hardware. this discrepancy is
@@ -1673,6 +1707,16 @@ bool SwSwitch::preUpdateModifyState(std::vector<StateDelta>& deltas) {
     }
   }
   return true;
+}
+
+std::vector<StateDelta> SwSwitch::reconstructStateModifierFromSwitchState(
+    const std::shared_ptr<SwitchState>& initialState) {
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(std::make_shared<SwitchState>(), initialState);
+  for (auto [modifier, _] : stateModifiers_) {
+    deltas = modifier->reconstructFromSwitchState(deltas.back().newState());
+  }
+  return deltas;
 }
 
 void SwSwitch::notifyStateModifierUpdateFailed(
@@ -1862,15 +1906,13 @@ void SwSwitch::handlePendingUpdates() {
     std::tie(newAppliedState, newDesiredState) =
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
-      if (ecmpResourceManager_) {
-        /*
-         * Send newAppliedState to EcmpResourceManager to reconstruct its
-         * data structures from. In case of platforms where we have transactions
-         * newAppliedState will be the same as oldState. In others HW will get
-         * to the point of failure and return that state.
-         */
-        ecmpResourceManager_->updateFailed(newAppliedState);
-      }
+      /*
+       * Send newAppliedState to State Modifier to reconstruct its
+       * data structures from. In case of platforms where we have
+       * transactions newAppliedState will be the same as oldState. In
+       * others HW will get to the point of failure and return that state.
+       */
+      notifyStateModifierUpdateFailed(newAppliedState);
       if (isExiting()) {
         /*
          * If we started exit, applyUpdate will reject updates leading
@@ -1910,9 +1952,7 @@ void SwSwitch::handlePendingUpdates() {
                "HW failure protection";
       }
     } else {
-      if (ecmpResourceManager_) {
-        ecmpResourceManager_->updateDone();
-      }
+      notifyStateModifierUpdateDone();
       // Update successful, update hw update counter to zero.
       fb303::fbData->setCounter(kHwUpdateFailures, 0);
     }
@@ -1966,18 +2006,11 @@ SwSwitch::applyUpdate(
     return std::make_pair(oldState, newDesiredState);
   }
   std::vector<StateDelta> deltas;
-  if (ecmpResourceManager_) {
-    try {
-      deltas = ecmpResourceManager_->consolidate(
-          StateDelta(oldState, newDesiredState));
-    } catch (const FbossError& e) {
-      XLOG(DBG2) << " Ecmp resource manager rejected update: " << e.what();
-      return std::make_pair(oldState, newDesiredState);
-    }
-    newDesiredState = deltas.back().newState();
-  } else {
-    deltas.emplace_back(oldState, newDesiredState);
+  deltas.emplace_back(oldState, newDesiredState);
+  if (!preUpdateModifyState(deltas)) {
+    return std::make_pair(oldState, newDesiredState);
   }
+  newDesiredState = deltas.back().newState();
 
   StateDelta delta(oldState, newDesiredState);
   if (!resourceAccountant_->isValidUpdate(delta)) {
@@ -3443,7 +3476,7 @@ void SwSwitch::applyConfig(
     CHECK(agentConfigLocked->get());
     agentConfigThrift = agentConfigLocked->get()->thrift;
   }
-  agentConfigThrift.sw_ref() = newConfig;
+  agentConfigThrift.sw() = newConfig;
   auto newAgentConfig = std::make_unique<AgentConfig>(agentConfigThrift);
   applyConfigImpl(reason, newConfig);
   /* apply and reset software switch config in the already applied agent
@@ -4023,6 +4056,39 @@ std::map<PortID, HwPortStats> SwSwitch::getHwPortStats(
     }
   }
   return hwPortsStats;
+}
+
+std::map<InterfaceID, HwRouterInterfaceStats>
+SwSwitch::getHwRouterInterfaceStats(
+    const std::vector<InterfaceID>& intfIds) const {
+  std::map<InterfaceID, HwRouterInterfaceStats> hwRifStats;
+  for (const auto& intfId : intfIds) {
+    auto state = getState();
+    auto intf = state->getInterfaces()->getNodeIf(intfId);
+    auto switchIds = getScopeResolver()->scope(intf, state).switchIds();
+    CHECK_EQ(switchIds.size(), 1);
+    auto switchIndex =
+        getSwitchInfoTable().getSwitchIndexFromSwitchId(*switchIds.cbegin());
+    if (!getHwAsicTable()->isFeatureSupported(
+            *switchIds.cbegin(),
+            HwAsic::Feature::ROUTER_INTERFACE_STATISTICS)) {
+      // if ASIC for a given rif doesn't support rif stats, ignore it
+      continue;
+    }
+
+    auto hwswitchStatsMap = hwSwitchStats_.rlock();
+    auto hwswitchStats = hwswitchStatsMap->find(switchIndex);
+    if (hwswitchStats != hwswitchStatsMap->end()) {
+      auto statsMap = hwswitchStats->second.hwRouterInterfaceStats();
+      auto entry = statsMap->find(intf->getName());
+      if (entry == statsMap->end()) {
+        XLOG(ERR) << "Stats do not exist for intfId: " << intfId;
+        continue;
+      }
+      hwRifStats.insert({intfId, entry->second});
+    }
+  }
+  return hwRifStats;
 }
 
 std::map<SystemPortID, HwSysPortStats> SwSwitch::getHwSysPortStats(

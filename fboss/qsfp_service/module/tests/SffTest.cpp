@@ -60,7 +60,7 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
-        *media.media()->extendedSpecificationComplianceCode_ref(),
+        *media.media()->extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
@@ -191,7 +191,7 @@ TEST_F(SffTest, dacTransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR4_100G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
-        *media.media()->extendedSpecificationComplianceCode_ref(),
+        *media.media()->extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CR4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CR4_100G);
   }

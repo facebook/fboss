@@ -146,6 +146,7 @@ DeltaSubscription::create(
 
 std::optional<FsdbErrorCode> DeltaSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
   std::optional<FsdbErrorCode> ret;
   auto delta = moveFromCurrDelta(metadataServer);
   if (delta) {
@@ -324,7 +325,9 @@ void ExtendedPathSubscription::buffer(
 }
 
 std::optional<FsdbErrorCode> ExtendedPathSubscription::flush(
-    const SubscriptionMetadataServer& /*metadataServer*/) {
+    const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
+
   if (!buffered_) {
     return std::nullopt;
   }
@@ -391,7 +394,9 @@ void ExtendedDeltaSubscription::buffer(TaggedOperDelta&& newVal) {
 }
 
 std::optional<FsdbErrorCode> ExtendedDeltaSubscription::flush(
-    const SubscriptionMetadataServer& /*metadataServer*/) {
+    const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
+
   if (!buffered_) {
     return std::nullopt;
   }
@@ -569,6 +574,7 @@ std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
 
 std::optional<FsdbErrorCode> ExtendedPatchSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
+  updateMetadata(metadataServer);
   if (auto chunk = moveCurChunk(metadataServer)) {
     SubscriberMessage msg;
     msg.set_chunk(std::move(*chunk));

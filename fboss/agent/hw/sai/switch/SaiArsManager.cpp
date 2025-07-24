@@ -60,7 +60,7 @@ void SaiArsManager::changeArs(
   addArs(newFlowletSwitchConfig);
 }
 
-SaiArsHandle* SaiArsManager::getArsHandle() {
+SaiArsHandle* SaiArsManager::getArsHandle() const {
   return arsHandle_.get();
 }
 #endif

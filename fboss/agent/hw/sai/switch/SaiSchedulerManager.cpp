@@ -131,9 +131,9 @@ void SaiSchedulerManager::fillSchedulerSettings(
   range.maximum() = maxBwRate;
   cfg::PortQueueRate portQueueRate;
   if (meterType == SAI_METER_TYPE_BYTES) {
-    portQueueRate.kbitsPerSec_ref() = range;
+    portQueueRate.kbitsPerSec() = range;
   } else {
-    portQueueRate.pktsPerSec_ref() = range;
+    portQueueRate.pktsPerSec() = range;
   }
   portQueue->setPortQueueRate(portQueueRate);
 }

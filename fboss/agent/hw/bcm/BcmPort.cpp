@@ -40,7 +40,6 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
-#include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmPrbs.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
@@ -1343,8 +1342,8 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   for (int lane = 0; lane < totalPmdLanes; lane++) {
     phy::LaneInfo laneInfo;
     phy::LaneState laneState;
-    laneInfo.lane_ref() = lane;
-    laneState.lane_ref() = lane;
+    laneInfo.lane() = lane;
+    laneState.lane() = lane;
     if (readRxFreq) {
       uint32_t value;
       auto rv = bcm_port_phy_control_get(
@@ -1353,7 +1352,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       laneInfo.rxFrequencyPPM() = value;
       laneState.rxFrequencyPPM() = value;
     }
-    pmdState.lanes_ref()[lane] = laneState;
+    pmdState.lanes()[lane] = laneState;
   }
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
@@ -1361,14 +1360,14 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     auto rv = bcm_port_pmd_rx_lock_status_get(unit_, port_, &lock_status);
     if (!BCM_FAILURE(rv)) {
       for (int lane = 0; lane < totalPmdLanes; lane++) {
-        pmdState.lanes_ref()[lane].lane_ref() = lane;
-        pmdStats.lanes_ref()[lane].lane_ref() = lane;
-        pmdState.lanes_ref()[lane].cdrLockLive_ref() =
+        pmdState.lanes()[lane].lane() = lane;
+        pmdStats.lanes()[lane].lane() = lane;
+        pmdState.lanes()[lane].cdrLockLive() =
             lock_status.rx_lock_bmp & (1 << lane);
         bool changed = lock_status.rx_lock_change_bmp & (1 << lane);
-        pmdState.lanes_ref()[lane].cdrLockChanged_ref() = changed;
+        pmdState.lanes()[lane].cdrLockChanged() = changed;
         utility::updateCdrLockChangedCount(
-            changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
+            changed, lane, pmdStats.lanes()[lane], lastPmdStats);
       }
     } else {
       XLOG(ERR) << "Failed to read rx_lock_status for port " << port_ << " :"

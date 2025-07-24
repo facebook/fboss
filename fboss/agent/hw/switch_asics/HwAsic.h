@@ -219,6 +219,7 @@ class HwAsic {
     ASIC_RESET_NOTIFICATIONS,
     SAI_PORT_IN_CONGESTION_DISCARDS,
     TEMPERATURE_MONITORING,
+    ROUTER_INTERFACE_STATISTICS,
   };
 
   enum class AsicMode {
@@ -246,7 +247,7 @@ class HwAsic {
   };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(
-      std::optional<int64_t> switchID,
+      int64_t switchID,
       const cfg::SwitchInfo& switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole);

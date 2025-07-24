@@ -158,7 +158,7 @@ struct Heartbeat {
 
 union PublisherMessage {
   1: Patch patch;
-  // TODO: heartbeat
+  2: Heartbeat heartbeat;
 }
 
 struct SubscriberChunk {

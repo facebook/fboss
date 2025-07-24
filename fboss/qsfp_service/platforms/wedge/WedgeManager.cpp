@@ -33,11 +33,6 @@ DEFINE_bool(
     false,
     "Enable qsfp_service to post optics thermal data to BMC");
 
-DEFINE_bool(
-    enable_tcvr_i2c_logging,
-    false,
-    "Enable transceiver I2C logging feature in qsfp_service");
-
 namespace facebook {
 namespace fboss {
 

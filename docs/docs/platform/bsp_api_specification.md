@@ -160,6 +160,12 @@ device interface `/dev/watchdog#`. The watchdog API is defined here.
 FBOSS Watchdog devices support `start`, `stop`, `ping` and `set_timeout`
 operations.
 
+**Behavior:**
+
+When the watchdog expires and is subsequently kicked, the watchdog shall rearm
+itself. This behavior ensures that the watchdog remains active and continues
+to monitor system status after an expiration event subsequent service recovery.
+
 #### 2.2.8 Transceiver Controller (xcvr_ctrl)
 
 **Interface:**

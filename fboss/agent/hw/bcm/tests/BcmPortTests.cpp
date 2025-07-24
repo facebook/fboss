@@ -502,7 +502,6 @@ TEST_F(BcmPortTest, PortFdrStats) {
 
 TEST_F(BcmPortTest, SetInterPacketGapBits) {
   if (!getPlatform()->getPlatformMapping()->supportsInterPacketGapBits()) {
-    GTEST_SKIP();
     return;
   }
   static auto constexpr expectedInterPacketGapBits = 352;

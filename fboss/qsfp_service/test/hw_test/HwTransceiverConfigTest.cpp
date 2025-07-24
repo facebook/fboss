@@ -46,8 +46,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
       // TODO: Nothing to verify for sff8472 modules
       continue;
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-      moduleFactor.applicationCode() =
-          *mediaIntefaces[0].media()->smfCode_ref();
+      moduleFactor.applicationCode() = *mediaIntefaces[0].media()->smfCode();
     } else {
       EXPECT_TRUE(mgmtInterface == TransceiverManagementInterface::SFF);
     }

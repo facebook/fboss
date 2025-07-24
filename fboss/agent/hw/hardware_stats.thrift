@@ -440,6 +440,7 @@ struct HwSwitchFb303GlobalStats {
   34: i64 fabric_connectivity_bogus;
   35: optional i64 interrupt_masked_events;
   36: optional i64 asic_revision;
+  37: optional i64 sram_low_buffer_limit_hit_count;
 }
 
 struct HwFlowletStats {

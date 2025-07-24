@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/lib/AlertLogger.h"
@@ -21,13 +20,10 @@
 #include <folly/container/F14Map.h>
 
 #include <folly/Memory.h>
-#include <folly/String.h>
-#include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
 #include <atomic>
-#include <unordered_map>
 
 extern "C" {
 #include <sal/core/boot.h>

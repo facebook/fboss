@@ -19,10 +19,10 @@ std::string PathHelpers::toString(const ExtendedOperPath& path) {
   for (const auto& pathElm : *path.path()) {
     switch (pathElm.getType()) {
       case OperPathElem::Type::raw:
-        pathElms.push_back(pathElm.raw_ref().value());
+        pathElms.push_back(pathElm.raw().value());
         break;
       case OperPathElem::Type::regex:
-        pathElms.push_back(pathElm.regex_ref().value());
+        pathElms.push_back(pathElm.regex().value());
         break;
       case OperPathElem::Type::any:
         pathElms.push_back("*");
@@ -77,7 +77,7 @@ std::vector<ExtendedOperPath> PathHelpers::toExtendedOperPath(
     extPath.path()->reserve(path.size());
     for (const auto& pathElm : path) {
       OperPathElem operPathElm;
-      operPathElm.raw_ref() = pathElm;
+      operPathElm.raw() = pathElm;
       extPath.path()->push_back(std::move(operPathElm));
     }
     extPaths.push_back(std::move(extPath));
@@ -93,7 +93,7 @@ std::map<SubscriptionKey, ExtendedOperPath> toMappedExtendedOperPath(
     extPath.path()->reserve(path.size());
     for (const auto& pathElm : path) {
       OperPathElem operPathElm;
-      operPathElm.raw_ref() = pathElm;
+      operPathElm.raw() = pathElm;
       extPath.path()->push_back(std::move(operPathElm));
     }
     result[i] = std::move(extPath);

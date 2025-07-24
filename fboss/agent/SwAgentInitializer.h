@@ -78,6 +78,8 @@ class SwAgentInitializer : public AgentInitializer {
     return initializer_.get();
   }
 
+  void stopStatsThread();
+
   // In case of gtest failures, we need to do an unclean exit to flag failures.
   // Hence control that via the gracefulExit flag
   void stopAgent(bool setupWarmboot, bool gracefulExit) override;

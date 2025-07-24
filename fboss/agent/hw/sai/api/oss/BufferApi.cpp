@@ -4,33 +4,63 @@
 
 namespace facebook::fboss {
 
-std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSharedFadtMaxTh::operator()() {
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributeSharedFadtMaxTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributeSharedFadtMinTh::operator()() {
   return std::nullopt;
 }
 
 std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSharedFadtMinTh::operator()() {
+SaiStaticBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
   return std::nullopt;
 }
 
 std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
+SaiStaticBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributeSramFadtXonOffset::operator()() {
   return std::nullopt;
 }
 
 std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
+SaiStaticBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
   return std::nullopt;
 }
 
-std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSharedFadtMaxTh::operator()() {
   return std::nullopt;
 }
 
-std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSharedFadtMinTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramFadtMinTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramFadtMaxTh::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramFadtXonOffset::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramDynamicTh::operator()() {
   return std::nullopt;
 }
 

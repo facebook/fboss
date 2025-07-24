@@ -20,6 +20,8 @@ class PreUpdateStateModifier : public boost::noncopyable {
   virtual ~PreUpdateStateModifier() {}
   virtual std::vector<StateDelta> modifyState(
       const std::vector<StateDelta>& deltas) = 0;
+  virtual std::vector<StateDelta> reconstructFromSwitchState(
+      const std::shared_ptr<SwitchState>& curState) = 0;
   virtual void updateFailed(const std::shared_ptr<SwitchState>& state) = 0;
   virtual void updateDone() = 0;
 };

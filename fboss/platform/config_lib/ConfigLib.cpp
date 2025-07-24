@@ -139,4 +139,12 @@ std::string ConfigLib::getBspTestConfig(
   return configs::bsp_tests.at(getPlatformName(platformName));
 }
 
+std::string ConfigLib::getShowtechConfig(
+    const std::optional<std::string>& platformName) const {
+  if (auto configJson = getConfigFromFile()) {
+    return *configJson;
+  }
+  return configs::showtech.at(getPlatformName(platformName));
+}
+
 } // namespace facebook::fboss::platform

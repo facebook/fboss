@@ -8,13 +8,65 @@
 
 namespace facebook::fboss::fsdb {
 
-enum class StorageError {
-  // path is not valid for target storage type
-  INVALID_PATH,
-  // typed accessor was used, but the path contains a type that is
-  // incompatible w/ that type. These should hopefully be caught at compile
-  // time in most cases.
-  TYPE_ERROR,
+// Class that represents storage errors with additional error message
+class StorageError {
+ public:
+  // Error codes
+  enum class Code {
+    // path is not valid for target storage type
+    INVALID_PATH,
+    // typed accessor was used, but the path contains a type that is
+    // incompatible w/ that type. These should hopefully be caught at compile
+    // time in most cases.
+    TYPE_ERROR,
+  };
+
+  // Constructors
+  StorageError(Code code, std::string errorMessage)
+      : code_(code), errorMessage_(std::move(errorMessage)) {}
+
+  // Accessors
+  Code code() const {
+    return code_;
+  }
+  const std::string& errorMessage() const {
+    return errorMessage_;
+  }
+
+  std::string toString() const {
+    return folly::to<std::string>(
+        "ThriftTraverseResult::", codeString(), " (", errorMessage_, ")");
+  }
+
+  // Comparison operators
+  bool operator==(const StorageError& other) const {
+    return code_ == other.code_;
+  }
+
+  bool operator!=(const StorageError& other) const {
+    return !(*this == other);
+  }
+
+  // Implicit conversion to bool for conditional checks
+  explicit operator bool() const {
+    return true;
+  }
+
+ private:
+  // Helper function to convert StorageError to string
+  std::string codeString() const {
+    switch (code_) {
+      case StorageError::Code::INVALID_PATH:
+        return "INVALID_PATH";
+      case StorageError::Code::TYPE_ERROR:
+        return "TYPE_ERROR";
+      default:
+        return "StorageError::unknown";
+    }
+  }
+
+  Code code_;
+  std::string errorMessage_;
 };
 
 template <typename Root, typename Derived>

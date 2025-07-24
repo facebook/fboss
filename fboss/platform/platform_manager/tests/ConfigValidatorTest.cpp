@@ -15,8 +15,8 @@ namespace {
 SlotTypeConfig getValidSlotTypeConfig() {
   auto slotTypeConfig = SlotTypeConfig();
   slotTypeConfig.pmUnitName() = "FAN_TRAY";
-  slotTypeConfig.idpromConfig_ref() = IdpromConfig();
-  slotTypeConfig.idpromConfig_ref()->address_ref() = "0x14";
+  slotTypeConfig.idpromConfig() = IdpromConfig();
+  slotTypeConfig.idpromConfig()->address() = "0x14";
   return slotTypeConfig;
 }
 
@@ -109,13 +109,13 @@ TEST(ConfigValidatorTest, SlotTypeConfig) {
   slotTypeConfig.pmUnitName().reset();
   EXPECT_TRUE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
   slotTypeConfig = getValidSlotTypeConfig();
-  slotTypeConfig.idpromConfig_ref().reset();
+  slotTypeConfig.idpromConfig().reset();
   EXPECT_TRUE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
   slotTypeConfig.pmUnitName().reset();
-  slotTypeConfig.idpromConfig_ref().reset();
+  slotTypeConfig.idpromConfig().reset();
   EXPECT_FALSE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
   slotTypeConfig = getValidSlotTypeConfig();
-  slotTypeConfig.idpromConfig_ref()->address_ref() = "0xK4";
+  slotTypeConfig.idpromConfig()->address() = "0xK4";
   EXPECT_FALSE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
 }
 
@@ -299,19 +299,19 @@ TEST(ConfigValidatorTest, SpiDeviceConfig) {
 TEST(ConfigValidatorTest, I2cDeviceConfig) {
   auto i2cConfig = I2cDeviceConfig{};
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.address_ref() = "029";
+  i2cConfig.address() = "029";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.address_ref() = "29";
+  i2cConfig.address() = "29";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.address_ref() = "0x";
+  i2cConfig.address() = "0x";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.address_ref() = "0x2F";
+  i2cConfig.address() = "0x2F";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.address_ref() = "0x2f";
+  i2cConfig.address() = "0x2f";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.pmUnitScopedName() = "PM_UNIT";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.address_ref() = "0x20";
+  i2cConfig.address() = "0x20";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.pmUnitScopedName() = "pm_unit";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));

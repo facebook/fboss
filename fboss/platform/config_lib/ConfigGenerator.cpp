@@ -20,6 +20,7 @@
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/sensor_service/ConfigValidator.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
+#include "fboss/platform/showtech/gen-cpp2/showtech_config_types.h"
 #include "fboss/platform/weutil/ConfigValidator.h"
 #include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
 
@@ -38,6 +39,7 @@ using namespace facebook::fboss::platform::fan_service;
 using namespace facebook::fboss::platform::weutil_config;
 using namespace facebook::fboss::platform::fw_util_config;
 using namespace facebook::fboss::platform::bsp_tests;
+using namespace facebook::fboss::platform::showtech_config;
 using namespace apache::thrift;
 
 namespace {
@@ -60,6 +62,8 @@ std::any deserialize(
       return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
     } else if (serviceName == "bsp_tests") {
       return SimpleJSONSerializer::deserialize<BspTestsConfig>(jsonConfigStr);
+    } else if (serviceName == "showtech") {
+      return SimpleJSONSerializer::deserialize<ShowtechConfig>(jsonConfigStr);
     }
     LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
   } catch (std::exception& ex) {
@@ -78,7 +82,8 @@ const auto kX86Services = std::set<std::string>{
     "weutil",
     "fw_util",
     "led_manager",
-    "bsp_tests"};
+    "bsp_tests",
+    "showtech"};
 constexpr auto kHdrName = "GeneratedConfig.h";
 constexpr auto kHdrBegin = R"(#pragma once
 

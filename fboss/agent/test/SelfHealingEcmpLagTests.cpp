@@ -51,11 +51,11 @@ class SelfHealingEcmpLagTest : public ::testing::Test {
         if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
             port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
           if (enable) {
-            EXPECT_EQ(port->getSelfHealingECMPLagEnable(), enable);
+            EXPECT_EQ(port->getDesiredSelfHealingECMPLagEnable(), enable);
           } else {
             EXPECT_TRUE(
-                !port->getSelfHealingECMPLagEnable().has_value() ||
-                !port->getSelfHealingECMPLagEnable().value());
+                !port->getDesiredSelfHealingECMPLagEnable().has_value() ||
+                !port->getDesiredSelfHealingECMPLagEnable().value());
           }
         }
       }

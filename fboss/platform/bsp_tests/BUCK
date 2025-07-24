@@ -29,6 +29,7 @@ thrift_library(
     deps = [
         ":fbiob_device_config",
         "//fboss/platform/platform_manager:platform_manager_config",
+        "//thrift/annotation:thrift",
     ],
 )
 

@@ -165,6 +165,12 @@ void SaiSwitch::switchEventCallback(
   // noop;
 }
 
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* /*buffer*/) {
+  // noop;
+}
+
 void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
   if (!checkFileExists(FLAGS_wb_downgrade_target_sdk_version_file)) {
     return;

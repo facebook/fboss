@@ -839,11 +839,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
         stats.end(),
         SaiSwitchTraits::CounterIdsToRead.begin(),
         SaiSwitchTraits::CounterIdsToRead.end());
-    if (!platform_->getAsic()->isSupported(
+    if (platform_->getAsic()->isSupported(
             HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS)) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-      stats.erase(std::find(
-          stats.begin(), stats.end(), SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP));
+#if not defined(BRCM_SAI_SDK_DNX_GTE_12_0) && \
+    SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      stats.push_back(SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP);
 #endif
     }
     if (isJerichoAsic(platform_->getAsic()->getAsicType())) {
@@ -928,6 +928,27 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
         SaiSwitchTraits::ddpPacketError().begin(),
         SaiSwitchTraits::ddpPacketError().end());
   }
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedSaiExtensionDropStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_DROP_STATS) &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::packetIntegrityError().begin(),
+        SaiSwitchTraits::packetIntegrityError().end());
+  }
+#endif
   return stats;
 }
 
@@ -1214,6 +1235,21 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         switchDropStats_.tc0RateLimitDrops().value_or(0) +
         dropStats.tc0RateLimitDrops().value_or(0);
   }
+  auto switchSaiExtensionDropStats = supportedSaiExtensionDropStats();
+  if (switchSaiExtensionDropStats.size()) {
+    switch_->updateStats(switchSaiExtensionDropStats, SAI_STATS_MODE_READ);
+    HwSwitchDropStats dropStats;
+    fillHwSwitchSaiExtensionDropStats(
+        switch_->getStats(switchSaiExtensionDropStats), dropStats);
+    // Packet integrity drop stats is supported in 11.7 with
+    // SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP and in 12.2 with
+    // SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR which is a SAI
+    // extension hence switchDropStats_.packetIntegrityDrops is
+    // incremented in multiple places.
+    switchDropStats_.packetIntegrityDrops() =
+        switchDropStats_.packetIntegrityDrops().value_or(0) +
+        dropStats.packetIntegrityDrops().value_or(0);
+  }
   auto errorDropStats = supportedErrorStats();
   if (errorDropStats.size()) {
     switch_->updateStats(errorDropStats, SAI_STATS_MODE_READ);
@@ -1257,10 +1293,41 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
   if (updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
+    updateSramLowBufferLimitHitCounter();
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
+}
+
+void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK) ||
+      !switchWatermarkStats_.sramMinBufferWatermarkBytes().has_value()) {
+    return;
+  }
+  // getSramSizeBytes() returns the SRAM buffers in all cores combined
+  // and SramFreePercentXoffTh is the percentage SRAM buffer utilization
+  // at which PFC will be triggered on all ports.
+  auto sramFreeBufferPctToTriggerXoff = std::get<
+      std::optional<SaiSwitchTraits::Attributes::SramFreePercentXoffTh>>(
+      switch_->attributes());
+  if (!sramFreeBufferPctToTriggerXoff.has_value()) {
+    // Optional attribute not configured
+    return;
+  }
+
+  uint64_t sramBufferLowerLimit = platform_->getAsic()->getSramSizeBytes() *
+      sramFreeBufferPctToTriggerXoff.value().value() /
+      (platform_->getAsic()->getNumCores() * 100);
+  if (*switchWatermarkStats_.sramMinBufferWatermarkBytes() <=
+      sramBufferLowerLimit) {
+    // Low buffer limit in SRAM was hit and all ports in the core will
+    // be sending PFC XOFF, increment counter to flag this event.
+    platform_->getHwSwitch()->getSwitchStats()->sramLowBufferLimitHitCount();
+  }
+#endif
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {

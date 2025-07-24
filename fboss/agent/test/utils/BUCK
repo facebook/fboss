@@ -547,9 +547,15 @@ cpp_library(
     exported_deps = [
         ":acl_test_utils",
         "//fboss/agent:asic_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:test_ensemble_if",
+        "//folly:network_address",
     ],
 )
 

@@ -7,20 +7,11 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/StateDelta.h"
-#include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
-#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
-#include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
-#include "fboss/agent/hw/switch_asics/RamonAsic.h"
 
 #include <sstream>
 

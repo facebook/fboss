@@ -271,7 +271,7 @@ TEST(PatchApplierTests, ModifyVariantType) {
   ret = PatchApplier<apache::thrift::type_class::variant>::apply(
       *structA.inlineVariant(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
-  EXPECT_EQ(*structA.inlineVariant()->inlineInt_ref(), 42);
+  EXPECT_EQ(*structA.inlineVariant()->inlineInt(), 42);
 
   StructPatch structPatch;
   structPatch.children() = {{L4PortRangeMembers::min::id(), intPatch}};
@@ -294,7 +294,7 @@ TEST(PatchApplierTests, ModifyVariantType) {
   ret = PatchApplier<apache::thrift::type_class::variant>::apply(
       *structA.inlineVariant(), PatchNode(n));
   EXPECT_EQ(ret, PatchApplyResult::OK);
-  EXPECT_EQ(*structA.inlineVariant()->inlineStruct_ref()->min(), 42);
+  EXPECT_EQ(*structA.inlineVariant()->inlineStruct()->min(), 42);
 }
 
 TEST(PatchApplierTests, AddRemoveSetItems) {

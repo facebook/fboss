@@ -3,13 +3,10 @@
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
-#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/SystemPortMap.h"
 
 DEFINE_int64(
     dsf_subscription_heartbeat_interval_s,

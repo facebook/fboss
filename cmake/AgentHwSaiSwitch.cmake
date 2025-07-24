@@ -118,6 +118,7 @@ target_link_libraries(sai_switch
   hw_switch_fb303_stats
   hw_trunk_counters
   hw_fb303_stats
+  hw_rif_fb303_stats
   hw_cpu_fb303_stats
   hw_port_fb303_stats
   hw_resource_stats_publisher

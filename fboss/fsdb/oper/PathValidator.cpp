@@ -52,7 +52,7 @@ void validateRawPath(const std::vector<std::string>& path) {
 void validateRegexesInExtendedPath(const std::vector<OperPathElem>& elems) {
   // First check all regexes are parseable
   for (const auto& elem : elems) {
-    if (auto regexStr = elem.regex_ref()) {
+    if (auto regexStr = elem.regex()) {
       const auto& regex = re2::RE2(*regexStr);
       if (!regex.ok()) {
         throw Utils::createFsdbException(

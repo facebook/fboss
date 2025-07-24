@@ -9,21 +9,17 @@
  */
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFwLoader.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <folly/FileUtil.h>
-#include <folly/ScopeGuard.h>
 #include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
-#include <glog/logging.h>
 
 #include <chrono>
 

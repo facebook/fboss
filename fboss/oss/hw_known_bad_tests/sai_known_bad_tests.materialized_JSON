@@ -485,9 +485,6 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp"
         },
         {
@@ -1063,9 +1060,6 @@
           "test_name_regex": "HwPacketSendReceiveTest.*"
         },
         {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
         },
         {
@@ -1345,9 +1339,6 @@
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
         },
         {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
@@ -1890,9 +1881,6 @@
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
         },
         {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
@@ -2526,9 +2514,6 @@
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
         },
         {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
@@ -3459,9 +3444,6 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp"
         },
         {
@@ -4037,9 +4019,6 @@
           "test_name_regex": "HwPacketSendReceiveTest.*"
         },
         {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
         },
         {
@@ -4316,9 +4295,6 @@
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
         },
         {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
@@ -5139,9 +5115,6 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp"
         },
         {
@@ -5741,9 +5714,6 @@
           "test_name_regex": "HwPacketSendReceiveTest.*"
         },
         {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
         },
         {
@@ -6044,9 +6014,6 @@
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
         },
         {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
@@ -6891,9 +6858,6 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp"
         },
         {
@@ -7469,9 +7433,6 @@
           "test_name_regex": "HwPacketSendReceiveTest.*"
         },
         {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
         },
         {
@@ -7751,9 +7712,6 @@
         },
         {
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf"
-        },
-        {
-          "test_name_regex": "warm_boot.HwTrunkTest.TrunkPortStatsWithMplsPush"
         },
         {
           "test_name_regex": "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
@@ -8127,12 +8085,6 @@
           "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk"
         },
         {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
           "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic"
         },
         {
@@ -8247,12 +8199,6 @@
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.rollbackManyTimesWithTrunk"
-        },
-        {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
-        },
-        {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush"
         },
         {
           "test_name_regex": "HwTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic"
@@ -9982,9 +9928,6 @@
           "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants$"
         },
         {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush$"
-        },
-        {
           "test_name_regex": "HwUdfTest.addAclConfig$"
         },
         {
@@ -10213,9 +10156,6 @@
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants$"
-        },
-        {
-          "test_name_regex": "HwTrunkTest.TrunkPortStatsWithMplsPush$"
         },
         {
           "test_name_regex": "HwUdfTest.addAclConfig$"

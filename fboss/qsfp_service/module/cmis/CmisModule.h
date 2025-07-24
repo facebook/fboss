@@ -80,6 +80,7 @@ class CmisModule : public QsfpModule {
   struct ApplicationAdvertisingField {
     uint8_t ApSelCode;
     uint8_t moduleMediaInterface;
+    uint8_t moduleHostInterface{};
     int hostLaneCount;
     int mediaLaneCount;
     std::vector<int> hostStartLanes;

@@ -289,7 +289,7 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
     *pinEnd.lane() = portProfiles.first;
 
     phy::Pin zPin;
-    zPin.end_ref() = pinEnd;
+    zPin.end() = pinEnd;
     xphyLinePinConnection.z() = zPin;
 
     phy::PinJunction xphyPinJunction;
@@ -298,7 +298,7 @@ FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
     xphyPinJunction.line() = {xphyLinePinConnection};
 
     phy::Pin xphyPin;
-    xphyPin.junction_ref() = xphyPinJunction;
+    xphyPin.junction() = xphyPinJunction;
 
     asicPinConnection.z() = xphyPin;
 

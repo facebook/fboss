@@ -88,9 +88,9 @@ class NeighborUpdaterImpl {
       const std::shared_ptr<AggregatePort>& newAggPort);
 
   // TODO(skhare) Remove after completely migrating to intfCaches_
-  std::shared_ptr<ArpCache> getArpCacheFor(VlanID vlan);
+  //   std::shared_ptr<ArpCache> getArpCacheFor(VlanID vlan);
   std::shared_ptr<ArpCache> getArpCacheInternal(VlanID vlan);
-  std::shared_ptr<NdpCache> getNdpCacheFor(VlanID vlan);
+  //   std::shared_ptr<NdpCache> getNdpCacheFor(VlanID vlan);
   std::shared_ptr<NdpCache> getNdpCacheInternal(VlanID vlan);
 
   std::shared_ptr<ArpCache> getArpCacheInternalForIntf(InterfaceID intfID);

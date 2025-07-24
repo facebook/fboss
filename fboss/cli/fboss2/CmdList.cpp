@@ -37,7 +37,6 @@
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/example/CmdShowExample.h"
-#include "fboss/cli/fboss2/commands/show/example/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"

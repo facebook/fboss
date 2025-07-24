@@ -30,29 +30,10 @@ class AgentPfcTest : public AgentHwTest {
 
  protected:
   void sendPfcFrame(const std::vector<PortID>& portIds, uint8_t classVector) {
-    for (auto portId : portIds) {
-      // Construct PFC payload with fixed quanta 0x00F0.
-      // See https://github.com/archjeb/pfctest for frame structure.
-      std::vector<uint8_t> payload{
-          0x01, 0x01, 0x00, classVector, 0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
-          0x00, 0xF0, 0x00, 0xF0,        0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
-      };
-      std::vector<uint8_t> padding(26, 0);
-      payload.insert(payload.end(), padding.begin(), padding.end());
-
-      // Send it out
-      auto vlanId = getVlanIDForTx();
-      auto intfMac =
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-      auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-      auto pkt = utility::makeEthTxPacket(
-          getSw(),
-          vlanId,
-          srcMac,
-          folly::MacAddress("01:80:C2:00:00:01"), // MAC control address
-          ETHERTYPE::ETHERTYPE_EPON, // Ethertype for PFC frames
-          std::move(payload));
-      getSw()->sendPacketOutOfPortAsync(std::move(pkt), portId);
+    for (const PortID& portId : portIds) {
+      getSw()->sendPacketOutOfPortAsync(
+          utility::makePfcFramePacket(*getAgentEnsemble(), classVector),
+          portId);
     }
   }
 };

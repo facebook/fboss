@@ -77,20 +77,28 @@ class NaivePeriodicSubscribableStorage
 
   template <typename T>
   Result<T> get_impl(PathIter begin, PathIter end) const {
-    auto state =
-        (params_.serveGetRequestsWithLastPublishedState_
-             ? Storage(*lastPublishedState_.rlock())
-             : Storage(*currentState_.rlock()));
-    return state.template get<T>(begin, end);
+    if (params_.serveGetRequestsWithLastPublishedState_) {
+      auto state = Storage(*lastPublishedState_.rlock());
+      return state.template get<T>(begin, end);
+    } else {
+      // hold rlock on current state to avoid racing with writers
+      auto currentState = currentState_.rlock();
+      return currentState->template get<T>(begin, end);
+    }
   }
 
   Result<OperState>
   get_encoded_impl(PathIter begin, PathIter end, OperProtocol protocol) const {
-    auto state =
-        (params_.serveGetRequestsWithLastPublishedState_
-             ? Storage(*lastPublishedState_.rlock())
-             : Storage(*currentState_.rlock()));
-    auto result = state.get_encoded(begin, end, protocol);
+    Result<OperState> result = folly::makeUnexpected(
+        StorageError(StorageError::Code::INVALID_PATH, "Unknown"));
+    if (params_.serveGetRequestsWithLastPublishedState_) {
+      auto state = Storage(*lastPublishedState_.rlock());
+      result = state.get_encoded(begin, end, protocol);
+    } else {
+      // hold rlock on current state to avoid racing with writers
+      auto currentState = currentState_.rlock();
+      result = currentState->get_encoded(begin, end, protocol);
+    }
     if (result.hasValue() && params_.trackMetadata_) {
       auto publisherRoot = getPublisherRoot(begin, end);
       metadataTracker_.withRLock([&](auto& tracker) {
@@ -116,11 +124,16 @@ class NaivePeriodicSubscribableStorage
       ExtPathIter begin,
       ExtPathIter end,
       OperProtocol protocol) const {
-    auto state =
-        (params_.serveGetRequestsWithLastPublishedState_
-             ? Storage(*lastPublishedState_.rlock())
-             : Storage(*currentState_.rlock()));
-    auto result = state.get_encoded_extended(begin, end, protocol);
+    Result<std::vector<TaggedOperState>> result = folly::makeUnexpected(
+        StorageError(StorageError::Code::INVALID_PATH, "Unknown"));
+    if (params_.serveGetRequestsWithLastPublishedState_) {
+      auto state = Storage(*lastPublishedState_.rlock());
+      result = state.get_encoded_extended(begin, end, protocol);
+    } else {
+      // hold rlock on current state to avoid racing with writers
+      auto currentState = currentState_.rlock();
+      result = currentState->get_encoded_extended(begin, end, protocol);
+    }
     if (result.hasValue() && params_.trackMetadata_) {
       auto publisherRoot = getPublisherRoot(begin, end);
       metadataTracker_.withRLock([&](auto& tracker) {
@@ -177,7 +190,7 @@ class NaivePeriodicSubscribableStorage
   std::optional<StorageError> patch_impl(Patch&& patch) {
     if (patch.patch()->getType() == thrift_cow::PatchNode::Type::__EMPTY__) {
       XLOG(DBG3) << "Patch is empty, nothing to do";
-      return StorageError::TYPE_ERROR;
+      return StorageError(StorageError::Code::TYPE_ERROR, "Empty patch");
     }
     auto& path = *patch.basePath();
     auto state = currentState_.wlock();

@@ -2,34 +2,25 @@
 
 #include "fboss/agent/single/MonolithicAgentInitializer.h"
 
-#include <folly/MacAddress.h>
 #include <folly/ScopeGuard.h>
 #include <folly/SocketAddress.h>
-#include <folly/String.h>
 #include <folly/executors/FunctionScheduler.h>
 #include <folly/io/async/AsyncSignalHandler.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/AlpmUtils.h"
-#include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
-#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include <gflags/gflags.h>
 #include <chrono>
@@ -37,7 +28,6 @@
 #include <csignal>
 #include <cstdio>
 #include <functional>
-#include <future>
 #include <mutex>
 #include <string>
 #ifndef IS_OSS

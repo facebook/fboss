@@ -99,12 +99,12 @@ class AgentHwTest : public ::testing::Test {
   void runForever() const;
   std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
   void applyNewState(StateUpdateFn fn, const std::string& name = "agent-test") {
-    return applyNewStateImpl(fn, name, false);
+    applyNewStateImpl(std::move(fn), name, false);
   }
   void applyNewStateTransaction(
       StateUpdateFn fn,
       const std::string& name = "agent-test-transaction") {
-    return applyNewStateImpl(fn, name, true);
+    applyNewStateImpl(std::move(fn), name, true);
   }
 
   SwSwitch* getSw() const;
