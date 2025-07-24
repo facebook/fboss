@@ -50,8 +50,10 @@ void monitorSensorValue(const SensorData& sensorData) {
 }
 } // namespace
 
-SensorServiceImpl::SensorServiceImpl(const SensorConfig& sensorConfig)
-    : sensorConfig_(sensorConfig) {
+SensorServiceImpl::SensorServiceImpl(
+    const SensorConfig& sensorConfig,
+    const std::shared_ptr<Utils>& utils)
+    : sensorConfig_(sensorConfig), utils_(utils) {
   fsdbSyncer_ = std::make_unique<FsdbSyncer>();
 }
 
@@ -141,7 +143,7 @@ void SensorServiceImpl::fetchSensorData() {
 std::vector<PmSensor> SensorServiceImpl::resolveSensors(
     const PmUnitSensors& pmUnitSensors) {
   auto pmSensors = *pmUnitSensors.sensors();
-  if (auto versionedPmSensors = Utils().resolveVersionedSensors(
+  if (auto versionedPmSensors = utils_->resolveVersionedSensors(
           pmUnitInfoFetcher_,
           *pmUnitSensors.slotPath(),
           *pmUnitSensors.versionedSensors())) {

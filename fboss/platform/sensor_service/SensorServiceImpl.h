@@ -18,6 +18,7 @@
 
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/PmUnitInfoFetcher.h"
+#include "fboss/platform/sensor_service/Utils.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
@@ -36,7 +37,9 @@ class SensorServiceImpl {
   auto static constexpr kCriticalThresholdViolation =
       "sensor_read.sensor_{}.type_{}.critical_threshold_violation";
 
-  explicit SensorServiceImpl(const SensorConfig& sensorConfig);
+  explicit SensorServiceImpl(
+      const SensorConfig& sensorConfig,
+      const std::shared_ptr<Utils>& utils = std::make_shared<Utils>());
   ~SensorServiceImpl();
 
   std::vector<SensorData> getSensorsData(
@@ -62,6 +65,7 @@ class SensorServiceImpl {
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
   SensorConfig sensorConfig_{};
+  std::shared_ptr<Utils> utils_{};
   PmUnitInfoFetcher pmUnitInfoFetcher_{};
 };
 
