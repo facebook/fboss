@@ -1008,7 +1008,7 @@ bool CmisModule::getMediaInterfaceId(
       auto smfMediaInterface = getSmfMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.smfCode_ref() = smfMediaInterface;
+      media.smfCode() = smfMediaInterface;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
@@ -1028,7 +1028,7 @@ bool CmisModule::getMediaInterfaceId(
     for (int lane = 0; lane < mediaInterface.size(); lane++) {
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.passiveCuCode_ref() = static_cast<PassiveCuMediaInterfaceCode>(
+      media.passiveCuCode() = static_cast<PassiveCuMediaInterfaceCode>(
           firstModuleCapability->moduleMediaInterface);
       // FIXME: Remove CR8_400G hardcoding and derive this from number of
       // lanes/host electrical interface instead
@@ -1040,7 +1040,7 @@ bool CmisModule::getMediaInterfaceId(
       auto activeCuInterfaceCode = getActiveCuMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.activeCuCode_ref() = activeCuInterfaceCode;
+      media.activeCuCode() = activeCuInterfaceCode;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<ActiveCuHostInterfaceCode>(
               activeCuInterfaceCode,
@@ -2003,7 +2003,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
   }
   cmisData.timeCollected() = lastRefreshTime_;
   DOMDataUnion data;
-  data.cmis_ref() = cmisData;
+  data.cmis() = cmisData;
   return data;
 }
 

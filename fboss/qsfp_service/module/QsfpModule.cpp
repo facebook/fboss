@@ -584,7 +584,7 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   tcvrStats.interfaces() = getInterfaces();
 
   phy::LinkSnapshot snapshot;
-  snapshot.transceiverInfo_ref() = info;
+  snapshot.transceiverInfo() = info;
   snapshots_.wlock()->addSnapshot(snapshot);
   *info_.wlock() = info;
 }
