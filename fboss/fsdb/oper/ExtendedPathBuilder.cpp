@@ -23,7 +23,7 @@ ExtendedOperPath&& ExtendedPathBuilder::get() && {
 
 ExtendedPathBuilder& ExtendedPathBuilder::raw(std::string token) {
   OperPathElem elem;
-  elem.raw_ref() = token;
+  elem.raw() = token;
   path.path()->emplace_back(std::move(elem));
   return *this;
 }
@@ -35,7 +35,7 @@ ExtendedPathBuilder& ExtendedPathBuilder::raw(apache::thrift::field_id_t id) {
 ExtendedPathBuilder& ExtendedPathBuilder::regex(std::string regexStr) {
   // validate inline?
   OperPathElem elem;
-  elem.regex_ref() = regexStr;
+  elem.regex() = regexStr;
   path.path()->emplace_back(std::move(elem));
   return *this;
 }
@@ -43,7 +43,7 @@ ExtendedPathBuilder& ExtendedPathBuilder::regex(std::string regexStr) {
 ExtendedPathBuilder& ExtendedPathBuilder::any() {
   // validate inline?
   OperPathElem elem;
-  elem.any_ref() = true;
+  elem.any() = true;
   path.path()->emplace_back(std::move(elem));
   return *this;
 }
