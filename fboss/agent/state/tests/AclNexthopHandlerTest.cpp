@@ -192,9 +192,9 @@ class AclNexthopHandlerTest : public ::testing::Test {
     auto idx = 0;
     for (auto nhIp : nexthopIps) {
       cfg::RedirectNextHop nhop;
-      nhop.ip_ref() = nhIp;
+      nhop.ip() = nhIp;
       if (intfIDs.size()) {
-        nhop.intfID_ref() = intfIDs[idx];
+        nhop.intfID() = intfIDs[idx];
       }
       cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
       idx++;

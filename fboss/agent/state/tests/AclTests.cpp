@@ -738,8 +738,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
   int intfID = 0;
   for (auto nh : nexthops) {
     cfg::RedirectNextHop nhop;
-    nhop.ip_ref() = nh;
-    nhop.intfID_ref() = ++intfID;
+    nhop.ip() = nh;
+    nhop.intfID() = ++intfID;
     cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
   }
   auto redirectToNextHop = MatchAction::RedirectToNextHopAction();
@@ -813,8 +813,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
   intfID = 0;
   for (auto nh : nexthops) {
     cfg::RedirectNextHop nhop;
-    nhop.ip_ref() = nh;
-    nhop.intfID_ref() = ++intfID;
+    nhop.ip() = nh;
+    nhop.intfID() = ++intfID;
     redirectToNextHop.first.redirectNextHops()->push_back(nhop);
   }
   action.setRedirectToNextHop(redirectToNextHop);

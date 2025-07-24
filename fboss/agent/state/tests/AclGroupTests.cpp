@@ -524,51 +524,47 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   validateNodeSerialization(*tableGroup);
 
   cfg::AclTable cfgTable1;
-  cfgTable1.name_ref() = kTable1;
-  cfgTable1.priority_ref() = 1;
-  cfgTable1.aclEntries_ref()->resize(4);
-  cfgTable1.aclEntries_ref()[0].name_ref() = kAcl1a;
-  cfgTable1.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
-  cfgTable1.aclEntries_ref()[1].name_ref() = kAcl1b;
-  cfgTable1.aclEntries_ref()[1].actionType_ref() = cfg::AclActionType::DENY;
-  cfgTable1.aclEntries_ref()[2].name_ref() = kAcl1c;
-  cfgTable1.aclEntries_ref()[3].name_ref() = kAcl1d;
+  cfgTable1.name() = kTable1;
+  cfgTable1.priority() = 1;
+  cfgTable1.aclEntries()->resize(4);
+  cfgTable1.aclEntries()[0].name() = kAcl1a;
+  cfgTable1.aclEntries()[0].actionType() = cfg::AclActionType::DENY;
+  cfgTable1.aclEntries()[1].name() = kAcl1b;
+  cfgTable1.aclEntries()[1].actionType() = cfg::AclActionType::DENY;
+  cfgTable1.aclEntries()[2].name() = kAcl1c;
+  cfgTable1.aclEntries()[3].name() = kAcl1d;
 
-  cfgTable1.actionTypes_ref()->resize(kActionTypes.size());
-  cfgTable1.actionTypes_ref() = kActionTypes;
+  cfgTable1.actionTypes()->resize(kActionTypes.size());
+  cfgTable1.actionTypes() = kActionTypes;
 
-  cfgTable1.qualifiers_ref()->resize(kQualifiers.size());
-  cfgTable1.qualifiers_ref() = kQualifiers;
+  cfgTable1.qualifiers()->resize(kQualifiers.size());
+  cfgTable1.qualifiers() = kQualifiers;
 
-  cfgTable1.udfGroups_ref()->resize(kAclUdfGroups.size());
-  cfgTable1.udfGroups_ref() = kAclUdfGroups;
+  cfgTable1.udfGroups()->resize(kAclUdfGroups.size());
+  cfgTable1.udfGroups() = kAclUdfGroups;
 
   cfg::SwitchConfig config;
   cfg::AclTableGroup cfgTableGroup;
-  config.aclTableGroup_ref() = cfgTableGroup;
-  config.aclTableGroup_ref()->stage_ref() = kAclStage1;
-  config.aclTableGroup_ref()->name_ref() = kGroup1;
-  config.aclTableGroup_ref()->aclTables_ref()->resize(1);
-  config.aclTableGroup_ref()->aclTables_ref()[0] = cfgTable1;
+  config.aclTableGroup() = cfgTableGroup;
+  config.aclTableGroup()->stage() = kAclStage1;
+  config.aclTableGroup()->name() = kGroup1;
+  config.aclTableGroup()->aclTables()->resize(1);
+  config.aclTableGroup()->aclTables()[0] = cfgTable1;
   // Make sure acl1b used so that it isn't ignored
-  config.dataPlaneTrafficPolicy_ref() = cfg::TrafficPolicyConfig();
-  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()->resize(
+  config.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+  config.dataPlaneTrafficPolicy()->matchToAction()->resize(
       2, cfg::MatchToAction());
-  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[0].matcher_ref() =
-      kAcl1b;
+  config.dataPlaneTrafficPolicy()->matchToAction()[0].matcher() = kAcl1b;
   auto matchAction1b = cfg::MatchAction();
   matchAction1b.counter() = kAcl1b;
-  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[0].action_ref() =
-      matchAction1b;
-  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[1].matcher_ref() =
-      kAcl1d;
+  config.dataPlaneTrafficPolicy()->matchToAction()[0].action() = matchAction1b;
+  config.dataPlaneTrafficPolicy()->matchToAction()[1].matcher() = kAcl1d;
   auto matchAction1d = cfg::MatchAction();
   matchAction1d.counter() = kAcl1d;
-  config.dataPlaneTrafficPolicy_ref()->matchToAction_ref()[1].action_ref() =
-      matchAction1d;
-  config.trafficCounters_ref()->resize(2, cfg::TrafficCounter());
-  *config.trafficCounters_ref()[0].name() = kAcl1b;
-  *config.trafficCounters_ref()[1].name() = kAcl1d;
+  config.dataPlaneTrafficPolicy()->matchToAction()[1].action() = matchAction1d;
+  config.trafficCounters()->resize(2, cfg::TrafficCounter());
+  *config.trafficCounters()[0].name() = kAcl1b;
+  *config.trafficCounters()[1].name() = kAcl1d;
 
   auto stateV1 = publishAndApplyConfig(stateEmpty, &config, platform.get());
 
@@ -692,13 +688,13 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   validateNodeSerialization(*table2);
 
   cfg::AclTable cfgTable2;
-  cfgTable2.name_ref() = kTable2;
-  cfgTable2.priority_ref() = 2;
-  cfgTable2.aclEntries_ref()->resize(1);
-  cfgTable2.aclEntries_ref()[0].name_ref() = kAcl2a;
-  cfgTable2.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
-  config.aclTableGroup_ref()->aclTables_ref()->resize(2);
-  config.aclTableGroup_ref()->aclTables_ref()[1] = cfgTable2;
+  cfgTable2.name() = kTable2;
+  cfgTable2.priority() = 2;
+  cfgTable2.aclEntries()->resize(1);
+  cfgTable2.aclEntries()[0].name() = kAcl2a;
+  cfgTable2.aclEntries()[0].actionType() = cfg::AclActionType::DENY;
+  config.aclTableGroup()->aclTables()->resize(2);
+  config.aclTableGroup()->aclTables()[1] = cfgTable2;
 
   auto stateV2 = publishAndApplyConfig(stateEmpty, &config, platform.get());
 
@@ -769,25 +765,25 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   validateThriftMapMapSerialization(*tableGroups);
 
   cfg::AclTable cfgTable1;
-  cfgTable1.name_ref() = kTable1;
-  cfgTable1.priority_ref() = 1;
-  cfgTable1.aclEntries_ref()->resize(2);
-  cfgTable1.aclEntries_ref()[0].name_ref() = kAcl1a;
-  cfgTable1.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
-  cfgTable1.aclEntries_ref()[1].name_ref() = kAcl1b;
-  cfgTable1.aclEntries_ref()[1].actionType_ref() = cfg::AclActionType::DENY;
+  cfgTable1.name() = kTable1;
+  cfgTable1.priority() = 1;
+  cfgTable1.aclEntries()->resize(2);
+  cfgTable1.aclEntries()[0].name() = kAcl1a;
+  cfgTable1.aclEntries()[0].actionType() = cfg::AclActionType::DENY;
+  cfgTable1.aclEntries()[1].name() = kAcl1b;
+  cfgTable1.aclEntries()[1].actionType() = cfg::AclActionType::DENY;
   cfg::AclTable cfgTable2;
-  cfgTable2.name_ref() = kTable2;
-  cfgTable2.priority_ref() = 2;
-  cfgTable2.aclEntries_ref()->resize(1);
-  cfgTable2.aclEntries_ref()[0].name_ref() = kAcl2a;
-  cfgTable2.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
+  cfgTable2.name() = kTable2;
+  cfgTable2.priority() = 2;
+  cfgTable2.aclEntries()->resize(1);
+  cfgTable2.aclEntries()[0].name() = kAcl2a;
+  cfgTable2.aclEntries()[0].actionType() = cfg::AclActionType::DENY;
 
   cfg::SwitchConfig config;
   cfg::AclTableGroup cfgTableGroup;
-  config.aclTableGroup_ref() = cfgTableGroup;
-  config.aclTableGroup_ref()->name_ref() = kGroup1;
-  config.aclTableGroup_ref()->stage_ref() = kAclStage1;
+  config.aclTableGroup() = cfgTableGroup;
+  config.aclTableGroup()->name() = kGroup1;
+  config.aclTableGroup()->stage() = kAclStage1;
 
   // Expect aclTableGroup to throw an error if its empty
   cfg::SwitchConfig emptyCfg{};
@@ -803,9 +799,9 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       std::make_shared<SwitchState>(), &config, platform.get());
   addSwitchInfo(stateV0);
 
-  config.aclTableGroup_ref()->aclTables_ref()->resize(2);
-  config.aclTableGroup_ref()->aclTables_ref()[0] = cfgTable1;
-  config.aclTableGroup_ref()->aclTables_ref()[1] = cfgTable2;
+  config.aclTableGroup()->aclTables()->resize(2);
+  config.aclTableGroup()->aclTables()[0] = cfgTable1;
+  config.aclTableGroup()->aclTables()[1] = cfgTable2;
 
   stateV0->resetAclTableGroups(tableGroups);
 
@@ -815,14 +811,14 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   // Add a table
   int priority3 = AclTable::kDataplaneAclMaxPriority;
   cfg::AclTable cfgTable3;
-  cfgTable3.name_ref() = kTable3;
-  cfgTable3.priority_ref() = 3;
-  cfgTable3.aclEntries_ref()->resize(1);
-  cfgTable3.aclEntries_ref()[0].name_ref() = kAcl3a;
-  cfgTable3.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
+  cfgTable3.name() = kTable3;
+  cfgTable3.priority() = 3;
+  cfgTable3.aclEntries()->resize(1);
+  cfgTable3.aclEntries()[0].name() = kAcl3a;
+  cfgTable3.aclEntries()[0].actionType() = cfg::AclActionType::DENY;
 
-  config.aclTableGroup_ref()->aclTables_ref()->resize(3);
-  config.aclTableGroup_ref()->aclTables_ref()[2] = cfgTable3;
+  config.aclTableGroup()->aclTables()->resize(3);
+  config.aclTableGroup()->aclTables()[2] = cfgTable3;
 
   auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
@@ -852,7 +848,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *(stateV2->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Remove a table
-  config.aclTableGroup_ref()->aclTables_ref()->resize(2);
+  config.aclTableGroup()->aclTables()->resize(2);
 
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   EXPECT_NE(nullptr, stateV3);
@@ -867,7 +863,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *(stateV3->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Change the priority of a table
-  config.aclTableGroup_ref()->aclTables_ref()[1].priority_ref() = 5;
+  config.aclTableGroup()->aclTables()[1].priority() = 5;
 
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   EXPECT_NE(nullptr, stateV4);
@@ -883,15 +879,10 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *(stateV4->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Add an entry to a table
-  config.aclTableGroup_ref()->aclTables_ref()[1].aclEntries_ref()->resize(2);
-  config.aclTableGroup_ref()
-      ->aclTables_ref()[1]
-      .aclEntries_ref()[1]
-      .name_ref() = kAcl2b;
-  config.aclTableGroup_ref()
-      ->aclTables_ref()[1]
-      .aclEntries_ref()[1]
-      .actionType_ref() = cfg::AclActionType::DENY;
+  config.aclTableGroup()->aclTables()[1].aclEntries()->resize(2);
+  config.aclTableGroup()->aclTables()[1].aclEntries()[1].name() = kAcl2b;
+  config.aclTableGroup()->aclTables()[1].aclEntries()[1].actionType() =
+      cfg::AclActionType::DENY;
 
   auto stateV5 = publishAndApplyConfig(stateV4, &config, platform.get());
   EXPECT_NE(nullptr, stateV5);
@@ -923,7 +914,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *(stateV5->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Remove an entry from a table
-  config.aclTableGroup_ref()->aclTables_ref()[0].aclEntries_ref()->resize(1);
+  config.aclTableGroup()->aclTables()[0].aclEntries()->resize(1);
 
   auto stateV6 = publishAndApplyConfig(stateV5, &config, platform.get());
   EXPECT_NE(nullptr, stateV6);
@@ -947,10 +938,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
 
   // Change an entry in a table
   auto proto = 6;
-  config.aclTableGroup_ref()
-      ->aclTables_ref()[1]
-      .aclEntries_ref()[0]
-      .proto_ref() = proto;
+  config.aclTableGroup()->aclTables()[1].aclEntries()[0].proto() = proto;
 
   auto stateV7 = publishAndApplyConfig(stateV6, &config, platform.get());
   EXPECT_NE(nullptr, stateV7);
@@ -974,17 +962,13 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *(stateV7->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 
   // Move an entry between tables
-  config.aclTableGroup_ref()->aclTables_ref()[1].aclEntries_ref()->resize(
+  config.aclTableGroup()->aclTables()[1].aclEntries()->resize(
       1); // delete entry2b from table 2
-  config.aclTableGroup_ref()->aclTables_ref()[0].aclEntries_ref()->resize(2);
-  config.aclTableGroup_ref()
-      ->aclTables_ref()[0]
-      .aclEntries_ref()[1]
-      .name_ref() = kAcl2b; // add entry2b to table 1
-  config.aclTableGroup_ref()
-      ->aclTables_ref()[0]
-      .aclEntries_ref()[1]
-      .actionType_ref() = cfg::AclActionType::DENY;
+  config.aclTableGroup()->aclTables()[0].aclEntries()->resize(2);
+  config.aclTableGroup()->aclTables()[0].aclEntries()[1].name() =
+      kAcl2b; // add entry2b to table 1
+  config.aclTableGroup()->aclTables()[0].aclEntries()[1].actionType() =
+      cfg::AclActionType::DENY;
 
   auto stateV8 = publishAndApplyConfig(stateV7, &config, platform.get());
   EXPECT_NE(nullptr, stateV8);
