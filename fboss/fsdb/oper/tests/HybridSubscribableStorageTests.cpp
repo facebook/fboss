@@ -437,6 +437,104 @@ TYPED_TEST(SubscribableStorageTests, HybridStorageDeltaPubSub) {
   patchAndVerify(deltaVal, srcStorage, tgtStorage);
 }
 
+TYPED_TEST(SubscribableStorageTests, verifySubscriberDeltaGranularity) {
+  auto storage = this->initStorage(this->testStruct);
+  storage.start();
+
+  auto generator = storage.subscribe_delta(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root,
+      OperProtocol::SIMPLE_JSON);
+
+  // 1. verify initial sync
+  auto deltaMsg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  // expect full tree
+  EXPECT_EQ(deltaMsg.changes()->size(), 1);
+  auto first = deltaMsg.changes()->at(0);
+  EXPECT_THAT(
+      *first.path()->raw(),
+      ::testing::ContainerEq(std::vector<std::string>({})));
+
+  // 2. add new entry to map
+  int newKey = 99;
+  TestStructSimple newStruct;
+  newStruct.min() = 999;
+  newStruct.max() = 1001;
+  EXPECT_EQ(
+      storage.set(this->root.structMap()[newKey], newStruct), std::nullopt);
+  deltaMsg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  // expect newly added entry
+  EXPECT_EQ(deltaMsg.changes()->size(), 1);
+  first = deltaMsg.changes()->at(0);
+  EXPECT_THAT(
+      *first.path()->raw(),
+      ::testing::ContainerEq(std::vector<std::string>({"structMap", "99"})));
+  EXPECT_FALSE(first.oldState());
+  TestStructSimple deserialized = facebook::fboss::thrift_cow::
+      deserialize<apache::thrift::type_class::structure, TestStructSimple>(
+          OperProtocol::SIMPLE_JSON, *first.newState());
+  EXPECT_EQ(deserialized, newStruct);
+
+  // 2. deep update existing entry in map
+  int newIntVal = 12345;
+  int oldKey = 3;
+  EXPECT_EQ(
+      storage.set(this->root.structMap()[oldKey].optionalIntegral(), newIntVal),
+      std::nullopt);
+  deltaMsg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  EXPECT_EQ(deltaMsg.changes()->size(), 1);
+  first = deltaMsg.changes()->at(0);
+  if (this->isHybridStorage()) {
+    // expect full struct
+    EXPECT_EQ(first.path()->raw()->size(), 2);
+    EXPECT_THAT(
+        *first.path()->raw(),
+        ::testing::ContainerEq(std::vector<std::string>({"structMap", "3"})));
+    deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::structure, TestStructSimple>(
+            OperProtocol::SIMPLE_JSON, *first.newState());
+    storage.publishCurrentState();
+    TestStructSimple updated =
+        storage.get(this->root.structMap()[oldKey]).value();
+    EXPECT_EQ(deserialized, updated);
+    EXPECT_EQ(deserialized.min(), 100);
+    EXPECT_EQ(deserialized.max(), 200);
+    EXPECT_EQ(deserialized.optionalIntegral(), 12345);
+  } else {
+    // expect only changed field
+    EXPECT_EQ(first.path()->raw()->size(), 3);
+    EXPECT_THAT(
+        *first.path()->raw(),
+        ::testing::ContainerEq(
+            std::vector<std::string>({"structMap", "3", "optionalIntegral"})));
+    EXPECT_FALSE(first.oldState());
+    auto deserializedInt32 = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::integral, int>(
+            OperProtocol::SIMPLE_JSON, *first.newState());
+    EXPECT_EQ(deserializedInt32, 12345);
+  }
+
+  // 3. delete existing entry from map
+  storage.remove(this->root.structMap()[newKey]);
+  deltaMsg = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  // expect deleted entry
+  EXPECT_EQ(deltaMsg.changes()->size(), 1);
+  first = deltaMsg.changes()->at(0);
+  EXPECT_THAT(
+      *first.path()->raw(),
+      ::testing::ContainerEq(std::vector<std::string>({"structMap", "99"})));
+  EXPECT_TRUE(first.oldState());
+  EXPECT_FALSE(first.newState());
+  deserialized = facebook::fboss::thrift_cow::
+      deserialize<apache::thrift::type_class::structure, TestStructSimple>(
+          OperProtocol::SIMPLE_JSON, *first.oldState());
+  EXPECT_EQ(deserialized, newStruct);
+}
+
 TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   using namespace facebook::fboss::fsdb;
   using namespace facebook::fboss::thrift_cow;
