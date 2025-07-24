@@ -48,6 +48,11 @@ void EcmpResourceMgrMergeGroupsTest::SetUp() {
     newState->publish();
     consolidate(newState);
   }
+  const auto& nhops2Id = sw_->getEcmpResourceManager()->getNhopsToId();
+  auto expectedGrpId = 1;
+  for (const auto& nhops : defaultNhopSets()) {
+    EXPECT_EQ(expectedGrpId++, nhops2Id.find(nhops)->second);
+  }
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
 }
 TEST_F(EcmpResourceMgrMergeGroupsTest, init) {}
