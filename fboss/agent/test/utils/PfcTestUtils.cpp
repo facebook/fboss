@@ -2,11 +2,22 @@
 
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 
+#include <cstdint>
+#include <memory>
+#include <vector>
+
+#include "folly/MacAddress.h"
+
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss::utility {
 
@@ -348,6 +359,33 @@ std::string pfcStatsString(const HwPortStats& stats) {
     ss << " outPfc." << qos << "=" << value;
   }
   return ss.str();
+}
+
+std::unique_ptr<TxPacket> makePfcFramePacket(
+    const AgentEnsemble& ensemble,
+    uint8_t classVector) {
+  // Construct PFC payload with fixed quanta 0x00F0.
+  // See https://github.com/archjeb/pfctest for frame structure.
+  std::vector<uint8_t> payload{
+      0x01, 0x01, 0x00, classVector, 0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
+      0x00, 0xF0, 0x00, 0xF0,        0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
+  };
+  std::vector<uint8_t> padding(26, 0);
+  payload.insert(payload.end(), padding.begin(), padding.end());
+
+  // Construct PFC frame packet
+  std::optional<VlanID> vlanId = ensemble.getVlanIDForTx();
+  folly::MacAddress intfMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble.getProgrammedState());
+  MacAddressGenerator::ResourceT srcMac =
+      utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+  return utility::makeEthTxPacket(
+      ensemble.getSw(),
+      vlanId,
+      srcMac,
+      folly::MacAddress("01:80:C2:00:00:01"), // MAC control address
+      ETHERTYPE::ETHERTYPE_EPON, // Ethertype for PFC frames
+      std::move(payload));
 }
 
 } // namespace facebook::fboss::utility

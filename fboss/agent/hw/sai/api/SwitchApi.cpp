@@ -113,7 +113,9 @@ void SwitchApi::registerTxReadyStatusChangeCallback(
       tx_ready_status_cb ? "register" : "unregister",
       " tx ready status change callback");
 }
+#endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 void SwitchApi::registerSwitchAsicSdkHealthEventCallback(
     const SwitchSaiId& id,
     sai_switch_asic_sdk_health_event_notification_fn function) const {

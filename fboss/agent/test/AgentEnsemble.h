@@ -42,6 +42,7 @@ class AgentEnsemble : public TestEnsembleIf {
   virtual ~AgentEnsemble() override;
   using TestEnsembleIf::masterLogicalPortIds;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
+  using TestEnsembleIf::getLatestInterfaceStats;
   using TestEnsembleIf::getLatestPortStats;
   using TestEnsembleIf::getLatestSysPortStats;
 
@@ -122,6 +123,7 @@ class AgentEnsemble : public TestEnsembleIf {
       const utility::RouteDistributionGenerator::ThriftRouteChunks&
           routeChunks);
 
+  void stopStatsThread();
   void gracefulExit();
 
   static void enableExactMatch(bcm::BcmConfig& config);
@@ -189,6 +191,9 @@ class AgentEnsemble : public TestEnsembleIf {
 
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
+
+  std::map<InterfaceID, HwRouterInterfaceStats> getLatestInterfaceStats(
+      const std::vector<InterfaceID>& interfaces) override;
 
   std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports) override;

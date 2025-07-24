@@ -94,7 +94,7 @@ class HwMirrorTest : public HwTest {
     cfg::Mirror mirror;
     cfg::MirrorDestination destination;
     destination.egressPort() = cfg::MirrorEgressPort();
-    destination.egressPort()->logicalID_ref() = masterLogicalPortIds()[0];
+    destination.egressPort()->logicalID() = masterLogicalPortIds()[0];
 
     cfg::Mirror mirrorConfig;
     mirrorConfig.name() = mirrorName;

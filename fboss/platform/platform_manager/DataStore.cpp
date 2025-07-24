@@ -173,15 +173,15 @@ void DataStore::updateEepromContents(
 }
 
 FbossEepromInterface DataStore::getEepromContents(
-    const std::string& devicePath) {
-  if (!eepromContents_.contains(devicePath)) {
+    const std::string& devicePath) const {
+  if (!hasEepromContents(devicePath)) {
     throw std::runtime_error(fmt::format(
         "Couldn't find EepromContents at DevicePath ({})", devicePath));
   }
   return eepromContents_.at(devicePath);
 }
 
-bool DataStore::hasEepromContents(const std::string& devicePath) {
+bool DataStore::hasEepromContents(const std::string& devicePath) const {
   return eepromContents_.contains(devicePath);
 }
 

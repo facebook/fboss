@@ -13,7 +13,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
 
 using folly::io::Cursor;
 

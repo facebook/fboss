@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/Msg.h"
+#include "Msg.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

@@ -10,7 +10,6 @@
 
 #include "CmdShowCpuPort.h"
 
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
 namespace facebook::fboss {

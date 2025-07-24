@@ -24,7 +24,7 @@ std::shared_ptr<FsdbConfig> FsdbConfig::fromFile(folly::StringPiece path) {
   std::string raw;
   if (!folly::readFile(path.data(), raw)) {
     FsdbException e;
-    e.message_ref() = folly::to<std::string>("unable to read ", path);
+    e.message() = folly::to<std::string>("unable to read ", path);
     throw e;
   }
 

@@ -117,6 +117,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         break;
       case MediaInterfaceCode::FR4_2x400G:
       case MediaInterfaceCode::FR4_LITE_2x400G:
+      case MediaInterfaceCode::FR4_LPO_2x400G:
       case MediaInterfaceCode::LR4_2x400G_10KM:
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::DR4_2x800G:
@@ -138,6 +139,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             break;
           case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
           case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
+          case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
             expectedMediaLanes = {*hostLaneMap[portName].begin()};
             break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
@@ -386,9 +388,9 @@ void HwTransceiverUtils::verify10gProfile(
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
-        *mediaId.media()->ethernet10GComplianceCode_ref() ==
+        *mediaId.media()->ethernet10GComplianceCode() ==
             Ethernet10GComplianceCode::LR_10G ||
-        *mediaId.media()->ethernet10GComplianceCode_ref() ==
+        *mediaId.media()->ethernet10GComplianceCode() ==
             Ethernet10GComplianceCode::CR_10G);
 
     EXPECT_TRUE(
@@ -403,7 +405,7 @@ void HwTransceiverUtils::verify25gProfile(
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::SFF);
     auto specComplianceCode =
-        *mediaId.media()->extendedSpecificationComplianceCode_ref();
+        *mediaId.media()->extendedSpecificationComplianceCode();
     EXPECT_EQ(specComplianceCode, ExtendedSpecComplianceCode::CWDM4_100G);
   }
 }
@@ -414,7 +416,7 @@ void HwTransceiverUtils::verify50gProfile(
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::SFF);
     auto specComplianceCode =
-        *mediaId.media()->extendedSpecificationComplianceCode_ref();
+        *mediaId.media()->extendedSpecificationComplianceCode();
     EXPECT_EQ(specComplianceCode, ExtendedSpecComplianceCode::CWDM4_100G);
   }
 }
@@ -425,7 +427,7 @@ void HwTransceiverUtils::verify100gProfile(
   for (const auto& mediaId : mediaInterfaces) {
     if (mgmtInterface == TransceiverManagementInterface::SFF) {
       auto specComplianceCode =
-          *mediaId.media()->extendedSpecificationComplianceCode_ref();
+          *mediaId.media()->extendedSpecificationComplianceCode();
       EXPECT_TRUE(
           specComplianceCode == ExtendedSpecComplianceCode::CWDM4_100G ||
           specComplianceCode == ExtendedSpecComplianceCode::FR1_100G ||
@@ -436,9 +438,8 @@ void HwTransceiverUtils::verify100gProfile(
           mediaId.code() == MediaInterfaceCode::CR4_100G);
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
       EXPECT_TRUE(
-          *mediaId.media()->smfCode_ref() ==
-              SMFMediaInterfaceCode::CWDM4_100G ||
-          *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR1_100G);
+          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::CWDM4_100G ||
+          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_100G);
       EXPECT_TRUE(
           *mediaId.code() == MediaInterfaceCode::CWDM4_100G ||
           *mediaId.code() == MediaInterfaceCode::FR1_100G);
@@ -453,9 +454,9 @@ void HwTransceiverUtils::verify200gProfile(
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR4_200G ||
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::LR4_200G ||
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::DR1_200G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_200G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_200G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_200G ||
         *mediaId.code() == MediaInterfaceCode::LR4_200G ||
@@ -470,9 +471,9 @@ void HwTransceiverUtils::verify400gProfile(
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR4_400G ||
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::LR4_10_400G ||
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::DR4_400G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_400G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_10_400G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_400G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_400G ||
         *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM ||
@@ -539,8 +540,8 @@ void HwTransceiverUtils::verifyOptical800gProfile(
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR8_800G ||
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::DR4_800G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR8_800G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_800G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR8_800G ||
         *mediaId.code() == MediaInterfaceCode::DR4_800G);
@@ -553,7 +554,7 @@ void HwTransceiverUtils::verifyActiveCopper800gProfile(
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
-        *mediaId.media()->activeCuCode_ref() ==
+        *mediaId.media()->activeCuCode() ==
         ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_800G);
   }

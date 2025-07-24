@@ -9,6 +9,7 @@
  */
 #pragma once
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/PreUpdateStateModifier.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -50,6 +51,9 @@ class NextHopGroupInfo {
   void setIsBackupEcmpGroupType(bool isBackupEcmp) {
     isBackupEcmpGroupType_ = isBackupEcmp;
   }
+  const RouteNextHopSet& getNhops() const {
+    return ngItr_->first;
+  }
 
  private:
   static constexpr int kInvalidRouteUsageCount = 0;
@@ -59,7 +63,7 @@ class NextHopGroupInfo {
   int routeUsageCount_{kInvalidRouteUsageCount};
 };
 
-class EcmpResourceManager {
+class EcmpResourceManager : public PreUpdateStateModifier {
  public:
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
@@ -67,23 +71,28 @@ class EcmpResourceManager {
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
       SwitchStats* stats = nullptr);
   using NextHopGroupId = uint32_t;
-  using NextHopGroupIds = boost::container::flat_set<NextHopGroupId>;
+  using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
   using PrefixToGroupInfo = std::unordered_map<
       std::pair<RouterID, folly::CIDRNetwork>,
       std::shared_ptr<NextHopGroupInfo>>;
 
+  std::vector<StateDelta> modifyState(
+      const std::vector<StateDelta>& deltas) override;
   std::vector<StateDelta> consolidate(const StateDelta& delta);
   std::vector<StateDelta> reconstructFromSwitchState(
-      const std::shared_ptr<SwitchState>& curState);
+      const std::shared_ptr<SwitchState>& curState) override;
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
-  void updateDone();
-  void updateFailed(const std::shared_ptr<SwitchState>& curState);
+  void updateDone() override;
+  void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
     return backupEcmpGroupType_;
+  }
+  int32_t getEcmpCompressionThresholdPct() const {
+    return compressionPenaltyThresholdPct_;
   }
   uint32_t getMaxPrimaryEcmpGroups() const {
     return maxEcmpGroups_;
@@ -99,13 +108,14 @@ class EcmpResourceManager {
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& newRoute) const;
 
-  struct ConsolidationPenalty {
+  struct ConsolidationInfo {
+    RouteNextHopSet mergedNhops;
     int maxPenalty() const;
     int avgPenalty() const;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
   struct PreUpdateState {
-    std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups;
+    std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups;
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
@@ -169,6 +179,7 @@ class EcmpResourceManager {
   };
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
       const StateDelta& delta);
+  void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
       InputOutputState* inOutState);
@@ -224,12 +235,19 @@ class EcmpResourceManager {
   NextHopGroupId findCachedOrNewIdForNhops(
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
+  void validateCfgUpdate(
+      int32_t compressionPenaltyThresholdPct,
+      const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
   NextHopGroupId findNextAvailableId() const;
+  ConsolidationInfo computeConsolidationInfo(
+      const NextHopGroupIds& grpIds) const;
+  void computeCandidateMerges(const std::vector<NextHopGroupId>& groupIds);
+
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;
   PrefixToGroupInfo prefixToGroupInfo_;
-  std::map<NextHopGroupIds, ConsolidationPenalty> mergedGroups_;
-  std::map<NextHopGroupIds, ConsolidationPenalty> candidateMergeGroups_;
+  std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups_;
+  std::map<NextHopGroupIds, ConsolidationInfo> candidateMergeGroups_;
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;

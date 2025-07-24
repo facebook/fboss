@@ -64,6 +64,11 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
 
     uint64_t lastPublishedAt = 0;
     if constexpr (std::is_same_v<SubUnitT, OperState>) {
+      std::optional<OperMetadata> metadata;
+      if (state->metadata().has_value()) {
+        metadata = *state->metadata();
+      }
+      this->onChunkReceived(*state->isHeartbeat(), metadata);
       if (*state->isHeartbeat()) {
         continue;
       }

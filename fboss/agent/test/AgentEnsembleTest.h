@@ -11,6 +11,8 @@
 
 #include <gtest/gtest.h>
 
+DECLARE_bool(enable_snapshot_debugs);
+
 namespace facebook::fboss {
 class SwitchState;
 

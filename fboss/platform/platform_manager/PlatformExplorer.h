@@ -15,7 +15,6 @@
 #include "fboss/platform/platform_manager/PresenceChecker.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
-#include "fboss/platform/weutil/CachedFbossEepromParser.h"
 
 namespace facebook::fboss::platform::platform_manager {
 class PlatformExplorer {
@@ -133,7 +132,6 @@ class PlatformExplorer {
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_;
-  CachedFbossEepromParser eepromParser_{};
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;

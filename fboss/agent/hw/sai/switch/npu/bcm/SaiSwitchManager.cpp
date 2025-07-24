@@ -120,6 +120,23 @@ void fillHwSwitchErrorStats(
   }
 }
 
+void fillHwSwitchSaiExtensionDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR:
+        dropStats.packetIntegrityDrops() = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
+    }
+  }
+}
+
 void fillHwSwitchPipelineStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     int idx,

@@ -176,6 +176,24 @@ void fillHwSwitchDropStats(
   }
 }
 
+void fillHwSwitchTemperatureStats(
+    const folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t>& attrId2Value,
+    HwSwitchTemperatureStats& hwSwitchTemperatureStats) {
+  for (auto attrIdAndValue : attrId2Value) {
+    auto [attrId, value] = attrIdAndValue;
+    if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
+      for (uint32_t i = 0; i < value.s32list.count; i++) {
+        auto sensorName = std::to_string(i);
+        hwSwitchTemperatureStats.timeStamp()->insert(
+            {sensorName,
+             std::chrono::system_clock::now().time_since_epoch().count()});
+        hwSwitchTemperatureStats.value()->insert(
+            {sensorName, value.s32list.list[i]});
+      }
+    }
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -821,11 +839,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
         stats.end(),
         SaiSwitchTraits::CounterIdsToRead.begin(),
         SaiSwitchTraits::CounterIdsToRead.end());
-    if (!platform_->getAsic()->isSupported(
+    if (platform_->getAsic()->isSupported(
             HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS)) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-      stats.erase(std::find(
-          stats.begin(), stats.end(), SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP));
+#if not defined(BRCM_SAI_SDK_DNX_GTE_12_0) && \
+    SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      stats.push_back(SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP);
 #endif
     }
     if (isJerichoAsic(platform_->getAsic()->getAsicType())) {
@@ -863,6 +881,20 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
   return stats;
 }
 
+const std::vector<sai_attr_id_t>& SaiSwitchManager::supportedTemperatureStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::TEMPERATURE_MONITORING)) {
+    stats = {
+        SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS, SAI_SWITCH_ATTR_TEMP_LIST};
+    return stats;
+  } else {
+    stats = {};
+    return stats;
+  }
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
     const {
   static std::vector<sai_stat_id_t> stats;
@@ -896,6 +928,27 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedErrorStats()
         SaiSwitchTraits::ddpPacketError().begin(),
         SaiSwitchTraits::ddpPacketError().end());
   }
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchManager::supportedSaiExtensionDropStats() const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_DROP_STATS) &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::packetIntegrityError().begin(),
+        SaiSwitchTraits::packetIntegrityError().end());
+  }
+#endif
   return stats;
 }
 
@@ -1087,6 +1140,54 @@ const HwSwitchPipelineStats SaiSwitchManager::getHwSwitchPipelineStats(
   return switchPipelineStats;
 }
 
+const HwSwitchTemperatureStats SaiSwitchManager::getHwSwitchTemperatureStats()
+    const {
+  // Get temperature stats
+  HwSwitchTemperatureStats switchTemperatureStats;
+  if (!supportedTemperatureStats().empty()) {
+    folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t> attrValues;
+    for (auto attrId : supportedTemperatureStats()) {
+      try {
+        if (attrId == SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS) {
+          auto NumTemperatureSensors =
+              SaiApiTable::getInstance()->switchApi().getAttribute(
+                  switch_->adapterKey(),
+                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          sai_attribute_value_t value;
+          value.u8 = NumTemperatureSensors;
+          attrValues[attrId] = value;
+        } else if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
+          auto NumTemperatureSensors =
+              SaiApiTable::getInstance()->switchApi().getAttribute(
+                  switch_->adapterKey(),
+                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          std::vector<sai_int32_t> temperatureList;
+          XLOG(DBG5) << "# temperature sensor: " << NumTemperatureSensors;
+          temperatureList.resize(NumTemperatureSensors);
+          SaiSwitchTraits::Attributes::AsicTemperatureList
+              temperatureListAttribute{temperatureList};
+
+          auto temperatureU32List =
+              SaiApiTable::getInstance()->switchApi().getAttribute(
+                  switch_->adapterKey(), temperatureListAttribute);
+
+          sai_attribute_value_t value;
+          value.u32list.count = temperatureU32List.size();
+          value.u32list.list =
+              reinterpret_cast<uint32_t*>(temperatureU32List.data());
+
+          attrValues[attrId] = value;
+          fillHwSwitchTemperatureStats(attrValues, switchTemperatureStats);
+        }
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Failed to get temperature attribute " << attrId << ": "
+                  << ex.what();
+      }
+    }
+  }
+  return switchTemperatureStats;
+}
+
 void SaiSwitchManager::updateStats(bool updateWatermarks) {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {
@@ -1134,6 +1235,21 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         switchDropStats_.tc0RateLimitDrops().value_or(0) +
         dropStats.tc0RateLimitDrops().value_or(0);
   }
+  auto switchSaiExtensionDropStats = supportedSaiExtensionDropStats();
+  if (switchSaiExtensionDropStats.size()) {
+    switch_->updateStats(switchSaiExtensionDropStats, SAI_STATS_MODE_READ);
+    HwSwitchDropStats dropStats;
+    fillHwSwitchSaiExtensionDropStats(
+        switch_->getStats(switchSaiExtensionDropStats), dropStats);
+    // Packet integrity drop stats is supported in 11.7 with
+    // SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP and in 12.2 with
+    // SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR which is a SAI
+    // extension hence switchDropStats_.packetIntegrityDrops is
+    // incremented in multiple places.
+    switchDropStats_.packetIntegrityDrops() =
+        switchDropStats_.packetIntegrityDrops().value_or(0) +
+        dropStats.packetIntegrityDrops().value_or(0);
+  }
   auto errorDropStats = supportedErrorStats();
   if (errorDropStats.size()) {
     switch_->updateStats(errorDropStats, SAI_STATS_MODE_READ);
@@ -1177,9 +1293,41 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
   if (updateWatermarks) {
     switchWatermarkStats_ = getHwSwitchWatermarkStats();
     publishSwitchWatermarks(switchWatermarkStats_);
+    updateSramLowBufferLimitHitCounter();
   }
+  switchTemperatureStats_ = getHwSwitchTemperatureStats();
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
+}
+
+void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK) ||
+      !switchWatermarkStats_.sramMinBufferWatermarkBytes().has_value()) {
+    return;
+  }
+  // getSramSizeBytes() returns the SRAM buffers in all cores combined
+  // and SramFreePercentXoffTh is the percentage SRAM buffer utilization
+  // at which PFC will be triggered on all ports.
+  auto sramFreeBufferPctToTriggerXoff = std::get<
+      std::optional<SaiSwitchTraits::Attributes::SramFreePercentXoffTh>>(
+      switch_->attributes());
+  if (!sramFreeBufferPctToTriggerXoff.has_value()) {
+    // Optional attribute not configured
+    return;
+  }
+
+  uint64_t sramBufferLowerLimit = platform_->getAsic()->getSramSizeBytes() *
+      sramFreeBufferPctToTriggerXoff.value().value() /
+      (platform_->getAsic()->getNumCores() * 100);
+  if (*switchWatermarkStats_.sramMinBufferWatermarkBytes() <=
+      sramBufferLowerLimit) {
+    // Low buffer limit in SRAM was hit and all ports in the core will
+    // be sending PFC XOFF, increment counter to flag this event.
+    platform_->getHwSwitch()->getSwitchStats()->sramLowBufferLimitHitCount();
+  }
+#endif
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
@@ -1400,8 +1548,8 @@ void SaiSwitchManager::setPfcWatchdogTimerGranularity(
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY)) {
     // We need to set the watchdog granularity to an appropriate value,
-    // otherwise the default granularity in SAI/SDK may be incompatible with the
-    // requested watchdog intervals. Auto-derivation is being requested in
+    // otherwise the default granularity in SAI/SDK may be incompatible with
+    // the requested watchdog intervals. Auto-derivation is being requested in
     // CS00012393810.
     std::vector<sai_map_t> mapToValueList(
         cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1);
@@ -1422,13 +1570,41 @@ void SaiSwitchManager::setPfcWatchdogTimerGranularity(
 
 void SaiSwitchManager::setCreditRequestProfileSchedulerMode(
     cfg::QueueScheduling scheduling) {
-  // TODO(daiweix): program scheduler mode through sai api
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  sai_scheduling_type_t type;
+  if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
+    type = SAI_SCHEDULING_TYPE_STRICT;
+  } else if (scheduling == cfg::QueueScheduling::DEFICIT_ROUND_ROBIN) {
+    type = SAI_SCHEDULING_TYPE_DWRR;
+  }
+  // TODO(daiweix): properly disable the feature from SP or WRR back to INTERNAL
+  if (scheduling != cfg::QueueScheduling::INTERNAL) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::CreditRequestProfileSchedulerMode{type});
+  }
+#endif
 }
 
 void SaiSwitchManager::setModuleIdToCreditRequestProfileParam(
     const std::optional<std::map<int32_t, int32_t>>&
         moduleIdToCreditRequestProfileParam) {
-  // TODO(daiweix): program scheduler parameter through sai api
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  std::vector<sai_map_t> mapToValueList;
+  if (moduleIdToCreditRequestProfileParam) {
+    for (const auto& [moduleId, param] : *moduleIdToCreditRequestProfileParam) {
+      sai_map_t mapping{};
+      mapping.key = moduleId;
+      mapping.value = param;
+      mapToValueList.push_back(mapping);
+    }
+  }
+  // TODO(daiweix): properly disable the feature from SP or WRR back to INTERNAL
+  if (!mapToValueList.empty()) {
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ModuleIdToCreditRequestProfileParamList{
+            mapToValueList});
+  }
+#endif
 }
 
 } // namespace facebook::fboss

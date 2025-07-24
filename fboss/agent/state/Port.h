@@ -783,6 +783,24 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<bool> getDesiredSelfHealingECMPLagEnable() const {
+    if (auto desiredSelfHealingECMPLagEnable =
+            cref<switch_state_tags::desiredSelfHealingECMPLagEnable>()) {
+      return desiredSelfHealingECMPLagEnable->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setDesiredSelfHealingECMPLagEnable(
+      std::optional<bool> desiredSelfHealingECMPLagEnable) {
+    if (!desiredSelfHealingECMPLagEnable.has_value()) {
+      ref<switch_state_tags::desiredSelfHealingECMPLagEnable>().reset();
+    } else {
+      set<switch_state_tags::desiredSelfHealingECMPLagEnable>(
+          desiredSelfHealingECMPLagEnable.value());
+    }
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();

@@ -582,7 +582,7 @@ GlobalSensors CmisModule::getSensorInfo() {
   return info;
 }
 
-Vendor CmisModule::getVendorInfo() {
+Vendor CmisModule::getVendorInfo() const {
   Vendor vendor = Vendor();
   *vendor.name() = getQsfpString(CmisField::VENDOR_NAME);
   *vendor.oui() = getQsfpString(CmisField::VENDOR_OUI);
@@ -1008,7 +1008,7 @@ bool CmisModule::getMediaInterfaceId(
       auto smfMediaInterface = getSmfMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.smfCode_ref() = smfMediaInterface;
+      media.smfCode() = smfMediaInterface;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
@@ -1028,7 +1028,7 @@ bool CmisModule::getMediaInterfaceId(
     for (int lane = 0; lane < mediaInterface.size(); lane++) {
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.passiveCuCode_ref() = static_cast<PassiveCuMediaInterfaceCode>(
+      media.passiveCuCode() = static_cast<PassiveCuMediaInterfaceCode>(
           firstModuleCapability->moduleMediaInterface);
       // FIXME: Remove CR8_400G hardcoding and derive this from number of
       // lanes/host electrical interface instead
@@ -1040,7 +1040,7 @@ bool CmisModule::getMediaInterfaceId(
       auto activeCuInterfaceCode = getActiveCuMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.activeCuCode_ref() = activeCuInterfaceCode;
+      media.activeCuCode() = activeCuInterfaceCode;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<ActiveCuHostInterfaceCode>(
               activeCuInterfaceCode,
@@ -1088,6 +1088,7 @@ void CmisModule::getApplicationCapabilities() {
     } else {
       applicationAdvertisingField.moduleMediaInterface = data[1];
     }
+    applicationAdvertisingField.moduleHostInterface = data[0];
     applicationAdvertisingField.hostLaneCount =
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
     applicationAdvertisingField.mediaLaneCount =
@@ -2002,7 +2003,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
   }
   cmisData.timeCollected() = lastRefreshTime_;
   DOMDataUnion data;
-  data.cmis_ref() = cmisData;
+  data.cmis() = cmisData;
   return data;
 }
 
@@ -2666,6 +2667,7 @@ void CmisModule::ensureRxOutputSquelchEnabled(
 }
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
   auto currTransmitterTechnology = getQsfpTransmitterTechnology();
   bool activeElectricalCable = false;
   if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
@@ -2891,9 +2893,13 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     auto firstModuleCapability = moduleCapabilities_.begin();
     auto smfCode = static_cast<SMFMediaInterfaceCode>(
         firstModuleCapability->moduleMediaInterface);
-    if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
+    if (isLpoModule()) {
+      moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+        // Lite Modules are not LPO modules but have a reach of 500m.
         moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
       } else {
         moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;

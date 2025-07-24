@@ -1,4 +1,7 @@
 #include "fboss/platform/weutil/FbossEepromInterface.h"
+
+#include <folly/String.h>
+
 #include <stdexcept>
 
 namespace facebook::fboss::platform {
@@ -175,8 +178,13 @@ EepromContents FbossEepromInterface::getEepromContents() const {
       result.vendorDefinedField2() = fieldMap_.at(102).value;
       result.vendorDefinedField3() = fieldMap_.at(103).value;
     }
-  } catch (const std::out_of_range& e) {
-    throw std::runtime_error("Invalid FbossEepromInterface structure");
+  } catch (const std::out_of_range&) {
+    auto availableKeys = fieldMap_ | std::views::keys;
+    std::string joinedKeys = folly::join(", ", availableKeys);
+    throw std::runtime_error(fmt::format(
+        "Invalid FbossEepromInterface structure. Version: {}, Available keys: [{}]",
+        version_,
+        joinedKeys));
   }
   return result;
 }

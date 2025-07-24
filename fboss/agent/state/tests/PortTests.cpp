@@ -738,13 +738,12 @@ TEST(Port, portDrainInterfacePort) {
   config.ports()->resize(1);
   preparedMockPortConfig(
       config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
-  config.ports()[0].portType<cfg::PortType>() = cfg::PortType::INTERFACE_PORT;
+  config.ports()[0].portType() = cfg::PortType::INTERFACE_PORT;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto port = stateV1->getPorts()->getNodeIf(PortID(1));
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
 
-  config.ports()[0].drainState<cfg::PortDrainState>() =
-      cfg::PortDrainState::DRAINED;
+  config.ports()[0].drainState() = cfg::PortDrainState::DRAINED;
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
@@ -757,13 +756,12 @@ TEST(Port, portDrainFabricPort) {
   config.ports()->resize(1);
   preparedMockPortConfig(
       config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
-  config.ports()[0].portType<cfg::PortType>() = cfg::PortType::FABRIC_PORT;
+  config.ports()[0].portType() = cfg::PortType::FABRIC_PORT;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto port = stateV1->getPorts()->getNodeIf(PortID(1));
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
 
-  config.ports()[0].drainState<cfg::PortDrainState>() =
-      cfg::PortDrainState::DRAINED;
+  config.ports()[0].drainState() = cfg::PortDrainState::DRAINED;
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   port = stateV2->getPorts()->getNodeIf(PortID(1));
   EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::DRAINED);

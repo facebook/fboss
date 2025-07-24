@@ -774,7 +774,7 @@ TEST(SwitchSettingsTest, applyDefaultVoqConfig) {
     cfg::LinearQueueCongestionDetection ecnLQCD;
     ecnLQCD.minimumLength() = minLength;
     ecnLQCD.maximumLength() = maxLength;
-    ecnAQM.detection()->linear_ref() = ecnLQCD;
+    ecnAQM.detection()->linear() = ecnLQCD;
     ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
     return ecnAQM;
   };

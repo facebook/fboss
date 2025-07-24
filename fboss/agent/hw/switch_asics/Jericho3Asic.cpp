@@ -220,6 +220,9 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
+    case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
+    case HwAsic::Feature::TEMPERATURE_MONITORING:
+    case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
       return false;
   }
   return false;

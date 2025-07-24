@@ -13,8 +13,8 @@ extern "C" {
 
 namespace facebook::fboss {
 
-std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSharedFadtMaxTh::operator()() {
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributeSharedFadtMaxTh::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_BUFFER_PROFILE_ATTR_SHARED_FADT_MAX_TH;
 #else
@@ -22,8 +22,8 @@ SaiBufferProfileTraits::Attributes::AttributeSharedFadtMaxTh::operator()() {
 #endif
 }
 
-std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSharedFadtMinTh::operator()() {
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributeSharedFadtMinTh::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_BUFFER_PROFILE_ATTR_SHARED_FADT_MIN_TH;
 #else
@@ -32,7 +32,7 @@ SaiBufferProfileTraits::Attributes::AttributeSharedFadtMinTh::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
+SaiStaticBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_MIN_TH;
 #else
@@ -41,7 +41,7 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtMinTh::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
+SaiStaticBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_MAX_TH;
 #else
@@ -49,8 +49,8 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtMaxTh::operator()() {
 #endif
 }
 
-std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributeSramFadtXonOffset::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_XON_OFFSET;
 #else
@@ -59,7 +59,61 @@ SaiBufferProfileTraits::Attributes::AttributeSramFadtXonOffset::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
+SaiStaticBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_BUFFER_PROFILE_ATTR_SRAM_DYNAMIC_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSharedFadtMaxTh::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  return SAI_BUFFER_PROFILE_ATTR_SHARED_FADT_MAX_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSharedFadtMinTh::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  return SAI_BUFFER_PROFILE_ATTR_SHARED_FADT_MIN_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramFadtMinTh::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_MIN_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramFadtMaxTh::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_MAX_TH;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramFadtXonOffset::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  return SAI_BUFFER_PROFILE_ATTR_SRAM_FADT_XON_OFFSET;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributeSramDynamicTh::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   return SAI_BUFFER_PROFILE_ATTR_SRAM_DYNAMIC_TH;
 #else

@@ -196,7 +196,7 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
 TEST_F(HwUdfTest, addAclConfig) {
   if (getPlatform()->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_FAKE) {
-    GTEST_SKIP();
+    return;
   }
   auto setup = [&]() {
     auto cfg{initialConfig()};

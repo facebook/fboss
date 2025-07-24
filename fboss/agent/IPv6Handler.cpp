@@ -9,11 +9,9 @@
  */
 #include "fboss/agent/IPv6Handler.h"
 
-#include <folly/Format.h>
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/DHCPv6Handler.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/RxPacket.h"
@@ -30,13 +28,11 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpResponseTable.h"
-#include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 DECLARE_bool(intf_nbr_tables);
 

@@ -18,7 +18,6 @@
 #include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -650,8 +649,8 @@ void BcmCosQueueManager::getBandwidth(
   *range.maximum() = ppsMax;
 
   flags != BCM_COSQ_BW_PACKET_MODE
-      ? cfgPortQueueRate.kbitsPerSec_ref().emplace(range)
-      : cfgPortQueueRate.pktsPerSec_ref().emplace(range);
+      ? cfgPortQueueRate.kbitsPerSec().emplace(range)
+      : cfgPortQueueRate.pktsPerSec().emplace(range);
 
   queue->setPortQueueRate(cfgPortQueueRate);
 }

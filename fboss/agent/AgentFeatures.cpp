@@ -126,6 +126,11 @@ DEFINE_bool(
     "Flag to enable resource checks on DLB ecmp groups");
 
 DEFINE_bool(
+    use_full_dlb_scale,
+    false,
+    "FLAG to enable full DLB scale when using SAI");
+
+DEFINE_bool(
     send_icmp_time_exceeded,
     true,
     "Flag to indicate whether to send ICMP time exceeded for hop limit exceeded");
@@ -320,3 +325,8 @@ DEFINE_bool(
     dsf_single_stage_r192_f40_e32,
     false,
     "Use platform mapping for DSF Single Stage with 192 RDSWs, 40 FDSWs, 32 EDSWs");
+
+DEFINE_bool(
+    enable_high_frequency_stats_polling,
+    false,
+    "Enable high frequency stats polling");

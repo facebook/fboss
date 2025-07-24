@@ -279,6 +279,8 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//fb303:export_type",
+        "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
         "//folly:network_address",
         "//folly/io/async:async_base",
@@ -442,7 +444,6 @@ cpp_library(
         ":load_agent_config",
         ":switch_config-cpp2-types",
         ":switch_state-cpp2-types",
-        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//folly:range",
         "//folly/logging:logging",
@@ -650,7 +651,6 @@ cpp_library(
         "//fboss/lib:common_utils",
         "//folly:memory",
         "//folly:range",
-        "//folly:string",
         "//folly:utility",
         "//folly/concurrency:concurrent_hash_map",
         "//folly/logging:logging",
@@ -748,13 +748,27 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":fib_helpers",
+        ":pre_update_state_modifier",
         ":stats",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
     ],
     exported_external_deps = [
-        "gflags",
         ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_library(
+    name = "shel_manager",
+    srcs = [
+        "ShelManager.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":fib_helpers",
+        ":pre_update_state_modifier",
+        ":utils",
+        "//fboss/agent/state:state",
     ],
 )
 
@@ -876,6 +890,7 @@ cpp_library(
         ":packet_observer",
         ":phy_snapshot_lib",
         ":route_update_wrapper",
+        ":shel_manager",
         ":state_observer",
         ":stats",
         ":sw_switch_warmboot_helper",
@@ -914,11 +929,6 @@ cpp_library(
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/platforms/common:platform_mapping_utils",
         "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
-        "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",
-        "//fboss/agent/platforms/common/meru400bia:meru400bia_platform_mapping",
-        "//fboss/agent/platforms/common/meru400biu:meru400biu_platform_mapping",
-        "//fboss/agent/platforms/common/meru800bfa:meru800bfa_platform_mapping",
-        "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:network_to_route_map",
         "//fboss/agent/rib:standalone_rib",
@@ -956,7 +966,6 @@ cpp_library(
         "//folly:demangle",
         "//folly:exception_string",
         "//folly:file_util",
-        "//folly:format",
         "//folly:glog",
         "//folly:intrusive_list",
         "//folly:map_util",
@@ -1451,6 +1460,19 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pre_update_state_modifier",
+    headers = [
+        "PreUpdateStateModifier.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/state:state",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
     name = "hwagent",
     srcs = [
         "HwAgent.cpp",
@@ -1462,7 +1484,6 @@ cpp_library(
         ":fboss_init_h",
         ":hw_switch",
         ":load_agent_config",
-        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
     exported_external_deps = [
         "gflags",
@@ -1519,7 +1540,6 @@ cpp_library(
         ":packet",
         ":stats",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
-        "//fboss/agent/state:state",
     ],
 )
 
@@ -1536,7 +1556,6 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:standalone_rib",
-        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//folly:network_address",
         "//folly/logging:logging",
@@ -1576,7 +1595,6 @@ cpp_library(
         "//fboss/lib:common_thrift_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:cancellation_token",
-        "//folly:network_address",
         "//folly:synchronized",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
@@ -1629,28 +1647,21 @@ cpp_library(
         "single/MonolithicAgentInitializer.h",
     ],
     exported_deps = [
-        ":apply_thrift_config",
         ":core",
         ":fboss_common_init",
         ":fboss_init_h",
         ":handler",
-        ":hw_asic_table",
         ":hw_switch",
         ":hwagent",
         ":load_agent_config",
         ":monolithic_hw_switch_handler",
         ":platform_base",
         ":setup_thrift",
-        ":stats",
         ":sw_agent_initializer",
-        ":utils",
-        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/lib:common_file_utils",
-        "//fboss/lib:common_utils",
         "//fboss/lib/restart_tracker:restart_time_tracker",
         "//folly:network_address",
         "//folly:scope_guard",
-        "//folly:string",
         "//folly/executors:function_scheduler",
         "//folly/io/async:async_base",
         "//folly/io/async:async_signal_handler",
@@ -1737,9 +1748,7 @@ cpp_library(
         ":hw_asic_table",
         ":setup_thrift",
         "//fboss/lib:common_file_utils",
-        "//fboss/lib:common_utils",
         "//folly/executors:function_scheduler",
-        "//folly/io/async:async_base",
         "//thrift/lib/cpp2:server",
     ],
     exported_external_deps = [

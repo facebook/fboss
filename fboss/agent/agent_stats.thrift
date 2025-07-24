@@ -66,4 +66,5 @@ struct AgentStats {
   28: map<i16, hardware_stats.HwSwitchPipelineStats> switchPipelineStatsMap;
   29: map<string, sensor_service.SensorData> asicTemp;
   30: map<i16, map<i32, switch_config.PortState>> sysPortShelStateMap;
+  31: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
 }

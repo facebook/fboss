@@ -3,7 +3,9 @@
 #include <CLI/CLI.hpp>
 #include <filesystem>
 
+#include <folly/logging/FileHandlerFactory.h>
 #include <folly/logging/Init.h>
+#include <folly/logging/LogConfigParser.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/fw_util/FwUtilImpl.h"
@@ -26,6 +28,7 @@ int main(int argc, char* argv[]) {
   std::string fw_target_name;
   std::string fw_action;
   std::string fw_binary_file;
+  std::string config_file_path;
   bool verify_sha1sum = false;
   bool dry_run = false;
 
@@ -55,6 +58,9 @@ int main(int argc, char* argv[]) {
       fw_binary_file,
       "Firmware binary file path to be programmed");
 
+  fwGroup->add_option(
+      "--config_file", config_file_path, "Path to the fw_util config flie");
+
   // Group: Flags
   auto flagsGroup = app.add_option_group("Flags", "Additional flags");
   flagsGroup->add_flag(
@@ -72,6 +78,17 @@ int main(int argc, char* argv[]) {
       "  fw_util --fw_action=audit\n");
 
   CLI11_PARSE(app, argc, argv);
+
+  // Log to a file
+  const std::filesystem::path logFolder = "/var/facebook/logs/fboss";
+  std::filesystem::create_directories(logFolder);
+  const std::filesystem::path logPath = logFolder / "fw_util.log";
+  folly::LoggerDB::get().registerHandlerFactory(
+      std::make_unique<folly::FileHandlerFactory>(), false);
+  folly::LoggerDB::get().updateConfig(folly::parseLogConfig(
+      "INFO:filehandler:default;"
+      "filehandler=file:path=" +
+      logPath.string() + ",async=true"));
 
   // TODO: To be removed once XFN change the commands in their codes
   if (fw_action.empty()) {
@@ -107,7 +124,8 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  FwUtilImpl fwUtilImpl(fw_binary_file, verify_sha1sum, dry_run);
+  FwUtilImpl fwUtilImpl(
+      fw_binary_file, config_file_path, verify_sha1sum, dry_run);
 
   if (fw_action == "version" && !fw_target_name.empty()) {
     fwUtilImpl.printVersion(toLower(fw_target_name));
@@ -125,7 +143,7 @@ int main(int argc, char* argv[]) {
     fwUtilImpl.doVersionAudit();
   } else {
     XLOG(ERR)
-        << "Wrong usage. please run fw_util --helpon=Flags for the flags needed for proper usage";
+        << "Wrong usage. please run fw_util --help for the flags needed for proper usage";
     exit(1);
   }
 

@@ -72,22 +72,32 @@ class AgentArsBase : public AgentHwTest {
       const std::optional<int>& roceOpcode,
       const std::optional<int>& roceBytes,
       const std::optional<int>& roceMask,
-      const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable) const;
+      const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable,
+      bool addMirror = false) const;
   std::vector<std::string> getUdfGroupsForAcl(AclType aclType) const;
-  void addAclAndStat(cfg::SwitchConfig* config, AclType aclType, bool isSai)
-      const;
+  void addAclAndStat(
+      cfg::SwitchConfig* config,
+      AclType aclType,
+      bool isSai,
+      bool addMirror = false) const;
   RoutePrefixV6 getMirrorDestRoutePrefix(const folly::IPAddress dip) const;
   virtual void generatePrefixes();
   cfg::SwitchingMode getFwdSwitchingMode(const RoutePrefixV6& prefix) const;
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
       cfg::SwitchingMode switchingMode) const;
+  uint32_t getMaxDlbEcmpGroups() const;
 
  protected:
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};
   static inline constexpr auto kEcmpWidth = 4;
   static inline constexpr auto kOutQueue = 6;
   static inline constexpr auto kDscp = 30;
+  static inline constexpr auto kSflowMirrorName = "sflow_mirror";
+  static inline constexpr auto kAclMirror = "acl_mirror";
+  static inline constexpr auto sflowDestinationVIP = "2001::101";
+  static inline constexpr auto aclDestinationVIP = "2002::101";
+  static inline constexpr auto kFrontPanelPortForTest = 8;
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> helper_;
   std::vector<flat_set<PortDescriptor>> nhopSets;
   std::vector<RoutePrefixV6> prefixes;

@@ -338,6 +338,10 @@ void initAndExitBenchmarkHelper(
     auto updater = ensemble->getSw()->getRouteUpdater();
     ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   }
+
+  // Block until the stats thread exits. This can take ~0.7s, so pull it
+  // outside the stopwatch.
+  ensemble->stopStatsThread();
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In

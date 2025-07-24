@@ -2802,7 +2802,7 @@ void TransceiverManager::getAllInterfacePrbsStates(
     phy::PortComponent component) const {
   const auto& platformPorts = platformMapping_->getPlatformPorts();
   for (const auto& platformPort : platformPorts) {
-    auto portName = platformPort.second.mapping()->name_ref();
+    auto portName = platformPort.second.mapping()->name();
     try {
       prbs::InterfacePrbsState prbsState;
       getInterfacePrbsState(prbsState, *portName, component);
@@ -2831,7 +2831,7 @@ void TransceiverManager::getAllInterfacePrbsStats(
     phy::PortComponent component) const {
   const auto& platformPorts = platformMapping_->getPlatformPorts();
   for (const auto& platformPort : platformPorts) {
-    auto portName = platformPort.second.mapping()->name_ref();
+    auto portName = platformPort.second.mapping()->name();
     try {
       auto prbsStatsEntry = getInterfacePrbsStats(*portName, component);
       prbsStats[*portName] = prbsStatsEntry;

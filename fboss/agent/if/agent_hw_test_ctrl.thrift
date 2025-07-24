@@ -151,4 +151,17 @@ service AgentHwTestCtrl {
   // Te flow utils
   i32 getNumTeFlowEntries();
   bool checkSwHwTeFlowMatch(1: switch_state.TeFlowEntryFields flowEntryFields);
+  bool verifyEcmpForFlowletSwitchingHandler(
+    1: CIDRNetwork ip,
+    2: switch_state.SwitchSettingsFields settings,
+    3: bool flowletEnable,
+  );
+
+  bool verifyPortFlowletConfig(
+    1: CIDRNetwork prefix,
+    2: switch_config.PortFlowletConfig cfg,
+    3: bool flowletEnable,
+  );
+
+  bool validateFlowSetTable(1: bool expectFlowsetSizeZero);
 }

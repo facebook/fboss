@@ -28,8 +28,6 @@
 
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/logging/xlog.h>
-
 DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {

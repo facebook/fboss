@@ -110,6 +110,9 @@ class SaiSwitchManager {
   HwSwitchPipelineStats getSwitchPipelineStats() const {
     return switchPipelineStats_;
   }
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const {
+    return switchTemperatureStats_;
+  }
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
   void setReachabilityGroupList(const std::vector<int>& reachabilityGroups);
@@ -139,6 +142,7 @@ class SaiSwitchManager {
       std::optional<sai_uint32_t> seed,
       std::optional<cfg::HashingAlgorithm> algo);
   void addOrUpdateEcmpLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
+  void updateSramLowBufferLimitHitCounter();
 
   void programLagLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
@@ -165,11 +169,14 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedCreditStats() const;
   const std::vector<sai_stat_id_t>& supportedErrorStats() const;
+  const std::vector<sai_stat_id_t>& supportedSaiExtensionDropStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineStats() const;
+  const std::vector<sai_attr_id_t>& supportedTemperatureStats() const;
   const HwSwitchWatermarkStats getHwSwitchWatermarkStats() const;
   const HwSwitchPipelineStats getHwSwitchPipelineStats(
       bool updateWatermarks) const;
+  const HwSwitchTemperatureStats getHwSwitchTemperatureStats() const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
@@ -194,6 +201,7 @@ class SaiSwitchManager {
   HwSwitchDropStats switchDropStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
   HwSwitchPipelineStats switchPipelineStats_;
+  HwSwitchTemperatureStats switchTemperatureStats_;
 };
 
 void fillHwSwitchDramStats(
@@ -212,6 +220,10 @@ void fillHwSwitchPipelineStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     int idx,
     HwSwitchPipelineStats& switchPipelineStats);
+void fillHwSwitchSaiExtensionDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
+void publishSwitchTemperatureStats(HwSwitchTemperatureStats& temperatureStats);
 } // namespace facebook::fboss

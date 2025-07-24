@@ -12,8 +12,6 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/state/StateDelta.h"
 
-#include <folly/IPAddress.h>
-#include <netinet/in.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/ReconnectingRequestChannel.h>
 #include <thrift/lib/cpp2/async/RetryingRequestChannel.h>

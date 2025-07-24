@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <boost/range/combine.hpp>

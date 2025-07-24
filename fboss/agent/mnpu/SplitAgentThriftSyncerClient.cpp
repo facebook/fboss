@@ -10,8 +10,6 @@
 #include "fboss/agent/mnpu/SplitAgentThriftSyncerClient.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
-#include <folly/IPAddress.h>
-#include <netinet/in.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
@@ -165,14 +163,18 @@ ThriftSinkClient<CallbackObjectT, EventQueueT>::ThriftSinkClient(
       connectFn_(std::move(connectFn)),
       eventsDroppedCount_(
           folly::to<std::string>(
-              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              multiSwitchStatsPrefix.has_value()
+                  ? multiSwitchStatsPrefix.value()
+                  : "",
               name,
               ".events_dropped"),
           fb303::SUM,
           fb303::RATE),
       eventSentCount_(
           folly::to<std::string>(
-              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              multiSwitchStatsPrefix.has_value()
+                  ? multiSwitchStatsPrefix.value()
+                  : "",
               name,
               ".events_sent"),
           fb303::SUM,
@@ -281,7 +283,9 @@ ThriftStreamClient<StreamObjectT>::ThriftStreamClient(
       eventReceivedCount_(
 
           folly::to<std::string>(
-              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              multiSwitchStatsPrefix.has_value()
+                  ? multiSwitchStatsPrefix.value()
+                  : "",
               name,
               ".events_received"),
           fb303::SUM,

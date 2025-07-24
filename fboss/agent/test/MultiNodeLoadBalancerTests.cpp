@@ -8,6 +8,10 @@
  *
  */
 
+#include <folly/Subprocess.h>
+#include <folly/system/Shell.h>
+
+#include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Interface.h"
@@ -17,10 +21,8 @@
 #include "fboss/agent/test/MultiNodeTest.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include "common/process/Process.h"
-#include "fboss/agent/RouteUpdateWrapper.h"
-
 using namespace facebook::fboss;
+using folly::literals::shell_literals::operator""_shellify;
 
 class MultiNodeLoadBalancerTest : public MultiNodeTest {
  public:
@@ -100,10 +102,12 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
     }
     for (auto dstIp : getNeighbors()) {
       std::string pingCmd = "ping -c 5 ";
-      std::string resultStr;
-      std::string errStr;
-      EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIp.str(), &resultStr, &errStr));
+      folly::Subprocess p(
+          "{}{}"_shellify(pingCmd, dstIp.str()),
+          folly::Subprocess::Options().pipeStdout());
+      auto [_, stdErr] = p.communicate();
+      int exitStatus = p.wait().exitStatus();
+      EXPECT_EQ(exitStatus, 0) << "Ping failed. Error: " << stdErr;
     }
   }
   cfg::SwitchConfig initialConfig() const override {

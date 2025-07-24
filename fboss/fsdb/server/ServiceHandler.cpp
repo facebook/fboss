@@ -451,11 +451,21 @@ ServiceHandler::makeSinkConsumer(
             if constexpr (std::is_same_v<PubUnit, OperState>) {
               updateMetadata(chunk->metadata().ensure());
               if (isStats) {
-                patchErr = operStatsStorage_.set_encoded(
-                    path.begin(), path.end(), *chunk);
+                if (*chunk->isHeartbeat()) {
+                  operStatsStorage_.publisherHeartbeat(
+                      path.begin(), path.end(), chunk->metadata().ensure());
+                } else {
+                  patchErr = operStatsStorage_.set_encoded(
+                      path.begin(), path.end(), *chunk);
+                }
               } else {
-                patchErr =
-                    operStorage_.set_encoded(path.begin(), path.end(), *chunk);
+                if (*chunk->isHeartbeat()) {
+                  operStorage_.publisherHeartbeat(
+                      path.begin(), path.end(), chunk->metadata().ensure());
+                } else {
+                  patchErr = operStorage_.set_encoded(
+                      path.begin(), path.end(), *chunk);
+                }
               }
             } else if constexpr (std::is_same_v<PubUnit, OperDelta>) {
               updateMetadata(chunk->metadata().ensure());
@@ -474,9 +484,19 @@ ServiceHandler::makeSinkConsumer(
                   chunk->changes()->end());
 
               if (isStats) {
-                patchErr = operStatsStorage_.patch(*chunk);
+                if (chunk->changes()->empty()) {
+                  operStatsStorage_.publisherHeartbeat(
+                      path.begin(), path.end(), chunk->metadata().ensure());
+                } else {
+                  patchErr = operStatsStorage_.patch(*chunk);
+                }
               } else {
-                patchErr = operStorage_.patch(*chunk);
+                if (chunk->changes()->empty()) {
+                  operStorage_.publisherHeartbeat(
+                      path.begin(), path.end(), chunk->metadata().ensure());
+                } else {
+                  patchErr = operStorage_.patch(*chunk);
+                }
               }
               auto numDropped = numChanges - chunk->changes()->size();
               if (numDropped) {
@@ -490,7 +510,23 @@ ServiceHandler::makeSinkConsumer(
                 }
               }
             } else if constexpr (std::is_same_v<PubUnit, PublisherMessage>) {
-              // TODO: need to use the publish path
+              if (chunk->getType() == PublisherMessage::Type::heartbeat) {
+                auto heartbeat = chunk->heartbeat_ref();
+                if (heartbeat->metadata().has_value()) {
+                  if (isStats) {
+                    operStatsStorage_.publisherHeartbeat(
+                        path.begin(),
+                        path.end(),
+                        heartbeat->metadata().value());
+                  } else {
+                    operStorage_.publisherHeartbeat(
+                        path.begin(),
+                        path.end(),
+                        heartbeat->metadata().value());
+                  }
+                }
+                continue;
+              }
               auto patchChunk = chunk->move_patch();
               updateMetadata(*patchChunk.metadata());
               if (isStats) {
@@ -501,8 +537,7 @@ ServiceHandler::makeSinkConsumer(
             }
             XLOG(DBG5) << "Chunk patch result "
                        << (patchErr
-                               ? fmt::format(
-                                     "error: {}", fmt::underlying(*patchErr))
+                               ? fmt::format("error: {}", patchErr->toString())
                                : "success");
           }
           co_return finalResponse;

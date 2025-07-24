@@ -525,6 +525,9 @@ void AgentHwTest::checkStatsStabilize(
       // PhyInfo can be noisy and dependent on external
       // physical params. Don't compare these
       stats.phyInfo()->clear();
+      // temperature stats can be noisy
+      (*stats.switchTemperatureStats()).value().value().clear();
+      (*stats.switchTemperatureStats()).timeStamp().value().clear();
     }
   };
   auto timestampChanged = [](const auto& before, const auto& after) {
@@ -569,28 +572,64 @@ const HwAsic* AgentHwTest::hwAsicForSwitch(SwitchID switchID) const {
 
 void AgentHwTest::populateArpNeighborsToCache(
     const std::shared_ptr<Interface>& interface) {
-  auto arpCache = getAgentEnsemble()
-                      ->getSw()
-                      ->getNeighborUpdater()
-                      ->getArpCacheForIntf(interface->getID())
-                      .get();
-  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInFbossEventBaseThread(
-      [interface, arpCache] {
-        arpCache->repopulate(interface->getArpTable());
-      });
+  if (FLAGS_intf_nbr_tables) {
+    auto arpCache = getAgentEnsemble()
+                        ->getSw()
+                        ->getNeighborUpdater()
+                        ->getArpCacheForIntf(interface->getID())
+                        .get();
+    getAgentEnsemble()
+        ->getSw()
+        ->getNeighborCacheEvb()
+        ->runInFbossEventBaseThread([interface, arpCache] {
+          arpCache->repopulate(interface->getArpTable());
+        });
+  } else {
+    auto vlan =
+        getProgrammedState()->getVlans()->getNodeIf(interface->getVlanID());
+
+    auto arpCache = getAgentEnsemble()
+                        ->getSw()
+                        ->getNeighborUpdater()
+                        ->getArpCacheFor(vlan->getID())
+                        .get();
+    getAgentEnsemble()
+        ->getSw()
+        ->getNeighborCacheEvb()
+        ->runInFbossEventBaseThread(
+            [vlan, arpCache] { arpCache->repopulate(vlan->getArpTable()); });
+  }
 }
 
 void AgentHwTest::populateNdpNeighborsToCache(
     const std::shared_ptr<Interface>& interface) {
-  auto ndpCache = getAgentEnsemble()
-                      ->getSw()
-                      ->getNeighborUpdater()
-                      ->getNdpCacheForIntf(interface->getID())
-                      .get();
-  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInFbossEventBaseThread(
-      [interface, ndpCache] {
-        ndpCache->repopulate(interface->getNdpTable());
-      });
+  if (FLAGS_intf_nbr_tables) {
+    auto ndpCache = getAgentEnsemble()
+                        ->getSw()
+                        ->getNeighborUpdater()
+                        ->getNdpCacheForIntf(interface->getID())
+                        .get();
+    getAgentEnsemble()
+        ->getSw()
+        ->getNeighborCacheEvb()
+        ->runInFbossEventBaseThread([interface, ndpCache] {
+          ndpCache->repopulate(interface->getNdpTable());
+        });
+  } else {
+    auto vlan =
+        getProgrammedState()->getVlans()->getNodeIf(interface->getVlanID());
+
+    auto ndpCache = getAgentEnsemble()
+                        ->getSw()
+                        ->getNeighborUpdater()
+                        ->getNdpCacheFor(vlan->getID())
+                        .get();
+    getAgentEnsemble()
+        ->getSw()
+        ->getNeighborCacheEvb()
+        ->runInFbossEventBaseThread(
+            [vlan, ndpCache] { ndpCache->repopulate(vlan->getNdpTable()); });
+  }
 }
 
 void initAgentHwTest(

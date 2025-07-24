@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/Msg.h"
+#include "Msg.h"
 #include <iomanip>
 
 namespace rackmon {

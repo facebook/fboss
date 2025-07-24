@@ -11,6 +11,8 @@
 #include <fb303/ThreadLocalStats.h>
 #include "fboss/agent/FbossError.h"
 
+DECLARE_bool(cpp_wedge_agent_wrapper);
+
 // Exception not subclassing std::exception to avoid being caught by user code.
 // Used only in WITH_RETRIES toolkit
 namespace {

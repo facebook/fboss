@@ -110,6 +110,9 @@ struct HwSwitchStats {
   17: bool arsExhausted;
   18: hardware_stats.HwSwitchPipelineStats switchPipelineStats;
   19: map<i32, switch_config.PortState> sysPortShelState;
+  20: hardware_stats.HwSwitchTemperatureStats switchTemperatureStats;
+  @cpp.Type{template = "folly::F14FastMap"}
+  21: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
 }
 
 service MultiSwitchCtrl {

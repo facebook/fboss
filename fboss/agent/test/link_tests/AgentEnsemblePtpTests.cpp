@@ -15,8 +15,6 @@
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 
-#include "common/process/Process.h"
-
 using namespace facebook::fboss;
 
 constexpr int kStartTtl = 3;

@@ -17,6 +17,8 @@ enum QsfpProductionFeature {
   XPHY_SYSTEM_PAM4_PROFILE = 4,
   XPHY_LINE_NRZ_PROFILE = 5,
   XPHY_LINE_PAM4_PROFILE = 6,
+  TRANSCEIVER_PRBS = 7,
+  BMC_LITE = 8,
 }
 
 struct PlatformConfigToQsfpProductionFeatures {

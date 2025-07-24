@@ -17,7 +17,6 @@
 
 #include <folly/IPAddress.h>
 #include <folly/json/dynamic.h>
-#include <folly/logging/xlog.h>
 
 #include <gtest/gtest.h>
 #include <string>

@@ -2,7 +2,6 @@
 
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include "fboss/agent/FbossError.h"
 

@@ -4,7 +4,8 @@
     "enable_route_resource_protection": "false",
     "log_variable_name": "true",
     "sai_configure_six_tap": "true",
-    "skip_transceiver_programming": "true"
+    "skip_transceiver_programming": "true",
+    "use_full_dlb_scale": "true"
   },
   "sw": {
     "version": 0,
@@ -156,17 +157,19 @@
             
           ],
           "asicType": 16,
-          "platformType": 30
+          "platformType": 30,
+          "scheduling": 1000
       },
       "2": {
-          "name": "fabricNode2",
+          "name": "fabricNode0",
           "switchId": 2,
           "type": 1,
           "loopbackIps": [
             
           ],
           "asicType": 16,
-          "platformType": 30
+          "platformType": 30,
+          "scheduling": 1000
       }
     },
     "defaultVoqConfig": [

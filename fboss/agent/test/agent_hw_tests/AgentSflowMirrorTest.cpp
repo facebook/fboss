@@ -1098,13 +1098,16 @@ class AgentSflowMirrorEventorTest
     // Set truncation using shell command, since this is not supported by SDK.
     std::string out;
     for (int core = 0; core < 4; ++core) {
-      getAgentEnsemble()->runDiagCommand(
-          fmt::format(
-              "dbal entry commit table=SNIF_COMMAND_TABLE core_id={} "
-              "snif_command_id=1 SNIF_TYPE=STATISTICAL_SAMPLE CROP_ENABLE={}\n",
-              core,
-              truncate ? "1" : "0"),
-          out);
+      for (const auto& [switchId, _] : getAsics()) {
+        getAgentEnsemble()->runDiagCommand(
+            fmt::format(
+                "dbal entry commit table=SNIF_COMMAND_TABLE core_id={} "
+                "snif_command_id=1 SNIF_TYPE=STATISTICAL_SAMPLE CROP_ENABLE={}\n",
+                core,
+                truncate ? "1" : "0"),
+            out,
+            switchId);
+      }
     }
   }
 

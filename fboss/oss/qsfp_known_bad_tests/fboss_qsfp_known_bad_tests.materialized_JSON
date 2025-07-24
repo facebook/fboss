@@ -15,6 +15,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "darwin/physdk-credo-0.9.0/credo-0.9.0": [
@@ -32,6 +35,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "darwin_mix/physdk-credo-0.7.2/credo-0.7.2": [
@@ -49,6 +55,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "darwin_mix/physdk-credo-0.9.0/credo-0.9.0": [
@@ -66,6 +75,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "darwin_original/physdk-credo-0.7.2/credo-0.7.2": [
@@ -83,6 +95,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "darwin_original/physdk-credo-0.9.0/credo-0.9.0": [
@@ -100,6 +115,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -132,6 +150,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
@@ -173,6 +194,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
@@ -219,6 +243,9 @@
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         },
         {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
+        },
+        {
           "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
@@ -260,6 +287,9 @@
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         },
         {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
+        },
+        {
           "test_name_regex": "PhyIOTest.phyIOStats$"
         },
         {
@@ -287,6 +317,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.9.0/credo-0.9.0": [
@@ -304,6 +337,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "fuji_5x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -324,6 +360,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         },
         {
           "test_name_regex": "HwPimTest.CheckPimPresent$"
@@ -362,6 +401,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "janga800bic/physdk-credo-0.7.2/credo-0.7.2": [
@@ -504,6 +546,34 @@
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         }
     ],
+    "minipack3ba/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
+    "minipack3ba/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        }
+    ],
     "minipack3n/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
@@ -547,6 +617,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "montblanc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -648,6 +721,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "wedge100s/physdk-credo-0.9.0/credo-0.9.0": [
@@ -665,6 +741,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "wedge400/physdk-credo-0.7.2/credo-0.7.2": [
@@ -682,6 +761,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "wedge400/physdk-credo-0.9.0/credo-0.9.0": [
@@ -699,6 +781,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "wedge400c/physdk-credo-0.7.2/credo-0.7.2": [
@@ -716,6 +801,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "wedge400c/physdk-credo-0.9.0/credo-0.9.0": [
@@ -733,6 +821,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         }
     ],
     "yamp_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -750,6 +841,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
@@ -770,6 +864,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetBmcLiteTest.verifyResetControl$"
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"

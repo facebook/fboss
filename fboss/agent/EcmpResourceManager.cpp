@@ -15,7 +15,6 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/StateDelta.h"
 
-#include <gflags/gflags.h>
 #include <limits>
 
 namespace facebook::fboss {
@@ -42,13 +41,20 @@ EcmpResourceManager::EcmpResourceManager(
       switchStats_(stats) {
   CHECK_GT(
       maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
-  CHECK_EQ(compressionPenaltyThresholdPct_, 0)
-      << " Group compression algo is WIP";
+  validateCfgUpdate(compressionPenaltyThresholdPct_, backupEcmpGroupType_);
+
   if (switchStats_) {
     switchStats_->setPrimaryEcmpGroupsExhausted(false);
     switchStats_->setPrimaryEcmpGroupsCount(0);
     switchStats_->setBackupEcmpGroupsCount(0);
   }
+}
+
+std::vector<StateDelta> EcmpResourceManager::modifyState(
+    const std::vector<StateDelta>& deltas) {
+  // TODO: Handle list of deltas instead of single delta
+  CHECK_EQ(deltas.size(), 1);
+  return consolidate(*deltas.begin());
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
@@ -62,6 +68,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   // No relevant change return early
   if (delta.getFlowletSwitchingConfigDelta().getOld() ==
           delta.getFlowletSwitchingConfigDelta().getNew() &&
+      DeltaFunctions::isEmpty(delta.getSwitchSettingsDelta()) &&
       DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     return makeRet(delta);
   }
@@ -69,6 +76,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   preUpdateState_ =
       PreUpdateState(mergedGroups_, nextHopGroup2Id_, backupEcmpGroupType_);
 
+  handleSwitchSettingsDelta(delta);
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     if (switchingModeChangeResult.has_value()) {
@@ -812,6 +820,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
              << " to: " << apache::thrift::util::enumNameSafe(*newMode);
 
   auto oldBackupEcmpMode = backupEcmpGroupType_;
+  validateCfgUpdate(compressionPenaltyThresholdPct_, newMode);
   backupEcmpGroupType_ = newMode;
   if (!oldBackupEcmpMode.has_value()) {
     // No backup ecmp type value for old group.
@@ -863,5 +872,128 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
     }
   }
   return changed ? std::move(inOutState) : std::optional<InputOutputState>();
+}
+
+void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
+  if (DeltaFunctions::isEmpty(delta.getSwitchSettingsDelta())) {
+    return;
+  }
+  std::optional<int32_t> newEcmpCompressionThresholdPct;
+  std::vector<std::optional<int32_t>> newEcmpCompressionThresholdPcts;
+  for (const auto& [_, switchSettings] :
+       std::as_const(*delta.newState()->getSwitchSettings())) {
+    newEcmpCompressionThresholdPcts.emplace_back(
+        switchSettings->getEcmpCompressionThresholdPct());
+  }
+  if (newEcmpCompressionThresholdPcts.size()) {
+    newEcmpCompressionThresholdPct = *newEcmpCompressionThresholdPcts.begin();
+    std::for_each(
+        newEcmpCompressionThresholdPcts.begin(),
+        newEcmpCompressionThresholdPcts.end(),
+        [&newEcmpCompressionThresholdPct](
+            const auto& ecmpCompressionThresholdPct) {
+          if (ecmpCompressionThresholdPct != newEcmpCompressionThresholdPct) {
+            throw FbossError(
+                "All switches must have same ecmp compression threshold value");
+          }
+        });
+  }
+  if (newEcmpCompressionThresholdPct.value_or(0) ==
+      compressionPenaltyThresholdPct_) {
+    return;
+  }
+  /*
+   * compressionPenaltyThresholdPct_ was already non-zero. Changing
+   * is not allowed. Otherwise we may now get some routes that are out
+   * of compliance
+   */
+  if (compressionPenaltyThresholdPct_ != 0) {
+    throw FbossError(
+        "Changing compression penalty threshold on the fly is not supported");
+  }
+  validateCfgUpdate(
+      newEcmpCompressionThresholdPct.value_or(0), backupEcmpGroupType_);
+  compressionPenaltyThresholdPct_ = newEcmpCompressionThresholdPct.value_or(0);
+  if (compressionPenaltyThresholdPct_) {
+    std::vector<NextHopGroupId> grpIds;
+    std::for_each(
+        nextHopGroupIdToInfo_.begin(),
+        nextHopGroupIdToInfo_.end(),
+        [&grpIds](const auto& grpIdAndInfo) {
+          grpIds.emplace_back(grpIdAndInfo.first);
+        });
+    computeCandidateMerges(grpIds);
+  }
+}
+
+void EcmpResourceManager::validateCfgUpdate(
+    int32_t compressionPenaltyThresholdPct,
+    const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const {
+  if (compressionPenaltyThresholdPct && backupEcmpGroupType.has_value()) {
+    throw FbossError(
+        "Setting both compression threshold pct and backup ecmp group type is not supported");
+  }
+}
+
+EcmpResourceManager::ConsolidationInfo
+EcmpResourceManager::computeConsolidationInfo(
+    const NextHopGroupIds& grpIds) const {
+  CHECK_GE(grpIds.size(), 2);
+  auto firstGrpInfo = nextHopGroupIdToInfo_.ref(*grpIds.begin());
+  CHECK(firstGrpInfo);
+
+  RouteNextHopSet mergedNhops(firstGrpInfo->getNhops());
+  for (auto grpIdsItr = ++grpIds.begin(); grpIdsItr != grpIds.end();
+       ++grpIdsItr) {
+    RouteNextHopSet tmpMergeNhops;
+    const auto& grpNhops = nextHopGroupIdToInfo_.ref(*grpIdsItr)->getNhops();
+    std::set_intersection(
+        mergedNhops.begin(),
+        mergedNhops.end(),
+        grpNhops.begin(),
+        grpNhops.end(),
+        tmpMergeNhops.begin());
+    mergedNhops = std::move(tmpMergeNhops);
+  }
+  ConsolidationInfo consolidationInfo;
+  for (auto grpId : grpIds) {
+    const auto grpInfo = nextHopGroupIdToInfo_.ref(grpId);
+    CHECK_GE(grpInfo->getNhops().size(), mergedNhops.size());
+    auto nhopsPctLoss = std::ceil(
+        ((grpInfo->getNhops().size() - mergedNhops.size()) * 100.0) /
+        grpInfo->getNhops().size());
+    auto penalty = grpInfo->getRouteUsageCount() * nhopsPctLoss;
+    consolidationInfo.groupId2Penalty.insert({grpId, penalty});
+  }
+  consolidationInfo.mergedNhops = std::move(mergedNhops);
+  return consolidationInfo;
+}
+
+void EcmpResourceManager::computeCandidateMerges(
+    const std::vector<NextHopGroupId>& groupIds) {
+  NextHopGroupIds alreadyMergedGroups;
+  std::for_each(
+      mergedGroups_.begin(),
+      mergedGroups_.end(),
+      [&alreadyMergedGroups](const auto& mergedGroupsAndPenalty) {
+        alreadyMergedGroups.insert(
+            mergedGroupsAndPenalty.first.begin(),
+            mergedGroupsAndPenalty.first.end());
+      });
+  for (auto grpId : groupIds) {
+    if (alreadyMergedGroups.contains(grpId)) {
+      continue;
+    }
+    for (const auto& [grpToMergeWith, _] : nextHopGroupIdToInfo_) {
+      if (grpToMergeWith == grpId) {
+        continue;
+      }
+      // TODO: compute consolidation penalty
+    }
+    for (const auto& [grpsToMergeWith, _] : mergedGroups_) {
+      DCHECK(!grpsToMergeWith.contains(grpId));
+      // TODO: compute consolidation penalty
+    }
+  }
 }
 } // namespace facebook::fboss

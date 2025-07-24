@@ -130,6 +130,18 @@ struct SaiRouterInterfaceTraitsT {
       RouterInterfaceTraitsAttributes<Attributes, type>::CreateAttributes;
   using ConditionAttributes = std::tuple<typename Attributes::Type>;
   inline const static ConditionAttributes kConditionAttributes{type};
+
+  static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
+      SAI_ROUTER_INTERFACE_STAT_IN_OCTETS,
+      SAI_ROUTER_INTERFACE_STAT_IN_PACKETS,
+      SAI_ROUTER_INTERFACE_STAT_OUT_OCTETS,
+      SAI_ROUTER_INTERFACE_STAT_OUT_PACKETS,
+      SAI_ROUTER_INTERFACE_STAT_IN_ERROR_OCTETS,
+      SAI_ROUTER_INTERFACE_STAT_IN_ERROR_PACKETS,
+      SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_OCTETS,
+      SAI_ROUTER_INTERFACE_STAT_OUT_ERROR_PACKETS,
+  };
+  static constexpr std::array<sai_stat_id_t, 16> CounterIdsToReadAndClear = {};
 };
 
 using SaiVlanRouterInterfaceTraits =
@@ -138,6 +150,18 @@ using SaiMplsRouterInterfaceTraits =
     SaiRouterInterfaceTraitsT<SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER>;
 using SaiPortRouterInterfaceTraits =
     SaiRouterInterfaceTraitsT<SAI_ROUTER_INTERFACE_TYPE_PORT>;
+
+template <>
+struct SaiObjectHasStats<SaiVlanRouterInterfaceTraits> : public std::true_type {
+};
+
+template <>
+struct SaiObjectHasStats<SaiMplsRouterInterfaceTraits> : public std::true_type {
+};
+
+template <>
+struct SaiObjectHasStats<SaiPortRouterInterfaceTraits> : public std::true_type {
+};
 
 template <>
 struct SaiObjectHasConditionalAttributes<SaiVlanRouterInterfaceTraits>
@@ -194,6 +218,33 @@ class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
       RouterInterfaceSaiId key,
       const sai_attribute_t* attr) const {
     return api_->set_router_interface_attribute(key, attr);
+  }
+
+  sai_status_t _getStats(
+      RouterInterfaceSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) const {
+    /*
+     * Unfortunately not all vendors implement the ext stats api.
+     * ext stats api matter only for modes other than the (default)
+     * SAI_STATS_MODE_READ. So play defensive and call ext mode only
+     * when called with something other than default
+     */
+    return mode == SAI_STATS_MODE_READ
+        ? api_->get_router_interface_stats(
+              key, num_of_counters, counter_ids, counters)
+        : api_->get_router_interface_stats_ext(
+              key, num_of_counters, counter_ids, mode, counters);
+  }
+
+  sai_status_t _clearStats(
+      RouterInterfaceSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_router_interface_stats(
+        key, num_of_counters, counter_ids);
   }
 
   sai_router_interface_api_t* api_;

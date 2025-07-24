@@ -178,9 +178,10 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
     // config.
     applyNewConfig(initialConfig_);
   } else {
-    if (FLAGS_prod_invariant_config_test)
+    if (FLAGS_prod_invariant_config_test) {
       // During warmboot, the ports are already up.
       applyNewConfig(initialConfig_);
+    }
   }
 }
 
@@ -270,6 +271,10 @@ void AgentEnsemble::unprogramRoutes(
         });
     updater.program();
   }
+}
+
+void AgentEnsemble::stopStatsThread() {
+  agentInitializer()->stopStatsThread();
 }
 
 void AgentEnsemble::gracefulExit() {
@@ -370,6 +375,21 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
       std::chrono::milliseconds(1000),
       " fetch port stats");
   return portIdStatsMap;
+}
+
+std::map<InterfaceID, HwRouterInterfaceStats>
+AgentEnsemble::getLatestInterfaceStats(
+    const std::vector<InterfaceID>& interfaces) {
+  std::map<InterfaceID, HwRouterInterfaceStats> intfIdStatsMap;
+  checkWithRetry(
+      [&intfIdStatsMap, &interfaces, this]() {
+        intfIdStatsMap = getSw()->getHwRouterInterfaceStats(interfaces);
+        return !intfIdStatsMap.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch interface stats");
+  return intfIdStatsMap;
 }
 
 std::map<SystemPortID, HwSysPortStats> AgentEnsemble::getLatestSysPortStats(

@@ -169,7 +169,8 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
   auto swConfig = getSw()->getConfig();
   const auto& chips = getSw()->getPlatformMapping()->getChips();
   for (const auto& port : *swConfig.ports()) {
-    if (!(*port.expectedLLDPValues()).empty()) {
+    if (!(*port.expectedLLDPValues()).empty() ||
+        !(*port.expectedNeighborReachability()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.push_back(PortID(portID));
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {

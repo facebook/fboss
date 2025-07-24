@@ -36,7 +36,7 @@ class CmdShowInterfacePhy
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& info : *model.phyInfo_ref()) {
+    for (const auto& info : *model.phyInfo()) {
       auto ifName = info.first;
       auto phyInfo = info.second;
       if (phyInfo.find(phy::DataPlanePhyChipType::IPHY) != phyInfo.end()) {
@@ -362,7 +362,7 @@ class CmdShowInterfacePhy
           agentClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
         }
         for (auto& interfacePhyInfo : phyInfo) {
-          model.phyInfo_ref()[interfacePhyInfo.first].insert(
+          model.phyInfo()[interfacePhyInfo.first].insert(
               {phy::DataPlanePhyChipType::IPHY, interfacePhyInfo.second});
         }
       }
@@ -379,7 +379,7 @@ class CmdShowInterfacePhy
           qsfpClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
         }
         for (auto& interfacePhyInfo : phyInfo) {
-          model.phyInfo_ref()[interfacePhyInfo.first].insert(
+          model.phyInfo()[interfacePhyInfo.first].insert(
               {phy::DataPlanePhyChipType::XPHY, interfacePhyInfo.second});
         }
       }

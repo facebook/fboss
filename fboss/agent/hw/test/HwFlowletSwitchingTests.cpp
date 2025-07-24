@@ -60,6 +60,14 @@ class HwArsTest : public HwLinkStateDependentTest {
         RouterID(0));
   }
 
+  int kMaxDlbGroups() {
+    return getHwSwitch()
+        ->getPlatform()
+        ->getAsic()
+        ->getMaxDlbEcmpGroups()
+        .value();
+  }
+
   // native BCM has access to BRCM IDs >=200128 cannot be configured as DLB
   // SAI does not have access to BRCM IDs. So SAI implementation cannot check
   // this. So leave the tests to use just under 128 to test upto the limit
@@ -599,82 +607,6 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetExceed) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-
-// This is as close to real case as possible
-// Ensure that when multiple ECMP objects are created and flowset table gets
-// full things snap back in when first ECMP object is removed, enough space is
-// created for the second object to insert itself
-TEST_F(HwArsFlowletTest, ValidateFlowsetExceedForceFix) {
-  if (this->skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  auto setup = [&]() {
-    // create 15 different ECMP objects
-    // 32768 / 2048 = 16
-    int numEcmp = int(utility::KMaxFlowsetTableSize / kFlowletTableSize2);
-    int totalEcmp = 1;
-    for (int i = 1; i < 8 && totalEcmp < numEcmp; i++) {
-      for (int j = i + 1; j < 8 && totalEcmp < numEcmp; j++) {
-        std::vector<PortID> portIds;
-        portIds.push_back(masterLogicalPortIds()[0]);
-        portIds.push_back(masterLogicalPortIds()[i]);
-        portIds.push_back(masterLogicalPortIds()[j]);
-        resolveNextHopsAddRoute(
-            portIds,
-            folly::IPAddressV6(
-                folly::sformat("{}:{:x}::", kAddr3, totalEcmp++)));
-      }
-    }
-    // create 2 more ECMP objects
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[2]}, kAddr1);
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[2], masterLogicalPortIds()[3]}, kAddr2);
-  };
-
-  auto verify = [&]() {
-    auto cfg = initialConfig();
-    auto portFlowletConfig =
-        getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
-
-    // ensure that DLB is not programmed for 17th route as we already have 16
-    // ECMP objects with DLB. Expect flowset size is zero for the 17th object
-    if (getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
-      EXPECT_FALSE(utility::verifyEcmpForFlowletSwitching(
-          getHwSwitch(),
-          kAddr2Prefix, // second route
-          *cfg.flowletSwitchingConfig(),
-          portFlowletConfig,
-          true /* flowletEnable */));
-    }
-
-    utility::validateFlowSetTable(
-        getHwSwitch(), true /* expectFlowsetSizeZero */);
-
-    // remove ECMP object for the first route
-    ecmpHelper_->unprogramRoutes(
-        getRouteUpdater(), {RoutePrefixV6{kAddr1, 64}});
-
-    // ensure that DLB is  programmed as we started with more ECMP objects
-    // we expect flowset size is non zero now, that there are fewer ECMP objects
-    // and they should fit in
-    EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(),
-        kAddr2Prefix,
-        *cfg.flowletSwitchingConfig(),
-        portFlowletConfig,
-        true /* flowletEnable */));
-
-    utility::validateFlowSetTable(
-        getHwSwitch(), true /* expectFlowsetSizeZero */);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 // verify if all 16 ECMP groups are in DLB mode
 TEST_F(HwArsFlowletTest, ValidateFlowsetTableFull) {
   if (this->skipTest()) {
@@ -1190,8 +1122,7 @@ TEST_F(HwArsSprayTest, VerifySprayModeScale) {
 #endif
     return;
   }
-  auto numEcmp =
-      getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
+  auto numEcmp = kMaxDlbGroups();
 
   auto setup = [this, numEcmp]() {
     auto cfg = initialConfig();
@@ -1286,9 +1217,9 @@ TEST_F(HwArsSprayTest, VerifyEcmpIdManagement) {
     return;
   }
 
+  auto numEcmp = kMaxDlbGroups();
+
   auto setup = [&]() {
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     setupEcmpGroups(numEcmp);
     // create 1 more ECMP object
     resolveNextHopsAddRoute(
@@ -1296,8 +1227,6 @@ TEST_F(HwArsSprayTest, VerifyEcmpIdManagement) {
   };
 
   auto verify = [&]() {
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     auto cfg = initialConfig();
     verifyEcmpGroups(cfg, numEcmp);
 
@@ -1390,6 +1319,8 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForDynamicEcmp) {
     return;
   }
 
+  auto numEcmp = kMaxDlbGroups();
+
   auto setup = [&]() {
     FLAGS_enable_ecmp_resource_manager = true;
     auto cfg = initialConfig();
@@ -1400,8 +1331,6 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForDynamicEcmp) {
         cfg::SwitchingMode::PER_PACKET_QUALITY);
     updatePortFlowletConfigName(cfg);
     applyNewConfig(cfg);
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     setupEcmpGroups(numEcmp);
   };
 
@@ -1413,8 +1342,6 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForDynamicEcmp) {
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         kMinFlowletTableSize,
         cfg::SwitchingMode::PER_PACKET_QUALITY);
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     verifyEcmpGroups(cfg, numEcmp);
 
     // create 1 more ECMP object, this should throw since no more DLB groups

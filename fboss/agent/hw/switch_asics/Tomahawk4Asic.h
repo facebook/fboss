@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/BroadcomXgsAsic.h"
 
@@ -100,8 +101,12 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
     return 56000;
   }
   std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
-    // CS00012398177
-    return 127;
+    if (FLAGS_use_full_dlb_scale) {
+      return 128;
+    } else {
+      // CS00012398177
+      return 127;
+    }
   }
   uint32_t getStaticQueueLimitBytes() const override {
     // Per ITM buffers limits the queue size

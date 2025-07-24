@@ -23,6 +23,8 @@ TEST_F(ContentValidatorTest, InvalidVersion) {
   std::vector<std::pair<std::string, std::string>> contents = {
       {"Version", "3"}};
   EXPECT_FALSE(validator.isValid(contents));
+  contents = {{"Version", "4"}};
+  EXPECT_FALSE(validator.isValid(contents));
   contents = {{"Version", "7"}};
   EXPECT_FALSE(validator.isValid(contents));
 }

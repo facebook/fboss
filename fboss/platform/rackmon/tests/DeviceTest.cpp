@@ -1,10 +1,10 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/Device.h"
+#include "Device.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <fstream>
 #include <thread>
-#include "fboss/platform/rackmon/tests/TempDir.h"
+#include "TempDir.h"
 
 using namespace std::literals;
 using namespace rackmon;

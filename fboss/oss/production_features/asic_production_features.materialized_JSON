@@ -40,7 +40,9 @@
         69,
         72,
         73,
-        74
+        74,
+        82,
+        83
     ],
     "ebro": [
         2,
@@ -224,7 +226,9 @@
         69,
         71,
         72,
-        80
+        80,
+        81,
+        82
     ],
     "tomahawk4": [
         2,
@@ -278,8 +282,10 @@
         69,
         71,
         72,
-        78,
-        80
+        80,
+        81,
+        82,
+        78
     ],
     "tomahawk5": [
         2,
@@ -331,7 +337,10 @@
         69,
         71,
         72,
-        80
+        80,
+        81,
+        82,
+        84
     ],
     "yuba": [
         2,
@@ -421,7 +430,9 @@
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
         "ERSPANv4_SAMPLING",
-        "ERSPANv6_SAMPLING"
+        "ERSPANv6_SAMPLING",
+        "ARS_SPRAY",
+        "ROUTER_INTERFACE_COUNTERS"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -605,7 +616,9 @@
         "PTP_TC",
         "L4_DST_PORT_ACL",
         "MODIFY_ACL_QUALIFIERS",
-        "PFC_WATCHDOG_GRANULARITY"
+        "PFC_WATCHDOG_GRANULARITY",
+        "ARS_FLOWLET",
+        "ARS_SPRAY"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -659,8 +672,10 @@
         "PTP_TC",
         "L4_DST_PORT_ACL",
         "MODIFY_ACL_QUALIFIERS",
-        "ECMP_RANDOM_SPRAY",
-        "PFC_WATCHDOG_GRANULARITY"
+        "PFC_WATCHDOG_GRANULARITY",
+        "ARS_FLOWLET",
+        "ARS_SPRAY",
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -712,7 +727,10 @@
         "PTP_TC",
         "L4_DST_PORT_ACL",
         "MODIFY_ACL_QUALIFIERS",
-        "PFC_WATCHDOG_GRANULARITY"
+        "PFC_WATCHDOG_GRANULARITY",
+        "ARS_FLOWLET",
+        "ARS_SPRAY",
+        "STATIC_PG_SHARED_LIMIT"
     ],
     "yuba": [
         "CPU_RX_TX",

@@ -179,6 +179,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::ddpPacketError() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::packetIntegrityError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
@@ -362,4 +367,17 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccCorrectableError::operator()() {
+  return std::nullopt;
+}
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccUnCorrectableError::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

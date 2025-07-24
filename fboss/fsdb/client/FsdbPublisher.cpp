@@ -11,6 +11,11 @@
 #include <type_traits>
 #include <utility>
 
+DEFINE_int32(
+    fsdb_publisher_heartbeat_interval_secs,
+    1,
+    "Heartbeat interval for publisher");
+
 namespace facebook::fboss::fsdb {
 
 template <typename PubUnit>
@@ -41,6 +46,7 @@ void FsdbPublisher<PubUnit>::handleStateChange(
 #if FOLLY_HAS_COROUTINES
   auto pipeWPtr = asyncPipe_.wlock();
   if (newState != State::CONNECTED) {
+    cancelHeartbeatLoop();
     // If we went to any other state than CONNECTED, reset the publish queue.
     // Per FSDB protocol, publishers are required to do a full-sync post
     // reconnect, so there is no point storing previous states.
@@ -48,6 +54,7 @@ void FsdbPublisher<PubUnit>::handleStateChange(
     queueSize_ = 0;
   } else {
     *pipeWPtr = makePipe();
+    scheduleHeartbeatLoop();
   }
 #endif
 }
@@ -60,6 +67,7 @@ bool FsdbPublisher<PubUnit>::write(PubUnit&& pubUnit) {
       pubUnit.metadata()->lastConfirmedAt() =
           std::chrono::duration_cast<std::chrono::seconds>(ts).count();
     }
+    lastConfirmedAt_ = *pubUnit.metadata()->lastConfirmedAt();
     if (!pubUnit.metadata()->lastPublishedAt()) {
       pubUnit.metadata()->lastPublishedAt() =
           std::chrono::duration_cast<std::chrono::milliseconds>(ts).count();
@@ -135,6 +143,43 @@ bool FsdbPublisher<PubUnit>::disconnectForGR() {
   cancel();
 #endif
   return true;
+}
+
+template <typename PubUnit>
+void FsdbPublisher<PubUnit>::sendHeartbeat() {
+  if (!initialSyncComplete_) {
+    return;
+  }
+  auto pipeUPtr = asyncPipe_.ulock();
+  if ((*pipeUPtr)) {
+    PubUnit emptyPubUnit;
+    (*pipeUPtr)->second.try_write(std::move(emptyPubUnit));
+  }
+}
+
+template <typename PubUnit>
+void FsdbPublisher<PubUnit>::scheduleHeartbeatLoop() {
+  if (FLAGS_fsdb_publisher_heartbeat_interval_secs != 0) {
+    XLOG(DBG2) << "Scheduling FsdbPublisher.HeartbeatLoop(interval: "
+               << FLAGS_fsdb_publisher_heartbeat_interval_secs << " seconds)";
+    functionScheduler_.addFunction(
+        [this]() {
+          auto evb = getStreamEventBase();
+          evb->runInEventBaseThread([this]() { sendHeartbeat(); });
+        },
+        std::chrono::seconds(FLAGS_fsdb_publisher_heartbeat_interval_secs),
+        "FsdbPublisherHeartbeat");
+    functionScheduler_.start();
+  }
+}
+
+template <typename PubUnit>
+void FsdbPublisher<PubUnit>::cancelHeartbeatLoop() {
+  if (FLAGS_fsdb_publisher_heartbeat_interval_secs != 0) {
+    XLOG(DBG2) << "Cancelling FsdbPublisher.HeartbeatLoop";
+    functionScheduler_.cancelFunction("FsdbPublisherHeartbeat");
+    functionScheduler_.shutdown();
+  }
 }
 
 template class FsdbPublisher<OperDelta>;

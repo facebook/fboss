@@ -817,13 +817,13 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
     }
   }
 
-  // Callback function for updating addresses for a particular interface
-  auto applyInterfaceAddrChanges = [this](
-                                       InterfaceID ifID,
-                                       const std::string& ifName,
-                                       int ifIndex,
-                                       const Addresses& oldAddrs,
-                                       const Addresses& newAddrs) {
+  // Callback function for removing addresses for a particular interface
+  auto removeChangedAddress = [this](
+                                  InterfaceID ifID,
+                                  const std::string& ifName,
+                                  int ifIndex,
+                                  const Addresses& oldAddrs,
+                                  const Addresses& newAddrs) {
     applyChanges(
         oldAddrs,
         newAddrs,
@@ -834,18 +834,66 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           }
           removeTunAddress(
               ifID, ifName, ifIndex, oldIter->first, oldIter->second);
-          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
         },
-        [&](ConstAddressesIter& newIter) {
-          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
-        },
+        [&](ConstAddressesIter& /*newIter*/) {},
         [&](ConstAddressesIter& oldIter) {
           removeTunAddress(
               ifID, ifName, ifIndex, oldIter->first, oldIter->second);
         });
   };
 
-  // Apply changes for all interfaces
+  // Callback function for adding addresses for a particular interface
+  auto addChangedAddress = [this](
+                               InterfaceID ifID,
+                               const std::string& ifName,
+                               int ifIndex,
+                               const Addresses& oldAddrs,
+                               const Addresses& newAddrs) {
+    applyChanges(
+        oldAddrs,
+        newAddrs,
+        [&](ConstAddressesIter& oldIter, ConstAddressesIter& newIter) {
+          if (oldIter->second == newIter->second) {
+            // addresses and masks are both same
+            return;
+          }
+          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
+        },
+        [&](ConstAddressesIter& newIter) {
+          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
+        },
+        [&](ConstAddressesIter& oldIter) {
+
+        });
+  };
+
+  // Remove addresses(kernel entries) for all interfaces before we add new
+  // addresses.
+  applyChanges(
+      oldIntfToInfo,
+      newIntfToInfo,
+      [&](ConstIntfToAddrsMapIter& oldIter, ConstIntfToAddrsMapIter& newIter) {
+        auto newStatus = newIter->second.first;
+        const auto& oldAddrs = oldIter->second.second;
+        const auto& newAddrs = newIter->second.second;
+
+        // Interface must exists
+        const auto& intf = intfs_.at(oldIter->first);
+        auto ifID = intf->getInterfaceID();
+        int ifIndex = intf->getIfIndex();
+        const auto& ifName = intf->getName();
+
+        // IPv6 throws exception when interface is down, so applying changes
+        // only if interface is up
+        if (newStatus) {
+          removeChangedAddress(ifID, ifName, ifIndex, oldAddrs, newAddrs);
+        }
+      },
+      [&](ConstIntfToAddrsMapIter& /*newIter*/) {},
+      [&](ConstIntfToAddrsMapIter& /*oldIter*/) {});
+
+  // Add addresses(kernel entries) for all interfaces before we add new
+  // addresses.
   applyChanges(
       oldIntfToInfo,
       newIntfToInfo,
@@ -870,14 +918,17 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           setIntfStatus(ifName, ifIndex, newStatus);
         }
 
-        // We need to add route-table and tun-addresses if interface is
-        // brought up recently. NOTE: Do not add source routing rules because
-        // kernel doesn't handle NLM_F_REPLACE flags and they just keep piling
-        // up :/
+        // We need to add route-table and tun-addresses if interface is brought
+        // up recently.
         if (!oldStatus and newStatus) {
           addRouteTable(ifID, ifIndex);
+          // Remove old source route rules to avoid duplicates
+          for (const auto& addr : oldAddrs) {
+            addRemoveSourceRouteRule(ifID, addr.first, false);
+          }
+          // Add new addresses
           for (const auto& addr : newAddrs) {
-            addRemoveTunAddress(ifName, ifIndex, addr.first, addr.second, true);
+            addTunAddress(ifID, ifName, ifIndex, addr.first, addr.second);
           }
         }
 
@@ -886,7 +937,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
         // interface is UP. We should not try to add addresses when interface
         // is down as it can throw exception for v6 address.
         if (newStatus) {
-          applyInterfaceAddrChanges(ifID, ifName, ifIndex, oldAddrs, newAddrs);
+          addChangedAddress(ifID, ifName, ifIndex, oldAddrs, newAddrs);
         }
       },
       [&](ConstIntfToAddrsMapIter& newIter) {

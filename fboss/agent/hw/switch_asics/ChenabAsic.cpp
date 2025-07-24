@@ -57,7 +57,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_UDF_HASH:
-    case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::ARS:
@@ -87,7 +86,10 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::WARMBOOT:
+    case HwAsic::Feature::SAI_PRBS:
+    case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
       return true;
+    case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
@@ -182,7 +184,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
-    case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
@@ -216,6 +217,8 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
+    case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
+    case HwAsic::Feature::TEMPERATURE_MONITORING:
       return false;
   }
   return false;

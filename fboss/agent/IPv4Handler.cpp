@@ -31,15 +31,12 @@
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
-#include "fboss/agent/state/ArpResponseTable.h"
-#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 using folly::IPAddress;
 using folly::IPAddressV4;

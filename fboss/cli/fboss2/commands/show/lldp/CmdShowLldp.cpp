@@ -20,7 +20,6 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/Table.h"
-#include "folly/container/Access.h"
 
 namespace facebook::fboss {
 
@@ -169,14 +168,14 @@ std::string CmdShowLldp::extractExpectedPort(
   */
   std::vector<std::string> results;
   // First try splitting as if it's a minipack
-  folly::split(" ", portDescription, results);
+  folly::split(' ', portDescription, results);
   if (results.size() > 1) {
     return results[1];
   }
 
   // If we don't get results from the split then split on "." which is a
   // different format
-  folly::split(".", portDescription, results);
+  folly::split('.', portDescription, results);
   // Depending on which tier the peer is, we need to grab the specific
   // fields to make a useable hostname
   const RE2 ssw_regex(".*ssw.*");
@@ -186,7 +185,7 @@ std::string CmdShowLldp::extractExpectedPort(
   const RE2 fsw_regex("^fsw.*");
   if (RE2::FullMatch(portDescription, fsw_regex)) {
     results.clear();
-    folly::split(":", portDescription, results);
+    folly::split(':', portDescription, results);
     // Prints as fsw001.p062.f01.vll3
     return results[0];
   }

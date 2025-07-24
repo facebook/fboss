@@ -152,9 +152,13 @@ struct Patch {
   4: OperProtocol protocol = OperProtocol.COMPACT;
 }
 
+struct Heartbeat {
+  1: optional OperMetadata metadata;
+}
+
 union PublisherMessage {
   1: Patch patch;
-  // TODO: heartbeat
+  2: Heartbeat heartbeat;
 }
 
 struct SubscriberChunk {
@@ -163,8 +167,6 @@ struct SubscriberChunk {
   // paths. For non wildcard subs, there will always be only one patch per key
   1: map<SubscriptionKey, list<Patch>> patchGroups;
 }
-
-struct Heartbeat {}
 
 union SubscriberMessage {
   1: SubscriberChunk chunk;

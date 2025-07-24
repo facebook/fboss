@@ -1,3 +1,4 @@
+load("@fbcode//clifoundation/cli_target/buck_defs:cli.bzl", "cli")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
@@ -255,7 +256,7 @@ cpp_library(
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
         "//neteng/routing/policy/if:policy_thrift-cpp2-types",
-        "//nettools/bgplib:bgp_parser",
+        "//nettools/bgplib:bgp_structs",
         "//thrift/lib/cpp/util:enum_utils",
     ],
 )
@@ -672,13 +673,14 @@ cpp_library(
         "//neteng/fboss/bgp/if:bgp_stream-cpp2-types",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//neteng/fboss/coop/if:coop_thrift-cpp2-serialization",
         "//neteng/fboss/coop/if:coop_thrift-cpp2-services",
         "//neteng/fboss/coop/if:coop_thrift-cpp2-types",
         "//neteng/fboss/drain/local_drainer/server:thrift-cpp2-clients",
         "//neteng/netwhoami/lib/cpp:client",
         "//neteng/netwhoami/lib/cpp:recover",
         "//neteng/routing/policy/if:policy_thrift-cpp2-types",
-        "//nettools/bgplib:bgp_parser",
+        "//nettools/bgplib:bgp_structs",
         "//nettools/bgplib:bgplib",
         "//nettools/bgplib/if:bgp-structs-cpp2-types",
         "//nettools/skynet/if:query-cpp2-types",
@@ -730,6 +732,16 @@ cpp_binary(
     ],
 )
 
+cli.metadata(
+    name = "cli-fboss2",
+    binary_name = "fboss2",
+    criticality = cli.criticality(
+        level = cli.level.TIER_0,
+    ),
+    description = "FBOSS agent management frontend.",
+    executable = ":fboss2",
+)
+
 auto_tab_complete(
     name = "fboss2-tab-complete",
     src = ":fboss2",
@@ -776,7 +788,7 @@ cpp_binary(
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
         "//neteng/routing/policy/if:policy_thrift-cpp2-types",
-        "//nettools/bgplib:bgp_parser",
+        "//nettools/bgplib:bgp_structs",
         "//nettools/bgplib:bgplib",
         "//nettools/bgplib/if:bgp-structs-cpp2-types",
         "//nettools/skynet/if:query-cpp2-types",

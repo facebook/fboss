@@ -10,9 +10,11 @@
 
 #include <memory>
 
+#include <folly/Subprocess.h>
+#include <folly/system/Shell.h>
+
 #include <openr/if/gen-cpp2/OpenrCtrlCpp.h>
 
-#include "common/process/Process.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -23,6 +25,7 @@
 
 using namespace facebook::fboss;
 using namespace std::chrono;
+using folly::literals::shell_literals::operator""_shellify;
 
 static constexpr int kOpenrThriftPort{2018};
 
@@ -195,10 +198,12 @@ class MultiNodeOpenrTest : public MultiNodeTest {
     }
     for (auto dstIp : getNeighbors()) {
       std::string pingCmd = "ping -c 5 ";
-      std::string resultStr;
-      std::string errStr;
-      EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIp.str(), &resultStr, &errStr));
+      folly::Subprocess p(
+          "{}{}"_shellify(pingCmd, dstIp.str()),
+          folly::Subprocess::Options().pipeStdout());
+      auto [_, stdErr] = p.communicate();
+      int exitStatus = p.wait().exitStatus();
+      EXPECT_EQ(exitStatus, 0) << "Ping failed. Error: " << stdErr;
     }
   }
   cfg::SwitchConfig initialConfig() const override {

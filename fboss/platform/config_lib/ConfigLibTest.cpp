@@ -86,4 +86,9 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kMeru800bfa));
   EXPECT_THROW(
       ConfigLib().getBspTestConfig(kNonExistentPlatform), std::out_of_range);
+
+  // Showtech Configs
+  EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kSample));
+  EXPECT_THROW(
+      ConfigLib().getShowtechConfig(kNonExistentPlatform), std::out_of_range);
 }

@@ -8,8 +8,6 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <utility>
-#include <vector>
 
 #include <folly/logging/xlog.h>
 #include "fboss/platform/weutil/Crc16CcittAug.h"

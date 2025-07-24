@@ -25,7 +25,8 @@ using namespace folly::literals::shell_literals;
 namespace facebook::fboss::platform::fw_util {
 void FwUtilImpl::init() {
   platformName_ = helpers::PlatformNameLib().getPlatformName().value();
-  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig();
+  ConfigLib configLib(configFilePath_);
+  std::string fwUtilConfJson = configLib.getFwUtilConfig();
   try {
     apache::thrift::SimpleJSONSerializer::deserialize<NewFwUtilConfig>(
         fwUtilConfJson, fwUtilConfig_);
@@ -130,7 +131,7 @@ void FwUtilImpl::doFirmwareAction(
     }
   } else {
     XLOG(INFO) << "Invalid action: " << action
-               << ". Please run ./fw-util --helpon=Flags for the right usage";
+               << ". Please run ./fw-util --help Flags for the right usage";
     exit(1);
   }
 }

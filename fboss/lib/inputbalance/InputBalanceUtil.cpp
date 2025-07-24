@@ -162,11 +162,13 @@ getNeighborFabricPortsToSelf(
       }
     }
   }
-  std::cout
-      << "[WARNING] No expected neighbor or more than one expected neighbor for following port(s). "
-      << "This could happen on LAB devices but should not occur in PROD. \n"
-      << "Port: " << folly::join(" ", noExpectedNeighbor) << "\n\n"
-      << std::endl;
+  if (!noExpectedNeighbor.empty()) {
+    std::cout
+        << "[WARNING] No expected neighbor or more than one expected neighbor for following port(s). "
+        << "This could happen on LAB devices but should not occur in PROD. \n"
+        << "Port: " << folly::join(" ", noExpectedNeighbor) << "\n\n"
+        << std::endl;
+  }
   return switchNameToPorts;
 }
 

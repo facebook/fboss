@@ -81,6 +81,7 @@ class NeighborUpdater;
 class PacketLogger;
 class RouteUpdateLogger;
 class StateObserver;
+class PreUpdateStateModifier;
 class TunManager;
 class MirrorManager;
 class PhySnapshotManager;
@@ -109,6 +110,7 @@ class HwSwitchThriftClientTable;
 class ResourceAccountant;
 class RemoteNeighborUpdater;
 class EcmpResourceManager;
+class ShelManager;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -417,6 +419,11 @@ class SwSwitch : public HwSwitchCallback {
   void registerStateObserver(StateObserver* observer, const std::string& name)
       override;
   void unregisterStateObserver(StateObserver* observer) override;
+
+  void registerStateModifier(
+      PreUpdateStateModifier* modifier,
+      const std::string& name);
+  void unregisterStateModifier(PreUpdateStateModifier* modifier);
 
   /*
    * Signal to the switch that initial config is applied.
@@ -975,6 +982,8 @@ class SwSwitch : public HwSwitchCallback {
 
   std::map<PortID, HwPortStats> getHwPortStats(
       std::vector<PortID> portId) const;
+  std::map<InterfaceID, HwRouterInterfaceStats> getHwRouterInterfaceStats(
+      const std::vector<InterfaceID>& intfIds) const;
   void getAllHwSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) const;
   std::map<SystemPortID, HwSysPortStats> getHwSysPortStats(
@@ -1003,6 +1012,8 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
 
  private:
+  void initAgentInfo();
+
   void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
@@ -1081,6 +1092,22 @@ class SwSwitch : public HwSwitchCallback {
    * Notifies all the observers that a state update occured.
    */
   void notifyStateObservers(const StateDelta& delta);
+
+  /*
+   * Invoke State modifier to modify state prior to update.
+   */
+  bool preUpdateModifyState(std::vector<StateDelta>& deltas);
+
+  /*
+   * Reconstruct state modifier from initial switch state.
+   */
+  std::vector<StateDelta> reconstructStateModifierFromSwitchState(
+      const std::shared_ptr<SwitchState>& initialState);
+
+  void notifyStateModifierUpdateFailed(
+      const std::shared_ptr<SwitchState>& state);
+
+  void notifyStateModifierUpdateDone();
 
   void logLinkStateEvent(PortID port, bool up);
 
@@ -1299,6 +1326,7 @@ class SwSwitch : public HwSwitchCallback {
   std::map<StateObserver*, std::string> stateObservers_;
   std::unique_ptr<PacketObservers> pktObservers_;
   std::unique_ptr<L2LearnEventObservers> l2LearnEventObservers_;
+  std::unordered_map<PreUpdateStateModifier*, std::string> stateModifiers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
@@ -1344,6 +1372,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
+  std::unique_ptr<ShelManager> shelManager_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
@@ -1355,7 +1384,7 @@ class SwSwitch : public HwSwitchCallback {
   std::atomic<std::chrono::time_point<std::chrono::steady_clock>>
       lastPacketRxTime_{std::chrono::steady_clock::time_point::min()};
   folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;
-  agent_info::AgentInfo agentInfo_; // TODO: initialize this
+  agent_info::AgentInfo agentInfo_;
   folly::Synchronized<std::map<uint16_t, multiswitch::HwSwitchStats>>
       hwSwitchStats_;
   // Map to lookup local interface address to interface id, for fask look up in

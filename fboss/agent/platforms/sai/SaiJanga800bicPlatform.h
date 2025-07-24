@@ -63,6 +63,23 @@ class SaiJanga800bicPlatform : public SaiBcmPlatform {
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
+
+  /**
+   * @brief Retrieves CPU port core and port index mapping from BCM
+   * configuration
+   *
+   * Parses the BCM configuration to extract CPU port assignments to specific
+   * cores and port indices. This method looks for ucode_port configurations
+   * matching the kCpuUcodePorts array and extracts the core and port index
+   * information using regex pattern matching.
+   *
+   * @return std::map<uint32_t, std::pair<uint32_t, uint32_t>> Map where:
+   *         - Key: CPU port ID (0-3)
+   *         - Value: Pair of (core index, port index within core)
+   */
+  std::map<uint32_t, std::pair<uint32_t, uint32_t>> getCpuPortsCoreAndPortIdx()
+      const;
+
   std::unique_ptr<Jericho3Asic> asic_;
 };
 
