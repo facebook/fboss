@@ -62,60 +62,7 @@
     "SMBus I801 adapter at 5000",
     "SMBus iSMT adapter at 20fffa7b000"
   ],
-  "versionedPmUnitConfigs": {
-    "NETLAKE": [
-      {
-        "pmUnitConfig": {
-          "pluggedInSlotType": "COMESE_SLOT",
-          "i2cDeviceConfigs": [
-            {
-              "busName": "INCOMING@0",
-              "address": "0x11",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_HWMON1"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x22",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_HWMON2"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x45",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_HWMON3"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x66",
-              "kernelDeviceName": "mp9941",
-              "pmUnitScopedName": "COME_HWMON4"
-            },
-            {
-              "busName": "INCOMING@0",
-              "address": "0x76",
-              "kernelDeviceName": "mp2993",
-              "pmUnitScopedName": "COME_HWMON5"
-            },
-            {
-              "busName": "INCOMING@1",
-              "address": "0x48",
-              "kernelDeviceName": "tmp75",
-              "pmUnitScopedName": "COME_U18_INLET_TSENSOR"
-            },
-            {
-              "busName": "INCOMING@1",
-              "address": "0x4a",
-              "kernelDeviceName": "tmp75",
-              "pmUnitScopedName": "COME_U39_OUTLET_TSENSOR"
-            }
-          ]
-        },
-        "productSubVersion": 2
-      }
-    ]
-  },
+  "versionedPmUnitConfigs": {},
   "pmUnitConfigs": {
     "ICETEA_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
@@ -1715,31 +1662,31 @@
         {
           "busName": "INCOMING@0",
           "address": "0x11",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_HWMON1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_HWMON2"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_HWMON3"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
-          "kernelDeviceName": "tda38640",
+          "kernelDeviceName": "mp9941",
           "pmUnitScopedName": "COME_HWMON4"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
-          "kernelDeviceName": "xdpe15284",
+          "kernelDeviceName": "mp2993",
           "pmUnitScopedName": "COME_HWMON5"
         },
         {
