@@ -26,7 +26,7 @@ RUN sudo dnf install -y autoconf automake binutils binutils-devel bzip2 \
 RUN ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss
 RUN dnf install bison flex -y
 RUN dnf group install "Development Tools" -y
-RUN dnf install openssl* -y
+RUN dnf install openssl* -y --allowerasing
 RUN python3 -m pip install gitpython
 RUN python3 -m pip install meson
 RUN python3 -m pip install jinja2
