@@ -984,6 +984,23 @@ EcmpResourceManager::computeConsolidationInfo(
   return consolidationInfo;
 }
 
+std::map<
+    EcmpResourceManager::NextHopGroupIds,
+    EcmpResourceManager::ConsolidationInfo>
+EcmpResourceManager::getConsolidationInfo(NextHopGroupId grpId) const {
+  std::map<NextHopGroupIds, ConsolidationInfo> mergedGrps2Info;
+  auto addMergedGroups = [&mergedGrps2Info, grpId](const auto& mergedGrpInfo) {
+    for (const auto& [mergedGrps, info] : mergedGrpInfo) {
+      if (mergedGrps.contains(grpId)) {
+        mergedGrps2Info.insert({mergedGrps, info});
+      }
+    }
+  };
+  addMergedGroups(candidateMergeGroups_);
+  addMergedGroups(mergedGroups_);
+  return mergedGrps2Info;
+}
+
 void EcmpResourceManager::computeCandidateMerges(
     const std::vector<NextHopGroupId>& groupIds) {
   XLOG(DBG2) << " Will compute candidate merges for : "
