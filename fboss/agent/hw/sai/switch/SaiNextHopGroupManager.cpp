@@ -462,6 +462,15 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
       store.setObjects(adapterHostKeys, weights);
     }
   }
+  // Clean up ECMP members in reverse order. Due to the feature of SHEL and ECMP
+  // member placement in the hardware, removing ECMP members from head become
+  // expensive.
+  // In order to maintain a continuous block of ECMP members, SDK will need to
+  // move the last member to the removed spot. Rather, remove the memebers in
+  // FILO order to optimize the remove performance.
+  while (!members_.empty()) {
+    members_.pop_back();
+  }
 }
 
 template <typename NextHopTraits>
