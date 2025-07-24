@@ -34,11 +34,9 @@ struct Wrapper {
   static constexpr bool kCppWrapper = cppWrapper;
   static constexpr bool kMultiSwitch = multiSwitch;
 };
-using PythonWrapper = Wrapper<false, false>;
 using CppWrapper = Wrapper<true, false>;
 using CppMultiSwitchWrapper = Wrapper<true, true>;
-using TestTypes =
-    ::testing::Types<PythonWrapper, CppWrapper, CppMultiSwitchWrapper>;
+using TestTypes = ::testing::Types<CppWrapper, CppMultiSwitchWrapper>;
 } // namespace
 
 template <typename T>
