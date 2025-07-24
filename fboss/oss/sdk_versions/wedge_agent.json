@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<f3a4f8f8dd0df4407affb3dc433fda85>>"
+        "@generated SignedSource<<d296b7783e8598a1142c714db508d9d5>>"
     ],
     "MINIPACK": [
         {
@@ -35,6 +35,11 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.0_ea_odp"
         }
     ],
     "ELBERT": [
@@ -134,6 +139,11 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.0_ea_odp"
         }
     ],
     "DARWIN": [
