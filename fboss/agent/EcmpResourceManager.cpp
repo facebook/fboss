@@ -571,6 +571,13 @@ void EcmpResourceManager::routeAddedOrUpdated(
   }
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
+  if (compressionPenaltyThresholdPct_) {
+    if (inserted) {
+      computeCandidateMerges({idItr->second});
+    } else {
+      // TODO update candidate merge info
+    }
+  }
 }
 
 template <typename AddrT>
@@ -946,23 +953,31 @@ EcmpResourceManager::computeConsolidationInfo(
   for (auto grpIdsItr = ++grpIds.begin(); grpIdsItr != grpIds.end();
        ++grpIdsItr) {
     RouteNextHopSet tmpMergeNhops;
-    const auto& grpNhops = nextHopGroupIdToInfo_.ref(*grpIdsItr)->getNhops();
+    auto nhopsInfo = nextHopGroupIdToInfo_.ref(*grpIdsItr);
+    CHECK(nhopsInfo);
+    const auto& grpNhops = nhopsInfo->getNhops();
     std::set_intersection(
         mergedNhops.begin(),
         mergedNhops.end(),
         grpNhops.begin(),
         grpNhops.end(),
-        tmpMergeNhops.begin());
+        std::inserter(tmpMergeNhops, tmpMergeNhops.begin()));
     mergedNhops = std::move(tmpMergeNhops);
   }
   ConsolidationInfo consolidationInfo;
+  XLOG(DBG2) << " Computing consolidation penaties for: "
+             << folly::join(", ", grpIds);
   for (auto grpId : grpIds) {
-    const auto grpInfo = nextHopGroupIdToInfo_.ref(grpId);
+    const auto& grpInfo = nextHopGroupIdToInfo_.ref(grpId);
     CHECK_GE(grpInfo->getNhops().size(), mergedNhops.size());
-    auto nhopsPctLoss = std::ceil(
-        ((grpInfo->getNhops().size() - mergedNhops.size()) * 100.0) /
-        grpInfo->getNhops().size());
+    auto nhopsLost = grpInfo->getNhops().size() - mergedNhops.size();
+    auto nhopsPctLoss =
+        std::ceil((nhopsLost * 100.0) / grpInfo->getNhops().size());
     auto penalty = grpInfo->getRouteUsageCount() * nhopsPctLoss;
+    XLOG(DBG2) << " For group : " << grpId
+               << " orig nhops: " << grpInfo->getNhops().size()
+               << " nhops lost: " << nhopsLost << " penalty: " << penalty
+               << "%";
     consolidationInfo.groupId2Penalty.insert({grpId, penalty});
   }
   consolidationInfo.mergedNhops = std::move(mergedNhops);
@@ -971,6 +986,8 @@ EcmpResourceManager::computeConsolidationInfo(
 
 void EcmpResourceManager::computeCandidateMerges(
     const std::vector<NextHopGroupId>& groupIds) {
+  XLOG(DBG2) << " Will compute candidate merges for : "
+             << folly::join(", ", groupIds);
   NextHopGroupIds alreadyMergedGroups;
   std::for_each(
       mergedGroups_.begin(),
@@ -988,7 +1005,10 @@ void EcmpResourceManager::computeCandidateMerges(
       if (grpToMergeWith == grpId) {
         continue;
       }
-      // TODO: compute consolidation penalty
+      NextHopGroupIds candidateMerge{grpId, grpToMergeWith};
+      auto consolidationInfo = computeConsolidationInfo(candidateMerge);
+      candidateMergeGroups_.insert(
+          {candidateMerge, std::move(consolidationInfo)});
     }
     for (const auto& [grpsToMergeWith, _] : mergedGroups_) {
       DCHECK(!grpsToMergeWith.contains(grpId));
