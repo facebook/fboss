@@ -49,10 +49,6 @@ void AgentWrapperTest<T>::SetUp() {
   }
   config_ = AgentConfig::fromFile("/etc/coop/agent/current");
   createDirectoryTree(util_.getWarmBootDir());
-  if constexpr (T::kCppWrapper) {
-    createDirectoryTree(parentDirectoryTree(util_.getWrapperRefactorFlag()));
-    touchFile(util_.getWrapperRefactorFlag());
-  }
   if constexpr (T::kMultiSwitch) {
     auto newConfigThrift = config_->thrift;
     newConfigThrift.defaultCommandLineArgs()["multi_switch"] = "true";
@@ -70,10 +66,6 @@ void AgentWrapperTest<T>::SetUp() {
 template <typename T>
 void AgentWrapperTest<T>::TearDown() {
   stop();
-  if constexpr (T::kCppWrapper) {
-    removeFile(util_.getWrapperRefactorFlag());
-    removeDir(parentDirectoryTree(util_.getWrapperRefactorFlag()));
-  }
   if constexpr (T::kMultiSwitch) {
     std::filesystem::copy_options opt =
         std::filesystem::copy_options::overwrite_existing;
@@ -149,8 +141,7 @@ void AgentWrapperTest<T>::waitForStart() {
 
 template <typename T>
 void AgentWrapperTest<T>::waitForStop(const std::string& unit, bool crash) {
-  bool wrapperRefactored =
-      checkFileExists(this->util_.getWrapperRefactorFlag());
+  bool wrapperRefactored = FLAGS_cpp_wedge_agent_wrapper;
   constexpr auto multiSwitch = T::kMultiSwitch;
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
