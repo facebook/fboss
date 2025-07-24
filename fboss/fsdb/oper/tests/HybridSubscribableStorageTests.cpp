@@ -82,10 +82,20 @@ class SubscribableStorageTests : public Test {
         testDyn, facebook::thrift::dynamic_format::JSON_1);
   }
 
-  auto initStorage(auto val) {
+  auto initStorage(auto& val) {
     auto constexpr isHybridStorage = TestParams::hybridStorage;
     using RootType = std::remove_cvref_t<decltype(val)>;
     return NaivePeriodicSubscribableCowStorage<RootType, isHybridStorage>(val);
+  }
+
+  auto initHybridStorage(auto& val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return NaivePeriodicSubscribableCowStorage<RootType, true>(val);
+  }
+
+  auto initPureCowStorage(auto& val) {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return NaivePeriodicSubscribableCowStorage<RootType, false>(val);
   }
 
   auto createCowStorage(auto val) {
@@ -300,6 +310,74 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHybridDelta) {
   deltaVal = folly::coro::blockingWait(
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(20)));
   EXPECT_EQ(deltaVal.changes()->size(), 0);
+}
+
+TYPED_TEST(SubscribableStorageTests, PublishPatchesFromPureCowStorage) {
+  auto srcStorage = this->initPureCowStorage(this->testStruct);
+  srcStorage.setConvertToIDPaths(true);
+  srcStorage.start();
+  auto tgtStorage = this->initStorage(this->testStruct);
+
+  auto genPatch = srcStorage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))), this->root);
+
+  auto awaitPatch = [](auto& patchSubStream, bool isInitial = false) -> Patch {
+    SubscriberMessage patchMsg = folly::coro::blockingWait(folly::coro::timeout(
+        consumeOne(patchSubStream), std::chrono::seconds(5)));
+    auto patchGroups = *patchMsg.get_chunk().patchGroups();
+    EXPECT_EQ(patchGroups.size(), 1);
+    auto patches = patchGroups.begin()->second;
+    EXPECT_EQ(patches.size(), 1);
+    Patch patch = patches.front();
+    if (isInitial) {
+      // make sure Patch.PatchNode has a value
+      auto rootPatch = patch.patch()->val_ref();
+      EXPECT_TRUE(rootPatch);
+    } else {
+      auto rootPatch = patch.patch()->struct_node_ref();
+      EXPECT_TRUE(rootPatch);
+    }
+    return patch;
+  };
+
+  auto patchAndVerify =
+      [this](Patch& patch, const auto& srcStorage, auto& tgtStorage) {
+        TestStruct srcState = srcStorage.get(this->root).value();
+        std::optional<StorageError> result = tgtStorage.patch(std::move(patch));
+        EXPECT_EQ(result.has_value(), false);
+        tgtStorage.publishCurrentState();
+        TestStruct tgtState = tgtStorage.get(this->root).value();
+        EXPECT_EQ(srcState, tgtState);
+      };
+
+  // 1. initial sync: patch initial sync, and verify target storage state
+  Patch patch = awaitPatch(genPatch, true);
+  patchAndVerify(patch, srcStorage, tgtStorage);
+
+  // 2. add new entry to map
+  int newKey = 99;
+  TestStructSimple newStruct;
+  newStruct.min() = 999;
+  newStruct.max() = 1001;
+  EXPECT_EQ(
+      srcStorage.set(this->root.structMap()[newKey], newStruct), std::nullopt);
+  patch = awaitPatch(genPatch);
+  patchAndVerify(patch, srcStorage, tgtStorage);
+
+  // 3. deep update existing entry in map
+  int newIntVal = 12345;
+  int oldKey = 3;
+  EXPECT_EQ(
+      srcStorage.set(
+          this->root.structMap()[oldKey].optionalIntegral(), newIntVal),
+      std::nullopt);
+  patch = awaitPatch(genPatch);
+  patchAndVerify(patch, srcStorage, tgtStorage);
+
+  // 4. delete existing entry from map
+  srcStorage.remove(this->root.structMap()[newKey]);
+  patch = awaitPatch(genPatch);
+  patchAndVerify(patch, srcStorage, tgtStorage);
 }
 
 TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
