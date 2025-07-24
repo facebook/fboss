@@ -60,6 +60,10 @@ class SensorServiceImpl {
       const std::optional<Thresholds>& thresholds,
       const std::optional<std::string>& compute);
 
+  void publishPerSensorStats(
+      const std::string& sensorName,
+      std::optional<float> value);
+
   folly::Synchronized<std::map<std::string, SensorData>> polledData_{};
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

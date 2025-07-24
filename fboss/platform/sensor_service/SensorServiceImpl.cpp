@@ -102,19 +102,10 @@ void SensorServiceImpl::fetchSensorData() {
           sensor.thresholds().to_optional(),
           sensor.compute().to_optional());
       polledData[sensorName] = sensorData;
-      // We log 0 if there is a read failure.  If we dont log 0 on failure,
-      // fb303 will pick up the last reported (on read success) value and
-      // keep reporting that as the value. For 0 values, it is accurate to
-      // read the value along with the kReadFailure counter. Alternative is
-      // to delete this counter if there is a failure.
-      fb303::fbData->setCounter(
-          fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
       if (!sensorData.value()) {
-        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
         readFailures++;
-      } else {
-        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
       }
+      publishPerSensorStats(sensorName, sensorData.value().to_optional());
     }
   }
   fb303::fbData->setCounter(kReadTotal, polledData.size());
@@ -193,6 +184,23 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
   sensorData.sensorType() = sensorType;
   monitorSensorValue(sensorData);
   return sensorData;
+}
+
+void SensorServiceImpl::publishPerSensorStats(
+    const std::string& sensorName,
+    std::optional<float> value) {
+  // We log 0 if there is a read failure.  If we dont log 0 on failure,
+  // fb303 will pick up the last reported (on read success) value and
+  // keep reporting that as the value. For 0 values, it is accurate to
+  // read the value along with the kReadFailure counter. Alternative is
+  // to delete this counter if there is a failure.
+  fb303::fbData->setCounter(
+      fmt::format(kReadValue, sensorName), value.value_or(0));
+  if (!value) {
+    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
+  } else {
+    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
+  }
 }
 
 } // namespace facebook::fboss::platform::sensor_service
