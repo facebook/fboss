@@ -340,8 +340,9 @@ class Format {
 
   Format& font_style(const std::vector<FontStyle>& style) {
     if (font_style_.has_value()) {
-      for (auto& s : style)
+      for (auto& s : style) {
         font_style_->push_back(s);
+}
     } else {
       font_style_ = style;
     }
@@ -445,8 +446,9 @@ class Format {
       input.erase(0, pos + delimiter.length());
     }
     if (get_sequence_length(
-            input, locale, is_multi_byte_character_support_enabled))
+            input, locale, is_multi_byte_character_support_enabled)) {
       result.push_back(input);
+}
     return result;
   }
 
@@ -460,21 +462,24 @@ class Format {
     Format result;
 
     // Width and height
-    if (first.width_.has_value())
+    if (first.width_.has_value()) {
       result.width_ = first.width_;
-    else
+    } else {
       result.width_ = second.width_;
+}
 
-    if (first.height_.has_value())
+    if (first.height_.has_value()) {
       result.height_ = first.height_;
-    else
+    } else {
       result.height_ = second.height_;
+}
 
     // Font styling
-    if (first.font_align_.has_value())
+    if (first.font_align_.has_value()) {
       result.font_align_ = first.font_align_;
-    else
+    } else {
       result.font_align_ = second.font_align_;
+}
 
     if (first.font_style_.has_value()) {
       // Merge font styles using std::set_union
@@ -492,224 +497,264 @@ class Format {
           second.font_style_->end(),
           merged_font_style.begin());
       result.font_style_ = merged_font_style;
-    } else
+    } else {
       result.font_style_ = second.font_style_;
+}
 
-    if (first.font_color_.has_value())
+    if (first.font_color_.has_value()) {
       result.font_color_ = first.font_color_;
-    else
+    } else {
       result.font_color_ = second.font_color_;
+}
 
-    if (first.font_background_color_.has_value())
+    if (first.font_background_color_.has_value()) {
       result.font_background_color_ = first.font_background_color_;
-    else
+    } else {
       result.font_background_color_ = second.font_background_color_;
+}
 
     // Padding
-    if (first.padding_left_.has_value())
+    if (first.padding_left_.has_value()) {
       result.padding_left_ = first.padding_left_;
-    else
+    } else {
       result.padding_left_ = second.padding_left_;
+}
 
-    if (first.padding_top_.has_value())
+    if (first.padding_top_.has_value()) {
       result.padding_top_ = first.padding_top_;
-    else
+    } else {
       result.padding_top_ = second.padding_top_;
+}
 
-    if (first.padding_right_.has_value())
+    if (first.padding_right_.has_value()) {
       result.padding_right_ = first.padding_right_;
-    else
+    } else {
       result.padding_right_ = second.padding_right_;
+}
 
-    if (first.padding_bottom_.has_value())
+    if (first.padding_bottom_.has_value()) {
       result.padding_bottom_ = first.padding_bottom_;
-    else
+    } else {
       result.padding_bottom_ = second.padding_bottom_;
+}
 
     // Border
-    if (first.border_left_.has_value())
+    if (first.border_left_.has_value()) {
       result.border_left_ = first.border_left_;
-    else
+    } else {
       result.border_left_ = second.border_left_;
+}
 
-    if (first.border_left_color_.has_value())
+    if (first.border_left_color_.has_value()) {
       result.border_left_color_ = first.border_left_color_;
-    else
+    } else {
       result.border_left_color_ = second.border_left_color_;
+}
 
-    if (first.border_left_background_color_.has_value())
+    if (first.border_left_background_color_.has_value()) {
       result.border_left_background_color_ =
           first.border_left_background_color_;
-    else
+    } else {
       result.border_left_background_color_ =
           second.border_left_background_color_;
+}
 
-    if (first.border_top_.has_value())
+    if (first.border_top_.has_value()) {
       result.border_top_ = first.border_top_;
-    else
+    } else {
       result.border_top_ = second.border_top_;
+}
 
-    if (first.border_top_color_.has_value())
+    if (first.border_top_color_.has_value()) {
       result.border_top_color_ = first.border_top_color_;
-    else
+    } else {
       result.border_top_color_ = second.border_top_color_;
+}
 
-    if (first.border_top_background_color_.has_value())
+    if (first.border_top_background_color_.has_value()) {
       result.border_top_background_color_ = first.border_top_background_color_;
-    else
+    } else {
       result.border_top_background_color_ = second.border_top_background_color_;
+}
 
-    if (first.border_bottom_.has_value())
+    if (first.border_bottom_.has_value()) {
       result.border_bottom_ = first.border_bottom_;
-    else
+    } else {
       result.border_bottom_ = second.border_bottom_;
+}
 
-    if (first.border_bottom_color_.has_value())
+    if (first.border_bottom_color_.has_value()) {
       result.border_bottom_color_ = first.border_bottom_color_;
-    else
+    } else {
       result.border_bottom_color_ = second.border_bottom_color_;
+}
 
-    if (first.border_bottom_background_color_.has_value())
+    if (first.border_bottom_background_color_.has_value()) {
       result.border_bottom_background_color_ =
           first.border_bottom_background_color_;
-    else
+    } else {
       result.border_bottom_background_color_ =
           second.border_bottom_background_color_;
+}
 
-    if (first.border_right_.has_value())
+    if (first.border_right_.has_value()) {
       result.border_right_ = first.border_right_;
-    else
+    } else {
       result.border_right_ = second.border_right_;
+}
 
-    if (first.border_right_color_.has_value())
+    if (first.border_right_color_.has_value()) {
       result.border_right_color_ = first.border_right_color_;
-    else
+    } else {
       result.border_right_color_ = second.border_right_color_;
+}
 
-    if (first.border_right_background_color_.has_value())
+    if (first.border_right_background_color_.has_value()) {
       result.border_right_background_color_ =
           first.border_right_background_color_;
-    else
+    } else {
       result.border_right_background_color_ =
           second.border_right_background_color_;
+}
 
-    if (first.show_border_top_.has_value())
+    if (first.show_border_top_.has_value()) {
       result.show_border_top_ = first.show_border_top_;
-    else
+    } else {
       result.show_border_top_ = second.show_border_top_;
+}
 
-    if (first.show_border_bottom_.has_value())
+    if (first.show_border_bottom_.has_value()) {
       result.show_border_bottom_ = first.show_border_bottom_;
-    else
+    } else {
       result.show_border_bottom_ = second.show_border_bottom_;
+}
 
-    if (first.show_border_left_.has_value())
+    if (first.show_border_left_.has_value()) {
       result.show_border_left_ = first.show_border_left_;
-    else
+    } else {
       result.show_border_left_ = second.show_border_left_;
+}
 
-    if (first.show_border_right_.has_value())
+    if (first.show_border_right_.has_value()) {
       result.show_border_right_ = first.show_border_right_;
-    else
+    } else {
       result.show_border_right_ = second.show_border_right_;
+}
 
     // Corner
-    if (first.corner_top_left_.has_value())
+    if (first.corner_top_left_.has_value()) {
       result.corner_top_left_ = first.corner_top_left_;
-    else
+    } else {
       result.corner_top_left_ = second.corner_top_left_;
+}
 
-    if (first.corner_top_left_color_.has_value())
+    if (first.corner_top_left_color_.has_value()) {
       result.corner_top_left_color_ = first.corner_top_left_color_;
-    else
+    } else {
       result.corner_top_left_color_ = second.corner_top_left_color_;
+}
 
-    if (first.corner_top_left_background_color_.has_value())
+    if (first.corner_top_left_background_color_.has_value()) {
       result.corner_top_left_background_color_ =
           first.corner_top_left_background_color_;
-    else
+    } else {
       result.corner_top_left_background_color_ =
           second.corner_top_left_background_color_;
+}
 
-    if (first.corner_top_right_.has_value())
+    if (first.corner_top_right_.has_value()) {
       result.corner_top_right_ = first.corner_top_right_;
-    else
+    } else {
       result.corner_top_right_ = second.corner_top_right_;
+}
 
-    if (first.corner_top_right_color_.has_value())
+    if (first.corner_top_right_color_.has_value()) {
       result.corner_top_right_color_ = first.corner_top_right_color_;
-    else
+    } else {
       result.corner_top_right_color_ = second.corner_top_right_color_;
+}
 
-    if (first.corner_top_right_background_color_.has_value())
+    if (first.corner_top_right_background_color_.has_value()) {
       result.corner_top_right_background_color_ =
           first.corner_top_right_background_color_;
-    else
+    } else {
       result.corner_top_right_background_color_ =
           second.corner_top_right_background_color_;
+}
 
-    if (first.corner_bottom_left_.has_value())
+    if (first.corner_bottom_left_.has_value()) {
       result.corner_bottom_left_ = first.corner_bottom_left_;
-    else
+    } else {
       result.corner_bottom_left_ = second.corner_bottom_left_;
+}
 
-    if (first.corner_bottom_left_color_.has_value())
+    if (first.corner_bottom_left_color_.has_value()) {
       result.corner_bottom_left_color_ = first.corner_bottom_left_color_;
-    else
+    } else {
       result.corner_bottom_left_color_ = second.corner_bottom_left_color_;
+}
 
-    if (first.corner_bottom_left_background_color_.has_value())
+    if (first.corner_bottom_left_background_color_.has_value()) {
       result.corner_bottom_left_background_color_ =
           first.corner_bottom_left_background_color_;
-    else
+    } else {
       result.corner_bottom_left_background_color_ =
           second.corner_bottom_left_background_color_;
+}
 
-    if (first.corner_bottom_right_.has_value())
+    if (first.corner_bottom_right_.has_value()) {
       result.corner_bottom_right_ = first.corner_bottom_right_;
-    else
+    } else {
       result.corner_bottom_right_ = second.corner_bottom_right_;
+}
 
-    if (first.corner_bottom_right_color_.has_value())
+    if (first.corner_bottom_right_color_.has_value()) {
       result.corner_bottom_right_color_ = first.corner_bottom_right_color_;
-    else
+    } else {
       result.corner_bottom_right_color_ = second.corner_bottom_right_color_;
+}
 
-    if (first.corner_bottom_right_background_color_.has_value())
+    if (first.corner_bottom_right_background_color_.has_value()) {
       result.corner_bottom_right_background_color_ =
           first.corner_bottom_right_background_color_;
-    else
+    } else {
       result.corner_bottom_right_background_color_ =
           second.corner_bottom_right_background_color_;
+}
 
     // Column separator
-    if (first.column_separator_.has_value())
+    if (first.column_separator_.has_value()) {
       result.column_separator_ = first.column_separator_;
-    else
+    } else {
       result.column_separator_ = second.column_separator_;
+}
 
-    if (first.column_separator_color_.has_value())
+    if (first.column_separator_color_.has_value()) {
       result.column_separator_color_ = first.column_separator_color_;
-    else
+    } else {
       result.column_separator_color_ = second.column_separator_color_;
+}
 
-    if (first.column_separator_background_color_.has_value())
+    if (first.column_separator_background_color_.has_value()) {
       result.column_separator_background_color_ =
           first.column_separator_background_color_;
-    else
+    } else {
       result.column_separator_background_color_ =
           second.column_separator_background_color_;
+}
 
     // Internationlization
-    if (first.multi_byte_characters_.has_value())
+    if (first.multi_byte_characters_.has_value()) {
       result.multi_byte_characters_ = first.multi_byte_characters_;
-    else
+    } else {
       result.multi_byte_characters_ = second.multi_byte_characters_;
+}
 
-    if (first.locale_.has_value())
+    if (first.locale_.has_value()) {
       result.locale_ = first.locale_;
-    else
+    } else {
       result.locale_ = second.locale_;
+}
 
     return result;
   }
@@ -789,13 +834,15 @@ class Format {
     std::vector<size_t> indices{};
     for (auto& c : split_characters) {
       auto index = input.find(c, start_index);
-      if (index != std::string::npos)
+      if (index != std::string::npos) {
         indices.push_back(index);
+}
     }
-    if (indices.size() > 0)
+    if (indices.size() > 0) {
       return *std::min_element(indices.begin(), indices.end());
-    else
+    } else {
       return std::string::npos;
+}
   }
 
   static std::vector<std::string> explode_string(
