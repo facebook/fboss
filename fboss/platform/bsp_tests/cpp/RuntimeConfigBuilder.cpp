@@ -163,13 +163,14 @@ void RuntimeConfigBuilder::processIdpromDevices(
 RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
     const BspTestsConfig& testConfig,
     const PlatformConfig& pmConfig,
-    const BspKmodsFile& kmods) {
+    const BspKmodsFile& kmods,
+    const std::string& platformName) {
   RuntimeConfig config;
 
   auto kmodsToUse = kmods;
-  config.platform() = *testConfig.platform();
-  if (*testConfig.platform() == "meru800bfa" ||
-      *testConfig.platform() == "meru800bia") {
+  config.platform() = platformName;
+  if (*config.platform() == "MERU800BFA" ||
+      *config.platform() == "MERU800BIA") {
     auto& kmodsList = kmodsToUse.bspKmods().value();
     auto it = std::find(kmodsList.begin(), kmodsList.end(), "bp4a_lm90");
     if (it != kmodsList.end()) {

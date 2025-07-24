@@ -36,7 +36,7 @@ BspTestEnvironment::BspTestEnvironment(const std::string& platform) {
   // Build runtime configuration using RuntimeConfigBuilder
   RuntimeConfigBuilder configBuilder;
   runtimeConfig_ = configBuilder.buildRuntimeConfig(
-      testConfig_, platformManagerConfig_, kmods_);
+      testConfig_, platformManagerConfig_, kmods_, platform_);
 }
 
 const platform_manager::PlatformConfig&
