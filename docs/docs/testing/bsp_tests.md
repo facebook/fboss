@@ -21,6 +21,14 @@ Simply send the test binary to the switch under test and execute the binary.
 * To avoid conflicts with devices and files, ensure that no platform services
 are running on the switch when testing.
 
+You can filter the tests to run by using the `--gtest_filter` argument. E.g. to
+only run I2C tests:
+
+```bash
+./bsp_tests --gtest_filter="I2C*"
+```
+
+
 ## Test Failures
 
 A test failure indicates that at least one of the requirements of the
