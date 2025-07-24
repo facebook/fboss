@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
 
@@ -89,4 +90,12 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
+)
+
+fbpkg.builder(
+    name = "fboss_bsp_tests",
+    path_actions = {
+        "bsp_tests": ":bsp_tests",
+    },
+    split_debuginfo = True,
 )
