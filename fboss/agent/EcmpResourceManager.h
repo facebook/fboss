@@ -103,9 +103,13 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const folly::CIDRNetwork& nw) const;
 
   struct ConsolidationInfo {
-    RouteNextHopSet mergedNhops;
     int maxPenalty() const;
     int avgPenalty() const;
+    bool operator==(const ConsolidationInfo& other) const {
+      return std::tie(mergedNhops, groupId2Penalty) ==
+          std::tie(other.mergedNhops, other.groupId2Penalty);
+    }
+    RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
   std::map<NextHopGroupIds, ConsolidationInfo> getConsolidationInfo(
