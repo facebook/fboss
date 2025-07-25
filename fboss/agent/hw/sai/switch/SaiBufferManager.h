@@ -79,24 +79,11 @@ class SaiBufferManager {
   std::shared_ptr<SaiBufferProfileHandle> getOrCreateIngressProfile(
       const state::PortPgFields& portPgConfig);
 
-  void setupBufferPool(const PortQueue& queue);
-  void setupBufferPool(const state::PortPgFields& portPgConfig);
-
   void updateStats();
-  void updateIngressBufferPoolStats();
-  void updateEgressBufferPoolStats();
   void updateIngressPriorityGroupStats(
       const PortID& portId,
       HwPortStats& hwPortStats,
       bool updateWatermarks);
-  void updateIngressPriorityGroupWatermarkStats(
-      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
-      const IngressPriorityGroupID& pgId,
-      const HwPortStats& hwPortStats);
-  void updateIngressPriorityGroupNonWatermarkStats(
-      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
-      const IngressPriorityGroupID& pgId,
-      HwPortStats& hwPortStats);
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
   }
@@ -107,15 +94,30 @@ class SaiBufferManager {
   const std::map<std::string, uint64_t>& getGlobalSharedWatermarkBytes() const {
     return globalSharedWatermarkBytes_;
   }
-  static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
   void setIngressPriorityGroupBufferProfile(
       const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
       std::shared_ptr<SaiBufferProfileHandle> bufferProfile);
   SaiIngressPriorityGroupHandles loadIngressPriorityGroups(
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
   SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
+  static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
 
  private:
+  void setupBufferPool(const PortQueue& queue);
+  void setupBufferPool(const state::PortPgFields& portPgConfig);
+
+  void updateIngressBufferPoolStats();
+  void updateEgressBufferPoolStats();
+
+  void updateIngressPriorityGroupWatermarkStats(
+      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
+      const IngressPriorityGroupID& pgId,
+      const HwPortStats& hwPortStats);
+  void updateIngressPriorityGroupNonWatermarkStats(
+      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
+      const IngressPriorityGroupID& pgId,
+      HwPortStats& hwPortStats);
+
   void publishGlobalWatermarks(
       const uint64_t& globalHeadroomBytes,
       const uint64_t& globalSharedBytes) const;
