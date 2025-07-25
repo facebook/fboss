@@ -20,7 +20,7 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": -4,
         "ki": -0.06,
@@ -97,7 +97,7 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": -8,
         "ki": -0.06,
