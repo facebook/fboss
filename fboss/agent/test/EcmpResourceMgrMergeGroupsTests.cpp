@@ -78,6 +78,7 @@ void EcmpResourceMgrMergeGroupsTest::SetUp() {
       XLOG(DBG2) << " Between grps: " << folly::join(", ", mergeGroupIds)
                  << " lost: " << nhopsLost;
       EXPECT_EQ(consolidationInfo.mergedNhops.size(), nhops.size() - nhopsLost);
+      EXPECT_EQ(consolidationInfo.groupId2Penalty.find(otherGrpId)->second, 0);
     }
   }
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
