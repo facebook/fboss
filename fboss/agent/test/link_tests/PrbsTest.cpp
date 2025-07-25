@@ -249,7 +249,7 @@ class PrbsTest : public LinkTest {
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
-      state.polynomial_ref() = testPort.polynomial;
+      state.polynomial() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
         // Setting ASIC PRBS requires generator and checker to be both enabled
         // or both disabled.
@@ -290,7 +290,7 @@ class PrbsTest : public LinkTest {
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
-      state.polynomial_ref() = testPort.polynomial;
+      state.polynomial() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {

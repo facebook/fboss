@@ -13,6 +13,8 @@
 #include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/sensor_service/ConfigValidator.h"
 
+namespace fs = std::filesystem;
+
 namespace facebook::fboss::platform::sensor_service {
 
 namespace {
@@ -129,5 +131,28 @@ SensorConfig Utils::getConfig() {
     throw std::runtime_error("Invalid sensor config");
   }
   return sensorConfig;
+}
+
+std::optional<std::string> Utils::getPciAddress(
+    const std::string& vendorId,
+    const std::string& deviceId) {
+  std::optional<std::string> sbdf;
+  for (const auto& dirEntry : fs::directory_iterator("/sys/bus/pci/devices")) {
+    std::string vendor, device, subSystemVendor, subSystemDevice;
+    auto deviceFilePath = dirEntry.path() / "device";
+    auto vendorFilePath = dirEntry.path() / "vendor";
+    if (!folly::readFile(vendorFilePath.c_str(), vendor)) {
+      XLOG(ERR) << "Failed to read vendor file from " << dirEntry.path();
+    }
+    if (!folly::readFile(deviceFilePath.c_str(), device)) {
+      XLOG(ERR) << "Failed to read device file from " << dirEntry.path();
+    }
+    if (folly::trimWhitespace(vendor).str() == vendorId &&
+        folly::trimWhitespace(device).str() == deviceId) {
+      sbdf = dirEntry.path().filename().string();
+      break;
+    }
+  }
+  return sbdf;
 }
 } // namespace facebook::fboss::platform::sensor_service

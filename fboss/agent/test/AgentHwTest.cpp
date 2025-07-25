@@ -264,8 +264,8 @@ std::map<PortID, HwPortStats> AgentHwTest::getNextUpdatedPortStats(
         nextPortStats = getSw()->getHwPortStats(ports);
         // Check collect timestamp is different from last port stats
         for (const auto& [portId, portStats] : nextPortStats) {
-          if (*portStats.timestamp__ref() ==
-              *lastPortStats.at(portId).timestamp__ref()) {
+          if (*portStats.timestamp_() ==
+              *lastPortStats.at(portId).timestamp_()) {
             return false;
           }
         }

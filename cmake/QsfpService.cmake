@@ -109,6 +109,15 @@ target_link_libraries(montblanc_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(icecube800bc_bsp
+  fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.cpp
+)
+
+target_link_libraries(icecube800bc_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(minipack3n_bsp
   fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.cpp
 )
@@ -173,6 +182,7 @@ target_link_libraries(qsfp_bsp_core
   meru800bia_bsp
   meru800bfa_bsp
   montblanc_bsp
+  icecube800bc_bsp
   minipack3n_bsp
   morgan800cc_bsp
   janga800bic_bsp

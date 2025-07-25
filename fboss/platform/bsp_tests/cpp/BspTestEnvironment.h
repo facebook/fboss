@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <folly/json/json.h>
 #include <gtest/gtest.h>
@@ -21,6 +22,12 @@ namespace facebook::fboss::platform::bsp_tests::cpp {
  */
 class BspTestEnvironment : public ::testing::Environment {
  public:
+  struct RecordedError {
+    std::string testName;
+    std::string deviceName;
+    std::string reason;
+  };
+
   virtual ~BspTestEnvironment() override;
 
   BspTestEnvironment(const BspTestEnvironment&) = delete;
@@ -34,6 +41,13 @@ class BspTestEnvironment : public ::testing::Environment {
   const platform_manager::PlatformConfig& getPlatformManagerConfig() const;
   const BspTestsConfig& getTestConfig() const;
   const RuntimeConfig& getRuntimeConfig() const;
+
+  void recordExpectedError(
+      const std::string& testName,
+      const std::string& deviceName,
+      const std::string& reason);
+
+  void printAllRecordedErrors() const;
 
   // Static accessor method for the singleton instance
   static BspTestEnvironment* GetInstance(const std::string& platform = "") {
@@ -60,6 +74,7 @@ class BspTestEnvironment : public ::testing::Environment {
   RuntimeConfig runtimeConfig_;
   platform_manager::BspKmodsFile kmods_;
   std::unique_ptr<platform_manager::PkgManager> pkgManager_;
+  std::vector<RecordedError> recordedErrors_;
 };
 
 } // namespace facebook::fboss::platform::bsp_tests::cpp

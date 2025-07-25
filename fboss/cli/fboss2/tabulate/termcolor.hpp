@@ -346,10 +346,11 @@ namespace _internal {
 //! from the a given `std::ostream` object, I have to write
 //! this kind of hack.
 inline FILE *get_standard_stream(const std::ostream &stream) {
-  if (&stream == &std::cout)
+  if (&stream == &std::cout) {
     return stdout;
-  else if ((&stream == &std::cerr) || (&stream == &std::clog))
+  } else if ((&stream == &std::cerr) || (&stream == &std::clog)) {
     return stderr;
+}
 
   return 0;
 }
@@ -370,8 +371,9 @@ inline bool is_atty(const std::ostream &stream) {
   // if invalid file descriptor is passed. So we need to
   // handle this case gracefully and assume it's not a tty
   // if standard stream is not detected, and 0 is returned.
-  if (!std_stream)
+  if (!std_stream) {
     return false;
+}
 
 #if defined(TERMCOLOR_OS_MACOS) || defined(TERMCOLOR_OS_LINUX)
   return ::isatty(fileno(std_stream));

@@ -1,6 +1,5 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include <folly/init/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
@@ -44,7 +43,9 @@ int main(int argc, char** argv) {
 
   ::testing::UnitTest::GetInstance()->listeners().Append(new StressTestFilter);
 
-  BspTestEnvironment::GetInstance(platformName);
+  auto env = BspTestEnvironment::GetInstance(platformName);
 
-  return RUN_ALL_TESTS();
+  auto ret = RUN_ALL_TESTS();
+  env->printAllRecordedErrors();
+  return ret;
 }

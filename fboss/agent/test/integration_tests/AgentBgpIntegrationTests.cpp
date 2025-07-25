@@ -187,10 +187,10 @@ class BgpIntegrationTest : public AgentIntegrationTest {
 
   TIpPrefix makePrefix(folly::IPAddress prefix, uint8_t length) {
     TIpPrefix tprefix;
-    tprefix.afi_ref() = TBgpAfi::AFI_IPV6;
-    tprefix.num_bits_ref() = length;
-    tprefix.prefix_bin_ref() =
-        network::toBinaryAddress(prefix).addr_ref()->toStdString();
+    tprefix.afi() = TBgpAfi::AFI_IPV6;
+    tprefix.num_bits() = length;
+    tprefix.prefix_bin() =
+        network::toBinaryAddress(prefix).addr()->toStdString();
     return tprefix;
   }
 
