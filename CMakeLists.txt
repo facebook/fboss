@@ -983,7 +983,6 @@ add_dependencies(fboss_platform_services
   platform_manager
   fw_util
   weutil
-  led_service
   data_corral_service
   # Unit Tests
   platform_config_lib_config_lib_test
@@ -1018,9 +1017,16 @@ add_dependencies(qsfp_targets
   wedge_qsfp_util
 )
 
+add_custom_target(led_targets)
+add_dependencies(led_targets
+  led_service
+  led_service_hw_test
+)
+
 add_custom_target(fboss_other_services)
 add_dependencies(fboss_other_services
   qsfp_targets
+  led_targets
   fboss2
   fsdb
 )

@@ -14,12 +14,12 @@ cpp_binary(
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
-        "//common/init:init",
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/led_service:led_manager",
         "//fboss/lib:common_file_utils",
+        "//folly/init:init",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",
         "//thrift/lib/cpp2/protocol:protocol",
