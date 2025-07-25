@@ -333,7 +333,6 @@ hw_test_common_srcs = [
     "HwTestFullHashedPacketsForTrident2.cpp",
     "HwHashPolarizationTestUtils.cpp",
     "HwFlowletSwitchingTests.cpp",
-    "HwUdfTests.cpp",
     "HwTestPfcUtils.cpp",
 ]
 

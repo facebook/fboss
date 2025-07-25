@@ -1268,7 +1268,9 @@ void SaiPortManager::changeQueue(
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
     if (!queueHandle) {
       throw FbossError(
-          "unable to change non-existent queue ",
+          "unable to change non-existent ",
+          apache::thrift::util::enumNameSafe(newPortQueue->getStreamType()),
+          " queue ",
           newPortQueue->getID(),
           " of port ",
           swId);

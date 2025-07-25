@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #pragma once
-
 #include <string>
 #include <vector>
 
@@ -13,6 +12,7 @@ using namespace facebook::fboss::platform::sensor_config;
 
 class Utils {
  public:
+  virtual ~Utils() = default;
   static uint64_t nowInSecs();
 
   // Calculate expression that may contain invalid symbol (for exprtk), e.g.
@@ -33,5 +33,9 @@ class Utils {
       std::vector<VersionedPmSensor> versionedSensors);
 
   SensorConfig getConfig();
+
+  virtual std::optional<std::string> getPciAddress(
+      const std::string& vendorId,
+      const std::string& deviceId);
 };
 } // namespace facebook::fboss::platform::sensor_service

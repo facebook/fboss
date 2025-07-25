@@ -126,17 +126,17 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     auto mirrorPort = helper_->ecmpPortDescriptorAt(1).phyPortID();
     auto sflowPort = helper_->ecmpPortDescriptorAt(2).phyPortID();
     auto pktsMirrorBefore =
-        *getNextUpdatedPortStats(mirrorPort).outUnicastPkts__ref();
+        *getNextUpdatedPortStats(mirrorPort).outUnicastPkts_();
     auto pktsSflowBefore =
-        *getNextUpdatedPortStats(sflowPort).outUnicastPkts__ref();
+        *getNextUpdatedPortStats(sflowPort).outUnicastPkts_();
 
     verifyAcl(AclType::UDF_NAK);
 
     WITH_RETRIES({
       auto pktsMirrorAfter =
-          *getNextUpdatedPortStats(mirrorPort).outUnicastPkts__ref();
+          *getNextUpdatedPortStats(mirrorPort).outUnicastPkts_();
       auto pktsSflowAfter =
-          *getNextUpdatedPortStats(sflowPort).outUnicastPkts__ref();
+          *getNextUpdatedPortStats(sflowPort).outUnicastPkts_();
       XLOG(DBG2) << "PacketMirrorCounter: " << pktsMirrorBefore << " -> "
                  << pktsMirrorAfter
                  << " PacketSflowCounter: " << pktsSflowBefore << " -> "
@@ -414,7 +414,7 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
         auto portStats = getNextUpdatedPortStats(ports);
         for (const auto& [portId, stats] : portStats) {
           XLOG(DBG2) << "Ecmp egress Port: " << portId
-                     << ", Count: " << *stats.outUnicastPkts__ref();
+                     << ", Count: " << *stats.outUnicastPkts_();
         }
         if (loadBalanceExpected) {
           EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(portStats, 25));
@@ -467,7 +467,7 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
       for (int i = 0; i < kEcmpWidth; i++) {
         auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
         pktsBefore[i] =
-            *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts__ref();
+            *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
         pktsBeforeTotal += pktsBefore[i];
       }
       auto aclPktCountBefore = utility::getAclInOutPackets(
@@ -494,7 +494,7 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
         for (int i = 0; i < kEcmpWidth; i++) {
           auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
           pktsAfter[i] =
-              *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts__ref();
+              *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
           pktsAfterTotal += pktsAfter[i];
           XLOG(DBG2) << "Ecmp egress Port: " << ecmpEgressPort
                      << ", Count: " << pktsBefore[i] << " -> " << pktsAfter[i];
@@ -574,14 +574,14 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfAndSendQueueAction) {
   auto verify = [this]() {
     auto outPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
     auto portStatsBefore = getNextUpdatedPortStats(outPort);
-    auto pktsBefore = *portStatsBefore.outUnicastPkts__ref();
+    auto pktsBefore = *portStatsBefore.outUnicastPkts_();
     auto pktsQueueBefore = portStatsBefore.queueOutPackets_()[kOutQueue];
 
     verifyAcl(AclType::UDF_ACK);
 
     WITH_RETRIES({
       auto portStatsAfter = getNextUpdatedPortStats(outPort);
-      auto pktsAfter = *portStatsAfter.outUnicastPkts__ref();
+      auto pktsAfter = *portStatsAfter.outUnicastPkts_();
       auto pktsQueueAfter = portStatsAfter.queueOutPackets_()[kOutQueue];
       XLOG(DBG2) << "Port Counter: " << pktsBefore << " -> " << pktsAfter
                  << "\nPort Queue " << kOutQueue

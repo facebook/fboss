@@ -27,7 +27,7 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
     mirror.name() = "mirror0";
     mirror.destination()->ip() = "2401:db00:2110:3000::1";
     cfg::MirrorEgressPort egressPort;
-    egressPort.logicalID_ref() = 1;
+    egressPort.logicalID() = 1;
     mirror.destination()->egressPort() = egressPort;
     cfg->mirrors()->push_back(mirror);
   }

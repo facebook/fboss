@@ -228,7 +228,7 @@ HwPortStats sendPacketsWithQueueBuildup(
         [&]() {
           portStats = ensemble->getLatestPortStats(port);
           // Check collect timestamp is valid
-          return *portStats.timestamp__ref() !=
+          return *portStats.timestamp_() !=
               hardware_stats_constants::STAT_UNINITIALIZED();
         },
         120,

@@ -16,8 +16,14 @@ std::set<cfg::StreamType> BroadcomXgsAsic::getQueueStreamTypes(
     case cfg::PortType::CPU_PORT:
       return {cfg::StreamType::MULTICAST};
     case cfg::PortType::INTERFACE_PORT:
-    case cfg::PortType::MANAGEMENT_PORT:
       return {cfg::StreamType::UNICAST};
+    case cfg::PortType::MANAGEMENT_PORT: {
+      std::set<cfg::StreamType> types{cfg::StreamType::UNICAST};
+      if (isSupported(Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA)) {
+        types.insert(cfg::StreamType::MULTICAST);
+      }
+      return types;
+    }
     case cfg::PortType::FABRIC_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:

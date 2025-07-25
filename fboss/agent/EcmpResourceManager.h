@@ -102,18 +102,22 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       RouterID rid,
       const folly::CIDRNetwork& nw) const;
 
- private:
-  template <typename AddrT>
-  bool routesEqual(
-      const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::shared_ptr<Route<AddrT>>& newRoute) const;
-
   struct ConsolidationInfo {
     RouteNextHopSet mergedNhops;
     int maxPenalty() const;
     int avgPenalty() const;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
+
+  std::map<NextHopGroupIds, ConsolidationInfo> getConsolidationInfo(
+      NextHopGroupId grpId) const;
+
+ private:
+  template <typename AddrT>
+  bool routesEqual(
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      const std::shared_ptr<Route<AddrT>>& newRoute) const;
+
   struct PreUpdateState {
     std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups;
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;

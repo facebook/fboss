@@ -53,7 +53,7 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
       std::cerr << "Modify config to enable EM " << FLAGS_config << std::endl;
       auto agentConfig = AgentConfig::fromFile(FLAGS_config)->thrift;
       // setup EM config here
-      auto& bcm = *(agentConfig.platform()->chip()->bcm_ref());
+      auto& bcm = *(agentConfig.platform()->chip()->bcm());
       auto yamlCfg = bcm.yamlConfig();
       if (yamlCfg) {
         std::string emSt("fpem_mem_entries");

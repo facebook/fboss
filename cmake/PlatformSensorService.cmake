@@ -56,11 +56,9 @@ target_link_libraries(sensor_service_utils
 add_library(sensor_service_lib
   fboss/platform/sensor_service/FsdbSyncer.cpp
   fboss/platform/sensor_service/Flags.cpp
-  fboss/platform/sensor_service/Utils.cpp
   fboss/platform/sensor_service/SensorServiceImpl.cpp
   fboss/platform/sensor_service/SensorServiceThriftHandler.cpp
   fboss/platform/sensor_service/oss/FsdbSyncer.cpp
-  fboss/platform/sensor_service/PmUnitInfoFetcher.cpp
 )
 
 target_link_libraries(sensor_service_lib

@@ -1,5 +1,4 @@
 {
-    "platform": "meru800bfa",
     "testData": {
         "SCM.SCM_MPS_PMBUS": {
             "i2cTestData": {

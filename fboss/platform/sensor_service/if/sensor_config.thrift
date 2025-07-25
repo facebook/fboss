@@ -108,7 +108,18 @@ struct PmUnitSensors {
   4: list<VersionedPmSensor> versionedSensors;
 }
 
+// `SwitchAsicTemp`: The temperature sensor configuration for the switch ASIC.
+//
+// `vendorId`: The PCI vendor ID of ASIC PCI device
+//
+// `deviceId`: The PCI device ID of ASIC PCI device
+struct SwitchAsicTemp {
+  1: optional string vendorId;
+  2: optional string deviceId;
+}
+
 // The configuration for sensor mapping.
 struct SensorConfig {
   1: list<PmUnitSensors> pmUnitSensorsList;
+  2: optional SwitchAsicTemp switchAsicTemp;
 }

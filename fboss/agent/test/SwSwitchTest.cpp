@@ -135,7 +135,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   lqcd0.minimumLength() = 0;
   lqcd0.maximumLength() = 0;
   lqcd0.probability() = 50;
-  aqm0.detection()->linear_ref() = lqcd0;
+  aqm0.detection()->linear() = lqcd0;
   aqm0.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   portQueue0->resetAqms({aqm0});
   std::vector<std::shared_ptr<PortQueue>> portQueues = {portQueue0};
@@ -159,7 +159,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   lqcd1.minimumLength() = 0;
   lqcd1.maximumLength() = 0;
   lqcd1.probability() = 50;
-  aqm1.detection()->linear_ref() = lqcd1;
+  aqm1.detection()->linear() = lqcd1;
   aqm1.behavior() = cfg::QueueCongestionBehavior::ECN;
   portQueue1->resetAqms({aqm1});
   portQueues = {portQueue1};

@@ -109,7 +109,7 @@ std::map<PortID, HwPortStats> AgentEnsembleTest::getPortStats(
         portStats = getSw()->getHwPortStats(ports);
         // Check collect timestamp is valid
         for (const auto& [portId, portStats] : portStats) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -311,7 +311,7 @@ void AgentEnsembleTest::getAllHwPortStats(
         hwPortStats.clear();
         getSw()->getAllHwPortStats(hwPortStats);
         for (const auto& [port, portStats] : hwPortStats) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -337,12 +337,12 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
         // Since each port can have a unique timestamp, compare with the first
         // port
         auto firstPortStat = &portStats.begin()->second;
-        if (firstPortStat->timestamp__ref() == timestamp) {
+        if (firstPortStat->timestamp_() == timestamp) {
           return false;
         }
         // Make sure that the other ports have valid stats
         for (const auto& [port, portStats] : portStats) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -366,7 +366,7 @@ void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
   // maxNumDiscards
   for (numRounds = 0; numRounds < 2; numRounds++) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
-    lastStatRefTime = *portStats.begin()->second.timestamp__ref();
+    lastStatRefTime = *portStats.begin()->second.timestamp_();
 
     for (auto [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
@@ -389,7 +389,7 @@ void AgentEnsembleTest::assertNoInErrors(int maxNumDiscards) {
   // maxNumDiscards
   for (numRounds = 0; numRounds < 2; numRounds++) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
-    lastStatRefTime = *portStats.begin()->second.timestamp__ref();
+    lastStatRefTime = *portStats.begin()->second.timestamp_();
 
     for (auto [port, stats] : portStats) {
       auto inErrors = *stats.inErrors_();
