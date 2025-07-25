@@ -8,8 +8,6 @@
 using namespace facebook;
 using namespace facebook::fboss::platform;
 
-DEFINE_bool(verbose, false, "Run in verbose mode");
-
 int main(int argc, char** argv) {
   helpers::initCli(&argc, &argv, "showtech");
 
@@ -17,9 +15,9 @@ int main(int argc, char** argv) {
   Utils().printFbossDetails();
   Utils().printWeutilDetails();
   Utils().printFwutilDetails();
-  Utils().printLspciDetails(FLAGS_verbose);
-  Utils().printPortDetails(FLAGS_verbose);
+  Utils().printLspciDetails();
+  Utils().printPortDetails();
   Utils().printSensorDetails();
-  Utils().printI2cDetails(FLAGS_verbose);
+  Utils().printI2cDetails();
   return 0;
 }

@@ -44,13 +44,13 @@ void Utils::printFwutilDetails() {
             << std::endl;
 }
 
-void Utils::printLspciDetails(bool verbose) {
+void Utils::printLspciDetails() {
   std::cout << "##### LSPCI #####" << std::endl;
-  std::string cmd = verbose ? "lspci -vvv" : "lspci";
+  std::string cmd = "lspci -vvv";
   std::cout << platformUtils_.execCommand(cmd).second << std::endl;
 }
 
-void Utils::printPortDetails(bool verbose) {
+void Utils::printPortDetails() {
   runFbossCliCmd("port");
   runFbossCliCmd("fabric");
   runFbossCliCmd("lldp");
@@ -59,8 +59,8 @@ void Utils::printPortDetails(bool verbose) {
   runFbossCliCmd("interface flaps");
   runFbossCliCmd("interface phy");
   runFbossCliCmd("transceiver");
-  if (verbose && !std::filesystem::exists("/etc/ramdisk")) {
-    std::cout << "#### wedge_qsfp_util ####" << std::endl;
+  if (!std::filesystem::exists("/etc/ramdisk")) {
+    std::cout << "##### wedge_qsfp_util #####" << std::endl;
     auto [ret, output] =
         platformUtils_.execCommand("timeout 30 wedge_qsfp_util");
     std::cout << output << std::endl;
@@ -79,13 +79,11 @@ void Utils::printSensorDetails() {
             << std::endl;
 }
 
-void Utils::printI2cDetails(bool verbose) {
+void Utils::printI2cDetails() {
   std::cout << "##### I2C Information #####" << std::endl;
   auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
   std::cout << output << std::endl;
-  if (!verbose) {
-    return;
-  }
+
   std::istringstream outputStream(output);
   std::string line;
   while (std::getline(outputStream, line)) {

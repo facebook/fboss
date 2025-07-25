@@ -12,10 +12,10 @@ class Utils {
   void printFbossDetails();
   void printWeutilDetails();
   void printFwutilDetails();
-  void printLspciDetails(bool verbose);
-  void printPortDetails(bool verbose);
+  void printLspciDetails();
+  void printPortDetails();
   void printSensorDetails();
-  void printI2cDetails(bool verbose);
+  void printI2cDetails();
   void runFbossCliCmd(const std::string& cmd);
 
  private:
