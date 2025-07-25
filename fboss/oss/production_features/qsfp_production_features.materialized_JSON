@@ -46,6 +46,10 @@
         5,
         6
     ],
+    "icecube800bc": [
+        7,
+        8
+    ],
     "janga800bic": [
         7,
         8
@@ -64,6 +68,10 @@
         7,
         8
     ],
+    "minipack3ba": [
+        7,
+        8
+    ],
     "minipack3n": [
         7,
         8
@@ -73,10 +81,6 @@
         2,
         4,
         5
-    ],
-    "minipackba": [
-        7,
-        8
     ],
     "montblanc": [
         7,
@@ -154,6 +158,10 @@
         "XPHY_LINE_NRZ_PROFILE",
         "XPHY_LINE_PAM4_PROFILE"
     ],
+    "icecube800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
     "janga800bic": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
@@ -172,6 +180,10 @@
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],
+    "minipack3ba": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
     "minipack3n": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
@@ -181,10 +193,6 @@
         "PIM",
         "XPHY_SYSTEM_PAM4_PROFILE",
         "XPHY_LINE_NRZ_PROFILE"
-    ],
-    "minipackba": [
-        "TRANSCEIVER_PRBS",
-        "BMC_LITE"
     ],
     "montblanc": [
         "TRANSCEIVER_PRBS",
