@@ -108,7 +108,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     int avgPenalty() const;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
-
   std::map<NextHopGroupIds, ConsolidationInfo> getConsolidationInfo(
       NextHopGroupId grpId) const;
 
