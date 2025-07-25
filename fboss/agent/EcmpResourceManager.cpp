@@ -696,6 +696,11 @@ void EcmpResourceManager::routeDeleted(
 void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
   groupInfo.decRouteUsageCount();
   CHECK_GT(groupInfo.getRouteUsageCount(), 0);
+  updateConsolidationPenalty(groupInfo);
+}
+
+void EcmpResourceManager::updateConsolidationPenalty(
+    NextHopGroupInfo& groupInfo) {
   if (candidateMergeGroups_.empty() && mergedGroups_.empty()) {
     // Early return if no merged groups exist. Can be due to compression
     // threshold being 0 or if there is a single ECMP groups yet (so
@@ -730,6 +735,7 @@ void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
     DCHECK(!updatePenalty(mergedGroups_));
   }
 }
+
 void EcmpResourceManager::processRouteUpdates(
     const StateDelta& delta,
     InputOutputState* inOutState) {

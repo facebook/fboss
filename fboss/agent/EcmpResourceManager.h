@@ -123,6 +123,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
   void decRouteUsageCount(NextHopGroupInfo& groupInfo);
+  void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
   struct InputOutputState {
     InputOutputState(
         uint32_t _nonBackupEcmpGroupsCnt,
