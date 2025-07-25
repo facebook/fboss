@@ -65,6 +65,26 @@
           "desiredValue": 1
         }
       }
+    },
+    {
+      "fruName": "PWR",
+      "fruType": "PWR",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/cplds/MCB_CPLD/hs_48v_pg",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "SMB",
+      "fruType": "SMB",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/cplds/MCB_CPLD/smb_present",
+          "desiredValue": 1
+        }
+      }
     }
   ]
 }
