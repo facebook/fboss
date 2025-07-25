@@ -259,16 +259,6 @@ int hwAgentMain(
         // Avoid it by flushing the queue.
         server->setQueueTimeout(std::chrono::seconds(1));
 
-        // Furthermore, if a request is already being processed, thrift expects
-        // that to complete within JOIN_TIMEOUT as well or else Thrift server
-        // will crash with FATAL error. Thrift library does not provide any API
-        // to disable this mechanism.
-        // Thus, set JOIN TIMEOUT to a very large value so it never kicks in.
-        // This value is chosen to be > wrapper script timeout.
-        // TODO: refactor BGP => Agent thrift timeout, wrapper script timeout
-        // and JOIN TIMEOUT to a single source of truth in configerator.
-        server->setQueueTimeout(std::chrono::seconds(120));
-
         server->stopListening();
 
         XLOG(DBG2) << "[Exit] Stopping Thrift Server";
