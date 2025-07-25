@@ -9,10 +9,10 @@
  */
 
 #include <folly/IPAddress.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
@@ -26,9 +26,9 @@ enum class AclWidth : uint8_t {
 
 class AgentAclScaleTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::MULTI_ACL_TABLE};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::MULTI_ACL_TABLE};
   }
 
  protected:
@@ -102,14 +102,14 @@ class AgentAclScaleTest : public AgentHwTest {
   }
 
   uint32_t getMaxSingleWideAclTables(const std::vector<const HwAsic*>& asics) {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     auto maxAclTables = asic->getMaxAclTables();
     CHECK(maxAclTables.has_value());
     return maxAclTables.value();
   }
 
   uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     auto maxAclEntries = asic->getMaxAclEntries();
     CHECK(maxAclEntries.has_value());
     return maxAclEntries.value();

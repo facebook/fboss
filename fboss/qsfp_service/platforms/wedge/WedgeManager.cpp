@@ -33,11 +33,6 @@ DEFINE_bool(
     false,
     "Enable qsfp_service to post optics thermal data to BMC");
 
-DEFINE_bool(
-    enable_tcvr_i2c_logging,
-    false,
-    "Enable transceiver I2C logging feature in qsfp_service");
-
 namespace facebook {
 namespace fboss {
 
@@ -62,9 +57,11 @@ using LockedTransceiversPtr = folly::Synchronized<
 
 WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
-    std::unique_ptr<PlatformMapping> platformMapping,
-    PlatformType type)
-    : TransceiverManager(std::move(api), std::move(platformMapping)),
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    PlatformType type,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads)
+    : TransceiverManager(std::move(api), platformMapping, threads),
       platformType_(type) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
@@ -688,6 +685,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
     // Delete the transceivers first before potentially creating them later
     for (auto idx : tcvrsToDelete) {
       lockedTransceiversWPtr->erase(TransceiverID(idx));
+      resetPortState(TransceiverID(idx));
     }
 
     auto tcvrConfig = getTransceiverConfig();
@@ -986,15 +984,15 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
     return true;
   }
 
-  // First call PhyManager::initExternalPhyMap() to create xphy map
-  auto rb = phyManager_->initExternalPhyMap();
-  // TODO(ccpowers): We could probably clean this up a bit to separate out the
-  // warmboot file logic and the phy init logic, to make it easier to
-  // init phys from external CLIs
-
   // forceWarmboot is only used to skip checking the warmboot file
   // when we're running outside of qsfp_service (e.g. in the fboss-xphy CLI)
   bool warmboot = forceWarmboot || canWarmBoot();
+
+  // First call PhyManager::initExternalPhyMap() to create xphy map
+  auto rb = phyManager_->initExternalPhyMap(warmboot);
+  // TODO(ccpowers): We could probably clean this up a bit to separate out the
+  // warmboot file logic and the phy init logic, to make it easier to
+  // init phys from external CLIs
 
   // And then initialize the xphy for each pim which has xphy
   std::vector<folly::Future<folly::Unit>> initPimTasks;
@@ -1142,6 +1140,14 @@ void WedgeManager::publishPortStatToFsdb(
     HwPortStats&& stat) const {
   if (FLAGS_publish_stats_to_fsdb) {
     fsdbSyncManager_->updatePortStat(std::move(portName), std::move(stat));
+  }
+}
+
+void WedgeManager::publishPortStateToFsdb(
+    std::string&& portName,
+    portstate::PortState&& state) const {
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePortState(std::move(portName), std::move(state));
   }
 }
 

@@ -10,9 +10,9 @@
 
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
@@ -112,6 +112,8 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_TAHAN800BC:
     case PM::PLATFORM_MONTBLANC:
       return 4;
+    case PM::PLATFORM_MINIPACK3N:
+      return 64;
     default:
       throw FbossError(
           "provided PlatformType: ",

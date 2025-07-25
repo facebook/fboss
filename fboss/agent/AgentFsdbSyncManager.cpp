@@ -7,7 +7,7 @@
 
 #include "fboss/lib/TupleUtils.h"
 
-DEFINE_bool(fsdb_sync_full_state, false, "sync whole switch state to fsdb");
+DEFINE_bool(fsdb_sync_full_state, true, "sync whole switch state to fsdb");
 DEFINE_bool(
     agent_fsdb_sync,
     true,
@@ -224,6 +224,29 @@ void AgentFsdbSyncManager::switchReachabilityChanged(
       newSwitchReachabilityState->ref(switchId)->fromThrift(
           std::move(newReachability));
     }
+
+    return newAgentState;
+  });
+}
+
+void AgentFsdbSyncManager::agentInfoChanged(
+    agent_info::AgentInfo newAgentInfo) {
+  if (!FLAGS_agent_fsdb_sync) {
+    return;
+  }
+  updateState([newAgentInfo =
+                   std::move(newAgentInfo)](const auto& agentState) mutable {
+    using agentInfoKey = fsdb_model_tags::agentInfo;
+    const auto& oldAgentInfo = agentState->template safe_cref<agentInfoKey>();
+    if (oldAgentInfo && oldAgentInfo->toThrift() == newAgentInfo) {
+      // no change
+      return agentState;
+    }
+
+    auto newAgentState = agentState->clone();
+    auto& newAgentInfoState =
+        newAgentState->template modify<agentInfoKey>(&newAgentState);
+    newAgentInfoState->fromThrift(std::move(newAgentInfo));
 
     return newAgentState;
   });

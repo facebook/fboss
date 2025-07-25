@@ -12,12 +12,14 @@
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
-#include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/MplsApi.h"
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
+
+#include "fboss/agent/Utils.h"
 
 #include <algorithm>
 
@@ -59,24 +61,30 @@ HwAsic* SaiYangraPlatform::getAsic() const {
 const std::unordered_map<std::string, std::string>
 SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> kv_map;
-  kv_map.insert(std::make_pair("SAI_KEY_AUTO_POPULATE_PORT_DB", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_PORT_AUTONEG_DEFAULT_OFF", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
+  kv_map.insert(
+      std::make_pair("SAI_KEY_CPU_PORT_PIPELINE_LOOKUP_L3_TRUST_MODE", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_GET_OBJECT_KEY_EXCLUDE", "7"));
+  kv_map.insert(std::make_pair("SAI_KEY_EXTERNAL_SXD_DRIVER_MANAGEMENT", "1"));
+  kv_map.insert(std::make_pair("SAI_INTERNAL_LOOPBACK_TOGGLE_ENABLED", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_ENABLE_HEALTH_DATA_TYPE_SER", "1"));
+  utilCreateDir(getDirectoryUtil()->getCrashInfoDir());
+  kv_map.insert(std::make_pair(
+      "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
+  kv_map.insert(std::make_pair("SAI_DUMP_STORE_AMOUNT", "1"));
+
   return kv_map;
 }
 
 const std::set<sai_api_t>& SaiYangraPlatform::getSupportedApiList() const {
   static auto apis = getDefaultSwitchAsicSupportedApis();
   apis.erase(facebook::fboss::MplsApi::ApiType);
-  apis.erase(facebook::fboss::VirtualRouterApi::ApiType);
   apis.erase(facebook::fboss::TamApi::ApiType);
   apis.erase(facebook::fboss::SystemPortApi::ApiType);
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  apis.erase(facebook::fboss::ArsApi::ApiType);
-  apis.erase(facebook::fboss::ArsProfileApi::ApiType);
-#endif
   return apis;
 }
 
@@ -149,6 +157,21 @@ SaiSwitchTraits::CreateAttributes SaiYangraPlatform::getSwitchAttributes(
       mandatoryOnly, switchType, switchId, bootType);
   std::get<std::optional<SaiSwitchTraits::Attributes::HwInfo>>(attributes) =
       std::nullopt;
+  // disable timeout based discards and retain only buffer discards
+  std::get<std::optional<SaiSwitchTraits::Attributes::DisableSllAndHllTimeout>>(
+      attributes) = true;
+
   return attributes;
+}
+
+HwSwitchWarmBootHelper* SaiYangraPlatform::getWarmBootHelper() {
+  if (!wbHelper_) {
+    wbHelper_ = std::make_unique<HwSwitchWarmBootHelper>(
+        getAsic()->getSwitchIndex(),
+        getDirectoryUtil()->getWarmBootDir(),
+        "sai_adaptor_state_",
+        false /* do not create warm boot data file */);
+  }
+  return wbHelper_.get();
 }
 } // namespace facebook::fboss

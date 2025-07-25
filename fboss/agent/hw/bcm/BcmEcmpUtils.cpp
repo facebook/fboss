@@ -11,7 +11,6 @@
 
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <folly/IPAddress.h>
@@ -208,6 +207,40 @@ uint32 getFlowletDynamicMode(const cfg::SwitchingMode& switchingMode) {
       return BCM_L3_ECMP_DYNAMIC_MODE_RANDOM;
   }
   throw FbossError("Invalid switching mode: ", switchingMode);
+}
+
+cfg::SwitchingMode getEcmpSwitchingMode(uint32_t dynamicMode) {
+  switch (dynamicMode) {
+    case BCM_L3_ECMP_DYNAMIC_MODE_NORMAL:
+      return cfg::SwitchingMode::FLOWLET_QUALITY;
+    case BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL:
+      return cfg::SwitchingMode::PER_PACKET_QUALITY;
+    case BCM_L3_ECMP_DYNAMIC_MODE_DISABLED:
+      return cfg::SwitchingMode::FIXED_ASSIGNMENT;
+    case BCM_L3_ECMP_DYNAMIC_MODE_RANDOM:
+      return cfg::SwitchingMode::PER_PACKET_RANDOM;
+  }
+  throw FbossError("Invalid dynamic mode: ", dynamicMode);
+}
+
+bool isEcmpModeDynamic(uint32_t dynamicMode) {
+  return (
+      dynamicMode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
+      dynamicMode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL);
+}
+
+std::string dynamicModeStr(uint32_t dynamicMode) {
+  switch (dynamicMode) {
+    case BCM_L3_ECMP_DYNAMIC_MODE_NORMAL:
+      return "flowlet_quality";
+    case BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL:
+      return "per_packet_quality";
+    case BCM_L3_ECMP_DYNAMIC_MODE_DISABLED:
+      return "fixed_assignment";
+    case BCM_L3_ECMP_DYNAMIC_MODE_RANDOM:
+      return "per_packet_random";
+  }
+  return "Invalid mode";
 }
 
 } // namespace facebook::fboss::utility

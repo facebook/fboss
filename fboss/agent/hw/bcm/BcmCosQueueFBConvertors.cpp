@@ -164,7 +164,7 @@ std::optional<cfg::ActiveQueueManagement> bcmAqmToCfgAqm(
   *linear.minimumLength() = discard.min_thresh;
   *linear.maximumLength() = discard.max_thresh;
   linear.probability() = discard.drop_probability;
-  detection.linear_ref() = linear;
+  detection.linear() = linear;
   aqm.detection() = detection;
   aqm.behavior() = behavior;
   return aqm;

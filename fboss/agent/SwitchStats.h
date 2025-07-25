@@ -34,6 +34,11 @@ using InterfaceStatsMap =
 
 class SwitchStats : public boost::noncopyable {
  public:
+  // Method to update the tunnelInterfacePacketDrop counter
+  void updateTxBufferLimitExceededDrops() {
+    txBufferLimitExceedDrop_.addValue(1);
+  }
+
   /*
    * The prefix to use for our counter names
    */
@@ -333,6 +338,10 @@ class SwitchStats : public boost::noncopyable {
     pendingStateUpdateCount_.addValue(value);
   }
 
+  void thriftRequestCompletionTimeMs(std::chrono::milliseconds ms) {
+    thriftRequestCompletionTimeMs_.addValue(ms.count());
+  }
+
   void linkStateChange() {
     linkStateChange_.addValue(1);
   }
@@ -507,6 +516,14 @@ class SwitchStats : public boost::noncopyable {
 
   void setDrainState(int16_t switchIndex, cfg::SwitchDrainState drainState);
 
+  void setActivePortsWithoutSwitchReachability(
+      int16_t switchIndex,
+      int numPorts);
+
+  void setInactivePortsWithSwitchReachability(
+      int16_t switchIndex,
+      int numPorts);
+
   void setNumActiveFabricLinksEligibleForMinLink(
       int32_t virtualDeviceId,
       int32_t numLinks);
@@ -620,6 +637,17 @@ class SwitchStats : public boost::noncopyable {
     return getCumulativeValue(dsfUpdateFailed_);
   }
 
+  void switchReachabilityInconsistencyDetected(int16_t switchIndex) {
+    CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
+    switchReachabilityInconsistencyDetected_[switchIndex].addValue(1);
+  }
+  void setPrimaryEcmpGroupsExhausted(bool exhausted) const;
+  void setPrimaryEcmpGroupsCount(uint32_t count) const;
+  void setBackupEcmpGroupsCount(uint32_t count) const;
+
+  bool getPrimaryEcmpGroupsExhausted() const;
+  int64_t getPrimaryEcmpGroupsCount() const;
+  int64_t getBackupEcmpGroupsCount() const;
   void getHwAgentStatus(
       std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const;
 
@@ -891,6 +919,11 @@ class SwitchStats : public boost::noncopyable {
   fb303::detail::QuantileStatWrapper updateState_;
 
   /**
+   * Histogram for time used for thrift request completion time (milliseconds)
+   */
+  fb303::detail::QuantileStatWrapper thriftRequestCompletionTimeMs_;
+
+  /**
    * Background thread heartbeat delay (ms)
    */
   TLHistogram bgHeartbeatDelay_;
@@ -1047,6 +1080,7 @@ class SwitchStats : public boost::noncopyable {
   // Failed Dsf subscriptions by peer SwitchID
   std::map<std::string, TLCounter> failedDsfSubscriptionByPeerSwitchName_;
 
+  TLTimeseries txBufferLimitExceedDrop_;
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
   TLTimeseries switchConfiguredMs_;
@@ -1079,6 +1113,9 @@ class SwitchStats : public boost::noncopyable {
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
   std::vector<HwAgentStreamConnectionStatus> thriftStreamConnectionStatus_;
+  std::vector<TLTimeseries> switchReachabilityInconsistencyDetected_;
+  std::vector<TLCounter> activePortsWithoutSwitchReachability_;
+  std::vector<TLCounter> inactivePortsWithSwitchReachability_;
 };
 
 } // namespace facebook::fboss

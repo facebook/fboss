@@ -55,18 +55,37 @@ size_t pumpTraffic(
 
 size_t pumpRoCETraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
-    std::optional<PortID> frontPanelPortToLoopTraffic,
+    const std::optional<VlanID>& vlan,
+    const std::optional<PortID>& frontPanelPortToLoopTraffic,
     int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
     int packetCount = 200000,
     uint8_t roceOpcode = kUdfRoceOpcodeAck,
     uint8_t reserved = kRoceReserved,
-    std::optional<std::vector<uint8_t>> nextHdr =
+    const std::optional<std::vector<uint8_t>>& nextHdr =
+        std::optional<std::vector<uint8_t>>(),
+    bool sameDstQueue = false);
+
+size_t pumpRoCETraffic(
+    bool isV6,
+    const AllocatePktFunc& allocateFn,
+    SendPktFunc sendFn,
+    folly::MacAddress dstMac,
+    const std::optional<VlanID>& vlan,
+    const std::optional<PortID>& frontPanelPortToLoopTraffic,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
+    int hopLimit = 255,
+    std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
+    int packetCount = 200000,
+    uint8_t roceOpcode = kUdfRoceOpcodeAck,
+    uint8_t reserved = kRoceReserved,
+    const std::optional<std::vector<uint8_t>>& nextHdr =
         std::optional<std::vector<uint8_t>>(),
     bool sameDstQueue = false);
 
@@ -201,22 +220,14 @@ inline const int kScalingFactor(100);
 inline const int kLoadWeight(70);
 inline const int kQueueWeight(30);
 
-// Prefix is header name, suffix is field name within header
-inline const int kUdfOffsetBthOpcode(0x1);
-inline const int kUdfOffsetBthReserved(0x2);
-inline const int kUdfOffsetAethSyndrome(0x4);
-inline const int kUdfOffsetRethDmaLength(0x8);
-
-cfg::UdfConfig addUdfHashConfig();
-cfg::UdfConfig addUdfAclConfig(int udfType = kUdfOffsetBthOpcode);
-cfg::UdfConfig addUdfFlowletAclConfig();
-cfg::UdfConfig addUdfHashAclConfig();
-
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
-    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
+    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY,
+    cfg::SwitchingMode backupSwitchingMode =
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
+    bool isSai,
     const std::string& aclName = kFlowletAclName,
     const std::string& aclCounterName = kFlowletAclCounterName,
     bool udfFlowlet = true);
@@ -224,7 +235,9 @@ void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     bool isSai = false,
-    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
+    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY,
+    cfg::SwitchingMode backupSwitchingMode =
+        cfg::SwitchingMode::FIXED_ASSIGNMENT);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics);
@@ -268,6 +281,7 @@ void pumpTrafficAndVerifyLoadBalanced(
 enum class LBHash : uint8_t {
   FULL_HASH = 0,
   HALF_HASH = 1,
+  FULL_HASH_UDF = 2,
 };
 void addLoadBalancerToConfig(
     cfg::SwitchConfig& config,

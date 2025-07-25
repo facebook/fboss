@@ -149,7 +149,7 @@ void LinkTest::setupTtl0ForwardingEnable() {
   }
   auto agentConfig = AgentConfig::fromFile(FLAGS_config);
   auto newAgentConfig =
-      utility::setTTL0PacketForwardingEnableConfig(sw(), *agentConfig);
+      utility::setTTL0PacketForwardingEnableConfig(*agentConfig);
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
   platform()->reloadConfig();
@@ -186,6 +186,7 @@ void LinkTest::initializeCabledPorts() {
           utility::getTransceiverId(platformPortEntry->second, chips);
       if (transceiverID.has_value()) {
         cabledTransceivers_.insert(*transceiverID);
+        cabledTransceiverPorts_.emplace_back(portID);
       }
     }
   }
@@ -196,14 +197,14 @@ LinkTest::getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly) const {
   std::string portNames;
   std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
     transceiverIds.push_back(tcvrId);
   }
 
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
     auto tcvrInfo = transceiverInfos.find(tcvrId);
@@ -275,6 +276,7 @@ void LinkTest::programDefaultRoute(
     std::optional<folly::MacAddress> dstMac) {
   utility::EcmpSetupTargetedPorts6 ecmp6(
       sw()->getState(),
+      sw()->needL2EntryForNeighbor(),
       dstMac,
       RouterID(0),
       false,
@@ -286,10 +288,12 @@ void LinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      sw()->getState(), sw()->getLocalMac(switchId));
+      sw()->getState(),
+      sw()->needL2EntryForNeighbor(),
+      sw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(sw(), ecmpPorts);
-  auto vlanID = utility::firstVlanIDWithPorts(sw()->getState());
+  auto vlanID = getVlanIDForTx();
   utility::pumpTraffic(
       true,
       utility::getAllocatePktFn(sw()),
@@ -408,14 +412,12 @@ LinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts =
-      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
+  auto ports = std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {
-    if (std::find(
-            opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
-        opticalPorts.end()) {
+    if (std::find(ports.begin(), ports.end(), connectedPair.first) !=
+        ports.end()) {
       if (connectedPair.first == connectedPair.second && skipLoopback) {
         continue;
       }

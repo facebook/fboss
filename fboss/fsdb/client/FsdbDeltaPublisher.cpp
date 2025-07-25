@@ -38,8 +38,15 @@ folly::coro::Task<void> FsdbDeltaPublisher::serveStream(StreamT&& stream) {
                 "DeltaPublisher disconnectReason: GR");
             break;
           }
-          if (!pubUnit->changes()->size()) {
-            continue;
+          if (!pubUnit->metadata().has_value()) {
+            pubUnit->metadata() = OperMetadata();
+            pubUnit->metadata()->lastConfirmedAt() = lastConfirmedAt_;
+            auto ts = std::chrono::system_clock::now().time_since_epoch();
+            pubUnit->metadata()->lastPublishedAt() =
+                std::chrono::duration_cast<std::chrono::milliseconds>(ts)
+                    .count();
+          } else if (!initialSyncComplete_) {
+            initialSyncComplete_ = true;
           }
           co_yield std::move(*pubUnit);
         }

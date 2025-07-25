@@ -16,7 +16,6 @@
         13,
         16,
         17,
-        18,
         19,
         20,
         21,
@@ -32,9 +31,6 @@
         35,
         42,
         43,
-        45,
-        46,
-        47,
         50,
         51,
         53,
@@ -42,7 +38,11 @@
         60,
         63,
         69,
-        72
+        72,
+        73,
+        74,
+        82,
+        83
     ],
     "ebro": [
         2,
@@ -82,7 +82,8 @@
         59,
         63,
         69,
-        72
+        72,
+        79
     ],
     "jericho3": [
         2,
@@ -121,7 +122,10 @@
         48,
         49,
         58,
-        70
+        70,
+        75,
+        76,
+        77
     ],
     "ramon": [
         1
@@ -221,7 +225,10 @@
         67,
         69,
         71,
-        72
+        72,
+        80,
+        81,
+        82
     ],
     "tomahawk4": [
         2,
@@ -274,7 +281,11 @@
         67,
         69,
         71,
-        72
+        72,
+        80,
+        81,
+        82,
+        78
     ],
     "tomahawk5": [
         2,
@@ -310,6 +321,7 @@
         37,
         38,
         39,
+        43,
         40,
         42,
         44,
@@ -324,7 +336,11 @@
         63,
         69,
         71,
-        72
+        72,
+        80,
+        81,
+        82,
+        84
     ],
     "yuba": [
         2,
@@ -332,11 +348,13 @@
         5,
         8,
         10,
+        13,
         11,
         61,
         66,
         52,
         16,
+        17,
         20,
         21,
         23,
@@ -367,7 +385,8 @@
         60,
         63,
         69,
-        72
+        72,
+        79
     ]
   },
   "asicToFeatureNames": {
@@ -387,7 +406,6 @@
         "ECMP_LOAD_BALANCER",
         "SINGLE_ACL_TABLE",
         "MULTI_ACL_TABLE",
-        "BTH_OPCODE_ACL",
         "DLB",
         "ECN",
         "WRED",
@@ -403,9 +421,6 @@
         "EGRESS_MIRRORING",
         "PFC",
         "UDF_WR_IMMEDIATE_ACL",
-        "PORT_MTU_ERROR_TRAP",
-        "LED_PROGRAMMING",
-        "PFC_CAPTURE",
         "PAUSE",
         "SEPARATE_INGRESS_EGRESS_BUFFER_POOL",
         "ERSPANV6_MIRRORING",
@@ -413,7 +428,11 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "ERSPANv4_SAMPLING",
+        "ERSPANv6_SAMPLING",
+        "ARS_SPRAY",
+        "ROUTER_INTERFACE_COUNTERS"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -453,7 +472,8 @@
         "CLASS_ID_FOR_CONNECTED_ROUTE",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -492,7 +512,10 @@
         "LINERATE_SFLOW",
         "MIRROR_ON_DROP",
         "SFLOW_SAMPLES_PACKING",
-        "SELF_HEALING_ECMP_LAG"
+        "SELF_HEALING_ECMP_LAG",
+        "GLOBAL_TC_RATE_LIMIT",
+        "COPP_SHAPER",
+        "COPP_SCHEDULER"
     ],
     "ramon": [
         "FABRIC"
@@ -592,7 +615,10 @@
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
         "L4_DST_PORT_ACL",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PFC_WATCHDOG_GRANULARITY",
+        "ARS_FLOWLET",
+        "ARS_SPRAY"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -645,7 +671,11 @@
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
         "L4_DST_PORT_ACL",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PFC_WATCHDOG_GRANULARITY",
+        "ARS_FLOWLET",
+        "ARS_SPRAY",
+        "ECMP_RANDOM_SPRAY"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -681,6 +711,7 @@
         "FSW_ROUTE_SCALE",
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
+        "UDF_WR_IMMEDIATE_ACL",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
         "PFC",
         "VLAN",
@@ -695,7 +726,11 @@
         "UCMP",
         "PTP_TC",
         "L4_DST_PORT_ACL",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PFC_WATCHDOG_GRANULARITY",
+        "ARS_FLOWLET",
+        "ARS_SPRAY",
+        "STATIC_PG_SHARED_LIMIT"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -703,11 +738,13 @@
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
         "COPP",
         "DSCP_REMARKING",
+        "ECMP_LOAD_BALANCER",
         "L3_QOS",
         "NETWORKAI_QOS",
         "OLYMPIC_QOS",
         "NIF_POLICER",
         "SINGLE_ACL_TABLE",
+        "MULTI_ACL_TABLE",
         "ECN",
         "WRED",
         "JUMBO_FRAMES",
@@ -738,7 +775,8 @@
         "SEPARATE_BYTE_AND_PACKET_ACL_COUNTERS",
         "UCMP",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ]
   }
 }

@@ -25,6 +25,7 @@ DECLARE_bool(disable_icmp_error_response);
 DECLARE_bool(enable_snapshot_debugs);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(dsf_subscribe);
+DECLARE_int32(update_stats_interval_s);
 
 namespace facebook::fboss {
 
@@ -34,6 +35,8 @@ namespace facebook::fboss {
  * to assist migration. This should eventually be named as AgentTest as all
  * Agent/Hw tests are migrated to this framework.
  */
+
+using ProductionFeature = test::production_features::ProductionFeature;
 
 class AgentHwTest : public ::testing::Test {
  public:
@@ -96,12 +99,12 @@ class AgentHwTest : public ::testing::Test {
   void runForever() const;
   std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
   void applyNewState(StateUpdateFn fn, const std::string& name = "agent-test") {
-    return applyNewStateImpl(fn, name, false);
+    applyNewStateImpl(std::move(fn), name, false);
   }
   void applyNewStateTransaction(
       StateUpdateFn fn,
       const std::string& name = "agent-test-transaction") {
-    return applyNewStateImpl(fn, name, true);
+    applyNewStateImpl(std::move(fn), name, true);
   }
 
   SwSwitch* getSw() const;
@@ -177,8 +180,8 @@ class AgentHwTest : public ::testing::Test {
 
   template <typename EcmpHelperT>
   void resolveNeighborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
-    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> /*in*/) {
-      return ecmp.resolveNextHops(getProgrammedState(), width);
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
+      return ecmp.resolveNextHops(in, width);
     });
     auto wrapper = getSw()->getRouteUpdater();
     ecmp.programRoutes(&wrapper, width);
@@ -243,13 +246,15 @@ class AgentHwTest : public ::testing::Test {
   void populateArpNeighborsToCache(const std::shared_ptr<Interface>& interface);
   void populateNdpNeighborsToCache(const std::shared_ptr<Interface>& interface);
 
+  std::optional<VlanID> getVlanIDForTx() const {
+    return agentEnsemble_->getVlanIDForTx();
+  }
+
  private:
   void applyNewStateImpl(
       StateUpdateFn fn,
       const std::string& name,
       bool transaction);
-
-  void dumpConfigWithOverriddenGflags(AgentConfig* agentConfig) const;
 
   /*
    * Derived classes have the option to not run verify on
@@ -259,8 +264,8 @@ class AgentHwTest : public ::testing::Test {
     return true;
   }
 
-  virtual std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const = 0;
+  virtual std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const = 0;
   void printProductionFeatures() const;
   virtual bool failHwCallsOnWarmboot() const {
     return true;

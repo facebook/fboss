@@ -16,6 +16,12 @@
 #include "fboss/agent/mnpu/RxPktEventSyncer.h"
 #include "fboss/agent/mnpu/SwitchReachabilityChangeEventSyncer.h"
 #include "fboss/agent/mnpu/TxPktEventSyncer.h"
+namespace {
+DEFINE_int32(
+    hwagent_watchdog_interval_ms,
+    10000,
+    "interval in milliseconds for watchdog to check and update monitoring counters");
+} // namespace
 
 namespace facebook::fboss {
 
@@ -65,7 +71,28 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
               switchId_,
               retryThread_->getEventBase(),
               hw,
-              multiSwitchStatsPrefix)) {}
+              multiSwitchStatsPrefix)) {
+  multiSwitchStatsPrefix_ = std::move(multiSwitchStatsPrefix);
+  updateWatchdogMissedCount();
+  auto clients = {
+      txPktEventStreamClient_->getThriftClientHeartbeat(),
+      fdbEventSinkClient_->getThriftClientHeartbeat(),
+      rxPktEventSinkClient_->getThriftClientHeartbeat(),
+      hwSwitchStatsSinkClient_->getThriftClientHeartbeat(),
+      switchReachabilityChangeEventSinkClient_->getThriftClientHeartbeat()};
+
+  thriftClientWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
+      std::chrono::milliseconds(FLAGS_hwagent_watchdog_interval_ms), [this]() {
+        watchdogMissedCount_ += 1;
+        updateWatchdogMissedCount();
+      });
+
+  for (const auto& client : clients) {
+    thriftClientWatchdog_->startMonitoringHeartbeat(client);
+  }
+
+  thriftClientWatchdog_->start();
+}
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> pkt) noexcept {
@@ -94,13 +121,18 @@ void SplitAgentThriftSyncer::linkStateChanged(
     PortID port,
     bool up,
     cfg::PortType portType,
-    std::optional<phy::LinkFaultStatus> iPhyFaultStatus) {
+    std::optional<phy::LinkFaultStatus> iPhyFaultStatus,
+    std::optional<AggregatePortID> aggPortId) {
   multiswitch::LinkEvent event;
   event.port() = port;
   event.up() = up;
   event.portType() = portType;
   if (iPhyFaultStatus) {
     event.iPhyLinkFaultStatus() = *iPhyFaultStatus;
+  }
+  if (aggPortId) {
+    XLOG(DBG2) << "link state change for agg port " << aggPortId.value();
+    event.aggPortId() = *aggPortId;
   }
   multiswitch::LinkChangeEvent changeEvent;
   changeEvent.linkStateEvent() = event;
@@ -195,7 +227,7 @@ void SplitAgentThriftSyncer::exitFatal() const noexcept {
 void SplitAgentThriftSyncer::pfcWatchdogStateChanged(
     const PortID& /* port */,
     const bool /* deadlock */) {
-  // TODO - Add handler
+  // No need to sync PFC events to SwSwitch. We'll increment counters locally.
 }
 
 void SplitAgentThriftSyncer::registerStateObserver(
@@ -217,6 +249,12 @@ void SplitAgentThriftSyncer::start() {
 
 void SplitAgentThriftSyncer::stop() {
   // Stop any started services
+  if (thriftClientWatchdog_) {
+    XLOG(DBG1) << "Stopping hwagent SplitAgentThriftClient watchdog";
+    thriftClientWatchdog_->stop();
+    thriftClientWatchdog_.reset();
+  }
+
   linkChangeEventSinkClient_->cancel();
   txPktEventStreamClient_->cancel();
   fdbEventSinkClient_->cancel();
@@ -239,5 +277,12 @@ SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {
   if (isRunning_) {
     stop();
   }
+}
+void SplitAgentThriftSyncer::updateWatchdogMissedCount() {
+  std::string counterName = "hwagent.watchdogMissCount";
+  if (multiSwitchStatsPrefix_.has_value()) {
+    counterName = multiSwitchStatsPrefix_.value() + "." + counterName;
+  }
+  fb303::fbData->addStatValue(counterName, watchdogMissedCount_);
 }
 } // namespace facebook::fboss

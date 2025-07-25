@@ -49,4 +49,9 @@ ClientId subscriberId2ClientId(const SubscriberId& subscriberId) {
   return clientId;
 }
 
+SubscriberId clientId2SubscriberId(const ClientId& clientId) {
+  return SubscriberId(folly::sformat(
+      "{}:{}", fsdbClient2string(*clientId.client()), *clientId.instanceId()));
+}
+
 } // namespace facebook::fboss::fsdb

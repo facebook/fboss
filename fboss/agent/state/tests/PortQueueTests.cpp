@@ -38,7 +38,7 @@ cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
 
 cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
   cfg::PortQueueRate portQueueRate;
-  portQueueRate.pktsPerSec_ref() = getRange(minimum, maximum);
+  portQueueRate.pktsPerSec() = getRange(minimum, maximum);
 
   return portQueueRate;
 }
@@ -49,7 +49,7 @@ cfg::ActiveQueueManagement getEarlyDropAqmConfig() {
   earlyDropLQCD.minimumLength() = 208;
   earlyDropLQCD.maximumLength() = 416;
   earlyDropLQCD.probability() = 100;
-  earlyDropAQM.detection()->linear_ref() = earlyDropLQCD;
+  earlyDropAQM.detection()->linear() = earlyDropLQCD;
   earlyDropAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   return earlyDropAQM;
 }
@@ -59,7 +59,7 @@ cfg::ActiveQueueManagement getECNAqmConfig() {
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength() = 624;
   ecnLQCD.maximumLength() = 624;
-  ecnAQM.detection()->linear_ref() = ecnLQCD;
+  ecnAQM.detection()->linear() = ecnLQCD;
   ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
@@ -75,7 +75,7 @@ cfg::PortQueue generateTestQueueConfig(const int id) {
   queue0.reservedBytes() = 19968;
   queue0.sharedBytes() = 19968;
   queue0.portQueueRate() = cfg::PortQueueRate();
-  queue0.portQueueRate()->pktsPerSec_ref() = getRange(0, 100);
+  queue0.portQueueRate()->pktsPerSec() = getRange(0, 100);
   queue0.aqms() = {};
   queue0.aqms()->push_back(getECNAqmConfig());
   queue0.aqms()->push_back(getEarlyDropAqmConfig());

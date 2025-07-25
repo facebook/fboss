@@ -5,14 +5,34 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
 
+enum class NeighborOp { ADD, DEL };
+
 class AgentVoqSwitchTest : public AgentHwTest {
  public:
-  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    {
+      // Increase the query timeout to be 5sec
+      FLAGS_hwswitch_query_timeout = 5000;
+      auto config = utility::onePortPerInterfaceConfig(
+          ensemble.getSw(),
+          ensemble.masterLogicalPortIds(),
+          true /*interfaceHasSubnet*/);
+      utility::addNetworkAIQosMaps(config, ensemble.getL3Asics());
+      utility::setDefaultCpuTrafficPolicyConfig(
+          config, ensemble.getL3Asics(), ensemble.isSai());
+      utility::addCpuQueueConfig(
+          config, ensemble.getL3Asics(), ensemble.isSai());
+      return config;
+    }
+  }
 
   void SetUp() override {
     AgentHwTest::SetUp();
@@ -24,9 +44,9 @@ class AgentVoqSwitchTest : public AgentHwTest {
     }
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::VOQ};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::VOQ};
   }
 
  protected:
@@ -44,9 +64,21 @@ class AgentVoqSwitchTest : public AgentHwTest {
       std::optional<std::vector<uint8_t>> payload =
           std::optional<std::vector<uint8_t>>(),
       int dscp = 0x24);
+
   SystemPortID getSystemPortID(
       const PortDescriptor& port,
-      cfg::Scope portScope);
+      cfg::Scope portScope) {
+    auto switchId =
+        scopeResolver().scope(getProgrammedState(), port).switchId();
+    const auto& dsfNode =
+        getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
+    auto sysPortOffset = portScope == cfg::Scope::GLOBAL
+        ? dsfNode->getGlobalSystemPortOffset()
+        : dsfNode->getLocalSystemPortOffset();
+    CHECK(sysPortOffset.has_value());
+    return SystemPortID(port.intID() + *sysPortOffset);
+  }
+
   std::string kDscpAclName() const {
     return "dscp_acl";
   }
@@ -55,11 +87,39 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 
   void addDscpAclWithCounter();
-  void addRemoveNeighbor(PortDescriptor port, bool add);
+  void addRemoveNeighbor(PortDescriptor port, NeighborOp operation);
   void setForceTrafficOverFabric(bool force);
-  std::vector<PortDescriptor> getInterfacePortSysPortDesc();
+  void setupForDramErrorTestFromDiagShell(const SwitchID& switchId);
+
+  std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
+    auto ports = getProgrammedState()->getPorts()->getAllNodes();
+    std::vector<PortDescriptor> portDescs;
+    std::for_each(
+        ports->begin(),
+        ports->end(),
+        [this, &portDescs](const auto& idAndPort) {
+          const auto port = idAndPort.second;
+          if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+            portDescs.push_back(PortDescriptor(getSystemPortID(
+                PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
+          }
+        });
+    return portDescs;
+  }
+
   // Resolve and return list of local nhops (only NIF ports)
   std::vector<PortDescriptor> resolveLocalNhops(
-      utility::EcmpSetupTargetedPorts6& ecmpHelper);
+      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+    std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      for (const auto& portDesc : portDescs) {
+        out = ecmpHelper.resolveNextHops(out, {portDesc});
+      }
+      return out;
+    });
+    return portDescs;
+  }
 };
 } // namespace facebook::fboss

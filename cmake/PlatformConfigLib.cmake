@@ -33,12 +33,27 @@ add_custom_command(
     ${CMAKE_CURRENT_BINARY_DIR}/platform_config_lib_config_generator
 )
 
-add_executable(platform_config_lib_config_generator
-  fboss/platform/config_lib/ConfigGenerator.cpp
+add_library(cross_config_validator
   fboss/platform/config_lib/CrossConfigValidator.cpp
 )
 
+target_link_libraries(cross_config_validator
+  fan_service_config_types_cpp2
+  platform_manager_config_cpp2
+  sensor_config_cpp2
+  platform_manager_config_validator
+  sensor_service_config_validator
+  weutil_config_cpp2
+  ${RE2}
+)
+
+add_executable(platform_config_lib_config_generator
+  fboss/platform/config_lib/ConfigGenerator.cpp
+)
+
 target_link_libraries(platform_config_lib_config_generator
+  cross_config_validator
+  bsp_tests_config_cpp2
   led_manager_config_types_cpp2
   fan_service_config_validator
   fan_service_cpp2
@@ -49,7 +64,9 @@ target_link_libraries(platform_config_lib_config_generator
   sensor_service_config_validator
   data_corral_service_config_validator
   sensor_config_cpp2
+  showtech_config_cpp2
   weutil_config_cpp2
+  weutil_config_validator
   Folly::folly
 )
 
@@ -78,3 +95,5 @@ target_link_libraries(platform_config_lib
   Folly::folly
   platform_name_lib
 )
+
+gtest_discover_tests(platform_config_lib_config_lib_test)

@@ -17,6 +17,7 @@ cpp_library(
     exported_deps = [
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly:string",
         "//folly/logging:logging",
     ],
 )

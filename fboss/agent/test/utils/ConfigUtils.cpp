@@ -12,11 +12,11 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -52,9 +52,15 @@ void removePort(
   }
 }
 
-int getRdswSysPortBlockSize() {
+int getRdswSysPortBlockSize(
+    std::optional<PlatformType> platformType = std::nullopt) {
   // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
   // for single state we allocate a single block of 44
+  // For PLATFORM_JANGA800BIC, use Prod range
+  if (platformType.has_value() &&
+      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
+    return 22;
+  }
   return isDualStage3Q2QMode() ? 28 : 44;
 }
 int getEdswSysPortBlockSize() {
@@ -63,9 +69,12 @@ int getEdswSysPortBlockSize() {
   return isDualStage3Q2QMode() ? 14 : 26;
 }
 
-int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
+int getPerNodeSysPortsBlockSize(
+    const HwAsic& asic,
+    int remoteSwitchId,
+    std::optional<PlatformType> platformType = std::nullopt) {
   if (remoteSwitchId < getMaxRdsw() * asic.getNumCores()) {
-    return getRdswSysPortBlockSize();
+    return getRdswSysPortBlockSize(platformType);
   }
   return getEdswSysPortBlockSize();
 }
@@ -73,14 +82,15 @@ int getPerNodeSysPortsBlockSize(const HwAsic& asic, int remoteSwitchId) {
 int getSysPortIdsAllocated(
     const HwAsic& asic,
     int remoteSwitchId,
-    int64_t firstSwitchIdMin) {
+    int64_t firstSwitchIdMin,
+    std::optional<PlatformType> platformType = std::nullopt) {
   auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
   CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
   if (deviceIndex < getMaxRdsw()) {
-    portsConsumed += deviceIndex * getRdswSysPortBlockSize() - 1;
+    portsConsumed += deviceIndex * getRdswSysPortBlockSize(platformType) - 1;
   } else {
-    portsConsumed += getMaxRdsw() * getRdswSysPortBlockSize() +
+    portsConsumed += getMaxRdsw() * getRdswSysPortBlockSize(platformType) +
         (deviceIndex - getMaxRdsw()) * getEdswSysPortBlockSize() - 1;
   }
   return portsConsumed;
@@ -140,11 +150,11 @@ std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   int secondOctet = switchIdVal % 256;
 
   auto v6 = FLAGS_nodeZ
-      ? folly::sformat("{}:{}::2/64", firstOctet, secondOctet)
-      : folly::sformat("{}:{}::1/64", firstOctet, secondOctet);
+      ? folly::sformat("{}:{}::2/128", firstOctet, secondOctet)
+      : folly::sformat("{}:{}::1/128", firstOctet, secondOctet);
   auto v4 = FLAGS_nodeZ
-      ? folly::sformat("{}.{}.0.2/24", firstOctet, secondOctet)
-      : folly::sformat("{}.{}.0.1/24", firstOctet, secondOctet);
+      ? folly::sformat("{}.{}.0.2/32", firstOctet, secondOctet)
+      : folly::sformat("{}.{}.0.1/32", firstOctet, secondOctet);
   return {v6, v4};
 }
 
@@ -208,7 +218,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
     }
     if (safeProfiles.empty()) {
-      std::string portSetStr = "";
+      std::string portSetStr;
       for (auto portID : ports) {
         portSetStr = folly::to<std::string>(portSetStr, portID, ", ");
       }
@@ -405,7 +415,8 @@ cfg::DsfNode dsfNodeConfig(
     const HwAsic& firstAsic,
     int64_t otherSwitchId,
     const std::optional<PlatformType> platformType,
-    const std::optional<int> clusterId) {
+    const std::optional<int> clusterId,
+    const std::string& switchNamePrefix) {
   auto getPlatformType = [](const auto& asic, auto& platformType) {
     if (platformType.has_value()) {
       return *platformType;
@@ -424,7 +435,9 @@ cfg::DsfNode dsfNodeConfig(
     }
     throw FbossError("Unexpected asic type: ", asic.getAsicTypeStr());
   };
-  auto getSystemPortRanges = [](const HwAsic& fromAsic, int64_t otherSwitchId) {
+  auto getSystemPortRanges = [&platformType](
+                                 const HwAsic& fromAsic,
+                                 int64_t otherSwitchId) {
     cfg::SystemPortRanges sysPortRanges;
     CHECK(fromAsic.getSystemPortRanges().systemPortRanges()->size());
     CHECK(fromAsic.getSwitchId().has_value());
@@ -435,12 +448,15 @@ cfg::DsfNode dsfNodeConfig(
     for (const auto& firstNodeRange : firstDsfNodeSysPortRanges) {
       cfg::Range64 systemPortRange;
       // Already allocated + 1
-      systemPortRange.minimum() =
-          getSysPortIdsAllocated(
-              fromAsic, otherSwitchId, *firstNodeRange.minimum()) +
+      systemPortRange.minimum() = getSysPortIdsAllocated(
+                                      fromAsic,
+                                      otherSwitchId,
+                                      *firstNodeRange.minimum(),
+                                      platformType) +
           1;
       systemPortRange.maximum() = *systemPortRange.minimum() +
-          getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId) - 1;
+          getPerNodeSysPortsBlockSize(fromAsic, otherSwitchId, platformType) -
+          1;
       XLOG(DBG2) << " For switch Id: " << otherSwitchId
                  << " allocating range, min: " << *systemPortRange.minimum()
                  << " max: " << *systemPortRange.maximum();
@@ -451,7 +467,8 @@ cfg::DsfNode dsfNodeConfig(
   };
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
-  dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
+  dsfNode.name() =
+      folly::sformat("{}{}", switchNamePrefix, *dsfNode.switchId());
   switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
@@ -646,6 +663,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           std::optional<int32_t> port = std::nullopt) {
     auto i = config.interfaces()->size();
     config.interfaces()->push_back(cfg::Interface{});
+    config.interfaces()[i].name() = folly::to<std::string>(intfId);
     *config.interfaces()[i].intfID() = intfId;
     *config.interfaces()[i].vlanID() = vlanId;
     *config.interfaces()[i].routerID() = 0;
@@ -1169,40 +1187,6 @@ cfg::SwitchConfig twoL3IntfConfig(
   return config;
 }
 
-void addMatcher(
-    cfg::SwitchConfig* config,
-    const std::string& matcherName,
-    const cfg::MatchAction& matchAction) {
-  cfg::MatchToAction action = cfg::MatchToAction();
-  *action.matcher() = matcherName;
-  *action.action() = matchAction;
-  cfg::TrafficPolicyConfig egressTrafficPolicy;
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
-    egressTrafficPolicy = *dataPlaneTrafficPolicy;
-  }
-  auto curNumMatchActions = egressTrafficPolicy.matchToAction()->size();
-  egressTrafficPolicy.matchToAction()->resize(curNumMatchActions + 1);
-  egressTrafficPolicy.matchToAction()[curNumMatchActions] = action;
-  config->dataPlaneTrafficPolicy() = egressTrafficPolicy;
-}
-
-void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
-    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction();
-    matchActions.erase(
-        std::remove_if(
-            matchActions.begin(),
-            matchActions.end(),
-            [&](cfg::MatchToAction const& matchAction) {
-              if (*matchAction.matcher() == matcherName) {
-                return true;
-              }
-              return false;
-            }),
-        matchActions.end());
-  }
-}
-
 bool isRswPlatform(PlatformType type) {
   switch (type) {
     case PlatformType::PLATFORM_WEDGE:
@@ -1325,6 +1309,9 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   }
 
   auto begin = masterPorts.begin();
+  CHECK_GE(masterPorts.size(), ecmpWidth)
+      << "Not enough ports with subnet in config. Need  " << ecmpWidth
+      << " ports, but found only " << masterPorts.size();
   auto mid = masterPorts.begin() + ecmpWidth;
   auto end = masterPorts.end();
   return std::pair(PortList(begin, mid), PortList(mid, end));
@@ -1415,7 +1402,6 @@ void configurePortProfile(
     cfg::PortProfileID profileID,
     std::vector<PortID> allPortsInGroup,
     PortID controllingPortID) {
-  auto controllingPort = findCfgPort(config, controllingPortID);
   for (auto portID : allPortsInGroup) {
     // We might have removed a subsumed port already in a previous
     // iteration of the loop.
@@ -1438,7 +1424,6 @@ void configurePortProfile(
     }
     cfgPort->profileID() = profileID;
     cfgPort->speed() = getSpeed(profileID);
-    cfgPort->ingressVlan() = *controllingPort->ingressVlan();
     cfgPort->state() = cfg::PortState::ENABLED;
     removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
   }
@@ -1501,7 +1486,7 @@ void modifyPlatformConfig(
     const std::function<void(std::map<std::string, std::string>&)>&
         modifyMapFunc) {
   auto& chip = *config.chip();
-  if (chip.getType() == chip.bcm) {
+  if (chip.getType() == cfg::ChipConfig::Type::bcm) {
     auto& bcm = chip.mutable_bcm();
     if (!bcm.yamlConfig().value_or("").empty()) {
       // yamlConfig used for TH4
@@ -1509,12 +1494,12 @@ void modifyPlatformConfig(
     } else {
       modifyMapFunc(*bcm.config());
     }
-  } else if (chip.getType() == chip.asicConfig) {
+  } else if (chip.getType() == cfg::ChipConfig::Type::asicConfig) {
     auto& common = *(chip.mutable_asicConfig().common());
-    if (common.getType() == common.yamlConfig) {
+    if (common.getType() == cfg::AsicConfigEntry::Type::yamlConfig) {
       // yamlConfig used for TH4
       modifyYamlFunc(common.mutable_yamlConfig());
-    } else if (common.getType() == common.config) {
+    } else if (common.getType() == cfg::AsicConfigEntry::Type::config) {
       modifyMapFunc(common.mutable_config());
     }
   }

@@ -35,6 +35,7 @@ class MatchAction {
       std::pair<cfg::RedirectToNextHopAction, NextHopSet>;
   using SetTc = std::pair<cfg::SetTcAction, bool>;
   using UserDefinedTrap = cfg::UserDefinedTrapAction;
+  using EcmpHashAction = cfg::SetEcmpHashAction;
 
   MatchAction() = default;
 
@@ -142,6 +143,14 @@ class MatchAction {
     flowletAction_ = flowletAction;
   }
 
+  const std::optional<cfg::SetEcmpHashAction>& getEcmpHashAction() const {
+    return setEcmpHashAction_;
+  }
+
+  void setEcmpHashAction(const cfg::SetEcmpHashAction& setEcmpHashAction) {
+    setEcmpHashAction_ = setEcmpHashAction;
+  }
+
   bool operator==(const MatchAction& action) const {
     return std::tie(
                sendToQueue_,
@@ -154,7 +163,8 @@ class MatchAction {
                redirectToNextHop_,
                setTc_,
                userDefinedTrap_,
-               flowletAction_) ==
+               flowletAction_,
+               setEcmpHashAction_) ==
         std::tie(
                action.sendToQueue_,
                action.ingressMirror_,
@@ -166,7 +176,8 @@ class MatchAction {
                action.redirectToNextHop_,
                action.setTc_,
                action.userDefinedTrap_,
-               action.flowletAction_);
+               action.flowletAction_,
+               action.setEcmpHashAction_);
   }
 
   MatchAction& operator=(const MatchAction& action) {
@@ -181,7 +192,8 @@ class MatchAction {
         redirectToNextHop_,
         setTc_,
         userDefinedTrap_,
-        flowletAction_) =
+        flowletAction_,
+        setEcmpHashAction_) =
         std::tie(
             action.sendToQueue_,
             action.ingressMirror_,
@@ -193,7 +205,8 @@ class MatchAction {
             action.redirectToNextHop_,
             action.setTc_,
             action.userDefinedTrap_,
-            action.flowletAction_);
+            action.flowletAction_,
+            action.setEcmpHashAction_);
     return *this;
   }
 
@@ -212,6 +225,7 @@ class MatchAction {
   std::optional<SetTc> setTc_{std::nullopt};
   std::optional<UserDefinedTrap> userDefinedTrap_{std::nullopt};
   std::optional<cfg::FlowletAction> flowletAction_{std::nullopt};
+  std::optional<cfg::SetEcmpHashAction> setEcmpHashAction_{std::nullopt};
 };
 
 } // namespace facebook::fboss

@@ -21,7 +21,7 @@
 
 namespace facebook::fboss {
 
-struct CmdBounceInterfaceTraits : public BaseCommandTraits {
+struct CmdBounceInterfaceTraits : public WriteCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
@@ -41,7 +41,7 @@ class CmdBounceInterface
        getRegexCounters so we can filter out just the interface counters and
        ignore the multitude of other counters we don't need.
     */
-    std::string bounceResult = "";
+    std::string bounceResult;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 

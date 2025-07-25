@@ -66,11 +66,9 @@ static constexpr uint32_t kV6TopPhp = 20011;
 namespace facebook::fboss {
 class AgentTrunkLoadBalancerTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::LAG,
-        production_features::ProductionFeature::LAG_LOAD_BALANCER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::LAG, ProductionFeature::LAG_LOAD_BALANCER};
   }
 
   void addAggregatePorts(cfg::SwitchConfig* config, AggPortInfo aggInfo) const {
@@ -168,7 +166,7 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
       frontPanelPortToLoopTraffic =
           PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
     }
-    auto firstVlanID = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlanID = getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
     utility::pumpTraffic(
@@ -193,7 +191,7 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
       frontPanelPortToLoopTraffic =
           PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
     }
-    auto firstVlanID = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlanID = getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     utility::pumpMplsTraffic(
         isV6,
@@ -212,15 +210,19 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
   }
 
   void setupIPECMP(AggPortInfo aggInfo) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
     programRoutes(ecmpHelper6, aggInfo);
     programRoutes(ecmpHelper4, aggInfo);
   }
 
   void setupIP2MPLSECMP(AggPortInfo aggInfo) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
     programIp2MplsRoutes(ecmpHelper6, aggInfo);
     programIp2MplsRoutes(ecmpHelper4, aggInfo);
   }
@@ -228,18 +230,22 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
   void setupMPLSECMP(AggPortInfo aggInfo) {
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4SwapHelper{
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         kV4TopSwap,
         LabelForwardingAction::LabelForwardingType::SWAP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6> v6SwapHelper{
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         kV6TopSwap,
         LabelForwardingAction::LabelForwardingType::SWAP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4PhpHelper{
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         kV4TopPhp,
         LabelForwardingAction::LabelForwardingType::PHP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v6PhpHelper{
         getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
         kV6TopPhp,
         LabelForwardingAction::LabelForwardingType::PHP};
     programMplsRoutes(v4SwapHelper, aggInfo);

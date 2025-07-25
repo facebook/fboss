@@ -14,6 +14,8 @@ cpp_library(
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
         "AgentAqmTests.cpp",
+        "AgentArsBase.cpp",
+        "AgentArsFlowletTest.cpp",
         "AgentConfigSetupTest.cpp",
         "AgentConfigVerifyQosTests.cpp",
         "AgentCoppTests.cpp",
@@ -21,6 +23,7 @@ cpp_library(
         "AgentDiagShellStressTests.cpp",
         "AgentDscpMarkingTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
+        "AgentEcmpSpilloverTests.cpp",
         "AgentEcmpTests.cpp",
         "AgentEgressForwardingDiscardCounterTests.cpp",
         "AgentEmptyTests.cpp",
@@ -30,7 +33,10 @@ cpp_library(
         "AgentHwAclQualifierTest.cpp",
         "AgentHwAclStatTests.cpp",
         "AgentHwParityErrorTests.cpp",
+        "AgentHwPtpTcProvisionTests.cpp",
+        "AgentHwPtpTcTests.cpp",
         "AgentHwResourceStatsTests.cpp",
+        "AgentHwUdfTests.cpp",
         "AgentInNullRouteDiscardsTest.cpp",
         "AgentInTrapDiscardsTest.cpp",
         "AgentIngressBufferTests.cpp",
@@ -65,8 +71,8 @@ cpp_library(
         "AgentQueuePerHostTests.cpp",
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
-        "AgentRouteScaleTests.cpp",
         "AgentRouteTests.cpp",
+        "AgentRouterInterfaceCounterTest.cpp",
         "AgentRxReasonTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
         "AgentSflowMirrorTest.cpp",
@@ -88,24 +94,34 @@ cpp_library(
         "AgentVoqSwitchWithMultipleDsfNodesTests.cpp",
         "AgentWatermarkTests.cpp",
     ],
+    headers = [
+        "AgentArsBase.h",
+    ],
     link_whole = True,
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
+        "//fboss/agent:agent_dir_util",
         "//fboss/agent:agent_features",
         "//fboss/agent:apply_thrift_config",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
+        "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:handler",
         "//fboss/agent:hw_asic_table",
+        "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:packet",
         "//fboss/agent:route_update_wrapper",
         "//fboss/agent:sflow_shim_utils",
         "//fboss/agent:stats",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
         "//fboss/agent:voq_utils",
         "//fboss/agent/hw:hw_resource_stats_publisher",
@@ -131,6 +147,7 @@ cpp_library(
         "//fboss/agent/test:production_features-cpp2-types",
         "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:route_scale_gen",
+        "//fboss/agent/test:test_ensemble_if",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:acl_test_utils",
@@ -150,6 +167,7 @@ cpp_library(
         "//fboss/agent/test/utils:mac_test_utils",
         "//fboss/agent/test/utils:mirror_test_utils",
         "//fboss/agent/test/utils:multi_port_traffic_test_utils",
+        "//fboss/agent/test/utils:neighbor_test_utils",
         "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:olympic_qos_utils",
         "//fboss/agent/test/utils:packet_snooper",
@@ -165,8 +183,11 @@ cpp_library(
         "//fboss/agent/test/utils:traffic_policy_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
         "//fboss/agent/test/utils:trunk_test_utils",
+        "//fboss/agent/test/utils:udf_test_utils",
         "//fboss/agent/test/utils:voq_test_utils",
+        "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
+        "//fboss/lib/config:fboss_config_utils",
         "//folly:file_util",
         "//folly:map_util",
         "//folly:network_address",
@@ -186,17 +207,31 @@ cpp_library(
     srcs = [
         "AgentAclScaleTests.cpp",
         "AgentEcmpScaleTests.cpp",
+        "AgentRouteScaleTests.cpp",
+        "AgentVoqSwitchScaleTests.cpp",
+    ],
+    headers = [
+        "AgentVoqSwitchFullScaleDsfTests.h",
+        "AgentVoqSwitchTests.h",
     ],
     link_whole = True,
     exported_deps = [
+        "//fboss/agent:asic_utils",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:production_features-cpp2-types",
+        "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test/utils:acl_test_utils",
-        "//fboss/agent/test/utils:asic_test_utils",
+        "//fboss/agent/test/utils:copp_test_utils",
+        "//fboss/agent/test/utils:dsf_config_utils",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:scale_test_utils",
+        "//fboss/agent/test/utils:voq_test_utils",
         "//folly:network_address",
     ],
 )
@@ -208,8 +243,29 @@ cpp_library(
     ],
     link_whole = True,
     exported_deps = [
+        "//fboss/agent:asic_utils",
         "//fboss/agent/test:agent_hw_test",
-        "//fboss/agent/test/utils:asic_test_utils",
+        "//fboss/lib/multinode:multi_node_util",
+    ],
+)
+
+cpp_library(
+    name = "agent_hw_provision_test_src",
+    srcs = [
+        "AgentHwPtpTcProvisionTests.cpp",
+    ],
+    link_whole = True,
+    exported_deps = [
+        "//fboss/agent:asic_utils",
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test/utils:config_utils",
+        "//fboss/agent/test/utils:packet_snooper",
+        "//fboss/agent/test/utils:pkt_test_utils",
+        "//fboss/agent/test/utils:trap_packet_utils",
+        "//folly:network_address",
     ],
 )
 
@@ -233,6 +289,10 @@ cpp_binary(
         srcs = [
             "BcmAgentHwTest.cpp",
         ],
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+        ],
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/googletest:gtest",
@@ -240,6 +300,7 @@ cpp_binary(
             "//fboss/agent:main-bcm",
             "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
             "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
+            "//fboss/agent/hw/bcm/tests:bcm_aqm_utils",
             "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
             "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
             "//fboss/agent/hw/bcm/tests:bcm_linkstate_toggler",
@@ -270,6 +331,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -304,6 +366,7 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -337,6 +400,7 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nv_sai_sdk" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -351,4 +415,37 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_DNX_IMPLS
+]
+
+_sai_agent_provision_test_prefix = "sai_agent_provision_test"
+
+[
+    cpp_binary(
+        name = to_impl_bin_name(sai_impl, _sai_agent_provision_test_prefix),
+        srcs = [
+            "SaiAgentHwTest.cpp",
+        ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, _sai_agent_provision_test_prefix),
+            sai_impl,
+        ),
+        linker_flags = [
+            "--export-dynamic",
+            "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
+        ] if sai_impl.name == "nvda" else [],
+        versions = {
+            sai_impl.sdk_name: sai_impl.version,
+        },
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            ":agent_hw_provision_test_src",
+            "//fboss/agent/test:agent_hw_test",
+            "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
+            "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+            "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+        ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
+    )
+    for sai_impl in SAI_LEABA_IMPLS
 ]

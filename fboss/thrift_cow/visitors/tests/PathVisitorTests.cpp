@@ -16,25 +16,18 @@ namespace facebook::fboss::thrift_cow::test {
 
 struct GetVisitedPathsOperator : public BasePathVisitorOperator {
  public:
+  GetVisitedPathsOperator()
+      : BasePathVisitorOperator(
+            ConstSerializableVisitorFunc([this](
+                                             const Serializable&,
+                                             pv_detail::PathIter begin,
+                                             pv_detail::PathIter end) {
+              visited.insert(
+                  "/" + folly::join('/', std::vector<std::string>(begin, end)));
+            })) {}
+
   const std::set<std::string>& getVisited() {
     return visited;
-  }
-
- protected:
-  void visit(
-      Serializable& /* node */,
-      pv_detail::PathIter begin,
-      pv_detail::PathIter end) override {
-    visited.insert(
-        "/" + folly::join('/', std::vector<std::string>(begin, end)));
-  }
-
-  template <typename Node>
-  void visit(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
-    requires(!is_cow_type_v<Node>)
-  {
-    SerializableWrapper wrapper(node);
-    visit(wrapper, begin, end);
   }
 
  private:
@@ -76,57 +69,89 @@ TYPED_TEST(PathVisitorTests, AccessField) {
   });
   std::vector<std::string> path{"inlineInt"};
   auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(dyn.asInt(), 54);
 
   // inlineInt
   path = {"2"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(dyn.asInt(), 54);
 
   // inlineVariant/inlineInt
   path = {"21", "2"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(dyn.asInt(), 99);
 
   // cowMap
   path = {"cowMap", "1"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_TRUE(dyn.asBool());
 
   // mapOfI32ToStruct/20/min
   path = {"mapOfI32ToStruct", "20", "min"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(400, dyn.asInt());
 
   // mapOfI32ToListOfStructs
   path = {"mapOfI32ToListOfStructs", "20", "0", "min"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(100, dyn.asInt());
 
   // mapOfI32ToSetOfString
   path = {"mapOfI32ToSetOfString", "20", "test1"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ("test1", dyn.asString());
 
   // mapOfI32ToSetOfString invalid
   path = {"mapOfI32ToSetOfString", "20", "invalid_entry"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.code(), ThriftTraverseResult::Code::NON_EXISTENT_NODE);
 }
 
 TYPED_TEST(PathVisitorTests, AccessAtHybridNodeTest) {
@@ -153,8 +178,12 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridNodeTest) {
       "4",
       "hybridMapOfI32ToStruct"};
   auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_NE(dyn.find(20), dyn.items().end());
   ChildStruct got = facebook::thrift::from_dynamic<ChildStruct>(
       dyn[20], facebook::thrift::dynamic_format::JSON_1);
@@ -174,14 +203,18 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridNodeTest) {
   SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      thrift_cow::PathVisitOptions::visitLeaf(true),
+      setOp);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
   // Thrift path terminating at HybridNode - Get
   GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(getOp.val, newVal);
 }
 
@@ -211,8 +244,12 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerTest) {
       "20",
       "structMap"};
   auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_NE(dyn.find("30"), dyn.items().end());
   cfg::L4PortRange got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
       dyn["30"], facebook::thrift::dynamic_format::JSON_1);
@@ -234,14 +271,18 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerTest) {
   SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      thrift_cow::PathVisitOptions::visitLeaf(true),
+      setOp);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
   // Thrift path at thrift container under HybridNode  - Get
   GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(getOp.val, newVal);
 }
 
@@ -272,8 +313,12 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerKeyTest) {
       "structMap",
       "30"};
   auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   cfg::L4PortRange got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
       dyn, facebook::thrift::dynamic_format::JSON_1);
   EXPECT_EQ(*got.min(), 100);
@@ -290,14 +335,18 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridThriftContainerKeyTest) {
   SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      thrift_cow::PathVisitOptions::visitLeaf(true),
+      setOp);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
   // Thrift path at thrift container key under HybridNode  - Get
   GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(getOp.val, newVal);
 }
 
@@ -315,8 +364,12 @@ TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   });
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
   auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   cfg::L4PortRange got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
       dyn, facebook::thrift::dynamic_format::JSON_1);
   EXPECT_EQ(*got.min(), 100);
@@ -324,8 +377,12 @@ TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
 
   path = {"15", "3"};
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
       dyn, facebook::thrift::dynamic_format::JSON_1);
   EXPECT_EQ(*got.min(), 100);
@@ -340,8 +397,8 @@ TYPED_TEST(PathVisitorTests, TraversalModeFull) {
     auto op = GetVisitedPathsOperator();
     std::vector<std::string> path{"mapOfEnumToStruct", "3"};
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::FULL, op);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA, path.begin(), path.end(), PathVisitOptions::visitFull(), op);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
     EXPECT_THAT(
         op.getVisited(),
         ::testing::ContainerEq(
@@ -351,8 +408,8 @@ TYPED_TEST(PathVisitorTests, TraversalModeFull) {
     auto op = GetVisitedPathsOperator();
     std::vector<std::string> path{"mapOfI32ToListOfStructs", "20", "0", "min"};
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::FULL, op);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA, path.begin(), path.end(), PathVisitOptions::visitFull(), op);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
     EXPECT_THAT(
         op.getVisited(),
         ::testing::ContainerEq(std::set<std::string>{
@@ -375,16 +432,24 @@ TEST(PathVisitorTests, AccessOptional) {
   });
   std::vector<std::string> path{"optionalString"};
   auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::OK);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   EXPECT_EQ(got, "bla");
   structA.optionalString().reset();
   nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   got.clear();
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
-  EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.code(), ThriftTraverseResult::Code::NON_EXISTENT_NODE);
   EXPECT_TRUE(got.empty());
 }
 
@@ -401,13 +466,17 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
     std::vector<std::string> path{"inlineInt"};
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
     result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
     EXPECT_EQ(getOp.val, "123");
   }
 
@@ -417,9 +486,13 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, newVal);
     std::vector<std::string> path{"setOfI32", "1"};
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-    // should throw trying to set an immutable node
-    EXPECT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
+    // SetEncodedPathVisitorOperator also handles paths into sets of primitives
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
   }
 
   {
@@ -429,13 +502,17 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
     std::vector<std::string> path{"mapOfStringToI32", "test1"};
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
     result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
     EXPECT_EQ(getOp.val, "123");
   }
 
@@ -452,13 +529,17 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
     result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
     EXPECT_EQ(getOp.val, newVal);
     auto encoded = *getOp.val;
     auto buf =
@@ -482,13 +563,17 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
         fsdb::OperProtocol::SIMPLE_JSON, newVal);
 
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA,
+        path.begin(),
+        path.end(),
+        thrift_cow::PathVisitOptions::visitLeaf(true),
+        setOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
     result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
     EXPECT_EQ(getOp.val, newVal);
     auto encoded = *getOp.val;
     auto buf =
@@ -505,8 +590,8 @@ TYPED_TEST(PathVisitorTests, VisitWithOperators) {
 
     GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
     auto result = RootPathVisitor::visit(
-        *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
-    EXPECT_EQ(result, ThriftTraverseResult::OK);
+        *nodeA, path.begin(), path.end(), PathVisitOptions::visitLeaf(), getOp);
+    EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
 
     auto encoded = *getOp.val;
     auto buf =

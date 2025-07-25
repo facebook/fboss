@@ -36,7 +36,9 @@ BENCHMARK(RibResolutionBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
   auto ports = ensemble->masterLogicalPortIds();
 
-  utility::THAlpmRouteScaleGenerator gen(ensemble->getSw()->getState());
+  utility::THAlpmRouteScaleGenerator gen(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
   const auto& routeChunks = gen.getThriftRoutes();
   // Create a dummy rib since we don't want to go through
   // HwSwitchEnsemble and write to HW

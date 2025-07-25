@@ -1,12 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -29,15 +29,14 @@ class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::NULL_ROUTE_IN_DISCARDS_COUNTER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::NULL_ROUTE_IN_DISCARDS_COUNTER};
   }
 
  protected:
   void pumpTraffic(bool isV6) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
@@ -71,9 +70,8 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
   };
   PortID portId = masterLogicalInterfacePortIds()[0];
   auto verify = [=, this]() {
-    auto isVoqSwitch =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-            ->getSwitchType() == cfg::SwitchType::VOQ;
+    auto isVoqSwitch = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                           ->getSwitchType() == cfg::SwitchType::VOQ;
     auto portStatsBefore = getLatestPortStats(portId);
     auto switchDropStatsBefore = getAggregatedSwitchDropStats();
     pumpTraffic(true);

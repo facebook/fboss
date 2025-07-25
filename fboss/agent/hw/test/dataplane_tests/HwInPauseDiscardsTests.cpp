@@ -41,7 +41,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
     payload.insert(payload.end(), padding.begin(), padding.end());
     auto pkt = utility::makeEthTxPacket(
         getHwSwitch(),
-        utility::firstVlanIDWithPorts(getProgrammedState()),
+        getHwSwitchEnsemble()->getVlanIDForTx(),
         getPlatform()->getLocalMac(),
         folly::MacAddress("01:80:C2:00:00:01"),
         ETHERTYPE::ETHERTYPE_EPON,
@@ -86,13 +86,17 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
        * |    BCM     |   Disabled   |         1             |      1        |
        * |    Tajo    |   Enabled    |         1             |      1        |
        * |    Tajo    |   Disabled   |         0             |      0        |
+       * |   Chenab   |   Enabled    |         0             |      1        |
+       * |   Chenab   |   Disabled   |         0             |      0        |
        * ---------------------------------------------------------------------
        */
       auto expectedPktCount = !enableRxPause &&
               (getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
                    cfg::AsicType::ASIC_TYPE_EBRO ||
                getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
-                   cfg::AsicType::ASIC_TYPE_YUBA)
+                   cfg::AsicType::ASIC_TYPE_YUBA ||
+               getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
+                   cfg::AsicType::ASIC_TYPE_CHENAB)
           ? 0
           : 1;
       auto expectedDiscardsIncrement =
@@ -115,7 +119,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
 class HwInPauseFloodTest : public HwInPauseDiscardsCounterTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfNPortConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch()->getPlatform()->getPlatformMapping(),
         getHwSwitch()->getPlatform()->getAsic(),
         masterLogicalPortIds(),

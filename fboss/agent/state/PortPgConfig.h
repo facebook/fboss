@@ -203,6 +203,34 @@ class PortPgConfig
     set<switch_state_tags::sramResumeOffsetBytes>(sramResumeOffsetBytes);
   }
 
+  std::optional<cfg::MMUScalingFactor> getSramScalingFactor() const {
+    if (auto sramScalingFactor =
+            safe_cref<switch_state_tags::sramScalingFactor>()) {
+      cfg::MMUScalingFactor cfgSramScalingFactor{};
+      apache::thrift::util::tryParseEnum(
+          sramScalingFactor->toThrift(), &cfgSramScalingFactor);
+      return cfgSramScalingFactor;
+    }
+    return std::nullopt;
+  }
+
+  void setSramScalingFactor(cfg::MMUScalingFactor sramScalingFactor) {
+    set<switch_state_tags::sramScalingFactor>(
+        apache::thrift::util::enumName(sramScalingFactor));
+  }
+
+  std::optional<int64_t> getStaticLimitBytes() const {
+    if (auto staticLimitBytes =
+            safe_cref<switch_state_tags::staticLimitBytes>()) {
+      return staticLimitBytes->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setStaticLimitBytes(int64_t staticLimitBytes) {
+    set<switch_state_tags::staticLimitBytes>(staticLimitBytes);
+  }
+
   static state::PortPgFields makeThrift(
       uint8_t id,
       std::optional<cfg::MMUScalingFactor> scalingFactor,
@@ -210,6 +238,7 @@ class PortPgConfig
       int minLimitBytes,
       std::optional<int> headroomLimitBytes,
       std::optional<int> resumeOffsetBytes,
+      std::optional<int64_t> staticLimitBytes,
       const std::string& bufferPoolName,
       const std::optional<BufferPoolFields>& bufferPoolConfig = std::nullopt) {
     state::PortPgFields obj{};
@@ -230,6 +259,9 @@ class PortPgConfig
     obj.bufferPoolName() = bufferPoolName;
     if (bufferPoolConfig) {
       obj.bufferPoolConfig() = *bufferPoolConfig;
+    }
+    if (staticLimitBytes) {
+      obj.staticLimitBytes() = *staticLimitBytes;
     }
     return obj;
   }

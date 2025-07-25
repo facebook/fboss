@@ -10,7 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/agent/GtestDefs.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/LookupClassUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -1222,6 +1221,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
   this->verifyStateUpdate([=]() {
     auto state = this->sw_->getState();
     auto vlan = state->getVlans()->getNode(this->kVlan());
+    auto intf = state->getInterfaces()->getNodeIf(this->kInterfaceID());
 
     if constexpr (
         std::is_same_v<
@@ -1233,12 +1233,19 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, ResolveUnresolveResolve) {
     } else if constexpr (
         std::is_same_v<
             TypeParam,
+            IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>>) {
+      auto neighborTable = vlan->getNdpTable();
+      EXPECT_EQ(
+          neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
+    } else if constexpr (
+        std::is_same_v<
+            TypeParam,
             IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>>) {
-      auto neighborTable = vlan->getArpTable();
+      auto neighborTable = intf->getArpTable();
       EXPECT_EQ(
           neighborTable->getEntryIf(this->getIpAddress().asV4()), nullptr);
     } else {
-      auto neighborTable = vlan->getNdpTable();
+      auto neighborTable = intf->getNdpTable();
       EXPECT_EQ(
           neighborTable->getEntryIf(this->getIpAddress().asV6()), nullptr);
     }

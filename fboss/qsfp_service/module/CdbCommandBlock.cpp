@@ -11,6 +11,17 @@
 
 #include "fboss/qsfp_service/module/cmis/gen-cpp2/cmis_types.h"
 
+// All the CDB commands finishes well within 2 seconds but one particular DSP
+// firmware download takes too much time. During this each CDB command takes
+// average 5 seconds, so setting timeout to 20 seconds.
+
+// FR4 Lite requires increasing the CDB command timeout to 120s to allow modules
+// that are currently failing upgrade to pass.
+DEFINE_int32(
+    cdb_command_timeout_usec,
+    20000000,
+    "Timeout (usec) for CDB command completion.");
+
 namespace facebook::fboss {
 
 // CDB command definitions
@@ -32,12 +43,10 @@ static constexpr uint8_t kCdbCommandStatusBusyCmdCaptured = 0x81;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCheck = 0x82;
 static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
 
-// All the CDB commands finishes well within 2 seconds but one particular DSP
-// firmware download takes too much time. During this each CDB command takes
-// average 5 seconds to increasing this CDB timeout value to 10 seconds
-constexpr int cdbCommandTimeoutUsec = 10000000;
 constexpr int cdbCommandErrorIntervalUsec = 100000;
 constexpr int cdbCommandStatusPollIntervalUsec = 10000;
+
+constexpr int delayAfterFwCommitUsec = 200000; // 200 ms
 
 // CMIS firmware related register offsets
 constexpr uint8_t kCdbCommandStatusReg = 37;
@@ -164,12 +173,22 @@ bool CdbCommandBlock::cmisRunCdbCommand(TransceiverImpl* bus) {
     return true;
   }
 
+  // Special handling for COMMIT command
+  if (this->cdbFields_.cdbCommandCode ==
+      htons(kCdbCommandFirmwareDownloadCommit)) {
+    /* Module could disable i2c after executing the commit command. So add a
+     * delay before checking CDB status
+     */
+    /* sleep override */
+    usleep(delayAfterFwCommitUsec);
+  }
+
   // Now read the CDB command status register till the status becomes success
   // or fail
   uint8_t status = 0;
   auto startTime = std::chrono::steady_clock::now();
   auto finishTime =
-      startTime + std::chrono::microseconds(cdbCommandTimeoutUsec);
+      startTime + std::chrono::microseconds(FLAGS_cdb_command_timeout_usec);
   /* sleep override */
   usleep(cdbCommandStatusPollIntervalUsec);
   while (true) {

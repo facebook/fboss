@@ -139,34 +139,48 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
       return false;
     }
     auto bufferProfile = iter->second.bufferProfile;
-    if (pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref() !=
-        SaiApiTable::getInstance()->bufferApi().getAttribute(
-            bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::XonOffsetTh{})) {
-      XLOG(DBG2) << "Resume offset mismatch for pg " << id;
-      return false;
+    if (auto resumeBytesOpt =
+            pgConfig->cref<switch_state_tags::resumeBytes>()) {
+      auto want = resumeBytesOpt->cref();
+      auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
+          bufferProfile->adapterKey(), SaiBufferProfileAttributes::XonTh{});
+      if (got != want) {
+        XLOG(DBG2) << "Resume threshold mismatch for pg " << id
+                   << ", got=" << got << ", want=" << want;
+        return false;
+      }
     }
-    if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
-        SaiApiTable::getInstance()->bufferApi().getAttribute(
-            bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::ReservedBytes{})) {
-      XLOG(DBG2) << "Min limit mismatch for pg " << id;
-      return false;
+    if (auto resumeOffsetBytesOpt =
+            pgConfig->cref<switch_state_tags::resumeOffsetBytes>()) {
+      auto want = resumeOffsetBytesOpt->cref();
+      auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
+          bufferProfile->adapterKey(),
+          SaiBufferProfileAttributes::XonOffsetTh{});
+      if (got != want) {
+        XLOG(DBG2) << "Resume offset mismatch for pg " << id << ", got=" << got
+                   << ", want=" << want;
+        return false;
+      }
     }
-    if (pgConfig->cref<switch_state_tags::minLimitBytes>()->cref() !=
-        SaiApiTable::getInstance()->bufferApi().getAttribute(
-            bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::ReservedBytes{})) {
-      XLOG(DBG2) << "Min limit mismatch for pg " << id;
-      return false;
+    {
+      auto want = pgConfig->cref<switch_state_tags::minLimitBytes>()->cref();
+      auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
+          bufferProfile->adapterKey(),
+          SaiBufferProfileAttributes::ReservedBytes{});
+      if (got != want) {
+        XLOG(DBG2) << "Min limit mismatch for pg " << id << ", got=" << got
+                   << ", want=" << want;
+        return false;
+      }
     }
     if (auto pgHdrmOpt =
             pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
-      if (pgHdrmOpt->cref() !=
-          SaiApiTable::getInstance()->bufferApi().getAttribute(
-              bufferProfile->adapterKey(),
-              SaiBufferProfileTraits::Attributes::XoffTh{})) {
-        XLOG(DBG2) << "Headroom mismatch for pg " << id;
+      auto want = pgHdrmOpt->cref();
+      auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
+          bufferProfile->adapterKey(), SaiBufferProfileAttributes::XoffTh{});
+      if (got != want) {
+        XLOG(DBG2) << "Headroom mismatch for pg " << id << ", got=" << got
+                   << ", want=" << want;
         return false;
       }
     }
@@ -174,20 +188,24 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
     // Buffer pool configs
     const auto bufferPool =
         pgConfig->cref<switch_state_tags::bufferPoolConfig>();
-    if (bufferPool->cref<common_if_tags::headroomBytes>()->cref() *
-            static_cast<const SaiSwitch*>(hwSwitch_)
-                ->getPlatform()
-                ->getAsic()
-                ->getNumMemoryBuffers() !=
-        SaiApiTable::getInstance()->bufferApi().getAttribute(
-            static_cast<const SaiSwitch*>(hwSwitch_)
-                ->managerTable()
-                ->bufferManager()
-                .getIngressBufferPoolHandle()
-                ->bufferPool->adapterKey(),
-            SaiBufferPoolTraits::Attributes::XoffSize{})) {
-      XLOG(DBG2) << "Headroom mismatch for buffer pool";
-      return false;
+    {
+      auto want = bufferPool->cref<common_if_tags::headroomBytes>()->cref() *
+          static_cast<const SaiSwitch*>(hwSwitch_)
+              ->getPlatform()
+              ->getAsic()
+              ->getNumMemoryBuffers();
+      auto got = SaiApiTable::getInstance()->bufferApi().getAttribute(
+          static_cast<const SaiSwitch*>(hwSwitch_)
+              ->managerTable()
+              ->bufferManager()
+              .getIngressBufferPoolHandle()
+              ->bufferPool->adapterKey(),
+          SaiBufferPoolTraits::Attributes::XoffSize{});
+      if (got != want) {
+        XLOG(DBG2) << "Headroom mismatch for buffer pool, got=" << got
+                   << ", want=" << want;
+        return false;
+      }
     }
 
     // Port PFC configurations

@@ -11,20 +11,27 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_fbthrift_cpp_library(
+  weutil_eeprom_contents_cpp2
+  fboss/platform/weutil/if/eeprom_contents.thrift
+  OPTIONS
+    json
+    reflection
+)
+
 add_library(weutil_crc16_ccitt_aug
   fboss/platform/weutil/Crc16CcittAug.cpp
 )
 
 add_library(weutil_fboss_eeprom_parser
   fboss/platform/weutil/FbossEepromParser.cpp
-)
-
-target_link_libraries(weutil_fboss_eeprom_parser
-  weutil_crc16_ccitt_aug
+  fboss/platform/weutil/FbossEepromInterface.cpp
 )
 
 target_link_libraries(weutil_fboss_eeprom_parser
   Folly::folly
+  weutil_crc16_ccitt_aug
+  weutil_eeprom_contents_cpp2
 )
 
 add_library(weutil_lib
@@ -67,6 +74,14 @@ add_executable(weutil
 
 target_link_libraries(weutil
   weutil_lib
+)
+
+add_library(weutil_config_validator
+  fboss/platform/weutil/ConfigValidator.cpp
+)
+
+target_link_libraries(weutil_config_validator
+  weutil_config_cpp2
 )
 
 add_executable(weutil_hw_test

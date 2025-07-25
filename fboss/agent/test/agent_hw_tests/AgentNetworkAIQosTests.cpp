@@ -8,8 +8,9 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosTestBase.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 
 namespace facebook::fboss {
@@ -22,20 +23,24 @@ class AgentNetworkAIQosTests : public AgentQosTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
         &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
     utility::addNetworkAIQosMaps(cfg, ensemble.getL3Asics());
+    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      utility::setDefaultCpuTrafficPolicyConfig(
+          cfg, ensemble.getL3Asics(), ensemble.isSai());
+      utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
+      utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
+    }
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::NETWORKAI_QOS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_QOS, ProductionFeature::NETWORKAI_QOS};
   }
 };
 

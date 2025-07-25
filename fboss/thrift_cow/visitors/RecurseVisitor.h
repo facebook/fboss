@@ -6,6 +6,7 @@
 #include <string>
 #include "folly/Conv.h"
 
+#include <fboss/thrift_cow/nodes/Serializer.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <folly/Traits.h>
@@ -46,14 +47,17 @@ struct RecurseVisitOptions {
       RecurseVisitMode mode,
       RecurseVisitOrder order,
       bool outputIdPaths = false,
+      bool hybridNodeShallowTraversal = false,
       bool hybridNodeDeepTraversal = false)
       : mode(mode),
         order(order),
         outputIdPaths(outputIdPaths),
+        hybridNodeShallowTraversal(hybridNodeShallowTraversal),
         hybridNodeDeepTraversal(hybridNodeDeepTraversal) {}
   RecurseVisitMode mode;
   RecurseVisitOrder order;
   bool outputIdPaths;
+  bool hybridNodeShallowTraversal;
   bool hybridNodeDeepTraversal;
 };
 
@@ -77,6 +81,28 @@ void invokeVisitorFnHelper(
     Node&& node,
     Func&& f) {
   return f(traverser, std::forward<Node>(node));
+}
+
+template <typename TC, typename TType, typename TraverseHelper, typename Func>
+void invokeVisitorFnWithWrapper(
+    RecurseVisitOptions /* options */,
+    TraverseHelper& traverser,
+    TType& node,
+    Func&& f) {
+  std::optional<SerializableWrapper<TC, TType>> wrapper =
+      SerializableWrapper<TC, TType>(node);
+  return f(traverser, wrapper);
+}
+
+template <typename TC, typename TType, typename TraverseHelper, typename Func>
+void invokeVisitorFnWithWrapper(
+    RecurseVisitOptions /* options */,
+    TraverseHelper& traverser,
+    const TType& node,
+    Func&& f) {
+  std::optional<SerializableWrapper<TC, TType>> wrapper =
+      SerializableWrapper<TC, TType>(*const_cast<TType*>(&node));
+  return f(traverser, wrapper);
 }
 
 template <typename TC, typename NodePtr, typename TraverseHelper, typename Func>
@@ -217,20 +243,27 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       throw std::runtime_error(folly::to<std::string>(
           "RecurseVisitor support for hybridNodeDeepTraversal in List not implemented"));
     }
+    if (options.mode == RecurseVisitMode::UNPUBLISHED) {
+      // unpublished hybrid node, no children to be published
+      rv_detail::invokeVisitorFnHelper(
+          options, traverser, node, std::forward<Func>(f));
+      return;
+    }
     auto& tObj = node->ref();
-    bool visitIntermediate = options.mode == RecurseVisitMode::FULL ||
-        options.mode == RecurseVisitMode::UNPUBLISHED;
+    bool visitIntermediate = (options.mode == RecurseVisitMode::FULL);
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::PARENTS_FIRST) {
       rv_detail::invokeVisitorFnHelper(
           options, traverser, node, std::forward<Func>(f));
     }
-    // visit list elements
-    for (int i = 0; i < tObj.size(); ++i) {
-      traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
-      rv_detail::invokeVisitorFnHelper(
-          options, traverser, &tObj.at(i), std::forward<Func>(f));
-      traverser.pop(TCType<ValueTypeClass>);
+    if (options.hybridNodeShallowTraversal) {
+      // visit list elements
+      for (int i = 0; i < tObj.size(); ++i) {
+        traverser.push(folly::to<std::string>(i), TCType<ValueTypeClass>);
+        rv_detail::invokeVisitorFnWithWrapper<ValueTypeClass>(
+            options, traverser, tObj.at(i), std::forward<Func>(f));
+        traverser.pop(TCType<ValueTypeClass>);
+      }
     }
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::CHILDREN_FIRST) {
@@ -307,19 +340,21 @@ struct RecurseVisitor<
           options, traverser, node, std::forward<Func>(f));
     }
     // visit map entries
-    if constexpr (std::is_const_v<NodePtr>) {
-      for (const auto& [key, val] : tObj) {
-        traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
-        rv_detail::invokeVisitorFnHelper(
-            options, traverser, &val, std::forward<Func>(f));
-        traverser.pop(TCType<MappedTypeClass>);
-      }
-    } else {
-      for (auto& [key, val] : tObj) {
-        traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
-        rv_detail::invokeVisitorFnHelper(
-            options, traverser, &val, std::forward<Func>(f));
-        traverser.pop(TCType<MappedTypeClass>);
+    if (options.hybridNodeShallowTraversal) {
+      if constexpr (std::is_const_v<NodePtr>) {
+        for (const auto& [key, val] : tObj) {
+          traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
+          rv_detail::invokeVisitorFnWithWrapper<MappedTypeClass>(
+              options, traverser, val, std::forward<Func>(f));
+          traverser.pop(TCType<MappedTypeClass>);
+        }
+      } else {
+        for (auto& [key, val] : tObj) {
+          traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
+          rv_detail::invokeVisitorFnWithWrapper<MappedTypeClass>(
+              options, traverser, val, std::forward<Func>(f));
+          traverser.pop(TCType<MappedTypeClass>);
+        }
       }
     }
     if (visitIntermediate &&

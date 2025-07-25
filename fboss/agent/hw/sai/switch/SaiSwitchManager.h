@@ -17,7 +17,6 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -36,6 +35,10 @@ class LoadBalancer;
 class SaiManagerTable;
 class SaiPlatform;
 class StateDelta;
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+using SaiSwitchPipeline = SaiObjectWithCounters<SaiSwitchPipelineTraits>;
+#endif
 
 class SaiSwitchManager {
   static constexpr auto kBitsPerByte = 8;
@@ -104,6 +107,12 @@ class SaiSwitchManager {
   HwSwitchWatermarkStats getSwitchWatermarkStats() const {
     return switchWatermarkStats_;
   }
+  HwSwitchPipelineStats getSwitchPipelineStats() const {
+    return switchPipelineStats_;
+  }
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const {
+    return switchTemperatureStats_;
+  }
   void setLocalCapsuleSwitchIds(
       const std::map<SwitchID, int>& switchIdToNumCores);
   void setReachabilityGroupList(const std::vector<int>& reachabilityGroups);
@@ -121,15 +130,19 @@ class SaiSwitchManager {
   void setVoqOutOfBoundsLatency(int voqOutOfBoundsLatencyNsec);
   void setTcRateLimitList(
       const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
-
-  std::optional<std::string> getFirmwareVersion() const;
-  std::optional<FirmwareOpStatus> getFirmwareOpStatus() const;
+  bool isPtpTcEnabled() const;
+  void setPfcWatchdogTimerGranularity(int pfcWatchdogTimerGranularityMsec);
+  void setCreditRequestProfileSchedulerMode(cfg::QueueScheduling scheduling);
+  void setModuleIdToCreditRequestProfileParam(
+      const std::optional<std::map<int32_t, int32_t>>&
+          moduleIdToCreditRequestProfileParam);
 
  private:
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
       std::optional<cfg::HashingAlgorithm> algo);
   void addOrUpdateEcmpLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
+  void updateSramLowBufferLimitHitCounter();
 
   void programLagLoadBalancerParams(
       std::optional<sai_uint32_t> seed,
@@ -156,10 +169,20 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedCreditStats() const;
   const std::vector<sai_stat_id_t>& supportedErrorStats() const;
+  const std::vector<sai_stat_id_t>& supportedSaiExtensionDropStats() const;
+  const std::vector<sai_stat_id_t>& supportedPipelineWatermarkStats() const;
+  const std::vector<sai_stat_id_t>& supportedPipelineStats() const;
+  const std::vector<sai_attr_id_t>& supportedTemperatureStats() const;
   const HwSwitchWatermarkStats getHwSwitchWatermarkStats() const;
+  const HwSwitchPipelineStats getHwSwitchPipelineStats(
+      bool updateWatermarks) const;
+  const HwSwitchTemperatureStats getHwSwitchTemperatureStats() const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  std::vector<std::shared_ptr<SaiSwitchPipeline>> switchPipelines_;
+#endif
   std::optional<PortSaiId> cpuPort_;
   std::optional<PortSaiId> cpuRecyclePort_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
@@ -177,8 +200,8 @@ class SaiSwitchManager {
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;
   HwSwitchWatermarkStats switchWatermarkStats_;
-
-  std::optional<FirmwareSaiId> firmwareSaiId;
+  HwSwitchPipelineStats switchPipelineStats_;
+  HwSwitchTemperatureStats switchTemperatureStats_;
 };
 
 void fillHwSwitchDramStats(
@@ -193,6 +216,14 @@ void fillHwSwitchCreditStats(
 void fillHwSwitchErrorStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropStats& switchDropStats);
+void fillHwSwitchPipelineStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    int idx,
+    HwSwitchPipelineStats& switchPipelineStats);
+void fillHwSwitchSaiExtensionDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
-void switchPreInitSequence(HwAsic* asic);
+void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
+void publishSwitchTemperatureStats(HwSwitchTemperatureStats& temperatureStats);
 } // namespace facebook::fboss

@@ -11,7 +11,7 @@ thrift_library(
         "cpp2",
         "go",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
         "py-deprecated",
         "python",
@@ -49,7 +49,7 @@ thrift_library(
         "cpp2",
         "go",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
         "py-deprecated",
         "python",
@@ -63,4 +63,7 @@ thrift_library(
     ],
     thrift_rust_options = ["deprecated_default_enum_min_i32"],
     thrift_srcs = {"sensor_config.thrift": []},
+    deps = [
+        "//thrift/annotation:hack",
+    ],
 )

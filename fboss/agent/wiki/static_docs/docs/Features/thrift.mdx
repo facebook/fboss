@@ -1,0 +1,19 @@
+# Thrift
+
+Thrift is a framework that supports data serialization and remote procedure calls (RPC). Thrift enables these features in all major languages, and there is strong support for C++, Python, Hack and Java.
+
+## FBOSS Thrift Server
+
+From FBOSS perspective, wedge_agent runs a Thrift Server which listens for Thrift client connections on a specified protocol port (5909 by default, but configurable by setting FLAGS_port when wedge_agent starts).
+
+## Wedge_agent Thrift API
+
+The thrift API supported by wedge_agent thrift server is listed in fbcode/fboss/agent/if/ctrl.thrift (ThriftHandler.h), and fbcode/fboss/agent/hw/bcm/facebook/bcm_ctrl.thrift (BcmHandler.h).
+
+
+## FBOSS Thrift Clients#
+
+A variety of software components act as thrift client to wedge_agent thrift server. Examples include:
+FbossAgentClient (used by FBOSS CLI, and 50+ clients)
+Bgp, OpenR: to program routes
+

@@ -144,16 +144,16 @@ TEST(ThriftSetNodeTests, ThriftSetNodePrimitivesVisit) {
 
   std::vector<std::string> path = {"1"};
   auto result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
+  ASSERT_TRUE(result);
   ASSERT_EQ(out, 1);
 
   path = {"1", "test"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
+  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::NON_EXISTENT_NODE);
 
   path = {"2"};
   result = visitPath(node, path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
+  ASSERT_TRUE(result);
   ASSERT_EQ(out, 2);
 }
 
@@ -174,20 +174,20 @@ TEST(ThriftSetNodeTests, ThriftSetNodePrimitivesVisitMutable) {
 
   std::vector<std::string> path = {"1"};
   auto result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
+  ASSERT_TRUE(result);
   ASSERT_EQ(out, 1);
 
   path = {"2"};
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
+  ASSERT_TRUE(result);
   ASSERT_EQ(out, 2);
 
   toWrite = 3;
   path = {"1"};
   result = visitPath(node, path.begin(), path.end(), write);
-  ASSERT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
+  ASSERT_EQ(result.code(), ThriftTraverseResult::Code::VISITOR_EXCEPTION);
   result = visitPath(node, path.begin(), path.end(), read);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
+  ASSERT_TRUE(result);
 
   // write to a set member path should be skipped. We need a better
   // solution for this that doesn't rely on checking for constness in

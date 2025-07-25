@@ -17,14 +17,6 @@ namespace facebook::fboss {
 class SwSwitch;
 class SwitchIdScopeResolver;
 
-std::shared_ptr<SwitchState> swSwitchFibUpdate(
-    const facebook::fboss::SwitchIdScopeResolver* resolver,
-    facebook::fboss::RouterID vrf,
-    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
-    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
-    const facebook::fboss::LabelToRouteMap& labelToRoute,
-    void* cookie);
-
 class SwSwitchRouteUpdateWrapper : public RouteUpdateWrapper {
  public:
   explicit SwSwitchRouteUpdateWrapper(

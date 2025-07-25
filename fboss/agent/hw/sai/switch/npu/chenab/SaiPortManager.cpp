@@ -10,9 +10,9 @@
 
 namespace facebook::fboss {
 
-void SaiPortManager::addRemovedHandle(PortID /*portID*/) {}
+void SaiPortManager::addRemovedHandle(const PortID& /*portID*/) {}
 
-void SaiPortManager::removeRemovedHandleIf(PortID /*portID*/) {}
+void SaiPortManager::removeRemovedHandleIf(const PortID& /*portID*/) {}
 
 bool SaiPortManager::checkPortSerdesAttributes(
     const SaiPortSerdesTraits::CreateAttributes& fromStore,
@@ -52,6 +52,22 @@ void SaiPortManager::changePortFlowletConfig(
   } else {
     XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();
   }
+}
+
+void SaiPortManager::clearPortFlowletConfig(const PortID& portID) {
+  if (!FLAGS_flowletSwitchingEnable) {
+    return;
+  }
+
+  auto portHandle = getPortHandle(portID);
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot change flowlet cfg on non existent port: ", portID);
+  }
+
+  bool arsEnable = false;
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::ArsEnable{arsEnable});
 }
 
 } // namespace facebook::fboss

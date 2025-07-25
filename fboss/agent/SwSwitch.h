@@ -20,6 +20,7 @@
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/agent_info_types.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_reachability_types.h"
@@ -80,6 +81,7 @@ class NeighborUpdater;
 class PacketLogger;
 class RouteUpdateLogger;
 class StateObserver;
+class PreUpdateStateModifier;
 class TunManager;
 class MirrorManager;
 class PhySnapshotManager;
@@ -107,6 +109,8 @@ class AgentDirectoryUtil;
 class HwSwitchThriftClientTable;
 class ResourceAccountant;
 class RemoteNeighborUpdater;
+class EcmpResourceManager;
+class ShelManager;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -284,6 +288,9 @@ class SwSwitch : public HwSwitchCallback {
 
   state::WarmbootState gracefulExitState() const;
 
+  state::SwitchState updateOverrideEcmpSwitchingMode(
+      state::WarmbootState* warmbootState) const;
+
   /*
    * Get a pointer to the current switch state.
    *
@@ -412,6 +419,11 @@ class SwSwitch : public HwSwitchCallback {
   void registerStateObserver(StateObserver* observer, const std::string& name)
       override;
   void unregisterStateObserver(StateObserver* observer) override;
+
+  void registerStateModifier(
+      PreUpdateStateModifier* modifier,
+      const std::string& name);
+  void unregisterStateModifier(PreUpdateStateModifier* modifier);
 
   /*
    * Signal to the switch that initial config is applied.
@@ -565,8 +577,8 @@ class SwSwitch : public HwSwitchCallback {
       PortID port,
       bool up,
       cfg::PortType portType,
-      std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
-          std::nullopt) override;
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt,
+      std::optional<AggregatePortID> aggPortId = std::nullopt) override;
   void linkActiveStateChangedOrFwIsolated(
       const std::map<PortID, bool>& port2IsActive,
       bool fwIsolated,
@@ -773,6 +785,9 @@ class SwSwitch : public HwSwitchCallback {
   LookupClassRouteUpdater* getLookupClassRouteUpdater() {
     return lookupClassRouteUpdater_.get();
   }
+  const EcmpResourceManager* getEcmpResourceManager() const {
+    return ecmpResourceManager_.get();
+  }
 
   /*
    * RIB and switch state need to be kept in sync,
@@ -836,6 +851,9 @@ class SwSwitch : public HwSwitchCallback {
   std::string getConfigStr() const;
   cfg::SwitchConfig getConfig() const;
   cfg::AgentConfig getAgentConfig() const;
+  const agent_info::AgentInfo& getAgentInfo() const {
+    return agentInfo_;
+  }
 
   AdminDistance clientIdToAdminDistance(int clientId) const;
 
@@ -964,6 +982,8 @@ class SwSwitch : public HwSwitchCallback {
 
   std::map<PortID, HwPortStats> getHwPortStats(
       std::vector<PortID> portId) const;
+  std::map<InterfaceID, HwRouterInterfaceStats> getHwRouterInterfaceStats(
+      const std::vector<InterfaceID>& intfIds) const;
   void getAllHwSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) const;
   std::map<SystemPortID, HwSysPortStats> getHwSysPortStats(
@@ -981,13 +1001,20 @@ class SwSwitch : public HwSwitchCallback {
       getAddrToLocalIntfMap() const {
     return addrToLocalIntf_;
   }
-  const std::map<SwitchID, switch_reachability::SwitchReachability>&
+  const std::map<SwitchID, switch_reachability::SwitchReachability>
   getSwitchReachability() const {
     return *hwSwitchReachability_.rlock();
   }
   void rxPacketReceived(std::unique_ptr<SwRxPacket> pkt);
 
+  template <typename VlanOrIntfT>
+  std::optional<VlanID> getVlanIDForTx(
+      const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
+
  private:
+  void initAgentInfo();
+
+  void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(
@@ -1034,7 +1061,8 @@ class SwSwitch : public HwSwitchCallback {
   void updatePtpTcCounter();
   static void handlePendingUpdatesHelper(SwSwitch* sw);
   void handlePendingUpdates();
-  std::shared_ptr<SwitchState> applyUpdate(
+  std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
+  applyUpdate(
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
       bool isTransaction);
@@ -1065,6 +1093,22 @@ class SwSwitch : public HwSwitchCallback {
    */
   void notifyStateObservers(const StateDelta& delta);
 
+  /*
+   * Invoke State modifier to modify state prior to update.
+   */
+  bool preUpdateModifyState(std::vector<StateDelta>& deltas);
+
+  /*
+   * Reconstruct state modifier from initial switch state.
+   */
+  std::vector<StateDelta> reconstructStateModifierFromSwitchState(
+      const std::shared_ptr<SwitchState>& initialState);
+
+  void notifyStateModifierUpdateFailed(
+      const std::shared_ptr<SwitchState>& state);
+
+  void notifyStateModifierUpdateDone();
+
   void logLinkStateEvent(PortID port, bool up);
 
   void logSwitchRunStateChange(
@@ -1085,6 +1129,10 @@ class SwSwitch : public HwSwitchCallback {
       const StateDelta& delta,
       bool transaction) const;
 
+  std::shared_ptr<SwitchState> stateChanged(
+      const std::vector<StateDelta>& delta,
+      bool transaction) const;
+
   template <typename FsdbFunc>
   void runFsdbSyncFunction(FsdbFunc&& fn);
 
@@ -1103,6 +1151,14 @@ class SwSwitch : public HwSwitchCallback {
 
   void postInit();
 
+  void initLldpManager();
+
+  void publishBootTypeStats();
+
+  void initThreadHeartbeats();
+
+  void startHeartbeatWatchdog();
+
   void updateMultiSwitchGlobalFb303Stats();
 
   void stopHwSwitchHandler();
@@ -1114,6 +1170,9 @@ class SwSwitch : public HwSwitchCallback {
 
   void updateAddrToLocalIntf(const StateDelta& delta);
 
+  void validateSwitchReachabilityInformation(
+      const SwitchID& switchId,
+      const std::map<SwitchID, std::set<PortID>>& switchReachabilityInfo);
 #if FOLLY_HAS_COROUTINES
   using BoundedRxPktQueue = folly::coro::BoundedQueue<
       std::unique_ptr<SwRxPacket>,
@@ -1267,6 +1326,7 @@ class SwSwitch : public HwSwitchCallback {
   std::map<StateObserver*, std::string> stateObservers_;
   std::unique_ptr<PacketObservers> pktObservers_;
   std::unique_ptr<L2LearnEventObservers> l2LearnEventObservers_;
+  std::unordered_map<PreUpdateStateModifier*, std::string> stateModifiers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
@@ -1311,6 +1371,8 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
+  std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
+  std::unique_ptr<ShelManager> shelManager_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
@@ -1322,6 +1384,7 @@ class SwSwitch : public HwSwitchCallback {
   std::atomic<std::chrono::time_point<std::chrono::steady_clock>>
       lastPacketRxTime_{std::chrono::steady_clock::time_point::min()};
   folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;
+  agent_info::AgentInfo agentInfo_;
   folly::Synchronized<std::map<uint16_t, multiswitch::HwSwitchStats>>
       hwSwitchStats_;
   // Map to lookup local interface address to interface id, for fask look up in

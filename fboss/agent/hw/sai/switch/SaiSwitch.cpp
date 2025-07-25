@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
@@ -36,6 +37,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
+#include "fboss/agent/hw/sai/switch/SaiFirmwareManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -123,16 +125,17 @@ DEFINE_bool(
     false,
     "Fail if any warm boot handles are left unclaimed.");
 
-DEFINE_int32(
-    max_unprocessed_switch_reachability_changes,
-    1,
-    "Max number of switch reachability changes that can be enqueued to bottom-half.");
 DECLARE_bool(enable_acl_table_group);
 
 DEFINE_bool(
     force_recreate_acl_tables,
     false,
     "force recreate acl tables during warmboot.");
+
+DEFINE_bool(
+    check_tagged_tx,
+    false,
+    "Fail if untagged packet is transmitted on platform where tagged packet is required");
 
 namespace {
 /*
@@ -248,6 +251,14 @@ void __gVendorSwitchEventNotificationCallback(
       buffer_size, buffer, event_type);
 }
 
+void __gHardResetNotificationallback(
+    sai_object_id_t /*switch_id*/,
+    sai_size_t buffer_size,
+    const void* buffer) {
+  __gSaiIdToSwitch.begin()->second->hardResetSwitchEventNotificationCallback(
+      buffer_size, buffer);
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 void __gTxReadyStatusChangeNotification(
     sai_object_id_t switch_id,
@@ -266,6 +277,22 @@ void __gTxReadyStatusChangeNotification(
   __gSaiIdToSwitch.begin()->second->txReadyStatusChangeCallbackTopHalf(
       SwitchSaiId{switch_id});
 }
+
+void __gSwitchAsicSdkHealthNotificationCallBack(
+    sai_object_id_t switch_id,
+    sai_switch_asic_sdk_health_severity_t severity,
+    sai_timespec_t timestamp,
+    sai_switch_asic_sdk_health_category_t category,
+    sai_switch_health_data_t data,
+    const sai_u8_list_t description) {
+  auto switchIter = __gSaiIdToSwitch.find(switch_id);
+  CHECK(switchIter != __gSaiIdToSwitch.end());
+  SaiHealthNotification notification(
+      fromSaiTimeSpec(timestamp), severity, category, data, description);
+  switchIter->second->switchAsicSdkHealthNotificationTopHalf(
+      std::move(notification));
+  ;
+}
 #endif
 
 PortSaiId SaiSwitch::getCPUPortSaiId() const {
@@ -275,7 +302,6 @@ PortSaiId SaiSwitch::getCPUPortSaiId() const {
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
     : HwSwitch(featuresDesired),
       platform_(platform),
-      saiStore_(std::make_unique<SaiStore>()),
       fabricConnectivityManager_(
           std::make_unique<FabricConnectivityManager>()) {
   utilCreateDir(platform_->getDirectoryUtil()->getVolatileStateDir());
@@ -305,8 +331,9 @@ HwInitResult SaiSwitch::initImpl(
   {
     HwWriteBehaviorRAII writeBehavior{behavior};
     if (bootType_ != BootType::WARM_BOOT) {
-      stateChangedImpl(
-          StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+      std::vector<StateDelta> deltas;
+      deltas.emplace_back(std::make_shared<SwitchState>(), ret.switchState);
+      stateChangedImpl(deltas);
     }
   }
   return ret;
@@ -369,6 +396,18 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     // switch reachability change processing is completely shut-off
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  if (runState_ >= SwitchRunState::CONFIGURED &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+    switchAsicSdkHealthNotificationBHEventBase_
+        .runInFbossEventBaseThreadAndWait([this]() {
+          switchAsicSdkHealthNotificationBHEventBase_.terminateLoopSoon();
+        });
+    switchAsicSdkHealthNotificationBHThread_->join();
+  }
+#endif
+
   if (runState_ >= SwitchRunState::INITIALIZED) {
     fdbEventBottomHalfEventBase_.runInFbossEventBaseThreadAndWait(
         [this]() { fdbEventBottomHalfEventBase_.terminateLoopSoon(); });
@@ -402,6 +441,19 @@ void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
       !delta.newState()->getClusterId(mySwitchId)) {
     return;
   }
+
+  auto myDsfNode = delta.newState()->getDsfNodes()->getNodeIf(mySwitchId);
+  CHECK(myDsfNode);
+  /*
+   * To avoid LLFC interrupts on EDSW side, we skip setting local capsule
+   * for FDSWs in the BEEP layer.
+   */
+  auto fabricLevel = myDsfNode->getFabricLevel();
+  if (fabricLevel && fabricLevel.value() == 1 &&
+      myDsfNode->getClusterId() >= k2StageEdgePodClusterId) {
+    return;
+  }
+
   std::vector<SwitchID> newVal;
   CHECK(platform_->getAsic()->getSwitchId());
   if (dsfNodesDelta.getNew() &&
@@ -416,6 +468,52 @@ void SaiSwitch::processLocalCapsuleSwitchIdsDelta(
     switchIdToNumCores[switchId] = hwAsic.getNumCores();
   }
   managerTable_->switchManager().setLocalCapsuleSwitchIds(switchIdToNumCores);
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processCreditRequestProfileDelta(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  auto dsfNodesDelta = delta.getDsfNodesDelta();
+  if (getSwitchType() != cfg::SwitchType::VOQ ||
+      dsfNodesDelta.begin() == dsfNodesDelta.end() || !dsfNodesDelta.getNew()) {
+    return;
+  }
+
+  std::map<int32_t, int32_t> moduleIdToCreditRequestProfileParam;
+  cfg::QueueScheduling expectedScheduling = cfg::QueueScheduling::INTERNAL;
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
+  for (const auto& [_, dsfNodes] : std::as_const(*dsfNodesDelta.getNew())) {
+    for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
+      auto scheduling = node->getScheduling();
+      auto param = node->getSchedulingParam();
+      int paramVal = 0;
+      if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
+        expectedScheduling = scheduling;
+        paramVal = static_cast<int>(param.value().spPriority().value());
+      } else if (
+          scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN ||
+          scheduling == cfg::QueueScheduling::DEFICIT_ROUND_ROBIN) {
+        expectedScheduling = scheduling;
+        paramVal = param.value().wrrWeight().value();
+      }
+      if (scheduling != cfg::QueueScheduling::INTERNAL) {
+        XLOG(DBG2) << "set credit request scheduling parameter of "
+                   << node->getName() << " to " << paramVal;
+        const auto& hwAsic = getHwAsicForAsicType(node->getAsicType());
+        int numCores = hwAsic.getNumCores();
+        for (auto core = switchId; core < switchId + numCores; core++) {
+          moduleIdToCreditRequestProfileParam[core] = paramVal;
+        }
+      }
+    }
+  }
+  XLOG(DBG2) << "set credit request profile scheduler "
+             << apache::thrift::util::enumNameSafe(expectedScheduling);
+  managerTable_->switchManager().setCreditRequestProfileSchedulerMode(
+      expectedScheduling);
+  managerTable_->switchManager().setModuleIdToCreditRequestProfileParam(
+      moduleIdToCreditRequestProfileParam);
 }
 
 template <typename LockPolicyT>
@@ -637,9 +735,27 @@ bool SaiSwitch::l2LearningModeChangeProhibited() const {
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
-    const StateDelta& delta) {
+    const std::vector<StateDelta>& deltas) {
   FineGrainedLockPolicy lockPolicy(saiSwitchMutex_);
-  return stateChangedImplLocked(delta, lockPolicy);
+
+  // This is unlikely to happen but if it does, return current state
+  if (deltas.size() == 0) {
+    return getProgrammedState();
+  }
+  int count = 0;
+  std::shared_ptr<SwitchState> appliedState{nullptr};
+  for (const auto& delta : deltas) {
+    appliedState = stateChangedImplLocked(delta, lockPolicy);
+    // if the current delta fails to apply, return the last successful state
+    // HwSwitchHandler would rollback based on the response
+    if (appliedState != delta.newState()) {
+      XLOG(DBG2) << "Failed to apply " << count << " delta in  "
+                 << deltas.size() << " deltas";
+      return appliedState;
+    }
+    count++;
+  }
+  return appliedState;
 }
 
 template <typename LockPolicyT>
@@ -655,6 +771,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       delta, cfg::SwitchDrainState::DRAINED, lockPolicy);
   processSwitchSettingsChangeSansDrained(delta, lockPolicy);
   processLocalCapsuleSwitchIdsDelta(delta, lockPolicy);
+  processCreditRequestProfileDelta(delta, lockPolicy);
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
+    processFlowletSwitchingConfigAdded(delta, lockPolicy);
+  }
 
   // process non-default qos policies, which are stored in
   // SwitchStatae::qosPolicyMaps
@@ -807,6 +928,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiVlanManager::changeVlan,
         &SaiVlanManager::addVlan,
         &SaiVlanManager::removeVlan);
+  } else {
+    // Only DNX asics support switch reachability function
+    processPortStateChangedForSwitchReachability(delta, lockPolicy);
   }
 
   {
@@ -1213,10 +1337,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiUdfManager::removeUdfGroup);
 #endif
 
-  if (FLAGS_flowletSwitchingEnable) {
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
-      processFlowletSwitchingConfigDelta(delta, lockPolicy);
-    }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
+    processFlowletSwitchingConfigChanged(delta, lockPolicy);
   }
 
   processPfcWatchdogGlobalDelta(delta, lockPolicy);
@@ -1296,6 +1418,19 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
               << *e.message();
     hwResourceStats_.hw_table_stats_stale() = true;
   }
+  // update stats for mirrors
+  hwResourceStats_.mirrors_span() =
+      managerTable_->mirrorManager().getMirrorsCount<SaiLocalMirrorTraits>();
+  hwResourceStats_.mirrors_erspan() =
+      managerTable_->mirrorManager()
+          .getMirrorsCount<SaiEnhancedRemoteMirrorTraits>();
+  hwResourceStats_.mirrors_sflow() =
+      managerTable_->mirrorManager().getMirrorsCount<SaiSflowMirrorTraits>();
+  hwResourceStats_.mirrors_max() = getPlatform()->getAsic()->getMaxMirrors();
+  hwResourceStats_.mirrors_used() = *hwResourceStats_.mirrors_erspan() +
+      *hwResourceStats_.mirrors_span() + *hwResourceStats_.mirrors_sflow();
+  hwResourceStats_.mirrors_free() =
+      *hwResourceStats_.mirrors_max() - *hwResourceStats_.mirrors_used();
 }
 
 void SaiSwitch::processSwitchSettingsDrainStateChangeLocked(
@@ -1395,10 +1530,10 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
     if (oldVal != newVal) {
       XLOG(DBG3) << "Configuring ptpTcEnable old: " << oldVal
                  << " new: " << newVal;
-      // update already added ports
-      managerTable_->portManager().setPtpTcEnable(newVal);
       // cache the new status, used if the ports are not added yet
       managerTable_->switchManager().setPtpTcEnabled(newVal);
+      // update already added ports
+      managerTable_->portManager().setPtpTcEnable(newVal);
     }
   }
 
@@ -1547,6 +1682,18 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setTcRateLimitList(newTcToRateLimitKbps);
     }
   }
+
+  {
+    const auto oldPfcWatchdogTimerGranularity =
+        oldSwitchSettings->getPfcWatchdogTimerGranularity();
+    const auto newPfcWatchdogTimerGranularity =
+        newSwitchSettings->getPfcWatchdogTimerGranularity();
+    if (oldPfcWatchdogTimerGranularity != newPfcWatchdogTimerGranularity &&
+        newPfcWatchdogTimerGranularity.has_value()) {
+      managerTable_->switchManager().setPfcWatchdogTimerGranularity(
+          *newPfcWatchdogTimerGranularity);
+    }
+  }
 }
 
 template <typename LockPolicyT>
@@ -1588,6 +1735,40 @@ void SaiSwitch::processSwitchSettingsDrainStateChange(
   if (oldSwitchSettings != newSwitchSettings) {
     processSwitchSettingsDrainStateChangeLocked(
         lockPolicy.lock(), drainStateToProcess, delta);
+  }
+}
+
+void SaiSwitch::processPortStateChangedForSwitchReachabilityLocked(
+    const std::lock_guard<std::mutex>& /*lock*/,
+    const StateDelta& delta) {
+  DeltaFunctions::forEachChanged(
+      delta.getPortsDelta(), [&](const auto& oldPort, const auto& newPort) {
+        if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT) &&
+            (newPort->getActiveState() != oldPort->getActiveState())) {
+          // Forcing a switch reachability get from SAI/SDK once the
+          // port active state change handling is complete to ensure
+          // the switch reachability data is updated. This is needed
+          // as there are some cases like the one captured in
+          // CS00012399424, where a rechability change notification
+          // is not sent to NOS when port active state changes.
+          XLOG(DBG2) << "Port active state change on " << newPort->getName()
+                     << " triggering switch reachability get!";
+          setSwitchReachabilityChangePending();
+          return;
+        }
+      });
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processPortStateChangedForSwitchReachability(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  const auto portsDelta = delta.getPortsDelta();
+  const auto& oldPorts = portsDelta.getOld();
+  const auto& newPorts = portsDelta.getNew();
+  if (oldPorts != newPorts) {
+    processPortStateChangedForSwitchReachabilityLocked(
+        lockPolicy.lock(), delta);
   }
 }
 
@@ -1672,9 +1853,38 @@ std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
   return portStatsMap;
 }
 
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getRouterInterfaceStatsLocked(lock);
+}
+
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStatsLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) const {
+  folly::F14FastMap<std::string, HwRouterInterfaceStats> rifStatsMap;
+  const auto& statsMap =
+      managerTable_->routerInterfaceManager().getRouterInterfaceStats();
+  auto state = getProgrammedState();
+  for (const auto& entry : statsMap) {
+    auto intf = state->getInterfaces()->getNodeIf(entry.first);
+    rifStatsMap.emplace(intf->getName(), entry.second);
+  }
+  return rifStatsMap;
+}
+
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoImpl() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return updateAllPhyInfoLocked();
+}
+
+std::map<int, cfg::PortState> SaiSwitch::getSysPortShelState() const {
+  std::map<int, cfg::PortState> sysPortShelState;
+  for (const auto& [sysPortId, portState] :
+       std::as_const(concurrentIndices().sysPortShelState)) {
+    sysPortShelState[static_cast<int>(sysPortId)] = portState;
+  }
+  return sysPortShelState;
 }
 
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
@@ -2085,20 +2295,21 @@ void SaiSwitch::updateRsInfo(
 const std::map<PortID, FabricEndpoint>& SaiSwitch::getFabricConnectivity()
     const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return getFabricConnectivityLocked();
+  return getFabricConnectivityLocked(lock);
 }
 
-const std::map<PortID, FabricEndpoint>& SaiSwitch::getFabricConnectivityLocked()
-    const {
+const std::map<PortID, FabricEndpoint>& SaiSwitch::getFabricConnectivityLocked(
+    const std::lock_guard<std::mutex>& lock) const {
   return fabricConnectivityManager_->getConnectivityInfo();
 }
 
 std::vector<PortID> SaiSwitch::getSwitchReachability(SwitchID switchId) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  return getSwitchReachabilityLocked(switchId);
+  return getSwitchReachabilityLocked(lock, switchId);
 }
 
 std::vector<PortID> SaiSwitch::getSwitchReachabilityLocked(
+    const std::lock_guard<std::mutex>& lock,
     SwitchID switchId) const {
   return managerTable_->portManager().getFabricReachabilityForSwitch(switchId);
 }
@@ -2143,9 +2354,12 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, restartWarm);
+
+#ifndef CREDO_SDK_0_9_0
   SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, preShutdown);
+#endif
   if (platform_->getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_P4_WB_SDK)
     SaiSwitchTraits::Attributes::RestartIssu restartIssu{true};
@@ -2158,6 +2372,11 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
+  if (getSwitchType() == cfg::SwitchType::VOQ) {
+    // SHEL callback already unregistered, hence safe to store in gracefulExit.
+    follySwitchState[kSysPortShelState] =
+        sysPortShelStateToFollyDynamicLocked(lock);
+  }
   platform_->getWarmBootHelper()->storeHwSwitchWarmBootState(follySwitchState);
   std::chrono::steady_clock::time_point wbSaiSwitchWrite =
       std::chrono::steady_clock::now();
@@ -2265,9 +2484,32 @@ void SaiSwitch::linkStateChangedCallbackTopHalf(
       });
 }
 
+void SaiSwitch::syncPortLinkState(PortID portId) {
+  linkStateBottomHalfEventBase_.runInFbossEventBaseThread(
+      [this, portId = portId]() mutable {
+        linkStateChangedBottomHalf(portId);
+      });
+}
+void SaiSwitch::linkStateChangedBottomHalf(const PortID& portId) {
+  // Query SDK for port oper state using portId
+  auto handle = managerTable_->portManager().getPortHandle(portId);
+  auto saiPortId = handle->port->adapterKey();
+  auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::OperStatus{});
+
+  std::vector<sai_port_oper_status_notification_t> portStatus{};
+  sai_port_oper_status_notification_t notification{};
+  notification.port_id = saiPortId;
+  notification.port_state = static_cast<sai_port_oper_status_t>(portOperStatus);
+  portStatus.push_back(notification);
+
+  linkStateChangedCallbackBottomHalf(portStatus);
+}
+
 void SaiSwitch::linkStateChangedCallbackBottomHalf(
     std::vector<sai_port_oper_status_notification_t> operStatus) {
   std::map<PortID, bool> swPortId2Status;
+  std::map<PortID, std::optional<AggregatePortID>> swPortId2DownAggPort;
   for (auto i = 0; i < operStatus.size(); i++) {
     bool up = utility::isPortOperUp(operStatus[i].port_state);
 
@@ -2332,6 +2574,14 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // will point to drop and next hop group will shrink.
           managerTable_->fdbManager().handleLinkDown(
               SaiPortDescriptor(swAggPort.value()));
+          // if min-link is enabled, neighbor caches in sw switch may not be
+          // cleared and re-learned, when port flaps happen around the min-link
+          // threshold. As a result, sai neighbor/nexthop object is not updated
+          // and keep pointing to unresolved nexthop cpu port, see S519817 for
+          // details. So, need to force trigger clearing neighbor cache
+          // associated with the agg port here.
+          swPortId2DownAggPort[swPortId] = swAggPort;
+          XLOG(DBG2) << "link down for agg port " << swAggPort.value();
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
@@ -2345,13 +2595,6 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         managerTable_->neighborManager().handleLinkDown(
             SaiPortDescriptor(swPortId));
       }
-      /*
-       * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
-       * flaps
-       */
-      if (asicType_ == cfg::AsicType::ASIC_TYPE_EBRO) {
-        managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
-      }
     }
     swPortId2Status[swPortId] = up;
   }
@@ -2359,10 +2602,17 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
   // processing is not at the mercy of what the callback (SwSwitch, HwTest)
   // does with the callback notification.
   for (auto swPortIdAndStatus : swPortId2Status) {
+    std::optional<AggregatePortID> downAggPort;
+    auto it = swPortId2DownAggPort.find(swPortIdAndStatus.first);
+    if (it != swPortId2DownAggPort.end()) {
+      downAggPort = it->second;
+    }
     callback_->linkStateChanged(
         swPortIdAndStatus.first,
         swPortIdAndStatus.second,
-        managerTable_->portManager().getPortType(swPortIdAndStatus.first));
+        managerTable_->portManager().getPortType(swPortIdAndStatus.first),
+        std::nullopt,
+        downAggPort);
   }
 }
 
@@ -2488,10 +2738,10 @@ std::set<PortID> SaiSwitch::getFabricReachabilityPortIds(
     const std::vector<sai_object_id_t>& switchIdAndFabricPortSaiIds) const {
   int64_t switchId = switchIdAndFabricPortSaiIds.at(0);
   if (switchIdAndFabricPortSaiIds.size() > 1) {
-    XLOG(DBG2) << "SwitchID " << switchId << " reachable over "
+    XLOG(DBG4) << "SwitchID " << switchId << " reachable over "
                << switchIdAndFabricPortSaiIds.size() - 1 << " ports!";
   } else if (switchIdAndFabricPortSaiIds.size() == 1) {
-    XLOG(DBG2) << "SwitchID " << switchId << " unreachable over fabric!";
+    XLOG(DBG4) << "SwitchID " << switchId << " unreachable over fabric!";
   }
   // Index 0 has switchId and indices 1 onwards has fabric port SAI id,
   // need to find the PortID associated with these fabric port SAI ids.
@@ -2547,15 +2797,23 @@ void SaiSwitch::setSwitchReachabilityChangePending() {
 
 std::map<SwitchID, std::set<PortID>> SaiSwitch::getSwitchReachabilityChange() {
   std::map<SwitchID, std::set<PortID>> reachabilityInfo{};
-
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
 
+  int interfaceNodeCount{0};
+  int reachableSwitchCount{0};
   // There is only one DSF Node map for the given SwitchID.
   // Thus, the 'outer for loop' runs only once and reachabilityInfo values are
   // never overwritten in below loops.
   for (const auto& [_, dsfNodes] :
        std::as_const(*getProgrammedState()->getDsfNodes())) {
     for (const auto& [switchId, node] : std::as_const(*dsfNodes)) {
+      if (*node->toThrift().type() != cfg::DsfNodeType::INTERFACE_NODE) {
+        // Switch reachability is only to interface nodes destinations
+        reachabilityInfo[SwitchID(switchId)] = std::set<PortID>();
+        continue;
+      }
+      // Keep track of the number of interface nodes
+      interfaceNodeCount++;
       auto maxFabricPorts =
           getMaxNumberOfFabricPorts(*node->toThrift().asicType());
       std::vector<sai_object_id_t> output(maxFabricPorts + 1);
@@ -2568,11 +2826,18 @@ std::map<SwitchID, std::set<PortID>> SaiSwitch::getSwitchReachabilityChange() {
           saiSwitchId_,
           SaiSwitchTraits::Attributes::FabricRemoteReachablePortList{output});
       CHECK_EQ(switchIdAndFabricPortSaiIds.at(0), switchId);
-      reachabilityInfo[SwitchID(switchId)] =
+      auto reachablePortIds =
           getFabricReachabilityPortIds(switchIdAndFabricPortSaiIds);
+      if (reachablePortIds.size()) {
+        reachableSwitchCount++;
+      }
+      reachabilityInfo[SwitchID(switchId)] = std::move(reachablePortIds);
     }
   }
-
+  XLOG(DBG2) << "Got switch reachability from SDK, " << reachableSwitchCount
+             << " switches reachable, "
+             << (interfaceNodeCount - reachableSwitchCount)
+             << " switches unreachable!";
   return reachabilityInfo;
 }
 
@@ -2721,6 +2986,15 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
+    // Recover Shel Port State from HW State
+    if (getSwitchType() == cfg::SwitchType::VOQ &&
+        switchStateJson.find(kSysPortShelState) !=
+            switchStateJson.items().end()) {
+      reconstructSysPortShelStateLocked(
+          lock,
+          switchStateJson[kSysPortShelState],
+          concurrentIndices_->sysPortShelState);
+    }
   }
   initStoreAndManagersLocked(
       lock,
@@ -2747,6 +3021,14 @@ HwInitResult SaiSwitch::initLocked(
               ->second->getL2AgeTimerSeconds());
     }
   }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  asicRevision_ = switchApi.getAttribute(
+      saiSwitchId_, SaiSwitchTraits::Attributes::AsicRevision{});
+  XLOG(DBG2) << "Asic revision: " << *asicRevision_;
+  getSwitchStats()->asicRevision(*asicRevision_);
+#endif
   ret.switchState->publish();
   return ret;
 }
@@ -2792,7 +3074,7 @@ void SaiSwitch::initStoreAndManagersLocked(
     HwWriteBehavior behavior,
     const folly::dynamic* adapterKeys,
     const folly::dynamic* adapterKeys2AdapterHostKeys) {
-  saiStore_->setSwitchId(saiSwitchId_);
+  saiStore_ = std::make_unique<SaiStore>(saiSwitchId_);
   saiStore_->reload(adapterKeys, adapterKeys2AdapterHostKeys);
   managerTable_->createSaiTableManagers(
       saiStore_.get(), platform_, concurrentIndices_.get());
@@ -2995,6 +3277,35 @@ void SaiSwitch::initSwitchReachabilityChangeLocked(
    */
   setSwitchReachabilityChangePending();
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
+  CHECK(platform_->getAsic()->isSupported(
+      HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY));
+  switchAsicSdkHealthNotificationBHThread_ =
+      std::make_unique<std::thread>([this]() {
+        initThread("fbossSaiSwitchAsicSdkHealthNotification");
+        switchAsicSdkHealthNotificationBHEventBase_.loopForever();
+      });
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.registerSwitchAsicSdkHealthEventCallback(
+      saiSwitchId_, __gSwitchAsicSdkHealthNotificationCallBack);
+
+  // register for categories of asic sdk health events
+  std::vector<sai_int32_t> categories{
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_SW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_FW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_CPU_HW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_ASIC_HW};
+  SaiSwitchTraits::Attributes::RegFatalSwitchAsicSdkHealthCategory fatalEvents =
+      categories;
+  SaiSwitchTraits::Attributes::RegNoticeSwitchAsicSdkHealthCategory
+      noticeEvents = categories;
+  switchApi.setAttribute(saiSwitchId_, fatalEvents);
+  switchApi.setAttribute(saiSwitchId_, noticeEvents);
+}
+#endif
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
   static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
@@ -3336,6 +3647,13 @@ void SaiSwitch::unregisterCallbacksLocked(
 #endif
   }
 
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    switchApi.unregisterSwitchAsicSdkHealthEventCallback(saiSwitchId_);
+#endif
+  }
+
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
     switchApi.unregisterFdbEventCallback(saiSwitchId_);
   }
@@ -3361,6 +3679,10 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterVendorSwitchEventNotifyCallback(saiSwitchId_);
   }
 #endif
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ASIC_RESET_NOTIFICATIONS)) {
+    switchApi.unregisterSwitchHardResetNotifyCallback(saiSwitchId_);
+  }
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(
@@ -3498,6 +3820,14 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
       cursor.reset(pkt->buf());
     }
   }
+
+  if (FLAGS_check_tagged_tx &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG)) {
+    // use this in test to find no untagged packet is tx
+    EthHdr ethHdr{cursor};
+    CHECK_NE(ethHdr.size(), EthHdr::SIZE) << "tx packet is not tagged";
+  }
   getSwitchStats()->txSent();
 
   XLOG(DBG6) << "sending packet with pipeline look up";
@@ -3527,6 +3857,21 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     XLOG(ERR) << "Failed to send packet on invalid port: " << portID;
     return false;
   }
+
+  // We should never send packets directly out of eventor port. Doing so may
+  // trigger SDK or HW bugs.
+  if (!FLAGS_allow_eventor_send_packet) {
+    if (auto portInfoItr =
+            concurrentIndices_->portSaiId2PortInfo.find(portItr->second);
+        portInfoItr != concurrentIndices_->portSaiId2PortInfo.end()) {
+      if (portInfoItr->second.portType == cfg::PortType::EVENTOR_PORT) {
+        XLOG_EVERY_MS(WARNING, 5000)
+            << "Rejecting packet sent to EVENTOR_PORT: " << portID;
+        return false;
+      }
+    }
+  }
+
   /* Strip vlan tag with pipeline bypass, for all asic types. */
   getSwitchStats()->txSent();
   folly::io::Cursor cursor(pkt->buf());
@@ -3600,6 +3945,29 @@ folly::dynamic SaiSwitch::toFollyDynamicLocked(
   return hwSwitch;
 }
 
+folly::dynamic SaiSwitch::sysPortShelStateToFollyDynamicLocked(
+    const std::lock_guard<std::mutex>& /* lock */) const {
+  folly::dynamic shelState = folly::dynamic::object;
+  for (const auto& [sysPortId, portState] :
+       std::as_const(concurrentIndices().sysPortShelState)) {
+    shelState[folly::to<std::string>(sysPortId)] = static_cast<int>(portState);
+  }
+  return shelState;
+}
+
+void SaiSwitch::reconstructSysPortShelStateLocked(
+    const std::lock_guard<std::mutex>& /* lock */,
+    const folly::dynamic& shelStateJson,
+    folly::ConcurrentHashMap<SystemPortID, cfg::PortState>& sysPortShelState) {
+  for (const auto& [sysPortId, portState] : shelStateJson.items()) {
+    auto sysPortIdInt = sysPortId.asInt();
+    auto portStateInt = portState.asInt();
+    sysPortShelState.insert_or_assign(
+        static_cast<SystemPortID>(sysPortIdInt),
+        static_cast<cfg::PortState>(portStateInt));
+  }
+}
+
 bool SaiSwitch::isFullyInitialized() const {
   auto state = getSwitchRunState();
   return state >= SwitchRunState::INITIALIZED &&
@@ -3628,6 +3996,12 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         switchApi.registerFdbEventCallback(saiSwitchId_, __gFdbEventCallback);
       }
 
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::ASIC_RESET_NOTIFICATIONS)) {
+        switchApi.registerSwitchHardResetNotifyCallback(
+            saiSwitchId_, (sai_pointer_t)__gHardResetNotificationallback);
+      }
+
     } break;
     case SwitchRunState::CONFIGURED: {
       /*
@@ -3647,10 +4021,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
               HwAsic::Feature::SDK_REGISTER_DUMP)) {
         std::vector<int8_t> sdkRegDumpLogPathArray;
         std::string sdkRegDumpLogPathStr = folly::to<std::string>(
-            FLAGS_sdk_reg_dump_path_prefix,
-            "_",
-            platform_->getAsic()->getSwitchId().value(),
-            ".log");
+            FLAGS_sdk_reg_dump_path_prefix, "_", FLAGS_switchIndex, ".log");
         std::copy(
             sdkRegDumpLogPathStr.c_str(),
             sdkRegDumpLogPathStr.c_str() + sdkRegDumpLogPathStr.size() + 1,
@@ -3695,6 +4066,12 @@ void SaiSwitch::switchRunStateChangedImplLocked(
             saiSwitchId_, (void*)__gSwitchEventCallback);
 #else
         switchApi.registerTamEventCallback(saiSwitchId_, __gTamEventCallback);
+#endif
+      }
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+        initSwitchAsicSdkHealthNotificationLocked(lock);
 #endif
       }
 
@@ -3799,6 +4176,8 @@ void SaiSwitch::fdbEventCallback(
     }
     fdbEventNotificationDataTmp.push_back(FdbEventNotificationData(
         data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData));
+    XLOG(DBG2) << "Received FDB event: " << fdbEventToString(data[i].event_type)
+               << " for bridge port: " << bridgePortSaiId;
   }
   fdbEventBottomHalfEventBase_.runInFbossEventBaseThread(
       [this,
@@ -3852,8 +4231,21 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
     XLOG(ERR) << "Missing bridge port attribute in FDB event";
     return std::nullopt;
   }
-  auto portOrLagSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
-      fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
+
+  // We could recive learn event when bridge port is not present.
+  // Ignore SDK error. Refer D74672820 for details.
+  sai_object_id_t portOrLagSaiId = SAI_NULL_OBJECT_ID;
+  try {
+    portOrLagSaiId = SaiApiTable::getInstance()->bridgeApi().getAttribute(
+        fdbEvent.bridgePortSaiId, SaiBridgePortTraits::Attributes::PortId{});
+  } catch (const SaiApiError& e) {
+    if (e.getSaiStatus() == SAI_STATUS_ITEM_NOT_FOUND) {
+      XLOG(ERR)
+          << "Bridge port is not found in SDK, may be we deleted it during port re-create";
+      return std::nullopt;
+    }
+    throw;
+  }
 
   L2Entry::L2EntryType entryType{L2Entry::L2EntryType::L2_ENTRY_TYPE_PENDING};
   auto mac = fromSaiMacAddress(fdbEvent.fdbEntry.mac_address);
@@ -4023,6 +4415,7 @@ void SaiSwitch::processRemovedDelta(
 }
 
 void SaiSwitch::dumpDebugState(const std::string& path) const {
+  XLOG(INFO) << "generating debug dump at " << path;
   saiCheckError(sai_dbg_generate_dump(path.c_str()));
 }
 
@@ -4031,20 +4424,36 @@ std::string SaiSwitch::listObjectsLocked(
     bool cached,
     const std::lock_guard<std::mutex>& lock) const {
   const SaiStore* store = saiStore_.get();
-  SaiStore directToHwStore;
+  std::unique_ptr<SaiStore> directToHwStore;
   if (!cached) {
-    directToHwStore.setSwitchId(getSaiSwitchId());
+    directToHwStore = std::make_unique<SaiStore>(getSaiSwitchId());
     auto json = toFollyDynamicLocked(lock);
     std::unique_ptr<folly::dynamic> adapterKeysJson;
     std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
+
+    /* We're making a change to ensure that the listObjectsLocked functionality
+     * remains unchanged for Credo 0.7.2, We added
+     * HwAsic::Feature::OBJECT_KEY_CACHE support for Credo Asic But for 0.7.2,
+     * we want to avoid loading the adapterKeysJson file, and keep the
+     * functionality as it was before.
+     */
+    bool useAdapterKeysJson =
+        platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE);
+#ifndef CREDO_SDK_0_9_0
+    if (getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      useAdapterKeysJson = false;
+    }
+#endif
+
+    if (useAdapterKeysJson) {
       adapterKeysJson = std::make_unique<folly::dynamic>(json[kAdapterKeys]);
     }
     adapterKeys2AdapterHostKeysJson =
         std::make_unique<folly::dynamic>(json[kAdapterKey2AdapterHostKey]);
-    directToHwStore.reload(
+    directToHwStore->reload(
         adapterKeysJson.get(), adapterKeys2AdapterHostKeysJson.get());
-    store = &directToHwStore;
+    store = directToHwStore.get();
   }
   std::string output;
   std::for_each(objects.begin(), objects.end(), [&output, store](auto objType) {
@@ -4263,6 +4672,7 @@ void SaiSwitch::initialStateApplied() {
   managerTable_->aclTableManager().removeUnclaimedAclCounter();
 #endif
   if (bootType_ == BootType::WARM_BOOT) {
+    XLOG(DBG2) << "Warm boot: removing unreferenced handles";
     saiStore_->printWarmbootHandles();
     if (FLAGS_check_wb_handles == true) {
       saiStore_->checkUnexpectedUnclaimedWarmbootHandles();
@@ -4360,20 +4770,54 @@ void SaiSwitch::processPfcWatchdogGlobalDelta(
   processPfcWatchdogGlobalDeltaLocked(delta, lockPolicy.lock());
 }
 
-void SaiSwitch::processFlowletSwitchingConfigDeltaLocked(
+template <typename LockPolicyT>
+void SaiSwitch::processFlowletSwitchingConfigAdded(
     const StateDelta& delta,
-    const std::lock_guard<std::mutex>& /* lock */) {
-  const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
+    const LockPolicyT& lockPolicy) {
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
+  [[maybe_unused]] const auto flowletSwitchingDelta =
+      delta.getFlowletSwitchingConfigDelta();
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   const auto& oldFlowletConfig = flowletSwitchingDelta.getOld();
   const auto& newFlowletConfig = flowletSwitchingDelta.getNew();
 
-  // process change in the flowlet switching config
-  if (!oldFlowletConfig && !newFlowletConfig) {
-    XLOG(DBG5) << "Flowlet switching config is null";
-    return;
+  auto& switchManager = managerTable_->switchManager();
+  auto& arsManager = managerTable_->arsManager();
+  auto& arsProfileManager = managerTable_->arsProfileManager();
+  auto& nextHopGroupManager = managerTable_->nextHopGroupManager();
+
+  if (newFlowletConfig && !oldFlowletConfig) {
+    XLOG(DBG2) << "Flowlet switching config is added";
+    nextHopGroupManager.setPrimaryArsSwitchingMode(
+        newFlowletConfig->getSwitchingMode());
+    // create the ARS profile object and attach to switch
+    arsProfileManager.addArsProfile(newFlowletConfig);
+    auto arsProfileHandlePtr = arsProfileManager.getArsProfileHandle();
+    CHECK(arsProfileHandlePtr);
+    switchManager.setArsProfile(arsProfileHandlePtr->arsProfile->adapterKey());
+
+    // create the ARS object and attach to all ECMP groups
+    arsManager.addArs(newFlowletConfig);
+    auto arsHandlePtr = arsManager.getArsHandle();
+    CHECK(arsHandlePtr);
+    nextHopGroupManager.updateArsModeAll(newFlowletConfig);
   }
+#endif
+}
+
+template <typename LockPolicyT>
+void SaiSwitch::processFlowletSwitchingConfigChanged(
+    const StateDelta& delta,
+    const LockPolicyT& lockPolicy) {
+  [[maybe_unused]] const auto& lock = lockPolicy.lock();
+  [[maybe_unused]] const auto flowletSwitchingDelta =
+      delta.getFlowletSwitchingConfigDelta();
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  const auto& oldFlowletConfig = flowletSwitchingDelta.getOld();
+  const auto& newFlowletConfig = flowletSwitchingDelta.getNew();
+
   auto& switchManager = managerTable_->switchManager();
   auto& arsManager = managerTable_->arsManager();
   auto& arsProfileManager = managerTable_->arsProfileManager();
@@ -4392,23 +4836,12 @@ void SaiSwitch::processFlowletSwitchingConfigDeltaLocked(
     } else {
       XLOG(DBG2) << "Flowlet switching config is changed";
       // FlowletSwitchingConfig has both ARS_PROFILE and ARS info
+      nextHopGroupManager.setPrimaryArsSwitchingMode(
+          newFlowletConfig->getSwitchingMode());
       arsProfileManager.changeArsProfile(oldFlowletConfig, newFlowletConfig);
       arsManager.changeArs(oldFlowletConfig, newFlowletConfig);
     }
-  }
-
-  if (newFlowletConfig && !oldFlowletConfig) {
-    XLOG(DBG2) << "Flowlet switching config is added";
-    // create the ARS profile object and attach to switch
-    arsProfileManager.addArsProfile(newFlowletConfig);
-    auto arsProfileHandlePtr = arsProfileManager.getArsProfileHandle();
-    CHECK(arsProfileHandlePtr);
-    switchManager.setArsProfile(arsProfileHandlePtr->arsProfile->adapterKey());
-
-    // create the ARS object and attach to all ECMP groups
-    arsManager.addArs(newFlowletConfig);
-    auto arsHandlePtr = arsManager.getArsHandle();
-    CHECK(arsHandlePtr);
+  } else if (newFlowletConfig && !oldFlowletConfig) {
     nextHopGroupManager.updateArsModeAll(newFlowletConfig);
   } else if (oldFlowletConfig && !newFlowletConfig) {
     XLOG(DBG2) << "Flowlet switching config is removed";
@@ -4416,15 +4849,9 @@ void SaiSwitch::processFlowletSwitchingConfigDeltaLocked(
     arsManager.removeArs(newFlowletConfig);
     switchManager.resetArsProfile();
     arsProfileManager.removeArsProfile(oldFlowletConfig);
+    nextHopGroupManager.setPrimaryArsSwitchingMode(std::nullopt);
   }
 #endif
-}
-
-template <typename LockPolicyT>
-void SaiSwitch::processFlowletSwitchingConfigDelta(
-    const StateDelta& delta,
-    const LockPolicyT& lockPolicy) {
-  processFlowletSwitchingConfigDeltaLocked(delta, lockPolicy.lock());
 }
 
 void SaiSwitch::pfcDeadlockNotificationCallback(
@@ -4457,12 +4884,15 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     XLOG_EVERY_MS(WARNING, 5000)
         << "PFC deadlock notification callback invoked for qid: " << qId
         << ", on port: " << portId << ", with event: " << deadlockEvent;
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     switch (deadlockEvent) {
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_DETECTED:
-        callback_->pfcWatchdogStateChanged(portId, true);
+        managerTable_->portManager().incrementPfcDeadlockCounter(portId);
+        getSwitchStats()->pfcDeadlockDetectionCount(); // update HwSwitch stats
         break;
       case SAI_QUEUE_PFC_DEADLOCK_EVENT_TYPE_RECOVERED:
-        callback_->pfcWatchdogStateChanged(portId, false);
+        managerTable_->portManager().incrementPfcRecoveryCounter(portId);
+        getSwitchStats()->pfcDeadlockRecoveryCount(); // update HwSwitch stats
         break;
       default:
         XLOG(ERR) << "Unknown event " << deadlockEvent
@@ -4507,9 +4937,26 @@ AclStats SaiSwitch::getAclStats() const {
   return managerTable_->aclTableManager().getAclStats();
 }
 
+cfg::SwitchingMode SaiSwitch::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->nextHopGroupManager().getNextHopGroupSwitchingMode(
+      fwd.normalizedNextHops());
+}
+
 HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return managerTable_->switchManager().getSwitchWatermarkStats();
+}
+
+HwSwitchPipelineStats SaiSwitch::getSwitchPipelineStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchPipelineStats();
+}
+
+HwSwitchTemperatureStats SaiSwitch::getSwitchTemperatureStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchTemperatureStats();
 }
 
 /*
@@ -4640,4 +5087,67 @@ bool SaiSwitch::processVlanUntaggedPackets() const {
       (getSwitchType() == cfg::SwitchType::VOQ ||
        getSwitchType() == cfg::SwitchType::FABRIC);
 }
+
+std::vector<FirmwareInfo> SaiSwitch::getAllFirmwareInfo() const {
+  // Firmware is not supported/configured on all Platforms.
+  // The platforms that support Firmware, support only single
+  // Firmware today.
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  if (managerTable_->firmwareManager().isFirmwareEnabled()) {
+    FirmwareInfo firmwareInfo;
+
+    auto version = managerTable_->firmwareManager().getFirmwareVersion();
+    CHECK(version.has_value());
+    firmwareInfo.version() = version.value();
+
+    auto opStatus = managerTable_->firmwareManager().getFirmwareOpStatus();
+    CHECK(opStatus.has_value());
+    firmwareInfo.opStatus() = opStatus.value();
+
+    auto funcStatus = managerTable_->firmwareManager().getFirmwareFuncStatus();
+    CHECK(funcStatus.has_value());
+    firmwareInfo.funcStatus() = funcStatus.value();
+
+    return {firmwareInfo};
+  }
+
+  return {};
+}
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+void SaiSwitch::switchAsicSdkHealthNotificationTopHalf(
+    SaiHealthNotification saiHealthNotification) {
+  switchAsicSdkHealthNotificationBHEventBase_.runInFbossEventBaseThread(
+      [this, notification = std::move(saiHealthNotification)]() {
+        switchAsicSdkHealthNotificationBottomHalf(std::move(notification));
+      });
+}
+
+void SaiSwitch::switchAsicSdkHealthNotificationBottomHalf(
+    SaiHealthNotification saiHealthNotification) {
+  if (saiHealthNotification.asicError()) {
+    getSwitchStats()->asicError();
+  }
+  if (saiHealthNotification.corrParityError()) {
+    getSwitchStats()->corrParityError();
+  }
+  if (saiHealthNotification.uncorrParityError()) {
+    getSwitchStats()->uncorrParityError();
+  }
+  switch (saiHealthNotification.getSeverity()) {
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_FATAL:
+      XLOGF(FATAL, "{}", saiHealthNotification);
+      break;
+
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_WARNING:
+      XLOGF(WARNING, "{}", saiHealthNotification);
+      break;
+
+    case SAI_SWITCH_ASIC_SDK_HEALTH_SEVERITY_NOTICE:
+      XLOGF(INFO, "{}", saiHealthNotification);
+      break;
+  }
+}
+#endif
+
 } // namespace facebook::fboss

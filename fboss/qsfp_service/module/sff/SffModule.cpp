@@ -39,10 +39,20 @@ DEFINE_bool(
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
+// Temperature thresholds for CWDM4_100G optics special handling
+DEFINE_int32(
+    cwdm4_100g_high_temp_alarm_threshold,
+    60,
+    "High temperature alarm threshold for CWDM4_100G optics in degrees Celsius");
+DEFINE_int32(
+    cwdm4_100g_high_temp_warning_threshold,
+    55,
+    "High temperature warning threshold for CWDM4_100G optics in degrees Celsius");
 
 bool cdrSupportedSpeed(facebook::fboss::cfg::PortSpeed speed) {
   return speed == facebook::fboss::cfg::PortSpeed::HUNDREDG ||
-      speed == facebook::fboss::cfg::PortSpeed::FIFTYG;
+      speed == facebook::fboss::cfg::PortSpeed::FIFTYG ||
+      speed == facebook::fboss::cfg::PortSpeed::TWENTYFIVEG;
 }
 } // namespace
 
@@ -313,12 +323,23 @@ GlobalSensors SffModule::getSensorInfo() {
   info.temp()->value() =
       getQsfpSensor(SffField::TEMPERATURE, SffFieldInfo::getTemp);
   info.temp()->flags() = getQsfpSensorFlags(SffField::TEMPERATURE_ALARMS);
+
+  // Special handling for CWDM4_100G optics
+  auto extSpecCompliance = getExtendedSpecificationComplianceCode();
+  if (extSpecCompliance &&
+      *extSpecCompliance == ExtendedSpecComplianceCode::CWDM4_100G) {
+    info.temp()->flags()->alarm()->high() =
+        (*info.temp()->value() > FLAGS_cwdm4_100g_high_temp_alarm_threshold);
+    info.temp()->flags()->warn()->high() =
+        (*info.temp()->value() > FLAGS_cwdm4_100g_high_temp_warning_threshold);
+  }
+
   info.vcc()->value() = getQsfpSensor(SffField::VCC, SffFieldInfo::getVcc);
   info.vcc()->flags() = getQsfpSensorFlags(SffField::VCC_ALARMS);
   return info;
 }
 
-Vendor SffModule::getVendorInfo() {
+Vendor SffModule::getVendorInfo() const {
   Vendor vendor = Vendor();
   *vendor.name() = getQsfpString(SffField::VENDOR_NAME);
   *vendor.oui() = getQsfpString(SffField::VENDOR_OUI);
@@ -476,6 +497,13 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
 
 std::vector<uint8_t> SffModule::configuredHostLanes(
     uint8_t hostStartLane) const {
+  // MP3N uses lanes 0 and 1 for 2x25G mode
+  if (currentConfiguredSpeed_ == cfg::PortSpeed::TWENTYFIVEG) {
+    return {hostStartLane};
+  }
+
+  // Remaining profiles all start on lane 0
+
   if (hostStartLane != 0) {
     return {};
   }
@@ -488,11 +516,23 @@ std::vector<uint8_t> SffModule::configuredHostLanes(
 
 std::vector<uint8_t> SffModule::configuredMediaLanes(
     uint8_t hostStartLane) const {
-  if (hostStartLane != 0 || flatMem_) {
+  if (flatMem_) {
     return {};
   }
 
   auto ext_comp_code = getExtendedSpecificationComplianceCode();
+
+  // MP3N uses 2x25G mode, on host/media lanes 0+1
+  if (ext_comp_code &&
+      *ext_comp_code == ExtendedSpecComplianceCode::CWDM4_100G &&
+      currentConfiguredSpeed_ == cfg::PortSpeed::TWENTYFIVEG) {
+    return {hostStartLane};
+  }
+
+  // Remaining profiles should always start on lane 0
+  if (hostStartLane != 0) {
+    return {};
+  }
 
   if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
     return {0};
@@ -826,7 +866,7 @@ bool SffModule::getMediaInterfaceId(
   for (int lane = 0; lane < mediaInterface.size(); lane++) {
     mediaInterface[lane].lane() = lane;
     MediaInterfaceUnion media;
-    media.extendedSpecificationComplianceCode_ref() = *extSpecCompliance;
+    media.extendedSpecificationComplianceCode() = *extSpecCompliance;
     if (auto it = mediaInterfaceMapping.find(*extSpecCompliance);
         it != mediaInterfaceMapping.end()) {
       mediaInterface[lane].code() = it->second;
@@ -948,7 +988,7 @@ DOMDataUnion SffModule::getDOMDataUnion() {
   }
   sffData.timeCollected() = lastRefreshTime_;
   DOMDataUnion data;
-  data.sff8636_ref() = sffData;
+  data.sff8636() = sffData;
   return data;
 }
 
@@ -1461,6 +1501,7 @@ void SffModule::overwriteChannelControlSettings() {
 }
 
 bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
   if (portState.transmitterTech != getQsfpTransmitterTechnology()) {
     return false;
   }
@@ -1472,8 +1513,11 @@ bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
     return true;
   }
 
-  return (portState.speed == cfg::PortSpeed::FIFTYG &&
-          portState.startHostLane == 0 && portState.numHostLanes == 2) ||
+  return (portState.speed == cfg::PortSpeed::TWENTYFIVEG &&
+          (portState.startHostLane == 0 || portState.startHostLane == 1) &&
+          portState.numHostLanes == 1) ||
+      (portState.speed == cfg::PortSpeed::FIFTYG &&
+       portState.startHostLane == 0 && portState.numHostLanes == 2) ||
       ((portState.speed == cfg::PortSpeed::HUNDREDG ||
         portState.speed == cfg::PortSpeed::FORTYG) &&
        (portState.startHostLane == 0) && portState.numHostLanes == 4);

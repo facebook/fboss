@@ -9,6 +9,7 @@ add_library(setup_thrift
 )
 
 target_link_libraries(setup_thrift
+  load_agent_config
   Folly::folly
   FBThrift::thriftcpp2
 )
@@ -117,6 +118,7 @@ target_link_libraries(voq_utils
   switch_config_cpp2
   agent_features
   switch_asics
+  state
 )
 
 target_link_libraries(address_utils
@@ -154,6 +156,7 @@ target_link_libraries(utils
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
+  icecube800bc_platform_mapping
 )
 
 add_library(stats
@@ -193,6 +196,39 @@ target_link_libraries(fboss_types
   Folly::folly
 )
 
+add_library(fib_helpers
+  fboss/agent/FibHelpers.cpp
+)
+
+target_link_libraries(fib_helpers
+  fboss_types
+  standalone_rib
+  fib_updater
+  state
+  Folly::folly
+)
+
+add_library(ecmp_resource_manager
+  fboss/agent/EcmpResourceManager.cpp
+)
+
+target_link_libraries(ecmp_resource_manager
+  fib_helpers
+  state
+  Folly::folly
+)
+
+add_library(shel_manager
+  fboss/agent/ShelManager.cpp
+)
+
+target_link_libraries(shel_manager
+  utils
+  fib_helpers
+  state
+  ${GTEST}
+)
+
 add_library(core
   fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
@@ -207,7 +243,6 @@ add_library(core
   fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
-  fboss/agent/FibHelpers.cpp
   fboss/agent/FsdbAdaptedSubManager.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
@@ -274,6 +309,7 @@ add_library(
 
 target_link_libraries(
   agent_fsdb_sync_manager
+  agent_info_cpp2
   fsdb_syncer
   hwswitch_matcher
   state
@@ -295,6 +331,7 @@ set(core_libs
   diag_cmd_filter
   hardware_stats_cpp2
   hw_switch_fb303_stats
+  hw_rif_fb303_stats
   hw_cpu_fb303_stats
   switch_asics
   switchid_scope_resolver
@@ -314,6 +351,7 @@ set(core_libs
   state_utils
   exponential_back_off
   fboss_config_utils
+  fib_helpers
   phy_cpp2
   phy_utils
   snapshot_manager
@@ -325,6 +363,7 @@ set(core_libs
   fsdb_model
   fsdb_stream_client
   fsdb_pub_sub
+  fsdb_sub_mgr
   fsdb_flags
   ${IPROUTE2}
   ${NETLINK3}
@@ -341,6 +380,9 @@ set(core_libs
   fboss_event_base
   phy_snapshot_manager
   build_info_wrapper
+  ecmp_resource_manager
+  thrift_method_rate_limit
+  shel_manager
 )
 
 target_link_libraries(core ${core_libs})
@@ -668,6 +710,7 @@ target_link_libraries(sw_switch_warmboot_helper
   common_file_utils
   Folly::folly
   switch_state_cpp2
+  warm_boot_file_utils
 )
 
 add_library(sw_agent_initializer

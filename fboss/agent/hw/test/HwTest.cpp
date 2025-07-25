@@ -16,16 +16,12 @@
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
-#include "fboss/lib/CommonUtils.h"
 
-#include <sstream>
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
 #include <sanitizer/lsan_interface.h>
@@ -42,6 +38,8 @@ DEFINE_bool(
     setup_thrift_on_failure,
     false,
     "Set up thrift on demand upon encountering test failure");
+
+DEFINE_bool(dump_sdk_state, false, "Generate sdk debug dump");
 
 DECLARE_int32(update_watermark_stats_interval_s);
 
@@ -154,6 +152,10 @@ void HwTest::logStage(folly::StringPiece msg) {
 }
 
 void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {
+  if (FLAGS_dump_sdk_state) {
+    XLOG(INFO) << "generating sdk debug dump";
+    auto out = getHwSwitch()->getDebugDump();
+  }
   if (!hwSwitchEnsemble_) {
     // hwSwitchEnsemble already torn down, nothing to do
     return;

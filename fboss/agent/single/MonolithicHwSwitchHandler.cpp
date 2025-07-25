@@ -96,6 +96,15 @@ HwSwitchWatermarkStats MonolithicHwSwitchHandler::getSwitchWatermarkStats()
   return hw_->getSwitchWatermarkStats();
 }
 
+HwSwitchPipelineStats MonolithicHwSwitchHandler::getSwitchPipelineStats()
+    const {
+  return hw_->getSwitchPipelineStats();
+}
+HwSwitchTemperatureStats MonolithicHwSwitchHandler::getSwitchTemperatureStats()
+    const {
+  return hw_->getSwitchTemperatureStats();
+}
+
 void MonolithicHwSwitchHandler::updateAllPhyInfo() {
   hw_->updateAllPhyInfo();
 }
@@ -149,6 +158,11 @@ std::vector<EcmpDetails> MonolithicHwSwitchHandler::getAllEcmpDetails() const {
   return hw_->getAllEcmpDetails();
 }
 
+cfg::SwitchingMode MonolithicHwSwitchHandler::getFwdSwitchingMode(
+    const RouteNextHopEntry& fwd) {
+  return hw_->getFwdSwitchingMode(fwd);
+}
+
 CpuPortStats MonolithicHwSwitchHandler::getCpuPortStats() const {
   return hw_->getCpuPortStats();
 }
@@ -188,16 +202,21 @@ bool MonolithicHwSwitchHandler::needL2EntryForNeighbor(
   return hw_->needL2EntryForNeighbor();
 }
 
+void MonolithicHwSwitchHandler::initialStateApplied() {
+  hw_->initialStateApplied();
+}
+
 std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MonolithicHwSwitchHandler::stateChanged(
-    const fsdb::OperDelta& delta,
+    const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
+    const std::shared_ptr<SwitchState>& /*oldState*/,
     const std::shared_ptr<SwitchState>& /*newState*/,
     const HwWriteBehavior& hwWriteBehavior) {
   auto operResult = transaction
       ? hw_->stateChangedTransaction(
-            delta, HwWriteBehaviorRAII(hwWriteBehavior))
-      : hw_->stateChanged(delta, HwWriteBehaviorRAII(hwWriteBehavior));
+            deltas, HwWriteBehaviorRAII(hwWriteBehavior))
+      : hw_->stateChanged(deltas, HwWriteBehaviorRAII(hwWriteBehavior));
   /*
    * For monolithic, return success for update since SwSwitch should not
    * do rollback for partial update failure. In monolithic SwSwitch
@@ -235,6 +254,9 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.switchDropStats() = getSwitchDropStats();
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
+  hwStats.switchPipelineStats() = getSwitchPipelineStats();
+  hwStats.switchTemperatureStats() = getSwitchTemperatureStats();
+
   if (auto hwSwitchStats = getSwitchStats()) {
     hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
   }
@@ -248,6 +270,8 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.fb303GlobalStats() = hw_->getSwitchStats()->getAllFb303Stats();
   hwStats.hwResourceStats() = hw_->getResourceStats();
   hwStats.arsExhausted() = hw_->getArsExhaustionStatus();
+  hwStats.sysPortShelState() = hw_->getSysPortShelState();
+  hwStats.hwRouterInterfaceStats() = hw_->getRouterInterfaceStats();
 }
 
 } // namespace facebook::fboss

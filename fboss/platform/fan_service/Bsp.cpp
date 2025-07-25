@@ -6,6 +6,7 @@
 #include <string>
 
 #include <folly/logging/xlog.h>
+#include <folly/system/ThreadName.h>
 
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
@@ -35,12 +36,16 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
       std::make_unique<FsdbSensorSubscriber>(fsdbPubSubMgr_.get());
   if (FLAGS_subscribe_to_stats_from_fsdb) {
     fsdbSensorSubscriber_->subscribeToSensorServiceStat();
+    fsdbSensorSubscriber_->subscribeToAgentStat();
     if (FLAGS_subscribe_to_qsfp_data_from_fsdb) {
       fsdbSensorSubscriber_->subscribeToQsfpServiceStat();
       fsdbSensorSubscriber_->subscribeToQsfpServiceState();
     }
   }
-  thread_.reset(new std::thread([=, this] { evbSensor_.loopForever(); }));
+  thread_.reset(new std::thread([=, this] {
+    folly::setThreadName("bsp-evb-thread");
+    evbSensor_.loopForever();
+  }));
 }
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
@@ -115,39 +120,35 @@ void Bsp::kickWatchdog() {
   }
 }
 
-void Bsp::closeWatchdog() {
-  if (!watchdogFd_.has_value()) {
-    return;
-  }
-  std::cout << "Closing watchdog" << std::endl;
-  try {
-    writeToWatchdog("V");
-    close(watchdogFd_.value());
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Error closing watchdog: " << e.what();
-  }
-}
-
 bool Bsp::writeToWatchdog(const std::string& value) {
   std::string cmdLine;
   if (!config_.watchdog().has_value()) {
     return false;
   }
-  try {
-    auto sysfsPath = config_.watchdog()->sysfsPath()->c_str();
-    if (!watchdogFd_.has_value()) {
-      watchdogFd_ = open(sysfsPath, O_WRONLY);
-    }
-    return writeFd(watchdogFd_.value(), value);
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Could not write to watchdog: " << e.what();
+  auto sysfsPath = config_.watchdog()->sysfsPath()->c_str();
+  int fd = open(sysfsPath, O_WRONLY);
+  if (fd < 0) {
+    XLOG(ERR) << "Failed to open watchdog";
     return false;
   }
+  bool res = false;
+  try {
+    res = writeFd(fd, value);
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Could not write to watchdog: " << e.what();
+    res = false;
+  }
+  try {
+    writeFd(fd, "V");
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to magic close watchdog: " << e.what();
+  }
+  close(fd);
+  return res;
 }
 
 std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
     const Optic& opticsGroup,
-    std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverInfo>& transceiverInfoMap) {
   std::vector<std::pair<std::string, float>> data{};
@@ -206,6 +207,7 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
         break;
       case MediaInterfaceCode::FR4_2x400G:
       case MediaInterfaceCode::FR4_LITE_2x400G:
+      case MediaInterfaceCode::FR4_LPO_2x400G:
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::FR8_800G:
       case MediaInterfaceCode::LR4_2x400G_10KM:
@@ -259,7 +261,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
 
   // Parse the data
   auto data = processOpticEntries(
-      opticsGroup, pSensorData, currentQsfpSvcTimestamp, transceiverInfoMap);
+      opticsGroup, currentQsfpSvcTimestamp, transceiverInfoMap);
 
   auto opticEntry = pSensorData->getOpticEntry(*opticsGroup.opticName());
   // Using the timestamp, check if the data is too old or not.
@@ -294,6 +296,60 @@ void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
       throw facebook::fboss::FbossError(
           "Invalid way for fetching optics temperature!");
     }
+  }
+}
+
+void Bsp::getAsicTempData(const std::shared_ptr<SensorData>& pSensorData) {
+  bool useFsdb = FLAGS_subscribe_to_stats_from_fsdb ? true : false;
+  if (useFsdb) {
+    getAsicTempThroughFsdb(pSensorData);
+  } else {
+    getAsicTempDataOverThrift(pSensorData);
+  }
+}
+
+void Bsp::getAsicTempThroughFsdb(
+    const std::shared_ptr<SensorData>& pSensorData) {
+  try {
+    auto subscribedData = fsdbSensorSubscriber_->getAgentData();
+    for (const auto& [asicTempName, asicTempData] : subscribedData) {
+      // Only parse the entry with value and timestamp set.
+      if (asicTempData.value().has_value() &&
+          asicTempData.timeStamp().has_value()) {
+        pSensorData->updateSensorEntry(
+            *asicTempData.name(),
+            *asicTempData.value(),
+            *asicTempData.timeStamp());
+      }
+    }
+    XLOG(INFO) << fmt::format(
+        "Got ASIC Temp data from fsdb.  Item count: {}", subscribedData.size());
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get ASIC temp data using FSDB, with error : "
+              << e.what();
+  }
+}
+
+void Bsp::getAsicTempDataOverThrift(
+    const std::shared_ptr<SensorData>& pSensorData) {
+  try {
+    auto agentReadResponse =
+        getAsicTempThroughThrift(agentTempThriftPort_, evbSensor_);
+    for (auto& asicTempData : *agentReadResponse.sensorData()) {
+      // Again, for Thrift too, only honor the entry with value and timestamp.
+      if (asicTempData.value() && asicTempData.timeStamp()) {
+        pSensorData->updateSensorEntry(
+            *asicTempData.name(),
+            *asicTempData.value(),
+            *asicTempData.timeStamp());
+      }
+    }
+    XLOG(INFO) << fmt::format(
+        "Got Asic Temp data from agent.  Item count: {}",
+        agentReadResponse.sensorData()->size());
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get ASIC temp data using Thrift, with error : "
+              << e.what();
   }
 }
 
@@ -351,8 +407,8 @@ bool Bsp::setFanPwmSysfs(const std::string& path, int pwm) {
   return writeSysfs(path, pwm);
 }
 
-bool Bsp::setFanLedSysfs(const std::string& path, int pwm) {
-  return writeSysfs(path, pwm);
+bool Bsp::setFanLedSysfs(const std::string& path, int val) {
+  return writeSysfs(path, val);
 }
 
 Bsp::~Bsp() {
@@ -362,7 +418,6 @@ Bsp::~Bsp() {
   }
   fsdbSensorSubscriber_.reset();
   fsdbPubSubMgr_.reset();
-  closeWatchdog();
 }
 
 } // namespace facebook::fboss::platform::fan_service

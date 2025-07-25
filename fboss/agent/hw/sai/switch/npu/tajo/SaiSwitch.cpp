@@ -138,6 +138,7 @@ void SaiSwitch::tamEventCallback(
       XLOG(ERR) << lackOfResourceType(eventDesc->event.switch_event.data
                                           .lack_of_resources.err_type)
                 << " error detected by SDK!";
+      getSwitchStats()->asicError();
       break;
 #endif
     case SAI_SWITCH_EVENT_TYPE_ALL:
@@ -161,6 +162,12 @@ void SaiSwitch::switchEventCallback(
     sai_size_t /*buffer_size*/,
     const void* /*buffer*/,
     uint32_t /*event_type*/) {
+  // noop;
+}
+
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* /*buffer*/) {
   // noop;
 }
 

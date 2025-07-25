@@ -11,11 +11,8 @@ add_fbthrift_cpp_library(
     reflection
 )
 
-add_executable(fw_util
-  fboss/platform/fw_util/fw_util.cpp
-  fboss/platform/fw_util/Flags.cpp
+add_library(fw_util_libs
   fboss/platform/fw_util/FwUtilImpl.cpp
-  fboss/platform/fw_util/FwUtilVersion.cpp
   fboss/platform/fw_util/FwUtilVerify.cpp
   fboss/platform/fw_util/FwUtilRead.cpp
   fboss/platform/fw_util/FwUtilPreUpgrade.cpp
@@ -24,17 +21,35 @@ add_executable(fw_util
   fboss/platform/fw_util/FwUtilOperations.cpp
   fboss/platform/fw_util/FwUtilFlashrom.cpp
   fboss/platform/fw_util/fw_util_helpers.cpp
-
+  fboss/platform/fw_util/FwUtilVersionHandler.cpp
 )
 
-target_link_libraries(fw_util
+target_link_libraries(fw_util_libs
   Folly::folly
+  CLI11::CLI11
   platform_config_lib
   platform_name_lib
   platform_utils
   FBThrift::thriftcpp2
   fw_util_config-cpp2-types
   platform_manager_i2c_explorer
+)
+
+add_executable(fw_util
+  fboss/platform/fw_util/fw_util.cpp
+)
+
+target_link_libraries(fw_util
+  fw_util_libs
+)
+
+add_executable(fw_util_hw_test
+  fboss/platform/fw_util/hw_test/FwUtilHwTest.cpp
+)
+
+target_link_libraries(fw_util_hw_test
+  fw_util_libs
+  ${LIBGMOCK_LIBRARIES}
 )
 
 install(TARGETS fw_util)

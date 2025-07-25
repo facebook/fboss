@@ -12,12 +12,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -25,6 +23,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 using namespace facebook::fboss::utility;
 
@@ -76,7 +75,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
     // TODO: Remove the dependency on VLAN below
-    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -145,7 +144,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
 
   void createL3DataplaneFlood(folly::IPAddressV6 dstIp, PortID from) {
     XLOG(INFO) << "creating data plane flood";
-    auto vlan = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlan = getHwSwitchEnsemble()->getVlanIDForTx();
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
     }
@@ -228,7 +227,9 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
 
   void _setupTeFlow() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     // Add 100::/32 lpm route entry
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
@@ -315,7 +316,9 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
 TEST_F(HwTeFlowTrafficTest, validateAddDelTeFlows) {
   auto setup = [=, this]() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
@@ -389,7 +392,9 @@ TEST_F(HwTeFlowTrafficTest, validateAddDelTeFlows) {
 TEST_F(HwTeFlowTrafficTest, validateSyncTeFlows) {
   auto setup = [=, this]() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), getIntfMac());
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        getIntfMac());
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
@@ -467,7 +472,9 @@ TEST_F(HwTeFlowTrafficTest, verifyTeFlowScale) {
   auto setup = [&]() {
     FLAGS_emStatOnlyMode = true;
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));

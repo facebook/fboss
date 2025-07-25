@@ -125,8 +125,8 @@ class SwitchSettings
     std::vector<state::BlockedMacAddress> macAddrs{};
     for (auto& entry : macAddrsToBlock) {
       state::BlockedMacAddress macAddr;
-      macAddr.macAddrToBlockVlanID_ref() = entry.first;
-      macAddr.macAddrToBlockAddr_ref() = entry.second.toString();
+      macAddr.macAddrToBlockVlanID() = entry.first;
+      macAddr.macAddrToBlockAddr() = entry.second.toString();
       macAddrs.push_back(macAddr);
     }
     set<switch_state_tags::macAddrsToBlock>(macAddrs);
@@ -737,7 +737,23 @@ class SwitchSettings
           *voqOutOfBoundsLatencyNs);
     }
   }
+  std::optional<int32_t> getEcmpCompressionThresholdPct() const {
+    if (auto ecmpCompressionThresholdPct =
+            cref<switch_state_tags::ecmpCompressionThresholdPct>()) {
+      return ecmpCompressionThresholdPct->toThrift();
+    }
+    return std::nullopt;
+  }
 
+  void setEcmpCompressionThresholdPct(
+      std::optional<int32_t> ecmpCompressionThresholdPct) {
+    if (!ecmpCompressionThresholdPct) {
+      ref<switch_state_tags::ecmpCompressionThresholdPct>().reset();
+    } else {
+      set<switch_state_tags::ecmpCompressionThresholdPct>(
+          *ecmpCompressionThresholdPct);
+    }
+  }
   std::optional<std::map<int32_t, int32_t>> getTcToRateLimitKbps() const {
     if (auto tcToRateLimitKbps = cref<switch_state_tags::tcToRateLimitKbps>()) {
       return tcToRateLimitKbps->toThrift();
@@ -751,6 +767,24 @@ class SwitchSettings
       ref<switch_state_tags::tcToRateLimitKbps>().reset();
     } else {
       set<switch_state_tags::tcToRateLimitKbps>(*tcToRateLimitKbps);
+    }
+  }
+
+  std::optional<int32_t> getPfcWatchdogTimerGranularity() const {
+    if (auto pfcWatchdogTimerGranularityMsec =
+            cref<switch_state_tags::pfcWatchdogTimerGranularityMsec>()) {
+      return pfcWatchdogTimerGranularityMsec->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setPfcWatchdogTimerGranularity(
+      const std::optional<int32_t>& pfcWatchdogTimerGranularityMsec) {
+    if (!pfcWatchdogTimerGranularityMsec) {
+      ref<switch_state_tags::pfcWatchdogTimerGranularityMsec>().reset();
+    } else {
+      set<switch_state_tags::pfcWatchdogTimerGranularityMsec>(
+          *pfcWatchdogTimerGranularityMsec);
     }
   }
 

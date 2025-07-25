@@ -20,6 +20,7 @@ add_library(log_thrift_call
 target_link_libraries(log_thrift_call
   Folly::folly
   FBThrift::thriftcpp2
+  stats
 )
 
 add_library(alert_logger
@@ -132,6 +133,15 @@ target_link_libraries(thread_heartbeat
   Folly::folly
 )
 
+add_library(thrift_method_rate_limit
+  fboss/lib/ThriftMethodRateLimit.cpp
+)
+
+target_link_libraries(thrift_method_rate_limit
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(pci_device
   fboss/lib/PciDevice.cpp
   fboss/lib/PciSystem.cpp
@@ -200,5 +210,17 @@ add_library(restart_time_tracker
 target_link_libraries(restart_time_tracker
   utils
   fb303::fb303
+  Folly::folly
+)
+
+add_library(warm_boot_file_utils
+  fboss/lib/WarmBootFileUtils.cpp
+)
+
+target_link_libraries(warm_boot_file_utils
+  fboss_error
+  switch_state_cpp2
+  utils
+  state
   Folly::folly
 )

@@ -54,12 +54,12 @@ cfg::PlatformPortEntry getPlatformPortEntryWithXPHY() {
       phy::PinID tcvr;
       *tcvr.chip() = kDefaultTcvrChipName;
       *tcvr.lane() = i * 2 + j;
-      tcvrPin.end_ref() = tcvr;
+      tcvrPin.end() = tcvr;
       linePin.z() = tcvrPin;
 
       xphy.line()->push_back(linePin);
     }
-    xphyPin.junction_ref() = xphy;
+    xphyPin.junction() = xphy;
     pin.z() = xphyPin;
 
     entry.mapping()->pins()->push_back(pin);
@@ -120,7 +120,7 @@ cfg::PlatformPortEntry getPlatformPortEntryWithoutXPHY() {
     phy::PinID tcvr;
     *tcvr.chip() = kDefaultTcvrChipName;
     *tcvr.lane() = i;
-    tcvrPin.end_ref() = tcvr;
+    tcvrPin.end() = tcvr;
     pin.z() = tcvrPin;
 
     entry.mapping()->pins()->push_back(pin);
@@ -395,6 +395,15 @@ TEST(PlatformConfigUtilsTests, GetTransceiverId) {
   transceiverId = utility::getTransceiverId(
       getPlatformPortEntryWithoutTransceiver(), getPlatformChips());
   EXPECT_FALSE(transceiverId);
+}
+
+TEST(PlatformConfigUtilsTests, GetTransceiverIds) {
+  const auto& portChips = utility::getDataPlanePhyChips(
+      getPlatformPortEntryWithXPHY(), getPlatformChips());
+  const auto& transceiverIds = utility::getTransceiverIds(portChips);
+
+  EXPECT_EQ(transceiverIds.size(), 1);
+  EXPECT_EQ(transceiverIds[0], TransceiverID{2});
 }
 
 TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {

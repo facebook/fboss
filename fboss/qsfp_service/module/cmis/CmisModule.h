@@ -31,6 +31,7 @@ enum class CmisPages : int {
   PAGE24 = 0x24,
   PAGE25 = 0x25,
   PAGE26 = 0x26,
+  PAGE2C = 0x2C,
   PAGE2F = 0x2F
 };
 
@@ -79,6 +80,7 @@ class CmisModule : public QsfpModule {
   struct ApplicationAdvertisingField {
     uint8_t ApSelCode;
     uint8_t moduleMediaInterface;
+    uint8_t moduleHostInterface{};
     int hostLaneCount;
     int mediaLaneCount;
     std::vector<int> hostStartLanes;
@@ -100,6 +102,7 @@ class CmisModule : public QsfpModule {
     CmisPages vdmValPage;
     int vdmValOffset;
     int vdmValLength;
+    uint8_t localThresholdSetID = static_cast<uint8_t>(-1);
   };
 
   /*
@@ -300,7 +303,7 @@ class CmisModule : public QsfpModule {
   /*
    * Gather the vendor info for thrift queries
    */
-  Vendor getVendorInfo() override;
+  Vendor getVendorInfo() const override;
   /*
    * Gather the cable info for thrift queries
    */
@@ -626,6 +629,7 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorFecTail(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
 
   void setApplicationSelectCode(
       uint8_t apSelCode,
@@ -652,6 +656,9 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
+
+  // Returns true if the current module is LPO
+  bool isLpoModule() const override;
 
   std::time_t vdmIntervalStartTime_{0};
 };

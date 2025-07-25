@@ -67,6 +67,10 @@ struct ConcurrentIndices {
    * SystemPortID to sai sys port id
    */
   folly::ConcurrentHashMap<SystemPortID, SystemPortSaiId> sysPortSaiIds;
+  /*
+   * SystemPortID to SHEL state
+   */
+  folly::ConcurrentHashMap<SystemPortID, cfg::PortState> sysPortShelState;
 };
 
 } // namespace facebook::fboss

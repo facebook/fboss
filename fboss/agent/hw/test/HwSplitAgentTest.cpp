@@ -57,7 +57,7 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
         getHwSwitch(), masterLogicalPortIds());
   }
 
-  bool skipTest() {
+  bool isNonHwPlatform() {
     return (
         getPlatform()->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_FAKE ||
@@ -74,10 +74,7 @@ class HwSplitAgentCallbackTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwSplitAgentCallbackTest, linkCallback) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
+  if (isNonHwPlatform()) {
     return;
   }
   EXPECT_NE(getHwSwitchEnsemble()->getTestServer()->getPort(), 0);
@@ -90,19 +87,20 @@ TEST_F(HwSplitAgentCallbackTest, linkCallback) {
 }
 
 TEST_F(HwSplitAgentCallbackTest, txPacket) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
+  if (isNonHwPlatform()) {
     return;
   }
 
   resolveNeigborAndProgramRoutes(
-      utility::EcmpSetupAnyNPorts4(getProgrammedState(), RouterID(0)), 1);
+      utility::EcmpSetupAnyNPorts4(
+          getProgrammedState(),
+          getHwSwitch()->needL2EntryForNeighbor(),
+          RouterID(0)),
+      1);
 
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-  auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+  auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
   auto pkt = utility::makeIpTxPacket(
       [hwSwitch = getHwSwitch()](uint32_t size) {
         return hwSwitch->allocatePacket(size);
@@ -110,8 +108,8 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
       vlanId,
       intfMac,
       intfMac,
-      folly::IPAddressV4("1.0.0.1"),
-      folly::IPAddressV4("1.0.0.2"));
+      folly::IPAddressV4("100.0.0.1"),
+      folly::IPAddressV4("100.0.0.2"));
   multiswitch::TxPacket txPacket;
   txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
@@ -127,10 +125,7 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
 }
 
 TEST_F(HwSplitAgentCallbackTest, operDeltaUpdate) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
+  if (isNonHwPlatform()) {
     return;
   }
   setPortIDAndStateToWaitFor(masterLogicalInterfacePortIds()[0], false);
@@ -144,14 +139,14 @@ TEST_F(HwSplitAgentCallbackTest, operDeltaUpdate) {
   port->setOperState(false);
   port->setLoopbackMode(cfg::PortLoopbackMode::NONE);
   multiswitch::StateOperDelta operDelta;
-  operDelta.operDelta() = StateDelta(state, newState).getOperDelta();
+  operDelta.operDeltas() = {StateDelta(state, newState).getOperDelta()};
   getHwSwitchEnsemble()->enqueueOperDelta(operDelta);
   EXPECT_TRUE(waitForPortEvent());
 
   // Set port to up
   setPortIDAndStateToWaitFor(masterLogicalInterfacePortIds()[0], true);
   multiswitch::StateOperDelta operDelta2;
-  operDelta2.operDelta() = StateDelta(newState, state).getOperDelta();
+  operDelta2.operDeltas() = {StateDelta(newState, state).getOperDelta()};
   getHwSwitchEnsemble()->enqueueOperDelta(operDelta2);
   EXPECT_TRUE(waitForPortEvent());
 }

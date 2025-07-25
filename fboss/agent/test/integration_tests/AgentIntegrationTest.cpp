@@ -11,10 +11,10 @@
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/integration_tests/AgentIntegrationTest.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -22,29 +22,35 @@
 namespace facebook::fboss {
 
 void AgentIntegrationTest::SetUp() {
-  AgentIntegrationTestBase::SetUp();
+  AgentEnsembleIntegrationTestBase::SetUp();
 }
 
-cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
+cfg::SwitchConfig AgentIntegrationTest::initialConfig(
+    const AgentEnsemble& ensemble) {
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
+  auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+  auto asic = checkSameAndGetAsic(hwAsics);
 
   auto subsidiaryPortMap =
-      utility::getSubsidiaryPortIDs(platform()->getPlatformPorts());
+      utility::getSubsidiaryPortIDs(ensemble.getPlatformPorts());
   for (auto& port : subsidiaryPortMap) {
     ports.emplace_back(port.first);
   }
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
-      platform()->getPlatformMapping(),
-      platform()->getAsic(),
-      platform()->supportsAddRemovePort());
+      ensemble.getPlatformMapping(),
+      asic,
+      ensemble.supportsAddRemovePort(),
+      ensemble.masterLogicalPortIds());
+
   cfg = utility::onePortPerInterfaceConfig(
-      platform()->getHwSwitch(),
-      ports,
-      platform()->getAsic()->desiredLoopbackModes(),
-      true,
-      true);
+      ensemble.getSw()->getPlatformMapping(),
+      asic,
+      ensemble.masterLogicalPortIds(),
+      ensemble.supportsAddRemovePort(),
+      asic->desiredLoopbackModes() // enable all loopback modes
+  );
 
   cfg.switchSettings()->maxRouteCounterIDs() = 1;
   return cfg;
@@ -61,7 +67,7 @@ int agentIntegrationTestMain(
   // overridden by the tests
   gflags::ParseCommandLineFlags(&argc, &argv, false);
 
-  initAgentTest(argc, argv, initPlatformFn, streamType);
+  initAgentEnsembleTest(argc, argv, initPlatformFn, streamType);
 
   return RUN_ALL_TESTS();
 }

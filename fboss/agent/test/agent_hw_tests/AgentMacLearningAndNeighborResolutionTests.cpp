@@ -12,6 +12,7 @@
 
 #include <netinet/icmp6.h>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/TxPacket.h"
@@ -20,10 +21,10 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/L2LearningUpdateObserverUtil.h"
 #include "fboss/agent/test/utils/MacTestUtils.h"
+#include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -97,9 +98,9 @@ using LearningAndPortTypes = ::testing::Types<
 
 class AgentNeighborResolutionTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::MAC_LEARNING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::MAC_LEARNING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -158,14 +159,23 @@ class AgentNeighborResolutionTest : public AgentHwTest {
                           ->modify(kVlanID, &state);
     }
 
-    if (neighborTable->getEntryIf(addr)) {
+    auto reachableNeighborState = NeighborState::REACHABLE;
+    if (auto existingEntry = neighborTable->getEntryIf(addr)) {
       neighborTable->updateEntry(
-          addr, mac, port, kIntfID, NeighborState::REACHABLE, lookupClass);
+          addr, mac, port, kIntfID, reachableNeighborState, lookupClass);
+      if (getSw()->needL2EntryForNeighbor()) {
+        state = utility::NeighborTestUtils::updateMacEntryForUpdatedNbrEntry(
+            state, kVlanID, existingEntry, neighborTable->getEntryIf(addr));
+      }
     } else {
       neighborTable->addEntry(addr, mac, port, kIntfID);
       // Update entry to add classid if any
       neighborTable->updateEntry(
-          addr, mac, port, kIntfID, NeighborState::REACHABLE, lookupClass);
+          addr, mac, port, kIntfID, reachableNeighborState, lookupClass);
+      if (getSw()->needL2EntryForNeighbor()) {
+        state = utility::NeighborTestUtils::addMacEntryForNewNbrEntry(
+            state, kVlanID, neighborTable->getEntryIf(addr));
+      }
     }
     return state;
   }
@@ -208,17 +218,15 @@ class AgentMacLearningAndNeighborResolutionTest
     FLAGS_enable_hw_update_protection = true;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    std::vector<production_features::ProductionFeature> features = {
-        production_features::ProductionFeature::MAC_LEARNING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    std::vector<ProductionFeature> features = {ProductionFeature::MAC_LEARNING};
 
     if (isIntfNbrTable) {
-      features.push_back(
-          production_features::ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
     }
     if (kIsTrunk) {
-      features.push_back(production_features::ProductionFeature::LAG);
+      features.push_back(ProductionFeature::LAG);
     }
     return features;
   }
@@ -226,7 +234,7 @@ class AgentMacLearningAndNeighborResolutionTest
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsic(hwAsics);
     auto inConfig = utility::oneL3IntfNPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -481,6 +489,14 @@ class AgentMacLearningAndNeighborResolutionTest
                                 ->modify(kVlanID, &newState);
           }
 
+          // Prune MAC entry accordingly
+          auto oldEntry = neighborTable->getEntryIf(ip);
+          if (getSw()->needL2EntryForNeighbor() && oldEntry &&
+              oldEntry->isReachable()) {
+            newState = utility::NeighborTestUtils::pruneMacEntryForDelNbrEntry(
+                newState, kVlanID, oldEntry);
+          }
+
           neighborTable->removeEntry(ip);
           return newState;
         },
@@ -537,11 +553,22 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
       const PortDescriptor& port,
       const std::vector<AddrT>& ipAddresses,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
-    applyNewStateTransaction(
-        [&](const std::shared_ptr<SwitchState>& in) {
-          return updateNeighborEntries(in, port, ipAddresses, lookupClass);
-        },
-        "program bulk neighbor with hw failure protection");
+    auto asicNdpScale = getAsicNeighborTableSize();
+    auto bulkProgramCount = getBulkProgramCount();
+    for (int offset = 0; offset < asicNdpScale / bulkProgramCount; ++offset) {
+      auto startIndex = offset * bulkProgramCount;
+      applyNewStateTransaction(
+          [&](const std::shared_ptr<SwitchState>& in) {
+            return updateNeighborEntries(
+                in,
+                port,
+                ipAddresses,
+                startIndex,
+                bulkProgramCount,
+                lookupClass);
+          },
+          "program bulk neighbor with hw failure protection");
+    }
   }
 
   // verify neighbor entry over flow,
@@ -558,7 +585,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
           getNeighborTable<NdpTable, folly::IPAddressV6>();
 
       XLOG(DBG2) << "neighborTable->size() " << neighborTable->size();
-      EXPECT_EVENTUALLY_GE(neighborTable->size(), getkBulkProgrammedCount());
+      EXPECT_EVENTUALLY_GE(neighborTable->size(), getBulkProgramCount());
       EXPECT_EQ(getSw()->stats()->getNeighborTableUpdateFailure(), 0);
     });
 
@@ -576,36 +603,28 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     });
   }
 
-  // for TH3, we can only program 5100 neighbors in single state update
-  // without HW failure. For TH4, we can program 8100 neighbors in single
-  // state update
-  uint16_t getkBulkProgrammedCount() {
-    auto switchId = getSw()
-                        ->getScopeResolver()
-                        ->scope(masterLogicalPortIds()[0])
-                        .switchId();
-    if (getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
-      return 5100;
-    }
-    return 8100;
+  uint32_t getAsicNeighborTableSize() {
+    uint32_t ndpTableSize = 0;
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    CHECK(hwAsic->getMaxNdpTableSize().has_value());
+    ndpTableSize = hwAsic->getMaxNdpTableSize().value();
+    CHECK(ndpTableSize > 0);
+    return ndpTableSize;
   }
 
-  // get max neighbor table size
-  uint32_t getMaxNeighborTableSize() {
-    uint32_t ndpTableSize = 0;
-    // check that all ASICs have same max neighbor table size
-    for (auto& [switchId, hwAsic] : getSw()->getHwAsicTable()->getHwAsics()) {
-      CHECK(hwAsic->getMaxNdpTableSize().has_value());
-      if (ndpTableSize > 0) {
-        CHECK_EQ(ndpTableSize, hwAsic->getMaxNdpTableSize().value());
-      }
-      ndpTableSize = hwAsic->getMaxNdpTableSize().value();
-    }
+  uint32_t getBulkProgramCount() {
+    return getAsicNeighborTableSize();
+  }
 
-    CHECK(ndpTableSize > 0);
-    return (ndpTableSize * FLAGS_neighbhor_resource_percentage) /
+  uint32_t getMaxNeighborTableSize() {
+    return (getAsicNeighborTableSize() * FLAGS_neighbhor_resource_percentage) /
         kHundredPercentage;
+  }
+
+  uint32_t getMaxBulkProgramCount() {
+    auto asicNdpScale = getAsicNeighborTableSize();
+    auto bulkProgramCount = getBulkProgramCount();
+    return (asicNdpScale / bulkProgramCount) * bulkProgramCount;
   }
 
  private:
@@ -614,7 +633,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
   void programNeighborsWithNeighborUpdater(
       const PortDescriptor& port,
       const std::vector<AddrT>& ipAddresses) {
-    for (int i = getkBulkProgrammedCount(); i < ipAddresses.size(); i++) {
+    for (int i = getBulkProgramCount(); i < ipAddresses.size(); i++) {
       XLOG(DBG2) << "Programming neighbor " << i << ": "
                  << ipAddresses[i].str();
       if (FLAGS_intf_nbr_tables) {
@@ -655,9 +674,12 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
       const std::shared_ptr<SwitchState>& in,
       const PortDescriptor& port,
       const std::vector<AddrT>& ipAddressesV6,
+      const uint32_t startIndex,
+      const uint32_t count,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto state = in->clone();
-    for (int i = 0; i < getkBulkProgrammedCount(); i++) {
+    CHECK_LE(startIndex + count, ipAddressesV6.size());
+    for (int i = startIndex; i < startIndex + count; i++) {
       state = updateNeighborEntry<AddrT>(
           state,
           port,

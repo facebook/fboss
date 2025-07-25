@@ -49,6 +49,16 @@ std::shared_ptr<NdpCache> NeighborUpdaterNoopImpl::getNdpCacheForIntf(
   return nullptr;
 }
 
+std::shared_ptr<ArpCache> NeighborUpdaterNoopImpl::getArpCacheFor(
+    VlanID /* vlanId */) {
+  return nullptr;
+}
+
+std::shared_ptr<NdpCache> NeighborUpdaterNoopImpl::getNdpCacheFor(
+    VlanID /* vlanId */) {
+  return nullptr;
+}
+
 void NeighborUpdaterNoopImpl::portChanged(
     const std::shared_ptr<Port>& /*oldPort*/,
     const std::shared_ptr<Port>& /*newPort*/) {}

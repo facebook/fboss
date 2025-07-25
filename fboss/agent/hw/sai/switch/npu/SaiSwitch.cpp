@@ -16,9 +16,11 @@
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
+#include "fboss/agent/hw/sai/switch/SaiFirmwareManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
@@ -117,6 +119,22 @@ void SaiSwitch::updateStatsImpl() {
   getSwitchStats()->fabricConnectivityMismatchCount(mismatchCount);
   getSwitchStats()->fabricConnectivityBogusCount(bogusCount);
 
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    auto firmwareOpStatus =
+        managerTable_->firmwareManager().getFirmwareOpStatus();
+    if (firmwareOpStatus.has_value()) {
+      getSwitchStats()->isolationFirmwareOpStatus(
+          static_cast<int64_t>(firmwareOpStatus.value()));
+    }
+    auto firmwareFuncStatus =
+        managerTable_->firmwareManager().getFirmwareFuncStatus();
+    if (firmwareFuncStatus.has_value()) {
+      getSwitchStats()->isolationFirmwareFuncStatus(
+          static_cast<int64_t>(firmwareFuncStatus.value()));
+    }
+  }
+
   auto sysPortsIter = concurrentIndices_->sysPortIds.begin();
   while (sysPortsIter != concurrentIndices_->sysPortIds.end()) {
     {
@@ -163,9 +181,13 @@ void SaiSwitch::updateStatsImpl() {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->switchManager().updateStats(updateWatermarks);
   }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->routerInterfaceManager().updateStats();
+  }
   if (updateWatermarks &&
       platform_->getAsic()->isSupported(
-          HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION)) {
+          HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS)) {
     // Use the same frequency as watermark updates to log CGM errors.
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->vendorSwitchManager().logCgmErrors();

@@ -2,15 +2,15 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
-
-#include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/TxPacket.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
@@ -21,11 +21,9 @@ namespace facebook::fboss {
 
 class AgentPortBandwidthTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::NIF_POLICER};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_QOS, ProductionFeature::NIF_POLICER};
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -37,7 +35,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
     CHECK(ensemble.getSw()->getHwAsicTable());
     auto asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     CHECK(!asics.empty());
-    utility::checkSameAsicType(asics);
+    checkSameAsicType(asics);
     utility::addOlympicQueueConfig(&config, asics);
     utility::addOlympicQosMaps(config, asics);
     utility::setTTLZeroCpuConfig(asics, config);
@@ -55,7 +53,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   const HwAsic* getHwAsic() {
     auto asics = getAgentEnsemble()->getSw()->getHwAsicTable()->getL3Asics();
     CHECK(!asics.empty());
-    return utility::checkSameAndGetAsic(asics);
+    return checkSameAndGetAsic(asics);
   }
 
   void _configureBandwidth(
@@ -65,12 +63,12 @@ class AgentPortBandwidthTest : public AgentHwTest {
     if (isSupportedOnAllAsics(HwAsic::Feature::SCHEDULER_PPS)) {
       auto& queue0 = config->portQueueConfigs()["queue_config"][kQueueId0()];
       queue0.portQueueRate() = cfg::PortQueueRate();
-      queue0.portQueueRate()->pktsPerSec_ref() =
+      queue0.portQueueRate()->pktsPerSec() =
           utility::getRange(kMinPps(), maxPps);
     }
     auto& queue1 = config->portQueueConfigs()["queue_config"][kQueueId1()];
     queue1.portQueueRate() = cfg::PortQueueRate();
-    queue1.portQueueRate()->kbitsPerSec_ref() =
+    queue1.portQueueRate()->kbitsPerSec() =
         utility::getRange(kMinKbps(), maxKbps);
   }
 
@@ -84,7 +82,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
   void setupHelper() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
-        getProgrammedState(), dstMac()};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac()};
     const auto& portDesc = PortDescriptor(getPort0());
     auto placeholder = getProgrammedState();
     this->applyNewState(
@@ -99,7 +97,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   void sendUdpPkt(uint8_t dscpVal, int payloadLen) {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
     std::optional<std::vector<uint8_t>> payload = payloadLen
         ? std::vector<uint8_t>(payloadLen, 0xff)
@@ -258,11 +256,10 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
 class AgentPortBandwidthPpsTest : public AgentPortBandwidthTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto prodFeatures = AgentPortBandwidthTest::getProductionFeaturesVerified();
-    prodFeatures.push_back(
-        production_features::ProductionFeature::SCHEDULER_PPS);
+    prodFeatures.push_back(ProductionFeature::SCHEDULER_PPS);
     return prodFeatures;
   }
 };

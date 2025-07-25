@@ -8,7 +8,6 @@
 
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
-#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 
 using folly::dynamic;
@@ -585,7 +584,7 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromList) {
 TYPED_TEST(DeltaVisitorTests, EditVariantField) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
-  structB.inlineVariant()->inlineInt_ref() = 1000;
+  structB.inlineVariant()->inlineInt() = 1000;
 
   auto nodeA = this->initNode(structA);
   auto nodeB = this->initNode(structB);
@@ -656,7 +655,7 @@ TYPED_TEST(DeltaVisitorTests, EditVariantField) {
 TYPED_TEST(DeltaVisitorTests, SwitchVariantField) {
   auto structA = createSimpleTestStruct();
   auto structB = structA;
-  structB.inlineVariant()->inlineBool_ref() = true;
+  structB.inlineVariant()->inlineBool() = true;
 
   auto nodeA = this->initNode(structA);
   auto nodeB = this->initNode(structB);
@@ -717,7 +716,7 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   newOne.max() = 100;
 
   auto structB = structA;
-  structB.inlineVariant()->inlineStruct_ref() = std::move(newOne);
+  structB.inlineVariant()->inlineStruct() = std::move(newOne);
 
   auto nodeA = this->initNode(structA);
   auto nodeB = this->initNode(structB);

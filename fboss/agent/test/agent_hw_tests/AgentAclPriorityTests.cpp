@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -42,12 +43,12 @@ namespace facebook::fboss {
 
 class AgentAclPriorityTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if (FLAGS_enable_acl_table_group) {
-      return {production_features::ProductionFeature::SINGLE_ACL_TABLE};
+      return {ProductionFeature::SINGLE_ACL_TABLE};
     } else {
-      return {production_features::ProductionFeature::MULTI_ACL_TABLE};
+      return {ProductionFeature::MULTI_ACL_TABLE};
     }
   }
 
@@ -63,8 +64,7 @@ class AgentAclPriorityTest : public AgentHwTest {
 
   void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
     auto acl = cfg::AclEntry();
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     *acl.name() = aclName;
     *acl.actionType() = cfg::AclActionType::DENY;
     acl.dscp() = 0x24;
@@ -77,8 +77,7 @@ class AgentAclPriorityTest : public AgentHwTest {
       const std::string& aclName,
       folly::IPAddress ip) {
     auto acl = cfg::AclEntry();
-    auto asic =
-        utility::checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     acl.name() = aclName;
     acl.actionType() = cfg::AclActionType::PERMIT;
     acl.dstIp() = ip.str();

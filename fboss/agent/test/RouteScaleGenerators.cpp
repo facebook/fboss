@@ -28,6 +28,7 @@ namespace facebook::fboss::utility {
  */
 RSWRouteScaleGenerator::RSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -55,10 +56,12 @@ RSWRouteScaleGenerator::RSWRouteScaleGenerator(
           },
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId) {}
 
 FSWRouteScaleGenerator::FSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -87,10 +90,12 @@ FSWRouteScaleGenerator::FSWRouteScaleGenerator(
           },
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId) {}
 
 THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -119,10 +124,12 @@ THAlpmRouteScaleGenerator::THAlpmRouteScaleGenerator(
           },
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId) {}
 
 HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -155,10 +162,12 @@ HgridDuRouteScaleGenerator::HgridDuRouteScaleGenerator(
           },
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId) {}
 
 HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -197,6 +206,7 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
           },
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId) {}
 
 /*
@@ -206,6 +216,7 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
  */
 AnticipatedRouteScaleGenerator::AnticipatedRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -244,6 +255,7 @@ AnticipatedRouteScaleGenerator::AnticipatedRouteScaleGenerator(
           },
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId) {}
 
 /*
@@ -251,6 +263,7 @@ AnticipatedRouteScaleGenerator::AnticipatedRouteScaleGenerator(
  */
 ScaleTestRouteScaleGenerator::ScaleTestRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -280,10 +293,12 @@ ScaleTestRouteScaleGenerator::ScaleTestRouteScaleGenerator(
           {},
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId) {}
 
 TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     RouterID routerId)
@@ -304,6 +319,7 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
           },
           chunkSize,
           ecmpWidth,
+          needL2EntryForNeighbor,
           routerId),
       // V6 Routes per label path
       v6PrefixLabelDistributionSpec_({
@@ -356,7 +372,8 @@ void TurboFSWRouteScaleGenerator::genIp2MplsRouteDistribution(
     const boost::container::flat_set<PortDescriptor>& labeledPorts) const {
   using PrefixT = RoutePrefix<AddrT>;
   std::vector<PrefixT> prefixes;
-  EcmpSetupTargetedPorts<AddrT> ecmpHelper(startingState());
+  EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+      startingState(), needL2EntryForNeighbor());
 
   for (const auto& prefixLabelDistribution : labelDistributionSpec) {
     uint8_t prefixSize = prefixLabelDistribution.first;
@@ -437,8 +454,8 @@ void TurboFSWRouteScaleGenerator::genRoutes() const {
 
 std::shared_ptr<SwitchState> TurboFSWRouteScaleGenerator::resolveNextHops(
     std::shared_ptr<SwitchState> in) const {
-  auto ecmpHelper4 = EcmpSetupTargetedPorts4(in);
-  auto ecmpHelper6 = EcmpSetupTargetedPorts6(in);
+  auto ecmpHelper4 = EcmpSetupTargetedPorts4(in, needL2EntryForNeighbor());
+  auto ecmpHelper6 = EcmpSetupTargetedPorts6(in, needL2EntryForNeighbor());
   auto nhopsResolvedState = ecmpHelper6.resolveNextHops(in, unlabeledPorts_);
   nhopsResolvedState =
       ecmpHelper6.resolveNextHops(nhopsResolvedState, labeledPorts_);

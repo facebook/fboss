@@ -12,7 +12,7 @@ thrift_library(
         "go",
         "py-deprecated",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
         "python",
     ],
@@ -51,7 +51,7 @@ thrift_library(
         "cpp2",
         "py-deprecated",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "go",
         "rust",
         "python",
@@ -85,7 +85,7 @@ thrift_library(
         "go",
         "py-deprecated",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
         "python",
     ],
@@ -116,7 +116,7 @@ thrift_library(
         "go",
         "py-deprecated",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
         "python",
     ],
@@ -129,6 +129,7 @@ thrift_library(
     thrift_srcs = {"qsfp_state.thrift": []},
     deps = [
         ":config",
+        ":port_state",
         ":transceiver",
         "//fboss/lib/if:pim_state",
         "//fboss/lib/phy:phy",
@@ -145,7 +146,7 @@ thrift_library(
         "go",
         "py-deprecated",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
         "python",
     ],
@@ -164,6 +165,29 @@ thrift_library(
 )
 
 thrift_library(
+    name = "port_state",
+    go_thrift_namespaces = {
+        "port_state.thrift": "neteng.fboss.port_state",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "rust",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json,sort_keys",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"port_state.thrift": []},
+)
+
+thrift_library(
     name = "transceiver_validation",
     go_thrift_namespaces = {
         "transceiver_validation.thrift": "neteng.fboss.transceiver_validation",
@@ -173,7 +197,7 @@ thrift_library(
         "go",
         "py-deprecated",
         "py3-deprecated",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "rust",
         "python",
     ],

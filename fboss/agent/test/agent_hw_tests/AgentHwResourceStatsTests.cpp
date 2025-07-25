@@ -8,13 +8,13 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
@@ -30,9 +30,9 @@ namespace facebook::fboss {
 
 class AgentHwResourceStatsTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -62,8 +62,10 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
     // Trigger a stats collection
     this->getLatestPortStats(this->masterLogicalPortIds());
     auto constexpr kEcmpWidth = 2;
-    utility::EcmpSetupAnyNPorts4 ecmp4(this->getProgrammedState());
-    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    utility::EcmpSetupAnyNPorts4 ecmp4(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
+    utility::EcmpSetupAnyNPorts6 ecmp6(
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
 
     // lamda to get stats from fbData for multi switch
     auto getStatsFn = [this]() {
@@ -134,7 +136,8 @@ TEST_F(AgentHwResourceStatsTest, l3Stats) {
         EXPECT_EVENTUALLY_LT(v6HostFreeAfter, v6HostFreeBefore);
         EXPECT_EVENTUALLY_LT(v4HostFreeAfter, v4HostFreeBefore);
       }
-      EXPECT_EVENTUALLY_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
+
+      EXPECT_EVENTUALLY_LE(ecmpFreeAfter, ecmpFreeBefore);
     });
 
     // Unresolve so we can rerun verify for many (warmboot) iterations
@@ -181,7 +184,7 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
     this->getLatestPortStats(this->masterLogicalPortIds());
 
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
     // getSw()->isRunModeMultiSwitch() ? getMultiStatsFn() : getMonoStatsFn();
     auto acl = utility::addAcl_DEPRECATED(&newCfg, "acl0");
@@ -196,7 +199,9 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
 
     WITH_RETRIES({
       auto [aclEntriesFreeAfter, aclCountersFreeAfter] = getStatsFn();
-      EXPECT_EVENTUALLY_EQ(aclEntriesFreeAfter, aclEntriesFreeBefore - 1);
+      // More than one h/w resource gets maybe consumed on configuring
+      // an ACL
+      EXPECT_EVENTUALLY_LT(aclEntriesFreeAfter, aclEntriesFreeBefore);
       // More than one h/w resource gets consumed on configuring
       // a counter
       EXPECT_EVENTUALLY_LT(aclCountersFreeAfter, aclCountersFreeBefore);

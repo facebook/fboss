@@ -15,12 +15,12 @@
 #include <neteng/ai/te_agent/tests/TestUtils.h>
 #include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
-#include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -53,7 +53,7 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
       std::cerr << "Modify config to enable EM " << FLAGS_config << std::endl;
       auto agentConfig = AgentConfig::fromFile(FLAGS_config)->thrift;
       // setup EM config here
-      auto& bcm = *(agentConfig.platform()->chip()->bcm_ref());
+      auto& bcm = *(agentConfig.platform()->chip()->bcm());
       auto yamlCfg = bcm.yamlConfig();
       if (yamlCfg) {
         std::string emSt("fpem_mem_entries");
@@ -77,8 +77,8 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
     AgentIntegrationTest::SetUp();
   }
 
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = AgentIntegrationTest::initialConfig();
+  cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) override {
+    auto cfg = AgentIntegrationTest::initialConfig(ensemble);
     cfg::ExactMatchTableConfig tableConfig;
     tableConfig.name() = "TeFlowTable";
     tableConfig.dstPrefixLength() = 59;
@@ -137,20 +137,21 @@ class TeAgentIntegrationTest : public AgentIntegrationTest {
 
   void resolveNextHops() {
     auto ecmpHelper = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        sw()->getState(), RouterID(0));
+        getSw()->getState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
 
-    sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+    auto StateUpdateFn = [&](auto state) {
       return ecmpHelper->resolveNextHops(
           state,
-          {PortDescriptor(masterLogicalPortIds()[0]),
-           PortDescriptor(masterLogicalPortIds()[1])});
-    });
+          {PortDescriptor(getAgentEnsemble()->masterLogicalPortIds()[0]),
+           PortDescriptor(getAgentEnsemble()->masterLogicalPortIds()[1])});
+    };
+    getSw()->updateStateBlocking("Resolve nhops", std::move(StateUpdateFn));
   }
 
   void syncState() {
-    sw()->getNeighborUpdater()->waitForPendingUpdates();
-    waitForBackgroundThread(sw());
-    waitForStateUpdates(sw());
+    getSw()->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(getSw());
+    waitForStateUpdates(getSw());
   }
 
   // Make single FlowRoute
@@ -253,9 +254,18 @@ TEST_F(TeAgentIntegrationTest, teAgentRunning) {
 }
 
 TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
-  auto ports = sw()->getState()->getPorts();
-  auto ifName0 = ports->getNodeIf(PortID(masterLogicalPortIds()[0]))->getName();
-  auto ifName1 = ports->getNodeIf(PortID(masterLogicalPortIds()[1]))->getName();
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  const auto port = ensemble->masterLogicalPortIds()[0];
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+
+  auto ports = getSw()->getState()->getPorts();
+  auto ifName0 =
+      ports->getNodeIf(PortID(getAgentEnsemble()->masterLogicalPortIds()[0]))
+          ->getName();
+  auto ifName1 =
+      ports->getNodeIf(PortID(getAgentEnsemble()->masterLogicalPortIds()[1]))
+          ->getName();
 
   auto setup = [&]() {
     checkTeAgentState();
@@ -291,20 +301,24 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
 
     // Verify 2 teflow entries in wedge agent
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          utility::getNumTeFlowEntries(platform()->getHwSwitch()), 2);
+      EXPECT_EVENTUALLY_EQ(client->sync_getNumTeFlowEntries(), 2);
+      EXPECT_EVENTUALLY_TRUE(client->sync_checkSwHwTeFlowMatch(
+          getProgrammedState()
+              ->getTeFlowTable()
+              ->getNodeIf(getTeFlowStr(utility::makeFlowKey(
+                  "100::",
+                  getAgentEnsemble()->masterLogicalPortIds()[0],
+                  kPrefixLength)))
+              ->toThrift()));
+      EXPECT_EVENTUALLY_TRUE(client->sync_checkSwHwTeFlowMatch(
+          getProgrammedState()
+              ->getTeFlowTable()
+              ->getNodeIf(getTeFlowStr(utility::makeFlowKey(
+                  "101::",
+                  getAgentEnsemble()->masterLogicalPortIds()[1],
+                  kPrefixLength)))
+              ->toThrift()));
     });
-    utility::checkSwHwTeFlowMatch(
-        platform()->getHwSwitch(),
-        sw()->getState(),
-        utility::makeFlowKey(
-            "100::", masterLogicalPortIds()[0], kPrefixLength));
-    utility::checkSwHwTeFlowMatch(
-        platform()->getHwSwitch(),
-        sw()->getState(),
-        utility::makeFlowKey(
-            "101::", masterLogicalPortIds()[1], kPrefixLength));
-
     resolveNextHops();
 
     // Delete a flow and verify
@@ -322,15 +336,16 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
 
     // Verify 1 teflow entry in wedge agent
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          utility::getNumTeFlowEntries(platform()->getHwSwitch()), 1);
+      EXPECT_EVENTUALLY_EQ(client->sync_getNumTeFlowEntries(), 2);
+      EXPECT_EVENTUALLY_TRUE(client->sync_checkSwHwTeFlowMatch(
+          getProgrammedState()
+              ->getTeFlowTable()
+              ->getNodeIf(getTeFlowStr(utility::makeFlowKey(
+                  "100::",
+                  getAgentEnsemble()->masterLogicalPortIds()[0],
+                  kPrefixLength)))
+              ->toThrift()));
     });
-    utility::checkSwHwTeFlowMatch(
-        platform()->getHwSwitch(),
-        sw()->getState(),
-        utility::makeFlowKey(
-            "100::", masterLogicalPortIds()[0], kPrefixLength));
-
     // Add 2 teflow entries for warmboot verification
     teFlowRoutes =
         makeFlowRoutes(kNhopAddrA, kNhopAddrB, ifName0, ifName1, kPrefixLength);
@@ -343,9 +358,18 @@ TEST_F(TeAgentIntegrationTest, addDeleteTeFlows) {
 }
 
 TEST_F(TeAgentIntegrationTest, addTeFlowsScale) {
-  auto ports = sw()->getState()->getPorts();
-  auto ifName0 = ports->getNodeIf(PortID(masterLogicalPortIds()[0]))->getName();
-  auto ifName1 = ports->getNodeIf(PortID(masterLogicalPortIds()[1]))->getName();
+  auto ports = getSw()->getState()->getPorts();
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  const auto port = ensemble->masterLogicalPortIds()[0];
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+
+  auto ifName0 =
+      ports->getNodeIf(PortID(getAgentEnsemble()->masterLogicalPortIds()[0]))
+          ->getName();
+  auto ifName1 =
+      ports->getNodeIf(PortID(getAgentEnsemble()->masterLogicalPortIds()[1]))
+          ->getName();
 
   auto setup = [&]() {
     checkTeAgentState();
@@ -392,9 +416,7 @@ TEST_F(TeAgentIntegrationTest, addTeFlowsScale) {
     syncState();
     // Verify 9K teflow entries in wedge agent
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          utility::getNumTeFlowEntries(platform()->getHwSwitch()),
-          kTeFlowEntries);
+      EXPECT_EVENTUALLY_EQ(client->sync_getNumTeFlowEntries(), kTeFlowEntries);
     });
   };
 

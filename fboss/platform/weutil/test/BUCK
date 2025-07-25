@@ -32,3 +32,26 @@ cpp_unittest(
         "//fboss/platform/weutil:eeprom_content_validator",
     ],
 )
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/weutil:config_validator",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "fboss_eeprom_interface_test",
+    srcs = [
+        "FbossEepromInterfaceTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/weutil:fboss_eeprom_lib",
+        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
+    ],
+)

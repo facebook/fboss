@@ -5,8 +5,12 @@
 
 namespace facebook::fboss::platform::platform_manager {
 PlatformManagerHandler::PlatformManagerHandler(
-    const PlatformExplorer& platformExplorer)
-    : platformExplorer_(platformExplorer) {}
+    const PlatformExplorer& platformExplorer,
+    const DataStore& dataStore,
+    const PlatformConfig& config)
+    : platformExplorer_(platformExplorer),
+      dataStore_(dataStore),
+      platformConfig_(config) {}
 
 void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {}
 
@@ -38,6 +42,40 @@ void PlatformManagerHandler::getPmUnitInfo(
     error.message() = fmt::format(
         "Unable to get PmUnitInfo. Reason: Invalid SlotPath {}. No PmUnit was explored",
         *pmUnitInfoReq->slotPath());
+    throw error;
+  }
+}
+
+void PlatformManagerHandler::getAllPmUnits(PmUnitsResponse& response) {
+  response.pmUnits() = dataStore_.getSlotPathToPmUnitInfo();
+}
+
+void PlatformManagerHandler::getBspVersion(
+    BspVersionResponse& bspVersionResponse) {
+  bspVersionResponse.bspBaseName() = *platformConfig_.bspKmodsRpmName();
+  bspVersionResponse.bspVersion() = *platformConfig_.bspKmodsRpmVersion();
+  bspVersionResponse.kernelVersion() = system_.getHostKernelVersion();
+}
+
+void PlatformManagerHandler::getPlatformName(std::string& response) {
+  response = *platformConfig_.platformName();
+}
+
+void PlatformManagerHandler::getEepromContents(
+    EepromContentResponse& response,
+    std::unique_ptr<PmUnitInfoRequest> req) {
+  std::string slotPath = *req->slotPath();
+  if (slotPath == "") {
+    slotPath = *platformConfig_.chassisEepromDevicePath();
+  }
+  try {
+    response.eepromContents() =
+        dataStore_.getEepromContents(slotPath).getEepromContents();
+  } catch (std::exception&) {
+    auto error = PlatformManagerError();
+    error.errorCode() = PlatformManagerErrorCode::EEPROM_CONTENTS_NOT_FOUND;
+    error.message() = fmt::format(
+        "Unable to get EepromContents. Reason: Invalid SlotPath {}.", slotPath);
     throw error;
   }
 }

@@ -399,7 +399,7 @@ struct PatchApplier<apache::thrift::type_class::variant> {
       return PatchApplyResult::INVALID_PATCH_TYPE;
     }
 
-    auto variantPatch = patch.variant_node_ref();
+    auto variantPatch = patch.variant_node();
     auto key = *variantPatch->id();
     traverser.push(key);
     traverser.traverseResult(
@@ -454,12 +454,13 @@ struct PatchApplier<apache::thrift::type_class::variant> {
     fatal::foreach<descriptors>([&](auto tag) {
       using descriptor = decltype(fatal::tag_type(tag));
 
-      if (descriptor::id::value != key) {
+      if (folly::to_underlying(descriptor::id::value) != key) {
         return;
       }
 
       // switch union value to point at new path.
-      if (node.getType() != descriptor::metadata::id::value) {
+      if (folly::to_underlying(node.getType()) !=
+          descriptor::metadata::id::value) {
         descriptor::set(node);
       }
 

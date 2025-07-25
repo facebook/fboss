@@ -40,7 +40,7 @@ SaiSwitchTraits::Attributes::AttributeAclFieldListWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
-    AttributeEgressPoolAvaialableSizeIdWrapper::operator()() {
+    AttributeEgressPoolAvailableSizeIdWrapper::operator()() {
   return SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE;
 }
 
@@ -243,6 +243,26 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::ddpPacketError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DDP_PACKET_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::packetIntegrityError() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
@@ -265,7 +285,7 @@ void SwitchApi::registerSwitchEventCallback(
 
     // Register switch events
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
-    std::array<uint32_t, 10> events = {
+    std::array<uint32_t, 12> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
         SAI_SWITCH_EVENT_TYPE_STABLE_FULL,
         SAI_SWITCH_EVENT_TYPE_STABLE_ERROR,
@@ -275,7 +295,10 @@ void SwitchApi::registerSwitchEventCallback(
         SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE,
         SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED,
         SAI_SWITCH_EVENT_TYPE_REMOTE_LINK_CHANGE,
-        SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED};
+        SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED,
+        SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET,
+        SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED,
+    };
 #elif defined(BRCM_SAI_SDK_GTE_11_0)
     std::array<uint32_t, 7> events = {
         SAI_SWITCH_EVENT_TYPE_PARITY_ERROR,
@@ -528,9 +551,7 @@ SaiSwitchTraits::Attributes::AttributeFirmwareCoreTouse::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareLogFile::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-  return SAI_SWITCH_ATTR_FIRMWARE_LOG_FILE;
-#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   return SAI_SWITCH_ATTR_FIRMWARE_LOG_PATH_NAME;
 #endif
   return std::nullopt;
@@ -554,9 +575,7 @@ SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-  return SAI_SWITCH_ATTR_SDK_REG_DUMP_LOG_PATH;
-#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
 #endif
   return std::nullopt;
@@ -564,9 +583,7 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
-  return SAI_SWITCH_ATTR_FIRMWARE_OBJECT_LIST;
-#elif defined(SAI_VERSION_12_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
   return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
 #endif
   return std::nullopt;
@@ -580,12 +597,71 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return std::nullopt;
 }
 
-std::optional<sai_attr_id_t>
-SaiSwitchTraits::Attributes::AttributePfcTcDldTimerInterval::operator()() {
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributePfcTcDldTimerGranularityInterval::operator()() {
 #if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
   return SAI_SWITCH_ATTR_PFC_TC_DLD_TIMER_INTERVAL;
 #endif
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeNumberOfPipes::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_NUMBER_OF_PIPES;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePipelineObjectList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_PIPELINE_OBJECTS;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDisableSllAndHllTimeout::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeAsicRevision::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_SWITCH_ATTR_ASIC_REVISION;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeCreditRequestProfileSchedulerMode::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_CREDIT_REQUEST_PROFILE_SCHEDULER_MODE;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeModuleIdToCreditRequestProfileParamList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SWITCH_ATTR_MODULE_ID_TO_CREDIT_REQUEST_PROFILE_PARAM_LIST;
+#endif
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccCorrectableError::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccUnCorrectableError::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

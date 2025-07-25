@@ -5,6 +5,7 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/expand.hpp>
@@ -296,15 +297,20 @@ class HwLoadBalancerTestRunner {
     }
 
     auto setup = [=, this]() {
-      helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
       auto cfg = getEnsemble()->getCurrentConfig();
       if (preMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
-        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
+        cfg.udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
         utility::addFlowletConfigs(
             cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), preMode);
-        utility::addFlowletAcl(cfg);
+        utility::addFlowletAcl(
+            cfg,
+            getEnsemble()->isSai(),
+            utility::kFlowletAclName,
+            utility::kFlowletAclCounterName);
       }
       getEnsemble()->applyNewConfig(cfg);
+      helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
     };
 
     auto verify = [=, this]() {
@@ -321,10 +327,15 @@ class HwLoadBalancerTestRunner {
       auto cfg = utility::onePortPerInterfaceConfig(
           getEnsemble(), getMasterLogicalPortIds());
       if (postMode != cfg::SwitchingMode::FIXED_ASSIGNMENT) {
-        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
+        cfg.udfConfig() =
+            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
         utility::addFlowletConfigs(
             cfg, getMasterLogicalPortIds(), getEnsemble()->isSai(), postMode);
-        utility::addFlowletAcl(cfg);
+        utility::addFlowletAcl(
+            cfg,
+            getEnsemble()->isSai(),
+            utility::kFlowletAclName,
+            utility::kFlowletAclCounterName);
       }
       getEnsemble()->applyNewConfig(cfg);
     };

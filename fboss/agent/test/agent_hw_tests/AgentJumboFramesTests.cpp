@@ -33,16 +33,16 @@ namespace facebook::fboss {
 
 class AgentJumboFramesTest : public AgentHwTest {
  private:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::JUMBO_FRAMES};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::JUMBO_FRAMES};
   }
 
   void sendPkt(int payloadSize) {
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
-        utility::firstVlanIDWithPorts(getProgrammedState()),
+        getVlanIDForTx(),
         mac,
         mac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
@@ -59,13 +59,13 @@ class AgentJumboFramesTest : public AgentHwTest {
   void runJumboFrameTest(int payloadSize, bool expectPacketDrop) {
     auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
-          getProgrammedState(), RouterID(0));
+          getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
       resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     };
 
     auto verify = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
-          getProgrammedState(), RouterID(0));
+          getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
       auto port = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(port);
       auto pktsBefore = *portStatsBefore.outUnicastPkts_();

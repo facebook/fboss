@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "fboss/platform/fw_util/FwUtilVersionHandler.h"
 #include "fboss/platform/fw_util/if/gen-cpp2/fw_util_config_types.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
@@ -27,8 +28,15 @@ using namespace facebook::fboss::platform::fw_util_config;
 
 class FwUtilImpl {
  public:
-  explicit FwUtilImpl(const std::string& fwBinaryFile, bool verifySha1sum)
-      : fwBinaryFile_(fwBinaryFile), verifySha1sum_(verifySha1sum) {
+  explicit FwUtilImpl(
+      const std::string& fwBinaryFile,
+      const std::string& configFilePath,
+      bool verifySha1sum,
+      bool dryRun)
+      : fwBinaryFile_(fwBinaryFile),
+        configFilePath_(configFilePath),
+        verifySha1sum_(verifySha1sum),
+        dryRun_(dryRun) {
     init();
   }
   void doVersionAudit();
@@ -37,11 +45,8 @@ class FwUtilImpl {
   void printVersion(const std::string&);
 
  private:
-  std::string runVersionCmd(const std::string&);
   void doPreUpgrade(const std::string&);
 
-  void printAllVersions();
-  std::string getSingleVersion(const std::string&);
   void doPreUpgradeOperation(
       const PreFirmwareOperationConfig&,
       const std::string&);
@@ -64,9 +69,11 @@ class FwUtilImpl {
       const FlashromConfig&,
       std::vector<std::string>&,
       const std::string&);
+  bool
+  createCustomContentFile(const std::string&, const int&, const std::string&);
   std::string detectFlashromChip(const FlashromConfig&, const std::string&);
-  void performJamUpgrade(const JamConfig&, const std::string&);
-  void performXappUpgrade(const XappConfig&, const std::string&);
+  void performJamUpgrade(const JamConfig&);
+  void performXappUpgrade(const XappConfig&);
   void doPostUpgrade(const std::string&);
   void doPostUpgradeOperation(
       const PostFirmwareOperationConfig&,
@@ -77,14 +84,15 @@ class FwUtilImpl {
       const ReadFirmwareOperationConfig&,
       const std::string&);
   void performFlashromRead(const FlashromConfig&, const std::string&);
-  void addFileOption(const std::string&, std::vector<std::string>&);
+  void addFileOption(
+      const std::string&,
+      std::vector<std::string>&,
+      std::optional<std::string>&);
   void performFlashromVerify(const FlashromConfig&, const std::string&);
   void performVerify(const VerifyFirmwareOperationConfig&, const std::string&);
   void doWriteToPortOperation(const WriteToPortConfig&, const std::string&);
   // TODO: Remove those prototypes once we move darwin to PM and
   //  have the latest drivers running
-  std::string runVersionCmdDarwin(const std::string&);
-  void printDarwinVersion(const std::string&);
   void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
   void performI2cEepromOperation(const I2cEepromConfig&, const std::string&);
@@ -93,7 +101,9 @@ class FwUtilImpl {
   std::map<std::string, std::vector<std::string>> spiChip_;
   std::string platformName_;
   std::string fwBinaryFile_;
+  std::string configFilePath_;
   bool verifySha1sum_;
+  bool dryRun_;
 
   void init();
 
@@ -102,6 +112,7 @@ class FwUtilImpl {
   // have to take the priority into consideration
 
   std::vector<std::pair<std::string, int>> fwDeviceNamesByPrio_;
+  std::unique_ptr<FwUtilVersionHandler> fwUtilVersionHandler_;
 };
 
 } // namespace facebook::fboss::platform::fw_util

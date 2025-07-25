@@ -78,26 +78,35 @@ void AgentEnsembleLinkTest::SetUp() {
 void AgentEnsembleLinkTest::TearDown() {
   if (!FLAGS_list_production_feature) {
     // Expect the qsfp service to be running at the end of the tests
-    auto qsfpServiceClient = utils::createQsfpServiceClient();
-    EXPECT_EQ(
-        facebook::fb303::cpp2::fb_status::ALIVE,
-        qsfpServiceClient.get()->sync_getStatus())
-        << "QSFP Service no longer alive after the test";
-    EXPECT_EQ(
-        QsfpServiceRunState::ACTIVE,
-        qsfpServiceClient.get()->sync_getQsfpServiceRunState())
-        << "QSFP Service run state no longer active after the test";
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+      EXPECT_EQ(
+          facebook::fb303::cpp2::fb_status::ALIVE,
+          qsfpServiceClient.get()->sync_getStatus())
+          << "QSFP Service no longer alive after the test";
+      EXPECT_EQ(
+          QsfpServiceRunState::ACTIVE,
+          qsfpServiceClient.get()->sync_getQsfpServiceRunState())
+          << "QSFP Service run state no longer active after the test";
+
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to call qsfp_service getStatus(). " << ex.what();
+    }
 
 #ifndef IS_OSS
-    // FSDB is not fully supported in OSS
-    auto fsdbClient = utils::createFsdbClient();
-    EXPECT_EQ(
-        facebook::fb303::cpp2::fb_status::ALIVE,
-        fsdbClient.get()->sync_getStatus())
-        << "FSDB no longer alive after the test";
+    try {
+      // FSDB is not fully supported in OSS
+      auto fsdbClient = utils::createFsdbClient();
+      EXPECT_EQ(
+          facebook::fb303::cpp2::fb_status::ALIVE,
+          fsdbClient.get()->sync_getStatus())
+          << "FSDB no longer alive after the test";
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to call fsdb getStatus(). " << ex.what();
+    }
 #endif
-    AgentEnsembleTest::TearDown();
   }
+  AgentEnsembleTest::TearDown();
 }
 
 void AgentEnsembleLinkTest::checkAgentMemoryInBounds() const {
@@ -135,13 +144,9 @@ void AgentEnsembleLinkTest::overrideL2LearningConfig(
 }
 
 void AgentEnsembleLinkTest::setupTtl0ForwardingEnable() {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    // don't configure if not supported
-    return;
-  }
   auto agentConfig = AgentConfig::fromFile(FLAGS_config);
   auto newAgentConfig =
-      utility::setTTL0PacketForwardingEnableConfig(getSw(), *agentConfig);
+      utility::setTTL0PacketForwardingEnableConfig(*agentConfig);
   newAgentConfig.dumpConfig(getTestConfigPath());
   FLAGS_config = getTestConfigPath();
 }
@@ -164,7 +169,8 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
   auto swConfig = getSw()->getConfig();
   const auto& chips = getSw()->getPlatformMapping()->getChips();
   for (const auto& port : *swConfig.ports()) {
-    if (!(*port.expectedLLDPValues()).empty()) {
+    if (!(*port.expectedLLDPValues()).empty() ||
+        !(*port.expectedNeighborReachability()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.push_back(PortID(portID));
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
@@ -177,6 +183,7 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
           utility::getTransceiverId(platformPortEntry->second, chips);
       if (transceiverID.has_value()) {
         cabledTransceivers_.insert(*transceiverID);
+        cabledTransceiverPorts_.emplace_back(portID);
       }
     }
   }
@@ -188,7 +195,7 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
   std::string portNames;
   std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     // TODO to find equivalent to getPlatformPort
     auto tcvrId =
@@ -197,7 +204,7 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
   }
 
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-  for (const auto& port : getCabledPorts()) {
+  for (const auto& port : getCabledTransceiverPorts()) {
     auto portName = getPortName(port);
     auto tcvrId =
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);
@@ -239,14 +246,24 @@ const std::vector<PortID>& AgentEnsembleLinkTest::getCabledPorts() const {
   return cabledPorts_;
 }
 
+const std::vector<PortID>& AgentEnsembleLinkTest::getCabledTransceiverPorts()
+    const {
+  return cabledTransceiverPorts_;
+}
+
 boost::container::flat_set<PortDescriptor>
-AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts() const {
+AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts(
+    std::optional<SwitchID> switchId) const {
   boost::container::flat_set<PortDescriptor> ecmpPorts;
   auto singleVlanOrRoutedPorts =
       utility::getSingleVlanOrRoutedCabledPorts(getSw());
   for (auto port : getCabledPorts()) {
+    auto matcher = getSw()->getScopeResolver()->scope(
+        getSw()->getState(), PortDescriptor(port));
+    SwitchID portSwitchId = matcher.switchId();
     if (singleVlanOrRoutedPorts.find(PortDescriptor(port)) !=
-        singleVlanOrRoutedPorts.end()) {
+            singleVlanOrRoutedPorts.end() &&
+        (switchId == std::nullopt || portSwitchId == switchId.value())) {
       ecmpPorts.insert(PortDescriptor(port));
     }
   }
@@ -269,7 +286,8 @@ void AgentEnsembleLinkTest::programDefaultRoute(
 void AgentEnsembleLinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
-  utility::EcmpSetupTargetedPorts6 ecmp6(getSw()->getState(), dstMac);
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      getSw()->getState(), getSw()->needL2EntryForNeighbor(), dstMac);
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -277,12 +295,12 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
   auto switchId = scope(ecmpPorts);
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), getSw()->getLocalMac(switchId));
+      getSw()->getState(),
+      getSw()->needL2EntryForNeighbor(),
+      getSw()->getLocalMac(switchId));
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(getSw(), ecmpPorts);
-  auto vlanID = utility::getFirstMap(getSw()->getState()->getVlans())
-                    ->cbegin()
-                    ->second->getID();
+  auto vlanID = getAgentEnsemble()->getVlanIDForTx();
   utility::pumpTraffic(
       true,
       utility::getAllocatePktFn(getSw()),
@@ -392,14 +410,12 @@ AgentEnsembleLinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     phy::Side side,
     bool skipLoopback) const {
   auto connectedPairs = getConnectedPairs();
-  auto opticalPorts =
-      std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
+  auto ports = std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {
-    if (std::find(
-            opticalPorts.begin(), opticalPorts.end(), connectedPair.first) !=
-        opticalPorts.end()) {
+    if (std::find(ports.begin(), ports.end(), connectedPair.first) !=
+        ports.end()) {
       if (connectedPair.first == connectedPair.second && skipLoopback) {
         continue;
       }

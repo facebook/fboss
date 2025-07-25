@@ -16,7 +16,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowHwObjectTraits : public BaseCommandTraits {
+struct CmdShowHwObjectTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST;
   using ObjectArgType = utils::HwObjectList;

@@ -13,6 +13,18 @@ class MockPlatformUtils : public PlatformUtils {
       (std::pair<int, std::string>),
       execCommand,
       (const std::string&),
-      (const));
+      (const, override));
+
+  MOCK_METHOD(
+      (std::pair<int, std::string>),
+      runCommand,
+      (const std::vector<std::string>&),
+      (const, override));
+
+  MOCK_METHOD(
+      (std::pair<int, std::string>),
+      runCommandWithStdin,
+      (const std::vector<std::string>&, const std::string&),
+      (const, override));
 };
 } // namespace facebook::fboss::platform

@@ -76,11 +76,11 @@ void visitNode(
 inline bool matchesStrToken(
     const std::string& tok,
     const fsdb::OperPathElem& elem) {
-  if (elem.any_ref()) {
+  if (elem.any()) {
     return true;
-  } else if (auto raw = elem.raw_ref()) {
+  } else if (auto raw = elem.raw()) {
     return *raw == tok;
-  } else if (auto regex = elem.regex_ref()) {
+  } else if (auto regex = elem.regex()) {
     return re2::RE2::FullMatch(tok, *regex);
   }
   return false;
@@ -340,11 +340,11 @@ struct ExtendedPathVisitor<
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
     const auto& elem = *begin++;
-    if (elem.raw_ref()) {
+    if (elem.raw()) {
       using KeyT = typename folly::remove_cvref_t<decltype(node)>::key_type;
-      auto key = folly::to<KeyT>(*elem.raw_ref());
+      auto key = folly::to<KeyT>(*elem.raw());
       if (node.find(key) != node.end()) {
-        path.push_back(folly::to<std::string>(*elem.raw_ref()));
+        path.push_back(folly::to<std::string>(*elem.raw()));
         ExtendedPathVisitor<MappedTypeClass>::visit(
             path, node.at(key), begin, end, options, std::forward<Func>(f));
         path.pop_back();
@@ -376,12 +376,12 @@ struct ExtendedPathVisitor<
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     const auto& elem = *begin++;
-    if (elem.raw_ref()) {
+    if (elem.raw()) {
       using KeyT =
           typename folly::remove_cvref_t<decltype(node.ref())>::key_type;
-      auto key = folly::to<KeyT>(*elem.raw_ref());
+      auto key = folly::to<KeyT>(*elem.raw());
       if (node.ref().find(key) != node.ref().end()) {
-        path.push_back(folly::to<std::string>(*elem.raw_ref()));
+        path.push_back(folly::to<std::string>(*elem.raw()));
         ExtendedPathVisitor<MappedTypeClass>::visit(
             path,
             node.ref().at(key),
@@ -420,11 +420,11 @@ struct ExtendedPathVisitor<
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     const auto& elem = *begin++;
-    if (elem.raw_ref()) {
+    if (elem.raw()) {
       using KeyT = typename folly::remove_cvref_t<decltype(fields)>::key_type;
-      auto key = folly::to<KeyT>(*elem.raw_ref());
+      auto key = folly::to<KeyT>(*elem.raw());
       if (fields.find(key) != fields.end()) {
-        path.push_back(folly::to<std::string>(*elem.raw_ref()));
+        path.push_back(folly::to<std::string>(*elem.raw()));
         auto& val = fields.ref(key);
 
         // ensure we propagate constness, since children will have type
@@ -523,7 +523,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
     const auto& elem = *begin++;
-    auto raw = elem.raw_ref();
+    auto raw = elem.raw();
     if (!raw) {
       // Error! wildcards not supported for enum or struct
       return;
@@ -536,7 +536,8 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
       using name = typename descriptor::metadata::name;
       using tc = typename descriptor::metadata::type_class;
 
-      if (fields.type() != descriptor::metadata::id::value) {
+      if (folly::to_underlying(fields.type()) !=
+          descriptor::metadata::id::value) {
         // TODO: error handling
         return;
       }
@@ -608,10 +609,18 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Func&& f)
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
-    using Members = typename apache::thrift::reflect_struct<Node>::members;
+    if (begin == end) {
+      // Node is not a Serializable, dispatch with wrapper
+      SerializableWrapper<TC, Node> wrapper(node);
+      f(path, wrapper);
+      return;
+    }
+
+    using Members = typename apache::thrift::reflect_struct<
+        std::remove_cv_t<Node>>::members;
 
     const auto& elem = *begin++;
-    auto raw = elem.raw_ref();
+    auto raw = elem.raw();
     if (!raw) {
       // Error! wildcards not supported for enum or struct
       return;
@@ -655,7 +664,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
     using Members = typename apache::thrift::reflect_struct<T>::members;
 
     const auto& elem = *begin++;
-    auto raw = elem.raw_ref();
+    auto raw = elem.raw();
     if (!raw) {
       // Error! wildcards not supported for enum or struct
       return;
@@ -699,7 +708,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
     using Members = typename Fields::Members;
 
     const auto& elem = *begin++;
-    auto raw = elem.raw_ref();
+    auto raw = elem.raw();
     if (!raw) {
       // Error! wildcards not supported for enum or struct
       return;
@@ -762,8 +771,26 @@ struct ExtendedPathVisitor {
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
       const ExtPathVisitorOptions& /* options */,
-      Func&& f) {
+      Func&& f)
+    requires(is_cow_type_v<Node>)
+  {
     f(path, node);
+  }
+
+  template <typename Node, typename Func>
+  static void visit(
+      std::vector<std::string>& path,
+      Node& node,
+      epv_detail::ExtPathIter begin,
+      epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& /* options */,
+      Func&& f)
+    requires(!is_cow_type_v<Node>)
+  {
+    // Node is not a Serializable, dispatch with wrapper
+    SerializableWrapper<TC, std::remove_const_t<Node>> wrapper(
+        *const_cast<std::remove_const_t<Node>*>(&node));
+    f(path, wrapper);
   }
 };
 

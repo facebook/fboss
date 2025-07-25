@@ -161,6 +161,8 @@ HwPortStats getInitedStats() {
        {5, 6},
        {6, 7},
        {7, 8}}, // pgInCongestionDiscards_
+      29, // pfcDeadlockDetection_
+      30, // pfcDeadlockRecovery_
   };
 }
 
@@ -169,6 +171,8 @@ HwPortStats resetOptionals(HwPortStats stats) {
   stats.inAclDiscards_().reset();
   stats.inTrapDiscards_().reset();
   stats.outForwardingDiscards_().reset();
+  stats.pfcDeadlockDetection_().reset();
+  stats.pfcDeadlockRecovery_().reset();
   return stats;
 }
 
@@ -255,6 +259,8 @@ HwPortStats getEmptyStats() {
   for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
     empty.pgInCongestionDiscards_()[i] = 0;
   }
+  empty.pfcDeadlockDetection_() = 0;
+  empty.pfcDeadlockRecovery_() = 0;
   return empty;
 }
 

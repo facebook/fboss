@@ -14,6 +14,8 @@ namespace facebook::fboss::platform {
 class ConfigLib {
  public:
   virtual ~ConfigLib() = default;
+  explicit ConfigLib(const std::string& configFilePath = "")
+      : configFilePath_(configFilePath) {}
   virtual std::string getSensorServiceConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
 
@@ -31,6 +33,16 @@ class ConfigLib {
 
   virtual std::string getLedManagerConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
+
+  virtual std::string getBspTestConfig(
+      const std::optional<std::string>& platformName = std::nullopt) const;
+
+  virtual std::string getShowtechConfig(
+      const std::optional<std::string>& platformName = std::nullopt) const;
+
+ protected:
+  std::string configFilePath_;
+  std::optional<std::string> getConfigFromFile() const;
 };
 
 } // namespace facebook::fboss::platform

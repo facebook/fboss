@@ -16,7 +16,7 @@
 
 namespace facebook::fboss::utility {
 uint32_t getEgressSharedPoolLimitBytes(HwSwitch* hwSwitch) {
-  SaiSwitchTraits::Attributes::EgressPoolAvaialableSize sz{};
+  SaiSwitchTraits::Attributes::EgressPoolAvailableSize sz{};
   const auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
   SwitchSaiId switchId =
       saiSwitch->managerTable()->switchManager().getSwitchSaiId();

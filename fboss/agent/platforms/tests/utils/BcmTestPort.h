@@ -19,7 +19,7 @@ class BcmTestPlatform;
 
 class BcmTestPort : public BcmPlatformPort {
  public:
-  BcmTestPort(PortID id, BcmTestPlatform* platform);
+  BcmTestPort(const PortID& id, BcmTestPlatform* platform);
   void setBcmPort(BcmPort* port) override;
   BcmPort* getBcmPort() const override {
     return bcmPort_;

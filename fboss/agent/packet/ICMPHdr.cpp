@@ -18,7 +18,6 @@
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
-#include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PktUtil.h"
 
 namespace facebook::fboss {

@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 namespace facebook::fboss {
@@ -95,7 +94,7 @@ class HwMirrorTest : public HwTest {
     cfg::Mirror mirror;
     cfg::MirrorDestination destination;
     destination.egressPort() = cfg::MirrorEgressPort();
-    destination.egressPort()->logicalID_ref() = masterLogicalPortIds()[0];
+    destination.egressPort()->logicalID() = masterLogicalPortIds()[0];
 
     cfg::Mirror mirrorConfig;
     mirrorConfig.name() = mirrorName;

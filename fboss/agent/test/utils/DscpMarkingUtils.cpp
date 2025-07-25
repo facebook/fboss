@@ -10,9 +10,9 @@
 
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
@@ -53,8 +53,14 @@ uint8_t kIcpDscp() {
       .front();
 }
 
+uint8_t kNcnfDscp() {
+  return utility::kOlympicV2QueueToDscp()
+      .at(utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NCNF))
+      .front();
+}
+
 std::string
-getDscpAclName(IP_PROTO proto, std::string direction, uint32_t port) {
+getDscpAclName(IP_PROTO proto, const std::string& direction, uint32_t port) {
   return folly::to<std::string>(
       "dscp-mark-for-proto-",
       static_cast<int>(proto),
@@ -62,6 +68,10 @@ getDscpAclName(IP_PROTO proto, std::string direction, uint32_t port) {
       direction,
       "-port-",
       port);
+}
+
+std::string getDscpReclassificationAclName() {
+  return "dscp_reclassification";
 }
 
 void addDscpMarkingAclsHelper(
@@ -93,6 +103,22 @@ void addDscpMarkingAclsHelper(
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
   }
+}
+
+void addDscpReclassificationAcls(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig* config,
+    const PortID& portId) {
+  auto acl = cfg::AclEntry();
+  acl.srcPort() = portId;
+  acl.dscp() = kNcnfDscp();
+  acl.name() = getDscpReclassificationAclName();
+
+  // To overcome DNX crash, add etherType to ACL
+  utility::addEtherTypeToAcl(hwAsic, &acl, cfg::EtherType::IPv6);
+  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
+  utility::addSetDscpActionToCfg(
+      config, getDscpReclassificationAclName(), kIcpDscp());
 }
 
 void addDscpMarkingAcls(
@@ -150,7 +176,7 @@ void addDscpMarkingAclsTableHelper(
       config->switchSettings()->switchIdToSwitchInfo().value(),
       std::nullopt,
       *config->dsfNodes());
-  auto asicType = utility::checkSameAndGetAsicType(*config);
+  auto asicType = checkSameAndGetAsicType(*config);
   for (auto port : ports) {
     cfg::AclEntry dscpSrcMarkingAcl;
     dscpSrcMarkingAcl.name() = getDscpAclName(proto, "src", port);
@@ -163,7 +189,7 @@ void addDscpMarkingAclsTableHelper(
     addAclEntry(config, dscpSrcMarkingAcl, aclTableName);
 
     utility::addSetDscpAndEgressQueueActionToCfg(
-        utility::checkSameAndGetAsic(asicTable.getL3Asics()),
+        checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
         *dscpSrcMarkingAcl.name(),
         kIcpDscp(),
@@ -180,7 +206,7 @@ void addDscpMarkingAclsTableHelper(
     }
     utility::addAclEntry(config, dscpDstMarkingAcl, aclTableName);
     utility::addSetDscpAndEgressQueueActionToCfg(
-        utility::checkSameAndGetAsic(asicTable.getL3Asics()),
+        checkSameAndGetAsic(asicTable.getL3Asics()),
         config,
         *dscpDstMarkingAcl.name(),
         kIcpDscp(),
@@ -238,6 +264,9 @@ void addDscpAclTable(
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
     qualifiers.push_back(cfg::AclTableQualifier::DSCP);
   }
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
+    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
+  }
   utility::addAclTable(
       config,
       getDscpAclTableName(),
@@ -247,10 +276,6 @@ void addDscpAclTable(
        cfg::AclTableActionType::SET_TC,
        cfg::AclTableActionType::SET_DSCP},
       qualifiers);
-  if (hwAsic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-    qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
-  }
-
   addDscpAclEntryWithCounter(config, getDscpAclTableName(), isSai);
 }
 } // namespace facebook::fboss::utility

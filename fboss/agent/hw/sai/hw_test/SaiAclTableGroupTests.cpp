@@ -61,11 +61,6 @@ class SaiAclTableGroupTest : public HwTest {
   }
 
   bool isSupported(HwAsic::Feature feature) const {
-#if defined(TAJO_SDK_VERSION_1_42_8)
-    if (feature == HwAsic::Feature::MULTIPLE_ACL_TABLES) {
-      return false;
-    }
-#endif
     return HwTest::isSupported(feature);
   }
 
@@ -75,6 +70,13 @@ class SaiAclTableGroupTest : public HwTest {
     std::vector<cfg::AclTableActionType> actions = {
         cfg::AclTableActionType::PACKET_ACTION,
         cfg::AclTableActionType::COUNTER};
+    /*
+     * Tajo Asic needs a key profile to be set which is supposed to be a
+     * superset of all the qualifiers/action types of all the tables. If key
+     * profile is absent, the first table's attributes will be taken as the
+     * key profile. Hence, the first table is always set with the superset of
+     * qualifiers.
+     */
 #if defined(TAJO_SDK_GTE_24_8_3001)
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
     actions.push_back(cfg::AclTableActionType::COUNTER);
@@ -158,7 +160,7 @@ class SaiAclTableGroupTest : public HwTest {
   }
 
   std::string kQphDscpTable() const {
-    return "qph_dscp_table";
+    return "acl-table-qph-dscp";
   }
 
   std::string kDscpTable() const {
@@ -248,6 +250,10 @@ class SaiAclTableGroupTest : public HwTest {
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
+#if defined(TAJO_SDK_GTE_24_8_3001)
+    qualifiers.push_back(cfg::AclTableQualifier::TTL);
+#endif
+
     // Table 1: For QPH and Dscp Acl.
     utility::addAclTable(
         newCfg,
@@ -297,6 +303,10 @@ class SaiAclTableGroupTest : public HwTest {
        */
       qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN);
     }
+
+#if defined(TAJO_SDK_GTE_24_8_3001)
+    qualifiers.push_back(cfg::AclTableQualifier::TTL);
+#endif
 
     // Table 1: For QPH and Dscp Acl.
     utility::addAclTable(

@@ -35,3 +35,10 @@ struct PresenceDetection {
   1: optional GpioLineHandle gpioLineHandle;
   2: optional SysfsFileHandle sysfsFileHandle;
 }
+
+// Wrapper for presence detection information
+struct PresenceInfo {
+  1: PresenceDetection presenceDetection;
+  2: i16 actualValue;
+  3: bool isPresent;
+}

@@ -4,10 +4,12 @@
 #include <boost/filesystem/operations.hpp>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <chrono>
 #include <cstdio>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <thread>
 #include "fboss/agent/SysError.h"
 
 #include <fcntl.h>
@@ -15,21 +17,38 @@
 namespace facebook::fboss {
 
 bool removeFile(const std::string& filename, bool log) {
-  int rv = unlink(filename.c_str());
-  if (log) {
-    XLOG(INFO) << filename << ((rv == 0) ? " did exist" : " did not exist");
+  int attempt = 0;
+  int maxAttempts = 3; // max number of retries in case of EAGAIN
+  while (attempt < maxAttempts) {
+    int rv = unlink(filename.c_str());
+    if (rv == 0) {
+      XLOG_IF(INFO, log) << filename << " did exist";
+      return true;
+    }
+    if (errno == ENOENT) {
+      XLOG_IF(INFO, log) << filename << " did not exist";
+      return false;
+    } else if (errno == EAGAIN) {
+      // Resource temporarily unavailable, Try again
+      // We'll retry up to maxAttempts times before giving up.
+      XLOG(WARN) << "Got EAGAIN while trying to remove " << filename
+                 << " ,retrying again";
+      /* sleep override */
+      std::this_thread::sleep_for(std::chrono::milliseconds(40));
+      attempt++;
+      continue;
+    } else {
+      // Some other unexpected error.
+      throw SysError(errno, "error while trying to remove file: ", filename);
+    }
   }
-
-  if (rv == 0) {
-    // The file existed and we successfully removed it.
-    return true;
-  }
-  if (errno == ENOENT) {
-    // The file wasn't present.
-    return false;
-  }
-  // Some other unexpected error.
-  throw SysError(errno, "error while trying to remove file: ", filename);
+  // If we reach this point, it means we've surpassed our max attempts.
+  // Re-throw the last error as a SysError exception.
+  throw SysError(
+      errno,
+      "failed to remove file after " + std::to_string(maxAttempts) +
+          " attempts",
+      filename);
 }
 
 int createFile(const std::string& filename) {

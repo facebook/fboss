@@ -45,7 +45,9 @@ class SaiElbert8DDPhyPlatform : public SaiPlatform {
 
   const std::set<sai_api_t>& getSupportedApiList() const override;
 
-  void preHwInitialized() override;
+  void preHwInitialized(bool warmboot) override;
+
+  void initSaiProfileValues(bool warmboot);
 
   SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       bool /*mandatoryOnly*/,

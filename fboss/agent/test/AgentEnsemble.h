@@ -42,6 +42,7 @@ class AgentEnsemble : public TestEnsembleIf {
   virtual ~AgentEnsemble() override;
   using TestEnsembleIf::masterLogicalPortIds;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
+  using TestEnsembleIf::getLatestInterfaceStats;
   using TestEnsembleIf::getLatestPortStats;
   using TestEnsembleIf::getLatestSysPortStats;
 
@@ -122,6 +123,7 @@ class AgentEnsemble : public TestEnsembleIf {
       const utility::RouteDistributionGenerator::ThriftRouteChunks&
           routeChunks);
 
+  void stopStatsThread();
   void gracefulExit();
 
   static void enableExactMatch(bcm::BcmConfig& config);
@@ -136,8 +138,8 @@ class AgentEnsemble : public TestEnsembleIf {
       PortID port,
       bool up,
       cfg::PortType portType,
-      std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
-          std::nullopt) override {
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt,
+      std::optional<AggregatePortID> aggPortId = std::nullopt) override {
     if (linkToggler_ &&
         getSw()->getSwitchRunState() >= SwitchRunState::CONFIGURED) {
       linkToggler_->linkStateChanged(port, up);
@@ -189,6 +191,9 @@ class AgentEnsemble : public TestEnsembleIf {
 
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
+
+  std::map<InterfaceID, HwRouterInterfaceStats> getLatestInterfaceStats(
+      const std::vector<InterfaceID>& interfaces) override;
 
   std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports) override;
@@ -296,6 +301,77 @@ class AgentEnsemble : public TestEnsembleIf {
     return configFile_;
   }
 
+  bool needL2EntryForNeighbor() const override {
+    return getSw()->needL2EntryForNeighbor();
+  }
+
+  std::optional<VlanID> getVlanIDForTx() const override;
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID switchId) const override;
+
+  /**
+   * Retrieves monitoring counters that match a given regex pattern for a
+   * specific port.
+   *
+   * * @details
+   * Works in both mono-switch and multi-switch environments:
+   *
+   * @param portId - The identifier of the port for which to retrieve counters.
+   * @param regex - The regex pattern to match against the monitoring counters.
+   * @return A map of counter names to their respective values that match the
+   * regex.
+   */
+  std::map<std::string, int64_t> getFb303CountersByRegex(
+      const PortID& portId,
+      const std::string& regex);
+
+  /**
+   * Retrieves monitoring counters that match a given regex pattern for a
+   * specific switch.
+   *
+   * @details
+   * Works in both mono-switch and multi-switch environments.
+   * @param regex The regex pattern to match against the counter names.
+   * @param switchID The ID of the switch for which to retrieve counters.
+   *
+   * @return A map of counter names to their respective values that match the
+   * regex pattern.
+   */
+  std::map<std::string, int64_t> getFb303RegexCounters(
+      const std::string& regex,
+      const SwitchID& switchID);
+
+  /**
+   * Retrieves the value of a specific fb303 counter for a given switch.
+   *
+   * @details
+   * Works in both mono-switch and multi-switch environments.
+   *
+   * @param key The name of the counter to retrieve.
+   * @param switchID The ID of the switch for which to retrieve the counter.
+   *
+   * @return The value of the specified counter.
+   */
+  int64_t getFb303Counter(const std::string& key, const SwitchID& switchID);
+
+  /**
+   * Retrieves the value of the first counter that matches a given regex
+   * pattern for a specific port.
+   *
+   * @details
+   * Works in both mono-switch and multi-switch environments.
+   *
+   * @param portId The ID of the port for which to retrieve the counter.
+   * @param regex The regex pattern to match against counter names.
+   *
+   * @return The value of the first matching counter if one exists,
+   * otherwise nullopt.
+   */
+  std::optional<int64_t> getFb303CounterIfExists(
+      const PortID& portId,
+      const std::string& regex);
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {
@@ -316,6 +392,14 @@ class AgentEnsemble : public TestEnsembleIf {
       PortID port,
       uint64_t desiredBps,
       int secondsToWaitPerIteration = 2);
+
+  /**
+   * Creates an overridden AgentConfig object by incorporating the overridden
+   * initial configuration  and command line args, with the platform config from
+   * the test configuration in configerator. This config is dumped for hw-agents
+   * and for some warmboot tests.
+   */
+  void createAndDumpOverriddenAgentConfig();
 
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};

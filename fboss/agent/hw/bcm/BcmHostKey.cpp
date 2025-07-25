@@ -33,7 +33,7 @@ BcmHostKey::BcmHostKey(
 }
 
 std::string BcmHostKey::str() const {
-  std::string intfStr = "";
+  std::string intfStr;
   if (intfID_) {
     intfStr = folly::to<std::string>("@I", intfID_.value());
   }

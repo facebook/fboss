@@ -39,6 +39,10 @@ class SaiVendorSwitchManager {
   const std::string getVendorSwitchEventName(uint32_t eventId);
   void incrementInterruptEventCounter(uint32_t eventId);
   const std::string getCgmDropReasonName(int reason) const;
+  void initWarningInterruptEvents();
+  void logVendorSwitchEvent(uint32_t eventId, uint32_t time);
+  int getNumberOfVendorSwitchInterruptEventsIds() const;
+  bool isVendorSwitchWarningEventId(uint32_t eventId) const;
 
  private:
   SaiStore* saiStore_;
@@ -47,6 +51,11 @@ class SaiVendorSwitchManager {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   std::shared_ptr<SaiVendorSwitch> vendorSwitch_;
 #endif
+  // Identify interrupts which are warning interrupts to
+  // differentiate it from critical error interrupts.
+  std::vector<uint32_t> warningInterrupts_;
+  // Keep track of the last time a specific interrupt was seen
+  std::vector<uint32_t> lastInterruptEventTime_;
 };
 
 } // namespace facebook::fboss

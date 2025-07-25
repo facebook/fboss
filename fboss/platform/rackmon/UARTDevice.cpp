@@ -1,5 +1,4 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include <fcntl.h>
 #include <linux/serial.h>
 #include <pthread.h>
 #include <sys/ioctl.h>

@@ -10,10 +10,10 @@
 
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QueueTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -185,7 +185,7 @@ void addQueueShaperConfig(
   kbpsRange.maximum() = maxKbps;
   auto& queue = getPortQueueConfig(*config, queueId, false /* isVoq */);
   queue.portQueueRate() = cfg::PortQueueRate();
-  queue.portQueueRate()->kbitsPerSec_ref() = kbpsRange;
+  queue.portQueueRate()->kbitsPerSec() = kbpsRange;
 }
 
 void addQueueBurstSizeConfig(

@@ -71,7 +71,7 @@ void ReconnectingThriftClient::setState(State state) {
   }
   if (state == State::CONNECTING) {
 #if FOLLY_HAS_COROUTINES
-    serviceLoopScope_.add(serviceLoopWrapper().scheduleOn(streamEvb_));
+    serviceLoopScope_.add(co_withExecutor(streamEvb_, serviceLoopWrapper()));
 #endif
   } else if (state == State::CONNECTED) {
     fb303::fbData->setCounter(getConnectedCounterName(), 1);

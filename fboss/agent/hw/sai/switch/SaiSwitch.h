@@ -24,6 +24,9 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+
+#include <folly/concurrency/ConcurrentHashMap.h>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -93,7 +96,7 @@ class SaiSwitch : public HwSwitch {
   }
 
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const StateDelta& delta) override;
+      const std::vector<StateDelta>& deltas) override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
@@ -119,6 +122,13 @@ class SaiSwitch : public HwSwitch {
   CpuPortStats getCpuPortStats() const override;
   HwSwitchDropStats getSwitchDropStats() const override;
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
+
+  std::map<int, cfg::PortState> getSysPortShelState() const override;
+
+  folly::F14FastMap<std::string, HwRouterInterfaceStats>
+  getRouterInterfaceStats() const override;
 
   HwResourceStats getResourceStats() const override;
 
@@ -148,6 +158,9 @@ class SaiSwitch : public HwSwitch {
   void linkStateChangedCallbackTopHalf(
       uint32_t count,
       const sai_port_oper_status_notification_t* data);
+  void syncPortLinkState(PortID portId) override;
+  void linkStateChangedBottomHalf(const PortID& portId);
+
   void fdbEventCallback(
       uint32_t count,
       const sai_fdb_event_notification_data_t* data);
@@ -163,6 +176,9 @@ class SaiSwitch : public HwSwitch {
       sai_size_t bufferSize,
       const void* buffer,
       uint32_t eventType);
+  void hardResetSwitchEventNotificationCallback(
+      sai_size_t bufferSize,
+      const void* buffer);
 
   void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
   void linkConnectivityChanged(
@@ -251,6 +267,15 @@ class SaiSwitch : public HwSwitch {
 
   bool getArsExhaustionStatus() override;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override;
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  void switchAsicSdkHealthNotificationTopHalf(
+      SaiHealthNotification saiHealthNotification);
+#endif
+
  private:
   void gracefulExitImpl() override;
 
@@ -320,9 +345,12 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::vector<L2EntryThrift>* l2Table) const;
 
-  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked() const;
+  const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked(
+      const std::lock_guard<std::mutex>& lock) const;
 
-  std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
+  std::vector<PortID> getSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      SwitchID switchId) const;
   std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
   getVirtualDeviceToRemoteConnectionGroupsLocked(
       const std::lock_guard<std::mutex>& lock) const;
@@ -331,6 +359,14 @@ class SaiSwitch : public HwSwitch {
 
   folly::dynamic toFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;
+
+  folly::dynamic sysPortShelStateToFollyDynamicLocked(
+      const std::lock_guard<std::mutex>& lock) const;
+
+  void reconstructSysPortShelStateLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const folly::dynamic& shelStateJson,
+      folly::ConcurrentHashMap<SystemPortID, cfg::PortState>& sysPortShelState);
 
   void switchRunStateChangedImplLocked(
       const std::lock_guard<std::mutex>& lock,
@@ -360,6 +396,13 @@ class SaiSwitch : public HwSwitch {
   void initSwitchReachabilityChangeLocked(
       const std::lock_guard<std::mutex>& lock);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  void switchAsicSdkHealthNotificationBottomHalf(
+      SaiHealthNotification saiHealthNotification);
+
+  void initSwitchAsicSdkHealthNotificationLocked(
+      const std::lock_guard<std::mutex>& lock);
+#endif
   bool isFeatureSetupLocked(
       FeaturesDesired feature,
       const std::lock_guard<std::mutex>& lock) const;
@@ -369,6 +412,9 @@ class SaiSwitch : public HwSwitch {
 
   std::map<std::string, HwSysPortStats> getSysPortStatsLocked(
       const std::lock_guard<std::mutex>& lock) const;
+  folly::F14FastMap<std::string, HwRouterInterfaceStats>
+  getRouterInterfaceStatsLocked(const std::lock_guard<std::mutex>& lock) const;
+
   std::map<PortID, phy::PhyInfo> updateAllPhyInfoLocked();
 
   void updatePmdInfo(
@@ -432,11 +478,20 @@ class SaiSwitch : public HwSwitch {
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
 
+  void processPortStateChangedForSwitchReachabilityLocked(
+      const std::lock_guard<std::mutex>& lock,
+      const StateDelta& delta);
+
   void syncLinkStatesLocked(const std::lock_guard<std::mutex>& lock);
   void syncLinkConnectivityLocked(const std::lock_guard<std::mutex>& lock);
 
   template <typename LockPolicyT>
   void processLocalCapsuleSwitchIdsDelta(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT>
+  void processCreditRequestProfileDelta(
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
 
@@ -527,6 +582,11 @@ class SaiSwitch : public HwSwitch {
       cfg::SwitchDrainState drainStateToProcess,
       const LockPolicyT& lockPolicy);
 
+  template <typename LockPolicyT>
+  void processPortStateChangedForSwitchReachability(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
+
   PortSaiId getCPUPortSaiId() const;
 
   void packetRxCallbackPort(
@@ -568,12 +628,13 @@ class SaiSwitch : public HwSwitch {
   void initialStateApplied() override;
 
   template <typename LockPolicyT>
-  void processFlowletSwitchingConfigDelta(
+  void processFlowletSwitchingConfigAdded(
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
-  void processFlowletSwitchingConfigDeltaLocked(
+  template <typename LockPolicyT>
+  void processFlowletSwitchingConfigChanged(
       const StateDelta& delta,
-      const std::lock_guard<std::mutex>& lock);
+      const LockPolicyT& lockPolicy);
 
   template <typename LockPolicyT>
   void processPfcWatchdogGlobalDelta(
@@ -645,6 +706,11 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<std::thread> switchReachabilityChangeProcessThread_;
   FbossEventBase switchReachabilityChangeProcessEventBase_{
       "SwitchReachabilityChangeBottomHalfEventBase"};
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  std::unique_ptr<std::thread> switchAsicSdkHealthNotificationBHThread_;
+  FbossEventBase switchAsicSdkHealthNotificationBHEventBase_{
+      "SwitchAsicSdkHealthNotificationEventBase"};
+#endif
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
@@ -659,6 +725,7 @@ class SaiSwitch : public HwSwitch {
   bool pfcDeadlockEnabled_{false};
   folly::Synchronized<int> switchReachabilityChangePending_{0};
   folly::Synchronized<bool> txReadyStatusChangePending_{false};
+  std::optional<uint32_t> asicRevision_;
 };
 
 } // namespace facebook::fboss

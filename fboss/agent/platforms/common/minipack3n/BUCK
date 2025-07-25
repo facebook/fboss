@@ -5,7 +5,7 @@ oncall("fboss_agent_push")
 cpp_library(
     name = "minipack3n_platform_mapping",
     srcs = [
-        "facebook/Minipack3NPlatformMapping.cpp",
+        "Minipack3NPlatformMapping.cpp",
     ],
     headers = [
         "Minipack3NPlatformMapping.h",

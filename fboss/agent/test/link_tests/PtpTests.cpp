@@ -13,8 +13,6 @@
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 
-#include "common/process/Process.h"
-
 using namespace facebook::fboss;
 
 constexpr int kStartTtl = 3;
@@ -34,7 +32,7 @@ class PtpTests : public LinkTest {
       PTPMessageType ptpType) {
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
-    auto vlan = utility::firstVlanIDWithPorts(sw()->getState());
+    auto vlan = getVlanIDForTx();
     // TODO: Remove the dependency on VLAN below
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
@@ -218,7 +216,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
-
+  setPtpTcEnable(true);
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
 }
 

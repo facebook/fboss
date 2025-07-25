@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fboss/thrift_cow/nodes/Serializer.h>
 #include <fboss/thrift_cow/nodes/Types.h>
 #include <fboss/thrift_cow/storage/Storage.h>
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
@@ -14,10 +15,13 @@ namespace facebook::fboss::fsdb {
 namespace detail {
 
 std::optional<StorageError> parseTraverseResult(
-    thrift_cow::ThriftTraverseResult traverseResult);
+    const thrift_cow::ThriftTraverseResult& traverseResult);
 
 std::optional<StorageError> parsePatchResult(
-    thrift_cow::PatchApplyResult patchResult);
+    thrift_cow::PatchApplyResult patchResult,
+    std::optional<std::pair<
+        thrift_cow::pv_detail::PathIter,
+        thrift_cow::pv_detail::PathIter>> errorPath);
 
 } // namespace detail
 
@@ -66,35 +70,28 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   typename Base::template Result<T> get_impl(PathIter begin, PathIter end)
       const {
     T out;
-    auto op = thrift_cow::pvlambda([&](auto& node,
-                                       auto /* begin */,
-                                       auto /* end */) {
-      if constexpr (!thrift_cow::is_cow_type_v<decltype(node)>) {
-        // Thrift object under HybridNode
-        if constexpr (std::is_assignable_v<decltype(out)&, decltype(node)>) {
-          out = std::move(node);
-        } else {
-          throw std::runtime_error("Type mismatch");
-        }
-      } else {
-        auto val = node.toThrift();
-        if constexpr (std::is_assignable_v<decltype(out)&, decltype(val)>) {
-          out = std::move(val);
-        } else {
-          throw std::runtime_error("Type mismatch");
-        }
-      }
-    });
+    auto op =
+        thrift_cow::pvlambda([&](auto& node, auto /* begin */, auto /* end */) {
+          auto val = node.toThrift();
+          if constexpr (std::is_assignable_v<decltype(out)&, decltype(val)>) {
+            out = std::move(val);
+          } else {
+            throw std::runtime_error("Type mismatch");
+          }
+        });
     const auto& rootNode = *root_;
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        rootNode, begin, end, thrift_cow::PathVisitMode::LEAF, op);
-    if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
+        rootNode, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
+    if (traverseResult) {
       return out;
     } else if (
-        traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
-      return folly::makeUnexpected(StorageError::TYPE_ERROR);
+        traverseResult.code() ==
+        thrift_cow::ThriftTraverseResult::Code::VISITOR_EXCEPTION) {
+      return folly::makeUnexpected(StorageError(
+          StorageError::Code::TYPE_ERROR, traverseResult.toString()));
     } else {
-      return folly::makeUnexpected(StorageError::INVALID_PATH);
+      return folly::makeUnexpected(StorageError(
+          StorageError::Code::INVALID_PATH, traverseResult.toString()));
     }
   }
 
@@ -106,16 +103,19 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     const auto& rootNode = *root_;
     thrift_cow::GetEncodedPathVisitorOperator op(protocol);
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        rootNode, begin, end, thrift_cow::PathVisitMode::LEAF, op);
-    if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
+        rootNode, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
+    if (traverseResult) {
       result.contents() = std::move(*op.val);
       result.protocol() = protocol;
       return result;
     } else if (
-        traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
-      return folly::makeUnexpected(StorageError::TYPE_ERROR);
+        traverseResult.code() ==
+        thrift_cow::ThriftTraverseResult::Code::VISITOR_EXCEPTION) {
+      return folly::makeUnexpected(StorageError(
+          StorageError::Code::TYPE_ERROR, traverseResult.toString()));
     } else {
-      return folly::makeUnexpected(StorageError::INVALID_PATH);
+      return folly::makeUnexpected(StorageError(
+          StorageError::Code::INVALID_PATH, traverseResult.toString()));
     }
   }
 
@@ -128,6 +128,12 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     thrift_cow::ExtPathVisitorOptions options;
     thrift_cow::RootExtendedPathVisitor::visit(
         rootNode, begin, end, options, [&](auto& path, auto& node) {
+          using NodeT = typename folly::remove_cvref_t<decltype(node)>;
+          if constexpr (!thrift_cow::is_cow_type_v<NodeT>) {
+            throw std::runtime_error(fmt::format(
+                "get_encoded_extended_impl: unexpected type with ExtendedPathVisitor::visit(path={})",
+                folly::join("/", path)));
+          }
           TaggedOperState state;
           state.path()->path() = path;
           state.state()->contents() = node.encode(protocol);
@@ -145,37 +151,44 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     auto op =
         thrift_cow::pvlambda([&](auto& node, auto /*begin*/, auto /*end*/) {
           using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-          if constexpr (!thrift_cow::is_cow_type_v<NodeT>) {
-            // Thrift object under HybridNode
-            if constexpr (std::is_same_v<ValueT, NodeT>) {
-              node = std::forward<T>(value);
-            } else {
-              throw std::runtime_error("set: type mismatch for passed in path");
-            }
+          using TType = typename NodeT::ThriftType;
+          if constexpr (std::is_same_v<ValueT, TType>) {
+            node.fromThrift(std::forward<T>(value));
           } else {
-            using TType = typename NodeT::ThriftType;
-            if constexpr (std::is_same_v<ValueT, TType>) {
-              node.fromThrift(std::forward<T>(value));
-            } else {
-              throw std::runtime_error("set: type mismatch for passed in path");
-            }
+            throw std::runtime_error("set: type mismatch for passed in path");
           }
         });
     auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
+    if (!traverseResult) {
+      XLOG(DBG1) << "Error:set: PathVisit(): " << traverseResult.toString();
+    }
     return detail::parseTraverseResult(traverseResult);
   }
 
   std::optional<StorageError>
   set_encoded_impl(PathIter begin, PathIter end, const OperState& state) {
     auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);
-    if (modifyResult != thrift_cow::ThriftTraverseResult::OK) {
+    if (!modifyResult) {
+      XLOG(DBG1) << "Error:set_encoded: modifyPath("
+                 << folly::join("/", begin, end)
+                 << "): " << modifyResult.toString();
       return detail::parseTraverseResult(modifyResult);
     }
     thrift_cow::SetEncodedPathVisitorOperator op(
         *state.protocol(), *state.contents());
-    auto traverseResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+    thrift_cow::ThriftTraverseResult traverseResult =
+        thrift_cow::RootPathVisitor::visit(
+            *root_,
+            begin,
+            end,
+            thrift_cow::PathVisitOptions::visitLeaf(true),
+            op);
+    if (!traverseResult) {
+      XLOG(DBG1) << "Error:set_encoded: SetEncoded(path: "
+                 << folly::join("/", begin, end)
+                 << "): " << traverseResult.toString();
+    }
     return detail::parseTraverseResult(traverseResult);
   }
 
@@ -183,26 +196,48 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     auto begin = patch.basePath()->begin();
     auto end = patch.basePath()->end();
     auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);
-    if (modifyResult != thrift_cow::ThriftTraverseResult::OK) {
+    if (!modifyResult) {
+      XLOG(DBG1) << "Error:patch: modifyPath(" << folly::join("/", begin, end)
+                 << "): " << modifyResult.toString();
       return detail::parseTraverseResult(modifyResult);
     }
     thrift_cow::PatchApplyResult patchResult;
-    auto op =
-        thrift_cow::pvlambda([&](auto& node, auto /*begin*/, auto /*end*/) {
-          using NodeT = typename folly::remove_cvref_t<decltype(node)>;
-          using TC = typename NodeT::TC;
-          patchResult = thrift_cow::PatchApplier<TC>::apply(
-              node, std::move(*patch.patch()), *patch.protocol());
-          XLOG(DBG5) << "Visited base path. patch result "
-                     << apache::thrift::util::enumNameSafe(patchResult);
-        });
+    std::optional<std::pair<
+        thrift_cow::pv_detail::PathIter,
+        thrift_cow::pv_detail::PathIter>>
+        errorPath;
+    auto op = thrift_cow::pvlambda([&](auto& node,
+                                       thrift_cow::pv_detail::PathIter begin,
+                                       thrift_cow::pv_detail::PathIter end) {
+      using NodeT = typename folly::remove_cvref_t<decltype(node)>;
+      using TC = typename NodeT::TC;
+      if constexpr (std::is_same_v<
+                        typename NodeT::CowType,
+                        thrift_cow::ThriftObject>) {
+        patchResult = thrift_cow::PatchApplier<TC>::apply(
+            node.toThrift(), std::move(*patch.patch()), *patch.protocol());
+        XLOG(DBG5) << "Visited base path in Thrift obj. patch result "
+                   << apache::thrift::util::enumNameSafe(patchResult);
+      } else {
+        patchResult = thrift_cow::PatchApplier<TC>::apply(
+            node, std::move(*patch.patch()), *patch.protocol());
+        XLOG(DBG5) << "Visited base path. patch result "
+                   << apache::thrift::util::enumNameSafe(patchResult);
+      }
+      if (patchResult != thrift_cow::PatchApplyResult::OK) {
+        *errorPath = std::make_pair(begin, end);
+      }
+    });
     auto visitResult = thrift_cow::RootPathVisitor::visit(
-        *root_, begin, end, thrift_cow::PathVisitMode::LEAF, op);
+        *root_, begin, end, thrift_cow::PathVisitOptions::visitLeaf(), op);
     auto visitError = detail::parseTraverseResult(visitResult);
     if (visitError) {
+      XLOG(DBG1) << "Error:patch: PathVisit(path: "
+                 << folly::join("/", begin, end)
+                 << "): " << visitResult.toString();
       return visitError;
     }
-    return detail::parsePatchResult(patchResult);
+    return detail::parsePatchResult(patchResult, errorPath);
   }
 
   std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {
@@ -243,13 +278,19 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
 
   std::optional<StorageError> remove_impl(PathIter begin, PathIter end) {
     auto traverseResult = StorageImpl::removePath(&root_, begin, end);
-    if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
+    if (traverseResult) {
       return std::nullopt;
-    } else if (
-        traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
-      return StorageError::TYPE_ERROR;
     } else {
-      return StorageError::INVALID_PATH;
+      XLOG(DBG1) << "Error:removePath: (path: " << folly::join("/", begin, end)
+                 << "): " << traverseResult.toString();
+      if (traverseResult.code() ==
+          thrift_cow::ThriftTraverseResult::Code::VISITOR_EXCEPTION) {
+        return StorageError(
+            StorageError::Code::TYPE_ERROR, traverseResult.toString());
+      } else {
+        return StorageError(
+            StorageError::Code::INVALID_PATH, traverseResult.toString());
+      }
     }
   }
 

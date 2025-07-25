@@ -23,36 +23,17 @@ class AgentPfcTest : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PFC};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC};
   }
 
  protected:
   void sendPfcFrame(const std::vector<PortID>& portIds, uint8_t classVector) {
-    for (auto portId : portIds) {
-      // Construct PFC payload with fixed quanta 0x00F0.
-      // See https://github.com/archjeb/pfctest for frame structure.
-      std::vector<uint8_t> payload{
-          0x01, 0x01, 0x00, classVector, 0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
-          0x00, 0xF0, 0x00, 0xF0,        0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
-      };
-      std::vector<uint8_t> padding(26, 0);
-      payload.insert(payload.end(), padding.begin(), padding.end());
-
-      // Send it out
-      auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
-      auto intfMac =
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-      auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-      auto pkt = utility::makeEthTxPacket(
-          getSw(),
-          vlanId,
-          srcMac,
-          folly::MacAddress("01:80:C2:00:00:01"), // MAC control address
-          ETHERTYPE::ETHERTYPE_EPON, // Ethertype for PFC frames
-          std::move(payload));
-      getSw()->sendPacketOutOfPortAsync(std::move(pkt), portId);
+    for (const PortID& portId : portIds) {
+      getSw()->sendPacketOutOfPortAsync(
+          utility::makePfcFramePacket(*getAgentEnsemble(), classVector),
+          portId);
     }
   }
 };
@@ -104,12 +85,52 @@ TEST_F(AgentPfcTest, verifyPfcCounters) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-class AgentPfcCaptureTest : public AgentPfcTest {
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+class AgentPfcWatchdogGranularityTest : public AgentPfcTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::PFC,
-        production_features::ProductionFeature::PFC_CAPTURE,
+        ProductionFeature::PFC, ProductionFeature::PFC_WATCHDOG_GRANULARITY};
+  }
+};
+
+TEST_F(AgentPfcWatchdogGranularityTest, verifyPfcWatchdogTimerGranularity) {
+  auto portId = masterLogicalInterfacePortIds()[0];
+
+  auto setup = [&]() {};
+  auto verify = [&]() {
+    // Populate PFC and watchdog configs.
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    utility::setupPfcBuffers(getAgentEnsemble(), cfg, {portId}, {2}, {0});
+    auto portCfg = utility::findCfgPort(cfg, portId);
+    cfg::PfcWatchdog pfcWatchdog;
+    pfcWatchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
+    pfcWatchdog.recoveryTimeMsecs() = 1000;
+    portCfg->pfc().ensure().watchdog() = pfcWatchdog;
+
+    // Try different combinations of granularity and detection time.
+    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 1;
+    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 5;
+    applyNewConfig(cfg);
+
+    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 10;
+    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 150;
+    applyNewConfig(cfg);
+
+    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 100;
+    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 200;
+    applyNewConfig(cfg);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentPfcCaptureTest : public AgentPfcTest {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::PFC,
+        ProductionFeature::PFC_CAPTURE,
     };
   }
 };

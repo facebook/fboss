@@ -72,6 +72,11 @@ void getNextHopInfoThrift(
     }
     nextHopInfo.mplsAction() = mplsActionInfo;
   }
+
+  auto topologyInfoPtr = apache::thrift::get_pointer(nextHop.topologyInfo());
+  if (topologyInfoPtr != nullptr) {
+    nextHopInfo.topologyInfo() = *topologyInfoPtr;
+  }
 }
 
 std::string getMplsLabelStr(const cli::NextHopInfo& nextHopInfo) {
@@ -83,6 +88,41 @@ std::string getMplsLabelStr(const cli::NextHopInfo& nextHopInfo) {
   }
   return labelStr;
 }
+std::string getTopologyInfoStr(const cli::NextHopInfo& nextHopInfo) {
+  std::string topoStr;
+  auto topoInfoPtr = apache::thrift::get_pointer(nextHopInfo.topologyInfo());
+  if (topoInfoPtr != nullptr) {
+    std::string rackCapacityStr = "none";
+    if (topoInfoPtr->local_rack_capacity().has_value()) {
+      rackCapacityStr =
+          std::to_string(topoInfoPtr->local_rack_capacity().value());
+    }
+    std::string remoteRackCapacityStr = "none";
+    if (topoInfoPtr->remote_rack_capacity().has_value()) {
+      remoteRackCapacityStr =
+          std::to_string(topoInfoPtr->remote_rack_capacity().value());
+    }
+    std::string spineCapacityStr = "none";
+    if (topoInfoPtr->spine_capacity().has_value()) {
+      spineCapacityStr = std::to_string(topoInfoPtr->spine_capacity().value());
+    }
+    std::string planeStr = topoInfoPtr->plane_id().has_value()
+        ? std::to_string(topoInfoPtr->plane_id().value())
+        : "none";
+    std::string rackStr = topoInfoPtr->rack_id().has_value()
+        ? std::to_string(topoInfoPtr->rack_id().value())
+        : "none";
+    topoStr = fmt::format(
+        " rack {} plane {} remote weight {} spine weight {} local weight {}",
+        rackStr,
+        planeStr,
+        remoteRackCapacityStr,
+        spineCapacityStr,
+        rackCapacityStr);
+  }
+  return topoStr;
+}
+
 std::string getInterfaceIDStr(const cli::NextHopInfo& nextHopInfo) {
   std::string interfaceIDStr;
   auto interfaceIDPtr = apache::thrift::get_pointer(nextHopInfo.interfaceID());
@@ -109,13 +149,15 @@ std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
   std::string labelStr = getMplsLabelStr(nextHopInfo);
   std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
   std::string weightStr = getWeightStr(nextHopInfo);
+  std::string topologyStr = getTopologyInfoStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}",
+      "{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
       weightStr,
-      labelStr);
+      labelStr,
+      topologyStr);
   return ret;
 }
 

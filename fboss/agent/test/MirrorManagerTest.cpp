@@ -23,8 +23,6 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
-#include "fboss/agent/GtestDefs.h"
-
 using folly::IPAddress;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -308,6 +306,57 @@ class MirrorManagerTest : public ::testing::Test {
         std::optional<IPAddress>(),
         std::make_optional<TunnelUdpPorts>(srcPort, dstPort));
     return addNewMirror(state, mirror);
+  }
+
+  void resolveNeighbor(
+      IPAddress ipAddress,
+      MacAddress macAddress,
+      InterfaceID interfaceID,
+      PortID portID,
+      bool wait = true) {
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      if (isIntfNbrTable()) {
+        sw_->getNeighborUpdater()->receivedArpMineForIntf(
+            interfaceID,
+            ipAddress.asV4(),
+            macAddress,
+            PortDescriptor(portID),
+            ArpOpCode::ARP_OP_REPLY);
+
+      } else {
+        sw_->getNeighborUpdater()->receivedArpMine(
+            sw_->getState()->getInterfaces()->getNode(interfaceID)->getVlanID(),
+            ipAddress.asV4(),
+            macAddress,
+            PortDescriptor(portID),
+            ArpOpCode::ARP_OP_REPLY);
+      }
+    } else {
+      if (isIntfNbrTable()) {
+        sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+            interfaceID,
+            ipAddress.asV6(),
+            macAddress,
+            PortDescriptor(portID),
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      } else {
+        sw_->getNeighborUpdater()->receivedNdpMine(
+            sw_->getState()->getInterfaces()->getNode(interfaceID)->getVlanID(),
+            ipAddress.asV6(),
+            macAddress,
+            PortDescriptor(portID),
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      }
+    }
+    if (wait) {
+      sw_->getNeighborUpdater()->waitForPendingUpdates();
+      waitForBackgroundThread(sw_);
+      waitForStateUpdates(sw_);
+      sw_->getNeighborUpdater()->waitForPendingUpdates();
+      waitForStateUpdates(sw_);
+    }
   }
 
  protected:
@@ -950,21 +999,16 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
 
   const auto oldState = this->sw_->getState();
 
-  this->updateState(
-      "EmptyDelta", [=](const std::shared_ptr<SwitchState>& state) {
-        auto updatedState = this->addNeighbor(
-            state,
-            params.interfaces[0],
-            params.neighborIPs[0],
-            params.neighborMACs[0],
-            params.neighborPorts[0]);
-        return this->addNeighbor(
-            updatedState,
-            params.interfaces[1],
-            params.neighborIPs[1],
-            params.neighborMACs[1],
-            params.neighborPorts[1]);
-      });
+  this->resolveNeighbor(
+      params.neighborIPs[0],
+      params.neighborMACs[0],
+      params.interfaces[0],
+      params.neighborPorts[0]);
+  this->resolveNeighbor(
+      params.neighborIPs[1],
+      params.neighborMACs[1],
+      params.interfaces[1],
+      params.neighborPorts[1]);
 
   this->verifyStateUpdate([=]() {
     const auto newState = this->sw_->getState();

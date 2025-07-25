@@ -15,6 +15,21 @@ class SwSwitch;
 
 namespace utility {
 
+std::shared_ptr<SystemPort> makeRemoteSysPort(
+    SystemPortID portId,
+    SwitchID remoteSwitchId,
+    int coreIndex = 0,
+    int corePortIndex = 1,
+    int64_t speed = 800000,
+    HwAsic::InterfaceNodeRole intfRole =
+        HwAsic::InterfaceNodeRole::IN_CLUSTER_NODE,
+    cfg::PortType portType = cfg::PortType::INTERFACE_PORT,
+    std::string remoteSwitchName = "");
+
+std::shared_ptr<Interface> makeRemoteInterface(
+    InterfaceID intfId,
+    const Interface::Addresses& subnets);
+
 std::shared_ptr<SwitchState> addRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
     const SwitchIdScopeResolver& scopeResolver,
@@ -57,6 +72,10 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
 
+boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper);
+
 void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
@@ -73,6 +92,8 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     cfg::PortType portType);
 
 uint8_t getDefaultQueue();
+
+uint8_t getGlobalRcyDefaultQueue();
 
 int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass);
 

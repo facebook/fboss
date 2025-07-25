@@ -193,7 +193,8 @@ class ServiceHandler : public FsdbServiceSvIf,
 
   // Client key (clientId, Path, PubSubType, isStats)
   using ClientKey = std::tuple<std::string, Path, PubSubType, bool>;
-  using ActiveSubscriptions = std::map<ClientKey, OperSubscriberInfo>;
+  using ActiveSubscriptions =
+      std::map<ClientKey, std::vector<OperSubscriberInfo>>;
   using ActivePublishers = std::map<ClientKey, OperPublisherInfo>;
 
   ActiveSubscriptions getActiveSubscriptions() const {

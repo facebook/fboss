@@ -13,7 +13,6 @@
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/PortStats.h"
@@ -24,15 +23,12 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpResponseTable.h"
-#include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 using folly::IPAddressV4;
 using folly::MacAddress;
@@ -170,7 +166,7 @@ void ArpHandler::handlePacket(
   // Send a reply if this is an ARP request.
   if (op == ARP_OP_REQUEST) {
     sendArpReply(
-        vlanID,
+        sw_->getVlanIDForTx(vlanOrIntf),
         pkt->getSrcPort(),
         entry->getMac(),
         targetIP,

@@ -47,6 +47,8 @@ using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
 using SaiNextHopGroupMemberInfo = std::pair<
     SaiNextHopGroupMemberTraits::AdapterHostKey,
     SaiNextHopGroupMemberTraits::Attributes::Weight>;
+using SaiNextHopGroupKey =
+    std::pair<RouteNextHopEntry::NextHopSet, std::optional<cfg::SwitchingMode>>;
 
 template <typename T>
 class ManagedNextHop;
@@ -148,6 +150,7 @@ struct SaiNextHopGroupHandle {
   bool fixedWidthMode{false};
   std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
   uint32_t maxVariableWidthEcmpSize;
+  std::optional<cfg::SwitchingMode> desiredArsMode_;
   SaiStore* saiStore_;
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
@@ -177,7 +180,7 @@ class SaiNextHopGroupManager {
       const SaiPlatform* platform);
 
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
-      const RouteNextHopEntry::NextHopSet& swNextHops);
+      const SaiNextHopGroupKey& key);
 
   std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
@@ -194,6 +197,12 @@ class SaiNextHopGroupManager {
   void updateArsModeAll(
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletConfig);
 
+  void setPrimaryArsSwitchingMode(
+      std::optional<cfg::SwitchingMode> switchingMode);
+
+  cfg::SwitchingMode getNextHopGroupSwitchingMode(
+      const RouteNextHopEntry::NextHopSet& swNextHops);
+
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;
@@ -203,11 +212,12 @@ class SaiNextHopGroupManager {
   // TODO(borisb): improve SaiObject/SaiStore to the point where they
   // support the next hop group use case correctly, rather than this
   // abomination of multiple levels of RefMaps :(
-  FlatRefMap<RouteNextHopEntry::NextHopSet, SaiNextHopGroupHandle> handles_;
+  FlatRefMap<SaiNextHopGroupKey, SaiNextHopGroupHandle> handles_;
   FlatRefMap<
       std::pair<typename SaiNextHopGroupTraits::AdapterKey, ResolvedNextHop>,
       NextHopGroupMember>
       nextHopGroupMembers_;
+  std::optional<cfg::SwitchingMode> primaryArsMode_;
 };
 
 } // namespace facebook::fboss

@@ -2,6 +2,8 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
+DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
+
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
 DEFINE_bool(dsf_100g_nif_breakout, false, "Enable J3 DSF Scale Test config");
@@ -24,6 +26,8 @@ DEFINE_bool(
     "Flag to set the class ID for unresolved routes that points  to CPU port");
 
 DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
+
+DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
 
 // DSF Subscriber flags
 DEFINE_bool(
@@ -109,12 +113,22 @@ DEFINE_bool(
     false,
     "Flag to turn on flowlet switching for DLB");
 
+DEFINE_bool(
+    enable_ecmp_random_spray,
+    false,
+    "Flag to turn on backup flowlet switching for DLB");
+
 // TODO (ravi)
 // This is more a safety tool for fast rollback if RTSWs run into an issue
 DEFINE_bool(
     dlbResourceCheckEnable,
     true,
     "Flag to enable resource checks on DLB ecmp groups");
+
+DEFINE_bool(
+    use_full_dlb_scale,
+    false,
+    "FLAG to enable full DLB scale when using SAI");
 
 DEFINE_bool(
     send_icmp_time_exceeded,
@@ -202,17 +216,17 @@ DEFINE_bool(
 
 DEFINE_int32(
     max_l2_entries,
-    4000,
+    5300,
     "Maximum L2 entries supported by Resource Accountant");
 
 DEFINE_int32(
     max_ndp_entries,
-    3500,
+    4000,
     "Maximum NDP entries supported by Resource Accountant");
 
 DEFINE_int32(
     max_arp_entries,
-    100,
+    1280,
     "Maximum ARP entries supported by Resource Accountant");
 
 DEFINE_bool(
@@ -251,6 +265,11 @@ DEFINE_int32(
     "Percentage of ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
 DEFINE_int32(
+    ars_resource_percentage,
+    75,
+    "Percentage of DLB ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_int32(
     switch_index_for_testing,
     0,
     "switch index under test. Used for testing NPU specific features.");
@@ -277,3 +296,37 @@ DEFINE_bool(
     prod_invariant_config_test,
     false,
     "This flag is used to enable prod config in invariant config test");
+
+DEFINE_int32(
+    max_unprocessed_switch_reachability_changes,
+    1,
+    "Max number of switch reachability changes that can be enqueued to bottom-half.");
+
+DEFINE_bool(
+    enable_ecmp_resource_manager,
+    false,
+    "This flag is used to enable ecmp resource manager feature");
+
+DEFINE_int32(
+    ecmp_resource_manager_make_before_break_buffer,
+    2,
+    "Buffer to keep in ECMP resource manager from actual ECMP limt");
+
+DEFINE_int32(update_stats_interval_s, 1, "Update stats interval in seconds");
+
+DEFINE_bool(
+    update_route_with_dlb_type,
+    false,
+    "Flag to perform a DLB type update in FIB state");
+
+DEFINE_int32(agent_exit_delay_s, 0, "Delay in seconds before the agent exits");
+
+DEFINE_bool(
+    dsf_single_stage_r192_f40_e32,
+    false,
+    "Use platform mapping for DSF Single Stage with 192 RDSWs, 40 FDSWs, 32 EDSWs");
+
+DEFINE_bool(
+    enable_high_frequency_stats_polling,
+    false,
+    "Enable high frequency stats polling");

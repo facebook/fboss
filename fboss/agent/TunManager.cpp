@@ -296,6 +296,7 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   const auto& switchIdToSwitchInfo =
       utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
           ->getSwitchIdToSwitchInfo();
+  auto platform = sw_->getPlatformType();
   if (isDualStage3Q2QMode()) {
     if (switchIdToSwitchInfo.size() > 1) {
       throw FbossError(
@@ -334,6 +335,19 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
           << ")";
       return tableId;
     }
+  } else if (
+      platform == PlatformType::PLATFORM_JANGA800BIC ||
+      FLAGS_dsf_single_stage_r192_f40_e32) {
+    auto intf = sw_->getState()->getInterfaces()->getNode(ifID);
+    auto constexpr kLocalIntfTableStart = 1;
+    auto constexpr kGlobalIntfTableStart = 200;
+    if (intf->getScope() == cfg::Scope::LOCAL) {
+      return kLocalIntfTableStart + ifID;
+    } else {
+      auto firstSwitchSysPortRange =
+          getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
+      return kGlobalIntfTableStart + ifID - *firstSwitchSysPortRange.minimum();
+    }
   }
   auto firstSwitchSysPortRange =
       getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);
@@ -351,8 +365,8 @@ cfg::InterfaceType TunManager::getInterfaceType(InterfaceID ifID) const {
 }
 
 void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
-  // We just store default routes (one for IPv4 and one for IPv6) in each route
-  // table.
+  // We just store default routes (one for IPv4 and one for IPv6) in each
+  // route table.
   const folly::IPAddress addrs[] = {
       IPAddress{"0.0.0.0"}, // v4 default
       IPAddress{"::0"}, // v6 default
@@ -520,11 +534,11 @@ void TunManager::addRemoveTunAddress(
 
   if (add) {
     /**
-     * When you bring down interface some routes are purged but some still stay
-     * there (I tested from command line and v6 routes were gone but v4 were
-     * there). To be on safe side, when we bring up interface we always add
-     * addresses and routes for that interface with REPLACE flag overriding
-     * existing ones if any.
+     * When you bring down interface some routes are purged but some still
+     * stay there (I tested from command line and v6 routes were gone but v4
+     * were there). To be on safe side, when we bring up interface we always
+     * add addresses and routes for that interface with REPLACE flag
+     * overriding existing ones if any.
      */
     error = rtnl_addr_add(sock_, tunaddr, NLM_F_REPLACE);
   } else {
@@ -803,13 +817,13 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
     }
   }
 
-  // Callback function for updating addresses for a particular interface
-  auto applyInterfaceAddrChanges = [this](
-                                       InterfaceID ifID,
-                                       const std::string& ifName,
-                                       int ifIndex,
-                                       const Addresses& oldAddrs,
-                                       const Addresses& newAddrs) {
+  // Callback function for removing addresses for a particular interface
+  auto removeChangedAddress = [this](
+                                  InterfaceID ifID,
+                                  const std::string& ifName,
+                                  int ifIndex,
+                                  const Addresses& oldAddrs,
+                                  const Addresses& newAddrs) {
     applyChanges(
         oldAddrs,
         newAddrs,
@@ -820,18 +834,66 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           }
           removeTunAddress(
               ifID, ifName, ifIndex, oldIter->first, oldIter->second);
-          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
         },
-        [&](ConstAddressesIter& newIter) {
-          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
-        },
+        [&](ConstAddressesIter& /*newIter*/) {},
         [&](ConstAddressesIter& oldIter) {
           removeTunAddress(
               ifID, ifName, ifIndex, oldIter->first, oldIter->second);
         });
   };
 
-  // Apply changes for all interfaces
+  // Callback function for adding addresses for a particular interface
+  auto addChangedAddress = [this](
+                               InterfaceID ifID,
+                               const std::string& ifName,
+                               int ifIndex,
+                               const Addresses& oldAddrs,
+                               const Addresses& newAddrs) {
+    applyChanges(
+        oldAddrs,
+        newAddrs,
+        [&](ConstAddressesIter& oldIter, ConstAddressesIter& newIter) {
+          if (oldIter->second == newIter->second) {
+            // addresses and masks are both same
+            return;
+          }
+          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
+        },
+        [&](ConstAddressesIter& newIter) {
+          addTunAddress(ifID, ifName, ifIndex, newIter->first, newIter->second);
+        },
+        [&](ConstAddressesIter& oldIter) {
+
+        });
+  };
+
+  // Remove addresses(kernel entries) for all interfaces before we add new
+  // addresses.
+  applyChanges(
+      oldIntfToInfo,
+      newIntfToInfo,
+      [&](ConstIntfToAddrsMapIter& oldIter, ConstIntfToAddrsMapIter& newIter) {
+        auto newStatus = newIter->second.first;
+        const auto& oldAddrs = oldIter->second.second;
+        const auto& newAddrs = newIter->second.second;
+
+        // Interface must exists
+        const auto& intf = intfs_.at(oldIter->first);
+        auto ifID = intf->getInterfaceID();
+        int ifIndex = intf->getIfIndex();
+        const auto& ifName = intf->getName();
+
+        // IPv6 throws exception when interface is down, so applying changes
+        // only if interface is up
+        if (newStatus) {
+          removeChangedAddress(ifID, ifName, ifIndex, oldAddrs, newAddrs);
+        }
+      },
+      [&](ConstIntfToAddrsMapIter& /*newIter*/) {},
+      [&](ConstIntfToAddrsMapIter& /*oldIter*/) {});
+
+  // Add addresses(kernel entries) for all interfaces before we add new
+  // addresses.
   applyChanges(
       oldIntfToInfo,
       newIntfToInfo,
@@ -858,21 +920,24 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
         // We need to add route-table and tun-addresses if interface is brought
         // up recently.
-        // NOTE: Do not add source routing rules because kernel doesn't handle
-        // NLM_F_REPLACE flags and they just keep piling up :/
         if (!oldStatus and newStatus) {
           addRouteTable(ifID, ifIndex);
+          // Remove old source route rules to avoid duplicates
+          for (const auto& addr : oldAddrs) {
+            addRemoveSourceRouteRule(ifID, addr.first, false);
+          }
+          // Add new addresses
           for (const auto& addr : newAddrs) {
-            addRemoveTunAddress(ifName, ifIndex, addr.first, addr.second, true);
+            addTunAddress(ifID, ifName, ifIndex, addr.first, addr.second);
           }
         }
 
         // Update interface addresses only if interface is up currently
         // We would like to process address change whenever current state of
-        // interface is UP. We should not try to add addresses when interface is
-        // down as it can throw exception for v6 address.
+        // interface is UP. We should not try to add addresses when interface
+        // is down as it can throw exception for v6 address.
         if (newStatus) {
-          applyInterfaceAddrChanges(ifID, ifName, ifIndex, oldAddrs, newAddrs);
+          addChangedAddress(ifID, ifName, ifIndex, oldAddrs, newAddrs);
         }
       },
       [&](ConstIntfToAddrsMapIter& newIter) {

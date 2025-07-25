@@ -9,7 +9,6 @@
 #include <chrono>
 #include <cstdint>
 #include <optional>
-#include <random>
 
 DEFINE_int32(
     fsdb_reconnect_ms,

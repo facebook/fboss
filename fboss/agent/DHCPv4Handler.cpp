@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/DHCPv4Handler.h"
-#include <arpa/inet.h>
 #include <folly/IPAddress.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -33,7 +32,6 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 using folly::IOBuf;
 using folly::IPAddress;
@@ -343,7 +341,7 @@ void DHCPv4Handler::processRequest(
   MacAddress cpuMac = sw->getHwAsicTable()->getHwAsicIf(switchID)->getAsicMac();
 
   // Prepare the packet to be sent out
-  EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, vlanID);
+  EthHdr ethHdr = makeEthHdr(cpuMac, cpuMac, sw->getVlanIDForTx(vlanOrIntf));
   auto ipHdr = makeIpv4Header(
       switchIp,
       dhcpServerIP,

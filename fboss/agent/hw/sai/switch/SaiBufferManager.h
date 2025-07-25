@@ -30,7 +30,23 @@ class HwAsic;
 class SaiStore;
 
 using SaiBufferPool = SaiObjectWithCounters<SaiBufferPoolTraits>;
-using SaiBufferProfile = SaiObject<SaiBufferProfileTraits>;
+
+using SaiBufferProfile = std::variant<
+    std::shared_ptr<SaiObject<SaiStaticBufferProfileTraits>>,
+    std::shared_ptr<SaiObject<SaiDynamicBufferProfileTraits>>>;
+
+struct SaiBufferProfileHandle {
+  explicit SaiBufferProfileHandle(SaiBufferProfile bufferProfile)
+      : bufferProfile(std::move(bufferProfile)) {}
+
+  BufferProfileSaiId adapterKey() const {
+    return std::visit(
+        [](auto& handle) { return handle->adapterKey(); }, bufferProfile);
+  }
+
+  SaiBufferProfile bufferProfile;
+};
+
 using SaiIngressPriorityGroup =
     SaiObjectWithCounters<SaiIngressPriorityGroupTraits>;
 
@@ -48,7 +64,7 @@ using SaiIngressPriorityGroupHandles =
 
 struct SaiIngressPriorityGroupHandleAndProfile {
   std::unique_ptr<SaiIngressPriorityGroupHandle> pgHandle;
-  std::shared_ptr<SaiBufferProfile> bufferProfile;
+  std::shared_ptr<SaiBufferProfileHandle> bufferProfile;
 };
 
 class SaiBufferManager {
@@ -58,8 +74,9 @@ class SaiBufferManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
-  std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
-  std::shared_ptr<SaiBufferProfile> getOrCreateIngressProfile(
+  std::shared_ptr<SaiBufferProfileHandle> getOrCreateProfile(
+      const PortQueue& queue);
+  std::shared_ptr<SaiBufferProfileHandle> getOrCreateIngressProfile(
       const state::PortPgFields& portPgConfig);
 
   void setupBufferPool(const PortQueue& queue);
@@ -93,7 +110,7 @@ class SaiBufferManager {
   static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
   void setIngressPriorityGroupBufferProfile(
       const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
-      std::shared_ptr<SaiBufferProfile> bufferProfile);
+      std::shared_ptr<SaiBufferProfileHandle> bufferProfile);
   SaiIngressPriorityGroupHandles loadIngressPriorityGroups(
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
   SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
@@ -107,9 +124,11 @@ class SaiBufferManager {
       const int& pg,
       const uint64_t& pgHeadroomBytes,
       const uint64_t& pgSharedBytes) const;
-  SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
+  template <typename BufferProfileTraits>
+  BufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
-  SaiBufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
+  template <typename BufferProfileTraits>
+  BufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
       const state::PortPgFields& config) const;
   void setBufferPoolXoffSize(
       std::shared_ptr<SaiBufferPoolHandle> bufferPoolHandle,

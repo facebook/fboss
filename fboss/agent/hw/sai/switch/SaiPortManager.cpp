@@ -220,6 +220,9 @@ void fillHwPortStats(
       case SAI_PORT_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.wredDroppedPackets_() = value;
         break;
+      case SAI_PORT_STAT_IN_DROPPED_PKTS:
+        hwPortStats.inCongestionDiscards_() = value;
+        break;
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES:
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
@@ -1265,7 +1268,9 @@ void SaiPortManager::changeQueue(
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
     if (!queueHandle) {
       throw FbossError(
-          "unable to change non-existent queue ",
+          "unable to change non-existent ",
+          apache::thrift::util::enumNameSafe(newPortQueue->getStreamType()),
+          " queue ",
           newPortQueue->getID(),
           " of port ",
           swId);
@@ -1738,6 +1743,15 @@ bool SaiPortManager::rxFrequencyRPMSupported() const {
 #endif
 }
 
+bool SaiPortManager::rxSerdesParametersSupported() const {
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+  return platform_->getAsic()->isSupported(
+      HwAsic::Feature::RX_SERDES_PARAMETERS);
+#else
+  return false;
+#endif
+}
+
 bool SaiPortManager::rxSNRSupported() const {
 #if defined(BRCM_SAI_SDK_GTE_10_0)
   return platform_->getAsic()->isSupported(HwAsic::Feature::RX_SNR);
@@ -1999,8 +2013,14 @@ void SaiPortManager::updateStats(
        *curPortStats.inDstNullDiscards_()}};
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS)) {
-    toSubtractFromInDiscardsRaw.push_back(
-        {*prevPortStats.inPause_(), *curPortStats.inPause_()});
+    toSubtractFromInDiscardsRaw.emplace_back(
+        *prevPortStats.inPause_(), *curPortStats.inPause_());
+  }
+  for (auto& [priority, current] : *curPortStats.inPfc_()) {
+    if (current > 0) {
+      toSubtractFromInDiscardsRaw.emplace_back(
+          folly::get_default(*prevPortStats.inPfc_(), priority, 0), current);
+    }
   }
   *curPortStats.inDiscards_() += utility::subtractIncrements(
       {*prevPortStats.inDiscardsRaw_(), *curPortStats.inDiscardsRaw_()},
@@ -2353,6 +2373,19 @@ void SaiPortManager::changeQosPolicy(
   }
   clearQosPolicy(oldPort->getID());
   setQosPolicy(newPort->getID(), newPort->getQosPolicy());
+}
+
+void SaiPortManager::clearArsConfig(PortID portID) {
+  if (getPortType(portID) == cfg::PortType::FABRIC_PORT) {
+    return;
+  }
+  clearPortFlowletConfig(portID);
+}
+
+void SaiPortManager::clearArsConfig() {
+  for (const auto& portIdAndHandle : handles_) {
+    clearArsConfig(portIdAndHandle.first);
+  }
 }
 
 void SaiPortManager::setTamObject(
@@ -2792,6 +2825,19 @@ std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
 std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
     PortSaiId saiPortId,
     uint8_t numPmdLanes) const {
+  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(saiPortId);
+  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
+    XLOG(WARNING) << "Unknown PortSaiId: " << saiPortId;
+    return std::vector<sai_port_snr_values_t>();
+  }
+  // TH5 Management port doesn't support RX SNR
+  // If we do end up with management ports supporting rxSNR we may need to
+  // support per-core HwAsic::Feature definitions instead of setting them at the
+  // asic level.
+  auto portID = portItr->second.portID;
+  if (getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    return std::vector<sai_port_snr_values_t>();
+  }
   if (!rxSNRSupported()) {
     return std::vector<sai_port_snr_values_t>();
   }
@@ -3154,5 +3200,65 @@ void SaiPortManager::changePortShelEnable(
     portHandle->port->setAttribute(shelEnableAttr);
   }
 #endif
+}
+/**
+ * Increment the PFC counter for a given port and counter type.
+ *
+ * @param portId - The ID of the port for which the counter is to be
+ * incremented.
+ * @param counterType - The type of PFC counter to increment (DEADLOCK or
+ * RECOVERY).
+ */
+void SaiPortManager::incrementPfcCounter(
+    const PortID& portId,
+    PfcCounterType counterType) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // No stats exist, nothing to do.
+    return;
+  }
+  auto curPortStats = portStatItr->second->portStats();
+
+  // Increment the appropriate counter based on the counter type.
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  if (counterType == PfcCounterType::DEADLOCK) {
+    if (!curPortStats.pfcDeadlockDetection_().has_value()) {
+      // Make sure the counter is initialized to 0 if it doesn't exist.
+      curPortStats.pfcDeadlockDetection_() = 0;
+      portStatItr->second->updateStats(curPortStats, now);
+    }
+    curPortStats.pfcDeadlockDetection_() =
+        *curPortStats.pfcDeadlockDetection_() + 1;
+  } else { // PfcCounterType::RECOVERY
+    if (!curPortStats.pfcDeadlockRecovery_().has_value()) {
+      // Make sure the counter is initialized to 0 if it doesn't exist.
+      curPortStats.pfcDeadlockRecovery_() = 0;
+      portStatItr->second->updateStats(curPortStats, now);
+    }
+    curPortStats.pfcDeadlockRecovery_() =
+        *curPortStats.pfcDeadlockRecovery_() + 1;
+  }
+
+  portStatItr->second->updateStats(curPortStats, now);
+}
+
+/**
+ * Increment the PFC deadlock counter for a given port.
+ *
+ * @param portId - The ID of the port for which the deadlock counter is to be
+ * incremented.
+ */
+void SaiPortManager::incrementPfcDeadlockCounter(const PortID& portId) {
+  incrementPfcCounter(portId, PfcCounterType::DEADLOCK);
+}
+
+/**
+ * Increment the PFC recovery counter for a given port.
+ *
+ * @param portId - The ID of the port for which the recovery counter is to be
+ * incremented.
+ */
+void SaiPortManager::incrementPfcRecoveryCounter(const PortID& portId) {
+  incrementPfcCounter(portId, PfcCounterType::RECOVERY);
 }
 } // namespace facebook::fboss

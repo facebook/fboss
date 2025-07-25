@@ -254,24 +254,24 @@ void checkSwHwPgCfgMatch(
         pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref(),
         SaiApiTable::getInstance()->bufferApi().getAttribute(
             bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::XonOffsetTh{}));
+            SaiBufferProfileAttributes::XonOffsetTh{}));
     EXPECT_EQ(
         pgConfig->cref<switch_state_tags::minLimitBytes>()->cref(),
         SaiApiTable::getInstance()->bufferApi().getAttribute(
             bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::ReservedBytes{}));
+            SaiBufferProfileAttributes::ReservedBytes{}));
     EXPECT_EQ(
         pgConfig->cref<switch_state_tags::minLimitBytes>()->cref(),
         SaiApiTable::getInstance()->bufferApi().getAttribute(
             bufferProfile->adapterKey(),
-            SaiBufferProfileTraits::Attributes::ReservedBytes{}));
+            SaiBufferProfileAttributes::ReservedBytes{}));
     if (auto pgHdrmOpt =
             pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
       EXPECT_EQ(
           pgHdrmOpt->cref(),
           SaiApiTable::getInstance()->bufferApi().getAttribute(
               bufferProfile->adapterKey(),
-              SaiBufferProfileTraits::Attributes::XoffTh{}));
+              SaiBufferProfileAttributes::XoffTh{}));
     }
 
     // Buffer pool configs

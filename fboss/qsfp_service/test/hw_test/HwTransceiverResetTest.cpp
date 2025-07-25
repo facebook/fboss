@@ -263,7 +263,14 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
   }
 }
 
-TEST_F(HwTransceiverResetTest, verifyResetControl) {
+class HwTransceiverResetBmcLiteTest : public HwTransceiverResetTest {
+  std::vector<qsfp_production_features::QsfpProductionFeature>
+  getProductionFeatures() const override {
+    return {qsfp_production_features::QsfpProductionFeature::BMC_LITE};
+  }
+};
+
+TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
   // 1. Put the transceivers in reset one at a time.
   // 2. Verify absence of Transceiver. Read byte 0 10 times and ensure
   //    - for sff, all reads fail
@@ -423,5 +430,54 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
   verifyResetAndClearFunctions(
       &TransceiverManager::holdTransceiverReset,
       &TransceiverManager::triggerQsfpHardReset);
+}
+
+TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
+  // Bring the ports UP, resetTransceiver with a reset_and_clear action, and
+  // ensure transceivers come back to ACTIVE state
+
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+
+  XLOG(INFO) << "Step 1. Bring the ports Up";
+  // By default the modules are in TransceiverProgrammed state. Bring the ports
+  // up now
+  wedgeManager->setOverrideAgentPortStatusForTesting(
+      true /* up */, true /* enabled */);
+  wedgeManager->refreshStateMachines();
+
+  XLOG(INFO) << "Step 2. Confirm transceivers are in ACTIVE state";
+  for (auto id : getExpectedTransceivers()) {
+    auto curState = wedgeManager->getCurrentState(id);
+    ASSERT_EQ(curState, TransceiverStateMachineState::ACTIVE);
+  }
+
+  // Trigger Hard Reset
+  XLOG(INFO) << "Step 3. Hard reset the ports associated with transceivers";
+  std::vector<std::string> portNames;
+  for (auto tcvrId : getExpectedTransceivers()) {
+    auto portsSet = wedgeManager->getPortNames(tcvrId);
+    std::copy(portsSet.begin(), portsSet.end(), std::back_inserter(portNames));
+  }
+  wedgeManager->resetTransceiver(
+      std::make_unique<std::vector<std::string>>(portNames),
+      ResetType::HARD_RESET,
+      ResetAction::RESET_THEN_CLEAR);
+
+  // Transceivers should be in NOT_PRESENT state because they were just reset
+  XLOG(INFO) << "Step 4. Confirm transceivers are in not_present state";
+  for (auto id : getExpectedTransceivers()) {
+    auto curState = wedgeManager->getCurrentState(id);
+    ASSERT_EQ(curState, TransceiverStateMachineState::NOT_PRESENT);
+  }
+
+  XLOG(INFO)
+      << "Step 5. Wait till the transceivers go back to programmed state";
+  // Clear port status to stop till we only reach programming state. Otherwise
+  // when there are i2c errors on any transceiver, that transceiver will lag
+  // behind but the refresh will take rest of them to active and
+  // waitTillCabledTcvrProgrammed will fail
+  wedgeManager->setOverrideAgentPortStatusForTesting(
+      true /* up */, true /* enabled */, true /* clearOnly */);
+  waitTillCabledTcvrProgrammed();
 }
 } // namespace facebook::fboss

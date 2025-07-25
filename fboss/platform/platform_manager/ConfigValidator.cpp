@@ -155,13 +155,13 @@ bool isDeviceMatch(const std::string& deviceName, Ts&&... deviceConfigs) {
 
 bool ConfigValidator::isValidSlotTypeConfig(
     const SlotTypeConfig& slotTypeConfig) {
-  if (!slotTypeConfig.idpromConfig_ref() && !slotTypeConfig.pmUnitName()) {
+  if (!slotTypeConfig.idpromConfig() && !slotTypeConfig.pmUnitName()) {
     XLOG(ERR) << "SlotTypeConfig must have either IDPROM or PmUnit name";
     return false;
   }
-  if (slotTypeConfig.idpromConfig_ref()) {
+  if (slotTypeConfig.idpromConfig()) {
     try {
-      I2cAddr(*slotTypeConfig.idpromConfig_ref()->address_ref());
+      I2cAddr(*slotTypeConfig.idpromConfig()->address());
     } catch (std::invalid_argument& e) {
       XLOG(ERR) << "IDPROM has invalid address " << e.what();
       return false;
@@ -531,11 +531,18 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
   }
 
-  // Validate symbolic links
+  XLOG(INFO) << "Validating Symbolic links...";
   for (const auto& [symlink, devicePath] : *config.symbolicLinkToDevicePath()) {
     if (!isValidSymlink(symlink) || !isValidDevicePath(config, devicePath)) {
       return false;
     }
+  }
+
+  XLOG(INFO) << "Validating Transceiver symbolic links...";
+  auto symlinks = *config.symbolicLinkToDevicePath() | ranges::views::keys |
+      ranges::to<std::vector<std::string>>();
+  if (!isValidXcvrSymlinks(*config.numXcvrs(), symlinks)) {
+    return false;
   }
 
   if (!isValidBspKmodsRpmVersion(*config.bspKmodsRpmVersion())) {
@@ -560,14 +567,14 @@ bool ConfigValidator::isValidPmUnitConfig(
   }
 
   // Validate PciDeviceConfigs
-  for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs_ref()) {
+  for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs()) {
     if (!isValidPciDeviceConfig(pciDeviceConfig)) {
       return false;
     }
   }
 
   // Validate I2cDeviceConfigs
-  for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs_ref()) {
+  for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs()) {
     if (!isValidI2cDeviceConfig(i2cDeviceConfig)) {
       return false;
     }
@@ -748,6 +755,50 @@ bool ConfigValidator::isValidBspKmodsRpmName(
   if (!re2::RE2::FullMatch(bspKmodsRpmName, kRpmNameRegex, &keyword)) {
     XLOG(ERR) << fmt::format("Invalid BspKmodsRpmName : {}", bspKmodsRpmName);
     return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidXcvrSymlinks(
+    int16_t numXcvrs,
+    const std::vector<std::string>& symlinks) {
+  std::set<std::string> xcvrCtrlSymlinks, xcvrIoSymlinks;
+  for (const auto& symlink : symlinks) {
+    if (symlink.starts_with("/run/devmap/xcvrs/xcvr_ctrl_")) {
+      xcvrCtrlSymlinks.insert(symlink);
+    }
+    if (symlink.starts_with("/run/devmap/xcvrs/xcvr_io_")) {
+      xcvrIoSymlinks.insert(symlink);
+    }
+  }
+  if (xcvrCtrlSymlinks.size() != numXcvrs) {
+    XLOG(ERR) << fmt::format(
+        "Expected {} xcvr control symlinks, but found {}",
+        numXcvrs,
+        xcvrCtrlSymlinks.size());
+    return false;
+  }
+  if (xcvrIoSymlinks.size() != numXcvrs) {
+    XLOG(ERR) << fmt::format(
+        "Expected {} xcvr IO symlinks, but found {}",
+        numXcvrs,
+        xcvrIoSymlinks.size());
+    return false;
+  }
+
+  for (int16_t xcvrId = 1; xcvrId <= numXcvrs; xcvrId++) {
+    auto xcvrCtrlSymlink =
+        fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}", xcvrId);
+    if (!xcvrCtrlSymlinks.contains(xcvrCtrlSymlink)) {
+      XLOG(ERR) << fmt::format(
+          "Missing xcvr control symlink for xcvr {}", xcvrId);
+      return false;
+    }
+    auto xcvrIoSymlink = fmt::format("/run/devmap/xcvrs/xcvr_io_{}", xcvrId);
+    if (!xcvrIoSymlinks.contains(xcvrIoSymlink)) {
+      XLOG(ERR) << fmt::format("Missing xcvr IO symlink for xcvr {}", xcvrId);
+      return false;
+    }
   }
   return true;
 }

@@ -13,8 +13,6 @@
 #include "fboss/lib/AlertLogger.h"
 
 #include <folly/logging/xlog.h>
-#include <glog/logging.h>
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 
 extern "C" {

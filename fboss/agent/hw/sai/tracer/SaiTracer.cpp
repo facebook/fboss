@@ -42,6 +42,7 @@
 #include "fboss/agent/hw/sai/tracer/SamplePacketApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/SwitchPipelineApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.h" // NOLINT(facebook-unused-include-check)
@@ -214,6 +215,13 @@ sai_status_t __wrap_sai_api_query(
             static_cast<sai_vendor_switch_api_t*>(*api_method_table);
         *api_method_table = facebook::fboss::wrappedVendorSwitchApi();
         SaiTracer::getInstance()->logApiQuery(sai_api_id, "vendor_switch_api");
+        break;
+      case SAI_API_SWITCH_PIPELINE:
+        SaiTracer::getInstance()->switchPipelineApi_ =
+            static_cast<sai_switch_pipeline_api_t*>(*api_method_table);
+        *api_method_table = facebook::fboss::wrappedSwitchPipelineApi();
+        SaiTracer::getInstance()->logApiQuery(
+            sai_api_id, "switch_pipeline_api");
         break;
 #endif
       case SAI_API_FIRMWARE:
@@ -1376,6 +1384,9 @@ vector<string> SaiTracer::setAttrList(
       case SAI_OBJECT_TYPE_VENDOR_SWITCH:
         setVendorSwitchAttributes(attr_list, attr_count, attrLines, rv);
         break;
+      case SAI_OBJECT_TYPE_SWITCH_PIPELINE:
+        setSwitchPipelineAttributes(attr_list, attr_count, attrLines, rv);
+        break;
 #endif
       case SAI_OBJECT_TYPE_FIRMWARE:
         setFirmwareAttributes(attr_list, attr_count, attrLines, rv);
@@ -1766,7 +1777,11 @@ uint32_t SaiTracer::checkListCount(
   // sai replayer will initialize more lists on stack
   if (list_count > maxListCount_) {
     writeToFile({to<string>(
-        "int list_", maxListCount_, "[", FLAGS_default_list_size, "]")});
+        "[[maybe_unused]] int list_",
+        maxListCount_,
+        "[",
+        FLAGS_default_list_size,
+        "]")});
     maxListCount_ = list_count;
   }
 
@@ -1909,6 +1924,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_POLICER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_PORT_SERDES, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_PORT_CONNECTOR, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QOS_MAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_QUEUE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ROUTER_INTERFACE, 0);
@@ -1935,6 +1951,8 @@ void SaiTracer::initVarCounts() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   varCounts_.emplace(
       static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_VENDOR_SWITCH), 0);
+  varCounts_.emplace(
+      static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_SWITCH_PIPELINE), 0);
 #endif
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);

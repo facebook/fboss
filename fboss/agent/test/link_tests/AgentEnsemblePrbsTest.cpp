@@ -14,11 +14,28 @@
 using namespace ::testing;
 using namespace facebook::fboss;
 
+#define CONVERT_PRBS_STRING(prbsString) CONVERT_PRBS_STRING_IMPL(prbsString)
+#define CONVERT_PRBS_STRING_IMPL(prbsString) \
+  CONVERT_PRBS_STRING_EXTRACT(prbsString, P)
+#define CONVERT_PRBS_STRING_EXTRACT(prbsString, prefix) \
+  CONVERT_PRBS_STRING_MATCH_##prbsString(prefix)
+#define CONVERT_PRBS_STRING_MATCH_PRBS31(prefix) prefix##31
+#define CONVERT_PRBS_STRING_MATCH_PRBS31Q(prefix) prefix##31Q
+
 struct TestPort {
   std::string portName;
   phy::PortComponent component;
   prbs::PrbsPolynomial polynomial;
 };
+
+#define PRBS_ERROR_MSG(message, interfaceName, component) \
+  message << interfaceName << " component "               \
+          << apache::thrift::util::enumNameSafe(component)
+
+#define PRINT_PRBS_ERROR_W_EXCEPTION(                            \
+    message, interfaceName, component, exception)                \
+  XLOG(ERR) << PRBS_ERROR_MSG(message, interfaceName, component) \
+            << " failed with " << exception.what()
 
 class AllPrbsStats {
   using StatsMap = std::map<std::string, phy::PrbsStats>;
@@ -48,11 +65,10 @@ class AllPrbsStats {
 class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
  public:
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
-    auto tcvrSpec = utility::getTransceiverSpec(getSw(), port);
-    if (tcvrSpec) {
-      if (auto mediaInterface = tcvrSpec->getMediaInterface()) {
-        return *mediaInterface == media;
-      }
+    auto portName = getPortName(port);
+    auto itr = portToMediaInterface_.find(portName);
+    if (itr != portToMediaInterface_.end()) {
+      return itr->second == media;
     }
     return false;
   }
@@ -84,6 +100,9 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     AgentEnsembleLinkTest::SetUp();
     if (!IsSkipped()) {
       waitForLldpOnCabledPorts();
+
+      // Cache media interfaces for use later
+      portToMediaInterface_ = utility::getPortToMediaInterface();
 
       // Get the list of ports and their components to enable the test on
       portsToTest_ = getPortsToTest();
@@ -206,6 +225,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
 
  private:
   std::vector<TestPort> portsToTest_;
+  std::map<std::string, MediaInterfaceCode> portToMediaInterface_;
 
   template <class Client>
   bool setPrbsOnInterface(
@@ -216,8 +236,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     try {
       client->sync_setInterfacePrbs(interfaceName, component, state);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
-                << ex.what();
+      PRINT_PRBS_ERROR_W_EXCEPTION(
+          "Setting PRBS on ", interfaceName, component, ex);
       return false;
     }
     return true;
@@ -227,7 +247,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
-      state.polynomial_ref() = testPort.polynomial;
+      state.polynomial() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
         // Setting ASIC PRBS requires generator and checker to be both enabled
         // or both disabled.
@@ -268,7 +288,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
-      state.polynomial_ref() = testPort.polynomial;
+      state.polynomial() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
@@ -327,8 +347,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
              state.checkerEnabled().value()));
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Checking PRBS State on " << interfaceName << " failed with "
-                << ex.what();
+      PRINT_PRBS_ERROR_W_EXCEPTION(
+          "Checking PRBS State on ", interfaceName, component, ex);
       return false;
     }
   }
@@ -411,7 +431,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       phy::PrbsStats& stats,
       bool initial,
       time_t testStartTime) {
-    ASSERT_FALSE(stats.get_laneStats().empty());
+    ASSERT_FALSE(stats.laneStats().value().empty());
     for (const auto& laneStat : stats.laneStats().value()) {
       XLOG(DBG2) << folly::sformat(
           "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
@@ -430,7 +450,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       if (!initial) {
         // These stats may not be valid when initial is true which is when we
         // just enable PRBS
-        EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
+        EXPECT_EQ(laneStat.numLossOfLock().value(), 0);
         auto berThreshold = FLAGS_link_stress_test ? 5e-7 : 1;
         EXPECT_TRUE(
             laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
@@ -497,12 +517,15 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                  << apache::thrift::util::enumNameSafe(component);
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-      EXPECT_FALSE(stats.get_laneStats().empty());
+      EXPECT_FALSE(stats.laneStats().value().empty())
+          << PRBS_ERROR_MSG("Failed ", interfaceName, component);
       for (const auto& laneStat : stats.laneStats().value()) {
         // Don't check lock status because clear would have cleared it too and
         // we may not have had an update of stats yet
-        EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
-        EXPECT_LT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
+        EXPECT_EQ(laneStat.numLossOfLock().value(), 0)
+            << PRBS_ERROR_MSG("Failed ", interfaceName, component);
+        EXPECT_LT(laneStat.timeSinceLastClear().value(), timestampBeforeClear)
+            << PRBS_ERROR_MSG("Failed ", interfaceName, component);
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Checking PRBS Stats on " << interfaceName << " failed with "
@@ -549,8 +572,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     try {
       client->sync_clearInterfacePrbsStats(interfaceName, component);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Clearing PRBS Stats on " << interfaceName << " failed with "
-                << ex.what();
+      PRINT_PRBS_ERROR_W_EXCEPTION(
+          "Clearing PRBS Stats on ", interfaceName, component, ex);
       return false;
     }
     return true;
@@ -588,17 +611,27 @@ class TransceiverLineToTransceiverLinePrbsTest : public AgentEnsemblePrbsTest {
  protected:
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;
-    auto connectedPairs = this->getConnectedPairs();
+    // The side argument below does not matter if feature is none.
+    // Get all connected ports (excluding backplane ports).
+    auto connectedPairs = this->getConnectedOpticalAndActivePortPairWithFeature(
+        TransceiverFeature::NONE, phy::Side::LINE);
     for (const auto& [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
 
-      if (!this->checkValidMedia(port1, Media) ||
-          !this->checkValidMedia(port2, Media) ||
-          !this->checkPrbsSupported(
-              portName1, phy::PortComponent::TRANSCEIVER_LINE, Polynomial) ||
-          !this->checkPrbsSupported(
-              portName2, phy::PortComponent::TRANSCEIVER_LINE, Polynomial)) {
+      auto port1ValidMedia = checkValidMedia(port1, Media);
+      auto port2ValidMedia = checkValidMedia(port2, Media);
+      auto port1SupportPrbs = checkPrbsSupported(
+          portName1, phy::PortComponent::TRANSCEIVER_LINE, Polynomial);
+      auto port2SupportPrbs = checkPrbsSupported(
+          portName2, phy::PortComponent::TRANSCEIVER_LINE, Polynomial);
+      XLOG(INFO) << "Tcvr to Tcvr PRBS test: portA " << portName1 << " portZ "
+                 << portName2 << " validMediaA " << port1ValidMedia
+                 << " validMediaZ " << port2ValidMedia << " supPrbsA "
+                 << port1SupportPrbs << " supPrbsZ " << port2SupportPrbs
+                 << " poly " << apache::thrift::util::enumNameSafe(Polynomial);
+      if (!port1ValidMedia || !port2ValidMedia || !port1SupportPrbs ||
+          !port2SupportPrbs) {
         continue;
       }
       portsToTest.push_back(
@@ -629,16 +662,25 @@ class PhyToTransceiverSystemPrbsTest : public AgentEnsemblePrbsTest {
         ComponentA == phy::PortComponent::ASIC ||
         ComponentA == phy::PortComponent::GB_LINE);
     std::vector<TestPort> portsToTest;
-    auto connectedPairs = this->getConnectedPairs();
+    auto connectedPairs = this->getConnectedOpticalAndActivePortPairWithFeature(
+        TransceiverFeature::NONE, phy::Side::LINE);
     for (const auto& [port1, port2] : connectedPairs) {
       for (const auto& port : {port1, port2}) {
         auto portName = this->getPortName(port);
-        if (!this->checkValidMedia(port, Media) ||
-            !this->checkPrbsSupported(portName, ComponentA, PolynomialA) ||
-            !this->checkPrbsSupported(
-                portName,
-                phy::PortComponent::TRANSCEIVER_SYSTEM,
-                PolynomialZ)) {
+        auto portValidMedia = checkValidMedia(port, Media);
+        auto portSupportPrbsA =
+            checkPrbsSupported(portName, ComponentA, PolynomialA);
+        auto portSupportPrbsZ = checkPrbsSupported(
+            portName, phy::PortComponent::TRANSCEIVER_SYSTEM, PolynomialZ);
+        XLOG(INFO) << "Tcvr to ASIC PRBS test: port " << portName
+                   << " validMedia " << portValidMedia << " supportPrbsA "
+                   << portSupportPrbsA << " PolyA "
+                   << apache::thrift::util::enumNameSafe(PolynomialA)
+                   << " CompA "
+                   << apache::thrift::util::enumNameSafe(ComponentA)
+                   << " supportPrbsZ " << portSupportPrbsZ << " PolyZ "
+                   << apache::thrift::util::enumNameSafe(PolynomialZ);
+        if (!portValidMedia || !portSupportPrbsA || !portSupportPrbsZ) {
           continue;
         }
         portsToTest.push_back(
@@ -667,10 +709,15 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
 
-      if (!this->checkPrbsSupported(
-              portName1, phy::PortComponent::ASIC, Polynomial) ||
-          !this->checkPrbsSupported(
-              portName2, phy::PortComponent::ASIC, Polynomial)) {
+      auto port1SupportPrbs =
+          checkPrbsSupported(portName1, phy::PortComponent::ASIC, Polynomial);
+      auto port2SupportPrbs =
+          checkPrbsSupported(portName2, phy::PortComponent::ASIC, Polynomial);
+      XLOG(INFO) << "ASIC to ASIC PRBS test: portA " << portName1
+                 << " supPrbsA " << port1SupportPrbs << " portZ " << portName2
+                 << " supPrbsZ " << port2SupportPrbs << " Polynomial "
+                 << apache::thrift::util::enumNameSafe(Polynomial);
+      if (!port1SupportPrbs || !port2SupportPrbs) {
         continue;
       }
       portsToTest.push_back({portName1, phy::PortComponent::ASIC, Polynomial});
@@ -689,8 +736,9 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
               BOOST_PP_CAT(                                                  \
                   _,                                                         \
                   BOOST_PP_CAT(                                              \
-                      POLYNOMIAL_A, BOOST_PP_CAT(_TO_, COMPONENT_Z)))),      \
-          BOOST_PP_CAT(_, POLYNOMIAL_Z)))
+                      CONVERT_PRBS_STRING(POLYNOMIAL_A),                     \
+                      BOOST_PP_CAT(_TO_, COMPONENT_Z)))),                    \
+          BOOST_PP_CAT(_, CONVERT_PRBS_STRING(POLYNOMIAL_Z))))
 
 #define PRBS_TRANSCEIVER_TEST_NAME(                                         \
     MEDIA, COMPONENT_A, COMPONENT_Z, POLYNOMIAL_A, POLYNOMIAL_Z)            \
@@ -701,33 +749,33 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
 #define PRBS_ASIC_TEST_NAME(COMPONENT_A, POLYNOMIAL_A) \
   PRBS_TEST_NAME(COMPONENT_A, COMPONENT_A, POLYNOMIAL_A, POLYNOMIAL_A)
 
-#define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL)        \
-  struct PRBS_TRANSCEIVER_TEST_NAME(                                          \
-      MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL, POLYNOMIAL)      \
-      : public TransceiverLineToTransceiverLinePrbsTest<                      \
-            MediaInterfaceCode::MEDIA,                                        \
-            prbs::PrbsPolynomial::POLYNOMIAL> {};                             \
-  TEST_F(                                                                     \
-      PRBS_TRANSCEIVER_TEST_NAME(                                             \
-          MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL, POLYNOMIAL), \
-      prbsSanity) {                                                           \
-    runTest();                                                                \
+#define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL) \
+  struct PRBS_TRANSCEIVER_TEST_NAME(                                   \
+      MEDIA, TCVR_L, TCVR_L, POLYNOMIAL, POLYNOMIAL)                   \
+      : public TransceiverLineToTransceiverLinePrbsTest<               \
+            MediaInterfaceCode::MEDIA,                                 \
+            prbs::PrbsPolynomial::POLYNOMIAL> {};                      \
+  TEST_F(                                                              \
+      PRBS_TRANSCEIVER_TEST_NAME(                                      \
+          MEDIA, TCVR_L, TCVR_L, POLYNOMIAL, POLYNOMIAL),              \
+      prbsSanity) {                                                    \
+    runTest();                                                         \
   }
 
-#define PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(                                   \
-    MEDIA, POLYNOMIALA, COMPONENTA, POLYNOMIALB)                            \
-  struct PRBS_TRANSCEIVER_TEST_NAME(                                        \
-      MEDIA, COMPONENTA, TRANSCEIVER_SYSTEM, POLYNOMIALA, POLYNOMIALB)      \
-      : public PhyToTransceiverSystemPrbsTest<                              \
-            MediaInterfaceCode::MEDIA,                                      \
-            prbs::PrbsPolynomial::POLYNOMIALA,                              \
-            phy::PortComponent::COMPONENTA,                                 \
-            prbs::PrbsPolynomial::POLYNOMIALB> {};                          \
-  TEST_F(                                                                   \
-      PRBS_TRANSCEIVER_TEST_NAME(                                           \
-          MEDIA, COMPONENTA, TRANSCEIVER_SYSTEM, POLYNOMIALA, POLYNOMIALB), \
-      prbsSanity) {                                                         \
-    runTest();                                                              \
+#define PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(                       \
+    MEDIA, POLYNOMIALA, COMPONENTA, POLYNOMIALB)                \
+  struct PRBS_TRANSCEIVER_TEST_NAME(                            \
+      MEDIA, COMPONENTA, TCVR_S, POLYNOMIALA, POLYNOMIALB)      \
+      : public PhyToTransceiverSystemPrbsTest<                  \
+            MediaInterfaceCode::MEDIA,                          \
+            prbs::PrbsPolynomial::POLYNOMIALA,                  \
+            phy::PortComponent::COMPONENTA,                     \
+            prbs::PrbsPolynomial::POLYNOMIALB> {};              \
+  TEST_F(                                                       \
+      PRBS_TRANSCEIVER_TEST_NAME(                               \
+          MEDIA, COMPONENTA, TCVR_S, POLYNOMIALA, POLYNOMIALB), \
+      prbsSanity) {                                             \
+    runTest();                                                  \
   }
 
 #define PRBS_ASIC_ASIC_TEST(POLYNOMIAL)                                 \
@@ -743,14 +791,18 @@ PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_200G, PRBS31Q);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_400G, PRBS31Q);
 
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(DR4_400G, PRBS31Q);
+
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR8_800G, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
+
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_400G, PRBS31, ASIC, PRBS31Q);
 
-PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
-
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(DR4_400G, PRBS31, ASIC, PRBS31Q);
 
-PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(DR4_400G, PRBS31Q);
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR8_800G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_ASIC_ASIC_TEST(PRBS31);

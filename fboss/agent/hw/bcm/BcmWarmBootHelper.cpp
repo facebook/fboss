@@ -6,16 +6,10 @@
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 
-#include <fcntl.h>
-#include <sys/stat.h>
-
 #include <folly/FileUtil.h>
-#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
-#include <glog/logging.h>
 
 extern "C" {
 #include <bcm/switch.h>

@@ -1,10 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-
-#include "fboss/agent/hw/sai/api/TamApi.h"
-
-#include <folly/String.h>
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 
 extern "C" {
 #if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
@@ -32,9 +30,13 @@ std::string eventName(uint32_t eventID) {
       return "SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN";
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
       return "SAI_SWITCH_EVENT_TYPE_PARITY_ERROR";
-#if defined BRCM_SAI_SDK_GTE_11_0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT:
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT";
+    case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
+      return "SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED";
+    case SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET:
+      return "SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET";
 #endif
   }
   return folly::to<std::string>("unknown event type: ", eventID);
@@ -320,13 +322,32 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH:
       return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    // DDP Errors
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT";
+    case SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR";
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL";
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY:
+      return "SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY";
+#endif
     default:
       break;
   }
   return folly::sformat("Unknown error type: {} ", static_cast<int>(type));
 }
 
-#if defined BRCM_SAI_SDK_GTE_11_0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
 bool isIreErrorType(sai_switch_error_type_t type) {
   switch (type) {
     case SAI_SWITCH_ERROR_TYPE_IRE_ECC:
@@ -545,6 +566,236 @@ bool rtpTableChangedEvent(sai_switch_error_type_t type) {
   }
 }
 
+bool isDdpError(sai_switch_error_type_t type) {
+  switch (type) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR:
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL:
+    case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY:
+      return true;
+#endif
+    default:
+      break;
+  }
+  return false;
+}
+
+bool isErrorInterrupt(sai_switch_error_type_t type) {
+  switch (type) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+    case SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
+#endif
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_UNDERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_UNDERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_SAT_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_UDP_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_DROP_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_OVF_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_RCYM_OVF_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_RXI_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_SMALL_PACKET_HEADER_STRIP:
+    case SAI_SWITCH_ERROR_TYPE_FCR_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FCT_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_P_0_OFM_FIFO_OVFLW_DROP_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDA_P_1_OFM_FIFO_OVFLW_DROP_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FDT_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_OVF_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_READ_CONJESTED_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_WRITE_CONJESTED_INT:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
+void incrementJ3InterruptCounter(
+    facebook::fboss::HwSwitchFb303Stats* switchStats,
+    sai_switch_error_type_t interrupt) {
+  if (isErrorInterrupt(interrupt)) {
+    XLOG(ERR) << "ERROR INTERRUPT: " << errorType(interrupt);
+    switch (interrupt) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+      case SAI_SWITCH_ERROR_TYPE_DDP_ERROR_UNPACK_PACKET_SIZE_ERROR:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_BTC_TDU_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_CRC_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_CPYDAT_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_LAST_BUFF_CRC_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_DDP_EXT_MEM_ERR_PKUP_PACKET_CRC_ERR_INT:
+        switchStats->dramError();
+        break;
+#endif
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_UNDERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_UNDERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_SAT_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_UDP_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_DROP_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_OVF_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_RCYM_OVF_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_RXI_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_SMALL_PACKET_HEADER_STRIP:
+      case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_OVF_INT:
+      case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_READ_CONJESTED_INT:
+      case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_WRITE_CONJESTED_INT:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
+        switchStats->egressTmError();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_FCR_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_P_0_OFM_FIFO_OVFLW_DROP_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_P_1_OFM_FIFO_OVFLW_DROP_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDR_ECC_ECC_2B_ERR_INT:
+        switchStats->fabricRxError();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_FCT_ECC_ECC_2B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDT_ECC_ECC_2B_ERR_INT:
+        switchStats->fabricTxError();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_FMAC_ECC_ECC_2B_ERR_INT:
+        switchStats->fabricLinkError();
+        break;
+      default:
+        // TODO: Add a counter for unhandled error interrupt
+        XLOG_EVERY_MS(WARN, 5000)
+            << "Unmapped error interrupt seen, interrupt id: "
+            << static_cast<int>(interrupt);
+    }
+  } else {
+    XLOG(ERR) << "WARNING INTERRUPT: " << errorType(interrupt);
+    switch (interrupt) {
+#if defined(SAI_VERSION_11_7_0_0_DNX_ODP)
+      case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_FULL:
+      case SAI_SWITCH_ERROR_TYPE_DDP_DELETE_BDB_FIFO_NOT_EMPTY:
+        switchStats->dramWarning();
+        break;
+#endif
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_1B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ERROR_ECC:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_EOP_DEC_ABOVE_TH_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_INC_ABOVE_TH_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_PKT_INC_ABOVE_MAX_PKT_SIZE_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_SOP_DEC_ABOVE_TH_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TAIL_ABOVE_INC_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TAIL_ABOVE_TH_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TOO_SMALL_AFTER_EDIT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TOTAL_DEC_ABOVE_PKT_SIZE_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_PKT_SIZE_EOP_MISMATCH_INT:
+      case SAI_SWITCH_ERROR_TYPE_ALIGNER_SMALL_CROPPED_MIRR_HEADER:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_1B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_ERROR_ECC:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_FWD_APPEND_HEADER_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_ILLEGAL_IFC_NUMBER_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_RCY_APPEND_HEADER_INT:
+      case SAI_SWITCH_ERROR_TYPE_EPNI_VISIBILITY_PACKET_ENDED:
+      case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_1B_ERR_INT:
+      case SAI_SWITCH_ERROR_TYPE_FQP_ERROR_ECC:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_CELL_0_LAST_EOP_PSIZE_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FDR_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_FRAG_NUM_ZERO_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PAIR_FRAG_NUM_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PCP_LOC_NOT_IN_CELL_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_PKT_SIZE_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_OVERSIZE_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CDC_SOP_CELL_SIZE_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CRC_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_CELL_0_LAST_EOP_PSIZE_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_CELL_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_EOP_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MISSING_SOP_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_MOP_CELL_SIZE_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_CUP_PKT_SIZE_MISMATCH_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_DYNAMIC_MISSING_SOP_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_FABRIC_PTP_PKT_ERR:
+      case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_STATIC_MISS_CONFIG_ERR:
+        switchStats->egressTmWarning();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_FDA_FAB_FIF_P_1_RXI_0_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_LUC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_0_MMC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_LUC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_1_MMC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_LUC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_2_MMC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_LUC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDA_FDA_IPTCTRL_3_MMC_OVERFLOW_INT:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_0_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_0:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_1_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_1:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_2_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_2:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_3_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_3:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_1_MAC_4_P_1_IFM_OVERFLOW_BY_MFIFO_MAC_4:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_0_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_0:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_1_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_1:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_2_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_2:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_3_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_3:
+      case SAI_SWITCH_ERROR_TYPE_FDR_FDR_P_2_MAC_4_P_2_IFM_OVERFLOW_BY_MFIFO_MAC_4:
+        switchStats->fabricRxWarning();
+        break;
+      case SAI_SWITCH_ERROR_TYPE_IRE_BAD_REASSEMBLY_CONTEXT:
+      case SAI_SWITCH_ERROR_TYPE_IRE_BYTE_NUM:
+      case SAI_SWITCH_ERROR_TYPE_IRE_DATA_PATH_CRC:
+      case SAI_SWITCH_ERROR_TYPE_IRE_ECC:
+      case SAI_SWITCH_ERROR_TYPE_IRE_FIFO:
+      case SAI_SWITCH_ERROR_TYPE_IRE_INCOMPLETE_WORD:
+      case SAI_SWITCH_ERROR_TYPE_IRE_INTERNAL_INTERFACE:
+      case SAI_SWITCH_ERROR_TYPE_IRE_INVALID_REASSEMBLY_CONTEXT:
+      case SAI_SWITCH_ERROR_TYPE_IRE_NEGATIVE_DELTA:
+      case SAI_SWITCH_ERROR_TYPE_IRE_NIF:
+      case SAI_SWITCH_ERROR_TYPE_IRE_RCY_INTERFACE:
+      case SAI_SWITCH_ERROR_TYPE_IRE_REASSEMBLY:
+      case SAI_SWITCH_ERROR_TYPE_IRE_REASSEMBLY_CONTEXT:
+      case SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_1:
+      case SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_2:
+      case SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_3:
+      case SAI_SWITCH_ERROR_TYPE_IRE_TIMEOUT:
+      case SAI_SWITCH_ERROR_TYPE_IRE_UNEXPECTED_MOP:
+      case SAI_SWITCH_ERROR_TYPE_IRE_UNEXPECTED_SOP:
+      case SAI_SWITCH_ERROR_TYPE_ITPPD_ECC:
+      case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_0_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_1_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_2_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_3_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_4_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPP_ECC:
+      case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_0_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_1_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_2_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_3_MISMATCH:
+      case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_4_MISMATCH:
+        switchStats->ingressTmWarning();
+        break;
+      default:
+        // TODO: Add a counter for unhandled warning interrupt
+        XLOG_EVERY_MS(WARN, 5000)
+            << "Unmapped warning interrupt seen, interrupt id: "
+            << static_cast<int>(interrupt);
+    }
+  }
+}
 #endif
 
 } // namespace
@@ -592,7 +843,7 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->uncorrParityError();
       }
     } break;
-#if defined BRCM_SAI_SDK_GTE_11_0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT: {
       auto ireError = isIreErrorType(eventInfo->error_type);
       auto itppError = isItppError(eventInfo->error_type);
@@ -605,8 +856,8 @@ void SaiSwitch::switchEventCallback(
       auto eccError = isEccError(eventInfo->error_type);
       auto fdrFifoOverflowError = isFdrFifoOverflowError(eventInfo->error_type);
       auto fdaFifoOverflowError = isFdaFifoOverflowError(eventInfo->error_type);
+      auto ddpError = isDdpError(eventInfo->error_type);
       auto rtpTableChanged = rtpTableChangedEvent(eventInfo->error_type);
-      XLOG(ERR) << "ERROR INTERRUPT: " << errorType(eventInfo->error_type);
       if (ireError) {
         getSwitchStats()->ireError();
       }
@@ -639,13 +890,23 @@ void SaiSwitch::switchEventCallback(
       if (fdaFifoOverflowError) {
         getSwitchStats()->fdaFifoOverflowError();
       }
+      if (ddpError) {
+        getSwitchStats()->dramDataPathError();
+      }
       if (rtpTableChanged) {
         // RTP table change notification is vendor specific, this
         // means a change in switch reachability over fabric!
         // Initiate processing for RTP table change, ie. invoke
         // the common switchReachabilityChange handling.
+        XLOG(DBG0) << "Received switch event notification: "
+                   << errorType(eventInfo->error_type);
         switchReachabilityChangeTopHalf();
         getSwitchStats()->switchReachabilityChangeCount();
+      }
+      if (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        // Increment J3 specific error/warning asic counters
+        incrementJ3InterruptCounter(getSwitchStats(), eventInfo->error_type);
       }
     } break;
     case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_ISOLATE: {
@@ -678,8 +939,13 @@ void SaiSwitch::switchEventCallback(
 
       break;
     }
-#endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
+    case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
+      getSwitchStats()->interruptMaskedEvent();
+      // For debug purposes only, to avoid flood of msgs in case of a
+      // real issue in fleet.
+      XLOG(DBG4) << "Interrupt masked notification received for interrupt ID "
+                 << static_cast<int>(eventInfo->index);
+      break;
     case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
       XLOG(ERR) << "Firmware Crash callback received: " << " error type: "
                 << errorType(eventInfo->error_type)
@@ -694,17 +960,22 @@ void SaiSwitch::switchEventCallback(
       XLOG(DBG2) << "[SHEL] Received remote link change event: " << "isUp: "
                  << static_cast<int>(isUp)
                  << " sysPortId: " << static_cast<int>(sysPortId);
-      // TODO(zecheng): Handle and log remote link change
+      concurrentIndices_->sysPortShelState.insert_or_assign(
+          SystemPortID(sysPortId),
+          isUp ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
       break;
     }
-#endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED: {
       XLOG(ERR) << "RX FIFO stuck seen on link: " << eventInfo->index
                 << ", pipe: " << eventInfo->index2;
       getSwitchStats()->rxFifoStuckDetected();
       break;
     }
+    case SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET:
+      XLOG(ERR) << " Got soft reset event";
+      logEventDetails();
+      getSwitchStats()->asicSoftResetError();
+      break;
 #endif
   }
 }
@@ -716,6 +987,23 @@ void SaiSwitch::tamEventCallback(
     uint32_t /*attr_count*/,
     const sai_attribute_t* /*attr_list*/) {
   // no-op
+}
+
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* buffer) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  const sai_switch_hard_reset_event_info_t* eventInfo =
+      static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
+  /*
+   * Flags has the ORed value for all reason codes for hard resets
+   * For exact values, look at saiswitchextensions.h file
+   */
+  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset, with flag: "
+              << eventInfo->flags;
+#else
+  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset event";
+#endif
 }
 
 } // namespace facebook::fboss

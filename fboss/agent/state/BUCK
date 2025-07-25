@@ -157,7 +157,6 @@ cpp_library(
         "//folly:network_address",
         "//folly:poly",
         "//folly:range",
-        "//folly:string",
         "//folly/hash:hash",
         "//folly/json:dynamic",
         "//folly/logging:logging",
@@ -182,8 +181,8 @@ cpp_library(
     ],
     exported_deps = [
         ":state",
-        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hwswitch_matcher",
         "//folly:network_address",
     ],
 )

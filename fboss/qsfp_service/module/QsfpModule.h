@@ -236,6 +236,10 @@ class QsfpModule : public Transceiver {
 
   bool readyTransceiver() override;
 
+  portstate::PortState getPortState() override {
+    return portState_;
+  }
+
   virtual void triggerVdmStatsCapture() override {}
 
   void publishSnapshots() override;
@@ -463,7 +467,7 @@ class QsfpModule : public Transceiver {
   /*
    * Gather the vendor info for thrift queries
    */
-  virtual Vendor getVendorInfo() = 0;
+  virtual Vendor getVendorInfo() const = 0;
   /*
    * Gather the cable info for thrift queries
    */
@@ -493,6 +497,14 @@ class QsfpModule : public Transceiver {
   virtual std::optional<ExtendedSpecComplianceCode>
   getExtendedSpecificationComplianceCode() const {
     return std::nullopt;
+  }
+
+  /*
+   * Return if the module is LPO or Non LPO.
+   * LPO Transceivers have no DSP in them.
+   */
+  virtual bool isLpoModule() const {
+    return false;
   }
 
   double mwToDb(double value);
@@ -695,6 +707,8 @@ class QsfpModule : public Transceiver {
 
   void removeTransceiverLocked();
 
+  void setPortStateLocked(bool programEnd);
+
   TransceiverPresenceDetectionStatus detectPresenceLocked();
 
   /*
@@ -798,6 +812,9 @@ class QsfpModule : public Transceiver {
 
   time_t lastFwUpgradeStartTime_{0};
   time_t lastFwUpgradeEndTime_{0};
+
+  // Port state. Has programming start/end.
+  portstate::PortState portState_;
 
   std::string getFwStorageHandle(const std::string& tcvrPartNumber) const;
 

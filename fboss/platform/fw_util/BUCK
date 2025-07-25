@@ -1,12 +1,27 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
 
 oncall("fboss_platform")
 
 cpp_binary(
     name = "fw_util",
+    srcs = ["fw_util.cpp"],
+    deps = [
+        ":core",
+        "//fboss/platform/helpers:init_cli",
+        "//folly/logging:file_handler_factory",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "CLI11",
+    ],
+)
+
+cpp_library(
+    name = "core",
     srcs = [
-        "Flags.cpp",
         "FwUtilFlashrom.cpp",
         "FwUtilImpl.cpp",
         "FwUtilOperations.cpp",
@@ -15,29 +30,22 @@ cpp_binary(
         "FwUtilRead.cpp",
         "FwUtilUpgrade.cpp",
         "FwUtilVerify.cpp",
-        "FwUtilVersion.cpp",
-        "fw_util.cpp",
+        "FwUtilVersionHandler.cpp",
         "fw_util_helpers.cpp",
     ],
-    default_strip_mode = "full",
-    strip_mode = "full",
-    deps = [
+    exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
-        "//fboss/platform/helpers:init_cli",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
         "//folly:format",
         "//folly:string",
         "//folly:subprocess",
-        "//folly/logging:init",
         "//folly/logging:logging",
         "//folly/system:shell",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    external_deps = [
-        "gflags",
     ],
 )
 

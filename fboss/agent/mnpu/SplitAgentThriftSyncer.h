@@ -46,8 +46,8 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
       PortID port,
       bool up,
       cfg::PortType portType,
-      std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
-          std::nullopt) override;
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt,
+      std::optional<AggregatePortID> aggPortId = std::nullopt) override;
   void linkActiveStateChangedOrFwIsolated(
       const std::map<PortID, bool>& port2IsActive,
       bool fwIsolated,
@@ -76,6 +76,9 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   void cancelPendingRxPktEnqueue();
 
  private:
+  std::atomic<long> watchdogMissedCount_{0};
+  std::unique_ptr<ThreadHeartbeatWatchdog> thriftClientWatchdog_;
+  std::optional<std::string> multiSwitchStatsPrefix_;
   std::shared_ptr<folly::ScopedEventBaseThread> retryThread_;
   SwitchID switchId_;
   HwSwitch* hwSwitch_;
@@ -89,5 +92,7 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
       switchReachabilityChangeEventSinkClient_;
   bool isRunning_{false};
   folly::Synchronized<uint64_t> rxPktEventsDropped_{0};
+
+  void updateWatchdogMissedCount();
 };
 } // namespace facebook::fboss

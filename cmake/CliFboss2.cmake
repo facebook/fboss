@@ -73,6 +73,14 @@ add_fbthrift_cpp_library(
     json
 )
 
+
+add_fbthrift_cpp_library(
+  show_fabric_inputbalance_model
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/model.thrift
+  OPTIONS
+    json
+)
+
 add_fbthrift_cpp_library(
   show_host_model
   fboss/cli/fboss2/commands/show/host/model.thrift
@@ -246,6 +254,8 @@ add_fbthrift_cpp_library(
   fboss/cli/fboss2/commands/show/route/model.thrift
   OPTIONS
     json
+  DEPENDS
+    ctrl_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -366,24 +376,36 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
+  fboss/cli/fboss2/commands/show/acl/CmdShowAcl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
+  fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
+  fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.cpp
   fboss/cli/fboss2/commands/show/example/CmdShowExample.h
+  fboss/cli/fboss2/commands/show/example/CmdShowExample.cpp
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
+  fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.cpp
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
+  fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.cpp
+  fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
+  fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
   fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
+  fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.cpp
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
+  fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.cpp
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
@@ -394,6 +416,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.cpp
   fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
@@ -414,9 +437,13 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
   fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.h
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.cpp
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
   fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
+  fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.cpp
   fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h
+  fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.cpp
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
@@ -459,6 +486,7 @@ target_link_libraries(fboss2
   fsdb_oper_cpp2
   fsdb_model_cpp2
   Folly::folly
+  input_balance_util
   cli_model
   show_acl_model
   show_agent_model
@@ -470,6 +498,7 @@ target_link_libraries(fboss2
   show_dsfnodes_model
   show_fabric_model
   show_fabric_reachability_model
+  show_fabric_inputbalance_model
   show_host_model
   show_lldp_model
   show_mirror_model

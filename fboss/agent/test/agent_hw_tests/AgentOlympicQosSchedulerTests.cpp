@@ -12,8 +12,8 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -61,11 +61,9 @@ class AgentOlympicQosSchedulerTest : public AgentQosSchedulerTestBase {
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     return cfg;
   }
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::OLYMPIC_QOS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_QOS, ProductionFeature::OLYMPIC_QOS};
   }
   void verifyWRR();
   void verifySP(bool frontPanelTraffic = true);
@@ -90,8 +88,7 @@ void AgentOlympicQosSchedulerTest::verifyWRR() {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
     if (isDualStage3Q2QQos()) {
-      auto hwAsic =
-          utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       auto streamType =
           *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
       utility::addNetworkAIQueueConfig(
@@ -115,7 +112,8 @@ void AgentOlympicQosSchedulerTest::verifyWRR() {
 }
 
 void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 
@@ -147,7 +145,8 @@ void AgentOlympicQosSchedulerTest::verifyWRRAndSP(
 void AgentOlympicQosSchedulerTest::verifySingleWRRAndSP(
     const std::vector<int>& queueIds,
     int trafficQueueId) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 
   auto verify = [=, this]() {
@@ -206,7 +205,8 @@ void AgentOlympicQosSchedulerTest::verifySingleWRRAndNC() {
  * over warmboot
  */
 void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
     resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
@@ -241,7 +241,8 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
  * over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 
@@ -278,7 +279,8 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
  * queue ids with WRR+SP over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
     resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
@@ -327,7 +329,8 @@ void AgentOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
  * WRR+SP over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
     resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
@@ -358,7 +361,8 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
  * over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
     _setup(ecmpHelper6);
@@ -398,15 +402,15 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
  * over warmboot.
  */
 void AgentOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() {
     _setup(ecmpHelper6);
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto streamType =
-        *(utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-              ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
-              .begin());
+    auto streamType = *(checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
     utility::addOlympicV2QosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), newCfg);

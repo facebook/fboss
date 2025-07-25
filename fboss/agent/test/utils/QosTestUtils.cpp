@@ -1,11 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/utils/QosTestUtils.h"
-#include <folly/IPAddressV4.h>
-#include "fboss/agent/test/utils/AsicUtils.h"
-#include "fboss/agent/test/utils/VoqTestUtils.h"
 
+#include <folly/IPAddressV4.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <gtest/gtest.h>
@@ -147,7 +147,8 @@ void disableTTLDecrements(
       disableTTLDecrementOnPorts(sw, {port});
     } else if (sw->getHwAsicTable()->isFeatureSupported(
                    switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
-      utility::EcmpSetupTargetedPorts6 ecmp6(sw->getState());
+      utility::EcmpSetupTargetedPorts6 ecmp6(
+          sw->getState(), sw->needL2EntryForNeighbor());
       disableTTLDecrements(sw, ecmp6.getRouterId(), ecmp6.nhop(port));
     } else {
       throw FbossError("Failed to configure TTL decrement");
@@ -194,7 +195,7 @@ void verifyVoQHit(
     facebook::fboss::SystemPortID egressPort,
     int delta) {
   auto l3Asics = sw->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsic(l3Asics);
   int voqId = getTrafficClassToVoqId(asic, queueId);
   auto queueBytesBefore = portStatsBefore.queueOutBytes_()->find(voqId) !=
           portStatsBefore.queueOutBytes_()->end()

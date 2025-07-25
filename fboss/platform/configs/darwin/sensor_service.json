@@ -2,7 +2,7 @@
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
-      "pmUnitName": "CPU_CARD",
+      "pmUnitName": "SMB",
       "sensors": [
         {
           "name": "PCH_TEMP",
@@ -267,7 +267,8 @@
           "thresholds": {
             "upperCriticalVal": 3.795,
             "lowerCriticalVal": 2.8
-          }
+          },
+          "compute": "@/1000.0"
         },
         {
           "name": "POS_12V",
@@ -367,13 +368,7 @@
             "upperCriticalVal": 29500,
             "lowerCriticalVal": 2600
           }
-        }
-      ]
-    },
-    {
-      "slotPath": "/SCM_SLOT@0",
-      "pmUnitName": "SWITCH_CARD",
-      "sensors": [
+        },
         {
           "name": "SC_BOARD_TEMP",
           "sysfsPath": "/run/devmap/sensors/SC_BOARD_TEMP_MAX6581/temp1_input",
@@ -431,7 +426,7 @@
       ]
     },
     {
-      "slotPath": "/PSU_SLOT@0",
+      "slotPath": "/PEM_SLOT@0",
       "pmUnitName": "PEM",
       "sensors": [
         {

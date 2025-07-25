@@ -8,11 +8,9 @@
  *
  */
 #include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
 #include <optional>
 
 using facebook::fboss::FakePort;
@@ -1428,6 +1426,15 @@ sai_status_t set_port_serdes_attribute_fn(
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
+    case SAI_PORT_SERDES_ATTR_EXT_TX_LDO_BYPASS:
+      fillVec(
+          portSerdes.txLdoBypass,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.txLdoBypass)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
     case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_BOOST1_STRT:
       fillVec(
           portSerdes.rxInstgBoost1Start,
@@ -1536,15 +1543,6 @@ sai_status_t set_port_serdes_attribute_fn(
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
-    case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_ENABLE_SCAN:
-      fillVec(
-          portSerdes.rxEnableScanSelection,
-          attr->value.s32list.list,
-          attr->value.s32list.count);
-      if (!checkLanes(portSerdes.rxEnableScanSelection)) {
-        return SAI_STATUS_INVALID_ATTRIBUTE_0;
-      }
-      break;
     case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_SCAN_USE_SR_SETTINGS:
       fillVec(
           portSerdes.rxInstgScanUseSrSettings,
@@ -1587,6 +1585,51 @@ sai_status_t set_port_serdes_attribute_fn(
           attr->value.s32list.list,
           attr->value.s32list.count);
       if (!checkLanes(portSerdes.rxCdrTdetFineStepOvVal)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+    case SAI_PORT_SERDES_ATTR_EXT_RX_LDO_BYPASS:
+      fillVec(
+          portSerdes.rxLdoBypass,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxLdoBypass)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+    case SAI_PORT_SERDES_ATTR_EXT_RX_DIFF_ENCODER_EN:
+      fillVec(
+          portSerdes.rxDiffEncoderEn,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxDiffEncoderEn)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+    case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_ENABLE_SCAN:
+      fillVec(
+          portSerdes.rxInstgEnableScan,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxInstgEnableScan)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+    case SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LENGTH_BITMAP:
+      fillVec(
+          portSerdes.rxFfeLengthBitmap,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxFfeLengthBitmap)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+    case SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN:
+      fillVec(
+          portSerdes.rxFfeLmsDynamicGatingEn,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxFfeLmsDynamicGatingEn)) {
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
@@ -1793,6 +1836,14 @@ sai_status_t get_port_serdes_attribute_fn(
         }
         copyVecToList(portSerdes.txDriverSwing, attr_list[i].value.s32list);
         break;
+      case SAI_PORT_SERDES_ATTR_EXT_TX_LDO_BYPASS:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.txLdoBypass)) {
+          attr_list[i].value.s32list.count = portSerdes.txLdoBypass.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txLdoBypass, attr_list[i].value.s32list);
+        break;
       case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_BOOST1_STRT:
         if (!checkListSize(
                 attr_list[i].value.s32list, portSerdes.rxInstgBoost1Start)) {
@@ -1905,16 +1956,6 @@ sai_status_t get_port_serdes_attribute_fn(
         }
         copyVecToList(portSerdes.rxInstgDfeStop1p7, attr_list[i].value.s32list);
         break;
-      case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_ENABLE_SCAN:
-        if (!checkListSize(
-                attr_list[i].value.s32list, portSerdes.rxEnableScanSelection)) {
-          attr_list[i].value.s32list.count =
-              portSerdes.rxEnableScanSelection.size();
-          return SAI_STATUS_BUFFER_OVERFLOW;
-        }
-        copyVecToList(
-            portSerdes.rxEnableScanSelection, attr_list[i].value.s32list);
-        break;
       case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_SCAN_USE_SR_SETTINGS:
         if (!checkListSize(
                 attr_list[i].value.s32list,
@@ -1966,6 +2007,51 @@ sai_status_t get_port_serdes_attribute_fn(
         }
         copyVecToList(
             portSerdes.rxCdrTdetFineStepOvVal, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_RX_LDO_BYPASS:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxLdoBypass)) {
+          attr_list[i].value.s32list.count = portSerdes.rxLdoBypass.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxLdoBypass, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_RX_DIFF_ENCODER_EN:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxDiffEncoderEn)) {
+          attr_list[i].value.s32list.count = portSerdes.rxDiffEncoderEn.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxDiffEncoderEn, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_RX_INSTG_ENABLE_SCAN:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxInstgEnableScan)) {
+          attr_list[i].value.s32list.count =
+              portSerdes.rxInstgEnableScan.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxInstgEnableScan, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LENGTH_BITMAP:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxFfeLengthBitmap)) {
+          attr_list[i].value.s32list.count =
+              portSerdes.rxFfeLengthBitmap.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxFfeLengthBitmap, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN:
+        if (!checkListSize(
+                attr_list[i].value.s32list,
+                portSerdes.rxFfeLmsDynamicGatingEn)) {
+          attr_list[i].value.s32list.count =
+              portSerdes.rxFfeLmsDynamicGatingEn.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(
+            portSerdes.rxFfeLmsDynamicGatingEn, attr_list[i].value.s32list);
         break;
       default:
         return SAI_STATUS_NOT_IMPLEMENTED;

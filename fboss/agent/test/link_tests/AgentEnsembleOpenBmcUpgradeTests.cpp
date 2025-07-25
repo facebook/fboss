@@ -1,12 +1,17 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include <gtest/gtest.h>
-#include "common/process/Process.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
+
+#include <gtest/gtest.h>
+
+#include <folly/Subprocess.h>
+#include <folly/system/Shell.h>
+
 #include "fboss/lib/CommonUtils.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
+using folly::literals::shell_literals::operator""_shellify;
 
 DEFINE_string(oob_asset, "", "name/IP of the oob");
 DEFINE_string(oob_flash_device_name, "", "name of the device to flash");
@@ -16,18 +21,17 @@ class AgentEnsembleOpenBmcUpgradeTest : public AgentEnsembleLinkTest {
  private:
   void rebootOob(int waitAfterRebootSeconds = 300) const {
     XLOG(DBG2) << "Rebooting oob....";
-    std::string rebootCmd = folly::sformat(
-        "sshpass -p {} ssh root@{} reboot",
-        FLAGS_openbmc_password,
-        FLAGS_oob_asset);
-    std::string resultStr;
-    std::string errStr;
-    if (!facebook::process::Process::execShellCmd(
-            rebootCmd, &resultStr, &errStr)) {
-      XLOG(ERR) << "Result str = " << resultStr;
-      XLOG(ERR) << "Err str = " << errStr;
-      if (errStr.find("closed by remote host") == std::string::npos) {
-        throw FbossError("Reboot command failed : ", errStr);
+    folly::Subprocess p(
+        "sshpass -p {} ssh root@{} reboot"_shellify(
+            FLAGS_openbmc_password, FLAGS_oob_asset),
+        folly::Subprocess::Options().pipeStdout());
+    auto [stdOut, stdErr] = p.communicate();
+    int exitStatus = p.wait().exitStatus();
+    if (exitStatus != 0) {
+      XLOG(ERR) << "Result str = " << stdOut;
+      XLOG(ERR) << "Err str = " << stdErr;
+      if (stdErr.find("closed by remote host") == std::string::npos) {
+        throw FbossError("Reboot command failed : ", stdErr);
       }
     }
     /* sleep override */
@@ -36,15 +40,14 @@ class AgentEnsembleOpenBmcUpgradeTest : public AgentEnsembleLinkTest {
 
   void waitForSshAccessToOob() const {
     WITH_RETRIES({
-      std::string sshCmd = folly::sformat(
-          "sshpass -p {} ssh root@{} ls",
-          FLAGS_openbmc_password,
-          FLAGS_oob_asset);
-      std::string resultStr;
-      std::string errStr;
-      EXPECT_EVENTUALLY_TRUE(
-          facebook::process::Process::execShellCmd(sshCmd, &resultStr, &errStr))
-          << "Result str = " << resultStr << "\nErr str = " << errStr;
+      folly::Subprocess p(
+          "sshpass -p {} ssh root@{} ls"_shellify(
+              FLAGS_openbmc_password, FLAGS_oob_asset),
+          folly::Subprocess::Options().pipeStdout());
+      auto [stdOut, stdErr] = p.communicate();
+      int exitStatus = p.wait().exitStatus();
+      EXPECT_EVENTUALLY_EQ(exitStatus, 0)
+          << "Result str = " << stdOut << "\nErr str = " << stdErr;
     });
   }
 
@@ -58,31 +61,32 @@ class AgentEnsembleOpenBmcUpgradeTest : public AgentEnsembleLinkTest {
   void openBmcSanityCheck() const {
     XLOG(DBG2) << "Checking ssh access to oob";
     waitForSshAccessToOob();
-    std::string pingCmd = folly::sformat("ping6 -c 5 {}", FLAGS_oob_asset);
-    std::string resultStr;
-    std::string errStr;
-    if (!facebook::process::Process::execShellCmd(
-            pingCmd, &resultStr, &errStr)) {
-      XLOG(ERR) << "Result str = " << resultStr;
-      XLOG(ERR) << "Err str = " << errStr;
-      throw FbossError("OpenBMC Sanity check failed : ", errStr);
+    folly::Subprocess p(
+        "ping6 -c 5 {}"_shellify(FLAGS_oob_asset),
+        folly::Subprocess::Options().pipeStdout());
+    auto [stdOut, stdErr] = p.communicate();
+    int exitStatus = p.wait().exitStatus();
+    if (exitStatus != 0) {
+      XLOG(ERR) << "Result str = " << stdOut;
+      XLOG(ERR) << "Err str = " << stdErr;
+      throw FbossError("OpenBMC Sanity check failed : ", stdErr);
     }
     XLOG(DBG2) << "OpenBMC sanity check passed";
   }
 
   void upgradeOpenBmc() const {
-    std::string upgradeCmd = folly::sformat(
-        "sshpass -p {} ssh root@{} /run/scripts/run_flashy.sh --device {}",
-        FLAGS_openbmc_password,
-        FLAGS_oob_asset,
-        FLAGS_oob_flash_device_name);
-    std::string resultStr;
-    std::string errStr;
-    if (!facebook::process::Process::execShellCmd(
-            upgradeCmd, &resultStr, &errStr)) {
-      XLOG(ERR) << "Result str = " << resultStr;
-      XLOG(ERR) << "Err str = " << errStr;
-      throw FbossError("OpenBMC upgrade failed : ", errStr);
+    folly::Subprocess p(
+        "sshpass -p {} ssh root@{} /run/scripts/run_flashy.sh --device {}"_shellify(
+            FLAGS_openbmc_password,
+            FLAGS_oob_asset,
+            FLAGS_oob_flash_device_name),
+        folly::Subprocess::Options().pipeStdout());
+    auto [stdOut, stdErr] = p.communicate();
+    int exitStatus = p.wait().exitStatus();
+    if (exitStatus != 0) {
+      XLOG(ERR) << "Result str = " << stdOut;
+      XLOG(ERR) << "Err str = " << stdErr;
+      throw FbossError("OpenBMC upgrade failed : ", stdErr);
     }
     // Reboot OOB
     rebootOob();
@@ -93,19 +97,18 @@ class AgentEnsembleOpenBmcUpgradeTest : public AgentEnsembleLinkTest {
   }
 
   std::string openBmcVersion() const {
-    std::string sshCmd = folly::sformat(
-        "sshpass -p {} ssh root@{} head -n 1 /etc/issue",
-        FLAGS_openbmc_password,
-        FLAGS_oob_asset);
-    std::string resultStr;
-    std::string errStr;
-    if (!facebook::process::Process::execShellCmd(
-            sshCmd, &resultStr, &errStr)) {
-      XLOG(ERR) << "Result str = " << resultStr;
-      XLOG(ERR) << "Err str = " << errStr;
-      throw FbossError("Reading OpenBMC version failed : ", errStr);
+    folly::Subprocess p(
+        "sshpass -p {} ssh root@{} head -n 1 /etc/issue"_shellify(
+            FLAGS_openbmc_password, FLAGS_oob_asset),
+        folly::Subprocess::Options().pipeStdout());
+    auto [stdOut, stdErr] = p.communicate();
+    int exitStatus = p.wait().exitStatus();
+    if (exitStatus != 0) {
+      XLOG(ERR) << "Result str = " << stdOut;
+      XLOG(ERR) << "Err str = " << stdErr;
+      throw FbossError("Reading OpenBMC version failed : ", stdErr);
     }
-    return resultStr;
+    return stdOut;
   }
 };
 

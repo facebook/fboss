@@ -37,14 +37,28 @@ cpp_library(
 cpp_library(
     name = "fboss_eeprom_lib",
     srcs = [
+        "FbossEepromInterface.cpp",
         "FbossEepromParser.cpp",
     ],
     headers = [
-        "CachedFbossEepromParser.h",
+        "FbossEepromInterface.h",
         "FbossEepromParser.h",
     ],
     exported_deps = [
         ":crc16_ccitt_aug",
+        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    exported_deps = [
+        "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly/logging:logging",
     ],
 )

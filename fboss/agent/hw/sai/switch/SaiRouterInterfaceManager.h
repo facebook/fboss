@@ -10,8 +10,9 @@
 
 #pragma once
 
+#include "fboss/agent/hw/HwRouterInterfaceFb303Stats.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
-#include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -33,15 +34,19 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 
-using SaiVlanRouterInterface = SaiObject<SaiVlanRouterInterfaceTraits>;
-using SaiPortRouterInterface = SaiObject<SaiPortRouterInterfaceTraits>;
+using SaiVlanRouterInterface =
+    SaiObjectWithCounters<SaiVlanRouterInterfaceTraits>;
+using SaiPortRouterInterface =
+    SaiObjectWithCounters<SaiPortRouterInterfaceTraits>;
 
 struct SaiRouterInterfaceHandle {
   using SaiRouterInterface = std::variant<
       std::shared_ptr<SaiVlanRouterInterface>,
       std::shared_ptr<SaiPortRouterInterface>>;
-  SaiRouterInterface routerInterface;
-  SaiRouterInterfaceHandle(cfg::InterfaceType type) : intfType(type) {}
+  SaiRouterInterfaceHandle(
+      const std::string& intfName,
+      cfg::InterfaceType type);
+
   RouterInterfaceSaiId adapterKey() const {
     return std::visit(
         [](auto& handle) { return handle->adapterKey(); }, routerInterface);
@@ -63,9 +68,11 @@ struct SaiRouterInterfaceHandle {
     return std::get<std::shared_ptr<SaiVlanRouterInterface>>(routerInterface);
   }
 
-  std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
-  bool isLocalRif{true};
   cfg::InterfaceType intfType{cfg::InterfaceType::VLAN};
+  HwRouterInterfaceFb303Stats fb303Stats;
+  bool isLocalRif{true};
+  SaiRouterInterface routerInterface{};
+  std::vector<std::shared_ptr<SaiRoute>> toMeRoutes{};
 };
 
 class SaiRouterInterfaceManager {
@@ -90,7 +97,7 @@ class SaiRouterInterfaceManager {
 
   RouterInterfaceSaiId addRemoteRouterInterface(
       const std::shared_ptr<Interface>& swInterface) {
-    return addRouterInterface(swInterface, false /*remote*/);
+    return addRouterInterface(swInterface, false /*isLocal*/);
   }
   void removeRemoteRouterInterface(
       const std::shared_ptr<Interface>& swInterface) {
@@ -99,7 +106,7 @@ class SaiRouterInterfaceManager {
   void changeRemoteRouterInterface(
       const std::shared_ptr<Interface>& oldInterface,
       const std::shared_ptr<Interface>& newInterface) {
-    changeRouterInterface(oldInterface, newInterface, false /*remote*/);
+    changeRouterInterface(oldInterface, newInterface, false /*isLocal*/);
   }
 
   SaiRouterInterfaceHandle* getRouterInterfaceHandle(const InterfaceID& swId);
@@ -109,6 +116,15 @@ class SaiRouterInterfaceManager {
   std::optional<InterfaceID> getRouterPortInterfaceIDIf(PortID port) const;
 
   std::optional<InterfaceID> getRouterPortInterfaceIDIf(PortSaiId port) const;
+
+  void updateStats();
+
+  void clearStats();
+
+  std::map<InterfaceID, HwRouterInterfaceStats> getRouterInterfaceStats() const;
+
+  HwRouterInterfaceStats getRouterInterfaceStats(
+      const InterfaceID& intfID) const;
 
  private:
   RouterInterfaceSaiId addRouterInterface(

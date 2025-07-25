@@ -138,7 +138,7 @@ class BasePath {
           return false;
         }
       } else if (elem.getType() == OperPathElem::Type::regex) {
-        if (!re2::RE2::FullMatch(token, *elem.regex_ref())) {
+        if (!re2::RE2::FullMatch(token, *elem.regex())) {
           return false;
         }
       } else if (elem.getType() == OperPathElem::Type::any) {

@@ -64,6 +64,7 @@ cpp_library(
         "//folly/concurrency:dynamic_bounded_queue",
         "//folly/coro:async_generator",
         "//folly/coro:async_pipe",
+        "//folly/executors:function_scheduler",
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:logging",
     ],
@@ -92,11 +93,16 @@ cpp_library(
 # templated FsdbSubManager. Users should use one of the instantiations below
 cpp_library(
     name = "fsdb_sub_manager",
+    srcs = [
+        "FsdbSubManagerBase.cpp",
+    ],
     headers = [
         "FsdbSubManager.h",
+        "FsdbSubManagerBase.h",
     ],
     exported_deps = [
         ":fsdb_pub_sub",
+        "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib/thrift_service_client:thrift-service-client",

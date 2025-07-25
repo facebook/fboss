@@ -7,9 +7,11 @@
 
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -195,8 +197,9 @@ bool verifyQueueMappingsInvariantHelper(
     const std::vector<PortID>& ecmpPorts,
     uint32_t sleep = 20) {
   auto portStatsBefore = getAllHwPortStats();
-  auto vlanId = utility::firstVlanIDWithPorts(swState);
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(swState);
+  auto intf = utility::firstInterfaceWithPorts(swState);
+  std::optional<VlanID> vlanId = utility::getSwitchVlanIDForTx(sw, intf);
+  auto intfMac = intf->getMac();
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
   for (const auto& q2dscps : q2dscpMap) {

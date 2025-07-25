@@ -25,6 +25,7 @@ constexpr folly::StringPiece kPacketMatcherCfgName = "matchCfg_1";
 constexpr folly::StringPiece kPacketMatcherCfgName2 = "matchCfg_2";
 constexpr folly::StringPiece kUdfGroupCfgName1 = "foo1";
 constexpr folly::StringPiece kUdfGroupCfgName2 = "foo2";
+const int kStartOffsetInBytes(13);
 
 facebook::fboss::HwSwitchMatcher scope() {
   return facebook::fboss::HwSwitchMatcher{
@@ -46,8 +47,7 @@ std::shared_ptr<UdfGroup> createStateUdfGroup(
 
   udfGroupEntry.name() = name;
   udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() =
-      utility::kUdfHashDstQueuePairStartOffsetInBytes;
+  udfGroupEntry.startOffsetInBytes() = kStartOffsetInBytes;
   udfGroupEntry.fieldSizeInBytes() = fieldSize;
   udfGroupEntry.udfPacketMatcherIds() = {kPacketMatcherCfgName.str()};
 
@@ -81,8 +81,7 @@ cfg::UdfGroup makeCfgUdfGroupEntry(
   }
 
   udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() =
-      utility::kUdfHashDstQueuePairStartOffsetInBytes;
+  udfGroupEntry.startOffsetInBytes() = kStartOffsetInBytes;
   udfGroupEntry.fieldSizeInBytes() = fieldSize;
   udfGroupEntry.udfPacketMatcherIds() = {kPacketMatcherCfgName.str()};
 

@@ -38,4 +38,5 @@ std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
             std::chrono::seconds(10)));
 const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId);
 std::optional<int32_t> getPortExternalPhyID(const SwSwitch* sw, PortID port);
+std::map<std::string, MediaInterfaceCode> getPortToMediaInterface();
 } // namespace facebook::fboss::utility

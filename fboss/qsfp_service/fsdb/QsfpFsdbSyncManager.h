@@ -13,6 +13,7 @@
 #include "fboss/fsdb/client/FsdbSyncManager.h"
 #include "fboss/lib/if/gen-cpp2/pim_state_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h"
@@ -51,12 +52,18 @@ class QsfpFsdbSyncManager {
   /// next cycle.
   void updatePhyStat(std::string&& portName, phy::PhyStats&& stat);
 
-  // Accumuate all port stats in pendingPortStats_ and push them to FSDB
+  // Accumuate all port stats in pendingPortStats_ (Phy Stats) and push them to
+  // FSDB.
   void updatePortStats(PortStatsMap stats);
   void updatePortStat(std::string&& portName, HwPortStats&& stat);
 
+  // Update the logical port state and send it to fsdb
+  void updatePortState(std::string&& portName, portstate::PortState&& newState);
+
  private:
-  std::unique_ptr<fsdb::FsdbSyncManager<state::QsfpServiceData>> stateSyncer_;
+  std::unique_ptr<
+      fsdb::FsdbSyncManager<state::QsfpServiceData, true /* EnablePatchAPIs */>>
+      stateSyncer_;
   std::unique_ptr<fsdb::FsdbSyncManager<stats::QsfpStats>> statsSyncer_;
   // updatePhyStat, that reads and writes to pendingPhyStats_, is called per
   // port from every PIM evb. So calls to this function from ports on different

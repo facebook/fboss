@@ -67,7 +67,7 @@ LedManager::~LedManager() {
  *    than existing one then set the new color on LED
  */
 void LedManager::updateLedStatus(
-    std::map<short, LedSwitchStateUpdate> newSwitchState) {
+    const std::map<short, LedSwitchStateUpdate>& newSwitchState) {
   if (newSwitchState.empty()) {
     // No change in port info so return from here
     return;

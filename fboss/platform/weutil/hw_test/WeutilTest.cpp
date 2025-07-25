@@ -11,8 +11,9 @@
 #include "fboss/platform/weutil/hw_test/WeutilTest.h"
 
 #include <gtest/gtest.h>
-
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
+#include "fboss/platform/weutil/ContentValidator.h"
 #include "fboss/platform/weutil/Weutil.h"
 
 namespace facebook::fboss::platform {
@@ -30,7 +31,32 @@ TEST_F(WeutilTest, getWedgeInfo) {
 }
 
 TEST_F(WeutilTest, getEepromPaths) {
-  EXPECT_GT(getEepromPaths().size(), 0);
+  auto config = getWeUtilConfig();
+  EXPECT_GT(config.fruEepromList()->size(), 0);
+}
+
+TEST_F(WeutilTest, ValidateAllEepromContents) {
+  auto config = getWeUtilConfig();
+  auto platformName = helpers::PlatformNameLib().getPlatformName();
+  bool isDarwin = platformName && *platformName == "DARWIN";
+  EXPECT_GT(config.fruEepromList()->size(), 0);
+  for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
+    std::string fruName = eepromName;
+    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
+    try {
+      auto weutilInstance = createWeUtilIntf(fruName, "", 0);
+      auto contents = weutilInstance->getContents();
+      EXPECT_GT(contents.size(), 0)
+          << "EEPROM " << fruName << " returned empty contents";
+      // Darwin content validation not supported yet!
+      if (!isDarwin) {
+        EXPECT_TRUE(ContentValidator().isValid(contents))
+            << "EEPROM " << fruName << " contents failed validation";
+      }
+    } catch (const std::exception& e) {
+      FAIL() << "Exception when testing EEPROM " << fruName << ": " << e.what();
+    }
+  }
 }
 
 } // namespace facebook::fboss::platform

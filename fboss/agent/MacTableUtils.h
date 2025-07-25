@@ -49,7 +49,8 @@ class MacTableUtils {
   static std::shared_ptr<SwitchState> updateOrAddStaticEntryIfNbrExists(
       const std::shared_ptr<SwitchState>& state,
       VlanID vlan,
-      folly::MacAddress mac);
+      folly::MacAddress mac,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt);
 };
 
 } // namespace facebook::fboss

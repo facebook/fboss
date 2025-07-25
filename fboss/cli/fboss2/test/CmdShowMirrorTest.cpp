@@ -35,9 +35,14 @@ std::map<int32_t, PortInfoThrift> createPortInfoEntries() {
   portInfoEntry3.portId() = 10;
   portInfoEntry3.name() = "eth1/6/1";
 
+  PortInfoThrift portInfoEntry4;
+  portInfoEntry4.portId() = 40000;
+  portInfoEntry4.name() = "eth1/7/1";
+
   portInfoMap[folly::copy(portInfoEntry1.portId().value())] = portInfoEntry1;
   portInfoMap[folly::copy(portInfoEntry2.portId().value())] = portInfoEntry2;
   portInfoMap[folly::copy(portInfoEntry3.portId().value())] = portInfoEntry3;
+  portInfoMap[folly::copy(portInfoEntry4.portId().value())] = portInfoEntry4;
   return portInfoMap;
 }
 
@@ -85,6 +90,28 @@ cli::ShowMirrorModel createExpectedMirrorWithTunnelModel() {
   return model;
 }
 
+cli::ShowMirrorModel createExpectedMirrorWithHighPort() {
+  cli::ShowMirrorModel model;
+
+  cli::ShowMirrorModelEntry modelEntry;
+  modelEntry.mirror() = "mirror_with_tunnel";
+  modelEntry.status() = "Active";
+  modelEntry.egressPort() = "40000";
+  modelEntry.egressPortName() = "eth1/7/1";
+  modelEntry.mirrorTunnelType() = "GRE";
+  modelEntry.srcMAC() = "b6:a9:fc:34:2d:a2";
+  modelEntry.srcIP() = "10.141.145.33";
+  modelEntry.srcUDPPort() = "-";
+  modelEntry.dstMAC() = "b6:a9:fc:34:31:20";
+  modelEntry.dstIP() = "1.2.3.4";
+  modelEntry.dstUDPPort() = "-";
+  modelEntry.dscp() = "10";
+  modelEntry.ttl() = "255";
+
+  model.mirrorEntries()->push_back(modelEntry);
+  return model;
+}
+
 class CmdShowMirrorTestFixture : public CmdHandlerTestBase {
  public:
   CmdShowMirrorTraits::ObjectArgType queriedMirrors;
@@ -93,6 +120,7 @@ class CmdShowMirrorTestFixture : public CmdHandlerTestBase {
   std::map<int32_t, PortInfoThrift> mockPortInfoEntries;
   cli::ShowMirrorModel expectedWithoutTunnelModel;
   cli::ShowMirrorModel expectedWithTunnelModel;
+  cli::ShowMirrorModel expectedWithHighPort;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
@@ -101,6 +129,7 @@ class CmdShowMirrorTestFixture : public CmdHandlerTestBase {
     mockPortInfoEntries = createPortInfoEntries();
     expectedWithoutTunnelModel = createExpectedMirrorWithoutTunnelModel();
     expectedWithTunnelModel = createExpectedMirrorWithTunnelModel();
+    expectedWithHighPort = createExpectedMirrorWithHighPort();
   }
 };
 
@@ -158,4 +187,16 @@ TEST_F(CmdShowMirrorTestFixture, printOutputWithTunnel) {
   EXPECT_EQ(output, expectedOutput);
 }
 
+TEST_F(CmdShowMirrorTestFixture, printOutputWithHighPort) {
+  std::stringstream ss;
+  CmdShowMirror().printOutput(expectedWithHighPort, ss);
+
+  std::string output = ss.str();
+  std::string expectedOutput =
+      " Mirror              Status  Egress Port  Egress Port Name  Tunnel Type  Src MAC            Src IP         Src UDP Port  Dst MAC            Dst IP   Dst UDP Port  DSCP  TTL \n"
+      "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " mirror_with_tunnel  Active  40000        eth1/7/1          GRE          b6:a9:fc:34:2d:a2  10.141.145.33  -             b6:a9:fc:34:31:20  1.2.3.4  -             10    255 \n\n";
+
+  EXPECT_EQ(output, expectedOutput);
+}
 } // namespace facebook::fboss

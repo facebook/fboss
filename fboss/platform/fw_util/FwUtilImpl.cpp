@@ -7,7 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <sys/wait.h>
 #include <filesystem>
 #include <iostream>
 
@@ -26,7 +25,8 @@ using namespace folly::literals::shell_literals;
 namespace facebook::fboss::platform::fw_util {
 void FwUtilImpl::init() {
   platformName_ = helpers::PlatformNameLib().getPlatformName().value();
-  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig();
+  ConfigLib configLib(configFilePath_);
+  std::string fwUtilConfJson = configLib.getFwUtilConfig();
   try {
     apache::thrift::SimpleJSONSerializer::deserialize<NewFwUtilConfig>(
         fwUtilConfJson, fwUtilConfig_);
@@ -43,6 +43,9 @@ void FwUtilImpl::init() {
       [](const auto& rhsFwDevice, const auto& lhsFwDevice) {
         return rhsFwDevice.second < lhsFwDevice.second;
       });
+
+  fwUtilVersionHandler_ = std::make_unique<FwUtilVersionHandler>(
+      fwDeviceNamesByPrio_, fwUtilConfig_);
 }
 
 std::string FwUtilImpl::printFpdList() {
@@ -70,19 +73,6 @@ void FwUtilImpl::doFirmwareAction(
   auto fwConfig = iter->second;
 
   if (action == "program") {
-    // Darwin doesn't use fw_util for upgrade. We need to put
-    // PM on darwin and then make a few changes in the config
-    // so we will treat it as not supported for upgrade right now
-
-    // TODO: remove this logic after we move darwin to PM
-    auto lowerCasePlatformName = toLower(platformName_);
-    if (lowerCasePlatformName == "darwin" ||
-        lowerCasePlatformName == "darwin48v") {
-      XLOG(INFO)
-          << "darwin fw_util not supported yet. This will be done after we move to PM. Please use KPP packages and run the  run-script to upgrade the box";
-      return;
-    }
-
     // Fw_util is build as part of ramdisk once every 24 hours
     // assuming no test failure. if we force sha1sum check in the fw_util,
     // we will end up blocking provisioning until a new ramdisk is built
@@ -141,8 +131,62 @@ void FwUtilImpl::doFirmwareAction(
     }
   } else {
     XLOG(INFO) << "Invalid action: " << action
-               << ". Please run ./fw-util --helpon=Flags for the right usage";
+               << ". Please run ./fw-util --help Flags for the right usage";
     exit(1);
+  }
+}
+
+void FwUtilImpl::printVersion(const std::string& fpd) {
+  // TODO: Remove this check once we have moved all Darwin systems to the latest
+  // BSP which provide a single sysfs endpoint for each firmware version
+  auto lowerCasePlatformName = toLower(platformName_);
+
+  if (lowerCasePlatformName == "darwin") {
+    fwUtilVersionHandler_->printDarwinVersion(fpd);
+  } else {
+    if (fpd == "all") {
+      fwUtilVersionHandler_->printAllVersions();
+    } else {
+      std::string version = fwUtilVersionHandler_->getSingleVersion(fpd);
+      std::cout << fmt::format("{} : {}", fpd, version) << std::endl;
+    }
+  }
+}
+
+void FwUtilImpl::doVersionAudit() {
+  bool mismatch = false;
+  for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.newFwConfigs()) {
+    std::string desiredVersion = *fwConfig.desiredVersion();
+    if (desiredVersion.empty()) {
+      XLOGF(
+          INFO,
+          "{} does not have a desired version specified in the config.",
+          fpdName);
+      continue;
+    }
+    std::string actualVersion;
+    try {
+      actualVersion = fwUtilVersionHandler_->getSingleVersion(fpdName);
+    } catch (const std::exception& e) {
+      XLOG(ERR) << "Failed to get version for " << fpdName << ": " << e.what();
+      continue;
+    }
+
+    if (actualVersion != desiredVersion) {
+      XLOGF(
+          INFO,
+          "{} is at version {} which does not match config's desired version {}.",
+          fpdName,
+          actualVersion,
+          desiredVersion);
+      mismatch = true;
+    }
+  }
+  if (mismatch) {
+    XLOG(INFO, "Firmware version mismatch found.");
+    exit(1);
+  } else {
+    XLOG(INFO, "All firmware versions match the config.");
   }
 }
 } // namespace facebook::fboss::platform::fw_util

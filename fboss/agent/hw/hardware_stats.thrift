@@ -6,6 +6,7 @@ namespace py.asyncio neteng.fboss.asyncio.hardware_stats
 namespace php fboss_hw
 
 include "fboss/mka_service/if/mka_structs.thrift"
+include "thrift/annotation/cpp.thrift"
 
 const i64 STAT_UNINITIALIZED = -1;
 
@@ -96,6 +97,8 @@ struct HwPortStats {
   63: optional bool dataCellsFilterOn;
   64: map<i16, i64> egressGvoqWatermarkBytes_ = {};
   65: map<i16, i64> pgInCongestionDiscards_ = {};
+  66: optional i64 pfcDeadlockDetection_;
+  67: optional i64 pfcDeadlockRecovery_;
 }
 
 struct HwSysPortStats {
@@ -260,6 +263,32 @@ struct HwAsicErrors {
   37: optional i64 sramPacketBufferErrors;
   38: optional i64 sramQueueManagementErrors;
   39: optional i64 tmActionResolutionErrors;
+  // DNX aggregated block level errors
+  40: optional i64 ingressTmErrors;
+  41: optional i64 egressTmErrors;
+  42: optional i64 ingressPpErrors;
+  43: optional i64 egressPpErrors;
+  44: optional i64 dramErrors;
+  45: optional i64 counterAndMeterErrors;
+  46: optional i64 fabricRxErrors;
+  47: optional i64 fabricTxErrors;
+  48: optional i64 fabricLinkErrors;
+  49: optional i64 fabricTopologyErrors;
+  50: optional i64 networkInterfaceErrors;
+  // DNX aggregated block level warnings
+  51: optional i64 ingressTmWarnings;
+  52: optional i64 egressTmWarnings;
+  53: optional i64 dramWarnings;
+  54: optional i64 fabricRxWarnings;
+  55: optional i64 fabricTxWarnings;
+  56: optional i64 fabricLinkWarnings;
+  57: optional i64 networkInterfaceWarnings;
+  // DNX fabric device block level errors
+  58: optional i64 fabricControlPathErrors;
+  59: optional i64 fabricDataPathErrors;
+  60: optional i64 cpuErrors;
+  // ASIC reset errors
+  61: optional i64 asicSoftResetErrors;
 }
 
 struct HwTeFlowStats {
@@ -331,6 +360,8 @@ struct HwSwitchDropStats {
   15: optional i64 rqpNonFabricCellCorruptionDrops;
   16: optional i64 rqpNonFabricCellMissingDrops;
   17: optional i64 rqpParityErrorDrops;
+  18: optional i64 tc0RateLimitDrops;
+  19: optional i64 dramDataPathPacketError;
 }
 
 struct HwSwitchDramStats {
@@ -341,6 +372,22 @@ struct HwSwitchDramStats {
 
 struct HwSwitchCreditStats {
   1: optional i64 deletedCreditBytes;
+}
+
+struct HwSwitchPipelineStats {
+  1: map<i16, i64> rxCells = {};
+  2: map<i16, i64> txCells = {};
+  3: map<i16, i64> rxBytes = {};
+  4: map<i16, i64> txBytes = {};
+  5: map<i16, i64> rxWatermarkLevels = {};
+  6: map<i16, i64> txWatermarkLevels = {};
+  7: map<i16, i64> curOccupancyBytes = {};
+  8: map<i16, i64> globalDrops = {};
+}
+
+struct HwSwitchTemperatureStats {
+  1: map<string, i64> timeStamp = {};
+  2: map<string, float> value = {};
 }
 
 struct HwSwitchFb303GlobalStats {
@@ -391,6 +438,9 @@ struct HwSwitchFb303GlobalStats {
   32: optional i64 rqp_non_fabric_cell_missing;
   33: optional i64 rqp_parity_error;
   34: i64 fabric_connectivity_bogus;
+  35: optional i64 interrupt_masked_events;
+  36: optional i64 asic_revision;
+  37: optional i64 sram_low_buffer_limit_hit_count;
 }
 
 struct HwFlowletStats {
@@ -400,4 +450,33 @@ struct HwFlowletStats {
 
 struct AclStats {
   1: map<string, i64> statNameToCounterMap;
+}
+
+struct HwHighFrequencyPfcStats {
+  1: optional i64 inPfc;
+  2: optional i64 outPfc;
+}
+
+struct HwHighFrequencyPortStats {
+  1: map<i16, HwHighFrequencyPfcStats> pfcStats = {};
+  3: map<i16, i64> queueWatermarkBytes = {};
+  4: map<i16, i64> pgSharedWatermarkBytes = {};
+}
+
+struct HwHighFrequencyStats {
+  1: i64 timestampUs = STAT_UNINITIALIZED;
+  @cpp.Type{template = "folly::F14FastMap"}
+  2: map<string, HwHighFrequencyPortStats> portStats;
+  3: map<i16, i64> itmPoolSharedWatermarkBytes = {};
+}
+
+struct HwRouterInterfaceStats {
+  1: i64 inBytes_;
+  2: i64 inPkts_;
+  3: i64 outBytes_;
+  4: i64 outPkts_;
+  5: i64 inErrorBytes_;
+  6: i64 inErrorPkts_;
+  7: i64 outErrorBytes_;
+  8: i64 outErrorPkts_;
 }

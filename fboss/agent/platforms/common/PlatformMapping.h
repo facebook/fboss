@@ -132,7 +132,7 @@ class PlatformMapping {
   const phy::DataPlanePhyChip& getPortIphyChip(PortID port) const;
 
   void setPlatformPort(int32_t portID, cfg::PlatformPortEntry port) {
-    platformPorts_.emplace(portID, port);
+    platformPorts_[portID] = std::move(port);
   }
 
   void setChip(const std::string& chipName, phy::DataPlanePhyChip chip) {

@@ -8,9 +8,9 @@
 namespace facebook::fboss {
 class AgentVoqSwitchInterruptTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::VOQ_DNX_INTERRUPTS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::VOQ_DNX_INTERRUPTS};
   }
 
  protected:
@@ -188,6 +188,50 @@ TEST_F(AgentVoqSwitchInterruptTest, allReassemblyContextsTakenError) {
                    << " All Reassemble contexts taken: "
                    << allReassemblyContextsTaken;
         EXPECT_EVENTUALLY_GT(allReassemblyContextsTaken, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentVoqSwitchInterruptTest, validateInterruptMaskedEventCallback) {
+  auto verify = [=, this]() {
+    constexpr auto kInterruptMaskedEventCintStr = R"(
+      cint_reset();
+      bcm_switch_event_control_t type;
+      type.event_id = 2128; // JR3_INT_MACT_LARGE_EM_LARGE_EM_EVENT_FIFO_HIGH_THRESHOLD_REACHED
+      type.index = 0;
+      type.action = bcmSwitchEventMask;
+      bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, type, 0);
+    )";
+    runCint(kInterruptMaskedEventCintStr);
+    WITH_RETRIES({
+      for (const auto& [switchIdx, switchStats] :
+           getSw()->getHwSwitchStatsExpensive()) {
+        auto intrMaskedEvents =
+            switchStats.fb303GlobalStats()->interrupt_masked_events();
+        ASSERT_EVENTUALLY_TRUE(intrMaskedEvents.has_value());
+        XLOG(INFO) << "Switch index: " << switchIdx
+                   << " Interrupt masked events: " << *intrMaskedEvents;
+        EXPECT_EVENTUALLY_GT(*intrMaskedEvents, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentVoqSwitchInterruptTest, softResetErrors) {
+  auto verify = [=, this]() {
+    std::string out;
+    runCmd("der soft nofabric=1\n");
+    runCmd("quit\n");
+    WITH_RETRIES({
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        auto asicSoftResetErrors = asicError.asicSoftResetErrors().value_or(0);
+        XLOG(INFO) << " Switch index: " << idx
+                   << " Asic soft reset errors: " << asicSoftResetErrors;
+        EXPECT_EVENTUALLY_GT(asicSoftResetErrors, 0);
       }
     });
   };

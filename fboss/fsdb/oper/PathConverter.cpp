@@ -15,7 +15,7 @@ std::vector<OperPathElem> mergeOverWildcards(
   std::vector<OperPathElem> path;
   path.reserve(orig.size());
   for (auto i = 0; i < orig.size(); ++i) {
-    if (!orig[i].raw_ref()) {
+    if (!orig[i].raw()) {
       // orig was not a raw elem, so just copy over it
       path.push_back(orig[i]);
     } else {

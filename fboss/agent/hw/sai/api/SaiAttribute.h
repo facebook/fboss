@@ -593,6 +593,12 @@ class SaiAttribute<
   static constexpr AttrEnumT Id = AttrEnum;
   static constexpr bool HasDefaultGetter =
       !std::is_same_v<DefaultGetterT, void>;
+  static constexpr bool hasOptionalDefaultGetter =
+      IsDefaultStdNullOpt<DefaultGetterT>::value;
+  using DefaultValueType = std::conditional_t<
+      !hasOptionalDefaultGetter,
+      ValueType,
+      std::optional<ValueType>>;
 
   SaiAttribute() {
     saiAttr_.id = Id;
@@ -610,7 +616,7 @@ class SaiAttribute<
     return data();
   }
 
-  static ValueType defaultValue() {
+  static DefaultValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
     return DefaultGetterT{}();
   }
@@ -677,6 +683,12 @@ class SaiAttribute<
   static constexpr AttrEnumT Id = AttrEnum;
   static constexpr bool HasDefaultGetter =
       !std::is_same_v<DefaultGetterT, void>;
+  static constexpr bool hasOptionalDefaultGetter =
+      IsDefaultStdNullOpt<DefaultGetterT>::value;
+  using DefaultValueType = std::conditional_t<
+      !hasOptionalDefaultGetter,
+      ValueType,
+      std::optional<ValueType>>;
 
   SaiAttribute() {
     saiAttr_.id = Id;
@@ -742,9 +754,9 @@ class SaiAttribute<
     return v;
   }
 
-  static ValueType defaultValue() {
+  static DefaultValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
-    static ValueType v;
+    static thread_local DefaultValueType v;
     _fill(DefaultGetterT{}(), v);
     return v;
   }
@@ -895,7 +907,7 @@ class SaiExtensionAttribute {
   static ValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
     if constexpr (IsSaiTypeWrapper<T>::value) {
-      static ValueType v;
+      static thread_local ValueType v;
       _fill(DefaultGetterT{}(), v);
       return v;
     } else {

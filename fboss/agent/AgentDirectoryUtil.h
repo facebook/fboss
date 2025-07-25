@@ -173,8 +173,6 @@ class AgentDirectoryUtil {
 
   std::string getMaxPostSignalWaitTimeFile() const;
 
-  std::string getWrapperRefactorFlag() const;
-
   std::string exitTimeFile(const std::string& processName) const;
 
   std::string restartDurationFile(const std::string& processName) const;
@@ -190,6 +188,8 @@ class AgentDirectoryUtil {
   std::string getTestHwAgentConfigFile(int switchIndex) const;
 
   std::string getAgentBootHistoryLogFile() const;
+
+  std::string getSdkDebugDumpDir() const;
 
  private:
   const std::string volatileStateDir_;

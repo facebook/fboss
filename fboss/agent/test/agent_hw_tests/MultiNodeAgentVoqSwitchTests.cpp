@@ -1,11 +1,14 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/lib/multinode/MultiNodeUtil.h"
 
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(dsf_subscribe);
+
+using facebook::fboss::utility::MultiNodeUtil;
 
 namespace facebook::fboss {
 
@@ -16,7 +19,7 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
     auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsic(hwAsics);
 
     auto it = asic->desiredLoopbackModes().find(cfg::PortType::INTERFACE_PORT);
     CHECK(it != asic->desiredLoopbackModes().end());
@@ -34,9 +37,9 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::VOQ};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::VOQ};
   }
 
  private:
@@ -55,36 +58,43 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
   }
 };
 
-TEST_F(MultiNodeAgentVoqSwitchTest, verifyInbandPing) {
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    std::string ipAddrsToPing;
-    for (const auto& [_, dsfNodes] :
-         std::as_const(*getProgrammedState()->getDsfNodes())) {
-      for (const auto& [_, node] : std::as_const(*dsfNodes)) {
-        if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
-          CHECK_GE(node->getLoopbackIpsSorted().size(), 1);
-
-          auto ip = node->getLoopbackIpsSorted().begin()->first.str();
-          ipAddrsToPing = folly::to<std::string>(ipAddrsToPing, ip, " ");
-        }
-      }
+    // Each nodes in a DSF Multi Node Test setup runs this binary. However,
+    // only one node (SwitchID 0) is the primary driver of the test. Test
+    // binaries on all the other switches are triggered by test orchestrator
+    // (e.g. Netcastle) with --run-forever option, so those initialize the ASIC
+    // SDK, FBOSS state and wait for the test driver switch to drive the test
+    // logic.
+    auto constexpr kTestDriverSwitchId = 0;
+    if (getSw()->getSwitchInfoTable().getSwitchIDs().contains(
+            SwitchID(kTestDriverSwitchId))) {
+      XLOG(DBG2) << "DSF Multi Node Test Driver node: SwitchID "
+                 << kTestDriverSwitchId << " is part of local switchIDs: "
+                 << folly::join(
+                        ",", getSw()->getSwitchInfoTable().getSwitchIDs());
+    } else {
+      XLOG(DBG2) << "DSF Multi Node Test Remote node: SwitchID "
+                 << kTestDriverSwitchId << " is not part of local switchIDs: "
+                 << folly::join(
+                        ",", getSw()->getSwitchInfoTable().getSwitchIDs());
+      return;
     }
 
-    auto switchSettings =
-        utility::getFirstNodeIf(getSw()->getState()->getSwitchSettings());
-    auto switchId =
-        SwitchID(switchSettings->getSwitchIdToSwitchInfo().begin()->first);
-    auto recyclePortIntfID =
-        getInbandPortIntfID(getProgrammedState(), switchId);
-    auto recyclePortIntf = folly::to<std::string>("fboss", recyclePortIntfID);
-    auto cmd = folly::to<std::string>(
-        "/usr/sbin/fping6 -I ", recyclePortIntf, " ", ipAddrsToPing);
+    auto multiNodeUtil =
+        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
 
-    auto output = runShellCmd(cmd);
-    XLOG(DBG2) << "Cmd: " << cmd;
-    XLOG(DBG2) << "Output: \n" << output;
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricReachability());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyPorts());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyDsfSessions());
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);

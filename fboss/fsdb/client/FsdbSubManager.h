@@ -2,17 +2,12 @@
 
 #pragma once
 
-#include "fboss/fsdb/client/FsdbPatchSubscriber.h"
+#include "fboss/fsdb/client/FsdbSubManagerBase.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/FsdbModel.h"
-#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
-#include <folly/io/async/ScopedEventBaseThread.h>
-
 namespace facebook::fboss::fsdb {
-
-auto constexpr kReconnectThread = "FsdbReconnectThread";
-auto constexpr kSubscriberThread = "FsdbSubscriberThread";
 
 /*
  * Subscription Manager for FSDB that handles multiple paths and uses the most
@@ -27,7 +22,7 @@ auto constexpr kSubscriberThread = "FsdbSubscriberThread";
  * instantiations, depending on which data type you want
  */
 template <typename _Storage, bool _IsCow>
-class FsdbSubManager {
+class FsdbSubManager : public FsdbSubManagerBase {
  public:
   using Storage = _Storage;
   using Root = typename Storage::RootT;
@@ -61,33 +56,18 @@ class FsdbSubManager {
 
   using DataCallback = std::function<void(SubUpdate)>;
 
-  FsdbSubManager(
+  explicit FsdbSubManager(
       fsdb::SubscriptionOptions opts,
-      utils::ConnectionOptions serverOptions,
+      utils::ConnectionOptions serverOptions =
+          utils::ConnectionOptions("::1", FLAGS_fsdbPort),
       folly::EventBase* reconnectEvb = nullptr,
       folly::EventBase* subscriberEvb = nullptr)
-      : opts_(std::move(opts)),
-        connectionOptions_(std::move(serverOptions)),
-        reconnectEvbThread_(
-            reconnectEvb ? nullptr
-                         : std::make_unique<folly::ScopedEventBaseThread>(
-                               kReconnectThread)),
-        subscriberEvbThread_(
-            subscriberEvb ? nullptr
-                          : std::make_unique<folly::ScopedEventBaseThread>(
-                                kSubscriberThread)),
-        // if local thread available, use local evb otherwise use passed in
-        reconnectEvb_(
-            reconnectEvbThread_ ? reconnectEvbThread_->getEventBase()
-                                : reconnectEvb),
-        subscriberEvb_(
-            subscriberEvbThread_ ? subscriberEvbThread_->getEventBase()
-                                 : subscriberEvb) {
+      : FsdbSubManagerBase(
+            std::move(opts),
+            std::move(serverOptions),
+            reconnectEvb,
+            subscriberEvb) {
     CHECK_EQ(IsStats, opts_.subscribeStats_);
-  }
-
-  ~FsdbSubManager() {
-    stop();
   }
 
   /*
@@ -100,14 +80,7 @@ class FsdbSubManager {
     static_assert(
         std::is_same_v<typename Path::RootT, Root>,
         "Path root must be same as Root type");
-    CHECK(!subscriber_) << "Cannot add paths after subscribed";
-    // TODO: verify paths are not cross root and are not ancestors/descendants
-    auto key = nextKey_++;
-    RawOperPath p;
-    p.path() = path.idTokens();
-    auto res = subscribePaths_.insert_or_assign(key, std::move(p));
-    CHECK(res.second) << "Duplicate path added";
-    return key;
+    return addPathImpl(path.idTokens());
   }
 
   /*
@@ -118,17 +91,11 @@ class FsdbSubManager {
       DataCallback cb,
       std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb =
           std::nullopt) {
-    CHECK(!subscriber_) << "Cannot subscribe twice";
-    subscriber_ = std::make_unique<FsdbPatchSubscriber>(
-        SubscriptionOptions(opts_),
-        subscribePaths_,
-        subscriberEvb_,
-        reconnectEvb_,
+    subscribeImpl(
         [this, cb = std::move(cb)](SubscriberChunk chunk) {
           parseChunkAndInvokeCallback(std::move(chunk), std::move(cb));
         },
         std::move(subscriptionStateChangeCb));
-    subscriber_->setConnectionOptions(connectionOptions_);
   }
 
   // Returns a synchronized data object that is always kept up to date
@@ -141,21 +108,6 @@ class FsdbSubManager {
         [&](SubUpdate update) { *boundData.wlock() = update.data; },
         std::move(subscriptionStateChangeCb));
     return boundData;
-  }
-
-  void stop() {
-    subscriber_.reset();
-  }
-
-  const std::string& clientId() const {
-    return opts_.clientId_;
-  }
-
-  std::optional<SubscriptionInfo> getInfo() {
-    if (subscriber_) {
-      return subscriber_->getInfo();
-    }
-    return std::nullopt;
   }
 
  private:
@@ -180,20 +132,6 @@ class FsdbSubManager {
     cb(std::move(update));
   }
 
-  fsdb::SubscriptionOptions opts_;
-  utils::ConnectionOptions connectionOptions_;
-
-  // local threads are only needed when there are no external eventbases
-  std::unique_ptr<folly::ScopedEventBaseThread> reconnectEvbThread_{nullptr};
-  std::unique_ptr<folly::ScopedEventBaseThread> subscriberEvbThread_{nullptr};
-
-  // eventbase pointers from either external/internal threads
-  folly::EventBase* reconnectEvb_;
-  folly::EventBase* subscriberEvb_;
-
-  std::unique_ptr<FsdbPatchSubscriber> subscriber_;
-  SubscriptionKey nextKey_{0};
-  std::map<SubscriptionKey, RawOperPath> subscribePaths_;
   Storage root_{Root()};
 };
 

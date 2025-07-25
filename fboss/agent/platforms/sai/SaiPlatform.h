@@ -147,11 +147,11 @@ class SaiPlatform : public Platform, public StateObserver {
   std::unique_ptr<SaiSwitch> saiSwitch_;
   virtual void updatePorts(const StateDelta& delta);
   std::unordered_map<PortID, std::unique_ptr<SaiPlatformPort>> portMapping_;
+  std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;
 
  private:
   void initImpl(uint32_t hwFeaturesDesired) override;
   void initSaiProfileValues();
-  std::unique_ptr<HwSwitchWarmBootHelper> wbHelper_;
   // List of controlling ports on platform. Each of these then
   // have subports that can be used when using flex ports
   std::vector<PortID> masterLogicalPortIds_;

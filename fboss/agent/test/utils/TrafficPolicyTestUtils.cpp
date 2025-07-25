@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
+
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -73,6 +75,20 @@ void addSetDscpAndEgressQueueActionToCfg(
   cfg::SetDscpMatchAction setDscpMatchAction;
   setDscpMatchAction.dscpValue() = dscp;
   matchAction.setDscp() = setDscpMatchAction;
+
+  utility::addMatcher(config, aclName, matchAction);
+}
+
+void addSetDscpActionToCfg(
+    cfg::SwitchConfig* config,
+    const std::string& aclName,
+    uint8_t dscp) {
+  cfg::MatchAction matchAction;
+
+  // set specific dscp value action
+  cfg::SetDscpMatchAction setDscpMatchAction;
+  setDscpMatchAction.dscpValue() = dscp;
+  matchAction.setDscp() = std::move(setDscpMatchAction);
 
   utility::addMatcher(config, aclName, matchAction);
 }
@@ -169,7 +185,7 @@ void addQueueMatcher(
       std::nullopt,
       *config->dsfNodes());
   cfg::MatchAction matchAction = utility::getToQueueAction(
-      utility::checkSameAndGetAsic(asicTable.getL3Asics()), queueId, isSai);
+      checkSameAndGetAsic(asicTable.getL3Asics()), queueId, isSai);
 
   if (counterName.has_value()) {
     matchAction.counter() = counterName.value();

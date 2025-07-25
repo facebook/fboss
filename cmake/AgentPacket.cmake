@@ -5,6 +5,7 @@
 
 add_library(packet
   fboss/agent/Packet.cpp
+  fboss/agent/TxPacket.cpp
   fboss/agent/packet/ArpHdr.cpp
   fboss/agent/packet/DHCPv4Packet.cpp
   fboss/agent/packet/DHCPv6Packet.cpp
@@ -62,4 +63,5 @@ target_link_libraries(packet_factory
   switch_config_cpp2
   Folly::folly
   sflow_structs
+  multiswitch_ctrl_cpp2
 )

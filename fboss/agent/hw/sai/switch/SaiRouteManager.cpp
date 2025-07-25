@@ -261,7 +261,8 @@ void SaiRouteManager::addOrUpdateRoute(
          */
         if (FLAGS_set_classid_for_my_subnet_and_ip_routes &&
             platform_->getAsic()->isSupported(
-                HwAsic::Feature::ROUTE_METADATA)) {
+                HwAsic::Feature::ROUTE_METADATA) &&
+            routerInterfaceHandle->isLocal()) {
           XLOG(DBG2) << "set my subnet route " << newRoute->str()
                      << " class id to 2";
           metadata =
@@ -289,7 +290,9 @@ void SaiRouteManager::addOrUpdateRoute(
        */
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              fwd.normalizedNextHops());
+              SaiNextHopGroupKey(
+                  fwd.normalizedNextHops(),
+                  fwd.getOverrideEcmpSwitchingMode()));
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
@@ -305,11 +308,24 @@ void SaiRouteManager::addOrUpdateRoute(
                  << " nextHopGroupId: " << nextHopGroupId;
     } else {
       CHECK_EQ(fwd.getNextHopSet().size(), 1);
-      /* A route which has oonly one next hop, create a subscriber for next hop
+      /* A route which has only one next hop, create a subscriber for next hop
        * to make route point back and forth next hop or CPU
        */
       auto swNextHop =
           folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
+
+      InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
+      const SaiRouterInterfaceHandle* routerInterfaceHandle =
+          managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+              interfaceId);
+      if (!routerInterfaceHandle) {
+        throw FbossError(
+            "cannot create route resolved but without a sai_router_interface "
+            "for InterfaceID: ",
+            interfaceId);
+      }
+      bool localNexthop = routerInterfaceHandle->isLocal();
+
       auto managedSaiNextHop =
           managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
       sai_object_id_t nextHopId{};
@@ -323,7 +339,7 @@ void SaiRouteManager::addOrUpdateRoute(
 
             auto managedRouteNextHop =
                 refOrCreateManagedRouteNextHop<NextHopTraits>(
-                    routeHandle, entry, managedNextHop, metadata);
+                    routeHandle, entry, managedNextHop, metadata, localNexthop);
 
             nextHopId = managedRouteNextHop->adapterKey();
             nextHopHandle = managedRouteNextHop;
@@ -389,7 +405,8 @@ void SaiRouteManager::addOrUpdateRoute(
 #endif
 
       XLOG(DBG3) << "Route nhops == 1: " << newRoute->str()
-                 << " nextHopId: " << nextHopId;
+                 << " nextHopId: " << nextHopId
+                 << " localNextHop: " << localNexthop;
     }
   } else if (fwd.getAction() == RouteForwardAction::TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
@@ -565,7 +582,8 @@ SaiRouteManager::refOrCreateManagedRouteNextHop(
     SaiRouteHandle* routeHandle,
     SaiRouteTraits::RouteEntry entry,
     std::shared_ptr<ManagedNextHopT> nexthop,
-    std::optional<SaiRouteTraits::Attributes::Metadata> metadata) {
+    std::optional<SaiRouteTraits::Attributes::Metadata> metadata,
+    bool localNextHop) {
   auto routeNexthopHandle = routeHandle->nexthopHandle_;
   using ManagedNextHopSharedPtr = std::shared_ptr<ManagedRouteNextHopT>;
   if (std::holds_alternative<ManagedNextHopSharedPtr>(routeNexthopHandle)) {
@@ -584,6 +602,7 @@ SaiRouteManager::refOrCreateManagedRouteNextHop(
                          ? std::to_string(metadata.value().value())
                          : "none");
       existingManagedRouteNextHop->setMetadata(metadata);
+      existingManagedRouteNextHop->setLocalNextHop(localNextHop);
       return existingManagedRouteNextHop;
     }
   }
@@ -591,7 +610,13 @@ SaiRouteManager::refOrCreateManagedRouteNextHop(
       platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA);
   PortSaiId cpuPort = managerTable_->switchManager().getCpuPort();
   auto managedRouteNextHop = std::make_shared<ManagedRouteNextHopT>(
-      cpuPort, this, entry, nexthop, routeMetadataSupported, metadata);
+      cpuPort,
+      this,
+      entry,
+      nexthop,
+      routeMetadataSupported,
+      metadata,
+      localNextHop);
   XLOG(DBG3) << "create new managedRouteNexHop with metadata "
              << (metadata.has_value() ? std::to_string(metadata.value().value())
                                       : "none");
@@ -635,7 +660,8 @@ ManagedRouteNextHop<NextHopTraitsT>::ManagedRouteNextHop(
     SaiRouteTraits::AdapterHostKey routeKey,
     std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop,
     bool routeMetadataSupported,
-    std::optional<SaiRouteTraits::Attributes::Metadata> metadata)
+    std::optional<SaiRouteTraits::Attributes::Metadata> metadata,
+    bool localNextHop)
     : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
           managedNextHop->adapterHostKey()),
       cpuPort_(cpuPort),
@@ -643,6 +669,7 @@ ManagedRouteNextHop<NextHopTraitsT>::ManagedRouteNextHop(
       routeKey_(std::move(routeKey)),
       managedNextHop_(managedNextHop),
       routeMetadataSupported_(routeMetadataSupported),
+      localNextHop_(localNextHop),
       metadata_(metadata) {}
 
 template <typename NextHopTraitsT>
@@ -671,7 +698,10 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
           attributes);
   auto& metadata =
       std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(attributes);
+  auto& packetAction =
+      std::get<SaiRouteTraits::Attributes::PacketAction>(attributes);
   currentNextHop = nextHopId;
+  packetAction = SAI_PACKET_ACTION_FORWARD;
   if (routeMetadataSupported_) {
     metadata = metadata_;
   }
@@ -685,23 +715,34 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
 
 template <typename NextHopTraitsT>
 void ManagedRouteNextHop<NextHopTraitsT>::beforeRemove() {
-  XLOG(DBG2) << "ManagedRouteNextHop beforeRemove, set route to CPU: "
+  XLOG(DBG2) << "ManagedRouteNextHop beforeRemove, set local route to "
+             << (localNextHop_ ? "CPU " : "DROP") << ": "
              << routeKey_.toString();
 
   auto route = routeManager_->getRouteObject(routeKey_);
+  auto attributes = route->attributes();
   auto& api = SaiApiTable::getInstance()->routeApi();
+
   SaiRouteTraits::Attributes::Metadata currentMetadata = routeMetadataSupported_
       ? api.getAttribute(
             route->adapterKey(), SaiRouteTraits::Attributes::Metadata{})
       : 0;
-  // set route to CPU
-  auto attributes = route->attributes();
 
-  std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
-      static_cast<sai_object_id_t>(cpuPort_);
-  if (routeMetadataSupported_) {
-    std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(attributes) =
-        static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+  if (localNextHop_) {
+    // set route to CPU
+    std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
+        static_cast<sai_object_id_t>(cpuPort_);
+    if (routeMetadataSupported_) {
+      std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(
+          attributes) =
+          static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+    }
+  } else {
+    // Remote next hop, set route to DROP
+    std::get<std::optional<SaiRouteTraits::Attributes::NextHopId>>(attributes) =
+        SAI_NULL_OBJECT_ID;
+    std::get<SaiRouteTraits::Attributes::PacketAction>(attributes) =
+        SAI_PACKET_ACTION_DROP;
   }
 
   route->setAttributes(attributes);
@@ -730,8 +771,8 @@ void ManagedRouteNextHop<NextHopTraitsT>::updateMetadata(
       std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(
           route->attributes());
   if (!expectedMetadata) {
-    // SAI object of route pointing to CPU, and directly reloaded from store may
-    // have reserved metadata (set by SDK) in its attributes.
+    // SAI object of route pointing to CPU, and directly reloaded from store
+    // may have reserved metadata (set by SDK) in its attributes.
     expectedMetadata = SaiRouteTraits::Attributes::Metadata::defaultValue();
   }
 
@@ -768,6 +809,11 @@ template <typename NextHopTraitsT>
 void ManagedRouteNextHop<NextHopTraitsT>::setMetadata(
     std::optional<SaiRouteTraits::Attributes::Metadata> metadata) {
   metadata_ = metadata;
+}
+
+template <typename NextHopTraitsT>
+void ManagedRouteNextHop<NextHopTraitsT>::setLocalNextHop(bool localNextHop) {
+  localNextHop_ = localNextHop;
 }
 
 template <typename NextHopTraitsT>

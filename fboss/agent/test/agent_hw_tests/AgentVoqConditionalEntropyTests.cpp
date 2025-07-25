@@ -4,7 +4,6 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
@@ -34,7 +33,8 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
     return cfg;
   }
   std::vector<PortDescriptor> getEcmpSysPorts() {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     std::vector<PortDescriptor> sysPortDescs;
     auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
     sysPortDescs.insert(
@@ -54,7 +54,8 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
   }
   void setupEcmpGroup() {
     auto sysPortDescs = getEcmpSysPorts();
-    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto prefix = RoutePrefixV6{folly::IPAddressV6("0::0"), 0};
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(

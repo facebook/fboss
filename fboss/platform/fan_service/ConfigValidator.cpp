@@ -32,11 +32,13 @@ std::unordered_set<std::string> opticTypes = {
 
 std::unordered_set<std::string> opticAggregationTypes = {
     constants::OPTIC_AGGREGATION_TYPE_MAX(),
-    constants::OPTIC_AGGREGATION_TYPE_PID()};
+    constants::OPTIC_AGGREGATION_TYPE_PID(),
+    constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()};
 
 std::unordered_set<std::string> sensorPwmCalcTypes = {
     constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE(),
-    constants::SENSOR_PWM_CALC_TYPE_PID()};
+    constants::SENSOR_PWM_CALC_TYPE_PID(),
+    constants::SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID()};
 
 } // namespace
 
@@ -55,11 +57,11 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
     }
   }
   for (const auto& sensor : *config.sensors()) {
-    if (!accessMethodTypes.count(*sensor.access()->accessType())) {
+    if (!accessMethodTypes.contains(*sensor.access()->accessType())) {
       XLOG(ERR) << "Invalid access method: " << *sensor.access()->accessType();
       return false;
     }
-    if (!sensorPwmCalcTypes.count(*sensor.pwmCalcType())) {
+    if (!sensorPwmCalcTypes.contains(*sensor.pwmCalcType())) {
       XLOG(ERR) << "Invalid PWM calculation type: " << *sensor.pwmCalcType();
       return false;
     }
@@ -126,7 +128,7 @@ bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
     return false;
   }
 
-  if (!opticAggregationTypes.count(*optic.aggregationType())) {
+  if (!opticAggregationTypes.contains(*optic.aggregationType())) {
     XLOG(ERR) << "Invalid optic aggregation type: " << *optic.aggregationType();
     return false;
   }
@@ -138,7 +140,23 @@ bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
       return false;
     }
     for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
-      if (!opticTypes.count(opticType)) {
+      if (!opticTypes.contains(opticType)) {
+        XLOG(ERR) << "Invalid optic type: " << opticType;
+        return false;
+      }
+    }
+  }
+
+  if (*optic.aggregationType() ==
+      constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
+    if (optic.pidSettings()->empty()) {
+      XLOG(ERR)
+          << "PID settings cannot be empty for optic aggregation incremental type: "
+          << *optic.aggregationType();
+      return false;
+    }
+    for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
+      if (!opticTypes.contains(opticType)) {
         XLOG(ERR) << "Invalid optic type: " << opticType;
         return false;
       }
@@ -153,7 +171,7 @@ bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
       return false;
     }
     for (const auto& [opticType, tempToPwmMap] : *optic.tempToPwmMaps()) {
-      if (!opticTypes.count(opticType)) {
+      if (!opticTypes.contains(opticType)) {
         XLOG(ERR) << "Invalid optic type: " << opticType;
         return false;
       }
@@ -171,7 +189,7 @@ bool ConfigValidator::isValidZoneConfig(
     XLOG(ERR) << "zoneName cannot be empty";
     return false;
   }
-  if (!zoneTypes.count(*zone.zoneType())) {
+  if (!zoneTypes.contains(*zone.zoneType())) {
     XLOG(ERR) << "Invalid zone type: " << *zone.zoneType();
     return false;
   }
@@ -189,7 +207,7 @@ bool ConfigValidator::isValidZoneConfig(
                          }) |
       ranges::to<std::unordered_set>;
   for (const auto& fanName : *zone.fanNames()) {
-    if (!validFanNames.count(fanName)) {
+    if (!validFanNames.contains(fanName)) {
       XLOG(ERR) << fmt::format(
           "Invalid fan name: {} in Zone: {}", fanName, *zone.zoneName());
       return false;

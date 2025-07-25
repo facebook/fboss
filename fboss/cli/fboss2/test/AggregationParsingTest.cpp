@@ -51,7 +51,7 @@ TEST_F(AggregateParsingFixture, noColumnPassed) {
 }
 
 TEST_F(AggregateParsingFixture, emptyInput) {
-  std::string aggregateInput = "";
+  std::string aggregateInput;
   auto cmd = CmdGlobalOptions();
   auto errorCode = cli::CliOptionResult::EOK;
   cmd.setAggregateInput(aggregateInput);

@@ -352,7 +352,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
         auto detection =
             entry->cref<switch_config_tags::detection>()->toThrift();
         if (behavior == facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
-            detection.linear_ref()->probability() != kDefaultProbability) {
+            detection.linear()->probability() != kDefaultProbability) {
           return false;
         }
       }
@@ -544,7 +544,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
 
   LLDPValidations getLLDPValidations() const {
     // THRIFT_COPY
-    return cref<switch_state_tags::expectedLLDPValues>()->toThrift();
+    return safe_cref<switch_state_tags::expectedLLDPValues>()->toThrift();
   }
 
   auto getExpectedNeighborValues() const {
@@ -780,6 +780,24 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     } else {
       set<switch_state_tags::selfHealingECMPLagEnable>(
           selfHealingECMPLagEnable.value());
+    }
+  }
+
+  std::optional<bool> getDesiredSelfHealingECMPLagEnable() const {
+    if (auto desiredSelfHealingECMPLagEnable =
+            cref<switch_state_tags::desiredSelfHealingECMPLagEnable>()) {
+      return desiredSelfHealingECMPLagEnable->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setDesiredSelfHealingECMPLagEnable(
+      std::optional<bool> desiredSelfHealingECMPLagEnable) {
+    if (!desiredSelfHealingECMPLagEnable.has_value()) {
+      ref<switch_state_tags::desiredSelfHealingECMPLagEnable>().reset();
+    } else {
+      set<switch_state_tags::desiredSelfHealingECMPLagEnable>(
+          desiredSelfHealingECMPLagEnable.value());
     }
   }
 

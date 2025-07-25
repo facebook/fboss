@@ -14,7 +14,7 @@ PresenceChecker::PresenceChecker(
 
 bool PresenceChecker::isPresent(
     const PresenceDetection& presenceDetection,
-    const std::string slotPath) {
+    const std::string& slotPath) {
   if (const auto sysfsFileHandle = presenceDetection.sysfsFileHandle()) {
     return sysfsPresent(*sysfsFileHandle, slotPath);
   } else if (const auto gpioLineHandle = presenceDetection.gpioLineHandle()) {
@@ -25,9 +25,20 @@ bool PresenceChecker::isPresent(
   }
 }
 
-bool PresenceChecker::sysfsPresent(
-    const SysfsFileHandle& handle,
+int PresenceChecker::getPresenceValue(
+    const PresenceDetection& presenceDetection,
     const std::string& slotPath) {
+  if (const auto sysfsFileHandle = presenceDetection.sysfsFileHandle()) {
+    return sysfsValue(*sysfsFileHandle);
+  } else if (const auto gpioLineHandle = presenceDetection.gpioLineHandle()) {
+    return gpioValue(*gpioLineHandle);
+  } else {
+    throw std::runtime_error(
+        fmt::format("Invalid PresenceDetection for {}", slotPath));
+  }
+}
+
+int PresenceChecker::sysfsValue(const SysfsFileHandle& handle) {
   auto presencePath = devicePathResolver_.resolvePresencePath(
       *handle.devicePath(), *handle.presenceFileName());
   if (!presencePath) {
@@ -56,12 +67,32 @@ bool PresenceChecker::sysfsPresent(
         *presenceFileContent,
         folly::exceptionStr(ex)));
   }
+  return presenceValue;
+}
+
+int PresenceChecker::gpioValue(const GpioLineHandle& handle) {
+  auto presencePath =
+      devicePathResolver_.resolvePciSubDevCharDevPath(*handle.devicePath());
+  XLOG(INFO) << fmt::format(
+      "The gpio line {} at DevicePath {} resolves to {}",
+      *handle.lineIndex(),
+      *handle.devicePath(),
+      presencePath);
+  return utils_->getGpioLineValue(presencePath, *handle.lineIndex());
+}
+
+bool PresenceChecker::sysfsPresent(
+    const SysfsFileHandle& handle,
+    const std::string& slotPath) {
+  auto presencePath = devicePathResolver_.resolvePresencePath(
+      *handle.devicePath(), *handle.presenceFileName());
+  int presenceValue = sysfsValue(handle);
   bool isPresent = (presenceValue == *handle.desiredValue());
   XLOG(INFO) << fmt::format(
       "Value at {} is {}. desiredValue is {}. "
       "Assuming {} of PmUnit at {}",
       *presencePath,
-      *presenceFileContent,
+      presenceValue,
       *handle.desiredValue(),
       isPresent ? "presence" : "absence",
       slotPath);
@@ -73,13 +104,7 @@ bool PresenceChecker::gpioPresent(
     const std::string& slotPath) {
   auto presencePath =
       devicePathResolver_.resolvePciSubDevCharDevPath(*handle.devicePath());
-  XLOG(INFO) << fmt::format(
-      "The gpio line {} at DevicePath {} resolves to {}",
-      *handle.lineIndex(),
-      *handle.devicePath(),
-      presencePath);
-  auto presenceValue =
-      utils_->getGpioLineValue(presencePath, *handle.lineIndex());
+  auto presenceValue = gpioValue(handle);
   bool isPresent = (presenceValue == *handle.desiredValue());
   XLOG(INFO) << fmt::format(
       "Value at {} is {}. desiredValue is {}. "

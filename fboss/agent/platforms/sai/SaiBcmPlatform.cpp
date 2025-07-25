@@ -57,6 +57,9 @@ std::string SaiBcmPlatform::getHwConfig() {
     if (!FLAGS_detect_wrong_fabric_connections) {
       overrides.insert({"fabric_wrong_connectivity_protection_en", "0"});
     }
+    if (!FLAGS_enable_balanced_input_mode) {
+      overrides.insert({"fabric_load_balancing_mode", "NORMAL_LOAD_BALANCE"});
+    }
     auto hwConfig = getHwAsicConfig(overrides);
     return hwConfig;
   } catch (const FbossError&) {

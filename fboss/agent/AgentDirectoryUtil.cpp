@@ -243,10 +243,6 @@ std::string AgentDirectoryUtil::getMaxPostSignalWaitTimeFile() const {
   return getVolatileStateDir() + "/max_post_signal_wait_time_wedge_agent";
 }
 
-std::string AgentDirectoryUtil::getWrapperRefactorFlag() const {
-  return "/etc/fboss/features/cpp_wedge_agent_wrapper/current/on";
-}
-
 std::string AgentDirectoryUtil::exitTimeFile(
     const std::string& processName) const {
   return "/dev/shm/" + processName + "_last_exit_time";
@@ -291,4 +287,5 @@ std::string AgentDirectoryUtil::getTestHwAgentConfigFile(
 std::string AgentDirectoryUtil::getAgentBootHistoryLogFile() const {
   return "/var/facebook/logs/fboss/wedge_agent_boot_history.log";
 }
+
 } // namespace facebook::fboss

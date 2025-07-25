@@ -8,7 +8,7 @@ class FakeBcmTestPlatform;
 
 class FakeBcmTestPort : public BcmTestPort {
  public:
-  FakeBcmTestPort(PortID id, FakeBcmTestPlatform* platform);
+  FakeBcmTestPort(const PortID& id, FakeBcmTestPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     return {

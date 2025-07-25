@@ -14,7 +14,9 @@
 
 namespace facebook::fboss {
 
-BcmTestFujiPort::BcmTestFujiPort(PortID id, BcmTestFujiPlatform* platform)
+BcmTestFujiPort::BcmTestFujiPort(
+    const PortID& id,
+    BcmTestFujiPlatform* platform)
     : BcmTestPort(id, platform) {}
 
 } // namespace facebook::fboss

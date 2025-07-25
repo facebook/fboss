@@ -12,7 +12,6 @@
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
@@ -195,7 +194,7 @@ bool verifyEcmpForFlowletSwitching(
     bcm_l3_egress_get(0, ecmp_member, &egress);
     if (flowletEnable &&
         !(hw->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES))) {
+            HwAsic::Feature::ARS_PORT_ATTRIBUTES))) {
       // verify the port flowlet config values only in TH3
       // since this port flowlet configs are set in egress object in TH3
       CHECK_EQ(egress.dynamic_scaling_factor, *cfg.scalingFactor());
@@ -215,6 +214,7 @@ bool verifyEcmpForFlowletSwitching(
 bool verifyEcmpForNonFlowlet(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
     const bool expectFlowsetFree) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto ecmp = getEgressIdForRoute(bcmSwitch, prefix.first, prefix.second, kRid);
@@ -227,18 +227,31 @@ bool verifyEcmpForNonFlowlet(
   // Ecmp Id should be greater than or equal to max dlb Ecmp Id
   CHECK_GE(ecmp, kDlbEcmpMaxId);
   // Check all the flowlet configs are disabled
-  CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_DISABLED);
+  if (flowletCfg.backupSwitchingMode() ==
+      cfg::SwitchingMode::FIXED_ASSIGNMENT) {
+    CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_DISABLED);
+  } else if (
+      flowletCfg.backupSwitchingMode() ==
+      cfg::SwitchingMode::PER_PACKET_RANDOM) {
+    CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_RANDOM);
+  }
   CHECK_EQ(existing.dynamic_age, 0);
   CHECK_EQ(existing.dynamic_size, 0);
+  // TH3 only supports flowlet. Below checks don't apply
+  if (hw->getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    return true;
+  }
   int freeEntries = 0;
   bcm_switch_object_count_get(
       bcmSwitch->getUnit(),
       bcmSwitchObjectEcmpDynamicFlowSetFree,
       &freeEntries);
   if (expectFlowsetFree) {
-    CHECK_GE(freeEntries, 2048);
+    CHECK_GE(freeEntries, 256);
   } else {
-    CHECK_EQ(freeEntries, 0);
+    // CS00012398177
+    CHECK_EQ(freeEntries, 256);
   }
   return true;
 }

@@ -106,7 +106,7 @@ void Platform::init(
   };
 
   std::optional<HwAsic::FabricNodeRole> fabricNodeRole;
-  std::optional<int64_t> switchId;
+  int64_t switchId = 0;
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = cfg::SwitchType::NPU;
   if (switchSettings.switchIdToSwitchInfo()->size()) {
@@ -117,7 +117,7 @@ void Platform::init(
     if (switchType == cfg::SwitchType::FABRIC) {
       fabricNodeRole = HwAsic::FabricNodeRole::SINGLE_STAGE_L1;
       const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
-      const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
+      const auto& dsfNodeConfig = dsfNodesConfig.find(switchId);
       if (dsfNodeConfig != dsfNodesConfig.end() &&
           dsfNodeConfig->second.fabricLevel().has_value()) {
         auto fabricLevel = *dsfNodeConfig->second.fabricLevel();
@@ -143,7 +143,7 @@ void Platform::init(
   }
   switchInfo.switchMac() = localMac_.toString();
 
-  XLOG(DBG2) << "Initializing Platform with switch ID: " << switchId.value_or(0)
+  XLOG(DBG2) << "Initializing Platform with switch ID: " << switchId
              << " switch Index: " << switchIndex;
 
   setupAsic(switchId, switchInfo, fabricNodeRole);
@@ -223,6 +223,7 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
       return 1;
 
     case cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC:
@@ -236,6 +237,7 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
       return 2;
 
     case cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC:
@@ -255,6 +257,7 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
       return 4;
 
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N:

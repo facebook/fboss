@@ -14,11 +14,8 @@
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
-
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 extern "C" {
 #include <bcm/port.h>
@@ -505,7 +502,6 @@ TEST_F(BcmPortTest, PortFdrStats) {
 
 TEST_F(BcmPortTest, SetInterPacketGapBits) {
   if (!getPlatform()->getPlatformMapping()->supportsInterPacketGapBits()) {
-    GTEST_SKIP();
     return;
   }
   static auto constexpr expectedInterPacketGapBits = 352;

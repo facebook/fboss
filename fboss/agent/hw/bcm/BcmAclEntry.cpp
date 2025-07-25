@@ -439,12 +439,37 @@ void BcmAclEntry::createAclActions() {
           false /* isWarmBoot */);
     }
 
-    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       if (matchAction->getFlowletAction()) {
         XLOG(DBG2) << "Adding flowlet action for handle :" << handle_;
         applyFlowletAction(matchAction);
       }
     }
+
+    if (matchAction->getEcmpHashAction()) {
+      XLOG(DBG2) << "Adding ecmp hash action for handle :" << handle_;
+      applyEcmpHashAction(matchAction);
+    }
+  }
+}
+
+void BcmAclEntry::applyEcmpHashAction(
+    const std::optional<facebook::fboss::MatchAction>& action) {
+  int rv;
+  auto ecmpHashAction = action->getEcmpHashAction().value();
+  switch (*ecmpHashAction.switchingMode()) {
+    case cfg::SwitchingMode::FIXED_ASSIGNMENT:
+      rv = bcm_field_action_add(
+          hw_->getUnit(),
+          handle_,
+          bcmFieldActionEcmpRandomRoundRobinHashCancel,
+          0,
+          0);
+      bcmCheckError(rv, "failed to add ecmp hash action");
+      break;
+    default:
+      throw FbossError(
+          "Unsupported ecmp hash action", *ecmpHashAction.switchingMode());
   }
 }
 
@@ -474,7 +499,7 @@ void BcmAclEntry::applyRedirectToNextHopAction(
   if (nexthops.size() > 0) {
     redirectNexthop_ =
         hw_->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-            BcmMultiPathNextHopKey(vrf, nexthops));
+            BcmMultiPathNextHopKey(vrf, nexthops, std::nullopt));
     egressId = redirectNexthop_->getEgressId();
   } else {
     egressId = hw_->getDropEgressId();

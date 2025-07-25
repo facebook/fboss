@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 
 oncall("fboss_optics_phy")
 
@@ -32,7 +33,6 @@ python_library(
         ":si_settings",
         ":static_mapping",
         "//fboss/agent:platform_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
         "//fboss/lib/phy:phy-py-deprecated",
     ],
 )
@@ -46,7 +46,7 @@ thrift_library(
         "py-deprecated",
         "py3-deprecated",
         "python",
-        "py-asyncio",
+        "py-deprecated-asyncio",
         "cpp2",
     ],
     py3_namespace = "neteng.fboss",
@@ -144,4 +144,39 @@ python_binary(
         "//thrift/lib/py:server_base",
         "//thrift/lib/py/util:py_util",
     ],
+)
+
+ci_sandcastle(
+    name = "platform_mapping_v2_verify_and_configo_sync",
+    alias = "platform-mapping-v2-verify-and-configo-sync-citadel",
+    args = {
+        "steps": [
+            {
+                "name": "Verify /generated_platform_mappings Is Populated Correctly",
+                "shell": "buck2 test --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/test:verify_generated_files",
+            },
+            {
+                "name": "Run Configo Sync Command",
+                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes --add-fbcode-dependency",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    ci_srcs = [
+        "fbcode/fboss/lib/platform_mapping_v2/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_optics_phy",
+)
+
+python_binary(
+    name = "generate_agent_config_from_asic_config",
+    srcs = ["generate_agent_config_from_asic_config.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.platform_mapping_v2.generate_agent_config_from_asic_config",
+    deps = [],
 )

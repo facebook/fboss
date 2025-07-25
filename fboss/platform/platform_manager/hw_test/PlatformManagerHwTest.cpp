@@ -25,6 +25,9 @@ const std::map<ExplorationStatus, std::vector<ExplorationStatus>>
         {ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS, {}},
         {ExplorationStatus::FAILED, {}}};
 }; // namespace
+
+namespace fs = std::filesystem;
+
 class PlatformExplorerWrapper : public PlatformExplorer {
  public:
   explicit PlatformExplorerWrapper(const PlatformConfig& config)
@@ -74,10 +77,15 @@ class PlatformManagerHwTest : public ::testing::Test {
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
   PlatformExplorerWrapper platformExplorer_{platformConfig_};
   PkgManager pkgManager_{platformConfig_};
+  std::optional<DataStore> ds =
+      platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
   std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_{
       apache::thrift::makeTestClient<
           apache::thrift::Client<PlatformManagerService>>(
-          std::make_unique<PlatformManagerHandler>(platformExplorer_))};
+          std::make_unique<PlatformManagerHandler>(
+              platformExplorer_,
+              ds.value(),
+              platformConfig_))};
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {
@@ -128,8 +136,8 @@ TEST_F(PlatformManagerHwTest, PmExplorationStatusTransitions) {
 }
 
 TEST_F(PlatformManagerHwTest, Symlinks) {
-  std::filesystem::remove_all("/run/devmap");
-  EXPECT_FALSE(std::filesystem::exists("/run/devmap"));
+  fs::remove_all("/run/devmap");
+  EXPECT_FALSE(fs::exists("/run/devmap"));
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
@@ -137,10 +145,87 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
     if (platformExplorer_.isDeviceExpectedToFail(devicePath)) {
       continue;
     }
-    EXPECT_TRUE(std::filesystem::exists(symlink))
+    EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
-    EXPECT_TRUE(std::filesystem::is_symlink(symlink))
+    EXPECT_TRUE(fs::is_symlink(symlink))
         << fmt::format("{} isn't a symlink", symlink);
+  }
+}
+
+// Verifies the control files expected by qsfp_service are properly created.
+TEST_F(PlatformManagerHwTest, XcvrCtrlFiles) {
+  fs::remove_all("/run/devmap/xcvrs");
+  EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
+  explorationOk();
+  for (auto xcvrId = 1; xcvrId <= *platformConfig_.numXcvrs(); xcvrId++) {
+    auto xcvrCtrlDir =
+        fs::path(fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}", xcvrId));
+    fs::path presenceFile, resetFile;
+    std::string presenceFileName, resetFileName;
+    if (*platformConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
+      presenceFileName = "xcvr_present";
+      resetFileName = "xcvr_reset";
+    } else if (*platformConfig_.bspKmodsRpmName() == "arista_bsp_kmods") {
+      presenceFileName = fmt::format("xcvr{}_present", xcvrId);
+      resetFileName = fmt::format("xcvr{}_reset", xcvrId);
+    } else {
+      presenceFileName = fmt::format("xcvr_present_{}", xcvrId);
+      resetFileName = fmt::format("xcvr_reset_{}", xcvrId);
+    }
+    presenceFile = xcvrCtrlDir / fs::path(presenceFileName);
+    resetFile = xcvrCtrlDir / fs::path(resetFileName);
+    EXPECT_TRUE(fs::exists(presenceFile))
+        << fmt::format("{} doesn't exist", presenceFile.string());
+    EXPECT_TRUE(fs::exists(resetFile))
+        << fmt::format("{} doesn't exist", resetFile.string());
+    if (fs::exists(presenceFile)) {
+      auto presenceFileContent =
+          PlatformFsUtils().getStringFileContent(presenceFile);
+      ASSERT_TRUE(presenceFileContent);
+      int presenceValue{-1};
+      ASSERT_NO_THROW(
+          presenceValue = std::stoi(*presenceFileContent, nullptr, 0));
+      EXPECT_TRUE(presenceValue == 0 || presenceValue == 1);
+    }
+  }
+}
+
+TEST_F(PlatformManagerHwTest, XcvrIoFiles) {
+  fs::remove_all("/run/devmap/xcvrs");
+  EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
+  explorationOk();
+  for (auto xcvrId = 1; xcvrId <= *platformConfig_.numXcvrs(); xcvrId++) {
+    auto xcvrIoPath =
+        fs::path(fmt::format("/run/devmap/xcvrs/xcvr_io_{}", xcvrId));
+    EXPECT_TRUE(fs::is_character_file(xcvrIoPath))
+        << fmt::format("{} isn't a character file", xcvrIoPath.string());
+  }
+}
+
+TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
+  fs::remove_all("/run/devmap/xcvrs");
+  EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
+  explorationOk();
+  // Note: We are not checking the LED files of the last xcvr (typically the
+  // PIE/Management port). This PIE/Management port has different number of LEDs
+  // on different platforms. We can augment this test later by reading from
+  // `ledCtrlConfigs` and perform this check even for PIE ports.
+  for (auto xcvrNum = 1; xcvrNum < *platformConfig_.numXcvrs(); xcvrNum++) {
+    auto blueLed1 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led1:blue:status", xcvrNum));
+    auto blueLed2 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led2:blue:status", xcvrNum));
+    auto yellowLed1 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led1:yellow:status", xcvrNum));
+    auto yellowLed2 = fs::path(
+        fmt::format("/sys/class/leds/port{}_led2:yellow:status", xcvrNum));
+    for (auto& ledDir : {blueLed1, blueLed2, yellowLed1, yellowLed2}) {
+      for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
+        auto ledFullPath = ledDir / fs::path(ledFile);
+        EXPECT_TRUE(fs::exists(ledFullPath))
+            << fmt::format("{} doesn't exist", ledFullPath.string());
+      }
+    }
   }
 }
 

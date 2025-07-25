@@ -21,9 +21,9 @@ class AgentTrunkTest : public AgentHwTest {
         ensemble.masterLogicalPortIds()[1]);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::LAG};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::LAG};
   }
 
   void applyConfigAndEnableTrunks(const cfg::SwitchConfig& config) {

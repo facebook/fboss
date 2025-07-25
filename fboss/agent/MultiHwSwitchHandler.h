@@ -61,6 +61,11 @@ class MultiHwSwitchHandler {
       bool transaction,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
+  std::shared_ptr<SwitchState> stateChanged(
+      const std::vector<StateDelta>& deltas,
+      bool transaction,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size);
 
   bool sendPacketOutOfPortAsync(
@@ -117,7 +122,7 @@ class MultiHwSwitchHandler {
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   std::map<SwitchID, HwSwitchStateUpdateResult> stateChanged(
-      const std::map<SwitchID, const StateDelta&>& deltas,
+      const std::map<SwitchID, const std::vector<StateDelta>&>& deltas,
       bool transaction,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
@@ -127,7 +132,7 @@ class MultiHwSwitchHandler {
 
   std::shared_ptr<SwitchState> rollbackStateChange(
       const std::map<SwitchID, HwSwitchStateUpdateResult>& updateResults,
-      std::shared_ptr<SwitchState> desiredState,
+      const std::vector<StateDelta>& deltas,
       bool transaction);
 
   SwSwitch* sw_;

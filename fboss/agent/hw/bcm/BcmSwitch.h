@@ -9,9 +9,18 @@
  */
 #pragma once
 
+#include <deque>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <thread>
+
+#include <boost/container/flat_map.hpp>
+#include <folly/Synchronized.h>
+#include <folly/executors/FunctionScheduler.h>
 #include <folly/json/dynamic.h>
 #include <gtest/gtest_prod.h>
-#include <optional>
+
 #include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
@@ -19,14 +28,11 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
-
-#include <boost/container/flat_map.hpp>
-#include <memory>
-#include <mutex>
-#include <thread>
 
 extern "C" {
 #include <bcm/cosq.h>
@@ -402,6 +408,10 @@ class BcmSwitch : public BcmSwitchIf {
   folly::dynamic toFollyDynamic() const override;
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
+  folly::F14FastMap<std::string, HwRouterInterfaceStats>
+  getRouterInterfaceStats() const override {
+    return {};
+  }
   std::map<std::string, HwSysPortStats> getSysPortStats() const override {
     return {};
   }
@@ -421,12 +431,18 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
+  HwSwitchPipelineStats getSwitchPipelineStats() const override;
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
   HwFlowletStats getHwFlowletStats() const override;
 
   HwResourceStats getResourceStats() const override;
+  std::map<int, cfg::PortState> getSysPortShelState() const override {
+    return {};
+  }
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override;
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.
@@ -641,6 +657,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   void syncLinkStates() override;
+  void syncPortLinkState(PortID port) override;
 
   // no concept of link active states in BcmSwitch
   void syncLinkActiveStates() override {}
@@ -656,6 +673,17 @@ class BcmSwitch : public BcmSwitchIf {
   void injectSwitchReachabilityChangeNotification() override {}
 
   bool getArsExhaustionStatus() override;
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override {
+    return {};
+  }
+
+  void startHighFrequencyStatsThread(
+      const HighFrequencyStatsCollectionConfig& config);
+  void stopHighFrequencyStatsThread();
+  void getHighFrequencyTimeseriesStats(
+      std::vector<HwHighFrequencyStats>& stats,
+      const std::unique_ptr<GetHighFrequencyStatsOptions>& options) const;
 
  private:
   enum Flags : uint32_t {
@@ -829,7 +857,7 @@ class BcmSwitch : public BcmSwitchIf {
   //
   // Lock has to be performed in the function.
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const StateDelta& delta) override;
+      const std::vector<StateDelta>& delta) override;
   std::shared_ptr<SwitchState> stateChangedImplLocked(
       const StateDelta& delta,
       const std::lock_guard<std::mutex>& lock);
@@ -865,6 +893,7 @@ class BcmSwitch : public BcmSwitchIf {
       const StateDelta& delta);
 
   void processFlowletSwitchingConfigChanges(const StateDelta& delta);
+  void processEcmpForArsChanges(const StateDelta& delta);
 
   void processMacTableChanges(const StateDelta& delta);
 
@@ -1150,6 +1179,11 @@ class BcmSwitch : public BcmSwitchIf {
   void processDefaultAclgroupForUdf(std::set<bcm_udf_id_t>& udfAclIds);
   void initialStateApplied() override;
 
+  void updateHighFrequencyStatsThreadConfig(
+      const HighFrequencyStatsCollectionConfig& config);
+
+  HwHighFrequencyStats getHighFrequencyStats();
+
   /*
    * Member variables
    */
@@ -1206,6 +1240,24 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<UnsupportedFeatureManager> sysPortMgr_;
   std::unique_ptr<UnsupportedFeatureManager> remoteRifMgr_;
   std::unique_ptr<BcmUdfManager> udfManager_;
+
+  static constexpr std::string_view kHighFreqStatsThreadName_{
+      "HighFrequencyStatsThread"};
+  static constexpr std::string_view kHighFreqStatsFunctionName_{
+      "collectHighFrequencyStats"};
+  static HwHighFrequencyStats zeroHighFrequencyStatsTimestamp(
+      const HwHighFrequencyStats& stats);
+  static bool hasHighFrequencyStatsChanged(
+      const HwHighFrequencyStats& a,
+      const HwHighFrequencyStats& b);
+  void collectHighFrequencyStats();
+  HighFrequencyStatsCollectionConfig highFreqStatsThreadConfig_{};
+  static constexpr int64_t kHfMinWaitDurationUs_{20000};
+  static constexpr int64_t kHfMaxCollectionDurationUs_{10000000};
+  std::unique_ptr<folly::FunctionScheduler> highFreqStatsThread_;
+  constexpr static int kHighFreqStatsDataMaxSize_{4096};
+  constexpr static int kMaxConsecutiveHighFreqStatsCollect_{16};
+  folly::Synchronized<std::deque<HwHighFrequencyStats>> highFreqStatsData_{};
   /*
    * Lock to synchronize access to all BCM* data structures
    */

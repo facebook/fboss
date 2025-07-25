@@ -13,7 +13,6 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
 #include "fboss/agent/state/SwitchState.h"
@@ -22,6 +21,7 @@
 
 namespace facebook::fboss {
 
+namespace {
 std::shared_ptr<SwitchState> swSwitchFibUpdate(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
@@ -36,6 +36,7 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
   sw->updateStateWithHwFailureProtection("update fib", std::move(fibUpdater));
   return sw->getState();
 }
+} // namespace
 
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
     SwSwitch* sw,

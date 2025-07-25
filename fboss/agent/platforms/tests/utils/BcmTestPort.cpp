@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-BcmTestPort::BcmTestPort(PortID id, BcmTestPlatform* platform)
+BcmTestPort::BcmTestPort(const PortID& id, BcmTestPlatform* platform)
     : BcmPlatformPort(id, platform) {}
 
 void BcmTestPort::setBcmPort(BcmPort* port) {

@@ -44,7 +44,8 @@ class BcmRoute {
   ~BcmRoute();
   void program(
       const RouteNextHopEntry& fwd,
-      std::optional<cfg::AclLookupClass> classID);
+      std::optional<cfg::AclLookupClass> classID,
+      std::optional<cfg::SwitchingMode> switchingMode);
 
   bcm_if_t getEgressId() const {
     return egressId_;
@@ -84,6 +85,7 @@ class BcmRoute {
   std::shared_ptr<BcmHostIf> hostRouteEntry_; // for host routes
   std::optional<cfg::AclLookupClass> classID_{std::nullopt};
   std::shared_ptr<BcmRouteCounterBase> counterIDReference_;
+  std::optional<cfg::SwitchingMode> switchingMode_{std::nullopt};
 };
 
 /**

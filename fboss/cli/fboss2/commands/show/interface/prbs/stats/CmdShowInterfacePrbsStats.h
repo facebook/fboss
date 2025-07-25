@@ -22,7 +22,7 @@ using std::chrono::system_clock;
 
 namespace facebook::fboss {
 
-struct CmdShowInterfacePrbsStatsTraits : public BaseCommandTraits {
+struct CmdShowInterfacePrbsStatsTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowInterfacePrbs;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

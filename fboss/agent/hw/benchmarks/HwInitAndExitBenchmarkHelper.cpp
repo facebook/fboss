@@ -9,15 +9,16 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.h"
-#include <fboss/agent/SwSwitch.h>
-#include <fboss/agent/test/AgentEnsemble.h>
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
@@ -27,10 +28,6 @@
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-
-#include <iostream>
-
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 using namespace facebook::fboss;
 
@@ -102,7 +99,10 @@ std::optional<uint16_t> getUplinksCount(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::HUNDREDG},
        4},
-  };
+      {{PlatformType::PLATFORM_MINIPACK3N,
+        cfg::PortSpeed::FOURHUNDREDG,
+        cfg::PortSpeed::FOURHUNDREDG},
+       64}};
 
   auto iter = numUplinksMap.find(
       std::make_tuple(platformType, uplinkSpeed, downlinkSpeed));
@@ -134,9 +134,11 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin())->getAsicType();
 
   if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    return utility::RSWRouteScaleGenerator(swSwitch->getState())
+    return utility::RSWRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else if (
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
@@ -145,10 +147,12 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
       asicType == cfg::AsicType::ASIC_TYPE_RAMON ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
-    return utility::HgridUuRouteScaleGenerator(swSwitch->getState())
+    return utility::HgridUuRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
-    return utility::FSWRouteScaleGenerator(swSwitch->getState())
+    return utility::FSWRouteScaleGenerator(
+               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
         .getThriftRoutes();
   } else {
     CHECK(false) << "Invalid asic type for route scale";
@@ -290,7 +294,8 @@ void initAndExitBenchmarkHelper(
               });
 
           utility::EcmpSetupTargetedPorts6 ecmpHelper(
-              ensemble->getProgrammedState());
+              ensemble->getProgrammedState(),
+              ensemble->getSw()->needL2EntryForNeighbor());
           auto portDescriptor =
               utility::resolveRemoteNhops(ensemble.get(), ecmpHelper);
 
@@ -333,6 +338,10 @@ void initAndExitBenchmarkHelper(
     auto updater = ensemble->getSw()->getRouteUpdater();
     ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   }
+
+  // Block until the stats thread exits. This can take ~0.7s, so pull it
+  // outside the stopwatch.
+  ensemble->stopStatsThread();
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In

@@ -3,7 +3,8 @@
     "check_wb_handles": "true",
     "enable_route_resource_protection": "false",
     "log_variable_name": "true",
-    "skip_transceiver_programming": "true"
+    "skip_transceiver_programming": "true",
+    "use_full_dlb_scale": "true"
   },
   "sw": {
     "version": 0,
@@ -384,5 +385,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

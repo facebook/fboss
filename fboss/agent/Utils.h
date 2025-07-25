@@ -40,6 +40,10 @@ DECLARE_string(mac);
 DECLARE_uint64(egress_buffer_pool_size);
 DECLARE_uint64(ingress_egress_buffer_pool_size);
 DECLARE_bool(allow_zero_headroom_for_lossless_pg);
+DECLARE_string(mod_dest_mac_override);
+DECLARE_bool(allow_nif_port_for_mod);
+DECLARE_bool(allow_eventor_send_packet);
+
 namespace folly {
 struct dynamic;
 }
@@ -57,9 +61,7 @@ inline const std::string kUdfAclRoceOpcodeGroupName("roceOpcode");
 inline const std::string kUdfL4UdpRocePktMatcherName("l4UdpRoce");
 inline const std::string kUdfAclRoceOpcodeName("udf-roce-ack");
 inline const std::string kUdfAclRoceOpcodeStats("udf-roce-ack-stats");
-inline const int kUdfHashDstQueuePairStartOffsetInBytes(13);
 inline const int kUdfAclRoceOpcodeStartOffsetInBytes(8);
-inline const int kUdfHashDstQueuePairFieldSizeInBytes(3);
 inline const int kUdfAclRoceOpcodeFieldSizeInBytes(1);
 inline const int kUdfL4DstPort(4791);
 inline const int kRandomUdfL4SrcPort(62946);
@@ -242,7 +244,7 @@ bool isAnyInterfacePortInLoopbackMode(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface);
 
-bool isAnyInterfacePortRecyclePort(
+bool isAnyInterfacePortRecycleOrEventorPort(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface);
 
@@ -468,5 +470,11 @@ bool isStringInFile(
     const std::string& filename,
     const std::string& str,
     int maxLinesToSearch);
+
+std::optional<VlanID> getDefaultTxVlanIdIf(
+    const std::shared_ptr<SwitchSettings>& settings);
+
+std::optional<VlanID> getDefaultTxVlanId(
+    const std::shared_ptr<SwitchSettings>& settings);
 
 } // namespace facebook::fboss

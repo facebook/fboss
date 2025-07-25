@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -24,9 +25,9 @@ namespace facebook::fboss {
 
 class AgentPacketSendTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::CPU_RX_TX};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
   }
 
   void waitForTxDoneOnPort(
@@ -73,10 +74,10 @@ class AgentPacketSendTest : public AgentHwTest {
 
 class AgentSwitchedPacketSendTest : public AgentPacketSendTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentPacketSendTest::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::VLAN);
+    features.push_back(ProductionFeature::VLAN);
     return features;
   }
 };
@@ -86,7 +87,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -134,7 +135,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -205,7 +206,7 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
       auto sendPacket = [=, this](
                             AgentEnsemble* ensemble,
                             const folly::IPAddressV6& dstIpv6Addr) {
-        auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+        auto vlanId = getVlanIDForTx();
         auto intfMac =
             utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
         auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -269,14 +270,14 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
 
 class AgentPacketSendReceiveTest : public AgentHwTest, public PacketObserverIf {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::CPU_RX_TX};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX};
   }
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
     auto cfg = AgentHwTest::initialConfig(ensemble);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
@@ -306,7 +307,7 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
   auto verify = [=, this]() {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LldpPacketReceiveSrcPort");
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -336,18 +337,18 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
 
 class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto prodFeatures =
         AgentPacketSendReceiveTest::getProductionFeaturesVerified();
-    prodFeatures.push_back(production_features::ProductionFeature::LAG);
+    prodFeatures.push_back(ProductionFeature::LAG);
     return prodFeatures;
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsic(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -388,7 +389,7 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
   auto verify = [=, this]() {
     getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
         this, "LacpPacketReceiveSrcPort");
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto payLoadSize = 256;
@@ -449,18 +450,16 @@ class AgentPacketFloodTest : public AgentHwTest {
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     // PKTIO feature
-    return {
-        production_features::ProductionFeature::CPU_RX_TX,
-        production_features::ProductionFeature::VLAN};
+    return {ProductionFeature::CPU_RX_TX, ProductionFeature::VLAN};
   }
 
   bool checkPacketFlooding(
       std::map<PortID, HwPortStats>& portStatsBefore,
       bool v6) {
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
     for (auto portId : getLogicalPortIDs()) {
       auto packetsBefore = v6 ? *portStatsBefore[portId].outMulticastPkts_()
@@ -490,7 +489,7 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -515,7 +514,7 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     auto retries = 5;
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto suceess = false;
@@ -546,7 +545,7 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

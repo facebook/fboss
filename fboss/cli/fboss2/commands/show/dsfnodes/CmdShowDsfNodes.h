@@ -10,21 +10,14 @@
 
 #pragma once
 
-#include <re2/re2.h>
-#include <string>
-#include <unordered_set>
+#include <map>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
-#include "fboss/cli/fboss2/utils/Table.h"
-#include "folly/container/Access.h"
 
 namespace facebook::fboss {
 
-using utils::Table;
-
-struct CmdShowDsfNodesTraits : public BaseCommandTraits {
+struct CmdShowDsfNodesTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
@@ -38,59 +31,9 @@ class CmdShowDsfNodes
  public:
   using RetType = CmdShowDsfNodesTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    std::map<int64_t, cfg::DsfNode> entries;
-    client->sync_getDsfNodes(entries);
-    return createModel(entries);
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader({
-        "Name",
-        "Switch Id",
-        "Type",
-        "System port ranges",
-    });
-
-    for (auto const& entry : model.dsfNodes().value()) {
-      table.addRow({
-          *entry.name(),
-          folly::to<std::string>(*entry.switchId()),
-          *entry.type(),
-          *entry.systemPortRanges(),
-      });
-    }
-    out << table << std::endl;
-  }
-
-  RetType createModel(std::map<int64_t, cfg::DsfNode> dsfNodes) {
-    RetType model;
-    const std::string kUnavail;
-    for (const auto& idAndNode : dsfNodes) {
-      const auto& node = idAndNode.second;
-      cli::DsfNodeEntry entry;
-      entry.name() = *node.name();
-      entry.switchId() = *node.switchId();
-      entry.type() =
-          (node.type() == cfg::DsfNodeType::INTERFACE_NODE ? "Intf Node"
-                                                           : "Fabric Node");
-      std::vector<std::string> ranges;
-      if (node.systemPortRanges()->systemPortRanges()->size()) {
-        for (const auto& range : *node.systemPortRanges()->systemPortRanges()) {
-          ranges.push_back(
-              folly::sformat("({}, {})", *range.minimum(), *range.maximum()));
-        }
-        entry.systemPortRanges() = folly::join(", ", ranges);
-      } else {
-        entry.systemPortRanges() = "--";
-      }
-      model.dsfNodes()->push_back(entry);
-    }
-    return model;
-  }
+  RetType queryClient(const HostInfo& hostInfo);
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
+  RetType createModel(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 };
 
 } // namespace facebook::fboss

@@ -44,17 +44,25 @@ using std::unique_ptr;
 using ::testing::_;
 using ::testing::Return;
 
+DECLARE_bool(intf_nbr_tables);
+
 namespace {
 
 unique_ptr<HwTestHandle> setupTestHandle() {
   auto state = testStateA();
-  const auto& vlans = state->getVlans();
-  // Set up an arp response entry for VLAN 1, 10.0.0.1,
+
+  // Set up an arp response entry for VLAN/Interface 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
+  auto intfId = InterfaceID(1);
   auto respTable1 = make_shared<ArpResponseTable>();
   respTable1->setEntry(
-      IPAddressV4("10.0.0.1"), MacAddress("00:02:00:00:00:01"), InterfaceID(1));
-  vlans->getNode(VlanID(1))->setArpResponseTable(respTable1);
+      IPAddressV4("10.0.0.1"), MacAddress("00:02:00:00:00:01"), intfId);
+
+  if (FLAGS_intf_nbr_tables) {
+    state->getInterfaces()->getNode(intfId)->setArpResponseTable(respTable1);
+  } else {
+    state->getVlans()->getNode(VlanID(1))->setArpResponseTable(respTable1);
+  }
 
   return createTestHandle(state);
 }

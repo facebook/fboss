@@ -38,6 +38,7 @@ add_library(sai_tracer
   fboss/agent/hw/sai/tracer/UdfApiTracer.cpp
   fboss/agent/hw/sai/tracer/Utils.cpp
   fboss/agent/hw/sai/tracer/VendorSwitchApiTracer.cpp
+  fboss/agent/hw/sai/tracer/SwitchPipelineApiTracer.cpp
   fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.cpp
   fboss/agent/hw/sai/tracer/VlanApiTracer.cpp
   fboss/agent/hw/sai/tracer/WredApiTracer.cpp

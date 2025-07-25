@@ -90,42 +90,39 @@ void DataStore::updateCharDevPath(
   pciSubDevicePathToCharDevPath_[devicePath] = charDevPath;
 }
 
-void DataStore::updatePmUnitInfo(
+void DataStore::updatePmUnitName(
     const std::string& slotPath,
-    const std::string& pmUnitName,
-    std::optional<int> productProductionState,
-    std::optional<int> productVersion,
-    std::optional<int> productSubVersion) {
-  PmUnitInfo pmUnitInfo;
-  pmUnitInfo.name() = pmUnitName;
-  if (productProductionState && productVersion && productSubVersion) {
-    pmUnitInfo.version() = PmUnitVersion();
-    pmUnitInfo.version()->productProductionState() = *productProductionState;
-    pmUnitInfo.version()->productVersion() = *productVersion;
-    pmUnitInfo.version()->productSubVersion() = *productSubVersion;
-  } else if (productProductionState || productVersion || productSubVersion) {
-    XLOG(WARNING) << fmt::format(
-        "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
-        "ProductVersion `{}` ProductSubVersion `{}`. Skipping updating PmUnit {}",
-        slotPath,
-        productProductionState ? std::to_string(*productProductionState)
-                               : "<ABSENT>",
-        productVersion ? std::to_string(*productVersion) : "<ABSENT>",
-        productSubVersion ? std::to_string(*productSubVersion) : "<ABSENT>",
-        pmUnitName);
-  }
+    const std::string& name) {
+  slotPathToPmUnitInfo[slotPath].name() = name;
   XLOG(INFO) << fmt::format(
-      "At SlotPath {}, updating to PmUnit {} with {}",
+      "At SlotPath {}, updating to PmUnit with name: {}", slotPath, name);
+}
+
+void DataStore::updatePmUnitVersion(
+    const std::string& slotPath,
+    const PmUnitVersion& version) {
+  slotPathToPmUnitInfo[slotPath].version() = version;
+  XLOG(INFO) << fmt::format(
+      "At SlotPath {}, updating to PmUnit `{}` with {}",
       slotPath,
-      pmUnitName,
-      pmUnitInfo.version()
-          ? fmt::format(
-                "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
-                *productProductionState,
-                *productVersion,
-                *productSubVersion)
-          : "");
-  slotPathToPmUnitInfo[slotPath] = pmUnitInfo;
+      *slotPathToPmUnitInfo[slotPath].name(),
+      fmt::format(
+          "ProductProductionState {}, ProductVersion {}, ProductSubVersion {}",
+          *version.productProductionState(),
+          *version.productVersion(),
+          *version.productSubVersion()));
+}
+
+void DataStore::updatePmUnitSuccessfullyExplored(
+    const std::string& slotPath,
+    bool successfullyExplored) {
+  slotPathToPmUnitInfo[slotPath].successfullyExplored() = successfullyExplored;
+}
+
+void DataStore::updatePmUnitPresenceInfo(
+    const std::string& slotPath,
+    const PresenceInfo& presenceInfo) {
+  slotPathToPmUnitInfo[slotPath].presenceInfo() = presenceInfo;
 }
 
 PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
@@ -169,21 +166,26 @@ PmUnitConfig DataStore::resolvePmUnitConfig(const std::string& slotPath) const {
 
 void DataStore::updateEepromContents(
     const std::string& devicePath,
-    const EepromContents& contents) {
+    const FbossEepromInterface& contents) {
   XLOG(INFO) << fmt::format(
       "Updating EepromContents for DevicePath ({})", devicePath);
-  eepromContents_[devicePath] = contents;
+  eepromContents_.insert(std::make_pair(devicePath, contents));
 }
 
-EepromContents DataStore::getEepromContents(const std::string& devicePath) {
-  if (!eepromContents_.contains(devicePath)) {
+FbossEepromInterface DataStore::getEepromContents(
+    const std::string& devicePath) const {
+  if (!hasEepromContents(devicePath)) {
     throw std::runtime_error(fmt::format(
         "Couldn't find EepromContents at DevicePath ({})", devicePath));
   }
   return eepromContents_.at(devicePath);
 }
 
-bool DataStore::hasEepromContents(const std::string& devicePath) {
+bool DataStore::hasEepromContents(const std::string& devicePath) const {
   return eepromContents_.contains(devicePath);
+}
+
+std::map<std::string, PmUnitInfo> DataStore::getSlotPathToPmUnitInfo() const {
+  return slotPathToPmUnitInfo;
 }
 } // namespace facebook::fboss::platform::platform_manager

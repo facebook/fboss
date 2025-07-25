@@ -22,6 +22,7 @@ struct LinkEvent {
   2: bool up;
   3: optional phy.LinkFaultStatus iPhyLinkFaultStatus;
   4: switch_config.PortType portType;
+  5: optional i32 aggPortId;
 }
 
 struct LinkActiveEvent {
@@ -79,12 +80,13 @@ struct RxPacket {
 }
 
 struct StateOperDelta {
-  1: fsdb_oper.OperDelta operDelta;
+  1: fsdb_oper.OperDelta operDelta_DEPRECATED;
   2: bool transaction;
   3: i64 seqNum;
   # OperDelta can be applied to empty state to create full switchstate
   4: bool isFullState;
   5: common.HwWriteBehavior hwWriteBehavior = common.HwWriteBehavior.WRITE;
+  6: list<fsdb_oper.OperDelta> operDeltas;
 }
 
 struct HwSwitchStats {
@@ -106,6 +108,11 @@ struct HwSwitchStats {
   15: hardware_stats.AclStats aclStats;
   16: hardware_stats.HwSwitchWatermarkStats switchWatermarkStats;
   17: bool arsExhausted;
+  18: hardware_stats.HwSwitchPipelineStats switchPipelineStats;
+  19: map<i32, switch_config.PortState> sysPortShelState;
+  20: hardware_stats.HwSwitchTemperatureStats switchTemperatureStats;
+  @cpp.Type{template = "folly::F14FastMap"}
+  21: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
 }
 
 service MultiSwitchCtrl {

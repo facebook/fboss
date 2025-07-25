@@ -46,18 +46,16 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
   }
 
  protected:
-  void setStateChangedReturn(const std::shared_ptr<SwitchState>& state) {
-    if (handle->getHwSwitch()->transactionsSupported()) {
-      EXPECT_HW_CALL(sw, stateChangedTransaction(_, _))
-          .WillRepeatedly(Return(state));
-    } else {
-      EXPECT_HW_CALL(sw, stateChangedImpl(_)).WillRepeatedly(Return(state));
-    }
-  }
+  using updateFunc = std::function<std::shared_ptr<SwitchState>(
+      const std::vector<StateDelta>&)>;
+  updateFunc front = [](const std::vector<StateDelta>& deltas) {
+    return deltas.front().oldState();
+  };
+  updateFunc back = [](const std::vector<StateDelta>& deltas) {
+    return deltas.back().newState();
+  };
 
-  void setStateChangedReturn(
-      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
-          updateFn) {
+  void setStateChangedReturn(const updateFunc& updateFn) {
     if (handle->getHwSwitch()->transactionsSupported()) {
       return setStateChangedTransactionReturn(updateFn);
     }
@@ -65,9 +63,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
         .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
   }
 
-  void setStateChangedTransactionReturn(
-      std::function<std::shared_ptr<SwitchState>(const StateDelta& delta)>
-          updateFn) {
+  void setStateChangedTransactionReturn(const updateFunc& updateFn) {
     EXPECT_HW_CALL(sw, stateChangedImpl(_))
         .WillRepeatedly(::testing::WithArg<0>(::testing::Invoke(updateFn)));
   }
@@ -94,6 +90,18 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
     mirrors->updateNode(mirror, HwSwitchMatcher::defaultHwSwitchMatcher());
     return newState;
   }
+
+  std::shared_ptr<SwitchState> addAcl(
+      const std::shared_ptr<SwitchState>& state,
+      int idx) {
+    auto newState = state->clone();
+    auto aclEntry =
+        make_shared<AclEntry>(idx, folly::to<std::string>("acl", idx));
+    auto acls = newState->getAcls()->modify(&newState);
+    acls->addNode(aclEntry, HwSwitchMatcher::defaultHwSwitchMatcher());
+    newState->publish();
+    return newState;
+  }
   SwSwitch* sw{nullptr};
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
@@ -105,10 +113,8 @@ TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
   // this happens only in case of table overflow. However at the SwSwitch
   // layer we don't care *why* the HwSwitch rejected this update, just
   // that it did
-  setStateChangedReturn([](const StateDelta& delta) {
-    // Reject the update
-    return delta.oldState();
-  });
+  // Reject the update
+  setStateChangedReturn(front);
   auto stateUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
     return bringAllPortsUp(state->clone());
   };
@@ -128,9 +134,9 @@ TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
   CHECK_EQ(
       counters.value(SwitchStats::kCounterPrefix + "hw_update_failures"), 2);
   // Have HwSwitch now accept this update
-  setStateChangedReturn([](const StateDelta& delta) {
-    CHECK(delta.newState() != delta.oldState());
-    return delta.newState();
+  setStateChangedReturn([](const std::vector<StateDelta>& deltas) {
+    CHECK(deltas.back().newState() != deltas.front().oldState());
+    return deltas.back().newState();
   });
   sw->updateStateBlocking("Accept update", stateUpdateFn);
   // No increament on successful updates
@@ -230,10 +236,8 @@ TEST_P(
   // layer we don't care *why* the HwSwitch rejected this update, just
   // that it did
 
-  setStateChangedReturn([](const StateDelta& delta) {
-    /* reject the update */
-    return delta.oldState();
-  });
+  // reject the update
+  setStateChangedReturn(front);
   auto stateUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
     return bringAllPortsUp(state->clone());
   };
@@ -243,16 +247,15 @@ TEST_P(
       FbossHwUpdateError);
 
   // Next update should be a non protected update since we will schedule it such
-  setStateChangedReturn([](const StateDelta& delta) {
-    /* accept the update */
-    return delta.newState();
-  });
+  // accept the update
+  setStateChangedReturn(back);
 
   StateDelta expectedDelta(origState, newState);
-  auto isEqual = [&expectedDelta](const auto& delta) {
-    return delta.newState()->toThrift() ==
+  auto isEqual = [&expectedDelta](const auto& deltas) {
+    return deltas.back().newState()->toThrift() ==
         expectedDelta.newState()->toThrift() &&
-        delta.oldState()->toThrift() == expectedDelta.oldState()->toThrift();
+        deltas.front().oldState()->toThrift() ==
+        expectedDelta.oldState()->toThrift();
   };
   EXPECT_HW_CALL(sw, stateChangedImpl(testing::Truly(isEqual)));
   sw->updateState("Accept update", stateUpdateFn);
@@ -296,6 +299,44 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdatesDuringExit) {
   updateThread.join();
   updateThread2.join();
   EXPECT_EQ(startState, sw->getState());
+}
+
+TEST_P(SwSwitchUpdateProcessingTest, ProcessDeltaVector) {
+  auto startV0 = sw->getState();
+  startV0->publish();
+
+  auto startV1 = this->addAcl(startV0, 1);
+  startV1->publish();
+  auto startV2 = this->addAcl(startV1, 2);
+  startV2->publish();
+  auto startV3 = this->addAcl(startV2, 3);
+  startV3->publish();
+
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(startV0, startV1);
+  deltas.emplace_back(startV1, startV2);
+  deltas.emplace_back(startV2, startV3);
+
+  {
+    // Reject the update
+    setStateChangedReturn(front);
+    auto ret = sw->getHwSwitchHandler()->stateChanged(deltas, GetParam());
+    EXPECT_EQ(*ret, *startV0);
+  }
+  {
+    // Reject 2nd update
+    setStateChangedReturn([](const std::vector<StateDelta>& deltas) {
+      return deltas[1].oldState();
+    });
+    auto ret = sw->getHwSwitchHandler()->stateChanged(deltas, GetParam());
+    EXPECT_EQ(*ret, *startV1);
+  }
+  {
+    // accept the update
+    setStateChangedReturn(back);
+    auto ret = sw->getHwSwitchHandler()->stateChanged(deltas, GetParam());
+    EXPECT_EQ(*ret, *startV3);
+  }
 }
 
 INSTANTIATE_TEST_CASE_P(

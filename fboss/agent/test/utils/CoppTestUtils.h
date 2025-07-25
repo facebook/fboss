@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Interface.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -70,6 +69,8 @@ constexpr uint16_t kBgpPort = 179;
 // There should be no ACL/rxreasons matching this port
 constexpr uint16_t kNonSpecialPort1 = 60000;
 constexpr uint16_t kNonSpecialPort2 = 60001;
+
+std::vector<uint16_t> getCpuQueueIds(const std::vector<const HwAsic*>& hwAsics);
 
 // For benchmark tests, we don't want to set queue rate for low priority queues.
 void addCpuQueueConfig(
@@ -170,11 +171,6 @@ void setTTLZeroCpuConfig(
     const std::vector<const HwAsic*>& asics,
     cfg::SwitchConfig& config);
 
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes);
-
 cfg::MatchAction getToQueueAction(
     const HwAsic* hwAsic,
     const int queueId,
@@ -186,13 +182,32 @@ void addNoActionAclForUnicastLinkLocal(
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
 template <typename SwitchT>
-uint64_t getQueueOutPacketsWithRetry(
+std::map<int, uint64_t> getQueueOutPacketsWithRetry(
     SwitchT* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes = 2);
+
+template <typename SwitchT>
+inline uint64_t getQueueOutPacketsWithRetry(
+    SwitchT* switchPtr,
+    SwitchID switchId,
+    int queueId,
+    int retryTimes,
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes = 2) {
+  return getQueueOutPacketsWithRetry(
+      switchPtr,
+      switchId,
+      queueId,
+      retryTimes,
+      expectedNumPkts,
+      false, /* verifyPktCntInOtherQueues */
+      postMatchRetryTimes)[queueId];
+}
 
 template <typename SendFn, typename SwitchT>
 void sendPktAndVerifyCpuQueue(
@@ -200,25 +215,38 @@ void sendPktAndVerifyCpuQueue(
     SwitchID switchId,
     int queueId,
     SendFn sendPkts,
-    const int expectedPktDelta) {
-  auto beforeOutPkts = getQueueOutPacketsWithRetry(
+    const int expectedPktDelta,
+    bool verifyPktCntInOtherQueues = true) {
+  auto beforeOutPktsMap = getQueueOutPacketsWithRetry(
       switchPtr,
       switchId,
       queueId,
       0 /* retryTimes */,
       0 /* expectedNumPkts */,
+      verifyPktCntInOtherQueues,
       2 /* postMatchRetryTimes */);
+  uint64_t beforeOutPkts = beforeOutPktsMap[queueId];
+
   sendPkts();
+
   constexpr auto kGetQueueOutPktsRetryTimes = 5;
-  auto afterOutPkts = getQueueOutPacketsWithRetry(
+  auto afterOutPktsMap = getQueueOutPacketsWithRetry(
       switchPtr,
       switchId,
       queueId,
       kGetQueueOutPktsRetryTimes,
-      beforeOutPkts + expectedPktDelta);
-  XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
-             << ", after pkts:" << afterOutPkts;
-  EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+      beforeOutPkts + expectedPktDelta,
+      verifyPktCntInOtherQueues);
+
+  for (auto [qId, afterOutPkts] : afterOutPktsMap) {
+    if (qId == queueId) {
+      XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
+                 << ", after pkts:" << afterOutPkts;
+      EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+    } else if (verifyPktCntInOtherQueues) {
+      EXPECT_EQ(0, afterOutPkts - beforeOutPktsMap[qId]);
+    }
+  }
 }
 
 uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId);
@@ -275,9 +303,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId);
 
 uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId);
 
-AgentConfig setTTL0PacketForwardingEnableConfig(
-    SwSwitch* sw,
-    AgentConfig& agentConfig);
+AgentConfig setTTL0PacketForwardingEnableConfig(AgentConfig& agentConfig);
 
 } // namespace utility
 } // namespace facebook::fboss

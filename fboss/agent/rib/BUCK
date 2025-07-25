@@ -27,13 +27,13 @@ cpp_library(
     name = "standalone_rib",
     srcs = [
         "ConfigApplier.cpp",
+        "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",
         "RoutingInformationBase.cpp",
     ],
     exported_deps = [
         ":network_to_route_map",
         "//fboss/agent:address_utils",
-        "//fboss/agent:constants",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
@@ -61,6 +61,7 @@ cpp_unittest(
         "test/FibInteractionTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibRollbackTests.cpp",
+        "test/RibRouteNormalizerTests.cpp",
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
     ],
@@ -86,7 +87,6 @@ cpp_unittest(
         "//folly:network_address",
         "//folly/functional:partial",
         "//folly/json:dynamic",
-        "//folly/logging:logging",
     ],
 )
 
@@ -129,6 +129,5 @@ cpp_library(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
-        "//folly/logging:logging",
     ],
 )

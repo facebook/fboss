@@ -17,11 +17,12 @@ using namespace facebook::fboss;
 namespace {
 
 // arbitrary values
+constexpr int kPgResumeCells = 5;
 constexpr int kPgResumeOffsetCells = 5;
 constexpr int kPgMinLimitCells = 6;
 constexpr int kPgHeadroomLimitCells = 2;
 constexpr int kPoolHeadroomLimitCells = 10;
-constexpr int kPoolSharedCells = 78;
+constexpr int kPoolSharedCells = 10000;
 /*
  * SDK has the expectation that pool_total_size - delta <= shared size,
  * where delta is the difference between old and new pool limits, if
@@ -34,13 +35,14 @@ constexpr std::string_view kBufferPoolName = "fooBuffer";
 // pass in number of queues and use queueId, deltaValue to differ
 // PG params
 std::vector<cfg::PortPgConfig> getPortPgConfig(
-    int mmuCellBytes,
+    const HwAsic* asic,
     const std::vector<int>& queues,
     int deltaValue = 0,
     const bool enableHeadroom = true,
     const bool zeroHeadroom = false) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
 
+  uint32_t mmuCellBytes = asic->getPacketBufferUnitSize();
   for (const auto queueId : queues) {
     cfg::PortPgConfig pgConfig;
     pgConfig.id() = queueId;
@@ -55,8 +57,13 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
     }
     pgConfig.minLimitBytes() =
         (kPgMinLimitCells + queueId + deltaValue) * mmuCellBytes;
-    pgConfig.resumeOffsetBytes() =
-        (kPgResumeOffsetCells + queueId + deltaValue) * mmuCellBytes;
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      pgConfig.resumeBytes() =
+          (kPgResumeCells + queueId + deltaValue) * mmuCellBytes;
+    } else {
+      pgConfig.resumeOffsetBytes() =
+          (kPgResumeOffsetCells + queueId + deltaValue) * mmuCellBytes;
+    }
     pgConfig.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
     pgConfig.bufferPoolName() = kBufferPoolName;
     portPgConfigs.emplace_back(pgConfig);
@@ -101,9 +108,9 @@ class AgentIngressBufferTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::PFC};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC};
   }
 
   void setupGlobalBuffer(
@@ -134,11 +141,8 @@ class AgentIngressBufferTest : public AgentHwTest {
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-    portPgConfigMap["foo"] = getPortPgConfig(
-        asic->getPacketBufferUnitSize(),
-        {0, 1},
-        0 /* delta value */,
-        enableHeadroom);
+    portPgConfigMap["foo"] =
+        getPortPgConfig(asic, {0, 1}, 0 /* delta value */, enableHeadroom);
     cfg.portPgConfigs() = std::move(portPgConfigMap);
   }
 
@@ -209,8 +213,7 @@ TEST_F(AgentIngressBufferTest, validatePGParamChange) {
     auto portId = masterLogicalInterfacePortIds()[0];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-    portPgConfigMap["foo"] =
-        getPortPgConfig(asic->getPacketBufferUnitSize(), {0, 1}, 1);
+    portPgConfigMap["foo"] = getPortPgConfig(asic, {0, 1}, 1);
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };
@@ -238,10 +241,8 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
     auto portId = masterLogicalInterfacePortIds()[0];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-    auto portPgConfigs =
-        getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
-    portPgConfigs.push_back(
-        getPortPgConfig(asic->getPacketBufferUnitSize(), {1}, 1)[0]);
+    auto portPgConfigs = getPortPgConfig(asic, {0}, 0);
+    portPgConfigs.push_back(getPortPgConfig(asic, {1}, 1)[0]);
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
@@ -249,11 +250,9 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
 
     // Remove PG1 headroom field and add a new PG2 with no headroom field
     // both cases, PG1 and PG2 should be created in lossy mode
-    portPgConfigs = getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
-    portPgConfigs.push_back(
-        getPortPgConfig(asic->getPacketBufferUnitSize(), {1}, 1, false)[0]);
-    portPgConfigs.push_back(
-        getPortPgConfig(asic->getPacketBufferUnitSize(), {2}, 0, false)[0]);
+    portPgConfigs = getPortPgConfig(asic, {0}, 0);
+    portPgConfigs.push_back(getPortPgConfig(asic, {1}, 1, false)[0]);
+    portPgConfigs.push_back(getPortPgConfig(asic, {2}, 0, false)[0]);
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
@@ -263,18 +262,17 @@ TEST_F(AgentIngressBufferTest, validatePGHeadroomLimitChange) {
     // This ensure counters are accurately updated per PG. PFC counters are
     // are created only for non-zero headroom PGs
     // Also ensures, PG2 is updated to lossless mode.
-    portPgConfigs = getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
-    portPgConfigs.push_back(
-        getPortPgConfig(asic->getPacketBufferUnitSize(), {2}, 0)[0]);
+    portPgConfigs = getPortPgConfig(asic, {0}, 0);
+    portPgConfigs.push_back(getPortPgConfig(asic, {2}, 0)[0]);
     portPgConfigMap["foo"] = portPgConfigs;
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
     checkSwHwPgCfgMatch(masterLogicalInterfacePortIds()[0], true /*pfcEnable*/);
 
     // Make PG2 headroom value 0. This also make PG2 lossy
-    portPgConfigs = getPortPgConfig(asic->getPacketBufferUnitSize(), {0}, 0);
+    portPgConfigs = getPortPgConfig(asic, {0}, 0);
     portPgConfigs.push_back(getPortPgConfig(
-        asic->getPacketBufferUnitSize(),
+        asic,
         {2},
         0,
         true, /* enableHeadroom */
@@ -355,8 +353,8 @@ TEST_F(AgentIngressBufferTest, validatePGQueueChanges) {
     auto portId = masterLogicalInterfacePortIds()[0];
     auto switchId = getSw()->getScopeResolver()->scope(portId).switchId();
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
-    portPgConfigMap["foo"] = getPortPgConfig(
-        asic->getPacketBufferUnitSize(), {1}, 0, true /* enableHeadroom */);
+    portPgConfigMap["foo"] =
+        getPortPgConfig(asic, {1}, 0, true /* enableHeadroom */);
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };
@@ -372,11 +370,10 @@ TEST_F(AgentIngressBufferTest, validatePGQueueChanges) {
 }
 
 class AgentIngressBufferPoolTest : public AgentIngressBufferTest {
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     auto features = AgentIngressBufferTest::getProductionFeaturesVerified();
-    features.push_back(production_features::ProductionFeature::
-                           SEPARATE_INGRESS_EGRESS_BUFFER_POOL);
+    features.push_back(ProductionFeature::SEPARATE_INGRESS_EGRESS_BUFFER_POOL);
     return features;
   }
 };

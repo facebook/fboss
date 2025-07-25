@@ -84,6 +84,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400CPlatformMapping) {
       cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER,
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+      cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER,
       cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER,
       cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER,
@@ -1087,7 +1088,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
         apache::thrift::get_pointer(
             port.second.mapping().value().pins().value()[0].z())
             ->get_end()
-            .get_chip();
+            .chip()
+            .value();
     const auto& chip = mapping->getChips().at(chipName);
     auto transID = folly::copy(chip.physicalID().value());
     // Skip uplinks
@@ -1142,7 +1144,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100YV3T1DownlinkPortIphyPinConfigs) {
         apache::thrift::get_pointer(
             port.second.mapping().value().pins().value()[0].z())
             ->get_end()
-            .get_chip();
+            .chip()
+            .value();
     const auto& chip = mapping->getChips().at(chipName);
     auto transID = folly::copy(chip.physicalID().value());
     // Skip uplinks
@@ -1202,7 +1205,8 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
         apache::thrift::get_pointer(
             port.second.mapping().value().pins().value()[0].z())
             ->get_end()
-            .get_chip();
+            .chip()
+            .value();
     const auto& chip = mapping->getChips().at(chipName);
     auto transID = folly::copy(chip.physicalID().value());
     // skip downlinks

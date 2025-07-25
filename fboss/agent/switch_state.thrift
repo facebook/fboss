@@ -37,6 +37,8 @@ struct PortPgFields {
   // Not all implementations support specifying an offset at which to send XON.
   // Allowing configuring an absolute value at which to send XON in such cases.
   14: optional i64 resumeBytes;
+  15: optional string sramScalingFactor;
+  16: optional i64 staticLimitBytes;
 }
 
 struct MKASakKey {
@@ -145,6 +147,7 @@ struct PortFields {
   // DSF option to enable FEC error detection on port to prevent any
   // errored cells from making it to the forwarding pipeline.
   58: optional bool fecErrorDetectEnable;
+  59: optional bool desiredSelfHealingECMPLagEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -188,6 +191,7 @@ struct MatchAction {
   9: optional SetTc setTc;
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
   11: optional switch_config.FlowletAction flowletAction;
+  12: optional switch_config.SetEcmpHashAction ecmpHashAction;
 }
 
 struct AclEntryFields {
@@ -446,6 +450,9 @@ struct SwitchSettingsFields {
   // Number of sflow samples to pack in a single packet being sent out
   56: optional byte numberOfSflowSamplesPerPacket;
   57: optional map<i32, i32> tcToRateLimitKbps;
+  // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
+  58: optional i32 pfcWatchdogTimerGranularityMsec;
+  59: optional i32 ecmpCompressionThresholdPct;
 }
 
 struct RoutePrefix {
@@ -460,6 +467,14 @@ struct RouteNextHopEntry {
   3: optional string counterID;
   4: optional switch_config.AclLookupClass classID;
   5: list<common.NextHopThrift> nexthops;
+  // If override switching mode, HW must use this instead
+  // of default ecmp switching mode, when programming this
+  // nhop group
+  6: optional switch_config.SwitchingMode overrideEcmpSwitchingMode;
+  // OriginalUnprunedNextHops is only populated if we actually
+  // endup compressing nexthops due ECMP/DLB resources getting
+  // exhausted.
+  7: optional list<common.NextHopThrift> originalUnprunedNextHops;
 }
 
 struct RouteNextHopsMulti {
@@ -489,8 +504,8 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  2: map<string, RouteFields> fibV4;
-  3: map<string, RouteFields> fibV6;
+  2: map<string, RouteFields> fibV4 (allow_skip_thrift_cow = true);
+  3: map<string, RouteFields> fibV6 (allow_skip_thrift_cow = true);
 }
 
 struct TrafficClassToQosAttributeEntry {

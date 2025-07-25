@@ -105,6 +105,67 @@ class CowStorageTests : public ::testing::Test {
 
 TYPED_TEST_SUITE(CowStorageTests, StorageTestTypes);
 
+TYPED_TEST(CowStorageTests, VerifyOperDeltaForSetOfPrimitives) {
+  using namespace facebook::fboss::fsdb;
+  using namespace apache::thrift::type_class;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  auto storage = this->initStorage(testStruct);
+
+  // publish to ensure we can patch published storage
+  storage.publish();
+  EXPECT_TRUE(storage.isPublished());
+
+  auto initial = storage.get(root.setOfStrings()["v1"]).error();
+  EXPECT_EQ(initial.code(), StorageError::Code::INVALID_PATH);
+
+  auto makeState = [](auto tc, auto val) -> folly::fbstring {
+    OperState state;
+    using TC = decltype(tc);
+    return facebook::fboss::thrift_cow::serialize<TC>(
+        OperProtocol::SIMPLE_JSON, val);
+  };
+
+  auto buildOperDelta = [&makeState](std::string val, bool add) -> OperDelta {
+    OperDeltaUnit unit;
+    std::vector<std::string> path = {"setOfStrings", val};
+    unit.path()->raw() = std::move(path);
+    if (add) {
+      unit.newState() = makeState(string{}, val);
+    } else {
+      unit.oldState() = makeState(string{}, val);
+    }
+    std::vector<OperDeltaUnit> changes = {unit};
+
+    OperDelta delta;
+    delta.changes() = std::move(changes);
+    delta.protocol() = OperProtocol::SIMPLE_JSON;
+    return delta;
+  };
+
+  auto verifyOperDelta = [&buildOperDelta, &storage, &root](
+                             std::string val, bool add) {
+    OperDelta delta = buildOperDelta(val, add);
+
+    auto result = storage.patch(delta);
+    EXPECT_FALSE(result.has_value());
+
+    auto val1 = storage.get(root.setOfStrings()).value();
+    bool contains1 = val1.contains(val);
+    EXPECT_EQ(contains1, add);
+  };
+
+  // verify patching OperDelta into storage corresponding to
+  // adding and removing values from setOfStrings
+  verifyOperDelta("v1", true);
+  verifyOperDelta("v2", true);
+  verifyOperDelta("v1", false);
+  verifyOperDelta("v2", false);
+}
+
 TYPED_TEST(CowStorageTests, GetThrift) {
   using namespace facebook::fboss::fsdb;
 
@@ -301,17 +362,22 @@ TYPED_TEST(CowStorageTests, RemoveThrift) {
 
   EXPECT_EQ(storage.get(root.structMap()[1]).value(), member1);
   EXPECT_EQ(
-      storage.get(root.structMap()[2]).error(), StorageError::INVALID_PATH);
+      storage.get(root.structMap()[2]).error().code(),
+      StorageError::Code::INVALID_PATH);
   EXPECT_EQ(
-      storage.get(root.structMap()[3]).error(), StorageError::INVALID_PATH);
+      storage.get(root.structMap()[3]).error().code(),
+      StorageError::Code::INVALID_PATH);
   EXPECT_EQ(storage.get(root.structList()[0]).value(), member1);
   EXPECT_EQ(storage.get(root.structList()[1]).value(), member1);
   EXPECT_EQ(
-      storage.get(root.structList()[2]).error(), StorageError::INVALID_PATH);
+      storage.get(root.structList()[2]).error().code(),
+      StorageError::Code::INVALID_PATH);
   EXPECT_EQ(
-      storage.get(root.structList()[3]).error(), StorageError::INVALID_PATH);
+      storage.get(root.structList()[3]).error().code(),
+      StorageError::Code::INVALID_PATH);
   EXPECT_EQ(
-      storage.get(root.structList()[5]).error(), StorageError::INVALID_PATH);
+      storage.get(root.structList()[5]).error().code(),
+      StorageError::Code::INVALID_PATH);
 }
 
 TYPED_TEST(CowStorageTests, PatchDelta) {
@@ -374,7 +440,8 @@ TYPED_TEST(CowStorageTests, PatchDelta) {
   EXPECT_EQ(storage.get(root.tx()).value(), false);
   EXPECT_EQ(storage.get(root.rx()).value(), true);
   EXPECT_EQ(
-      storage.get(root.optionalString()).error(), StorageError::INVALID_PATH);
+      storage.get(root.optionalString()).error().code(),
+      StorageError::Code::INVALID_PATH);
   EXPECT_EQ(storage.get(root.member().min()).value(), 100);
   EXPECT_EQ(storage.get(root.structMap()[5].min()).value(), 1001);
   EXPECT_EQ(storage.get(root.enumMap()[TestEnum::FIRST].min()).value(), 2001);
@@ -708,12 +775,12 @@ TYPED_TEST(CowStorageTests, PatchInvalidDeltaPath) {
   delta.changes() = {unit};
 
   // should fail gracefully
-  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+  EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
 
   // partially valid path should still fail
   unit.path()->raw() = {"inlineStruct", "invalid", "path"};
   delta.changes() = {unit};
-  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+  EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
 }
 
 TYPED_TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
@@ -745,7 +812,7 @@ TYPED_TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
     OperDelta delta;
     delta.changes() = {unit};
 
-    EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+    EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
     // None of the patches should creat the intermediate nodes
     EXPECT_EQ(storage.get(root.mapOfStructs())->size(), 0);
     EXPECT_EQ(storage.get(root.listofStructs())->size(), 0);

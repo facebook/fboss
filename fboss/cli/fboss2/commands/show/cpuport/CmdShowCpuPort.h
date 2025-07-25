@@ -25,7 +25,7 @@ namespace facebook::fboss {
 
 using utils::Table;
 
-struct CmdShowCpuPortTraits : public BaseCommandTraits {
+struct CmdShowCpuPortTraits : public ReadCommandTraits {
   using RetType = cli::ShowCpuPortModel;
 };
 
@@ -33,55 +33,11 @@ class CmdShowCpuPort : public CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits> {
  public:
   using RetType = CmdShowCpuPortTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    facebook::fboss::CpuPortStats cpuPortStats;
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_getCpuPortStats(cpuPortStats);
-    return createModel(cpuPortStats);
-  }
+  RetType queryClient(const HostInfo& hostInfo);
 
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    std::vector<std::string> detailedOutput;
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 
-    Table table;
-    table.setHeader(
-        {"CPU Queue ID", "Queue Name", "Ingress Packets", "Discard Packets"});
-
-    for (auto const& cpuQueueEntry : model.cpuQueueEntries().value()) {
-      table.addRow(
-          {folly::to<std::string>(folly::copy(cpuQueueEntry.id().value())),
-           cpuQueueEntry.name().value(),
-           folly::to<std::string>(
-               folly::copy(cpuQueueEntry.ingressPackets().value())),
-           folly::to<std::string>(
-               folly::copy(cpuQueueEntry.discardPackets().value()))});
-    }
-    out << table << std::endl;
-  }
-
-  RetType createModel(facebook::fboss::CpuPortStats& cpuPortStats) {
-    RetType model;
-
-    for (const auto& queueId2Name : cpuPortStats.queueToName_().value()) {
-      cli::CpuPortQueueEntry cpuPortQueueEntry;
-
-      cpuPortQueueEntry.id() = queueId2Name.first;
-      cpuPortQueueEntry.name() = queueId2Name.second;
-      const auto& ingressPktMap = cpuPortStats.queueInPackets_().value();
-      const auto& ingressPktIter = ingressPktMap.find(queueId2Name.first);
-      if (ingressPktIter != cpuPortStats.queueInPackets_().value().end()) {
-        cpuPortQueueEntry.ingressPackets() = ingressPktIter->second;
-      }
-      const auto& discardPktMap = cpuPortStats.queueDiscardPackets_().value();
-      const auto& discardPktIter = discardPktMap.find(queueId2Name.first);
-      if (discardPktIter != cpuPortStats.queueDiscardPackets_().value().end()) {
-        cpuPortQueueEntry.discardPackets() = discardPktIter->second;
-      }
-      model.cpuQueueEntries()->push_back(cpuPortQueueEntry);
-    }
-    return model;
-  }
+  RetType createModel(facebook::fboss::CpuPortStats& cpuPortStats);
 };
 
 } // namespace facebook::fboss

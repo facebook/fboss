@@ -9,7 +9,6 @@
 
 #include <fboss/lib/LogThriftCall.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 DEFINE_string(
     sak_list_warmboot_config,
@@ -51,16 +50,14 @@ QsfpServiceHandler::QsfpServiceHandler(
 
 QsfpServiceHandler::~QsfpServiceHandler() {
   if (fsdbSubscriber_) {
-    fsdbSubscriber_->removeSwitchStatePortMapSubscription();
+    fsdbSubscriber_->stop();
   }
 }
 
 void QsfpServiceHandler::init() {
   manager_->init();
   if (FLAGS_subscribe_to_state_from_fsdb) {
-    fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("qsfp_service");
-    fsdbSubscriber_ =
-        std::make_unique<QsfpFsdbSubscriber>(fsdbPubSubMgr_.get());
+    fsdbSubscriber_ = std::make_unique<QsfpFsdbSubscriber>();
     fsdbSubscriber_->subscribeToSwitchStatePortMap(manager_.get());
   }
 }
@@ -79,6 +76,12 @@ void QsfpServiceHandler::getTransceiverInfo(
     std::unique_ptr<std::vector<int32_t>> ids) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->getTransceiversInfo(info, std::move(ids));
+}
+
+void QsfpServiceHandler::getPortMediaInterface(
+    std::map<std::string, MediaInterfaceCode>& portMediaInterface) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getPortMediaInterface(portMediaInterface);
 }
 
 void QsfpServiceHandler::getPortsRequiringOpticsFwUpgrade(
@@ -127,7 +130,7 @@ void QsfpServiceHandler::resetTransceiver(
     std::unique_ptr<std::vector<std::string>> portNames,
     ResetType resetType,
     ResetAction resetAction) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNames);
   manager_->resetTransceiver(std::move(portNames), resetType, resetAction);
 }
 

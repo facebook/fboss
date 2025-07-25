@@ -17,7 +17,6 @@
 #include <folly/Synchronized.h>
 #include <folly/logging/xlog.h>
 
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <mutex>

@@ -263,53 +263,10 @@ struct Serializable {
       folly::IOBuf&& encoded) = 0;
 
   virtual folly::dynamic toFollyDynamic() const = 0;
-};
 
-struct ThriftObject {};
+  virtual void modify(const std::string& token, bool construct = true) = 0;
 
-template <typename TC, typename TType>
-class SerializableWrapper : public Serializable {
- public:
-  using CowType = ThriftObject;
-  explicit SerializableWrapper(TType& node) : node_(node) {}
-
-  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
-    switch (proto) {
-      case fsdb::OperProtocol::BINARY:
-        return Serializer<fsdb::OperProtocol::BINARY>::template serializeBuf<
-            TC>(node_);
-      case fsdb::OperProtocol::SIMPLE_JSON:
-        return Serializer<
-            fsdb::OperProtocol::SIMPLE_JSON>::template serializeBuf<TC>(node_);
-      case fsdb::OperProtocol::COMPACT:
-        return Serializer<fsdb::OperProtocol::COMPACT>::template serializeBuf<
-            TC>(node_);
-      default:
-        throw std::runtime_error(folly::to<std::string>(
-            "Unknown protocol: ", static_cast<int>(proto)));
-    }
-  }
-
-  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
-      override {
-    node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
-  }
-
-#ifdef ENABLE_DYNAMIC_APIS
-  folly::dynamic toFollyDynamic() const override {
-    folly::dynamic dyn;
-    facebook::thrift::to_dynamic(
-        dyn, node_, facebook::thrift::dynamic_format::JSON_1);
-    return dyn;
-  }
-#else
-  folly::dynamic toFollyDynamic() const override {
-    return {};
-  }
-#endif
-
- private:
-  TType& node_;
+  virtual bool remove(const std::string& token) = 0;
 };
 
 template <typename TC>
@@ -502,20 +459,87 @@ struct WritableImpl<apache::thrift::type_class::set<ValueTypeClass>> {
   }
 };
 
-template <typename TC, typename TType>
-class WritableWrapper {
+struct ThriftObject {};
+
+template <typename TClass, typename TType>
+class SerializableWrapper : public Serializable {
  public:
+  using TC = TClass;
+  using ThriftType = TType;
   using CowType = ThriftObject;
-  explicit WritableWrapper(TType& node) : node_(node) {}
+  explicit SerializableWrapper(TType& node) : node_(node) {}
 
-  bool remove(const std::string& token) {
-    return WritableImpl<TC>::remove(node_, token);
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
+    switch (proto) {
+      case fsdb::OperProtocol::BINARY:
+        return Serializer<fsdb::OperProtocol::BINARY>::template serializeBuf<
+            TC>(node_);
+      case fsdb::OperProtocol::SIMPLE_JSON:
+        return Serializer<
+            fsdb::OperProtocol::SIMPLE_JSON>::template serializeBuf<TC>(node_);
+      case fsdb::OperProtocol::COMPACT:
+        return Serializer<fsdb::OperProtocol::COMPACT>::template serializeBuf<
+            TC>(node_);
+      default:
+        throw std::runtime_error(folly::to<std::string>(
+            "Unknown protocol: ", static_cast<int>(proto)));
+    }
   }
 
-  void modify(const std::string& token, bool construct = true) {
-    WritableImpl<TC>::modify(node_, token, construct);
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      override {
+    if constexpr (std::is_const<TType>::value) {
+      throw std::runtime_error(folly::to<std::string>(
+          "deserialize assigns to const type: ",
+          folly::demangle(typeid(TType)).toStdString()));
+    } else {
+      node_ = deserializeBuf<TC, TType>(proto, std::move(encoded));
+    }
   }
 
+#ifdef ENABLE_DYNAMIC_APIS
+  folly::dynamic toFollyDynamic() const override {
+    folly::dynamic dyn;
+    facebook::thrift::to_dynamic(
+        dyn, node_, facebook::thrift::dynamic_format::JSON_1);
+    return dyn;
+  }
+#else
+  folly::dynamic toFollyDynamic() const override {
+    return {};
+  }
+#endif
+
+  TType& toThrift() {
+    return node_;
+  }
+
+  void fromThrift(const TType& val) {
+    node_ = val;
+  }
+
+  virtual bool remove(const std::string& token) override {
+    if constexpr (std::is_const<TType>::value) {
+      throw std::runtime_error(folly::to<std::string>(
+          "remove(token) called on const type: ",
+          folly::demangle(typeid(TType)).toStdString()));
+    } else {
+      return WritableImpl<TC>::remove(node_, token);
+    }
+  }
+
+  virtual void modify(const std::string& token, bool construct = true)
+      override {
+    if constexpr (std::is_const<TType>::value) {
+      throw std::runtime_error(folly::to<std::string>(
+          "modify(token) called on const type: ",
+          folly::demangle(typeid(TType)).toStdString()));
+    } else {
+      WritableImpl<TC>::modify(node_, token, construct);
+    }
+  }
+
+ private:
   TType& node_;
 };
 

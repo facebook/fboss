@@ -27,6 +27,13 @@
 
 namespace facebook::fboss {
 
+bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
+  return (
+      switchingMode.has_value() &&
+      (switchingMode.value() == cfg::SwitchingMode::PER_PACKET_QUALITY ||
+       switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
+}
+
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -34,13 +41,13 @@ SaiNextHopGroupManager::SaiNextHopGroupManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiNextHopGroupHandle>
-SaiNextHopGroupManager::incRefOrAddNextHopGroup(
-    const RouteNextHopEntry::NextHopSet& swNextHops) {
-  auto ins = handles_.refOrEmplace(swNextHops);
+SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
+  auto ins = handles_.refOrEmplace(key);
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle = ins.first;
   if (!ins.second) {
     return nextHopGroupHandle;
   }
+  const auto& swNextHops = key.first;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
@@ -59,23 +66,46 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(
     }
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
         folly::poly_cast<ResolvedNextHop>(swNextHop));
-    nextHopGroupAdapterHostKey.insert(std::make_pair(nhk, swNextHop.weight()));
+    nextHopGroupAdapterHostKey.nhopMemberSet.insert(
+        std::make_pair(nhk, swNextHop.weight()));
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
       std::nullopt};
-  if (FLAGS_flowletSwitchingEnable &&
-      platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
-    auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
-    if (arsHandlePtr->ars) {
-      auto arsSaiId = arsHandlePtr->ars->adapterKey();
-      if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
-        arsObjectId = SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
-      }
-    }
-  }
 #endif
+
+  if (FLAGS_flowletSwitchingEnable &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
+    auto overrideEcmpSwitchingMode = key.second;
+
+    // if overrideEcmpSwitchingMode is empty, then use primary mode
+    // if overrideEcmpSwitchingMode has value, then a backup mode is requested
+    // by ERM
+    nextHopGroupHandle->desiredArsMode_ = overrideEcmpSwitchingMode.has_value()
+        ? overrideEcmpSwitchingMode
+        : primaryArsMode_;
+
+    if (isEcmpModeDynamic(nextHopGroupHandle->desiredArsMode_)) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
+      if (arsHandlePtr->ars) {
+        auto arsSaiId = arsHandlePtr->ars->adapterKey();
+        if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
+          arsObjectId =
+              SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
+        }
+      }
+#endif
+    } else {
+      // TODO (ravi) update after random spray support becomes available
+    }
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    nextHopGroupAdapterHostKey.mode =
+        managerTable_->arsManager().cfgSwitchingModeToSai(
+            nextHopGroupHandle->desiredArsMode_.value());
+#endif
+  }
 
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
@@ -159,7 +189,7 @@ SaiNextHopGroupManager::getSaiObjectFromWBCache(
 void SaiNextHopGroupManager::updateArsModeAll(
     const std::shared_ptr<FlowletSwitchingConfig>& newFlowletConfig) {
   if (!FLAGS_flowletSwitchingEnable ||
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      !platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     return;
   }
 
@@ -175,6 +205,11 @@ void SaiNextHopGroupManager::updateArsModeAll(
       continue;
     }
 
+    // do not convert backup modes to dynamic
+    if (!isEcmpModeDynamic(handlePtr->desiredArsMode_)) {
+      continue;
+    }
+
     if (newFlowletConfig) {
       if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
         handlePtr->nextHopGroup->setOptionalAttribute(
@@ -187,6 +222,11 @@ void SaiNextHopGroupManager::updateArsModeAll(
     }
   }
 #endif
+}
+
+void SaiNextHopGroupManager::setPrimaryArsSwitchingMode(
+    std::optional<cfg::SwitchingMode> switchingMode) {
+  primaryArsMode_ = switchingMode;
 }
 
 std::string SaiNextHopGroupManager::listManagedObjects() const {
@@ -210,6 +250,29 @@ std::string SaiNextHopGroupManager::listManagedObjects() const {
     finalOutput += "\n";
   }
   return finalOutput;
+}
+
+cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
+    const RouteNextHopEntry::NextHopSet& swNextHops) {
+  auto nextHopGroupHandle =
+      handles_.get(SaiNextHopGroupKey(swNextHops, std::nullopt));
+  if (!nextHopGroupHandle) {
+    // if not in dynamic mode, search for backup modes
+    std::vector<cfg::SwitchingMode> modes = {
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+        cfg::SwitchingMode::PER_PACKET_RANDOM};
+    for (const auto& mode : modes) {
+      nextHopGroupHandle = handles_.get(SaiNextHopGroupKey(swNextHops, mode));
+      if (nextHopGroupHandle) {
+        break;
+      }
+    }
+  }
+
+  if (nextHopGroupHandle && nextHopGroupHandle->desiredArsMode_.has_value()) {
+    return nextHopGroupHandle->desiredArsMode_.value();
+  }
+  return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
 NextHopGroupMember::NextHopGroupMember(
@@ -398,6 +461,15 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
       auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
       store.setObjects(adapterHostKeys, weights);
     }
+  }
+  // Clean up ECMP members in reverse order. Due to the feature of SHEL and ECMP
+  // member placement in the hardware, removing ECMP members from head become
+  // expensive.
+  // In order to maintain a continuous block of ECMP members, SDK will need to
+  // move the last member to the removed spot. Rather, remove the memebers in
+  // FILO order to optimize the remove performance.
+  while (!members_.empty()) {
+    members_.pop_back();
   }
 }
 

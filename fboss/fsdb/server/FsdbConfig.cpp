@@ -24,7 +24,7 @@ std::shared_ptr<FsdbConfig> FsdbConfig::fromFile(folly::StringPiece path) {
   std::string raw;
   if (!folly::readFile(path.data(), raw)) {
     FsdbException e;
-    e.message_ref() = folly::to<std::string>("unable to read ", path);
+    e.message() = folly::to<std::string>("unable to read ", path);
     throw e;
   }
 
@@ -79,7 +79,7 @@ FsdbConfig::getSubscriberConfig(const SubscriberId& id) const {
 
   // fallback: id contains :<ConfiguredSubscriberIdSubstring>
   for (const auto& [key, value] : *subscribers) {
-    if ((key.rfind(":") != std::string::npos) &&
+    if ((key.rfind(':') != std::string::npos) &&
         (id.find(key) != std::string::npos)) {
       return std::
           pair<SubscriberId, std::reference_wrapper<const SubscriberConfig>>(
@@ -87,6 +87,16 @@ FsdbConfig::getSubscriberConfig(const SubscriberId& id) const {
     }
   }
 
+  return std::nullopt;
+}
+
+std::optional<std::reference_wrapper<const PublisherConfig>>
+FsdbConfig::getPublisherConfig(const PublisherId& id) const {
+  const auto& publishers = thrift_.publishers();
+  auto it = publishers->find(id);
+  if (it != publishers->end()) {
+    return std::reference_wrapper<const PublisherConfig>(it->second);
+  }
   return std::nullopt;
 }
 

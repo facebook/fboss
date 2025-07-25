@@ -2,34 +2,25 @@
 
 #include "fboss/agent/single/MonolithicAgentInitializer.h"
 
-#include <folly/MacAddress.h>
 #include <folly/ScopeGuard.h>
 #include <folly/SocketAddress.h>
-#include <folly/String.h>
 #include <folly/executors/FunctionScheduler.h>
 #include <folly/io/async/AsyncSignalHandler.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/AlpmUtils.h"
-#include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
-#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include <gflags/gflags.h>
 #include <chrono>
@@ -37,7 +28,6 @@
 #include <csignal>
 #include <cstdio>
 #include <functional>
-#include <future>
 #include <mutex>
 #include <string>
 #ifndef IS_OSS
@@ -156,6 +146,14 @@ void MonolithicAgentInitializer::handleExitSignal(bool gracefulExit) {
 #endif
 #endif
   initializer_.reset();
+  // Delay exit if agent_exit_delay_s is set
+  if (FLAGS_agent_exit_delay_s > 0) {
+    XLOG(INFO) << "[Exit] Delaying exit by " << FLAGS_agent_exit_delay_s
+               << " seconds";
+    // @lint-ignore CLANGTIDY
+    std::this_thread::sleep_for(std::chrono::seconds(FLAGS_agent_exit_delay_s));
+    XLOG(INFO) << "[Exit] Delay complete, exiting now";
+  }
   if (gracefulExit) {
     exit(0);
   } else {

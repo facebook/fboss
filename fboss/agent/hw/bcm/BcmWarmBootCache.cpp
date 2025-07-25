@@ -28,6 +28,7 @@
 #include "fboss/agent/hw/bcm/BcmAddressFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
+#include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
@@ -973,6 +974,8 @@ void BcmWarmBootCache::removeUnclaimedEcmpEgressObjects() {
         ecmp.ecmp_intf,
         " referring to ",
         toEgressId2WeightStr(idsAndEcmp.first));
+    // Delete from BcmEgressManager in use ID set
+    hw_->writableEgressManager()->eraseEcmpID(ecmp.ecmp_intf);
   }
   egressIds2Ecmp_.clear();
 }

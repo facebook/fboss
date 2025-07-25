@@ -16,7 +16,6 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -247,4 +246,25 @@ sai_object_id_t SaiMirrorManager::getMonitorPort(
   return monitorPort;
 }
 
+template <typename MirrorTraits>
+uint32_t SaiMirrorManager::getMirrorsCount() const {
+  uint32_t count = 0;
+  auto iter = mirrorHandles_.cbegin();
+  while (iter != mirrorHandles_.cend()) {
+    const auto* handle = iter->second.get();
+    if (std::holds_alternative<std::shared_ptr<SaiObject<MirrorTraits>>>(
+            handle->mirror)) {
+      count++;
+    }
+    iter++;
+  }
+  return count;
+}
+
+template uint32_t SaiMirrorManager::getMirrorsCount<SaiLocalMirrorTraits>()
+    const;
+template uint32_t
+SaiMirrorManager::getMirrorsCount<SaiEnhancedRemoteMirrorTraits>() const;
+template uint32_t SaiMirrorManager::getMirrorsCount<SaiSflowMirrorTraits>()
+    const;
 } // namespace facebook::fboss

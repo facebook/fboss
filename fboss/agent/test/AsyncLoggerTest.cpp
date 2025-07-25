@@ -10,9 +10,7 @@
 
 #include "fboss/agent/AsyncLogger.h"
 
-#include <folly/CPortability.h>
 #include <gtest/gtest.h>
-#include <stdio.h>
 
 #define TEST_LOG "/tmp/sai_logger_test"
 
@@ -94,7 +92,7 @@ TEST_F(AsyncLoggerTest, emptyBufferTest) {
   std::unique_lock<std::mutex> lock(latch);
   cv.wait_for(lock, std::chrono::milliseconds(20));
 
-  std::string str = "";
+  std::string str;
   asyncLogger->appendLog(str.c_str(), str.size());
   EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 

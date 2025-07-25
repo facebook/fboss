@@ -21,6 +21,7 @@
 
 DECLARE_uint32(ecmp_width);
 DECLARE_bool(optimized_ucmp);
+DECLARE_bool(wide_ecmp);
 
 namespace facebook::fboss {
 
@@ -44,27 +45,27 @@ class RouteNextHopEntry
       Action action,
       AdminDistance distance,
       std::optional<RouteCounterID> counterID = std::nullopt,
-      std::optional<AclLookupClass> classID = std::nullopt) {
-    auto data = getRouteNextHopEntryThrift(
-        action, distance, NextHopSet(), counterID, classID);
-    this->fromThrift(std::move(data));
-  }
-
+      std::optional<AclLookupClass> classID = std::nullopt,
+      std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
+          std::nullopt,
+      std::optional<NextHopSet> originalUnprunedNextHops = std::nullopt);
   RouteNextHopEntry(
       NextHopSet nhopSet,
       AdminDistance distance,
       std::optional<RouteCounterID> counterID = std::nullopt,
-      std::optional<AclLookupClass> classID = std::nullopt);
+      std::optional<AclLookupClass> classID = std::nullopt,
+      std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
+          std::nullopt,
+      std::optional<NextHopSet> originalUnprunedNextHops = std::nullopt);
 
   RouteNextHopEntry(
       NextHop nhop,
       AdminDistance distance,
       std::optional<RouteCounterID> counterID = std::nullopt,
-      std::optional<AclLookupClass> classID = std::nullopt) {
-    auto data = getRouteNextHopEntryThrift(
-        Action::NEXTHOPS, distance, NextHopSet({nhop}), counterID, classID);
-    this->fromThrift(std::move(data));
-  }
+      std::optional<AclLookupClass> classID = std::nullopt,
+      std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
+          std::nullopt,
+      std::optional<NextHopSet> originalUnprunedNextHops = std::nullopt);
 
   RouteNextHopEntry(RouteNextHopEntry&& other) noexcept {
     this->fromThrift(other.toThrift());
@@ -98,6 +99,17 @@ class RouteNextHopEntry
     return std::nullopt;
   }
 
+  const std::optional<cfg::SwitchingMode> getOverrideEcmpSwitchingMode() const {
+    if (auto ecmpSwitchingMode =
+            safe_cref<switch_state_tags::overrideEcmpSwitchingMode>()) {
+      return ecmpSwitchingMode->cref();
+    }
+    return std::nullopt;
+  }
+  void setOverrideEcmpSwitchingMode(
+      std::optional<cfg::SwitchingMode> switchingMode) {
+    ref<switch_state_tags::overrideEcmpSwitchingMode>() = switchingMode;
+  }
   NextHopSet normalizedNextHops() const;
 
   // Get the sum of the weights of all the nexthops in the entry
@@ -160,7 +172,9 @@ class RouteNextHopEntry
       AdminDistance distance,
       NextHopSet nhopSet = NextHopSet(),
       std::optional<RouteCounterID> counterID = std::nullopt,
-      std::optional<AclLookupClass> classID = std::nullopt);
+      std::optional<AclLookupClass> classID = std::nullopt,
+      std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
+          std::nullopt);
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;

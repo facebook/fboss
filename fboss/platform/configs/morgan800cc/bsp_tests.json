@@ -1,0 +1,22 @@
+{
+    "expectedErrors": {
+        "MORGAN800CC.FCB0_LTC2497_0X4C": {
+            "1": ""
+        },
+        "MORGAN800CC.FCB1_LTC2497_0X4C": {
+            "1": ""
+        },
+        "SCM.SCM_LTC2497_0X14": {
+            "1": ""
+        },
+        "SCM.SCM_TPS53688_0X62": {
+            "1": ""
+        },
+        "SCM.SCM_TPS53688_0X63": {
+            "1": ""
+       },
+        "SCM.SCM_TPS53688_0X66": {
+            "1": ""
+        }
+    }
+}

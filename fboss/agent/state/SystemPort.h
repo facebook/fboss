@@ -164,6 +164,13 @@ class SystemPort
     }
   }
 
+  cfg::PortType getPortType() const {
+    return cref<switch_state_tags::portType>()->cref();
+  }
+  void setPortType(cfg::PortType portType) {
+    set<switch_state_tags::portType>(portType);
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

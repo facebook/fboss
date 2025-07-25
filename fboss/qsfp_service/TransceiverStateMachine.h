@@ -69,6 +69,8 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needToResetToDiscovered)
 
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, newTransceiverInsertedAfterInit)
 
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, forceRemoveTransceiver)
+
 // clang-format off
 BOOST_MSM_EUML_ACTION(resetProgrammingAttributes) {
 template <class Event, class Fsm, class State>
@@ -85,6 +87,7 @@ void operator()(
   fsm.get_attribute(isTransceiverProgrammed) = false;
   fsm.get_attribute(needMarkLastDownTime) = true;
   fsm.get_attribute(needToResetToDiscovered) = false;
+  fsm.get_attribute(forceRemoveTransceiver) = false;
   fsm.get_attribute(transceiverMgrPtr)->resetProgrammedIphyPortToPortInfo(tcvrID);
 }
 };
@@ -386,14 +389,28 @@ bool operator()(
   // a transceiver if there's no enabled/programmed port on it
   auto xcvrMgr = fsm.get_attribute(transceiverMgrPtr);
   bool isEnabled = !xcvrMgr->getProgrammedIphyPortToPortInfo(tcvrID).empty();
-  if (!isEnabled) {
+
+  bool result = false;
+  if (fsm.get_attribute(forceRemoveTransceiver)) {
+    XLOG(INFO) << "[Transceiver:" << tcvrID << "] force removed.";
+    result = true;
+    // Reset forceRemoveTransceiver. It will be set again prior to the next time its required
+    fsm.get_attribute(forceRemoveTransceiver) = false;
+  } else if (!isEnabled) {
     XLOG(DBG2) << "[Transceiver:" << tcvrID
               << "] No enabled ports. Safe to remove";
-    return true;
+    result = true;
+  } else {
+    result = xcvrMgr->areAllPortsDown(tcvrID).first;
+    XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
+                          << "] Not all ports down. Not Safe to remove";
   }
-  bool result = xcvrMgr->areAllPortsDown(tcvrID).first;
-  XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
-                        << "] Not all ports down. Not Safe to remove";
+
+  // If the state machine can proceed (result=true) we reset transceiver associated 
+  // port states in FSDB.
+  if (result) {
+    xcvrMgr->resetPortState(tcvrID);
+  }
   return result;
 }
 };
@@ -520,7 +537,8 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      attributes_ << isIphyProgrammed << isXphyProgrammed
                  << isTransceiverProgrammed << transceiverMgrPtr
                  << transceiverID << needMarkLastDownTime << needResetDataPath
-                 << needToResetToDiscovered << newTransceiverInsertedAfterInit),
+                 << needToResetToDiscovered << newTransceiverInsertedAfterInit
+                 << forceRemoveTransceiver),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss

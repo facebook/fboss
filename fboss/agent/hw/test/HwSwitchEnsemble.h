@@ -166,6 +166,12 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       SwitchID /* switchId */) const override {
     return getHwSwitch()->getFabricConnectivity();
   }
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID /* switchId */) const override {
+    return getHwSwitch()->getAllFirmwareInfo();
+  }
+
   FabricReachabilityStats getFabricReachabilityStats() const override {
     return getHwSwitch()->getFabricReachabilityStats();
   }
@@ -183,8 +189,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       PortID port,
       bool up,
       cfg::PortType portType,
-      std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
-          std::nullopt) override;
+      std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt,
+      std::optional<AggregatePortID> aggPortId = std::nullopt) override;
   void linkActiveStateChangedOrFwIsolated(
       const std::map<PortID, bool>& /*port2IsActive */,
       bool /* fwIsolated */,
@@ -259,6 +265,13 @@ class HwSwitchEnsemble : public TestEnsembleIf {
    */
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
+
+  /*
+   * Get latest router interface stats for given interfaces
+   */
+  virtual std::map<InterfaceID, HwRouterInterfaceStats> getLatestInterfaceStats(
+      const std::vector<InterfaceID>& interfaces) override;
+
   /*
    * Get latest sys port stats for given sys ports
    */
@@ -344,6 +357,12 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const HwPortStats& prevPortStats,
       const HwPortStats& curPortStats,
       const int secondsBetweenStatsCollection);
+
+  std::optional<VlanID> getVlanIDForTx() const override;
+
+  bool needL2EntryForNeighbor() const override {
+    return getHwSwitch()->needL2EntryForNeighbor();
+  }
 
  protected:
   /*

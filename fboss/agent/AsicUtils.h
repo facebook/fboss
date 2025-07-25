@@ -9,13 +9,16 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
-#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
-#include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
-#include "fboss/agent/hw/switch_asics/RamonAsic.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
+
 const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType);
 uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType);
 int getMaxNumberOfFabricPorts(const cfg::AsicType asicType);
+
+void checkSameAsicType(const std::vector<const HwAsic*>& asics);
+const HwAsic* checkSameAndGetAsic(const std::vector<const HwAsic*>& asics);
+cfg::AsicType checkSameAndGetAsicType(const cfg::SwitchConfig& config);
+
 } // namespace facebook::fboss

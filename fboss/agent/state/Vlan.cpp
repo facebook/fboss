@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/state/Vlan.h"
 
-#include <folly/String.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -19,7 +18,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/VlanMap.h"
 
-#include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/types.h"
 
 using folly::IPAddressV4;

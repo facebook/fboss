@@ -7,6 +7,7 @@ from typing import Dict, List
 from fboss.util.fixmyfboss import status
 
 from fboss.util.fixmyfboss.check import _checks, Check, load_checks
+from fboss.util.fixmyfboss.cli_wrapper import CliWrapper
 from fboss.util.fixmyfboss.remediation import Remediation
 from fboss.util.fixmyfboss.utils import (
     bold,
@@ -19,6 +20,19 @@ from fboss.util.fixmyfboss.utils import (
 )
 
 
+def list_checks() -> None:
+    load_checks()
+    print("List of checks:")
+    for i, check in enumerate(_checks.items()):
+        print(f"{i + 1}. {check[0]}:\n{check[1].func.__doc__}")
+    sys.exit(0)
+
+
+@CliWrapper(
+    name="fixmyfboss",
+    description="This tool will run a set of checks and remediations to help you fix your FBOSS device.",
+    options={"list-checks": ("Show list of performed checks.", list_checks)},
+)
 def main() -> int:
     load_checks()
     overwrite_print(f"Loaded {len(_checks)} checks")

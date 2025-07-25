@@ -34,6 +34,11 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
     return "TAHAN800BC";
   }
 
+  // MERU800BIAB and MERU800BIA have equivalent configs
+  if (platformNameUpper == "MERU800BIAB") {
+    return "MERU800BIA";
+  }
+
   return platformNameUpper;
 }
 
@@ -47,7 +52,7 @@ PlatformNameLib::PlatformNameLib(
     : platformUtils_(platformUtils), platformFsUtils_(platformFsUtils) {}
 
 std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
-  XLOG(INFO) << "Getting platform name from bios using dmedicode ...";
+  XLOG(INFO) << "Getting platform name from bios using dmidecode ...";
   auto [exitStatus, standardOut] =
       platformUtils_->execCommand(dmidecodeCommand);
   if (exitStatus != 0) {

@@ -182,7 +182,7 @@ class SffModule : public QsfpModule {
   /*
    * Gather the vendor info for thrift queries
    */
-  virtual Vendor getVendorInfo() override;
+  virtual Vendor getVendorInfo() const override;
   /*
    * Gather the cable info for thrift queries
    */

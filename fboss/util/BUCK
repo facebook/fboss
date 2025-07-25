@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("dc_push")
 
@@ -43,12 +44,12 @@ cpp_binary(
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-default",
+        "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly/gen:base",
         "//folly/init:init",
     ],
     external_deps = [
         "gflags",
-        "glog",
     ],
 )
 
@@ -71,6 +72,7 @@ cpp_library(
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-types",
         "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
@@ -91,8 +93,10 @@ cpp_library(
         "//fboss/lib/usb:i2-api",
         "//fboss/lib/usb:wedge_i2c",
         "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/module:i2c_log_buffer",
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly:conv",
@@ -107,7 +111,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "gflags",
-        "glog",
     ],
 )
 
@@ -221,7 +224,7 @@ cpp_binary(
     ],
     deps = [
         "//fboss/agent/if:ctrl-cpp2-services",
-        "//thrift/lib/cpp2/async:header_client_channel",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
 
@@ -271,5 +274,49 @@ python_binary(
     deps = [
         "//fboss/agent:switch_state-py3-types",
         "//thrift/lib/py3:types",
+    ],
+)
+
+python_library(
+    name = "process_known_bad_test_lib",
+    srcs = [
+        "facebook/process_known_bad_test.py",
+    ],
+    deps = [
+        "//libfb/py/asyncio:mysql",
+        "//libfb/py/asyncio:tasks",
+        "//libfb/py/pyre:pyre",
+        "//scm/scmquery/client:scmqueryclient",
+    ],
+)
+
+python_binary(
+    name = "process_known_bad_test",
+    main_function = "fboss.util.facebook.process_known_bad_test.main",
+    par_style = "xar",
+    deps = [
+        ":process_known_bad_test_lib",
+    ],
+)
+
+python_library(
+    name = "post_weekly_known_bad_test_lib",
+    srcs = [
+        "facebook/post_weekly_known_bad_test.py",
+    ],
+    deps = [
+        ":process_known_bad_test_lib",
+        "//groups/submit_post:PostToInternalGroup-py-deprecated",
+        "//libfb/py:employee",
+        "//libfb/py/thrift_clients:post_to_internal_group_thrift_client",
+    ],
+)
+
+python_binary(
+    name = "post_weekly_known_bad_test",
+    main_function = "fboss.util.facebook.post_weekly_known_bad_test.main",
+    par_style = "xar",
+    deps = [
+        ":post_weekly_known_bad_test_lib",
     ],
 )

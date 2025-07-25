@@ -28,28 +28,37 @@ std::string getPlatformName(const std::optional<std::string>& platformName) {
   return platformStr;
 }
 
-std::optional<std::string> getConfigFromFile() {
-  if (!FLAGS_config_file.empty()) {
-    XLOG(INFO) << "Using config file: " << FLAGS_config_file;
+} // namespace
+
+namespace facebook::fboss::platform {
+
+std::optional<std::string> ConfigLib::getConfigFromFile() const {
+  // Use the member variable if provided, otherwise fall back to gflags
+  std::string configFile =
+      !configFilePath_.empty() ? configFilePath_ : FLAGS_config_file;
+  if (!configFile.empty()) {
+    XLOG(INFO) << "Using config file: " << configFile;
     std::string configJson;
-    if (!folly::readFile(FLAGS_config_file.c_str(), configJson)) {
-      throw std::runtime_error(
-          "Can not read config file: " + FLAGS_config_file);
+    if (!folly::readFile(configFile.c_str(), configJson)) {
+      throw std::runtime_error("Can not read config file: " + configFile);
     }
     return configJson;
   }
   return std::nullopt;
 }
-} // namespace
-
-namespace facebook::fboss::platform {
 
 std::string ConfigLib::getSensorServiceConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::sensor_service.at(getPlatformName(platformName));
+  try {
+    return configs::sensor_service.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "sensor_service configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
 
 std::string ConfigLib::getFanServiceConfig(
@@ -57,21 +66,41 @@ std::string ConfigLib::getFanServiceConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::fan_service.at(getPlatformName(platformName));
+  try {
+    return configs::fan_service.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "fan_service configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
+
 std::string ConfigLib::getWeutilConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::weutil.at(getPlatformName(platformName));
+  try {
+    return configs::weutil.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "weutil configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
+
 std::string ConfigLib::getFwUtilConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::fw_util.at(getPlatformName(platformName));
+  try {
+    return configs::fw_util.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "fw_util configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
 
 std::string ConfigLib::getPlatformManagerConfig(
@@ -79,7 +108,13 @@ std::string ConfigLib::getPlatformManagerConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::platform_manager.at(getPlatformName(platformName));
+  try {
+    return configs::platform_manager.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "platform_manager configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
 }
 
 std::string ConfigLib::getLedManagerConfig(
@@ -87,7 +122,29 @@ std::string ConfigLib::getLedManagerConfig(
   if (auto configJson = getConfigFromFile()) {
     return *configJson;
   }
-  return configs::led_manager.at(getPlatformName(platformName));
+  try {
+    return configs::led_manager.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "led_manager configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
+}
+
+std::string ConfigLib::getBspTestConfig(
+    const std::optional<std::string>& platformName) const {
+  if (auto configJson = getConfigFromFile()) {
+    return *configJson;
+  }
+  return configs::bsp_tests.at(getPlatformName(platformName));
+}
+
+std::string ConfigLib::getShowtechConfig(
+    const std::optional<std::string>& platformName) const {
+  if (auto configJson = getConfigFromFile()) {
+    return *configJson;
+  }
+  return configs::showtech.at(getPlatformName(platformName));
 }
 
 } // namespace facebook::fboss::platform

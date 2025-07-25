@@ -351,24 +351,29 @@ struct SaiAclEntryTraits {
     using FieldSrcIpV6 = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6,
-        AclEntryFieldIpV6>;
+        AclEntryFieldIpV6,
+        StdNullOptDefault<AclEntryFieldIpV6>>;
     using FieldDstIpV6 = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6,
-        AclEntryFieldIpV6>;
+        AclEntryFieldIpV6,
+        StdNullOptDefault<AclEntryFieldIpV6>>;
     using FieldSrcIpV4 = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_SRC_IP,
-        AclEntryFieldIpV4>;
+        AclEntryFieldIpV4,
+        StdNullOptDefault<AclEntryFieldIpV4>>;
     using FieldDstIpV4 = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_IP,
-        AclEntryFieldIpV4>;
+        AclEntryFieldIpV4,
+        StdNullOptDefault<AclEntryFieldIpV4>>;
 #if defined(TAJO_SDK) || defined(CHENAB_SAI_SDK)
     using FieldSrcPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT,
-        AclEntryFieldSaiObjectIdT>;
+        AclEntryFieldSaiObjectIdT,
+        StdNullOptDefault<AclEntryFieldSaiObjectIdT>>;
 #else
     using FieldSrcPort = SaiAttribute<
         EnumType,
@@ -378,19 +383,23 @@ struct SaiAclEntryTraits {
     using FieldOutPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_OUT_PORT,
-        AclEntryFieldSaiObjectIdT>;
+        AclEntryFieldSaiObjectIdT,
+        StdNullOptDefault<AclEntryFieldSaiObjectIdT>>;
     using FieldL4SrcPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_L4_SRC_PORT,
-        AclEntryFieldU16>;
+        AclEntryFieldU16,
+        StdNullOptDefault<AclEntryFieldU16>>;
     using FieldL4DstPort = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_L4_DST_PORT,
-        AclEntryFieldU16>;
+        AclEntryFieldU16,
+        StdNullOptDefault<AclEntryFieldU16>>;
     using FieldIpProtocol = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_IP_PROTOCOL,
-        AclEntryFieldU8>;
+        AclEntryFieldU8,
+        StdNullOptDefault<AclEntryFieldU8>>;
     using FieldTcpFlags = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_TCP_FLAGS,
@@ -527,7 +536,8 @@ struct SaiAclEntryTraits {
     using ActionSetArsObject = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_SET_ARS_OBJECT,
-        AclEntryActionSaiObjectIdT>;
+        AclEntryActionSaiObjectIdT,
+        SaiAclEntryActionSaiObjectDefault>;
     using ActionDisableArsForwarding = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING,

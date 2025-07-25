@@ -48,6 +48,9 @@ TEST(FlowletSwitching, addUpdate) {
       cfg::switch_config_constants::DEFAULT_FLOWLET_TABLE_SIZE());
   EXPECT_EQ(
       flowletCfg1->getSwitchingMode(), cfg::SwitchingMode::FLOWLET_QUALITY);
+  EXPECT_EQ(
+      flowletCfg1->getBackupSwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
 
   flowletCfg.inactivityIntervalUsecs() = 60;
   flowletCfg.flowletTableSize() = 1024;
@@ -61,6 +64,7 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
   flowletCfg.maxLinks() = 9;
   flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -84,8 +88,12 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(flowletCfg2->getMaxLinks(), 9);
   EXPECT_EQ(
       flowletCfg2->getSwitchingMode(), cfg::SwitchingMode::PER_PACKET_QUALITY);
+  EXPECT_EQ(
+      flowletCfg2->getBackupSwitchingMode(),
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
 
   flowletCfg.switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
@@ -97,6 +105,9 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_FALSE(flowletCfg2->isPublished());
   EXPECT_EQ(
       flowletCfg2->getSwitchingMode(), cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_EQ(
+      flowletCfg2->getBackupSwitchingMode(),
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
 }
 
 TEST(FlowletSwitching, publish) {
@@ -134,6 +145,7 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
   flowletCfg.maxLinks() = 7;
   flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
@@ -175,6 +187,9 @@ TEST(FlowletSwitching, applyConfig) {
       cfg::switch_config_constants::DEFAULT_FLOWLET_TABLE_SIZE());
   EXPECT_EQ(
       flowletCfg1->getSwitchingMode(), cfg::SwitchingMode::FLOWLET_QUALITY);
+  EXPECT_EQ(
+      flowletCfg1->getBackupSwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
 
   // change config
   flowletCfg.inactivityIntervalUsecs() = 60;
@@ -188,6 +203,7 @@ TEST(FlowletSwitching, applyConfig) {
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
   flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -207,8 +223,12 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(flowletCfg2->getDynamicPhysicalQueueExponent(), 3);
   EXPECT_EQ(
       flowletCfg2->getSwitchingMode(), cfg::SwitchingMode::PER_PACKET_QUALITY);
+  EXPECT_EQ(
+      flowletCfg2->getBackupSwitchingMode(),
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
 
   flowletCfg.switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV4 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -218,6 +238,9 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_FALSE(flowletCfg2->isPublished());
   EXPECT_EQ(
       flowletCfg2->getSwitchingMode(), cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_EQ(
+      flowletCfg2->getBackupSwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
 
   // Ensure that the global and switchSettings field are set for
   // backward/forward compatibility
@@ -231,4 +254,61 @@ TEST(FlowletSwitching, applyConfig) {
   auto stateV5 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   EXPECT_EQ(stateV5->getFlowletSwitchingConfig(), nullptr);
+}
+
+TEST(FlowletSwitching, modify) {
+  auto platform = createMockPlatform();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+
+  // make any random change, so that new state can be created
+  // ensure that flowlet switching is not configured
+  config.flowletSwitchingConfig() = flowletCfg;
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(stateV1, nullptr);
+  stateV1->publish();
+  EXPECT_NE(stateV1->getFlowletSwitchingConfig(), nullptr);
+  EXPECT_TRUE(stateV1->isPublished());
+  EXPECT_TRUE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_TRUE(stateV1->getFlowletSwitchingConfig()->isPublished());
+  auto origFlowletConfig = stateV1->getFlowletSwitchingConfig();
+  auto newFlowletConfig = origFlowletConfig->modify(&stateV1);
+  EXPECT_NE(newFlowletConfig, origFlowletConfig.get());
+  EXPECT_FALSE(stateV1->isPublished());
+  EXPECT_FALSE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_FALSE(stateV1->getFlowletSwitchingConfig()->isPublished());
+}
+
+TEST(FlowletSwitching, mismatchedStateModify) {
+  auto platform = createMockPlatform();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+
+  // make any random change, so that new state can be created
+  // ensure that flowlet switching is not configured
+  config.flowletSwitchingConfig() = flowletCfg;
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(stateV1, nullptr);
+  stateV1->publish();
+  EXPECT_NE(stateV1->getFlowletSwitchingConfig(), nullptr);
+  EXPECT_TRUE(stateV1->isPublished());
+  EXPECT_TRUE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_TRUE(stateV1->getFlowletSwitchingConfig()->isPublished());
+  auto origFlowletConfig = stateV1->getFlowletSwitchingConfig();
+  auto newFlowletConfig = origFlowletConfig->modify(&stateV1);
+  EXPECT_NE(newFlowletConfig, origFlowletConfig.get());
+  EXPECT_FALSE(stateV1->isPublished());
+  EXPECT_FALSE(stateV1->getSwitchSettings()->isPublished());
+  EXPECT_FALSE(stateV1->getFlowletSwitchingConfig()->isPublished());
+  stateV1->publish();
+  newFlowletConfig->publish();
+  auto stateV2 = stateV1->clone();
+  stateV2->publish();
+  std::ignore = stateV2->getFlowletSwitchingConfig()->modify(&stateV2);
+  // newFlowletConfig is part of stateV1 not stateV2
+  EXPECT_THROW(newFlowletConfig->modify(&stateV2), FbossError);
 }

@@ -13,7 +13,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
@@ -21,7 +20,6 @@
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
-#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
@@ -135,6 +133,7 @@ void SaiPortManager::changePortImpl(
     auto portSansMacsec = newPort->clone();
     portSansMacsec->setTxSak(std::nullopt);
     portSansMacsec->setRxSaksMap({});
+    removePort(oldPort);
     addPort(portSansMacsec);
   }
   programMacsec(oldPort, newPort);
@@ -294,8 +293,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // FecErrorDetectEnable
   };
 }
-
-void SaiPortManager::enableAfeAdaptiveMode(PortID /*portID*/) {}
 
 /*
  * programSerdes

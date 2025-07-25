@@ -19,10 +19,10 @@ As a successor of BcmCinter, SAI Replayer is designed to be vendor-agnostic. It 
 
 The original design of SAI Replayer was to use linker wrap to intercept SAI API calls and then perform logging in the wrap function. However, we soon realized that the `sai_api_query()` returns a struct of function pointers instead of well-defined functions in the [interface](https://github.com/opencomputeproject/SAI/blob/master/inc/saiacl.h#L3216). Linker is not able to wrap these function pointers returned at runtime.
 
-![](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=980779499035662)
+![SAI API query diagram](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=980779499035662)
 Therefore, we use a combination of link wrapper and wrapped function pointers to enable SAI API logging. First, `sai_api_query()` is intercepted by the linker wrap, and before giving FBOSS the real function pointers from SAI implementation, we replace those function pointers with locally defined wrapped functions, such as
 
-```
+```cpp
 sai_status_t wrap_create_acl_table(
     sai_object_id_t* acl_table_id,
     sai_object_id_t switch_id,
@@ -60,7 +60,7 @@ Sai Replayer is enabled on all Sai switches in prod. For running tests with Sai 
 
 ### Tradeoffs
 
-Enabling Sai Replayer would consume disk space and disk I/O because of the extra logging at runtime. However, we’ve conducted extensive experiments to reduce runtime impact and limit disk space consumtion. See wiki for `Async Logger <https://www.internalfb.com/intern/wiki/Fboss/wiki/async_logger/>_` for more details.
+Enabling Sai Replayer would consume disk space and disk I/O because of the extra logging at runtime. However, we’ve conducted extensive experiments to reduce runtime impact and limit disk space consumtion. See wiki for [Async Logger](https://www.internalfb.com/intern/wiki/Fboss/wiki/async_logger/) for more details.
 
 ## Usecase
 
@@ -68,27 +68,25 @@ Sai Replayer captures all SAI APIs at runtime and auto-generates C++ code that e
 
 ## Configeration
 
-To enable logging for SAI Replayer, simply pass the flag `--enable_replayer` to the wedge agent binary or test binary. Once enabled, the generated C++ code can be found under ‘/var/facebook/logs/fboss/sdk/sai_replayer.log’, which can be compiled using buck build.
+To enable logging for SAI Replayer, simply pass the flag `--enable_replayer` to the wedge agent binary or test binary. Once enabled, the generated C++ code can be found under `/var/facebook/logs/fboss/sdk/sai_replayer.log`, which can be compiled using buck build.
 
-Logging for ‘send_hostif_packet’ API is disabled by default for performance concern, due to the overhead for logging each sent packet to the dataplane. However, if it is needed for certain scenarios, such as the verification test for port blackholing, use the flag `--enable_packet_log` to log the send packet API (be mindful that by enabling this flag, logging would introduce significant I/O overhead at runtime and a much larger SAI Replayer code).
+Logging for `send_hostif_packet` API is disabled by default for performance concern, due to the overhead for logging each sent packet to the dataplane. However, if it is needed for certain scenarios, such as the verification test for port blackholing, use the flag `--enable_packet_log` to log the send packet API (be mindful that by enabling this flag, logging would introduce significant I/O overhead at runtime and a much larger SAI Replayer code).
 
 ## Build and Test
 
 ### Compilation with buck
 
-SAI Replayer generates C++ code by default. It is used to build buck target since main and helper functions are already defined in [Main.cpp](https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/fboss/agent/hw/sai/tracer/run/Main.cpp). Take the generated code and replace the content in [SaiLog.cpp](https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/hw/sai/tracer/run/SaiLog.cpp). Then build the buck target, depending on the Sai implementation and sdk version - ‘//fboss/agent/hw/sai/tracer/run:sai_replayer-{impl}-{sdk_version}’.
+SAI Replayer generates C++ code by default. It is used to build buck target since main and helper functions are already defined in [Main.cpp](https://www.internalfb.com/intern/diffusion/FBS/browsefile/master/fbcode/fboss/agent/hw/sai/tracer/run/Main.cpp). Take the generated code and replace the content in [SaiLog.cpp](https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/hw/sai/tracer/run/SaiLog.cpp). Then build the buck target, depending on the Sai implementation and sdk version - `//fboss/agent/hw/sai/tracer/run:sai_replayer-{impl}-{sdk_version}`.
 
-For example, use the following command for broadcom sai implementation.
-
-```
+For example, use the following command for the broadcom sai implementation:
+```bash
 export sdkVersion=brcm-5.1.0.1_odp
-buck build @mode/dbg //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
+buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
 ```
 The built binary can be copied to the test switch to replay SAI API calls. See appendix for building Sai Replayer code in C with gcc.
 
-For example,
-
-```
+For example:
+```bash
 export testSwitch=rsw1at.12.prn3
 scp buck-out/gen/fboss/agent/hw/sai/tracer/run/sai_replayer-${sdkVersion} root@$testSwitch
 ```
@@ -96,16 +94,95 @@ scp buck-out/gen/fboss/agent/hw/sai/tracer/run/sai_replayer-${sdkVersion} root@$
 
 Simply run the executable on switch to replay the generated code. For example,
 
-```
+```bash
 export sdkVersion=brcm-5.1.0.1_odp
 root@$testSwitch ./sai_replayer-${sdkVersion}
 ```
 At each API call, the generated code will check whether the return status is the same as the one at runtime.
 
-```
+```cpp
 if (status != 0) printf("Unexpected rv at 3 with status %d \n", status);
 ```
 If the return status is not the same, it will print out this message with the sequence number of the API call so that users can look at the generated code and debug from there.
+
+
+## Splitting Large Replayer logs
+
+To enable compilation with compilers which do not support large files, exceedingly large SAI replayer logs (several millions of LOC) may need be split into multiple smaller logs.
+
+The script [`postProcess.py`](https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/tracer/run/postProcess.py) splits a single file into multiple smaller files and a header, to be compiled together into a single output binary.
+
+By default, the script will consume a SAI Replayer log named `SaiLog.cpp` in the same directory as the executing shell, and will output the split files in the `output/` directory.
+
+Split and compile the logs with the following:
+```bash
+export DEVICE_LOGS_SOURCE=
+
+cd ~/fbsource/fbcode/fboss/agent/hw/sai/tracer/run/
+
+# Gather the logs into a single file
+sush2 --skip-reason root@$DEVICE_LOGS_SOURCE
+  cd /var/facebook/logs/fboss/sdk/
+  # NOTE: Pause here to copy the relevant logs from ./sai_replayer.log and/or ./archive/ into a single directory for aggregation
+  tar -cvf sai_replayer.log.tar
+  mv sai_replayer.log.tar /root/
+
+suscp2 --skip-oversight root@$DEVICE_LOGS_SOURCE:/root/sai_replayer.log.tar .
+tar xf sai_replayer.log.tar
+cat sai_replayer.log-* > SaiLog.cpp  # postProcess.py input must be named SaiLog.cpp
+
+# Split the logs into compileable files
+./postProcess.py --clean --max_lines 400000 --generate_run_bzl
+
+# Compile to an executable
+export SAI_REPLAYER=$HOME/fbsource/`cd ~/fbsource/fbcode && buck2 build --show-output @//mode/dbg //fboss/agent/hw/sai/tracer/run/output:sai_replayer-brcm-12.2.0.0_dnx_odp | awk '{print $2}'`
+echo "SAI Replayer executable location: $SAI_REPLAYER"
+
+# Copy to the device on which the SAI replayer will be run
+export DEVICE=
+suscp2 --skip-oversight $SAI_REPLAYER root@$DEVICE:/root/
+```
+
+Alternatively, compile using GCC with the `sai_replayer_gcc_build.py` script:
+```bash
+# Consumes the split SAI replayer logs from ~/fbsource/fbcode/fboss/agent/hw/sai/tracer/run/output/
+
+export PLATFORM_DIR=$HOME/fbsource/fbcode/third-party-buck/platform010-compat/build
+export BRCM_SAI=12.2.0.0_dnx_odp
+
+cd ~/fbsource/fbcode/fboss/util
+
+python3 sai_replayer_gcc_build.py \
+  --sai_replayer_log ~/fbsource/fbcode/fboss/agent/hw/sai/tracer/run/output/ \
+  --sai_headers $PLATFORM_DIR/brcm-sai/$BRCM_SAI/include/inc,$PLATFORM_DIR/brcm-sai/$BRCM_SAI/include/experimental \
+  --sai_lib $PLATFORM_DIR/brcm-sai/$BRCM_SAI/lib/libsai.a \
+  --brcm_lib $PLATFORM_DIR/broadcom-xgs-robo/6.5.26/lib/libxgs_robo.a \
+  --brcm_epdm_lib $PLATFORM_DIR/broadcom-plp-epdm/4.1.2/lib/libepdm.a \
+  --brcm_phymode_lib $PLATFORM_DIR/broadcom-plp-millenio/5.5/lib/libphymodepil.a \
+  --yaml_lib $PLATFORM_DIR/yaml/lib/libyaml.a
+```
+
+Prepare the test device for execution:
+```bash
+# Find a production device
+netwhoami find role=rdsw,dc=nao5 | head -n10
+export PROD_DEVICE=rdsw007.u007.c083.nao5
+
+# Copy the hardware config
+suscp2 root@$PROD_DEVICE:/dev/shm/fboss/hw_config_idx0 root@$DEVICE:/dev/shm/fboss/hw_config_idx0
+
+# J3/R3 only: Copy the database
+suscp2 root@$PROD_DEVICE:/etc/packages/neteng-fboss-wedge_agent/current/db root@$DEVICE:/tmp/
+```
+
+Run the SAI replayer executable:
+```bash
+sush2 --skip-reason root@$DEVICE
+  ./sai_replayer-brcm-12.2.0.0_dnx_odp 2>&1 | tee /tmp/sai_replayer_output
+```
+
+If running into an unexpected error (e.g. segfault), use lldb to backtrace the line number.
+
 
 ### Adding support for new APIs & Attributes
 
@@ -117,7 +194,7 @@ Adding new attributes to existing APIs should be fairly straightforward. One of 
 
 For example, if the new attribute is of type `sai_int32_t`, add the following code for the new attribute
 
-```
+```bash
 case OLD_ATTRIBUTE:
     ...
     break;
@@ -127,7 +204,7 @@ case NEW_ATTRIBUTE:
 ```
 Or the new attribute is a list of sai object ids,
 
-```
+```bash
 case NEW_ATTRIBUTE:
     oidListAttr(attr_list, i, listCount++, attrLines);
     break;
@@ -168,13 +245,13 @@ In order to verify the generated code reproduces the ASIC state as expected, we 
 
 For example,
 
-```
+```bash
 export sdkVersion=brcm-5.1.0.1_odp
 export testSwitch=rsw1at.12.prn3
 
 # Build and copy SAI test to test switch
 cd /data/users/$(whoami)/fbsource/fbcode
-buck build @mode/opt //fboss/agent/hw/sai/hw_test:sai_test-${sdkVersion}
+buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/hw_test:sai_test-${sdkVersion}
 rsync -avz --progress buck-out/gen/fboss/agent/hw/sai/hw_test/sai_test-${sdkVersion} root@$testSwitch:/root
 
 # Run test to generate replay log
@@ -182,7 +259,7 @@ ssh root@$testSwitch ./sai_test-${sdkVersion} --config /root/wedge100_alpm.agent
 
 # Copy the log to devserver and build
 rsync -avz --progress root@$testSwitch:/tmp/sai_log.c fboss/agent/hw/sai/tracer/run/SaiLog.cpp
-buck build @mode/opt //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
+buck2 build --show-output @//mode/opt //fboss/agent/hw/sai/tracer/run:sai_replayer-${sdkVersion}
 
 # Copy the built log file and run
 rsync -avz --progress buck-out/gen/fboss/agent/hw/sai/tracer/run/sai_replayer-${sdkVersion} root@$testSwitch:/root
@@ -191,7 +268,9 @@ ssh root@$testSwitch ./sai_replayer-${sdkVersion}
 # Clean up generated SaiLog.cpp
 hg revert fboss/agent/hw/sai/tracer/run/SaiLog.cpp
 ```
-![](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=217259949715833)
+
+![Diagram of switch state transitions](https://lookaside.internalfb.com/intern/pixelcloudnew/asset/?id=217259949715833)
+
 #### NetCastle job
 
 The verification tests are automated by the NetCastle [sai_replayer_test](https://fburl.com/tests/ra08snjb). Specifically, it does the following steps
@@ -209,7 +288,7 @@ Several representative tests will be enabled on-diff to check whether new change
 
 ## Sample Output
 
-```
+```cpp
 sai_attributes[0].id = 0;
 sai_attributes[1].id = 1;
 sai_attributes[2].id = 2;
@@ -244,7 +323,7 @@ Sai Replayer by default generates C++ code that is compiled using buck. However,
 
 Use the following command to build the binary (and substitute correct library path):
 
-```
+```bash
 export sai_headers=sai/1.6.3/platform007/ca4da3d/include/
 export sai_lib=brcm-sai/4.2.2.7_odp/platform007/382c498/lib/libsai.a
 export brcm_lib=broadcom-xgs-robo/6.5.19/platform007/1b1141c/lib/libxgs_robo.a
@@ -258,7 +337,7 @@ gcc sai_log.c -I $sai_headers -lm -lpthread -lrt -lstdc++ -ldl $sai_lib $brcm_li
 
 After compiling the executable, copy it to the test switch and replay the logged SAI APIs. One thing to notice is that the executable generated by gcc needs a specific linker library and library path (because switches are running Centos 7 instead of 8). Use the following command to run the gcc executable:
 
-```
+```bash
 export lib_path=/usr/local/fbcode/platform007/lib
 $lib_path/ld-linux-x86-64.so.2 --library-path $lib_path ./a.out
 ```

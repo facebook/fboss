@@ -17,12 +17,7 @@ namespace facebook::fboss {
 
 class ChenabAsic : public HwAsic {
  public:
-  ChenabAsic(
-      std::optional<int64_t> switchId,
-      cfg::SwitchInfo switchInfo,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : HwAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::NPU}) {}
-
+  using HwAsic::HwAsic;
   AsicVendor getAsicVendor() const override;
   std::string getVendor() const override;
   bool isSupported(Feature feature) const override;
@@ -65,6 +60,23 @@ class ChenabAsic : public HwAsic {
   cfg::Range64 getReservedEncapIndexRange() const override;
   int getMidPriCpuQueueId() const override;
   int getHiPriCpuQueueId() const override;
+  const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
+      const override;
+  std::optional<uint32_t> getMaxEcmpGroups() const override;
+  std::optional<uint32_t> getMaxEcmpMembers() const override;
+  std::optional<uint32_t> getMaxDlbEcmpGroups() const override;
+  uint32_t getThresholdGranularity() const override;
+
+  virtual std::optional<uint32_t> getMaxAclTables() const override {
+    // TODO(Chenab): Picked a reasonable number for now, revise this based on
+    // vendor guidance
+    return 8;
+  }
+  virtual std::optional<uint32_t> getMaxAclEntries() const override {
+    // TODO(Chenab): Picked a reasonable number for now, revise this based on
+    // vendor guidance
+    return 64;
+  }
 
  private:
   bool isSupportedFabric(Feature feature) const;

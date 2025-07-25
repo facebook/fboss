@@ -123,8 +123,9 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
       // for cold boot and HwAgent shutdown for cold boot. this is because two
       // agents may indepdently shutdown for cold boot and regardless of the
       // order of shutdown this constraint must be satisfied.
-      hwAgent_->getPlatform()->getHwSwitch()->stateChanged(
-          StateDelta(programmedState, alpmState));
+      std::vector<StateDelta> deltas;
+      deltas.emplace_back(programmedState, alpmState);
+      hwAgent_->getPlatform()->getHwSwitch()->stateChanged(deltas);
     }
     // invoke destructors
     XLOG(DBG2) << "[Exit] destroying hardware agent";
@@ -143,6 +144,16 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
       << "[Exit] Total graceful Exit time "
       << duration_cast<duration<float>>(switchGracefulExit - begin).count();
   restart_time::mark(RestartEvent::SHUTDOWN);
+
+  // Delay exit if agent_exit_delay_s is set
+  if (FLAGS_agent_exit_delay_s > 0) {
+    XLOG(INFO) << "[Exit] Delaying exit by " << FLAGS_agent_exit_delay_s
+               << " seconds";
+    // @lint-ignore CLANGTIDY
+    std::this_thread::sleep_for(std::chrono::seconds(FLAGS_agent_exit_delay_s));
+    XLOG(INFO) << "[Exit] Delay complete, exiting now";
+  }
+
   exit(0);
 }
 
@@ -200,7 +211,7 @@ int hwAgentMain(
         updateStats,
         hwAgent->getPlatform()->getHwSwitch(),
         thriftSyncer.get()));
-    auto timeInterval = std::chrono::seconds(1);
+    auto timeInterval = std::chrono::seconds(FLAGS_update_stats_interval_s);
     fs->addFunction(callback, timeInterval, "updateStats");
     fs->start();
     XLOG(DBG2) << "Started background thread: UpdateStatsThread";
@@ -208,7 +219,11 @@ int hwAgentMain(
 
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
       handlers{};
-  handlers.push_back(hwAgent->getPlatform()->createHandler());
+  if (auto handler = hwAgent->getPlatform()->createHandler()) {
+    handlers.push_back(handler);
+  } else {
+    XLOG(FATAL) << "handler does not exist for platform";
+  }
   if (FLAGS_thrift_test_utils_thrift_handler || FLAGS_hw_agent_for_testing) {
     // Add HwTestThriftHandler to the thrift server
     auto testUtilsHandler = utility::createHwTestThriftHandler(
@@ -233,7 +248,29 @@ int hwAgentMain(
         XLOG(DBG2) << "[Exit] Stopping Thrift Syncer";
         thriftSyncer->stop();
         XLOG(DBG2) << "[Exit] Stop listening on thrift server";
+
+        // stopListening behavior:
+        //  - Thrift server stops accepting new thrift requests
+        //  - expects the queued requests to complete execution within
+        //    JOIN_TIMEOUT or else, Thrift server crashes with FATAL error.
+        //
+        // However, the queued requests continue to get processed, and can thus
+        // cause us to go over the JOIN_TIMEOUT.
+        // Avoid it by flushing the queue.
+        server->setQueueTimeout(std::chrono::seconds(1));
+
+        // Furthermore, if a request is already being processed, thrift expects
+        // that to complete within JOIN_TIMEOUT as well or else Thrift server
+        // will crash with FATAL error. Thrift library does not provide any API
+        // to disable this mechanism.
+        // Thus, set JOIN TIMEOUT to a very large value so it never kicks in.
+        // This value is chosen to be > wrapper script timeout.
+        // TODO: refactor BGP => Agent thrift timeout, wrapper script timeout
+        // and JOIN TIMEOUT to a single source of truth in configerator.
+        server->setQueueTimeout(std::chrono::seconds(120));
+
         server->stopListening();
+
         XLOG(DBG2) << "[Exit] Stopping Thrift Server";
         auto stopController = server->getStopController();
         if (auto lockedPtr = stopController.lock()) {

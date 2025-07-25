@@ -39,6 +39,7 @@ extern "C" {
 namespace facebook::fboss {
 
 inline constexpr auto kAdapterKey2AdapterHostKey = "adapterKey2AdapterHostKey";
+inline constexpr auto kNhopGroupWithModeName = "nhop-group-with-mode";
 
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>
@@ -56,12 +57,6 @@ struct AdapterHostKeyWarmbootRecoverable<SaiUdfGroupTraits> : std::false_type {
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
 
-#endif
-
-#if defined(CHENAB_SAI_SDK)
-template <>
-struct AdapterHostKeyWarmbootRecoverable<SaiAclCounterTraits>
-    : std::false_type {};
 #endif
 
 /*
@@ -544,16 +539,7 @@ class SaiSwitchObj : public SaiObjectWithCounters<SaiSwitchTraits> {
  */
 class SaiStore {
  public:
-  SaiStore();
   explicit SaiStore(sai_object_id_t switchId);
-
-  /*
-   * Set the switch id on all the SaiObjectStores
-   * Useful for the singleton mode of operation, which is constructed
-   * with the default constructor, then after the switch_id is ready, that
-   * is set on the SaiStore
-   */
-  void setSwitchId(sai_object_id_t switchId);
 
   /*
    * Reload the SaiStore from the current SAI state via SAI api calls.
@@ -590,6 +576,14 @@ class SaiStore {
   void printWarmbootHandles() const;
 
  private:
+  /*
+   * Set the switch id on all the SaiObjectStores
+   * Useful for the singleton mode of operation, which is constructed
+   * with the default constructor, then after the switch_id is ready, that
+   * is set on the SaiStore
+   */
+  void setSwitchId(sai_object_id_t switchId);
+
   sai_object_id_t saiSwitchId_{};
   std::tuple<
       SaiObjectStore<SaiAclTableGroupTraits>,
@@ -604,7 +598,8 @@ class SaiStore {
       SaiObjectStore<SaiBridgeTraits>,
       SaiObjectStore<SaiBridgePortTraits>,
       SaiObjectStore<SaiBufferPoolTraits>,
-      SaiObjectStore<SaiBufferProfileTraits>,
+      SaiObjectStore<SaiStaticBufferProfileTraits>,
+      SaiObjectStore<SaiDynamicBufferProfileTraits>,
       SaiObjectStore<SaiIngressPriorityGroupTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       SaiObjectStore<SaiCounterTraits>,

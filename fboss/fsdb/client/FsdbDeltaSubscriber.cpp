@@ -101,6 +101,13 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
         this->getSubscriptionState() != SubscriptionState::CONNECTED) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
     }
+    if constexpr (std::is_same_v<SubUnit, OperDelta>) {
+      std::optional<OperMetadata> metadata;
+      if (delta->metadata().has_value()) {
+        metadata = *delta->metadata();
+      }
+      this->onChunkReceived((!delta->changes()->size()), metadata);
+    }
     if (!delta->changes()->size()) {
       continue;
     }

@@ -250,7 +250,6 @@ fbpkg.builder(
 fbpkg.builder(
     name = "neteng.fboss.fake_wedge_agent",
     buck_opts = fbpkg.buck_opts(
-        config = {"fbcode.dwp": "true"},
         mode = "opt",
     ),
     expire_days = 5,

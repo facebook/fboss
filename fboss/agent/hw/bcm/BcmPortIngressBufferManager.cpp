@@ -450,6 +450,7 @@ const PortPgConfig& getDefaultPriorityGroupSettings() {
       kDefaultMinLimitBytes, // minLimitBytes
       kDefaultHeadroomLimitBytes, // headroomLimitBytes
       kdefaultResumeOffsetBytes, // resumeOffsetBytes
+      std::nullopt, // staticLimitBytes
       "" // bufferPoolName
       )};
   return portPgConfig;

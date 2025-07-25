@@ -9,13 +9,14 @@ void PhySnapshotManager::updatePhyInfoLocked(
     PortID portID,
     const phy::PhyInfo& phyInfo) {
   phy::LinkSnapshot snapshot;
-  snapshot.phyInfo_ref() = phyInfo;
+  snapshot.phyInfo() = phyInfo;
   CHECK(phyInfo.state().has_value());
 
   CHECK(!phyInfo.state()->get_name().empty());
   auto result = lockedSnapshotMap->try_emplace(
       portID,
       std::set<std::string>({phyInfo.state()->name().value()}),
+      snapshotLogSource_,
       intervalSeconds_);
   auto iter = result.first;
   auto& value = iter->second;

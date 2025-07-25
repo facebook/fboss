@@ -28,16 +28,16 @@ namespace facebook::fboss {
 class SaiRouteRollbackTest : public SaiRollbackTest {
  private:
   RoutePrefixV4 kV4Prefix1() const {
-    return RoutePrefixV4{folly::IPAddressV4("100.0.0.0"), 24};
+    return RoutePrefixV4{folly::IPAddressV4("100.1.1.0"), 24};
   }
   RoutePrefixV6 kV6Prefix1() const {
-    return RoutePrefixV6{folly::IPAddressV6("100::"), 64};
+    return RoutePrefixV6{folly::IPAddressV6("100:1:1::"), 64};
   }
   RoutePrefixV4 kV4Prefix2() const {
-    return RoutePrefixV4{folly::IPAddressV4("200.0.0.0"), 24};
+    return RoutePrefixV4{folly::IPAddressV4("200.1.1.0"), 24};
   }
   RoutePrefixV6 kV6Prefix2() const {
-    return RoutePrefixV6{folly::IPAddressV6("200::"), 64};
+    return RoutePrefixV6{folly::IPAddressV6("200:1:1::"), 64};
   }
   template <typename T>
   folly::CIDRNetwork routePrefixToNetwork(const RoutePrefix<T>& route) const {
@@ -97,9 +97,13 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
   void SetUp() override {
     SaiRollbackTest::SetUp();
     v4EcmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts4>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
     v6EcmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), RouterID(0));
+        getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
+        RouterID(0));
   }
   void rollbackStandaloneRib(const std::vector<folly::CIDRNetwork>& prefixes) {
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();

@@ -60,7 +60,7 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CWDM4_100G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
-        *media.media()->extendedSpecificationComplianceCode_ref(),
+        *media.media()->extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CWDM4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CWDM4_100G);
   }
@@ -130,7 +130,7 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
   };
   tests.verifyLaneInterrupts(laneInterrupts, xcvr->numMediaLanes());
 
-  tests.verifyGlobalInterrupts("temp", 1, 1, 0, 0);
+  tests.verifyGlobalInterrupts("temp", 0, 0, 0, 0);
   tests.verifyGlobalInterrupts("vcc", 0, 0, 1, 1);
 
   tests.verifyThresholds("temp", 75, -5, 70, 0);
@@ -191,7 +191,7 @@ TEST_F(SffTest, dacTransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR4_100G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
     EXPECT_EQ(
-        *media.media()->extendedSpecificationComplianceCode_ref(),
+        *media.media()->extendedSpecificationComplianceCode(),
         ExtendedSpecComplianceCode::CR4_100G);
     EXPECT_EQ(media.code(), MediaInterfaceCode::CR4_100G);
   }
@@ -320,6 +320,72 @@ TEST_F(SffTest, badTransceiverSimpleRead) {
   auto xcvr = overrideSffModule<BadSffCwdm4Transceiver>(
       TransceiverID(1), false /* willRefresh */);
   EXPECT_THROW(xcvr->refresh(), QsfpModuleError);
+}
+
+// Test that the CWDM4_100G temperature thresholds work correctly
+TEST_F(SffTest, cwdm4TemperatureThresholds) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideSffModule<SffCwdm4TempTransceiver>(xcvrID);
+  auto tempTransceiver =
+      static_cast<SffCwdm4TempTransceiver*>(qsfpImpls_.back().get());
+
+  // Test case 1: Temperature below warning threshold (50°C)
+  tempTransceiver->setTemperature(50.0);
+  transceiverManager_->refreshStateMachines();
+
+  auto info = xcvr->getTransceiverInfo();
+  TransceiverTestsHelper tests(info);
+  tests.verifyTemp(50.0);
+  // At 50°C, temperature is below both warning (55°C) and alarm (60°C)
+  // thresholds, so no temperature flags should be set
+  tests.verifyGlobalInterrupts("temp", false, false, false, false);
+
+  // Test case 2: Temperature between warning and alarm thresholds (57°C)
+  tempTransceiver->setTemperature(57.0);
+  transceiverManager_->refreshStateMachines();
+
+  info = xcvr->getTransceiverInfo();
+  TransceiverTestsHelper tests2(info);
+  tests2.verifyTemp(57.0);
+  // At 57°C, temperature is above warning threshold (55°C) but below alarm
+  // threshold (60°C), so only high temperature warning flag (3rd parameter)
+  // should be set
+  tests2.verifyGlobalInterrupts("temp", false, false, true, false);
+
+  // Test case 3: Temperature above alarm threshold (62°C)
+  tempTransceiver->setTemperature(62.0);
+  transceiverManager_->refreshStateMachines();
+
+  info = xcvr->getTransceiverInfo();
+  TransceiverTestsHelper tests3(info);
+  tests3.verifyTemp(62.0);
+  // At 62°C, temperature is above both warning (55°C) and alarm (60°C)
+  // thresholds, so both high temperature alarm (1st parameter) and warning (3rd
+  // parameter) flags should be set
+  tests3.verifyGlobalInterrupts("temp", true, false, true, false);
+
+  // Test case 4: Temperature back below alarm but still above warning (58°C)
+  tempTransceiver->setTemperature(58.0);
+  transceiverManager_->refreshStateMachines();
+
+  info = xcvr->getTransceiverInfo();
+  TransceiverTestsHelper tests4(info);
+  tests4.verifyTemp(58.0);
+  // At 58°C, temperature is back below alarm threshold (60°C) but still above
+  // warning threshold (55°C), so only high temperature warning flag (3rd
+  // parameter) should be set
+  tests4.verifyGlobalInterrupts("temp", false, false, true, false);
+
+  // Test case 5: Temperature back below warning threshold (52°C)
+  tempTransceiver->setTemperature(52.0);
+  transceiverManager_->refreshStateMachines();
+
+  info = xcvr->getTransceiverInfo();
+  TransceiverTestsHelper tests5(info);
+  tests5.verifyTemp(52.0);
+  // At 52°C, temperature is back below both warning (55°C) and alarm (60°C)
+  // thresholds, so no temperature flags should be set
+  tests5.verifyGlobalInterrupts("temp", false, false, false, false);
 }
 
 TEST_F(SffTest, moduleEepromChecksumTest) {

@@ -81,7 +81,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     std::for_each(ecmpPorts.begin(), ecmpPorts.end(), [&ports](auto ecmpPort) {
       ports.insert(PortDescriptor{ecmpPort});
     });
-    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(getProgrammedState());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), ports));
     ecmpHelper.programRoutes(getRouteUpdater(), ports);
   }
@@ -123,7 +124,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 
   void runFirstHash(const std::vector<cfg::LoadBalancer>& firstHashes) {
     auto ecmpPorts = getEcmpPorts();
-    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
     {
@@ -161,7 +162,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       bool expectPolarization) {
     XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ecmpPorts = getEcmpPorts();
-    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
 
@@ -463,7 +464,8 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
   template <typename AddrT>
   void programRoutesForAggregatePorts() {
-    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
     applyNewState(
         ecmpHelper.resolveNextHops(getProgrammedState(), getAggregatePorts()));
     ecmpHelper.programRoutes(getRouteUpdater(), getAggregatePorts());
@@ -503,7 +505,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
   void runFirstHashTrunkTest(const std::vector<cfg::LoadBalancer>& hashes) {
     auto ports = getEgressPorts(kNumAggregatePorts / 2);
-    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto preTestStats =
         getHwSwitchEnsemble()->getLatestPortStats(getEgressPorts());
@@ -543,7 +545,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
       bool expectPolarization) {
     XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ports = getEgressPorts();
-    auto firstVlan = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ports);
 

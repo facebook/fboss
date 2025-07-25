@@ -192,7 +192,7 @@ SaiHostifManager::makeHostifUserDefinedTrapAttributes(
     std::optional<uint16_t> trapType) {
   SaiHostifUserDefinedTrapTraits::Attributes::TrapGroup trapGroup{trapGroupId};
   return SaiHostifUserDefinedTrapTraits::CreateAttributes{
-      trapGroupId, priority, trapType};
+      trapGroup, priority, trapType};
 }
 
 std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(
@@ -364,6 +364,16 @@ void SaiHostifManager::processRxReasonToQueueDelta(
      */
     auto priority = newRxReasonToQueue->size() - index;
     CHECK_GT(priority, 0);
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Chenab has following hardware limitations -
+      //  - CPU queues in Chenab are 0...3.
+      //  - trap priorities are in range of 0...3.
+      //  - A trap group is per queue and all traps in same trap group have same
+      //  priority.
+      // Simplifying with queueId as priority.
+      priority = newRxReasonEntry->cref<switch_config_tags::queueId>()->cref();
+    }
     if (oldRxReasonEntryIter != oldRxReasonToQueue->cend()) {
       /*
        * If old reason exists and does not match the index, priority of the trap
@@ -685,20 +695,26 @@ void SaiHostifManager::loadCpuSystemPortVoqs() {
 void SaiHostifManager::loadCpuPort() {
   cpuPortHandle_ = std::make_unique<SaiCpuPortHandle>();
   cpuPortHandle_->cpuPortId = managerTable_->switchManager().getCpuPort();
-  XLOG(DBG5) << "Got cpu sai port ID " << cpuPortHandle_->cpuPortId;
+  XLOG(DBG2) << "Got cpu sai port ID " << cpuPortHandle_->cpuPortId;
   const auto& portApi = SaiApiTable::getInstance()->portApi();
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
     auto attr = SaiPortTraits::Attributes::SystemPort{};
     cpuPortHandle_->cpuSystemPortId =
         portApi.getAttribute(cpuPortHandle_->cpuPortId, attr);
-    XLOG(DBG5) << "Got cpu sai system port ID "
+    XLOG(DBG2) << "Got cpu sai system port ID "
                << cpuPortHandle_->cpuSystemPortId.value();
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
     auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
-    systemPortApi.setAttribute(
+    auto oldTcRateLimitExclude = systemPortApi.getAttribute(
         cpuPortHandle_->cpuSystemPortId.value(),
-        SaiSystemPortTraits::Attributes::TcRateLimitExclude{true});
-    XLOG(DBG5) << "Excluded cpu system port from global tc rate limit";
+        SaiSystemPortTraits::Attributes::TcRateLimitExclude{});
+    // always exclude cpu system port from global tc based rate limit
+    if (!oldTcRateLimitExclude && isDualStage3Q2QMode()) {
+      systemPortApi.setAttribute(
+          cpuPortHandle_->cpuSystemPortId.value(),
+          SaiSystemPortTraits::Attributes::TcRateLimitExclude{true});
+      XLOG(DBG2) << "Excluded cpu system port from global tc rate limit";
+    }
 #endif
   }
   loadCpuPortQueues();

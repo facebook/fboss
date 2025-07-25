@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/switch/SaiFirmwareManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiInSegEntryManager.h"
@@ -121,6 +122,8 @@ void SaiManagerTable::createSaiTableManagers(
 #endif
   vendorSwitchManager_ =
       std::make_unique<SaiVendorSwitchManager>(saiStore, this, platform);
+  firmwareManager_ =
+      std::make_unique<SaiFirmwareManager>(saiStore, this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -171,16 +174,14 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // to reset the queue associations.
   portManager_->resetQueues();
   portManager_->clearQosPolicy();
+  // For chenab, port config needs to be cleared before ARS profile is removed
+  portManager_->clearArsConfig();
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();
   hashManager_.reset();
   // Qos map manager is going away, reset global qos maps
   switchManager_->resetQosMaps();
   samplePacketManager_.reset();
-
-  switchManager_->resetArsProfile();
-  arsProfileManager_.reset();
-  arsManager_.reset();
 
   // ACL Table Group is going away, reset ingressACL pointing to it
   if (!skipSwitchManager) {
@@ -193,6 +194,10 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // before attempting to reset (remove) ACL Table.
   aclTableGroupManager_.reset();
   aclTableManager_.reset();
+
+  switchManager_->resetArsProfile();
+  arsProfileManager_.reset();
+  arsManager_.reset();
 
   // aclTable might depends on user defined hostif trap. For example,
   // to trap packet to a specific CPU queue, some platforms require creating an
@@ -230,6 +235,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
 #endif
 
   vendorSwitchManager_.reset();
+  firmwareManager_.reset();
 
   if (!skipSwitchManager) {
     switchManager_.reset();
@@ -488,6 +494,14 @@ SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() {
 
 const SaiVendorSwitchManager& SaiManagerTable::vendorSwitchManager() const {
   return *vendorSwitchManager_;
+}
+
+SaiFirmwareManager& SaiManagerTable::firmwareManager() {
+  return *firmwareManager_;
+}
+
+const SaiFirmwareManager& SaiManagerTable::firmwareManager() const {
+  return *firmwareManager_;
 }
 
 } // namespace facebook::fboss

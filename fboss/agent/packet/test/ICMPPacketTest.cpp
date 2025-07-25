@@ -15,7 +15,6 @@
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
-#include <algorithm>
 #include <memory>
 #include <string>
 #include "fboss/agent/hw/mock/MockRxPacket.h"

@@ -2,6 +2,7 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
@@ -10,12 +11,9 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
-
-#include "common/process/Process.h"
 
 using namespace facebook::fboss;
 
@@ -36,7 +34,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       PTPMessageType ptpType) {
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
-    auto vlan = utility::firstVlanIDWithPorts(getSw()->getState());
+    auto vlan = getAgentEnsemble()->getVlanIDForTx();
     // TODO: Remove the dependency on VLAN below
     if (!vlan) {
       throw FbossError("VLAN id unavailable for test");
@@ -64,7 +62,15 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
   bool sendAndVerifyPtpPkts(
       PTPMessageType ptpType,
       const PortDescriptor& portDescriptor) {
-    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper-1");
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "snooper-1",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        facebook::fboss::utility::packetSnooperReceivePacketType::
+            PACKET_TYPE_PTP);
+    snooper.ignoreUnclaimedRxPkts();
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
     auto matcher =
@@ -125,10 +131,17 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       auto srcMac = ethHdr.getSrcMac();
       auto dstMac = ethHdr.getDstMac();
 
+      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       if (hopLimit == kStartTtl) {
-        // this is the original pkt, and has no timestamp on it
-        EXPECT_EQ(correctionField, 0);
-
+        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+          // On chenab, the first packet is also timestamped,
+          // CPU tx pipeline (with pipeline bypass) has correction field update
+          EXPECT_GT(correctionField, 0);
+          EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit + 1));
+        } else {
+          // this is the original pkt, and has no timestamp on it
+          EXPECT_EQ(correctionField, 0);
+        }
         // Original packet should have the same src and dst mac as we sent out
         EXPECT_EQ(srcMac, kSrcMac);
         EXPECT_EQ(dstMac, localMac);
@@ -136,7 +149,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
         EXPECT_GT(correctionField, 0);
         // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
         // Also account for loopback multiple times
-        EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit));
+        EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit + 1));
 
         // Both src and mac address should be local mac
         EXPECT_EQ(srcMac, localMac);
@@ -180,7 +193,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 
   void trapPackets(const folly::CIDRNetwork& prefix) {
     cfg::SwitchConfig cfg = getSw()->getConfig();
-    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     utility::addTrapPacketAcl(asic, &cfg, prefix);
     getSw()->applyConfig("trapPackets", cfg);
   }
@@ -221,6 +234,8 @@ TEST_F(AgentEnsemblePtpTests, verifyPtpTcDelayRequest) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
   programDefaultRoute(ecmpPorts, getSw()->getLocalMac(scope(ecmpPorts)));
+
+  setPtpTcEnable(true);
 
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
 }

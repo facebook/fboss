@@ -13,8 +13,8 @@ namespace facebook::fboss {
 BcmMultiPathNextHop::BcmMultiPathNextHop(
     const BcmSwitchIf* hw,
     BcmMultiPathNextHopKey key)
-    : hw_(hw), vrf_(key.first), key_(key) {
-  auto& fwd = key.second;
+    : hw_(hw), vrf_(std::get<0>(key)), key_(key) {
+  auto& fwd = std::get<1>(key);
   CHECK_GT(fwd.size(), 0);
   BcmEcmpEgress::EgressId2Weight egressId2Weight;
   std::vector<std::shared_ptr<BcmNextHop>> nexthops;
@@ -39,7 +39,10 @@ BcmMultiPathNextHop::BcmMultiPathNextHop(
   if (egressId2Weight.size() > 1) {
     // BcmEcmpEgress object only for more than 1 paths.
     ecmpEgress_ = std::make_unique<BcmEcmpEgress>(
-        hw, std::move(egressId2Weight), RouteNextHopEntry::isUcmp(fwd));
+        hw,
+        std::move(egressId2Weight),
+        RouteNextHopEntry::isUcmp(fwd),
+        std::get<2>(key));
   }
   fwd_ = std::move(fwd);
   nexthops_ = std::move(nexthops);
@@ -83,6 +86,9 @@ void BcmMultiPathNextHopTable::updateEcmpsForFlowletSwitching() {
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto& weakPtr = nextHopsAndEcmpHostInfo.second;
     auto ecmpHost = weakPtr.lock();
+    if (!ecmpHost) {
+      continue;
+    }
     auto ecmpEgress = ecmpHost->getEgress();
     if (!ecmpEgress) {
       continue;
@@ -97,11 +103,14 @@ bool BcmMultiPathNextHopTable::updateEcmpsForFlowletTableLocked() {
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto& weakPtr = nextHopsAndEcmpHostInfo.second;
     auto ecmpHost = weakPtr.lock();
+    if (!ecmpHost) {
+      continue;
+    }
     auto ecmpEgress = ecmpHost->getEgress();
     if (!ecmpEgress) {
       continue;
     }
-    if (!egressIds.count(ecmpEgress->getID())) {
+    if (!egressIds.contains(ecmpEgress->getID())) {
       // update is complete when all the ECMP flowlet objects made are dynamic
       // if not so already done
       updateCompleted = ecmpEgress->updateEcmpDynamicMode();
@@ -121,6 +130,9 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto weakPtr = nextHopsAndEcmpHostInfo.second;
     auto ecmpHost = weakPtr.lock();
+    if (!ecmpHost) {
+      continue;
+    }
     auto ecmpEgress = ecmpHost->getEgress();
     if (!ecmpEgress) {
       continue;
@@ -225,6 +237,7 @@ std::vector<EcmpDetails> BcmMultiPathNextHopStatsManager::getAllEcmpDetails()
 HwFlowletStats BcmMultiPathNextHopStatsManager::getHwFlowletStats() const {
   HwFlowletStats flowletStats;
   uint64_t l3EcmpDlbFailPackets = 0;
+  uint64_t l3EcmpDlbReassignPackets = 0;
   // TODO Remove the flowletStatsEnable flag once stat code
   // is solid. If we need to disable flowlet stats,
   // we can use this flag without hotfix.
@@ -241,10 +254,13 @@ HwFlowletStats BcmMultiPathNextHopStatsManager::getHwFlowletStats() const {
       auto ecmpEgress = multipathNextHop->getEgress();
       CHECK(ecmpEgress)
           << "egress object does not exist for multipath next hop";
-      l3EcmpDlbFailPackets += ecmpEgress->getL3EcmpDlbFailPackets();
+      HwFlowletStats stats = ecmpEgress->getL3EcmpDlbStats();
+      l3EcmpDlbFailPackets += *stats.l3EcmpDlbFailPackets();
+      l3EcmpDlbReassignPackets += *stats.l3EcmpDlbPortReassignmentCount();
     }
   }
   flowletStats.l3EcmpDlbFailPackets() = l3EcmpDlbFailPackets;
+  flowletStats.l3EcmpDlbPortReassignmentCount() = l3EcmpDlbReassignPackets;
   return flowletStats;
 }
 
@@ -273,6 +289,50 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
     }
   }
   dlbExhausted_.store(dlbExhausted);
+}
+
+// This API is used to find the switchingMode of the ECMP group configured
+// Once queried, this mode is updated in SwitchState.
+// It is possible, the SwSwitch could program the ECMP using switchingMode,
+// in which case the key would have this mode updated.
+// So, first check with an empty mode. If not, then try with all modes
+//
+// Note, this mode will remain nullopt until ecmp resource manager stays
+// inactive. When it becomes active, the per mode lookups will come in play
+cfg::SwitchingMode BcmMultiPathNextHopTable::getFwdSwitchingMode(
+    bcm_vrf_t vrf,
+    const RouteNextHopSet& nextHopSet) {
+  auto multipathNextHop =
+      getNextHopIf(BcmMultiPathNextHopKey(vrf, nextHopSet, std::nullopt));
+  if (!multipathNextHop) {
+    std::string str = "";
+    for (const auto& nhop : nextHopSet) {
+      str += folly::to<std::string>(nhop.str(), ",");
+    }
+    XLOG(WARN) << "Failed to find multipath key with empty switching mode"
+               << str;
+    std::vector<cfg::SwitchingMode> modes = {
+        cfg::SwitchingMode::FLOWLET_QUALITY,
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+        cfg::SwitchingMode::PER_PACKET_RANDOM};
+    for (const auto& mode : modes) {
+      multipathNextHop =
+          getNextHopIf(BcmMultiPathNextHopKey(vrf, nextHopSet, mode));
+      if (multipathNextHop) {
+        break;
+      }
+    }
+  }
+
+  if (multipathNextHop) {
+    auto ecmpEgress = multipathNextHop->getEgress();
+    if (ecmpEgress) {
+      return ecmpEgress->getEcmpSwitchingMode();
+    }
+  }
+
+  return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
 } // namespace facebook::fboss

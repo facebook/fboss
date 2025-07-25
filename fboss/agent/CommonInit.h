@@ -23,7 +23,9 @@ struct AgentConfig;
 void initFlagDefaults(const std::map<std::string, std::string>& defaults);
 std::unique_ptr<AgentConfig> parseConfig(int argc, char** argv);
 void fbossFinalize();
-void setVersionInfo(const std::string& version);
+void setVersionInfo(
+    const std::string& version,
+    const std::string& verboseVersion);
 void initializeBitsflow(
     const std::optional<std::string>& bitsflowAclFileSuffix);
 std::unique_ptr<AgentConfig>

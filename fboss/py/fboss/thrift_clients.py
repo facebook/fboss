@@ -22,6 +22,7 @@ from thrift.transport.TSocket import TSocket
 
 class PlainTextFbossAgentClientDontUseInFb(FbossCtrl.Client):
     DEFAULT_PORT = 5909
+    DEFAULT_HW_PORT = 5931
 
     def __init__(self, host, port=None, timeout=5.0):
         self.host = host

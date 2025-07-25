@@ -24,10 +24,17 @@ namespace utility {
 
 std::vector<std::vector<PortDescriptor>> generateEcmpGroupScale(
     const std::vector<PortDescriptor>& inputs,
-    const int maxEcmpGroups);
+    const int maxEcmpGroups,
+    const int maxEcmpGroupSize,
+    const int minEcmpGroupSize = 2);
 
 std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
     const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpMembers);
+
+std::vector<std::vector<PortDescriptor>> generateEcmpGroupAndMemberScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpGroups,
     const int maxEcmpMembers);
 
 std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(
@@ -39,7 +46,6 @@ void assignUcmpWeights(
     const std::vector<std::vector<PortDescriptor>>& inputs,
     std::vector<std::vector<NextHopWeight>>& weightsOutput);
 
-uint32_t getMaxDlbEcmpGroups(const std::vector<const HwAsic*>& asics);
 uint32_t getMaxEcmpGroups(const std::vector<const HwAsic*>& asics);
 uint32_t getMaxEcmpMembers(const std::vector<const HwAsic*>& asics);
 uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics);

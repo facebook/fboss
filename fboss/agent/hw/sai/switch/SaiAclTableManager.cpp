@@ -1224,7 +1224,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
      */
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     if (FLAGS_flowletSwitchingEnable &&
-        platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+        platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
       if (matchAction.getFlowletAction().has_value()) {
         auto flowletAction = matchAction.getFlowletAction().value();
         switch (flowletAction) {

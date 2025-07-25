@@ -90,9 +90,9 @@ using utility::enableTrunkPorts;
 
 class AgentMacLearningTest : public AgentHwTest {
  protected:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::MAC_LEARNING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::MAC_LEARNING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -637,7 +637,8 @@ class AgentMacLearningAndMyStationInteractionTest
   void testMyStationInteractionHelper(cfg::L2LearningMode mode) {
     auto setup = [this, mode] {
       setL2LearningMode(mode);
-      utility::EcmpSetupTargetedPorts6 ecmp6(getProgrammedState());
+      utility::EcmpSetupTargetedPorts6 ecmp6(
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         auto newState = ecmp6.resolveNextHops(
             in, {PortDescriptor(masterLogicalPortIds()[0])});
@@ -828,7 +829,7 @@ TEST_F(AgentMacSwLearningModeTest, VerifyNbrMacInL2Table) {
   auto setup = [this] {
     getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
-        getProgrammedState(), kSourceMac()};
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), kSourceMac()};
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper6.resolveNextHops(in, {physPortDescr()});
       return newState;

@@ -4,6 +4,7 @@ namespace cpp2 facebook.fboss.fsdb
 namespace go facebook.fboss.fsdb
 
 include "fboss/agent/agent_config.thrift"
+include "fboss/agent/agent_info.thrift"
 include "fboss/agent/agent_stats.thrift"
 include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_reachability.thrift"
@@ -22,6 +23,7 @@ struct AgentData {
     i64,
     switch_reachability.SwitchReachability
   > dsfSwitchReachability = {};
+  6: optional agent_info.AgentInfo agentInfo;
 }
 
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}

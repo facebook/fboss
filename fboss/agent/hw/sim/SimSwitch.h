@@ -27,7 +27,7 @@ class SimSwitch : public HwSwitch {
       BootType bootType,
       bool failHwCallsOnWarmboot) override;
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const StateDelta& delta) override;
+      const std::vector<StateDelta>& deltas) override;
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
   bool sendPacketOutOfPortAsync(
@@ -50,6 +50,10 @@ class SimSwitch : public HwSwitch {
   void injectPacket(std::unique_ptr<RxPacket> pkt);
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override {
+    return {};
+  }
+  folly::F14FastMap<std::string, HwRouterInterfaceStats>
+  getRouterInterfaceStats() const override {
     return {};
   }
   std::map<std::string, HwSysPortStats> getSysPortStats() const override {
@@ -79,11 +83,23 @@ class SimSwitch : public HwSwitch {
     return HwSwitchWatermarkStats{};
   }
 
+  HwSwitchPipelineStats getSwitchPipelineStats() const override {
+    return HwSwitchPipelineStats{};
+  }
+
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const override {
+    return HwSwitchTemperatureStats{};
+  }
+
   HwResourceStats getResourceStats() const override {
     return HwResourceStats{};
   }
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override {
+    return {};
+  }
+
+  std::map<int, cfg::PortState> getSysPortShelState() const override {
     return {};
   }
 
@@ -93,6 +109,10 @@ class SimSwitch : public HwSwitch {
 
   bool getArsExhaustionStatus() override {
     return false;
+  }
+
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&) override {
+    return cfg::SwitchingMode::FIXED_ASSIGNMENT;
   }
 
   void resetTxCount() {
@@ -125,6 +145,8 @@ class SimSwitch : public HwSwitch {
 
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
+  void syncPortLinkState(PortID /*portId*/) override {}
 
   virtual BootType getBootType() const override {
     return bootType_;
@@ -167,6 +189,10 @@ class SimSwitch : public HwSwitch {
 
   void clearInterfacePhyCounters(
       const std::unique_ptr<std::vector<int32_t>>& /*ports*/) override {}
+
+  std::vector<FirmwareInfo> getAllFirmwareInfo() const override {
+    return {};
+  }
 
  private:
   void switchRunStateChangedImpl(SwitchRunState newState) override {}

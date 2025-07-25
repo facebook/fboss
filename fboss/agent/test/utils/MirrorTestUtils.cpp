@@ -55,7 +55,7 @@ void addMirrorConfig(
   auto params = getMirrorTestParams<AddrT>();
   cfg::MirrorDestination destination;
   destination.egressPort() = cfg::MirrorEgressPort();
-  destination.egressPort()->logicalID_ref() = mirrorToPort;
+  destination.egressPort()->logicalID() = mirrorToPort;
   if (mirrorName.compare(0, kIngressErspan.length(), kIngressErspan) == 0 ||
       mirrorName.compare(0, kEgressErspan.length(), kEgressErspan) == 0) {
     cfg::MirrorTunnel tunnel;

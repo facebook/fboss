@@ -9,11 +9,9 @@
  */
 #include "fboss/agent/IPv6Handler.h"
 
-#include <folly/Format.h>
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/DHCPv6Handler.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/RxPacket.h"
@@ -30,13 +28,11 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NdpResponseTable.h"
-#include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 DECLARE_bool(intf_nbr_tables);
 
@@ -147,7 +143,7 @@ void IPv6Handler::handlePacket(
     MacAddress src,
     Cursor cursor,
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
-  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+  auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -453,7 +449,7 @@ void IPv6Handler::handleNeighborSolicitation(
     const ICMPHeaders& hdr,
     Cursor cursor,
     const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) {
-  auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+  auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
   auto vlanIDStr = vlanID.has_value()
       ? folly::to<std::string>(static_cast<int>(vlanID.value()))
       : "None";
@@ -616,7 +612,7 @@ void IPv6Handler::handleNeighborAdvertisement(
     // drop NDP advertisement packets when LAG port is not up,
     // otherwise, NDP entry would be created for this down port,
     // and confuse later neighbor/next hop resolution logics
-    auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
+    auto vlanID = sw_->getVlanIDForTx(vlanOrIntf);
     auto vlanIDStr = vlanID.has_value()
         ? folly::to<std::string>(static_cast<int>(vlanID.value()))
         : "None";
@@ -815,6 +811,11 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     return;
   }
 
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
+    return;
+  }
+
   IPAddressV6 solicitedNodeAddr = targetIP.getSolicitedNodeAddress();
   MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
   // For now, we always use our link local IP as the source.
@@ -865,6 +866,11 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   if (FLAGS_disable_neighbor_solicitation) {
     XLOG(DBG4)
         << "skipping sending neighbor solicitation since flag disable_neighbor_solicitation set to true";
+    return;
+  }
+
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
     return;
   }
 
@@ -996,6 +1002,11 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
     return;
   }
 
+  if (!sw_->isFullyInitialized()) {
+    XLOG(DBG2) << " Dropping L3 packet since device not ready";
+    return;
+  }
+
   auto state = sw_->getState();
 
   auto route = sw_->longestMatch(state, targetIP, RouterID(0));
@@ -1049,10 +1060,10 @@ void IPv6Handler::floodNeighborAdvertisements() {
 
       // If NDP is flooded on recycle port interface, it will be resolved and
       // will get added as DYNAMIC entry, which is incorrect.
-      if (isAnyInterfacePortRecyclePort(sw_->getState(), intf)) {
-        XLOG(DBG2)
-            << "Do not flood neighbor advertisement on recycle port interface: "
-            << intf->getName();
+      // Sending NDP packet to eventor port will cause it to get stuck.
+      if (isAnyInterfacePortRecycleOrEventorPort(sw_->getState(), intf)) {
+        XLOG(DBG2) << "Do not flood neighbor advertisement on recycle "
+                   << "or eventor port interface: " << intf->getName();
         continue;
       }
 

@@ -39,7 +39,7 @@ namespace tabulate {
 class MarkdownExporter : public Exporter {
  public:
   std::string dump(Table& table) override {
-    std::string result{""};
+    std::string result;
     apply_markdown_format(table);
     result = table.str();
     restore_table_format(table);
@@ -78,18 +78,20 @@ class MarkdownExporter : public Exporter {
             .column_separator("|")
             .corner("|");
         cell->set_text(c);
-        if (c == ":---:")
+        if (c == ":---:") {
           cell->format().font_align(FontAlign::center);
-        else if (c == "----:")
+        } else if (c == "----:") {
           cell->format().font_align(FontAlign::right);
+}
         alignment_row->add_cell(cell);
       }
 
       // Insert alignment header row
-      if (rows.size() > 1)
+      if (rows.size() > 1) {
         rows.insert(rows.begin() + 1, alignment_row);
-      else
+      } else {
         rows.push_back(alignment_row);
+}
     }
   }
 

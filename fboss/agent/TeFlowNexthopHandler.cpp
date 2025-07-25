@@ -5,7 +5,6 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/state/TeFlowTable.h"

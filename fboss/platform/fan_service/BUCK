@@ -101,6 +101,7 @@ cpp_library(
         "//folly/io/async:ssl_options",
         "//folly/logging:logging",
         "//folly/system:shell",
+        "//folly/system:thread_name",
         "//infrasec/authorization:base_identity_util",
         "//security/ca/lib:cert_path_picker",
         "//thrift/lib/cpp2/protocol:protocol",

@@ -15,6 +15,7 @@ class AgentNetWhoAmI {
   virtual bool isCiscoSaiPlatform() const;
   virtual bool isBcmPlatform() const;
   virtual bool isCiscoPlatform() const;
+  virtual bool isChenabPlatform() const;
   virtual bool isBcmVoqPlatform() const;
   virtual bool isCiscoMorgan800ccPlatform() const;
   virtual bool isFdsw() const;

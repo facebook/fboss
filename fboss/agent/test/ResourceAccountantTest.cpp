@@ -103,16 +103,17 @@ TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
       this->resourceAccountant_->getMemberCountForEcmpGroup(ucmpNextHopEntry));
 }
 
-TEST_F(ResourceAccountantTest, checkDlbResource) {
-  // MockAsic is configured to support 4 DLB groups
-  EXPECT_TRUE(
-      this->resourceAccountant_->checkDlbResource(75 /* resourcePercentage */));
-  EXPECT_TRUE(this->resourceAccountant_->checkDlbResource(
-      100 /* resourcePercentage */));
+TEST_F(ResourceAccountantTest, checkArsResource) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  // MockAsic is configured to support 7 DLB groups
+  EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
 
-  std::vector<RouteNextHopSet> ecmpNexthopsList;
-  for (int i = 0; i < getMaxEcmpGroups(); i++) {
-    ecmpNexthopsList.push_back(RouteNextHopSet{
+  auto addEcmp = [](int i, std::vector<RouteNextHopSet>& ecmpList) {
+    ecmpList.push_back(RouteNextHopSet{
         ResolvedNextHop(
             folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
             InterfaceID(i + 1),
@@ -121,19 +122,45 @@ TEST_F(ResourceAccountantTest, checkDlbResource) {
             folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
             InterfaceID(i + 2),
             ecmpWeight)});
+  };
+  int i = 0;
+  std::vector<RouteNextHopSet> ecmpNexthopsList;
+  ecmpNexthopsList.reserve(getMaxDlbEcmpGroups());
+  for (i = 0; i < getMaxDlbEcmpGroups() - 2; i++) {
+    addEcmp(i, ecmpNexthopsList);
   }
   for (const auto& nhopSet : ecmpNexthopsList) {
-    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;
-    this->resourceAccountant_->ecmpMemberUsage_ += 2;
+    this->resourceAccountant_->arsEcmpGroupRefMap_[nhopSet] = 1;
   }
-  EXPECT_FALSE(
-      this->resourceAccountant_->checkDlbResource(75 /* resourcePercentage */));
-  EXPECT_TRUE(this->resourceAccountant_->checkDlbResource(
-      100 /* resourcePercentage */));
+  EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
+      false /* intermediateState */));
+
+  // add 1 more should take it over dlb resource percentage
+  addEcmp(i++, ecmpNexthopsList);
+  for (const auto& nhopSet : ecmpNexthopsList) {
+    this->resourceAccountant_->arsEcmpGroupRefMap_[nhopSet] = 1;
+  }
+  EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
+      false /* intermediateState */));
+
+  // add 2 more should take it over 100%
+  addEcmp(i++, ecmpNexthopsList);
+  addEcmp(i++, ecmpNexthopsList);
+  for (const auto& nhopSet : ecmpNexthopsList) {
+    this->resourceAccountant_->arsEcmpGroupRefMap_[nhopSet] = 1;
+  }
+  EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
+      false /* intermediateState */));
 }
 
 TEST_F(ResourceAccountantTest, checkEcmpResource) {
-  // MockAsic is configured to support 4 group and 64 members.
+  // MockAsic is configured to support 20 group and 128 members.
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
@@ -180,7 +207,11 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
 
   // Add three groups (with width = 2 each) and remove ecmpGroup0
   std::vector<RouteNextHopSet> ecmpNexthopsList;
-  for (int i = 0; i < getMaxEcmpGroups() - 1; i++) {
+  ecmpNexthopsList.reserve(
+      (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0));
+  for (int i = 0;
+       i < (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0);
+       i++) {
     ecmpNexthopsList.push_back(RouteNextHopSet{
         ResolvedNextHop(
             folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
@@ -220,7 +251,7 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
       false /* intermediateState */));
 }
 
-TEST_F(ResourceAccountantTest, checkAndUpdateEcmpResource) {
+TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
   // Add one ECMP group with half of ECMP members limit plus 1
   const auto ecmpWidth = (getMaxEcmpMembers() / 2) + 1;
   RouteNextHopSet ecmpNexthops0;
@@ -248,14 +279,14 @@ TEST_F(ResourceAccountantTest, checkAndUpdateEcmpResource) {
   const auto route1 = makeV6Route(
       {folly::IPAddressV6("200::1"), 128},
       {ecmpNexthops1, AdminDistance::EBGP});
-  EXPECT_FALSE(
-      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
-          route1, true /* add */));
+  EXPECT_FALSE(this->resourceAccountant_
+                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                       route1, true /* add */));
 
   // Rmove above route
-  EXPECT_TRUE(
-      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
-          route1, false /* add */));
+  EXPECT_TRUE(this->resourceAccountant_
+                  ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                      route1, false /* add */));
 
   // Add four groups (with width = 2 each) and remove ecmpGroup0
   std::vector<std::shared_ptr<Route<folly::IPAddressV6>>> routes;
@@ -274,23 +305,71 @@ TEST_F(ResourceAccountantTest, checkAndUpdateEcmpResource) {
         {ecmpNextHops, AdminDistance::EBGP});
     if (i < getMaxEcmpGroups() - 1) {
       EXPECT_TRUE(this->resourceAccountant_
-                      ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                      ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
                           route, true /* add */));
     } else {
       EXPECT_FALSE(this->resourceAccountant_
-                       ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                       ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
                            route, true /* add */));
     }
   }
 
-  EXPECT_TRUE(
-      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
-          route0, false /* add */));
+  EXPECT_TRUE(this->resourceAccountant_
+                  ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                      route0, false /* add */));
+}
+
+TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  FLAGS_enable_ecmp_resource_manager = true;
+  auto addRoute =
+      [this](
+          int i,
+          std::vector<std::shared_ptr<Route<folly::IPAddressV6>>>& routes,
+          std::optional<cfg::SwitchingMode> switchingMode) {
+        auto ecmpNextHops = RouteNextHopSet{
+            ResolvedNextHop(
+                folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+                InterfaceID(i + 1),
+                ecmpWeight),
+            ResolvedNextHop(
+                folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
+                InterfaceID(i + 2),
+                ecmpWeight)};
+        const RouteNextHopEntry routeNextHopEntry{
+            ecmpNextHops,
+            AdminDistance::EBGP,
+            std::optional<RouteCounterID>(std::nullopt),
+            std::optional<cfg::AclLookupClass>(std::nullopt),
+            switchingMode};
+        auto route = makeV6Route(
+            {folly::IPAddressV6(folly::to<std::string>(i + 1, "00::1")), 128},
+            routeNextHopEntry);
+        routes.push_back(std::move(route));
+      };
+  int i = 0;
+  std::vector<std::shared_ptr<Route<folly::IPAddressV6>>> routes;
+  // add upto limit of DLB groups
+  for (i = 0; i < getMaxDlbEcmpGroups(); i++) {
+    addRoute(i, routes, std::nullopt);
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateArsEcmpResource<folly::IPAddressV6>(
+                        routes.back(), true /* add */));
+  }
+
+  // add backup ECMP groups, still should be OK
+  for (; i < 10; i++) {
+    addRoute(i, routes, cfg::SwitchingMode::PER_PACKET_RANDOM);
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateArsEcmpResource<folly::IPAddressV6>(
+                        routes.back(), true /* add */));
+  }
 }
 
 TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
   RouteNextHopSet ecmpNexthops;
-  for (int i = 0; i < getMaxEcmpMembers(); i++) {
+  for (int i = 0; i < getMaxEcmpMembers() - 1; i++) {
     ecmpNexthops.insert(ResolvedNextHop(
         folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
         InterfaceID(i + 1),

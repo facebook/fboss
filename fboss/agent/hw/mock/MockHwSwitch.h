@@ -34,11 +34,11 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD3(initImpl, HwInitResult(Callback*, BootType, bool));
   MOCK_METHOD1(
       stateChangedImpl,
-      std::shared_ptr<SwitchState>(const StateDelta& delta));
+      std::shared_ptr<SwitchState>(const std::vector<StateDelta>& deltas));
   MOCK_METHOD2(
       stateChangedTransaction,
       std::shared_ptr<SwitchState>(
-          const StateDelta& delta,
+          const std::vector<StateDelta>& deltas,
           const HwWriteBehaviorRAII&));
   MOCK_CONST_METHOD0(reconstructSwitchState, std::shared_ptr<SwitchState>());
 
@@ -74,6 +74,10 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(
       getPortStats,
       folly::F14FastMap<std::string, HwPortStats>());
+  MOCK_CONST_METHOD0(
+      getRouterInterfaceStats,
+      folly::F14FastMap<std::string, HwRouterInterfaceStats>());
+
   MOCK_CONST_METHOD0(getCpuPortStats, CpuPortStats());
   MOCK_CONST_METHOD0(getSysPortStats, std::map<std::string, HwSysPortStats>());
   MOCK_CONST_METHOD0(getFabricReachabilityStats, FabricReachabilityStats());
@@ -90,12 +94,16 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD1(
       clearPortStats,
       void(const std::unique_ptr<std::vector<int32_t>>&));
+  MOCK_METHOD1(syncPortLinkState, void(PortID portId));
   MOCK_CONST_METHOD0(getBootType, BootType());
   MOCK_CONST_METHOD0(getTeFlowStats, TeFlowStats());
   MOCK_CONST_METHOD0(getHwFlowletStats, HwFlowletStats());
   MOCK_CONST_METHOD0(getAllEcmpDetails, std::vector<EcmpDetails>());
   MOCK_CONST_METHOD0(getAclStats, AclStats());
   MOCK_CONST_METHOD0(getSwitchWatermarkStats, HwSwitchWatermarkStats());
+  MOCK_CONST_METHOD0(getSwitchPipelineStats, HwSwitchPipelineStats());
+  MOCK_CONST_METHOD0(getSwitchTemperatureStats, HwSwitchTemperatureStats());
+  MOCK_CONST_METHOD0(getSysPortShelState, std::map<int, cfg::PortState>());
 
   MockPlatform* getPlatform() const override {
     return platform_;
@@ -147,11 +155,17 @@ class MockHwSwitch : public HwSwitch {
       getSwitchReachability,
       std::vector<PortID>(SwitchID switchId));
 
+  MOCK_CONST_METHOD0(getAllFirmwareInfo, std::vector<FirmwareInfo>());
+
   void setInitialState(const std::shared_ptr<SwitchState>& state) {
     setProgrammedState(state);
   }
 
   MOCK_CONST_METHOD0(getResourceStats, HwResourceStats());
+
+  MOCK_METHOD1(
+      getFwdSwitchingMode,
+      cfg::SwitchingMode(const RouteNextHopEntry&));
 
  private:
   MOCK_METHOD1(switchRunStateChangedImpl, void(SwitchRunState newState));

@@ -73,12 +73,15 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::vector<EcmpDetails> getAllEcmpDetails() const;
 
+  cfg::SwitchingMode getFwdSwitchingMode(const RouteNextHopEntry&);
+
   // platform access apis
   void onHwInitialized(HwSwitchCallback* callback);
 
   std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus> stateChanged(
-      const fsdb::OperDelta& delta,
+      const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
+      const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) override;
 
@@ -130,12 +133,18 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const;
 
+  HwSwitchPipelineStats getSwitchPipelineStats() const;
+
+  HwSwitchTemperatureStats getSwitchTemperatureStats() const;
+
   void getHwStats(multiswitch::HwSwitchStats& hwStats) const;
 
   state::SwitchState reconstructSwitchState() override {
     throw FbossError(
         "reconstructSwitchState Not implemented in MultiSwitchHwSwitchHandler");
   }
+
+  void initialStateApplied();
 
  private:
   Platform* platform_;

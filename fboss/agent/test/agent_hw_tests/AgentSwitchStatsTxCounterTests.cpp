@@ -10,11 +10,9 @@
 namespace facebook::fboss {
 class AgentSwitchStatsTxCounterTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::CPU_RX_TX,
-        production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::CPU_RX_TX, ProductionFeature::L3_FORWARDING};
   }
   std::unique_ptr<TxPacket> createL3Packet();
   void sendPacketOutOfPortAsyncAndVerifyStat(int16_t switchIndex, PortID port);
@@ -37,7 +35,7 @@ void AgentSwitchStatsTxCounterTest::checkTxCounters() {
 }
 
 std::unique_ptr<TxPacket> AgentSwitchStatsTxCounterTest::createL3Packet() {
-  auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+  auto vlanId = getVlanIDForTx();
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
   return utility::makeUDPTxPacket(

@@ -477,6 +477,8 @@ struct VersionedPmUnitConfig {
 struct PmUnitInfo {
   1: string name;
   2: optional PmUnitVersion version;
+  3: optional platform_manager_presence.PresenceInfo presenceInfo;
+  4: bool successfullyExplored;
 }
 
 // `PmUnitVersion`: Version of a PmUnit.
@@ -537,6 +539,13 @@ struct PlatformConfig {
   // versions of the platform.  This typically applies to re-spins and
   // second-source boards/PmUnits.
   15: map<string, list<VersionedPmUnitConfig>> versionedPmUnitConfigs;
+
+  // Chassis EEPROM DevicePath. This is used to find the Production
+  // Phase (EVT/DVT/PVT/MP) and Serial Number of the chassis.
+  16: string chassisEepromDevicePath;
+
+  // Number of transceivers in the platform.
+  17: i16 numXcvrs;
 
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;

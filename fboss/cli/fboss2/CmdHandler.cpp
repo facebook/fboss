@@ -225,6 +225,13 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
 
   auto hosts = getHosts();
 
+  if (hosts.size() > 1 &&
+      CmdTypeT::Traits::CLI_READ_WRITE_MODE ==
+          CliReadWriteMode::CLI_MODE_WRITE) {
+    throw std::invalid_argument(folly::to<std::string>(
+        "multi host operation is supported on read-only commands"));
+  }
+
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
       futureList;
 

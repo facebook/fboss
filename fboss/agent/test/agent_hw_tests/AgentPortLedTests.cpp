@@ -2,7 +2,6 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -18,9 +17,9 @@ class AgentPortLedTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::LED_PROGRAMMING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::LED_PROGRAMMING};
   }
 
   bool verifyLedStatus(PortID portID, bool up) {

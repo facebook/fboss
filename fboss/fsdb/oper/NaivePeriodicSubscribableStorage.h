@@ -77,24 +77,43 @@ class NaivePeriodicSubscribableStorage
 
   template <typename T>
   Result<T> get_impl(PathIter begin, PathIter end) const {
-    auto state = currentState_.rlock();
-    return state->template get<T>(begin, end);
+    if (params_.serveGetRequestsWithLastPublishedState_) {
+      auto state = Storage(*lastPublishedState_.rlock());
+      return state.template get<T>(begin, end);
+    } else {
+      // hold rlock on current state to avoid racing with writers
+      auto currentState = currentState_.rlock();
+      return currentState->template get<T>(begin, end);
+    }
   }
 
   Result<OperState>
   get_encoded_impl(PathIter begin, PathIter end, OperProtocol protocol) const {
-    auto state = currentState_.rlock();
-    auto result = state->get_encoded(begin, end, protocol);
+    Result<OperState> result = folly::makeUnexpected(
+        StorageError(StorageError::Code::INVALID_PATH, "Unknown"));
+    if (params_.serveGetRequestsWithLastPublishedState_) {
+      auto state = Storage(*lastPublishedState_.rlock());
+      result = state.get_encoded(begin, end, protocol);
+    } else {
+      // hold rlock on current state to avoid racing with writers
+      auto currentState = currentState_.rlock();
+      result = currentState->get_encoded(begin, end, protocol);
+    }
     if (result.hasValue() && params_.trackMetadata_) {
+      auto publisherRoot = getPublisherRoot(begin, end);
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
-        auto metadata =
-            tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
+        auto metadata = tracker->getPublisherRootMetadata(*publisherRoot);
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
           result.value().metadata() = metadata->operMetadata;
+          result.value().metadata()->lastServedAt() =
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch())
+                  .count();
         } else {
           throw Utils::createFsdbException(
-              FsdbErrorCode::PUBLISHER_NOT_READY, "Publisher not ready");
+              FsdbErrorCode::PUBLISHER_NOT_READY,
+              fmt::format("Publisher not ready for root: {}", *publisherRoot));
         }
       });
     }
@@ -105,20 +124,33 @@ class NaivePeriodicSubscribableStorage
       ExtPathIter begin,
       ExtPathIter end,
       OperProtocol protocol) const {
-    auto state = currentState_.rlock();
-    auto result = state->get_encoded_extended(begin, end, protocol);
+    Result<std::vector<TaggedOperState>> result = folly::makeUnexpected(
+        StorageError(StorageError::Code::INVALID_PATH, "Unknown"));
+    if (params_.serveGetRequestsWithLastPublishedState_) {
+      auto state = Storage(*lastPublishedState_.rlock());
+      result = state.get_encoded_extended(begin, end, protocol);
+    } else {
+      // hold rlock on current state to avoid racing with writers
+      auto currentState = currentState_.rlock();
+      result = currentState->get_encoded_extended(begin, end, protocol);
+    }
     if (result.hasValue() && params_.trackMetadata_) {
+      auto publisherRoot = getPublisherRoot(begin, end);
       metadataTracker_.withRLock([&](auto& tracker) {
         CHECK(tracker);
-        auto metadata =
-            tracker->getPublisherRootMetadata(*getPublisherRoot(begin, end));
+        auto metadata = tracker->getPublisherRootMetadata(*publisherRoot);
         if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
+          auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
           for (auto& state : result.value()) {
             state.state()->metadata() = metadata->operMetadata;
+            state.state()->metadata()->lastServedAt() = now;
           }
         } else {
           throw Utils::createFsdbException(
-              FsdbErrorCode::PUBLISHER_NOT_READY, "Publisher not ready");
+              FsdbErrorCode::PUBLISHER_NOT_READY,
+              fmt::format("Publisher not ready for root: {}", *publisherRoot));
         }
       });
     }
@@ -158,7 +190,7 @@ class NaivePeriodicSubscribableStorage
   std::optional<StorageError> patch_impl(Patch&& patch) {
     if (patch.patch()->getType() == thrift_cow::PatchNode::Type::__EMPTY__) {
       XLOG(DBG3) << "Patch is empty, nothing to do";
-      return StorageError::TYPE_ERROR;
+      return StorageError(StorageError::Code::TYPE_ERROR, "Empty patch");
     }
     auto& path = *patch.basePath();
     auto state = currentState_.wlock();
@@ -260,9 +292,9 @@ class NaivePeriodicSubscribableStorage
   }
 
   OperState publishedStateEncoded(OperProtocol protocol) {
-    auto lastState = lastPublishedState_.rlock();
+    auto lastState = Storage(*lastPublishedState_.rlock());
     std::vector<std::string> rootPath;
-    return *lastState->get_encoded(rootPath.begin(), rootPath.end(), protocol);
+    return *lastState.get_encoded(rootPath.begin(), rootPath.end(), protocol);
   }
 
  protected:

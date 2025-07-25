@@ -17,7 +17,7 @@ class BcmTestMinipackPlatform;
 
 class BcmTestMinipackPort : public BcmTestPort {
  public:
-  BcmTestMinipackPort(PortID id, BcmTestMinipackPlatform* platform);
+  BcmTestMinipackPort(const PortID& id, BcmTestMinipackPlatform* platform);
 
   LaneSpeeds supportedLaneSpeeds() const override {
     // TODO(joseph5wu) We haven't support flexport and portgroup for TH3

@@ -9,8 +9,9 @@ namespace fboss {
 template <>
 folly::dynamic
 SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
-  folly::dynamic json = folly::dynamic::array;
-  for (auto& ahk : adapterHostKey_) {
+  folly::dynamic json = folly::dynamic::object;
+  folly::dynamic memberList = folly::dynamic::array;
+  for (auto& ahk : adapterHostKey_.nhopMemberSet) {
     folly::dynamic object = folly::dynamic::object;
     object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
         folly::to<std::string>(ahk.first.index());
@@ -53,16 +54,21 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
     object[AttributeName<
         SaiNextHopGroupMemberTraits::Attributes::Weight>::value] = ahk.second;
 
-    json.push_back(object);
+    memberList.push_back(object);
   }
+  json[AttributeName<
+      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value] =
+      memberList;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  json[AttributeName<SaiArsTraits::Attributes::Mode>::value] =
+      adapterHostKey_.mode;
+#endif
   return json;
 }
 
-template <>
-typename SaiNextHopGroupTraits::AdapterHostKey
-SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
-    const folly::dynamic& json) {
-  SaiNextHopGroupTraits::AdapterHostKey key;
+void follyDynamicToNhopSet(
+    const folly::dynamic& json,
+    SaiNextHopGroupTraits::AdapterHostKey& key) {
   for (auto object : json) {
     auto type =
         object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value]
@@ -95,7 +101,7 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
         std::get<SaiIpNextHopTraits::Attributes::Ip>(ipAhk) = folly::IPAddress(
             object[AttributeName<SaiIpNextHopTraits::Attributes::Ip>::value]
                 .asString());
-        key.insert(std::make_pair(ipAhk, weight));
+        key.nhopMemberSet.insert(std::make_pair(ipAhk, weight));
       } break;
 
       case SAI_NEXT_HOP_TYPE_MPLS: {
@@ -119,12 +125,33 @@ SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
               label.asInt());
         }
         std::get<SaiMplsNextHopTraits::Attributes::LabelStack>(mplsAhk) = stack;
-        key.insert(std::make_pair(mplsAhk, weight));
+        key.nhopMemberSet.insert(std::make_pair(mplsAhk, weight));
       } break;
 
       default:
         XLOG(FATAL) << "unsupported next hop type " << type;
     }
+  }
+}
+
+template <>
+typename SaiNextHopGroupTraits::AdapterHostKey
+SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
+    const folly::dynamic& json) {
+  SaiNextHopGroupTraits::AdapterHostKey key;
+  // Pre D75845886 used an array as adapterHostKey value
+  if (json.isObject()) {
+    const auto& memberJson = json[AttributeName<
+        SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
+    follyDynamicToNhopSet(memberJson, key);
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    key.mode =
+        json[AttributeName<SaiArsTraits::Attributes::Mode>::value].asInt();
+#endif
+  } else if (json.isArray()) {
+    follyDynamicToNhopSet(json, key);
+  } else {
+    throw FbossError("Unsupported value type for nhop-group AdapterHostKey");
   }
   return key;
 }
@@ -237,20 +264,5 @@ SaiObject<SaiUdfGroupTraits>::follyDynamicToAdapterHostKey(
   return json.asString();
 }
 
-#if defined(CHENAB_SAI_SDK)
-template <>
-folly::dynamic SaiObject<SaiAclCounterTraits>::adapterHostKeyToFollyDynamic() {
-  // TODO: implement this
-  return folly::dynamic::object;
-}
-
-template <>
-typename SaiAclCounterTraits::AdapterHostKey
-SaiObject<SaiAclCounterTraits>::follyDynamicToAdapterHostKey(
-    const folly::dynamic& json) {
-  // TODO: implement this
-  return SaiAclCounterTraits::AdapterHostKey{};
-}
-#endif
 } // namespace fboss
 } // namespace facebook

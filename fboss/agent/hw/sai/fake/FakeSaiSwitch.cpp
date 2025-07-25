@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#include <folly/logging/xlog.h>
-
 using facebook::fboss::FakeSai;
 
 namespace {
@@ -210,6 +208,7 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY:
     case SAI_SWITCH_ATTR_TAM_EVENT_NOTIFY:
     case SAI_SWITCH_ATTR_QUEUE_PFC_DEADLOCK_NOTIFY:
+    case SAI_SWITCH_ATTR_SWITCH_ASIC_SDK_HEALTH_EVENT_NOTIFY:
       // No callback implementation in SAI
       break;
     case SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL:

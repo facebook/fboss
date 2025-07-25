@@ -69,6 +69,9 @@ NEIGHBOR_UPDATER_METHOD_NO_ARGS(public, getNdpCacheDataForIntf, std::list<NdpEnt
 NEIGHBOR_UPDATER_METHOD(private, getArpCacheForIntf, std::shared_ptr<ArpCache>, InterfaceID, intfID)
 NEIGHBOR_UPDATER_METHOD(private, getNdpCacheForIntf, std::shared_ptr<NdpCache>, InterfaceID, intfID)
 
+NEIGHBOR_UPDATER_METHOD(private, getArpCacheFor, std::shared_ptr<ArpCache>, VlanID, vlan)
+NEIGHBOR_UPDATER_METHOD(private, getNdpCacheFor, std::shared_ptr<NdpCache>, VlanID, vlan)
+
 // State update helpers
 // TODO(skhare) Remove after completely migrating to intfCaches_
 NEIGHBOR_UPDATER_METHOD(private, vlanAdded, void, VlanID, vlanID, const std::shared_ptr<SwitchState>, state)

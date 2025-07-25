@@ -245,6 +245,7 @@ add_library(trap_packet_utils
 target_link_libraries(trap_packet_utils
   fboss_types
   Folly::folly
+  acl_test_utils
   platform_config_cpp2
   switch_config_cpp2
   switch_state_cpp2
@@ -297,6 +298,7 @@ target_link_libraries(packet_snooper
   fboss_types
   packet
   packet_factory
+  pkt_test_utils
   Folly::folly
 )
 
@@ -328,6 +330,7 @@ target_link_libraries(load_balancer_test_runner_h
   load_balancer_test_utils
   fboss_types
   route_update_wrapper
+  udf_test_utils
 )
 
 add_library(aqm_test_utils
@@ -385,6 +388,8 @@ target_link_libraries(route_test_utils
   route_update_wrapper
   ctrl_cpp2
   route_distribution_gen
+  agent_ensemble
+  agent_hw_test_ctrl_cpp2
 )
 
 add_library(pfc_test_utils
@@ -410,6 +415,16 @@ target_link_libraries(queue_test_utils
 
 add_library(mirror_test_utils
   fboss/agent/test/utils/MirrorTestUtils.cpp
+)
+
+add_library(udf_test_utils
+  fboss/agent/test/utils/UdfTestUtils.cpp
+)
+
+target_link_libraries(udf_test_utils
+  config_utils
+  switch_asics
+  switch_config_cpp2
 )
 
 target_link_libraries(mirror_test_utils
@@ -512,4 +527,13 @@ target_link_libraries(agent_fsdb_integ_bench_helper
   fsdb_model
   fsdb_flags
   Folly::folly
+)
+
+add_library(neighbor_test_utils
+  fboss/agent/test/utils/NeighborTestUtils.cpp
+)
+
+target_link_libraries(neighbor_test_utils
+  core
+  state
 )

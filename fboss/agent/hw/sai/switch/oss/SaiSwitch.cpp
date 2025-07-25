@@ -19,4 +19,9 @@ void SaiSwitch::switchEventCallback(
   // noop;
 }
 
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* /*buffer*/) {
+  // noop;
+}
 } // namespace facebook::fboss

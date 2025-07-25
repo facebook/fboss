@@ -105,6 +105,7 @@ class HwAsic {
     MEDIA_TYPE,
     FEC,
     RX_FREQUENCY_PPM,
+    RX_SERDES_PARAMETERS,
     FABRIC_PORTS,
     ECMP_MEMBER_WIDTH_INTROSPECTION,
     FABRIC_PORT_MTU,
@@ -123,7 +124,7 @@ class HwAsic {
     WARMBOOT,
     SHARED_INGRESS_EGRESS_BUFFER_POOL,
     ROUTE_METADATA,
-    FLOWLET,
+    ARS,
     P4_WARMBOOT,
     IN_PAUSE_INCREMENTS_DISCARDS,
     FEC_AM_LOCK_STATUS,
@@ -146,7 +147,7 @@ class HwAsic {
     VOQ_DELETE_COUNTER,
     DRAM_ENQUEUE_DEQUEUE_STATS,
     SEPARATE_BYTE_AND_PACKET_ACL_COUNTER,
-    FLOWLET_PORT_ATTRIBUTES,
+    ARS_PORT_ATTRIBUTES,
     SAI_EAPOL_TRAP,
     // pending CS00012311423
     L3_MTU_ERROR_TRAP,
@@ -207,8 +208,19 @@ class HwAsic {
     SDK_REGISTER_DUMP,
     FEC_ERROR_DETECT_ENABLE,
     BUFFER_POOL_HEADROOM_WATERMARK,
-    SAI_SET_TC_FOR_USER_DEFINED_TRAP,
+    SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION,
     SAI_HOST_MISS_TRAP,
+    CPU_TX_PACKET_REQUIRES_VLAN_TAG,
+    DRAM_DATAPATH_PACKET_ERROR_STATS,
+    EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED,
+    SWITCH_ASIC_SDK_HEALTH_NOTIFY,
+    VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS,
+    PFC_WATCHDOG_TIMER_GRANULARITY,
+    ASIC_RESET_NOTIFICATIONS,
+    SAI_PORT_IN_CONGESTION_DISCARDS,
+    TEMPERATURE_MONITORING,
+    ROUTER_INTERFACE_STATISTICS,
+    MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA,
   };
 
   enum class AsicMode {
@@ -236,7 +248,7 @@ class HwAsic {
   };
   virtual ~HwAsic() {}
   static std::unique_ptr<HwAsic> makeAsic(
-      std::optional<int64_t> switchID,
+      int64_t switchID,
       const cfg::SwitchInfo& switchInfo,
       std::optional<cfg::SdkVersion> sdkVersion,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole);
@@ -327,6 +339,9 @@ class HwAsic {
     return 0;
   }
 
+  /**
+   * Number of forwarding engines / units with its own buffer pool.
+   */
   virtual uint32_t getNumCores() const = 0;
 
   virtual uint32_t getSflowShimHeaderSize() const = 0;

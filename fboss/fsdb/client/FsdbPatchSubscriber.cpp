@@ -41,19 +41,25 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::setupStream() {
   co_return std::move(result.stream);
 }
 
-uint64_t getChunkMetadataPublishTime(const SubscriberChunk& chunk) {
-  uint64_t lastPublishedAt = 0;
+std::optional<OperMetadata> getChunkMetadata(const SubscriberChunk& chunk) {
+  std::optional<OperMetadata> metadata;
   if (chunk.patchGroups()->size() > 0) {
     for (const auto& [key, patchGroup] : *chunk.patchGroups()) {
       for (const auto& patch : patchGroup) {
-        if (patch.metadata()->lastPublishedAt().has_value()) {
-          lastPublishedAt = patch.metadata()->lastPublishedAt().value();
-          break;
-        }
+        metadata = *patch.metadata();
+        break;
       }
     }
   }
-  return lastPublishedAt;
+  return metadata;
+}
+
+uint64_t getChunkMetadataPublishTime(const SubscriberChunk& chunk) {
+  auto md = getChunkMetadata(chunk);
+  if (md.has_value()) {
+    return md->lastPublishedAt().value_or(0);
+  }
+  return 0;
 }
 
 template <typename MessageType, typename SubUnit, typename PathElement>
@@ -112,6 +118,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
             this->getSubscriptionState() != SubscriptionState::CONNECTED) {
           BaseT::updateSubscriptionState(SubscriptionState::CONNECTED, hasData);
         }
+        this->onChunkReceived(false, getChunkMetadata(message->get_chunk()));
         try {
           this->operSubUnitUpdate_(message->move_chunk());
         } catch (const std::exception& ex) {
@@ -122,6 +129,13 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
         }
         break;
       case SubscriberMessage::Type::heartbeat:
+        if (message->get_heartbeat().metadata().has_value()) {
+          this->onChunkReceived(
+              false, message->get_heartbeat().metadata().value());
+        } else {
+          this->onChunkReceived(true, std::nullopt);
+        }
+        break;
       case SubscriberMessage::Type::__EMPTY__:
         break;
     }

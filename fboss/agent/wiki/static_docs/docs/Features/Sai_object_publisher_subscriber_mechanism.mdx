@@ -1,0 +1,16 @@
+---
+id: Sai_object_publisher_subscriber_mechanism.mdx
+title: SAI Object Publisher Subscriber Mechanism
+---
+
+# SAI Object Publisher Subscriber Mechanism
+
+SAI or Switch Abstraction Interface models elements of traffic forwarding as objects. These objects typically have some relationship between them. The relation is that of either ownership or referencing.
+
+Example - a route is an object, which references a next hop or next hop group. Many routes may reference a next hop group. Next hop group is an object - which contains or owns next hop group member. Next hop group member references a next hop. FDB entry references a bridge port. But bridge port is owned by SAI port.
+
+Ownership relationship is modeled by “Has-A” or “aggregation” relationship. Example, next hop group contains next hop group members.
+
+However there is no easy way to model “references” relationship. Further this relationship is always enforced in SDK. Example - if next hop group member references a next hop, then deleting a next hop would fail. Example - if FDB entry references a bridge port, then removal of that bridge port will fail with in-use error.
+
+Similarly, a behavior may be needed for seemingly un-related objects as well. Example - neighbor and next hop group member. Neighbor gets unresolved, should lead to next hop group member getting deleted and subsequently next hop group shrinking. To facilitate this and other possibly complex dependencies, a mechanism has been introduced in SAI Switch. This uses Subscriber-Publisher model, where objects are subscribers, publishers or both. A subscriber subscribes for create or delete event of publisher and react to birth or death of publisher. Example - a neighbor is born, next hop is created, a next hop group member is created, next hop group expands. Conversely - a neighbor is deleted, next hop is removed, next hop group member dies and next hop group shrinks.

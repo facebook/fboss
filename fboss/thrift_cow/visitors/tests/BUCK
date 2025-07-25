@@ -74,7 +74,6 @@ cpp_unittest(
         "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
-        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
     ],
 )
 

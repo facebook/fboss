@@ -15,7 +15,6 @@
 #include "fboss/platform/platform_manager/PresenceChecker.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
-#include "fboss/platform/weutil/CachedFbossEepromParser.h"
 
 namespace facebook::fboss::platform::platform_manager {
 class PlatformExplorer {
@@ -28,6 +27,13 @@ class PlatformExplorer {
 
   auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
+
+  auto static constexpr kProductionState =
+      "platform_explorer.production_state.{}";
+  auto static constexpr kProductionSubState =
+      "platform_explorer.production_sub_state.{}";
+  auto static constexpr kVariantVersion =
+      "platform_explorer.variant_version.{}";
 
   auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
   auto static constexpr kFwVerErrorEmptyFile = "ERROR_EMPTY_FILE";
@@ -81,12 +87,17 @@ class PlatformExplorer {
   // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();
 
+  // Publish hardware versions read to ODS.
+  void publishHardwareVersions();
+
   // Get the last PlatformManagerStatus.
   PlatformManagerStatus getPMStatus() const;
 
   // Get the PmUnitInfo of the given SlotPath and PmUnitName.
   // throws if no PmUnit found at the SlotPath.
   PmUnitInfo getPmUnitInfo(const std::string& slotPath) const;
+
+  std::optional<DataStore> getDataStore() const;
 
  protected:
   virtual void updatePmStatus(const PlatformManagerStatus& newStatus);
@@ -121,7 +132,6 @@ class PlatformExplorer {
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_;
-  CachedFbossEepromParser eepromParser_{};
   DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;

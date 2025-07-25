@@ -5,12 +5,14 @@ namespace py neteng.fboss.hw_ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.hw_ctrl
 
+include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/agent/if/common.thrift"
-include "fboss/agent/if/fboss.thrift"
 include "fboss/agent/if/ctrl.thrift"
+include "fboss/agent/if/fboss.thrift"
+include "fboss/agent/if/highfreq.thrift"
+include "fboss/agent/switch_state.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/lib/phy/prbs.thrift"
-include "fboss/agent/switch_state.thrift"
 
 const i32 DEFAULT_HW_CTRL_BASE_PORT = 5931;
 
@@ -140,4 +142,31 @@ service FbossHwCtrl {
   switch_state.SwitchState reconstructSwitchState() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Get Firmware Information for all configured firmwares.
+   *
+   * List returns empty if no firmware is configured.
+   */
+  list<ctrl.FirmwareInfo> getAllHwFirmwareInfo() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * Start the high frequency stats collection.
+   */
+  void startHighFrequencyStatsCollection(
+    1: highfreq.HighFrequencyStatsCollectionConfig config,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Stop the high frequency stats collection thread.
+   */
+  void stopHighFrequencyStatsCollection() throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  list<hardware_stats.HwHighFrequencyStats> getHighFrequencyStats(
+    1: highfreq.GetHighFrequencyStatsOptions options,
+  ) throws (1: fboss.FbossBaseError error);
 }

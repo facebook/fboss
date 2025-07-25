@@ -2,11 +2,14 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
@@ -16,6 +19,7 @@
 
 #include <boost/range/combine.hpp>
 #include <folly/logging/xlog.h>
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
@@ -72,7 +76,7 @@ class AgentMirroringTest : public AgentHwTest {
 
   void sendPackets(int count, size_t payloadSize = 1) {
     auto params = utility::getMirrorTestParams<AddrT>();
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     std::vector<uint8_t> payload(payloadSize, 0xff);
@@ -117,7 +121,8 @@ class AgentMirroringTest : public AgentHwTest {
 
   template <typename T = AddrT>
   void resolveMirror(const std::string& mirrorName) {
-    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(getProgrammedState());
+    utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
     EXPECT_EQ(trafficPort, ecmpHelper.nhop(0).portDesc.phyPortID());
@@ -126,8 +131,9 @@ class AgentMirroringTest : public AgentHwTest {
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(mirrorToPort)};
-      return utility::EcmpSetupAnyNPorts<AddrT>(in).resolveNextHops(
-          in, nhopPorts);
+      return utility::EcmpSetupAnyNPorts<AddrT>(
+                 in, getSw()->needL2EntryForNeighbor())
+          .resolveNextHops(in, nhopPorts);
     });
     getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
     auto mirror = getSw()->getState()->getMirrors()->getNodeIf(mirrorName);
@@ -400,9 +406,9 @@ class AgentMirroringTest : public AgentHwTest {
 template <typename AddrT>
 class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::INGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -422,9 +428,9 @@ class AgentIngressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentIngressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::INGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::INGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -445,11 +451,11 @@ template <typename AddrT>
 class AgentIngressPortErspanMirroringTruncateTest
     : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::MIRROR_PACKET_TRUNCATION};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -469,11 +475,11 @@ class AgentIngressPortErspanMirroringTruncateTest
 template <typename AddrT>
 class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -493,11 +499,11 @@ class AgentIngressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::INGRESS_MIRRORING,
-        production_features::ProductionFeature::INGRESS_ACL_MIRRORING};
+        ProductionFeature::INGRESS_MIRRORING,
+        ProductionFeature::INGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -518,9 +524,9 @@ template <typename AddrT>
 class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -540,9 +546,9 @@ class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentEgressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::EGRESS_MIRRORING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -563,11 +569,11 @@ template <typename AddrT>
 class AgentEgressPortErspanMirroringTruncateTest
     : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION,
-        production_features::ProductionFeature::EGRESS_MIRRORING};
+        ProductionFeature::MIRROR_PACKET_TRUNCATION,
+        ProductionFeature::EGRESS_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -587,11 +593,11 @@ class AgentEgressPortErspanMirroringTruncateTest
 template <typename AddrT>
 class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::EGRESS_MIRRORING,
-        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
+        ProductionFeature::EGRESS_MIRRORING,
+        ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -611,11 +617,11 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::EGRESS_MIRRORING,
-        production_features::ProductionFeature::EGRESS_ACL_MIRRORING};
+        ProductionFeature::EGRESS_MIRRORING,
+        ProductionFeature::EGRESS_ACL_MIRRORING};
   }
 
   cfg::SwitchConfig initialConfig(
@@ -710,4 +716,182 @@ TYPED_TEST(
     TrucatePortErspanMirror) {
   this->testPortMirrorWithLargePacket(utility::kEgressErspan);
 }
+
+template <class AddrT>
+class AgentErspanIngressSamplingTest
+    : public AgentIngressPortErspanMirroringTruncateTest<AddrT> {
+ public:
+  using Base = AgentIngressPortErspanMirroringTruncateTest<AddrT>;
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = Base::getProductionFeaturesVerified();
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      features.push_back(ProductionFeature::ERSPANv4_SAMPLING);
+    } else if (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      features.push_back(ProductionFeature::ERSPANv6_SAMPLING);
+    }
+    return features;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentMirroringTest<AddrT>::initialConfig(ensemble);
+    utility::addMirrorConfig<AddrT>(
+        &cfg, ensemble, utility::kIngressErspan, false /* truncate */);
+    return cfg;
+  }
+
+  void configureSamping(cfg::SwitchConfig* config, int sampleRate) {
+    auto ensemble = this->getAgentEnsemble();
+    utility::configureSflowSampling(
+        *config,
+        utility::kIngressErspan,
+        {this->getTrafficPort(*ensemble)},
+        sampleRate);
+  }
+
+  void configureTrapAcl(cfg::SwitchConfig* config) {
+    auto ensemble = this->getAgentEnsemble();
+    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+    if (asic->isSupported(HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
+      utility::configureTrapAcl(
+          asic, *config, this->getMirrorToPort(*ensemble));
+    } else {
+      utility::configureTrapAcl(
+          asic, *config, std::is_same_v<AddrT, folly::IPAddressV4>);
+    }
+  }
+  bool isIngress() const override {
+    return true;
+  }
+
+  bool isV4() const {
+    return std::is_same_v<AddrT, folly::IPAddressV4>;
+  }
+};
+
+TYPED_TEST_SUITE(AgentErspanIngressSamplingTest, TestTypes);
+
+TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
+  auto kSampleRate = 1000;
+  auto setup = [=, this]() {
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    this->configureSamping(&config, kSampleRate);
+    this->applyNewConfig(config);
+    this->resolveMirror(utility::kIngressErspan);
+  };
+  auto verify = [=, this]() {
+    auto agentEnsemble = this->getAgentEnsemble();
+    auto trafficPort = this->getTrafficPort(*agentEnsemble);
+    auto mirrorToPort = this->getMirrorToPort(*agentEnsemble);
+    WITH_RETRIES({
+      auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+          utility::kIngressErspan);
+      ASSERT_NE(ingressMirror, nullptr);
+      EXPECT_EVENTUALLY_EQ(ingressMirror->isResolved(), true);
+    });
+    auto trafficPortPktStatsBefore = this->getLatestPortStats(trafficPort);
+    auto mirrorPortPktStatsBefore = this->getLatestPortStats(mirrorToPort);
+
+    auto trafficPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
+    auto mirroredPortPktsBefore = *mirrorPortPktStatsBefore.outUnicastPkts_();
+
+    this->sendPackets(3 * kSampleRate, 1000);
+
+    WITH_RETRIES({
+      auto trafficPortPktStatsAfter = this->getLatestPortStats(trafficPort);
+      auto trafficPortPktsAfter = *trafficPortPktStatsAfter.outUnicastPkts_();
+      EXPECT_EVENTUALLY_EQ(
+          3 * kSampleRate, trafficPortPktsAfter - trafficPortPktsBefore);
+    });
+
+    auto expectedMirrorPackets = 2; /* expect at least 2 packets */
+    WITH_RETRIES({
+      auto mirrorPortPktStatsAfter = this->getLatestPortStats(mirrorToPort);
+      auto mirroredPortPktsAfter = *mirrorPortPktStatsAfter.outUnicastPkts_();
+      EXPECT_EVENTUALLY_GE(
+          mirroredPortPktsAfter - mirroredPortPktsBefore,
+          expectedMirrorPackets);
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
+  auto setup = [=, this]() {
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    this->configureSamping(&config, 1000);
+    this->configureTrapAcl(&config);
+    this->applyNewConfig(config);
+    this->resolveMirror(utility::kIngressErspan);
+  };
+  auto verify = [=, this]() {
+    auto agentEnsemble = this->getAgentEnsemble();
+    auto mirrorToPort = this->getMirrorToPort(*agentEnsemble);
+    auto trafficPort = this->getTrafficPort(*agentEnsemble);
+
+    auto platformMapping =
+        this->getAgentEnsemble()->getSw()->getPlatformMapping();
+    auto platformPortEntry = platformMapping->getPlatformPort(trafficPort);
+    auto chips = platformMapping->getChips();
+    auto profileID = this->getAgentEnsemble()
+                         ->getProgrammedState()
+                         ->getPorts()
+                         ->getNode(trafficPort)
+                         ->getProfileID();
+    // Below is CHENAB specific computation
+    // ingress label port is calculated based on the lane as follows
+    // ingress label port = ((module + 1) << 4 | split)
+    // module is first lane / 8 and split is 0 or 1 depending on first lane
+    auto lanes = utility::getHwPortLanes(
+        platformPortEntry, profileID, chips, [](auto, auto lane) {
+          return lane;
+        });
+    auto module = lanes[0] / 8;
+    auto split = lanes[0] % 8;
+    auto ingressLabelPort = ((module + 1) << 4 | split);
+
+    WITH_RETRIES({
+      auto ingressMirror = this->getProgrammedState()->getMirrors()->getNodeIf(
+          utility::kIngressErspan);
+      ASSERT_NE(ingressMirror, nullptr);
+      EXPECT_EVENTUALLY_EQ(ingressMirror->isResolved(), true);
+    });
+
+    WITH_RETRIES({
+      utility::SwSwitchPacketSnooper snooper(
+          this->getSw(), "snooper", mirrorToPort);
+      snooper.ignoreUnclaimedRxPkts();
+      this->sendPackets(1000, 1000);
+      auto buf = snooper.waitForPacket(1);
+      if (buf.has_value()) {
+        // Intentionally dumping to develop deep packet inspection
+        XLOG(INFO) << PktUtil::hexDump(buf.value().get());
+        auto ensemble = this->getAgentEnsemble();
+        auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+          folly::io::Cursor cursor(buf.value().get());
+          cursor += 14; // skip ethernet header
+          if (this->isV4()) {
+            cursor += 20; // skip IPv4 header
+          } else {
+            cursor += 40; // skip IPv6 header
+          }
+          auto gre = cursor.readBE<uint32_t>(); // read gre proto
+          EXPECT_EQ(gre, 0x8949);
+          auto port = cursor.readBE<uint16_t>(); // ingress label port
+          EXPECT_EQ(port, ingressLabelPort);
+          auto opcode = cursor.readBE<uint8_t>(); // opcode
+          EXPECT_EQ(opcode, 0x1); // v1 erspan
+          cursor.readBE<uint8_t>(); // padding
+          cursor.readBE<uint8_t>(); // flags
+          cursor.readBE<uint8_t>(); // packet type
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(buf.has_value());
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

@@ -57,8 +57,9 @@ void SaiPhyManager::PlatformInfo::applyUpdate(
   auto newState = updateFn(oldState);
   if (newState) {
     try {
-      auto appliedState =
-          getHwSwitch()->stateChanged(StateDelta(oldState, newState));
+      std::vector<StateDelta> deltas;
+      deltas.emplace_back(oldState, newState);
+      auto appliedState = getHwSwitch()->stateChanged(deltas);
       setState(appliedState);
     } catch (const std::exception& e) {
       XLOG(FATAL) << "Failed to apply update: " << name
@@ -879,7 +880,7 @@ std::optional<HwPortStats> SaiPhyManager::getHwPortStats(
 std::string SaiPhyManager::listHwObjects(
     std::vector<HwObjectType>& hwObjects,
     bool cached) {
-  std::string resultStr = "";
+  std::string resultStr;
 
   // Loop through all pim platforms
   for (auto& pimPlatformItr : saiPlatforms_) {
@@ -955,7 +956,8 @@ void SaiPhyManager::setPortPrbs(
   if (prbs.enabled().value()) {
     SaiApiTable::getInstance()->portApi().setAttribute(
         portAdapterKey,
-        SaiPortTraits::Attributes::PrbsPolynomial{prbs.polynominal().value()});
+        SaiPortTraits::Attributes::PrbsPolynomial{
+            static_cast<sai_uint32_t>(prbs.polynominal().value())});
   }
   SaiApiTable::getInstance()->portApi().setAttribute(
       portAdapterKey,
@@ -1110,6 +1112,12 @@ void SaiPhyManager::gracefulExit() {
     // Loop through all xphy in the pim
     for (auto& platformItr : pimPlatform) {
       GlobalXphyID xphyID = platformItr.first;
+#ifndef CREDO_SDK_0_9_0
+      if (getSaiPlatform(xphyID)->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+        return;
+      }
+#endif
       if (!getSaiPlatform(xphyID)->getAsic()->isSupported(
               HwAsic::Feature::WARMBOOT)) {
         XLOG(DBG3) << "gracefulExit: Warmboot not supported for this platform";

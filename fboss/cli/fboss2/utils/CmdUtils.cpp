@@ -9,16 +9,12 @@
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <folly/stop_watch.h>
 #include "folly/Conv.h"
 
 #include <folly/logging/LogConfig.h>
-#include <folly/logging/LoggerDB.h>
-#include <folly/logging/xlog.h>
 
 #include <re2/re2.h>
 #include <chrono>
-#include <fstream>
 #include <string>
 
 using namespace std::chrono;
@@ -305,12 +301,12 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
     for (const auto& extPath : *subExtPaths) {
       std::vector<std::string> pathElements;
       for (const auto& pathElm : *extPath.path()) {
-        if (pathElm.any_ref().has_value()) {
+        if (pathElm.any().has_value()) {
           pathElements.push_back("*");
-        } else if (pathElm.regex_ref().has_value()) {
-          pathElements.push_back(*pathElm.regex_ref());
+        } else if (pathElm.regex().has_value()) {
+          pathElements.push_back(*pathElm.regex());
         } else {
-          pathElements.push_back(*pathElm.raw_ref());
+          pathElements.push_back(*pathElm.raw());
         }
       }
       extPaths.push_back(folly::join("/", pathElements));
@@ -390,22 +386,26 @@ bool isVoqOrFabric(cfg::SwitchType switchType) {
       switchType == cfg::SwitchType::FABRIC;
 }
 
+bool isFabricSwitch(cfg::SwitchType switchType) {
+  return switchType == cfg::SwitchType::FABRIC;
+}
+
 std::map<std::string, FabricEndpoint> getFabricEndpoints(
     const HostInfo& hostInfo) {
   std::map<std::string, FabricEndpoint> entries;
-  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
-    auto hwAgentQueryFn =
-        [&entries](
-            apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-          std::map<std::string, FabricEndpoint> hwagentEntries;
-          client.sync_getHwFabricConnectivity(hwagentEntries);
-          entries.merge(hwagentEntries);
-        };
-    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
-  } else {
-    utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo)
-        ->sync_getFabricConnectivity(entries);
-  }
+
+  // FbossHwCtrl thrift endpoint is available whether or not multi_switch
+  // feature is enabled. Leverage it.
+  // Collecting such information from HwAgent is more efficient, and thus
+  // preferred as SwSwitch call would just be a passthrough.
+  auto hwAgentQueryFn =
+      [&entries](apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::map<std::string, FabricEndpoint> hwagentEntries;
+        client.sync_getHwFabricConnectivity(hwagentEntries);
+        entries.merge(hwagentEntries);
+      };
+  utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+
   return entries;
 }
 
@@ -430,6 +430,53 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   }
 #endif
   return counters;
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+getCachedSwSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames) {
+  // Query swAgent for cached reachability information
+  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+
+  std::map<std::string, std::vector<std::string>> reachability;
+  client->sync_getSwitchReachability(reachability, switchNames);
+  for (auto& [switchName, reachablePorts] : reachability) {
+    reachabilityMatrix[switchName].insert(
+        reachabilityMatrix[switchName].end(),
+        reachablePorts.begin(),
+        reachablePorts.end());
+  }
+
+  return reachabilityMatrix;
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+getUncachedSwitchReachabilityInfo(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& switchNames) {
+  std::unordered_map<std::string, std::vector<std::string>> reachabilityMatrix;
+  auto hwAgentQueryFn =
+      [&reachabilityMatrix, &switchNames](
+          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+        std::map<std::string, std::vector<std::string>> reachability;
+        client.sync_getHwSwitchReachability(reachability, switchNames);
+        for (auto& [switchName, reachablePorts] : reachability) {
+          reachabilityMatrix[switchName].insert(
+              reachabilityMatrix[switchName].end(),
+              reachablePorts.begin(),
+              reachablePorts.end());
+        }
+      };
+
+  try {
+    utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+  } catch (const std::exception& e) {
+    std::cerr << e.what();
+  }
+  return reachabilityMatrix;
 }
 
 } // namespace facebook::fboss::utils

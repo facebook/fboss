@@ -25,7 +25,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), kRid);
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor(), kRid);
     for (auto i = 0; i < kEcmpWidth4; i++) {
       ports_[i] = masterLogicalInterfacePortIds()[i];
     }
@@ -57,7 +57,12 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
       tcpPortsForSai_[2] = {10002, 10014};
       tcpPortsForSai_[3] = {10002, 10002};
       udpPortsForSai_ = tcpPortsForSai_;
-
+    } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      tcpPortsForSai_[0] = {10000, 10000};
+      tcpPortsForSai_[1] = {10002, 10002};
+      tcpPortsForSai_[2] = {10003, 10003};
+      tcpPortsForSai_[3] = {10001, 10001};
+      udpPortsForSai_ = tcpPortsForSai_;
     } else {
       tcpPortsForSai_[0] = {10003, 10003};
       tcpPortsForSai_[1] = {10000, 10000};
@@ -114,7 +119,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   }
 
   void sendFlowWithPort(uint16_t l4SrcPort, uint16_t l4DstPort, FlowType type) {
-    auto vlanId = utility::firstVlanIDWithPorts(initialConfig());
+    auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto dstMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
 
@@ -251,23 +256,32 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
     resolveNhop(1 /* nhop1 */, true /* resolve */);
   };
   auto verify = [this]() {
+    auto asicType = getPlatform()->getAsic()->getAsicType();
+    std::vector<int> flows_to_verify;
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Choose two flows that are split to different next hops.
+      flows_to_verify = {0, 2};
+    } else {
+      flows_to_verify = {0, 1};
+    }
+
     clearPortStats();
-    sendFlow(0 /* flow 0 */, FlowType::TCP);
-    sendFlow(1 /* flow 0 */, FlowType::TCP);
+    sendFlow(flows_to_verify[0], FlowType::TCP);
+    sendFlow(flows_to_verify[1], FlowType::TCP);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, false /* unresolve */);
-    sendFlow(0 /* flow 0 */, FlowType::TCP);
-    sendFlow(1 /* flow 0 */, FlowType::TCP);
+    sendFlow(flows_to_verify[0], FlowType::TCP);
+    sendFlow(flows_to_verify[1], FlowType::TCP);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
-    sendFlow(0 /* flow 0 */, FlowType::TCP);
-    sendFlow(1 /* flow 0 */, FlowType::TCP);
+    sendFlow(flows_to_verify[0], FlowType::TCP);
+    sendFlow(flows_to_verify[1], FlowType::TCP);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
   };
@@ -298,23 +312,32 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
     resolveNhop(1 /* nhop0 */, true /* resolve */);
   };
   auto verify = [this]() {
+    auto asicType = getPlatform()->getAsic()->getAsicType();
+    std::vector<int> flows_to_verify;
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // Choose two flows that are split to different next hops.
+      flows_to_verify = {0, 2};
+    } else {
+      flows_to_verify = {0, 1};
+    }
+
     clearPortStats();
-    sendFlow(0 /* flow 0 */, FlowType::UDP);
-    sendFlow(1 /* flow 0 */, FlowType::UDP);
+    sendFlow(flows_to_verify[0], FlowType::UDP);
+    sendFlow(flows_to_verify[1], FlowType::UDP);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, false /* unresolve */);
-    sendFlow(0 /* flow 0 */, FlowType::UDP);
-    sendFlow(1 /* flow 0 */, FlowType::UDP);
+    sendFlow(flows_to_verify[0], FlowType::UDP);
+    sendFlow(flows_to_verify[1], FlowType::UDP);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
-    sendFlow(0 /* flow 0 */, FlowType::UDP);
-    sendFlow(1 /* flow 0 */, FlowType::UDP);
+    sendFlow(flows_to_verify[0], FlowType::UDP);
+    sendFlow(flows_to_verify[1], FlowType::UDP);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
   };
@@ -324,6 +347,11 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
 TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
   auto setup = [this]() { setupHashAndProgramRoute(); };
   auto verify = [this]() {
+    // unresolve all next hops
+    for (auto i = 0; i < 4; i++) {
+      resolveNhop(i /* nhop0 */, false /* resolve */);
+    }
+    // resolve next hops
     for (auto i = 0; i < 4; i++) {
       resolveNhop(i /* nhop0 */, true /* resolve */);
     }
@@ -333,16 +361,33 @@ TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
     EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
 
     clearPortStats();
-
+    // unresolve all next hops
     for (auto i = 0; i < 4; i++) {
       resolveNhop(i /* nhopi */, false /* resolve */);
     }
+    // resolve next hops in reverse order
     for (auto i = 3; i >= 0; i--) {
       resolveNhop(i /* nhop0 */, true /* resolve */);
     }
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+
+    auto asicType = getPlatform()->getAsic()->getAsicType();
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      /* On Chenab when next hops are programmed using
+      SAI_NEXT_HOP_GROUP_TYPE_DYNAMIC_UNORDERED_ECMP the order of next hops in
+      the group is the order in which they are programmed and so the flow moves
+      to port 3.*/
+      EXPECT_EQ(
+          utility::getPortOutPkts(this->getLatestPortStats(ports_[3])), 2);
+    } else {
+      /* On other implementations when next hops are programmed using
+      SAI_NEXT_HOP_GROUP_TYPE_DYNAMIC_UNORDERED_ECMP the order of next hops in
+      the group is in order of physical output port so the flow remains on port
+      0.*/
+      EXPECT_EQ(
+          utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }

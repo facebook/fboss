@@ -18,14 +18,12 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -1021,7 +1019,7 @@ TYPED_TEST(NdpTest, FlushEntry) {
         sw, IPAddressV6("2401:db00:2110:3004::c"), intfID);
     binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
     // NDP removal should trigger a static MAC entry removal
-    EXPECT_STATE_UPDATE_TIMES(sw, 2);
+    EXPECT_STATE_UPDATE_TIMES(sw, 1);
     numFlushed = thriftHandler.flushNeighborEntry(
         make_unique<BinaryAddress>(binAddr), 0);
     EXPECT_EQ(numFlushed, 1);
@@ -1088,8 +1086,9 @@ TYPED_TEST(NdpTest, FlushEntry) {
     WaitForNdpEntryExpiration neighbor2Expire(
         sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
     binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
-    // NDP removal should trigger a static MAC entry removal
-    EXPECT_STATE_UPDATE_TIMES(sw, 2);
+    // NDP removal should trigger a static MAC entry removal in the same
+    // transaction
+    EXPECT_STATE_UPDATE_TIMES(sw, 1);
     numFlushed = thriftHandler.flushNeighborEntry(
         make_unique<BinaryAddress>(binAddr), 0);
     EXPECT_EQ(numFlushed, 1);

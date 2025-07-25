@@ -13,4 +13,7 @@ namespace facebook::fboss::platform::helpers {
 // --help. Refer to FLAGS_helpmatch in gflags.cc for more details.
 void initCli(int* argc, char*** argv, const std::string& helpmatch);
 
+// Adds a build version `--version` flag to the CLI.
+std::string getBuildVersion();
+
 } // namespace facebook::fboss::platform::helpers

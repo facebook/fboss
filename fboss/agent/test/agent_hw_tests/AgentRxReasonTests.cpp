@@ -43,9 +43,9 @@ class AgentRxReasonTests : public AgentHwTest {
     return config;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::COPP};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::COPP};
   }
 
   // Because number of RX reasons is modified across WB, repopulating priority

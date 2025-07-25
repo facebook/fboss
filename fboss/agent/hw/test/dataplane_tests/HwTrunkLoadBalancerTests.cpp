@@ -24,8 +24,6 @@
 
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/Optional.h>
-
 #include <boost/container/flat_set.hpp>
 
 #include <vector>
@@ -200,15 +198,19 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
   }
 
   void setupIPECMP(AggPortInfo aggInfo) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
     programRoutes(ecmpHelper6, aggInfo);
     programRoutes(ecmpHelper4, aggInfo);
   }
 
   void setupIP2MPLSECMP(AggPortInfo aggInfo) {
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-    utility::EcmpSetupTargetedPorts4 ecmpHelper4{getProgrammedState()};
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
+    utility::EcmpSetupTargetedPorts4 ecmpHelper4{
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor()};
     programIp2MplsRoutes(ecmpHelper6, aggInfo);
     programIp2MplsRoutes(ecmpHelper4, aggInfo);
   }
@@ -216,18 +218,22 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
   void setupMPLSECMP(AggPortInfo aggInfo) {
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4SwapHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV4TopSwap,
         LabelForwardingAction::LabelForwardingType::SWAP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV6> v6SwapHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV6TopSwap,
         LabelForwardingAction::LabelForwardingType::SWAP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v4PhpHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV4TopPhp,
         LabelForwardingAction::LabelForwardingType::PHP};
     utility::MplsEcmpSetupTargetedPorts<folly::IPAddressV4> v6PhpHelper{
         getProgrammedState(),
+        getHwSwitch()->needL2EntryForNeighbor(),
         kV6TopPhp,
         LabelForwardingAction::LabelForwardingType::PHP};
     programMplsRoutes(v4SwapHelper, aggInfo);
@@ -499,200 +505,6 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
  * %2 for selecting the trunk member, we would always end up selecting the
  * first link.
  */
-// ECMP full hash, Trunk half hash tests
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X3WideTrunksV6CpuTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs);
-}
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X3WideTrunksV4CpuTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6MPLS,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4MPLS,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Swap,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Swap,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Php,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Php,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X3WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X2WideTrunksV6CpuTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs);
-}
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalfHash4X2WideTrunksV4CpuTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4FrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv6MPLS,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::IPv4MPLS,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Swap,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Swap,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v6MPLS4Php,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort */);
-}
-
-TEST_F(
-    HwTrunkLoadBalancerTest,
-    ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic) {
-  runLoadBalanceTest(
-      TrafficType::v4MPLS4Php,
-      getEcmpFullTrunkHalfHashConfig({getPlatform()->getAsic()}),
-      k4X2WideAggs,
-      true /* loopThroughFrontPanelPort*/);
-}
 
 // ECMP half hash, Trunk full hash tests
 TEST_F(

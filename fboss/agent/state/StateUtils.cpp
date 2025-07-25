@@ -9,7 +9,8 @@
  */
 
 #include "fboss/agent/state/StateUtils.h"
-#include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchMatcher.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
@@ -49,17 +50,6 @@ folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state) {
   auto intfID = firstInterfaceIDWithPorts(state);
   return getInterfaceMac(state, intfID);
-}
-
-std::optional<VlanID> firstVlanIDWithPorts(
-    const std::shared_ptr<SwitchState>& state) {
-  std::optional<VlanID> firstVlanId;
-  auto intfID = firstInterfaceIDWithPorts(state);
-  auto intf = state->getInterfaces()->getNode(intfID);
-  if (intf->getType() == cfg::InterfaceType::VLAN) {
-    firstVlanId = intf->getVlanID();
-  }
-  return firstVlanId;
 }
 
 InterfaceID firstInterfaceIDWithPorts(
@@ -110,5 +100,11 @@ std::vector<folly::IPAddressV6> getIntfAddrsV6(
     }
   }
   return addrs;
+}
+
+std::shared_ptr<Interface> firstInterfaceWithPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  auto intfID = utility::firstInterfaceIDWithPorts(state);
+  return state->getInterfaces()->getNodeIf(intfID);
 }
 } // namespace facebook::fboss::utility

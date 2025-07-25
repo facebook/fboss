@@ -2657,3 +2657,73 @@ TEST_F(RouteTest, ClassIDTest) {
   EXPECT_EQ(rt10->getForwardInfo().getClassID(), std::nullopt);
   EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->getClassID());
 }
+
+TEST_F(RouteTest, routePrune) {
+  auto u1 = this->sw_->getRouteUpdater();
+  FLAGS_enable_capacity_pruning = true;
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.0"), 24};
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.plane_id() = 0;
+  topologyInfo.rack_id() = 1;
+  topologyInfo.remote_rack_capacity() = 0;
+  topologyInfo.spine_capacity() = 0;
+  topologyInfo.local_rack_capacity() = 3;
+
+  auto nexthop1 =
+      makeResolvedNextHop(InterfaceID(1), "1.1.1.1", 1, topologyInfo);
+  auto nexthop2 =
+      makeResolvedNextHop(InterfaceID(2), "2.2.2.1", 1, topologyInfo);
+  auto nexthop3 =
+      makeResolvedNextHop(InterfaceID(3), "3.3.3.1", 1, topologyInfo);
+  auto nexthop4 =
+      makeResolvedNextHop(InterfaceID(4), "4.4.4.1", 1, topologyInfo);
+
+  RouteNextHopSet nexthops1;
+  nexthops1.emplace(nexthop1);
+  nexthops1.emplace(nexthop2);
+  nexthops1.emplace(nexthop3);
+  nexthops1.emplace(nexthop4);
+
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.0"),
+      24,
+      ClientID(0),
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  u1.program();
+
+  auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  int numPrunedPaths = 0;
+  for (auto& nhop : rt10->getForwardInfo().getNextHopSet()) {
+    if (nhop.adjustedWeight().has_value() && *nhop.adjustedWeight() == 0) {
+      numPrunedPaths++;
+    }
+  }
+  EXPECT_EQ(numPrunedPaths, 1);
+}
+
+TEST_F(RouteTest, invalidRouteWeights) {
+  auto u1 = this->sw_->getRouteUpdater();
+  FLAGS_enable_capacity_pruning = true;
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.0"), 24};
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.plane_id() = 0;
+  topologyInfo.rack_id() = 0;
+  topologyInfo.remote_rack_capacity() = 0;
+  topologyInfo.spine_capacity() = 0;
+  topologyInfo.local_rack_capacity() = 3;
+
+  RouteNextHopSet nexthops;
+  nexthops.emplace(
+      makeResolvedNextHop(InterfaceID(1), "1.1.1.1", 1, topologyInfo));
+
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.0"),
+      24,
+      ClientID(0),
+      RouteNextHopEntry(nexthops, DISTANCE));
+  EXPECT_THROW(u1.program(), FbossError);
+}

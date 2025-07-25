@@ -10,8 +10,6 @@
 #include "fboss/agent/mnpu/SplitAgentThriftSyncerClient.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
-#include <folly/IPAddress.h>
-#include <netinet/in.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
@@ -20,6 +18,11 @@ DEFINE_int32(
     hwagent_reconnect_ms,
     1000,
     "reconnect to swswitch in milliseconds");
+
+DEFINE_int32(
+    hwagent_heartbeat_interval_ms,
+    1000,
+    "heartbeat interval for sink and stream in milliseconds");
 } // namespace
 
 namespace facebook::fboss {
@@ -31,7 +34,7 @@ SplitAgentThriftClient::SplitAgentThriftClient(
     const std::string& counterPrefix,
     StreamStateChangeCb stateChangeCb,
     uint16_t serverPort,
-    SwitchID switchId)
+    const SwitchID& switchId)
     : ReconnectingThriftClient(
           clientId,
           streamEvbThread->getEventBase(),
@@ -43,12 +46,25 @@ SplitAgentThriftClient::SplitAgentThriftClient(
       streamEvbThread_(streamEvbThread),
       serverPort_(serverPort),
       switchId_(switchId) {
+  counterPrefix_ = counterPrefix;
+  auto thriftClientHeartbeatFunc = [](int /* unused */, int /* unused */) {};
+
+  thriftClientHeartbeat_ = std::make_shared<ThreadHeartbeat>(
+      streamEvbThread_->getEventBase(),
+      counterPrefix_,
+      FLAGS_hwagent_heartbeat_interval_ms,
+      thriftClientHeartbeatFunc);
+
   setConnectionOptions(utils::ConnectionOptions("::1", serverPort_));
   scheduleTimeout();
 }
 
 SplitAgentThriftClient::~SplitAgentThriftClient() {}
 
+std::shared_ptr<ThreadHeartbeat>
+SplitAgentThriftClient::getThriftClientHeartbeat() {
+  return thriftClientHeartbeat_;
+}
 void SplitAgentThriftClient::connectClient(
     const utils::ConnectionOptions& options) {
   auto channel = apache::thrift::PooledRequestChannel::newChannel(
@@ -147,14 +163,18 @@ ThriftSinkClient<CallbackObjectT, EventQueueT>::ThriftSinkClient(
       connectFn_(std::move(connectFn)),
       eventsDroppedCount_(
           folly::to<std::string>(
-              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              multiSwitchStatsPrefix.has_value()
+                  ? multiSwitchStatsPrefix.value()
+                  : "",
               name,
               ".events_dropped"),
           fb303::SUM,
           fb303::RATE),
       eventSentCount_(
           folly::to<std::string>(
-              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              multiSwitchStatsPrefix.has_value()
+                  ? multiSwitchStatsPrefix.value()
+                  : "",
               name,
               ".events_sent"),
           fb303::SUM,
@@ -263,7 +283,9 @@ ThriftStreamClient<StreamObjectT>::ThriftStreamClient(
       eventReceivedCount_(
 
           folly::to<std::string>(
-              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              multiSwitchStatsPrefix.has_value()
+                  ? multiSwitchStatsPrefix.value()
+                  : "",
               name,
               ".events_received"),
           fb303::SUM,

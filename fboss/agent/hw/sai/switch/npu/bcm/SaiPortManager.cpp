@@ -5,13 +5,11 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -19,7 +17,6 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <folly/logging/xlog.h>
 
@@ -31,7 +28,7 @@ namespace facebook::fboss {
 // API. However their dependent objects such as bridge ports, fdb entries  etc.
 // must act as if the port has been removed. So notify those objects to mimic
 // port removal.
-void SaiPortManager::addRemovedHandle(PortID portID) {
+void SaiPortManager::addRemovedHandle(const PortID& portID) {
   auto itr = handles_.find(portID);
   CHECK(itr != handles_.end());
   itr->second->queues.clear();
@@ -45,7 +42,7 @@ void SaiPortManager::addRemovedHandle(PortID portID) {
 // Before adding port, remove the port from removedHandles_. This also deletes
 // the port and invokes SAI's remove port API. This is acceptable, because port
 // will be added again with new lanes later.
-void SaiPortManager::removeRemovedHandleIf(PortID portID) {
+void SaiPortManager::removeRemovedHandleIf(const PortID& portID) {
   removedHandles_.erase(portID);
 }
 
@@ -182,7 +179,7 @@ void SaiPortManager::changePortFlowletConfig(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   if (!FLAGS_flowletSwitchingEnable ||
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FLOWLET)) {
+      !platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     return;
   }
 
@@ -233,5 +230,7 @@ void SaiPortManager::changePortFlowletConfig(
     XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();
   }
 }
+
+void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
 
 } // namespace facebook::fboss

@@ -70,7 +70,7 @@ TEST_F(DsfSubscriberTest, addSubscription) {
   auto verifySubscriptionState = [&](cfg::DsfNode& nodeConfig,
                                      const auto& subscriptionInfoList) {
     auto ipv6Loopback = (*nodeConfig.loopbackIps())[0];
-    auto serverStr = ipv6Loopback.substr(0, ipv6Loopback.find("/"));
+    auto serverStr = ipv6Loopback.substr(0, ipv6Loopback.find('/'));
     for (const auto& subscriptionInfo : subscriptionInfoList) {
       if (subscriptionInfo.server == serverStr) {
         EXPECT_EQ(subscriptionInfo.paths.size(), 3);

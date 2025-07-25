@@ -10,9 +10,12 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEcmpSpilloverTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEgressForwardingDiscardCounterTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentArsBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentFlowletSwitchingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteOverDifferentAddressFamilyNhopTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentJumboFramesTests.cpp
@@ -71,6 +74,10 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwParityErrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentIpInIpTunnelTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwPtpTcTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwUdfTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentArsFlowletTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentRouterInterfaceCounterTest.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -106,6 +113,7 @@ target_link_libraries(agent_hw_test_src
   invariant_test_utils
   prod_config_factory
   port_test_utils
+  udf_test_utils
   state
   stats
   route_scale_gen
@@ -119,12 +127,15 @@ target_link_libraries(agent_hw_test_src
   port_stats_test_utils
   utils
   sflow_shim_utils
+  udf_test_utils
   pktutil
   mirror_test_utils
   dsf_config_utils
   voq_test_utils
   fib_updater
   ecmp_test_utils
+  scale_test_utils
+  neighbor_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test

@@ -59,7 +59,7 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
   void SetUp() override {
     BcmLinkStateDependentTests::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
-        getProgrammedState(), kRid);
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor(), kRid);
   }
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
@@ -89,7 +89,8 @@ const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
   for (const auto& nhop : resolvedRoute->getForwardInfo().getNextHopSet()) {
     nhops.insert(ResolvedNextHop(nhop.addr(), nhop.intf(), ws[nhop.addr()]));
   }
-  return multiPathTable->getNextHop(BcmMultiPathNextHopKey(kRid, nhops));
+  return multiPathTable->getNextHop(
+      BcmMultiPathNextHopKey(kRid, nhops, std::nullopt));
 }
 
 const BcmEcmpEgress* BcmEcmpTest::getEcmpEgress() const {

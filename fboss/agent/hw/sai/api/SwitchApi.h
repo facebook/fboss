@@ -23,6 +23,8 @@
 #include <tuple>
 #include <vector>
 
+#include <fmt/format.h>
+
 extern "C" {
 #include <sai.h>
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
@@ -405,6 +407,16 @@ struct SaiSwitchTraits {
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    using AsicTemperatureList = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_TEMP_LIST,
+        std::vector<sai_int32_t>,
+        SaiU32ListDefault>;
+    using NumTemperatureSensors = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS,
+        sai_uint8_t,
+        SaiS8ListDefault>;
     /* extension attributes */
     struct AttributeLedIdWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -424,12 +436,12 @@ struct SaiSwitchTraits {
     using AclFieldList = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeAclFieldListWrapper>;
-    struct AttributeEgressPoolAvaialableSizeIdWrapper {
+    struct AttributeEgressPoolAvailableSizeIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    using EgressPoolAvaialableSize = SaiExtensionAttribute<
+    using EgressPoolAvailableSize = SaiExtensionAttribute<
         sai_uint32_t,
-        AttributeEgressPoolAvaialableSizeIdWrapper>;
+        AttributeEgressPoolAvailableSizeIdWrapper>;
 
     struct HwEccErrorInitiateWrapper {
       std::optional<sai_attr_id_t> operator()();
@@ -570,6 +582,23 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_ARS_PROFILE,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    using PtpMode = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_PTP_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+    using RegFatalSwitchAsicSdkHealthCategory = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY,
+        std::vector<sai_int32_t>,
+        SaiU32ListDefault>;
+    using RegNoticeSwitchAsicSdkHealthCategory = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY,
+        std::vector<sai_int32_t>,
+        SaiU32ListDefault>;
 #endif
     struct AttributeReachabilityGroupList {
       std::optional<sai_attr_id_t> operator()();
@@ -727,13 +756,76 @@ struct SaiSwitchTraits {
         std::vector<sai_map_t>,
         AttributeTcRateLimitList,
         SaiListDefault<sai_map_list_t>>;
-    struct AttributePfcTcDldTimerInterval {
+    struct AttributePfcTcDldTimerGranularityInterval {
       std::optional<sai_attr_id_t> operator()();
     };
-    using PfcTcDldTimerInterval = SaiExtensionAttribute<
+    using PfcTcDldTimerGranularityInterval = SaiExtensionAttribute<
         std::vector<sai_map_t>,
-        AttributePfcTcDldTimerInterval,
+        AttributePfcTcDldTimerGranularityInterval,
         SaiListDefault<sai_map_list_t>>;
+    struct AttributeNumberOfPipes {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using NumberOfPipes = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeNumberOfPipes,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributePipelineObjectList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PipelineObjectList = SaiExtensionAttribute<
+        std::vector<sai_object_id_t>,
+        AttributePipelineObjectList,
+        SaiObjectIdListDefault>;
+
+    struct AttributeDisableSllAndHllTimeout {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using DisableSllAndHllTimeout = SaiExtensionAttribute<
+        bool,
+        AttributeDisableSllAndHllTimeout,
+        SaiBoolDefaultFalse>;
+    struct AttributeAsicRevision {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AsicRevision =
+        SaiExtensionAttribute<sai_uint32_t, AttributeAsicRevision>;
+    struct AttributeCreditRequestProfileSchedulerMode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CreditRequestProfileSchedulerMode = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCreditRequestProfileSchedulerMode,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeModuleIdToCreditRequestProfileParamList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ModuleIdToCreditRequestProfileParamList = SaiExtensionAttribute<
+        std::vector<sai_map_t>,
+        AttributeModuleIdToCreditRequestProfileParamList,
+        SaiListDefault<sai_map_list_t>>;
+    //
+    struct AttributeTriggerSimulatedEccCorrectableError {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TriggerSimulatedEccCorrectableError = SaiExtensionAttribute<
+        bool,
+        AttributeTriggerSimulatedEccCorrectableError>;
+    //
+
+    struct AttributeTriggerSimulatedEccUnCorrectableError {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TriggerSimulatedEccUnCorrectableError = SaiExtensionAttribute<
+        bool,
+        AttributeTriggerSimulatedEccUnCorrectableError>;
+    //
+    struct AttributeDefaultCpuEgressBufferPool {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using DefaultCpuEgressBufferPool = SaiExtensionAttribute<
+        sai_object_id_t,
+        AttributeDefaultCpuEgressBufferPool>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -803,6 +895,9 @@ struct SaiSwitchTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::optional<Attributes::ArsProfile>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      std::optional<Attributes::PtpMode>,
+#endif
       std::optional<Attributes::ReachabilityGroupList>,
       std::optional<Attributes::DelayDropCongThreshold>,
       std::optional<Attributes::FabricLinkLayerFlowControlThreshold>,
@@ -825,20 +920,23 @@ struct SaiSwitchTraits {
       std::optional<Attributes::SdkRegDumpLogPath>,
       std::optional<Attributes::FirmwareObjectList>,
       std::optional<Attributes::TcRateLimitList>,
-      std::optional<Attributes::PfcTcDldTimerInterval>>;
+      std::optional<Attributes::PfcTcDldTimerGranularityInterval>,
+      std::optional<Attributes::DisableSllAndHllTimeout>,
+      std::optional<Attributes::CreditRequestProfileSchedulerMode>,
+      std::optional<Attributes::ModuleIdToCreditRequestProfileParamList>>;
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  static constexpr std::array<sai_stat_id_t, 3> CounterIdsToRead = {
-      SAI_SWITCH_STAT_REACHABILITY_DROP,
-      SAI_SWITCH_STAT_GLOBAL_DROP,
-      SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP,
-  };
-#else
+  // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
+  // both DramPacketError and EgressRcvPacketError. As we now have a
+  // dedicated counter to track DramPacketError, will need to use the
+  // new SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR to get the EgressRcvPacketError
+  // alone which tracks the reassembly drops.
+  // Note: DramPacketError is a COR counter and was getting cleared when
+  // SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP was used, hence had to fork
+  // a new counter for EgressRcvPacketError alone.
   static constexpr std::array<sai_stat_id_t, 2> CounterIdsToRead = {
       SAI_SWITCH_STAT_REACHABILITY_DROP,
       SAI_SWITCH_STAT_GLOBAL_DROP,
   };
-#endif
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
   static const std::vector<sai_stat_id_t>& dramStats();
   static const std::vector<sai_stat_id_t>& rciWatermarkStats();
@@ -852,6 +950,8 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& egressNonFabricCellError();
   static const std::vector<sai_stat_id_t>& egressNonFabricCellUnpackError();
   static const std::vector<sai_stat_id_t>& egressParityCellError();
+  static const std::vector<sai_stat_id_t>& ddpPacketError();
+  static const std::vector<sai_stat_id_t>& packetIntegrityError();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -912,7 +1012,7 @@ SAI_ATTRIBUTE_NAME(Switch, TamObject)
 SAI_ATTRIBUTE_NAME(Switch, NumberOfFabricPorts)
 SAI_ATTRIBUTE_NAME(Switch, FabricPortList)
 SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
-SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
+SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvailableSize)
 SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
 
 SAI_ATTRIBUTE_NAME(Switch, FirmwareCoreToUse)
@@ -966,6 +1066,11 @@ SAI_ATTRIBUTE_NAME(Switch, VoqLatencyMaxLevel2Ns)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(Switch, ArsProfile)
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(Switch, PtpMode)
+SAI_ATTRIBUTE_NAME(Switch, RegFatalSwitchAsicSdkHealthCategory)
+SAI_ATTRIBUTE_NAME(Switch, RegNoticeSwitchAsicSdkHealthCategory)
+#endif
 SAI_ATTRIBUTE_NAME(Switch, ReachabilityGroupList)
 SAI_ATTRIBUTE_NAME(Switch, FabricLinkLayerFlowControlThreshold)
 SAI_ATTRIBUTE_NAME(Switch, SramFreePercentXoffTh)
@@ -989,10 +1094,94 @@ SAI_ATTRIBUTE_NAME(Switch, SflowAggrNofSamples)
 SAI_ATTRIBUTE_NAME(Switch, SdkRegDumpLogPath)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareObjectList)
 SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
-SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerInterval)
+SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
+SAI_ATTRIBUTE_NAME(Switch, NumberOfPipes)
+SAI_ATTRIBUTE_NAME(Switch, PipelineObjectList)
+SAI_ATTRIBUTE_NAME(Switch, DisableSllAndHllTimeout)
+SAI_ATTRIBUTE_NAME(Switch, AsicRevision)
+SAI_ATTRIBUTE_NAME(Switch, CreditRequestProfileSchedulerMode)
+SAI_ATTRIBUTE_NAME(Switch, ModuleIdToCreditRequestProfileParamList)
+SAI_ATTRIBUTE_NAME(Switch, AsicTemperatureList)
+SAI_ATTRIBUTE_NAME(Switch, NumTemperatureSensors)
+
+SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccCorrectableError)
+SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccUnCorrectableError)
+SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+using SaiGeneralHealthData = std::monostate;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+struct SaiSerHealthData {
+  explicit SaiSerHealthData(sai_ser_health_data_t data)
+      : sai_ser_health_data(std::move(data)) {}
+  std::string toString() const;
+  sai_ser_health_data_t sai_ser_health_data;
+};
+
+using SaiHealthData = std::variant<SaiGeneralHealthData, SaiSerHealthData>;
+#else
+using SaiHealthData = std::variant<SaiGeneralHealthData>;
+#endif
+
+struct SaiHealthNotification {
+  SaiHealthNotification(
+      SaiTimeSpec saiTimeSpec,
+      const sai_switch_asic_sdk_health_severity_t& severity,
+      const sai_switch_asic_sdk_health_category_t& category,
+      const sai_switch_health_data_t& data,
+      const sai_u8_list_t& description);
+
+  std::string toString() const;
+
+  sai_switch_asic_sdk_health_severity_t getSeverity() const {
+    return severity;
+  }
+  sai_switch_asic_sdk_health_category_t getCategory() const {
+    return category;
+  }
+
+  const SaiHealthData& getData() const {
+    return saiHealthData;
+  }
+
+  const std::string& getDescription() const {
+    return description;
+  }
+
+  const SaiTimeSpec& getTimeSpec() const {
+    return timeSpec;
+  }
+
+  bool corrParityError() const;
+
+  bool uncorrParityError() const;
+
+  bool asicError() const;
+
+ private:
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+  std::string toStringSaiHealthData(const SaiSerHealthData& healthData) const {
+    return healthData.toString();
+  }
+#endif
+  std::string toStringSaiHealthData(
+      const SaiGeneralHealthData& /*healthData*/) const {
+    return "general health data";
+  }
+
+  SaiTimeSpec timeSpec;
+  sai_switch_asic_sdk_health_severity_t severity;
+  sai_switch_asic_sdk_health_category_t category;
+  SaiHealthData saiHealthData{};
+  std::string description;
+};
+
+#endif
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
@@ -1035,6 +1224,9 @@ class SwitchApi : public SaiApi<SwitchApi> {
       sai_vendor_switch_event_notification_fn event_notify_cb) const;
 #endif
 
+  void registerSwitchHardResetNotifyCallback(
+      const SwitchSaiId& id,
+      sai_pointer_t event_notify_cb) const;
   void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
@@ -1062,6 +1254,19 @@ class SwitchApi : public SaiApi<SwitchApi> {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   void unregisterVendorSwitchEventNotifyCallback(const SwitchSaiId& id) const {
     registerVendorSwitchEventNotifyCallback(id, nullptr);
+  }
+#endif
+  void unregisterSwitchHardResetNotifyCallback(const SwitchSaiId& id) const {
+    registerSwitchHardResetNotifyCallback(id, nullptr);
+  }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  void registerSwitchAsicSdkHealthEventCallback(
+      const SwitchSaiId& id,
+      sai_switch_asic_sdk_health_event_notification_fn function) const;
+
+  void unregisterSwitchAsicSdkHealthEventCallback(SwitchSaiId id) const {
+    registerSwitchAsicSdkHealthEventCallback(id, nullptr);
   }
 #endif
 
@@ -1113,3 +1318,82 @@ class SwitchApi : public SaiApi<SwitchApi> {
 };
 
 } // namespace facebook::fboss
+
+namespace fmt {
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+template <>
+struct formatter<facebook::fboss::SaiSerHealthData> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const facebook::fboss::SaiSerHealthData& arg, FormatContext& ctx)
+      const {
+    static_assert(
+        std::is_same_v<
+            uint32_t,
+            std::decay_t<decltype(arg.sai_ser_health_data.ser_log_type)>>,
+        "ser_log_type is not uin32_t");
+    uint32_t allones = static_cast<uint32_t>(-1);
+
+    std::vector<sai_ser_log_type_t> sai_ser_log_types{};
+    for (auto i = 0; allones; i++, allones >>= 1) {
+      if (arg.sai_ser_health_data.ser_log_type & (1 << i)) {
+        sai_ser_log_types.emplace_back(static_cast<sai_ser_log_type_t>(1 << i));
+      }
+    }
+
+    return format_to(
+        ctx.out(),
+        "ser health type {}, correction {}, log types {}",
+        arg.sai_ser_health_data.type,
+        arg.sai_ser_health_data.correction_type,
+        sai_ser_log_types);
+  }
+};
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+template <>
+struct formatter<facebook::fboss::SaiHealthData> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const facebook::fboss::SaiHealthData& arg, FormatContext& ctx)
+      const {
+    return std::visit(
+        [&](const auto& data) { return format_to(ctx.out(), "{}", data); },
+        arg);
+  }
+};
+
+template <>
+struct formatter<facebook::fboss::SaiHealthNotification> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiHealthNotification& arg,
+      FormatContext& ctx) const {
+    return format_to(
+        ctx.out(),
+        "health notification {} : {} : {} : {}",
+        arg.getSeverity(),
+        arg.getCategory(),
+        arg.getData(),
+        arg.getDescription());
+  }
+};
+#endif
+
+}; // namespace fmt

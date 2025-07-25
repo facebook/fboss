@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 
@@ -20,21 +21,22 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
         &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
     utility::addNetworkAIQosMaps(cfg, ensemble.getL3Asics());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        cfg, ensemble.getL3Asics(), ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     return cfg;
   }
 
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::L3_QOS,
-        production_features::ProductionFeature::NETWORKAI_QOS};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_QOS, ProductionFeature::NETWORKAI_QOS};
   }
 
   void verifyWRR();
@@ -45,7 +47,8 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
 };
 
 void AgentNetworkAIQosSchedulerTest::verifySP(bool frontPanelTraffic) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper6(getProgrammedState(), dstMac());
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac());
 
   auto setup = [=, this]() { _setup(ecmpHelper6); };
 
@@ -66,8 +69,7 @@ void AgentNetworkAIQosSchedulerTest::verifySP(bool frontPanelTraffic) {
 void AgentNetworkAIQosSchedulerTest::verifyWRR() {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto hwAsic =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
@@ -94,8 +96,7 @@ void AgentNetworkAIQosSchedulerTest::verifyWRRAndSP(
     int trafficQueueId) {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto hwAsic =
-        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(

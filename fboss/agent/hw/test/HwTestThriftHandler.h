@@ -17,6 +17,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace facebook::fboss {
@@ -114,14 +115,83 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   void triggerParityError() override;
 
+  int32_t getEgressSharedPoolLimitBytes() override;
+
   void printDiagCmd(std::unique_ptr<::std::string>) override;
 
   void updateFlowletStats() override;
+
+  cfg::SwitchingMode getFwdSwitchingMode(
+      std::unique_ptr<state::RouteNextHopEntry> routeNextHopEntry) override;
 
   bool getPtpTcEnabled() override;
 
   void clearInterfacePhyCounters(
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
+
+  // udf related APIs
+  bool validateUdfConfig(
+      std::unique_ptr<::std::string> udfGroupName,
+      std::unique_ptr<::std::string> udfPackeMatchName) override;
+  bool validateRemoveUdfGroup(
+      std::unique_ptr<::std::string> udfGroupName,
+      int udfGroupId) override;
+  bool validateRemoveUdfPacketMatcher(
+      std::unique_ptr<::std::string> udfPackeMatchName,
+      int32_t udfPacketMatcherId) override;
+  int32_t getHwUdfGroupId(std::unique_ptr<::std::string> udfGroupName) override;
+
+  int32_t getHwUdfPacketMatcherId(
+      std::unique_ptr<::std::string> udfPackeMatchName) override;
+  bool validateUdfAclRoceOpcodeConfig(
+      std::unique_ptr<::facebook::fboss::state::SwitchState> curState) override;
+
+  bool validateUdfIdsInQset(int aclGroupId, bool isSet) override;
+
+  int32_t getNumTeFlowEntries() override;
+  bool checkSwHwTeFlowMatch(
+      std::unique_ptr<::facebook::fboss::state::TeFlowEntryFields>
+          flowEntryFields) override;
+
+  /**
+   * @brief Verifies that ECMP groups are correctly configured for flowlet
+   * switching on BCM hardware
+   *
+   * This function validates that ECMP (Equal Cost Multi-Path) groups have the
+   * proper flowlet switching configuration applied, including dynamic mode,
+   * age, and size parameters. It also checks that ECMP members have the correct
+   * status for flowlet operation.
+   *
+   * @param ip CIDR network prefix to identify the route for verification
+   * @param settings Switch settings containing flowlet switching configuration
+   * @param flowletEnable Boolean indicating whether flowlet switching should be
+   * enabled
+   * @return true if ECMP flowlet configuration verification passes, false
+   * otherwise
+   */
+  bool verifyEcmpForFlowletSwitchingHandler(
+      std::unique_ptr<CIDRNetwork> ip,
+      std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
+      bool flowletEnable) override;
+
+  /**
+   * @brief Verifies that port-specific flowlet configuration parameters are
+   * correctly applied to BCM hardware egress objects
+   *
+   * @param prefix CIDR network prefix to identify the route for verification
+   * @param cfg Port flowlet configuration containing scaling factor, load
+   * weight, and queue weight parameters
+   * @param flowletEnable Boolean indicating whether flowlet switching should be
+   * enabled
+   * @return true if port flowlet configuration verification passes, false
+   * otherwise
+   */
+  bool verifyPortFlowletConfig(
+      std::unique_ptr<CIDRNetwork> prefix,
+      std::unique_ptr<cfg::PortFlowletConfig> cfg,
+      bool flowletEnable) override;
+
+  bool validateFlowSetTable(const bool expectFlowsetSizeZero) override;
 
  private:
   HwSwitch* hwSwitch_;

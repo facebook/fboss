@@ -22,6 +22,7 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -583,7 +584,6 @@ class ThriftConfigApplier {
 
   folly::MacAddress getLocalMac(SwitchID switchId) const;
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
-  void addRemoteIntfRoute();
   std::optional<SwitchID> getAnyVoqSwitchId();
   std::vector<SwitchID> getLocalFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
@@ -744,9 +744,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       changed = true;
     }
   }
-
-  // Add remote interface routes to route table.
-  addRemoteIntfRoute();
 
   if (routeUpdater_) {
     routeUpdater_->setRoutesToConfig(
@@ -1003,6 +1000,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   std::unordered_set<SwitchID> localSwitchIds;
   std::unordered_set<int> localInbandPortIds;
 
+  IntfRouteTable remoteIntfRoutesToAdd;
+  RouterIDToPrefixes remoteIntfRoutesToDel;
+
   for (auto& [matcherString, switchSettings] :
        std::as_const(*new_->getSwitchSettings())) {
     auto localSwitchId = HwSwitchMatcher(matcherString).switchId();
@@ -1210,6 +1210,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setShelDestinationEnabled(
         cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value());
     sysPort->resetPortQueues(getVoqConfig(localInbandPortId));
+    sysPort->setPortType(cfg::PortType::RECYCLE_PORT);
     if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
       if (auto portIdToQosPolicy =
               dataPlaneTrafficPolicy->portIdToQosPolicy()) {
@@ -1239,6 +1240,14 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto intfs = new_->getRemoteInterfaces()->modify(&new_);
     intfs->addNode(intf, scopeResolver_.scope(intf, new_));
     processLoopbacks(node, dsfNodeAsic.get());
+
+    processRemoteInterfaceRoutes(
+        new_->getRemoteInterfaces()->getNode(
+            InterfaceID(getInbandSysPortId(node))),
+        new_,
+        true /* add */,
+        remoteIntfRoutesToAdd,
+        remoteIntfRoutesToDel);
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     if (!isInterfaceNode(node)) {
@@ -1246,6 +1255,13 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     }
     if (!isLocal(node)) {
       auto recyclePortId = getInbandSysPortId(node);
+      processRemoteInterfaceRoutes(
+          new_->getRemoteInterfaces()->getNode(InterfaceID(recyclePortId)),
+          new_,
+          false /* add */,
+          remoteIntfRoutesToAdd,
+          remoteIntfRoutesToDel);
+
       auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
       sysPorts->removeNode(SystemPortID(recyclePortId));
       auto intfs = new_->getRemoteInterfaces()->modify(&new_);
@@ -1265,6 +1281,18 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       },
       [&](auto newNode) { addDsfNode(newNode); },
       [&](auto oldNode) { rmDsfNode(oldNode); });
+
+  if (routeUpdater_) {
+    routeUpdater_->setRemoteLoopbackInterfaceRoutesToConfig(
+        remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+  } else if (rib_) {
+    rib_->updateRemoteInterfaceRoutes(
+        &scopeResolver_,
+        remoteIntfRoutesToAdd,
+        remoteIntfRoutesToDel,
+        &updateFibFromConfig,
+        static_cast<void*>(&new_));
+  }
 }
 
 void ThriftConfigApplier::processReachabilityGroup(
@@ -1459,8 +1487,23 @@ std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
   auto newNodes = std::make_shared<DsfNodeMap>();
   newNodes->fromThrift(*cfg_->dsfNodes());
   bool changed = false;
+  std::optional<cfg::QueueScheduling> expectedScheduling;
   for (const auto& idAndNode : *newNodes) {
     auto newNode = idAndNode.second;
+    if (newNode->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+      auto scheduling = newNode->getScheduling();
+      if (!expectedScheduling.has_value()) {
+        expectedScheduling = scheduling;
+      } else if (expectedScheduling.value() != scheduling) {
+        throw FbossError(
+            "Scheduling settings are not consistent between dsf nodes");
+      }
+      if (scheduling != cfg::QueueScheduling::INTERNAL &&
+          !newNode->getSchedulingParam().has_value()) {
+        throw FbossError(
+            "Scheduling parameter should not be empty if scheduler is not INTERNAL");
+      }
+    }
     if (newNode->isInterfaceNode()) {
       if (!newNode->getLocalSystemPortOffset().has_value() ||
           !newNode->getGlobalSystemPortOffset().has_value()) {
@@ -1765,6 +1808,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
           port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
           port.second->getScope() == cfg::Scope::GLOBAL);
+      sysPort->setPortType(port.second->getPortType());
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -2005,6 +2049,12 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
   }
   if (const auto sramResumeOffsetBytes = cfg->sramResumeOffsetBytes()) {
     pgCfg->setSramResumeOffsetBytes(*sramResumeOffsetBytes);
+  }
+  if (const auto sramScalingFactor = cfg->sramScalingFactor()) {
+    pgCfg->setSramScalingFactor(*sramScalingFactor);
+  }
+  if (const auto staticLimitBytes = cfg->staticLimitBytes()) {
+    pgCfg->setStaticLimitBytes(*staticLimitBytes);
   }
   return pgCfg;
 }
@@ -2589,7 +2639,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+          orig->getDesiredSelfHealingECMPLagEnable().value_or(false) &&
       portConf->fecErrorDetectEnable().value_or(false) ==
           orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
@@ -2643,9 +2693,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           newPort->getName(),
           " to have selfHealingEcmpLag enable");
     }
-    newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
+    newPort->setDesiredSelfHealingECMPLagEnable(
+        selfHealingECMPLagEnable.value());
   } else {
-    newPort->setSelfHealingECMPLagEnable(std::nullopt);
+    newPort->setDesiredSelfHealingECMPLagEnable(std::nullopt);
   }
   if (portConf->fecErrorDetectEnable().has_value()) {
     newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
@@ -3535,6 +3586,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto flowletAction = mta.action()->flowletAction()) {
           matchAction.setFlowletAction(*flowletAction);
         }
+        if (auto ecmpHashAction = mta.action()->ecmpHashAction()) {
+          matchAction.setEcmpHashAction(*ecmpHashAction);
+        }
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
@@ -4338,6 +4392,8 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
       *config.dynamicPhysicalQueueExponent());
   newFlowletSwitchingConfig->setMaxLinks(*config.maxLinks());
   newFlowletSwitchingConfig->setSwitchingMode(*config.switchingMode());
+  newFlowletSwitchingConfig->setBackupSwitchingMode(
+      *config.backupSwitchingMode());
   return newFlowletSwitchingConfig;
 }
 
@@ -4619,8 +4675,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
   std::vector<state::BlockedNeighbor> cfgBlockNeighbors;
   for (const auto& blockNeighbor : *cfg_->switchSettings()->blockNeighbors()) {
     state::BlockedNeighbor neighbor{};
-    neighbor.blockNeighborVlanID_ref() = *blockNeighbor.vlanID();
-    neighbor.blockNeighborIP_ref() =
+    neighbor.blockNeighborVlanID() = *blockNeighbor.vlanID();
+    neighbor.blockNeighborIP() =
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }
@@ -5031,6 +5087,33 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     }
   }
 
+  {
+    std::optional<int32_t> newPfcWatchdogTimerGranularity;
+    if (cfg_->switchSettings()->pfcWatchdogTimerGranularityMsec()) {
+      newPfcWatchdogTimerGranularity =
+          *cfg_->switchSettings()->pfcWatchdogTimerGranularityMsec();
+    }
+    if (newPfcWatchdogTimerGranularity !=
+        origSwitchSettings->getPfcWatchdogTimerGranularity()) {
+      newSwitchSettings->setPfcWatchdogTimerGranularity(
+          newPfcWatchdogTimerGranularity);
+      switchSettingsChange = true;
+    }
+  }
+  {
+    std::optional<int32_t> newEcmpCompressionThresholdPct;
+    if (cfg_->switchSettings()->ecmpCompressionThresholdPct()) {
+      newEcmpCompressionThresholdPct =
+          *cfg_->switchSettings()->ecmpCompressionThresholdPct();
+    }
+    if (newEcmpCompressionThresholdPct !=
+        origSwitchSettings->getEcmpCompressionThresholdPct()) {
+      newSwitchSettings->setEcmpCompressionThresholdPct(
+          newEcmpCompressionThresholdPct);
+      switchSettingsChange = true;
+    }
+  }
+
   if (switchSettingsChange) {
     return newSwitchSettings;
   }
@@ -5305,7 +5388,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
-  std::set<std::string> ingressMirrors;
+  std::set<std::string> sampleIngressMirrors;
   for (auto& portMap : std::as_const(*(new_->getPorts()))) {
     for (auto& port : std::as_const(*portMap.second)) {
       auto portInMirror = port.second->getIngressMirror();
@@ -5316,19 +5399,10 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
           throw FbossError(
               "Mirror ", portInMirror.value(), " for port is not found");
         }
-        if (port.second->getSampleDestination() &&
-            port.second->getSampleDestination().value() ==
-                cfg::SampleDestination::MIRROR &&
-            inMirrorMapEntry->second->type() != Mirror::Type::SFLOW) {
-          throw FbossError(
-              "Ingress mirror ",
-              portInMirror.value(),
-              " for sampled port ",
-              port.second->getID(),
-              " not sflow");
-        }
-        if (inMirrorMapEntry->second->type() == Mirror::Type::SFLOW) {
-          ingressMirrors.insert(portInMirror.value());
+        if (auto sampleDestination = port.second->getSampleDestination()) {
+          if (*sampleDestination == cfg::SampleDestination::MIRROR) {
+            sampleIngressMirrors.insert(portInMirror.value());
+          }
         }
       }
       if (portEgMirror.has_value() &&
@@ -5338,9 +5412,9 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       }
     }
   }
-  if (ingressMirrors.size() > 1) {
+  if (sampleIngressMirrors.size() > 1) {
     throw FbossError(
-        "Only one sflow mirror can be configured across all ports");
+        "Only one mirror can be configured across all ports, to sample traffic");
   }
 
   if (!changed) {
@@ -5575,6 +5649,9 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
     const cfg::MirrorOnDropReport* config) {
+  auto asicType =
+      checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType();
+
   auto switchId = getAnyVoqSwitchId();
   if (!switchId.has_value()) {
     throw FbossError("No VOQ switchId found");
@@ -5587,9 +5664,73 @@ ThriftConfigApplier::createMirrorOnDropReport(
       ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
       : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
 
+  // Determine the mirror recirculation port.
+  std::optional<PortID> mirrorPortId;
+  if (config->mirrorPort().has_value()) {
+    auto egressPort = config->mirrorPort()->egressPort();
+    if (!egressPort.has_value()) {
+      throw FbossError(
+          "Only egressPort can be used as a Mirror-on-Drop destination");
+    }
+    switch (egressPort->getType()) {
+      case cfg::MirrorEgressPort::Type::name:
+        for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+          for (auto& [portId, port] : std::as_const(*portMap.second)) {
+            if (port->getName() == egressPort->get_name()) {
+              mirrorPortId = portId;
+              break;
+            }
+          }
+        }
+        break;
+      case cfg::MirrorEgressPort::Type::logicalID:
+        mirrorPortId = egressPort->get_logicalID();
+        break;
+      case cfg::MirrorEgressPort::Type::__EMPTY__:
+        throw FbossError(
+            "Must set either name or logicalID for MirrorEgressPort");
+    }
+  } else if (config->mirrorPortId().has_value()) {
+    mirrorPortId = PortID(*config->mirrorPortId());
+  } else {
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      // Find the lowest numbered local-scope recycle port.
+      for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+        for (auto& [portId, port] : std::as_const(*portMap.second)) {
+          if (port->getPortType() == cfg::PortType::RECYCLE_PORT &&
+              port->getScope() == cfg::Scope::LOCAL) {
+            if (!mirrorPortId.has_value() ||
+                portId < static_cast<int>(mirrorPortId.value())) {
+              mirrorPortId = portId;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!mirrorPortId.has_value()) {
+    throw FbossError(
+        "Mirror-on-Drop destination is not specified, "
+        "and auto-detection is not supported on this ASIC");
+  }
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+      !FLAGS_allow_nif_port_for_mod) {
+    auto mirrorPortType = new_->getPort(*mirrorPortId)->getPortType();
+    if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
+        mirrorPortType != cfg::PortType::EVENTOR_PORT) {
+      throw FbossError(
+          "Only RECYCLE_PORT or EVENTOR_PORT can be used for Mirror-on-Drop on Jericho3, got ",
+          apache::thrift::util::enumNameSafe(mirrorPortType));
+    }
+    if (new_->getPort(*mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
+      throw FbossError(
+          "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
+    }
+  }
+
   return std::make_shared<MirrorOnDropReport>(
       *config->name(),
-      PortID(*config->mirrorPortId()),
+      *mirrorPortId,
       localSrcIp,
       *config->localSrcPort(),
       collectorIp,
@@ -5922,26 +6063,6 @@ folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
   }
   XLOG(WARNING) << " No mac address found for switch " << switchId;
   return getLocalMacAddress();
-}
-
-void ThriftConfigApplier::addRemoteIntfRoute() {
-  // In order to resolve ECMP members pointing to remote nexthops,
-  // also treat remote Interfaces as directly connected route in rib.
-  // HwSwitch will point remote nextHops as dropped such that switch does
-  // not attract traffic for remote nexthops.
-  for (const auto& remoteInterfaceMap :
-       std::as_const(*orig_->getRemoteInterfaces())) {
-    for (const auto& [_, remoteInterface] :
-         std::as_const(*remoteInterfaceMap.second)) {
-      for (const auto& [addr, mask] :
-           std::as_const(*remoteInterface->getAddresses())) {
-        intfRouteTables_[remoteInterface->getRouterID()].emplace(
-            IPAddress::createNetwork(
-                folly::to<std::string>(addr, "/", mask->toThrift())),
-            std::make_pair(remoteInterface->getID(), addr));
-      }
-    }
-  }
 }
 
 void ThriftConfigApplier::updateSystemPortSelfHealingEcmpLagDestinationEnable(

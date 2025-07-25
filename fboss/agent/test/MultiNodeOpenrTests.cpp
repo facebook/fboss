@@ -8,24 +8,24 @@
  *
  */
 
+#include <memory>
+
+#include <folly/Subprocess.h>
+#include <folly/system/Shell.h>
+
+#include <openr/if/gen-cpp2/OpenrCtrlCpp.h>
+
+#include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/MultiNodeTest.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "openr/common/NetworkUtil.h"
 
-#include <openr/if/gen-cpp2/OpenrCtrlCpp.h>
-#include <memory>
-#include "servicerouter/client/cpp2/ClientFactory.h"
-#include "servicerouter/client/cpp2/ServiceRouter.h"
-
-#include "common/process/Process.h"
-#include "fboss/agent/RouteUpdateWrapper.h"
-
 using namespace facebook::fboss;
 using namespace std::chrono;
+using folly::literals::shell_literals::operator""_shellify;
 
 static constexpr int kOpenrThriftPort{2018};
 
@@ -42,7 +42,7 @@ std::unique_ptr<Client> createPlaintextClient(const int port) {
   auto sock = folly::AsyncSocket::newSocket(eb, addr, kConnTimeout);
   sock->setSendTimeout(kSendTimeout);
   auto channel =
-      apache::thrift::HeaderClientChannel::newChannel(std::move(sock));
+      apache::thrift::RocketClientChannel::newChannel(std::move(sock));
   channel->setTimeout(kRecvTimeout);
   return std::make_unique<Client>(std::move(channel));
 }
@@ -198,10 +198,12 @@ class MultiNodeOpenrTest : public MultiNodeTest {
     }
     for (auto dstIp : getNeighbors()) {
       std::string pingCmd = "ping -c 5 ";
-      std::string resultStr;
-      std::string errStr;
-      EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIp.str(), &resultStr, &errStr));
+      folly::Subprocess p(
+          "{}{}"_shellify(pingCmd, dstIp.str()),
+          folly::Subprocess::Options().pipeStdout());
+      auto [_, stdErr] = p.communicate();
+      int exitStatus = p.wait().exitStatus();
+      EXPECT_EQ(exitStatus, 0) << "Ping failed. Error: " << stdErr;
     }
   }
   cfg::SwitchConfig initialConfig() const override {

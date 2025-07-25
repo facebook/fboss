@@ -170,14 +170,7 @@ TYPED_TEST(ExtendedPathVisitorTests, AccessRegexMap) {
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    if constexpr (is_cow_type_v<decltype(node)>) {
-      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
-    } else {
-      folly::dynamic out;
-      facebook::thrift::to_dynamic(
-          out, node, facebook::thrift::dynamic_format::JSON_1);
-      visited.emplace(std::make_pair(path, out));
-    }
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
   };
 
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
@@ -242,14 +235,7 @@ TYPED_TEST(ExtendedPathVisitorTests, AccessAnyMap) {
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    if constexpr (is_cow_type_v<decltype(node)>) {
-      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
-    } else {
-      folly::dynamic out;
-      facebook::thrift::to_dynamic(
-          out, node, facebook::thrift::dynamic_format::JSON_1);
-      visited.emplace(std::make_pair(path, out));
-    }
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
   };
 
   auto path = ext_path_builder::raw("mapOfStringToI32").any().get();
@@ -289,14 +275,7 @@ TYPED_TEST(ExtendedPathVisitorTests, AccessDeepMap) {
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    if constexpr (is_cow_type_v<decltype(node)>) {
-      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
-    } else {
-      folly::dynamic out;
-      facebook::thrift::to_dynamic(
-          out, node, facebook::thrift::dynamic_format::JSON_1);
-      visited.emplace(std::make_pair(path, out));
-    }
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
   };
 
   auto path = ext_path_builder::raw("hybridMapOfMap").any().any().get();
@@ -336,14 +315,7 @@ TYPED_TEST(ExtendedPathVisitorTests, AccessRegexList) {
   auto nodeA = this->initNode(structA);
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    if constexpr (is_cow_type_v<decltype(node)>) {
-      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
-    } else {
-      folly::dynamic out;
-      facebook::thrift::to_dynamic(
-          out, node, facebook::thrift::dynamic_format::JSON_1);
-      visited.emplace(std::make_pair(path, out));
-    }
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
   };
 
   auto path = ext_path_builder::raw("listOfPrimitives").regex("1.*").get();
@@ -373,14 +345,7 @@ TYPED_TEST(ExtendedPathVisitorTests, AccessAnyList) {
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    if constexpr (is_cow_type_v<decltype(node)>) {
-      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
-    } else {
-      folly::dynamic out;
-      facebook::thrift::to_dynamic(
-          out, node, facebook::thrift::dynamic_format::JSON_1);
-      visited.emplace(std::make_pair(path, out));
-    }
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
   };
 
   auto path = ext_path_builder::raw("listOfPrimitives").any().get();
@@ -470,14 +435,7 @@ TYPED_TEST(ExtendedPathVisitorTests, HybridStructAccess) {
 
   std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
   auto processPath = [&visited](auto&& path, auto&& node) {
-    if constexpr (is_cow_type_v<decltype(node)>) {
-      visited.emplace(std::make_pair(path, node.toFollyDynamic()));
-    } else {
-      folly::dynamic out;
-      facebook::thrift::to_dynamic(
-          out, node, facebook::thrift::dynamic_format::JSON_1);
-      visited.emplace(std::make_pair(path, out));
-    }
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
   };
   // hybridStruct/strMap/.*
   {

@@ -25,8 +25,10 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
   // capture packet exiting port 0 (entering due to loopback)
   auto dstMac =
       utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
+      ensemble->getProgrammedState(),
+      ensemble->getSw()->needL2EntryForNeighbor(),
+      dstMac);
   flat_set<PortDescriptor> IntfPorts;
   IntfPorts.insert(
       PortDescriptor(ensemble->masterLogicalInterfacePortIds()[0]));
@@ -45,7 +47,7 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
-  auto vlanId = utility::firstVlanIDWithPorts(ensemble->getProgrammedState());
+  auto vlanId = ensemble->getVlanIDForTx();
   auto constexpr kPacketToSend = 10;
   for (int i = 0; i < kPacketToSend; i++) {
     auto txPacket = utility::makeTCPTxPacket(

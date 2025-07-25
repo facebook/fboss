@@ -1,5 +1,7 @@
 namespace cpp2 facebook.fboss.cli
 
+include "fboss/agent/if/common.thrift"
+
 struct ShowRouteModel {
   1: list<RouteEntry> routeEntries;
 }
@@ -28,6 +30,7 @@ struct NextHopInfo {
   3: optional MplsActionInfo mplsAction;
   4: optional string ifName;
   5: optional i32 interfaceID;
+  6: optional common.NetworkTopologyInformation topologyInfo;
 }
 
 struct ClientAndNextHops {
@@ -50,4 +53,5 @@ struct RouteDetailEntry {
   7: list<NextHopInfo> nextHops;
   8: string counterID;
   9: string classID;
+  10: string overridenEcmpMode;
 }

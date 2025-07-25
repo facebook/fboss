@@ -7,6 +7,7 @@
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
+#include <array>
 #include <cmath>
 #include <string>
 #include "common/time/Time.h"
@@ -281,6 +282,9 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER25H, {CmisPages::PAGE25, 128, 128}},
     // Page 26h
     {CmisField::PAGE_UPPER26H, {CmisPages::PAGE26, 128, 128}},
+    // Page 2Ch
+    {CmisField::PAGE_UPPER2CH, {CmisPages::PAGE2C, 128, 128}},
+    {CmisField::PAM4_MPI_ALARMS, {CmisPages::PAGE2C, 208, 4}},
     // Page 2Fh
     {CmisField::PAGE_UPPER2FH, {CmisPages::PAGE2F, 128, 128}},
     {CmisField::VDM_GROUPS_SUPPORT, {CmisPages::PAGE2F, 128, 1}},
@@ -578,7 +582,7 @@ GlobalSensors CmisModule::getSensorInfo() {
   return info;
 }
 
-Vendor CmisModule::getVendorInfo() {
+Vendor CmisModule::getVendorInfo() const {
   Vendor vendor = Vendor();
   *vendor.name() = getQsfpString(CmisField::VENDOR_NAME);
   *vendor.oui() = getQsfpString(CmisField::VENDOR_OUI);
@@ -1004,7 +1008,7 @@ bool CmisModule::getMediaInterfaceId(
       auto smfMediaInterface = getSmfMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.smfCode_ref() = smfMediaInterface;
+      media.smfCode() = smfMediaInterface;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
@@ -1024,7 +1028,7 @@ bool CmisModule::getMediaInterfaceId(
     for (int lane = 0; lane < mediaInterface.size(); lane++) {
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.passiveCuCode_ref() = static_cast<PassiveCuMediaInterfaceCode>(
+      media.passiveCuCode() = static_cast<PassiveCuMediaInterfaceCode>(
           firstModuleCapability->moduleMediaInterface);
       // FIXME: Remove CR8_400G hardcoding and derive this from number of
       // lanes/host electrical interface instead
@@ -1036,7 +1040,7 @@ bool CmisModule::getMediaInterfaceId(
       auto activeCuInterfaceCode = getActiveCuMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.activeCuCode_ref() = activeCuInterfaceCode;
+      media.activeCuCode() = activeCuInterfaceCode;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<ActiveCuHostInterfaceCode>(
               activeCuInterfaceCode,
@@ -1084,6 +1088,7 @@ void CmisModule::getApplicationCapabilities() {
     } else {
       applicationAdvertisingField.moduleMediaInterface = data[1];
     }
+    applicationAdvertisingField.moduleHostInterface = data[0];
     applicationAdvertisingField.hostLaneCount =
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
     applicationAdvertisingField.mediaLaneCount =
@@ -1423,6 +1428,9 @@ void CmisModule::updateVdmDiagsValLocation() {
           vdmConfStatus.vdmValPage = static_cast<CmisPages>(page + 4);
           vdmConfStatus.vdmValOffset = offset;
           vdmConfStatus.vdmValLength = 2;
+          // Extract bits 7-4 from byte 0 (Even Address byte) for
+          // LocalThresholdSetID
+          vdmConfStatus.localThresholdSetID = (dataPtr[0] >> 4) & 0x0F;
           lastConfig = static_cast<VdmConfigType>(dataPtr[1]);
           vdmConfigDataLocations_[lastConfig] = vdmConfStatus;
         }
@@ -1744,6 +1752,9 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   if (!fillVdmPerfMonitorPam4Data(vdmStats)) {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 data";
   }
+  if (!fillVdmPerfMonitorPam4AlarmData(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 alarm data";
+  }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
   QSFP_LOG(DBG5, this) << "Stats Collection Time: "
@@ -1992,7 +2003,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
   }
   cmisData.timeCollected() = lastRefreshTime_;
   DOMDataUnion data;
-  data.cmis_ref() = cmisData;
+  data.cmis() = cmisData;
   return data;
 }
 
@@ -2656,6 +2667,7 @@ void CmisModule::ensureRxOutputSquelchEnabled(
 }
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
   auto currTransmitterTechnology = getQsfpTransmitterTechnology();
   bool activeElectricalCable = false;
   if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
@@ -2881,9 +2893,13 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     auto firstModuleCapability = moduleCapabilities_.begin();
     auto smfCode = static_cast<SMFMediaInterfaceCode>(
         firstModuleCapability->moduleMediaInterface);
-    if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
+    if (isLpoModule()) {
+      moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+        // Lite Modules are not LPO modules but have a reach of 500m.
         moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
       } else {
         moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
@@ -2892,6 +2908,14 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         smfCode == SMFMediaInterfaceCode::DR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::LR4_10_400G &&
+        firstModuleCapability->hostStartLanes.size() == 2) {
+      moduleMediaInterface = MediaInterfaceCode::LR4_2x400G_10KM;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::DR4_800G &&
+        firstModuleCapability->hostStartLanes.size() == 2) {
+      moduleMediaInterface = MediaInterfaceCode::DR4_2x800G;
     } else {
       moduleMediaInterface =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
@@ -4346,6 +4370,103 @@ bool CmisModule::fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats) {
           sdL3Map[mediaLane];
       vdmStats.mediaPortVdmStats()[portName].lanePam4MPI()[mediaLane] =
           mpiMap[mediaLane];
+    }
+  }
+  return true;
+}
+
+/*
+ * fillVdmPerfMonitorPam4AlarmData
+ *
+ * Reads and processes the latched alarm and warning flags for PAM4 MPI values.
+ *
+ * These flags are stored in VDM page 0x2C, bytes 208-211, with the following
+ * bit layout:
+ *
+ * Byte 208:
+ *   - bit 0: High alarm for lane 0
+ *   - bit 2: High warning for lane 0
+ *   - bit 4: High alarm for lane 1
+ *   - bit 6: High warning for lane 1
+ *
+ * Byte 209:
+ *   - bit 0: High alarm for lane 2
+ *   - bit 2: High warning for lane 2
+ *   - bit 4: High alarm for lane 3
+ *   - bit 6: High warning for lane 3
+ *
+ * Byte 210:
+ *   - bit 0: High alarm for lane 4
+ *   - bit 2: High warning for lane 4
+ *   - bit 4: High alarm for lane 5
+ *   - bit 6: High warning for lane 5
+ *
+ * Byte 211:
+ *   - bit 0: High alarm for lane 6
+ *   - bit 2: High warning for lane 6
+ *   - bit 4: High alarm for lane 7
+ *   - bit 6: High warning for lane 7
+ *
+ * The function reads these flags and stores them in the VdmPerfMonitorStats
+ * structure.
+ */
+bool CmisModule::fillVdmPerfMonitorPam4AlarmData(
+    VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported(3) || !cacheIsValid()) {
+    return false;
+  }
+  auto vdmConfStatus = getVdmDiagsValLocation(PAM4_MPI_LINE);
+  if (!vdmConfStatus.vdmConfImplementedByModule) {
+    return false;
+  }
+  // For Line-side histogram based MPI_metric value, the ThresholdSetID ID
+  // should be 34
+  uint8_t thresholdSetID = vdmConfStatus.localThresholdSetID + 33;
+  if (thresholdSetID != 34) {
+    QSFP_LOG(WARN, this)
+        << "Skipping reading PAM4_MPI_LINE warning/alarms, unexpected ThresholdSetID: "
+        << static_cast<int>(thresholdSetID);
+    return false;
+  }
+
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+  // VDM page 0x2C byte 208-211 contain the Alarms and Warnings flags for MPI
+  std::array<uint8_t, 4>
+      alarmData; // Buffer to read alarm data (4 bytes for 8 lanes)
+  try {
+    // Read the alarm data using the CmisField we defined
+    readCmisField(CmisField::PAM4_MPI_ALARMS, alarmData.data());
+  } catch (const std::exception& ex) {
+    QSFP_LOG(ERR, this) << "Error reading MPI alarm data: " << ex.what();
+    return false;
+  }
+  // Process the alarm/warning flags for each lane
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    for (auto& mediaLane : mediaLanes) {
+      if (mediaLane > 7) {
+        // We only support up to 8 lanes (0-7)
+        continue;
+      }
+      // Calculate which byte and bit position to read for this lane
+      int byteOffset = mediaLane / 2;
+      int bitOffset = (mediaLane % 2) * 4; // 0 or 4 depending on even/odd lane
+
+      // Extract alarm and warning flags directly
+      bool alarmHigh = (alarmData[byteOffset] & (1 << bitOffset)) != 0;
+      bool warnHigh = (alarmData[byteOffset] & (1 << (bitOffset + 2))) != 0;
+
+      QSFP_LOG(DBG3, this) << "Lane " << mediaLane
+                           << " MPI Alarm: " << (alarmHigh ? "true" : "false")
+                           << " MPI Warning: " << (warnHigh ? "true" : "false");
+
+      FlagLevels flags;
+      flags.alarm()->high() = alarmHigh;
+      flags.alarm()->low() = false; // Low alarm not used for MPI
+      flags.warn()->high() = warnHigh;
+      flags.warn()->low() = false; // Low warning not used for MPI
+
+      vdmStats.mediaPortVdmStats()[portName].lanePam4MPIFlags()[mediaLane] =
+          flags;
     }
   }
   return true;

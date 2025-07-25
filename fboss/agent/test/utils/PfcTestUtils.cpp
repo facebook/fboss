@@ -1,11 +1,23 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/utils/PfcTestUtils.h"
+
+#include <cstdint>
+#include <memory>
+#include <vector>
+
+#include "folly/MacAddress.h"
+
+#include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss::utility {
 
@@ -122,14 +134,25 @@ void setupPfc(
 }
 
 void setupBufferPoolConfig(
+    const HwAsic* asic,
     std::map<std::string, cfg::BufferPoolConfig>& bufferPoolCfgMap,
     int globalSharedBytes,
     int globalHeadroomBytes) {
   cfg::BufferPoolConfig poolConfig;
   // provide small shared buffer size
   // idea is to hit the limit and trigger XOFF (PFC)
-  poolConfig.sharedBytes() = globalSharedBytes;
-  poolConfig.headroomBytes() = globalHeadroomBytes;
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Round up the configured buffer size to the nearest multiple of unit size
+    auto unit = asic->getPacketBufferUnitSize();
+    auto roundUp = [unit](int size) {
+      return std::ceil(static_cast<double>(size) / unit) * unit;
+    };
+    poolConfig.sharedBytes() = roundUp(globalSharedBytes);
+    poolConfig.headroomBytes() = roundUp(globalHeadroomBytes);
+  } else {
+    poolConfig.sharedBytes() = globalSharedBytes;
+    poolConfig.headroomBytes() = globalHeadroomBytes;
+  }
   bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
 }
 
@@ -166,6 +189,7 @@ void setupPortPgConfig(
       pgConfig.maxSramXoffThresholdBytes() = 2048 * 16 * 256;
       pgConfig.minSramXoffThresholdBytes() = 256 * 16 * 256;
       pgConfig.sramResumeOffsetBytes() = 128 * 16 * 256;
+      pgConfig.sramScalingFactor() = cfg::MMUScalingFactor::ONE_HALF;
     }
     // set scaling factor
     pgConfig.scalingFactor() = buffer.scalingFactor;
@@ -189,17 +213,37 @@ void setupPortPgConfig(
 
 } // namespace
 
-PfcBufferParams PfcBufferParams::getPfcBufferParams(cfg::AsicType asicType) {
+PfcBufferParams PfcBufferParams::getPfcBufferParams(
+    cfg::AsicType asicType,
+    int globalShared,
+    int globalHeadroom) {
   PfcBufferParams buffer;
+  buffer.globalShared = globalShared;
+  buffer.globalHeadroom = globalHeadroom;
 
-  buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
   if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // CHENAB requires at least 2x MTU of reserved buffers.
-    // Also, in shared headroom pool mode (SAI_BUFFER_POOL_XOFF_SIZE is set,
-    // i.e. our setup), XON and reserved size must be the same.
-    buffer.resumeThreshold = buffer.minLimit = 20480;
+    // For CHENAB:
+    // - XON represents the "min guarantee", must be at least 2xMTU (20480).
+    // - RESERVED represents the total amount of buffer exclusively reserved
+    //   for the PG.
+    //   - In shared headroom pool mode (SAI_BUFFER_POOL_XOFF_SIZE > 0), this
+    //     must be the same as XON.
+    //   - In non-shared headroom pool mode (SAI_BUFFER_POOL_XOFF_SIZE == 0),
+    //     this is the sum of XON and headroom size. Note that XOFF can be
+    //     less than the headroom size, in which case there will be hystersis.
+    if (globalHeadroom > 0) {
+      buffer.resumeThreshold = 20480;
+      buffer.pgHeadroom = 4400;
+      buffer.minLimit = *buffer.resumeThreshold;
+    } else {
+      buffer.resumeThreshold = 20480;
+      // TODO(maxgg): Understand why PFC won't trigger if this is < ~8000.
+      buffer.pgHeadroom = 8000;
+      buffer.minLimit = *buffer.resumeThreshold + buffer.pgHeadroom;
+    }
   } else {
     buffer.minLimit = 2200;
+    buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
     buffer.resumeOffset = 1800; // less than pgHeadroom
   }
 
@@ -262,8 +306,9 @@ void setupPfcBuffers(
   // create buffer pool
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
       cfg.bufferPoolConfigs().ensure();
+  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
   setupBufferPoolConfig(
-      bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
+      asic, bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
   cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
   if (ensemble->getHwAsicTable()
           ->getHwAsics()
@@ -303,7 +348,9 @@ std::string pfcStatsString(const HwPortStats& stats) {
   ss << "outBytes=" << *stats.outBytes_() << " inBytes=" << *stats.inBytes_()
      << " outUnicastPkts=" << *stats.outUnicastPkts_()
      << " inUnicastPkts=" << *stats.inUnicastPkts_()
+     << " inDiscards=" << *stats.inDiscards_()
      << " inDiscardsRaw=" << *stats.inDiscardsRaw_()
+     << " inCongestionDiscards=" << *stats.inCongestionDiscards_()
      << " inErrors=" << *stats.inErrors_();
   for (auto [qos, value] : *stats.inPfc_()) {
     ss << " inPfc." << qos << "=" << value;
@@ -312,6 +359,33 @@ std::string pfcStatsString(const HwPortStats& stats) {
     ss << " outPfc." << qos << "=" << value;
   }
   return ss.str();
+}
+
+std::unique_ptr<TxPacket> makePfcFramePacket(
+    const AgentEnsemble& ensemble,
+    uint8_t classVector) {
+  // Construct PFC payload with fixed quanta 0x00F0.
+  // See https://github.com/archjeb/pfctest for frame structure.
+  std::vector<uint8_t> payload{
+      0x01, 0x01, 0x00, classVector, 0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
+      0x00, 0xF0, 0x00, 0xF0,        0x00, 0xF0, 0x00, 0xF0, 0x00, 0xF0,
+  };
+  std::vector<uint8_t> padding(26, 0);
+  payload.insert(payload.end(), padding.begin(), padding.end());
+
+  // Construct PFC frame packet
+  std::optional<VlanID> vlanId = ensemble.getVlanIDForTx();
+  folly::MacAddress intfMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble.getProgrammedState());
+  MacAddressGenerator::ResourceT srcMac =
+      utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+  return utility::makeEthTxPacket(
+      ensemble.getSw(),
+      vlanId,
+      srcMac,
+      folly::MacAddress("01:80:C2:00:00:01"), // MAC control address
+      ETHERTYPE::ETHERTYPE_EPON, // Ethertype for PFC frames
+      std::move(payload));
 }
 
 } // namespace facebook::fboss::utility

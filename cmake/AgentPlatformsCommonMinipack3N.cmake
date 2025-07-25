@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(minipack3n_platform_mapping
-  fboss/agent/platforms/common/minipack3n/oss/Minipack3NPlatformMapping.cpp
+  fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.cpp
 )
 
 target_link_libraries(minipack3n_platform_mapping

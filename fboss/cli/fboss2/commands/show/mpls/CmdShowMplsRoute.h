@@ -23,7 +23,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowMplsRouteTraits : public BaseCommandTraits {
+struct CmdShowMplsRouteTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;

@@ -15,7 +15,7 @@
 namespace facebook::fboss {
 
 BcmTestMinipackPort::BcmTestMinipackPort(
-    PortID id,
+    const PortID& id,
     BcmTestMinipackPlatform* platform)
     : BcmTestPort(id, platform) {}
 

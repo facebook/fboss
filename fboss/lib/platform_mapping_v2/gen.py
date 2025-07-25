@@ -8,21 +8,25 @@ from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
 from thrift.protocol import TSimpleJSONProtocol
 from thrift.util import Serializer
 
+_FBOSS_DIR: str = os.getcwd() + "/fboss"
+INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
+
 
 def get_command_line_args() -> Tuple[str, str, str, bool]:
     parser = argparse.ArgumentParser(description="OSS platform mapping generation.")
     parser.add_argument(
         "--input-dir",
         type=str,
-        required=True,
-        help="Path to input directory holding CSVs",
+        default=INPUT_DIR,  # temporary location until platform name is read in
+        required=False,
+        help="Path to input directory holding CSVs (default: fboss/lib/platform_mapping_v2/platforms/PLATFORM_NAME)",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="/tmp/generated_platform_mappings",
+        default=f"{_FBOSS_DIR}/lib/platform_mapping_v2/generated_platform_mappings/",
         required=False,
-        help="Path to output directory for JSON (default: /tmp/generated_platform_mappings)",
+        help="Path to output directory for JSON (default: fboss/lib/platform_mapping_v2/generated_platform_mappings/)",
     )
     parser.add_argument(
         "--platform-name",
@@ -37,7 +41,12 @@ def get_command_line_args() -> Tuple[str, str, str, bool]:
     )
 
     args = parser.parse_args()
-    return args.input_dir, args.output_dir, args.platform_name, args.multi_npu
+    return (
+        args.input_dir + args.platform_name,
+        args.output_dir,
+        args.platform_name,
+        args.multi_npu,
+    )
 
 
 def read_vendor_data(input_file_path: str) -> Dict[str, str]:
@@ -57,11 +66,19 @@ def read_vendor_data(input_file_path: str) -> Dict[str, str]:
     return vendor_data
 
 
-def generate_platform_mappings() -> None:
-    input_dir, output_dir, platform_name, is_multi_npu = get_command_line_args()
-
+def generate_platform_mappings(
+    input_dir: str, output_dir: str, platform_name: str, is_multi_npu: bool
+) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
-    vendor_data_map = {platform_name: read_vendor_data(os.path.expanduser(input_dir))}
+    input_dir = os.path.expanduser(input_dir)
+    vendor_data_map = {platform_name: read_vendor_data(input_dir)}
+
+    # Temporary Workaround for meru800bia variants
+    if "platforms/meru800bia" in input_dir and not input_dir.endswith(
+        "platforms/meru800bia"
+    ):
+        meru800bia_input_dir = input_dir.rsplit("/", 1)[0] + "/meru800bia"
+        vendor_data_map["meru800bia"] = read_vendor_data(meru800bia_input_dir)
 
     if not vendor_data_map:
         print("No vendor data found in the input directory.", file=sys.stderr)
@@ -72,17 +89,40 @@ def generate_platform_mappings() -> None:
         vendor_data_map, platform_name, is_multi_npu
     ).get_platform_mapping()
 
-    print("Writing to file...", file=sys.stderr)
+    output_dir = os.path.expanduser(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    platform_file_name = f"{platform_name}_platform_mapping" + (
+        "_is_multi_npu" if is_multi_npu else ""
+    )
+    output_file = f"{output_dir}/{platform_file_name}.json"
     platform_mapping_serialized = Serializer.serialize(
         TSimpleJSONProtocol.TSimpleJSONProtocolFactory(), platform_mapping
     )
-    output_dir = os.path.expanduser(output_dir)
-    os.makedirs(output_dir, exist_ok=True)
-    with open(
-        os.path.expanduser(f"{output_dir}/{platform_name}-platform-mapping.json"), "wb"
-    ) as f:
+
+    print(f"Writing to file {output_file}...", file=sys.stderr)
+    with open(os.path.expanduser(output_file), "wb") as f:
         f.write(platform_mapping_serialized)
 
 
+def generate_mappings_without_args() -> None:
+    generate_platform_mappings(*get_command_line_args())
+
+
+def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
+    all_vendor_data = {}
+    data_path = INPUT_DIR
+    print(
+        f"Reading all vendor data in {data_path}...",
+        file=sys.stderr,
+    )
+    for filename in os.listdir(data_path):
+        filepath = os.path.join(data_path, filename)
+        if not os.path.isdir(filepath):
+            continue
+        all_vendor_data[filename] = read_vendor_data(filepath)
+
+    return all_vendor_data
+
+
 if __name__ == "__main__":
-    generate_platform_mappings()
+    generate_mappings_without_args()

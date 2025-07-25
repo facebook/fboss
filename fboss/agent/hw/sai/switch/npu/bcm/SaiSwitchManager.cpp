@@ -1,10 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
-#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
-#include <folly/File.h>
-#include <folly/FileUtil.h>
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
 extern "C" {
 #ifndef IS_OSS_BRCM_SAI
@@ -111,42 +109,66 @@ void fillHwSwitchErrorStats(
         dropStats.rqpParityErrorDrops() = value;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_DDP_PACKET_ERROR:
+        dropStats.dramDataPathPacketError() = value;
+        break;
+#endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
   }
 }
 
-void switchPreInitSequence(HwAsic* asic) {
-  // Below sequence is to avoid traffic drops on FE13 in 2-stage
-  // on drain/undrain as reported in S503928.
-  if ((asic->getSwitchType() != cfg::SwitchType::FABRIC) ||
-      (asic->getFabricNodeRole() != HwAsic::FabricNodeRole::DUAL_STAGE_L1)) {
-    return;
-  }
-  const std::string kSaiPostInitCmdFileContent{
-      "s RTP_GRACEFUL_POWER_DOWN_CONFIGURATION 0\n"};
-  const std::string kSaiPostInitCmdFilePath{"/tmp/sai_postinit_cmd_file.soc"};
-  // Create a single file irrespective of the number of processes!
-  try {
-    folly::File file(kSaiPostInitCmdFilePath, O_WRONLY | O_CREAT | O_EXCL);
-    if (folly::writeFull(
-            file.fd(),
-            kSaiPostInitCmdFileContent.c_str(),
-            kSaiPostInitCmdFileContent.size()) == -1) {
-      XLOG(ERR) << "Error writing to " << kSaiPostInitCmdFilePath
-                << ", errno: " << errno;
-      return;
+void fillHwSwitchSaiExtensionDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR:
+        dropStats.packetIntegrityDrops() = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
     }
-    // Make sure that the file is in the disk as its needed post SAI/SDK init
-    fsync(file.fd());
-    XLOG(DBG2) << "Created soc file " << kSaiPostInitCmdFilePath;
-  } catch (const std::system_error& e) {
-    if (e.code().value() == EEXIST) {
-      XLOG(DBG2) << "File " << kSaiPostInitCmdFilePath << " already exists!";
-    } else {
-      XLOG(ERR) << "Error creating file: " << kSaiPostInitCmdFilePath << ", "
-                << e.what();
+  }
+}
+
+void fillHwSwitchPipelineStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    int idx,
+    HwSwitchPipelineStats& hwSwitchPipelineStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_PIPELINE_STAT_RX_CELLS:
+        hwSwitchPipelineStats.rxCells()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_TX_CELLS:
+        hwSwitchPipelineStats.txCells()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_RX_BYTES:
+        hwSwitchPipelineStats.rxBytes()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_TX_BYTES:
+        hwSwitchPipelineStats.txBytes()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_TX_WATERMARK_LEVELS:
+        hwSwitchPipelineStats.txWatermarkLevels()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_CURR_OCCUPANCY_BYTES:
+        hwSwitchPipelineStats.curOccupancyBytes()[idx] = value;
+        break;
+      case SAI_SWITCH_PIPELINE_STAT_GLOBAL_DROP:
+        hwSwitchPipelineStats.globalDrops()[idx] = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
     }
   }
 }

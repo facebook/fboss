@@ -38,7 +38,7 @@ from neteng.fboss.transceiver.ttypes import TransmitterTechnology
 
 def get_content(directory: Dict[str, str], filename: str) -> str:
     if filename not in directory:
-        raise Exception(
+        raise FileNotFoundError(
             f"File {filename} not found in directory with keys {directory.keys()}"
         )
     return directory[filename]
@@ -359,21 +359,18 @@ def read_si_settings(
             rx_setting.dspMode = int(row[Column.RX_DSP_MODE])
         if "RX_AFE_TRIM" in column_names and row[Column.RX_AFE_TRIM]:
             rx_setting.afeTrim = int(row[Column.RX_AFE_TRIM])
-        if (
-            "RX_INSTG_BOOST1_START" in column_names
-            and row[Column.RX_INSTG_BOOST1_START]
-        ):
-            rx_setting.instgBoost1Start = int(row[Column.RX_INSTG_BOOST1_START])
+        if "RX_INSTG_BOOST1_STRT" in column_names and row[Column.RX_INSTG_BOOST1_STRT]:
+            rx_setting.instgBoost1Start = int(row[Column.RX_INSTG_BOOST1_STRT])
         if "RX_INSTG_BOOST1_STEP" in column_names and row[Column.RX_INSTG_BOOST1_STEP]:
             rx_setting.instgBoost1Step = int(row[Column.RX_INSTG_BOOST1_STEP])
         if "RX_INSTG_BOOST1_STOP" in column_names and row[Column.RX_INSTG_BOOST1_STOP]:
             rx_setting.instgBoost1Stop = int(row[Column.RX_INSTG_BOOST1_STOP])
         if (
-            "RX_INSTG_BOOST2_OR_HR_START" in column_names
-            and row[Column.RX_INSTG_BOOST2_OR_HR_START]
+            "RX_INSTG_BOOST2_OR_HR_STRT" in column_names
+            and row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
         ):
             rx_setting.instgBoost2OrHrStart = int(
-                row[Column.RX_INSTG_BOOST2_OR_HR_START]
+                row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
             )
         if (
             "RX_INSTG_BOOST2_OR_HR_STEP" in column_names
@@ -409,6 +406,8 @@ def read_si_settings(
             and row[Column.RX_INSTG_DFE_STOP_1P7]
         ):
             rx_setting.instgDfeStop1p7 = int(row[Column.RX_INSTG_DFE_STOP_1P7])
+        if "RX_DIFF_ENCODER_EN" in column_names and row[Column.RX_DIFF_ENCODER_EN]:
+            rx_setting.diffEncoderEn = int(row[Column.RX_DIFF_ENCODER_EN])
         if (
             "RX_ENABLE_SCAN_SELECTION" in column_names
             and row[Column.RX_ENABLE_SCAN_SELECTION]
@@ -464,6 +463,13 @@ def read_si_settings(
             rx_setting.dcwStepFineOvVal = int(row[Column.RX_DCW_STEP_FINE_OV_VAL])
         if "RX_DCW_OV_EN" in column_names and row[Column.RX_DCW_OV_EN]:
             rx_setting.dcwOvEn = int(row[Column.RX_DCW_OV_EN])
+        if (
+            "RX_FFE_LMS_DYNAMIC_GATING_EN" in column_names
+            and row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
+        ):
+            rx_setting.ffeLmsDynamicGatingEn = int(
+                row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
+            )
 
         si_settings.append(
             SiSettingRow(

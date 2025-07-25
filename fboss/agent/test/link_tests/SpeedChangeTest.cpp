@@ -124,11 +124,39 @@ class SpeedChangeTest : public LinkTest {
     auto setup = [this, fromSpeed, toSpeed]() {
       auto newConfig = createSpeedChangeConfig(fromSpeed, toSpeed);
 
+      std::atomic<bool> speedChangeDone{false};
+
+      std::thread t([&speedChangeDone]() {
+        std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
+            agentClient = nullptr;
+        std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
+
+        try {
+          agentClient = utils::createWedgeAgentClient();
+        } catch (const std::exception& ex) {
+          XLOG(WARN) << "Failed createWedgeAgentClient call. "
+                     << folly::exceptionStr(ex);
+        }
+
+        if (agentClient != nullptr) {
+          while (!speedChangeDone) {
+            try {
+              agentClient->sync_getAllPortInfo(portEntries);
+            } catch (const std::exception& ex) {
+              XLOG(WARN) << "Failed getAllPortInfo() thrift call. "
+                         << folly::exceptionStr(ex);
+            }
+          }
+        }
+      });
+
       // Apply the new config
       sw()->applyConfig("set secondary speeds", newConfig);
 
       EXPECT_NO_THROW(waitForAllCabledPorts(true));
       createL3DataplaneFlood();
+      speedChangeDone = true;
+      t.join();
     };
     auto verify = [this]() {
       /*

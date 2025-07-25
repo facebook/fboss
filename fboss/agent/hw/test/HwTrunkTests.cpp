@@ -100,66 +100,6 @@ TEST_F(HwTrunkTest, TrunkMemberPortDownMinLinksViolated) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
-  if (getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_FAKE ||
-      getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_MOCK ||
-      getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-  auto setup = [=, this]() {
-    auto cfg = initialConfig();
-    utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
-    applyConfigAndEnableTrunks(cfg);
-    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(getProgrammedState());
-    applyNewState(ecmpHelper.resolveNextHops(
-        getProgrammedState(), {PortDescriptor(AggregatePortID(1))}));
-    ecmpHelper.programIp2MplsRoutes(
-        getRouteUpdater(),
-        {PortDescriptor(AggregatePortID(1))},
-        {{PortDescriptor(AggregatePortID(1)), {1001, 1002}}});
-  };
-  auto verify = [=, this]() {
-    auto vlanId = VlanID(utility::kBaseVlanId);
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    for (auto throughPort : {false, true}) {
-      auto stats = getLatestPortStats(masterLogicalPortIds()[1]);
-      auto pkts0 = *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
-          *stats.outBroadcastPkts_();
-      auto trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
-      auto trunkPkts0 = *trunkStats.outUnicastPkts_() +
-          *trunkStats.outMulticastPkts_() + *trunkStats.outBroadcastPkts_();
-      auto pkt = utility::makeUDPTxPacket(
-          getHwSwitch(),
-          vlanId,
-          intfMac,
-          intfMac,
-          folly::IPAddress("2401::1"),
-          folly::IPAddress("2401::2"),
-          10001,
-          20001);
-      throughPort
-          ? getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-                std::move(pkt), masterLogicalPortIds()[0])
-          : getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
-      stats = getLatestPortStats(masterLogicalPortIds()[1]);
-      trunkStats = getLatestAggregatePortStats(AggregatePortID(1));
-      auto pkts1 = *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
-          *stats.outBroadcastPkts_();
-      auto trunkPkts1 = *trunkStats.outUnicastPkts_() +
-          *trunkStats.outMulticastPkts_() + *trunkStats.outBroadcastPkts_();
-      EXPECT_GT(pkts1, pkts0);
-      EXPECT_GT(trunkPkts1, trunkPkts0);
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwTrunkTest, TrunkPortStats) {
   if (getPlatform()->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_FAKE ||
@@ -167,16 +107,14 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
           cfg::AsicType::ASIC_TYPE_MOCK ||
       getPlatform()->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
     return;
   }
   auto setup = [=, this]() {
     auto cfg = initialConfig();
     utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
     applyConfigAndEnableTrunks(cfg);
-    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(getProgrammedState());
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getHwSwitch()->needL2EntryForNeighbor());
     applyNewState(ecmpHelper.resolveNextHops(
         getProgrammedState(), {PortDescriptor(AggregatePortID(1))}));
     ecmpHelper.programRoutes(

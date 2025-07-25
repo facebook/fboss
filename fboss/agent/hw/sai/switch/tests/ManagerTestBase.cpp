@@ -599,7 +599,7 @@ std::shared_ptr<PortQueue> ManagerTestBase::makePortQueue(
   cfg::Range range;
   *range.minimum() = minPps;
   *range.maximum() = maxPps;
-  portQueueRate.pktsPerSec_ref() = range;
+  portQueueRate.pktsPerSec() = range;
   portQueue->setPortQueueRate(portQueueRate);
   portQueue->setWeight(weight);
   portQueue->setScheduling(schedType);
@@ -639,9 +639,10 @@ std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
 void ManagerTestBase::applyNewState(
     const std::shared_ptr<SwitchState>& newState) {
   auto oldState = saiPlatform->getHwSwitch()->getProgrammedState();
-  StateDelta delta(oldState, newState);
-  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(delta));
-  saiPlatform->getHwSwitch()->stateChanged(delta);
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(oldState, newState);
+  EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(deltas.back()));
+  saiPlatform->getHwSwitch()->stateChanged(deltas);
   programmedState = newState;
   programmedState->publish();
 }

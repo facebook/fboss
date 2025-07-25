@@ -12,7 +12,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -23,6 +22,7 @@ char** argVec{nullptr};
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
+DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 
@@ -55,8 +55,10 @@ void AgentEnsembleTest::setupAgentEnsemble(bool disableLinkStateToggler) {
 void AgentEnsembleTest::setCmdLineFlagOverrides() const {
   // Looped ports are the common case in tests
   FLAGS_disable_looped_fabric_ports = false;
-  // Set HW agent connection timeout to 120 seconds
-  FLAGS_hw_agent_connection_timeout_ms = 120000;
+  // Set HW agent connection timeout to 130 seconds
+  FLAGS_hw_agent_connection_timeout_ms = 130000;
+  // Link snapshots use a huge amount of logspace and aren't human-readable
+  FLAGS_enable_snapshot_debugs = false;
 }
 
 void AgentEnsembleTest::TearDown() {
@@ -107,7 +109,7 @@ std::map<PortID, HwPortStats> AgentEnsembleTest::getPortStats(
         portStats = getSw()->getHwPortStats(ports);
         // Check collect timestamp is valid
         for (const auto& [portId, portStats] : portStats) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -165,12 +167,26 @@ void AgentEnsembleTest::resolveNeighbor(
     const AddrT& ip,
     VlanID vlanId,
     folly::MacAddress mac) {
+  using NeighborTableT = typename std::conditional_t<
+      std::is_same<AddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
   auto resolveNeighborFn = [=,
                             this](const std::shared_ptr<SwitchState>& state) {
     auto outputState{state->clone()};
     auto vlan = outputState->getVlans()->getNode(vlanId);
-    auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlanId, &outputState);
+    auto intfId = vlan->getInterfaceID();
+    NeighborTableT* nbrTable;
+    if (FLAGS_intf_nbr_tables) {
+      auto intf = outputState->getInterfaces()->getNode(intfId);
+      nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+          intfId, &outputState);
+    } else {
+      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+          vlanId, &outputState);
+    }
+
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(
           ip, mac, port, vlan->getInterfaceID(), NeighborState::REACHABLE);
@@ -295,7 +311,7 @@ void AgentEnsembleTest::getAllHwPortStats(
         hwPortStats.clear();
         getSw()->getAllHwPortStats(hwPortStats);
         for (const auto& [port, portStats] : hwPortStats) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -321,12 +337,12 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
         // Since each port can have a unique timestamp, compare with the first
         // port
         auto firstPortStat = &portStats.begin()->second;
-        if (firstPortStat->timestamp__ref() == timestamp) {
+        if (firstPortStat->timestamp_() == timestamp) {
           return false;
         }
         // Make sure that the other ports have valid stats
         for (const auto& [port, portStats] : portStats) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -350,7 +366,7 @@ void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
   // maxNumDiscards
   for (numRounds = 0; numRounds < 2; numRounds++) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
-    lastStatRefTime = *portStats.begin()->second.timestamp__ref();
+    lastStatRefTime = *portStats.begin()->second.timestamp_();
 
     for (auto [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
@@ -373,7 +389,7 @@ void AgentEnsembleTest::assertNoInErrors(int maxNumDiscards) {
   // maxNumDiscards
   for (numRounds = 0; numRounds < 2; numRounds++) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
-    lastStatRefTime = *portStats.begin()->second.timestamp__ref();
+    lastStatRefTime = *portStats.begin()->second.timestamp_();
 
     for (auto [port, stats] : portStats) {
       auto inErrors = *stats.inErrors_();

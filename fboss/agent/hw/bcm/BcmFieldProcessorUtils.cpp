@@ -12,7 +12,6 @@
 
 #include "fboss/agent/hw/bcm/BcmMirrorUtils.h"
 #include "fboss/agent/hw/bcm/BcmMultiPathNextHop.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <boost/range/combine.hpp>
@@ -75,7 +74,7 @@ bool isRedirectToNextHopStateSame(
   if (resolvedNexthops.size() > 0) {
     std::shared_ptr<BcmMultiPathNextHop> multipathNh =
         hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
-            BcmMultiPathNextHopKey(routerId, resolvedNexthops));
+            BcmMultiPathNextHopKey(routerId, resolvedNexthops, std::nullopt));
     expectedEgressId = multipathNh->getEgressId();
   } else {
     expectedEgressId = hw->getDropEgressId();
@@ -168,6 +167,16 @@ bool isFlowletActionStateSame(
   return true;
 }
 
+bool isEcmpHashActionStateSame(
+    const std::optional<MatchAction>& swAction,
+    const std::string& aclMsg) {
+  if (!swAction || !swAction.value().getEcmpHashAction()) {
+    XLOG(ERR) << aclMsg << " has ecmp hash action in h/w but not in s/w";
+    return false;
+  }
+  return true;
+}
+
 bool isActionStateSame(
     const BcmSwitch* hw,
     int unit,
@@ -176,7 +185,7 @@ bool isActionStateSame(
     const std::string& aclMsg,
     const BcmAclActionParameters& data) {
   // first we need to get all actions of current acl entry
-  std::array<bcm_field_action_t, 8> supportedActions = {
+  std::array<bcm_field_action_t, 9> supportedActions = {
       bcmFieldActionDrop,
       bcmFieldActionCosQNew,
       bcmFieldActionCosQCpuNew,
@@ -184,7 +193,8 @@ bool isActionStateSame(
       bcmFieldActionMirrorIngress,
       bcmFieldActionMirrorEgress,
       bcmFieldActionL3Switch,
-      bcmFieldActionDynamicEcmpEnable};
+      bcmFieldActionDynamicEcmpEnable,
+      bcmFieldActionEcmpRandomRoundRobinHashCancel};
   boost::container::flat_map<bcm_field_action_t, std::pair<uint32_t, uint32_t>>
       bcmActions;
   for (auto action : supportedActions) {
@@ -217,6 +227,9 @@ bool isActionStateSame(
       expectedAC += 1;
     }
     if (acl->getAclAction()->cref<switch_state_tags::flowletAction>()) {
+      expectedAC += 1;
+    }
+    if (acl->getAclAction()->cref<switch_state_tags::ecmpHashAction>()) {
       expectedAC += 1;
     }
   }
@@ -282,6 +295,9 @@ bool isActionStateSame(
         break;
       case bcmFieldActionDynamicEcmpEnable:
         isSame = isFlowletActionStateSame(aclAction, aclMsg);
+        break;
+      case bcmFieldActionEcmpRandomRoundRobinHashCancel:
+        isSame = isEcmpHashActionStateSame(aclAction, aclMsg);
         break;
       default:
         throw FbossError("Unknown action=", action->first);

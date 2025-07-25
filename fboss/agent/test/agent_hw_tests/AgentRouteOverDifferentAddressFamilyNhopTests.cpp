@@ -30,9 +30,9 @@ namespace facebook::fboss {
 
 class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
  private:
@@ -66,7 +66,7 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
     }
   }
   std::unique_ptr<TxPacket> makeTxPacket(const folly::IPAddress& dstIp) const {
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
@@ -94,7 +94,7 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
     }
     auto setup = [this, useLinkLocalNhop] {
       utility::EcmpSetupTargetedPorts<NhopAddrT> ecmpHelper(
-          getProgrammedState());
+          getProgrammedState(), getSw()->needL2EntryForNeighbor());
       auto addRoute = [this, &ecmpHelper, useLinkLocalNhop](
                           auto nw, const auto& nhopPorts) {
         RouteNextHopEntry::NextHopSet nhops;

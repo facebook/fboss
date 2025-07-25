@@ -61,25 +61,65 @@ TEST_F(NextHopGroupManagerTest, addNextHopGroup) {
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
   ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
-  auto saiNextHopGroup = saiManagerTable->nextHopGroupManager()
-                             .incRefOrAddNextHopGroup(swNextHops)
-                             ->nextHopGroup;
+  auto saiNextHopGroup =
+      saiManagerTable->nextHopGroupManager()
+          .incRefOrAddNextHopGroup(SaiNextHopGroupKey(swNextHops, std::nullopt))
+          ->nextHopGroup;
   EXPECT_EQ(saiNextHopGroup.use_count(), 1);
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
+}
+
+TEST_F(NextHopGroupManagerTest, verifyNextHopGroupKey) {
+  FLAGS_flowletSwitchingEnable = true;
+  ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+  ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
+  RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
+  auto saiNextHopGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, cfg::SwitchingMode::FIXED_ASSIGNMENT));
+  auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
+  EXPECT_EQ(saiNextHopGroupHandle.use_count(), 1);
+  EXPECT_EQ(saiNextHopGroup.use_count(), 2);
+
+  auto saiNextHopGroupHandle2 =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, cfg::SwitchingMode::FIXED_ASSIGNMENT));
+  auto saiNextHopGroup2 = saiNextHopGroupHandle2->nextHopGroup;
+  EXPECT_EQ(saiNextHopGroupHandle2.use_count(), 2);
+  EXPECT_EQ(saiNextHopGroup2.use_count(), 3);
+
+  EXPECT_EQ(saiNextHopGroup, saiNextHopGroup2);
+  EXPECT_EQ(saiNextHopGroupHandle, saiNextHopGroupHandle2);
+
+  auto saiNextHopGroupHandle3 =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(
+              swNextHops, cfg::SwitchingMode::PER_PACKET_RANDOM));
+  auto saiNextHopGroup3 = saiNextHopGroupHandle3->nextHopGroup;
+  EXPECT_EQ(saiNextHopGroupHandle3.use_count(), 1);
+  EXPECT_EQ(saiNextHopGroup3.use_count(), 2);
+
+  EXPECT_NE(saiNextHopGroupHandle3, saiNextHopGroupHandle);
+  EXPECT_NE(saiNextHopGroup3, saiNextHopGroup);
+
+  EXPECT_EQ(saiNextHopGroupHandle2.use_count(), 2);
+  EXPECT_EQ(saiNextHopGroup2.use_count(), 3);
 }
 
 TEST_F(NextHopGroupManagerTest, refNextHopGroup) {
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
   ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
-  auto saiNextHopGroup = saiManagerTable->nextHopGroupManager()
-                             .incRefOrAddNextHopGroup(swNextHops)
-                             ->nextHopGroup;
+  auto saiNextHopGroup =
+      saiManagerTable->nextHopGroupManager()
+          .incRefOrAddNextHopGroup(SaiNextHopGroupKey(swNextHops, std::nullopt))
+          ->nextHopGroup;
   EXPECT_EQ(saiNextHopGroup.use_count(), 1);
 
   RouteNextHopEntry::NextHopSet swNextHops2{nh1, nh2};
   auto saiNextHopGroup2 = saiManagerTable->nextHopGroupManager()
-                              .incRefOrAddNextHopGroup(swNextHops2)
+                              .incRefOrAddNextHopGroup(
+                                  SaiNextHopGroupKey(swNextHops2, std::nullopt))
                               ->nextHopGroup;
   EXPECT_EQ(saiNextHopGroup.use_count(), 2);
 
@@ -91,14 +131,16 @@ TEST_F(NextHopGroupManagerTest, derefNextHopGroup) {
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
   ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
-  auto saiNextHopGroup = saiManagerTable->nextHopGroupManager()
-                             .incRefOrAddNextHopGroup(swNextHops)
-                             ->nextHopGroup;
+  auto saiNextHopGroup =
+      saiManagerTable->nextHopGroupManager()
+          .incRefOrAddNextHopGroup(SaiNextHopGroupKey(swNextHops, std::nullopt))
+          ->nextHopGroup;
   EXPECT_EQ(saiNextHopGroup.use_count(), 1);
   {
     RouteNextHopEntry::NextHopSet swNextHops2{nh1, nh2};
     auto saiNextHopGroup2 = saiManagerTable->nextHopGroupManager()
-                                .incRefOrAddNextHopGroup(swNextHops2)
+                                .incRefOrAddNextHopGroup(SaiNextHopGroupKey(
+                                    swNextHops2, std::nullopt))
                                 ->nextHopGroup;
     EXPECT_EQ(saiNextHopGroup.use_count(), 2);
   }
@@ -113,7 +155,8 @@ TEST_F(NextHopGroupManagerTest, deleteNextHopGroup) {
     ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
     RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
     auto saiNextHopGroup = saiManagerTable->nextHopGroupManager()
-                               .incRefOrAddNextHopGroup(swNextHops)
+                               .incRefOrAddNextHopGroup(
+                                   SaiNextHopGroupKey(swNextHops, std::nullopt))
                                ->nextHopGroup;
     counter = saiNextHopGroup;
     EXPECT_EQ(counter.use_count(), 1);
@@ -130,7 +173,7 @@ TEST_F(NextHopGroupManagerTest, resolveNeighborBefore) {
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
   auto saiNextHopGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          swNextHops);
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {h0.ip, h1.ip});
 }
@@ -141,7 +184,7 @@ TEST_F(NextHopGroupManagerTest, resolveNeighborAfter) {
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
   auto saiNextHopGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          swNextHops);
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
   auto arpEntry0 = resolveArp(intf0.id, h0);
@@ -157,7 +200,7 @@ TEST_F(NextHopGroupManagerTest, unresolveNeighbor) {
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
   auto saiNextHopGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          swNextHops);
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {h0.ip, h1.ip});
   saiManagerTable->neighborManager().removeNeighbor(arpEntry1);
@@ -173,7 +216,7 @@ TEST_F(NextHopGroupManagerTest, derefThenResolve) {
   {
     auto saiNextHopGroupHandle =
         saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-            swNextHops);
+            SaiNextHopGroupKey(swNextHops, std::nullopt));
     auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
     checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
   }
@@ -191,7 +234,7 @@ TEST_F(NextHopGroupManagerTest, testNextHopGroupMemberWeights) {
   RouteNextHopEntry::NextHopSet swNextHops{nh1};
   auto saiNextHopGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          swNextHops);
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
 
   auto nextHopGroupId = saiNextHopGroup->adapterKey();
@@ -215,7 +258,7 @@ TEST_F(NextHopGroupManagerTest, testFixedWidthNextHopGroupMemberWeights) {
   RouteNextHopEntry::NextHopSet swNextHops{nh1, nh2};
   auto saiNextHopGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          swNextHops);
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
 
   auto nextHopGroupId = saiNextHopGroup->adapterKey();

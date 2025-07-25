@@ -65,6 +65,8 @@ class TestEnsembleIf : public HwSwitchCallback {
     return (portSpeed > cfg::PortSpeed::HUNDREDG ? 10000 : 100);
   }
 
+  virtual std::optional<VlanID> getVlanIDForTx() const = 0;
+
   virtual void applyNewState(
       StateUpdateFn fn,
       const std::string& name = "test-update",
@@ -95,6 +97,11 @@ class TestEnsembleIf : public HwSwitchCallback {
   HwPortStats getLatestPortStats(PortID port) {
     return getLatestPortStats(std::vector<PortID>({port}))[port];
   }
+  virtual std::map<InterfaceID, HwRouterInterfaceStats> getLatestInterfaceStats(
+      const std::vector<InterfaceID>& interfaces) = 0;
+  HwRouterInterfaceStats getLatestInterfaceStats(InterfaceID intf) {
+    return getLatestInterfaceStats(std::vector<InterfaceID>({intf}))[intf];
+  }
   virtual std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports) = 0;
   HwSysPortStats getLatestSysPortStats(SystemPortID port) {
@@ -114,6 +121,9 @@ class TestEnsembleIf : public HwSwitchCallback {
   std::vector<const HwAsic*> getL3Asics() const;
   int getNumL3Asics() const;
   std::vector<SystemPortID> masterLogicalSysPortIds() const;
+  virtual std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID switchId) const = 0;
+  virtual bool needL2EntryForNeighbor() const = 0;
 
  private:
   std::vector<PortID> masterLogicalPortIdsImpl(

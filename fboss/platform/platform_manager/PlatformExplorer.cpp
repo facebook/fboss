@@ -2,11 +2,9 @@
 
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 
-#include <algorithm>
 #include <chrono>
 #include <exception>
 #include <filesystem>
-#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -20,6 +18,7 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
+#include "fboss/platform/weutil/FbossEepromParser.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -167,6 +166,7 @@ void PlatformExplorer::explore() {
   }
   publishFirmwareVersions();
   genHumanReadableEeproms();
+  publishHardwareVersions();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
       explorationStatus,
@@ -180,6 +180,7 @@ void PlatformExplorer::explorePmUnit(
     const std::string& pmUnitName) {
   auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
+  dataStore_.updatePmUnitSuccessfullyExplored(slotPath, false);
 
   XLOG(INFO) << fmt::format(
       "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
@@ -209,12 +210,13 @@ void PlatformExplorer::explorePmUnit(
           *embeddedSensorConfig.sysfsPath());
     }
   }
+  dataStore_.updatePmUnitSuccessfullyExplored(slotPath, true);
 
   XLOG(INFO) << fmt::format(
       "Exploring Slots for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
       slotPath,
-      pmUnitConfig.outgoingSlotConfigs_ref()->size());
+      pmUnitConfig.outgoingSlotConfigs()->size());
   for (const auto& [slotName, slotConfig] :
        *pmUnitConfig.outgoingSlotConfigs()) {
     exploreSlot(slotPath, slotName, slotConfig);
@@ -231,9 +233,17 @@ void PlatformExplorer::exploreSlot(
   // If PresenceDetection is specified, proceed further only if the presence
   // condition is satisfied
   if (const auto presenceDetection = slotConfig.presenceDetection()) {
+    PresenceInfo presenceInfo;
+    presenceInfo.presenceDetection() = *presenceDetection;
+    presenceInfo.isPresent() = false;
+    dataStore_.updatePmUnitPresenceInfo(childSlotPath, presenceInfo);
     try {
       auto isPmUnitPresent =
-          presenceChecker_.isPresent(presenceDetection.value(), childSlotPath);
+          presenceChecker_.isPresent(*presenceDetection, childSlotPath);
+      presenceInfo.isPresent() = isPmUnitPresent;
+      presenceInfo.actualValue() = presenceChecker_.getPresenceValue(
+          presenceDetection.value(), childSlotPath);
+      dataStore_.updatePmUnitPresenceInfo(childSlotPath, presenceInfo);
       if (!isPmUnitPresent) {
         auto errMsg = fmt::format(
             "Skipping exploring Slot {} at {}. No PmUnit in the Slot",
@@ -283,17 +293,17 @@ void PlatformExplorer::exploreSlot(
 std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     const std::string& slotType,
     const std::string& slotPath) {
-  auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
+  auto slotTypeConfig = platformConfig_.slotTypeConfigs()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   std::optional<int> productionStateInEeprom{std::nullopt};
   std::optional<int> productVersionInEeprom{std::nullopt};
   std::optional<int> productSubVersionInEeprom{std::nullopt};
-  if (slotTypeConfig.idpromConfig_ref()) {
-    auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
+  if (slotTypeConfig.idpromConfig()) {
+    auto idpromConfig = *slotTypeConfig.idpromConfig();
     auto eepromI2cBusNum =
         dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
-    std::string eepromPath = "";
+    std::string eepromPath;
 
     /*
     Because of upstream kernel issues, we have to manually read the
@@ -302,8 +312,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
     if ((platformConfig_.platformName().value() == "meru800bfa" ||
-         platformConfig_.platformName().value() == "meru800bia" ||
-         platformConfig_.platformName().value() == "meru800biab") &&
+         platformConfig_.platformName().value() == "meru800bia") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       try {
@@ -338,19 +347,14 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     try {
       dataStore_.updateEepromContents(
           Utils().createDevicePath(slotPath, "IDPROM"),
-          eepromParser_.getContents(eepromPath, *idpromConfig.offset()));
-      pmUnitNameInEeprom =
-          eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
-      // TODO: Avoid this side effect in this function.
-      // I think we can refactor this simpler once I2CDevicePaths are also
-      // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
-      // stored in DataStore.
-      productionStateInEeprom =
-          eepromParser_.getProductionState(eepromPath, *idpromConfig.offset());
-      productVersionInEeprom = eepromParser_.getProductionSubState(
-          eepromPath, *idpromConfig.offset());
-      productSubVersionInEeprom =
-          eepromParser_.getVariantVersion(eepromPath, *idpromConfig.offset());
+          FbossEepromParser(eepromPath, *idpromConfig.offset()).getContents());
+      const auto& eepromContents = dataStore_.getEepromContents(
+          Utils().createDevicePath(slotPath, "IDPROM"));
+      pmUnitNameInEeprom = eepromContents.getProductName();
+      productionStateInEeprom = std::stoi(eepromContents.getProductionState());
+      productVersionInEeprom =
+          std::stoi(eepromContents.getProductionSubState());
+      productSubVersionInEeprom = std::stoi(eepromContents.getVariantVersion());
       XLOG(INFO) << fmt::format(
           "Found ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
           productionStateInEeprom ? std::to_string(*productionStateInEeprom)
@@ -361,6 +365,29 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
                                     : "<ABSENT>",
           eepromPath,
           slotPath);
+
+      if (productionStateInEeprom.has_value() &&
+          productVersionInEeprom.has_value() &&
+          productSubVersionInEeprom.has_value()) {
+        PmUnitVersion version;
+        version.productProductionState() = *productionStateInEeprom;
+        version.productVersion() = *productVersionInEeprom;
+        version.productSubVersion() = *productSubVersionInEeprom;
+        dataStore_.updatePmUnitVersion(slotPath, version);
+      } else {
+        XLOG(WARNING) << fmt::format(
+            "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
+            "ProductVersion `{}` ProductSubVersion `{}`. Skipping updating PmUnit {}",
+            slotPath,
+            productionStateInEeprom ? std::to_string(*productionStateInEeprom)
+                                    : "<ABSENT>",
+            productVersionInEeprom ? std::to_string(*productVersionInEeprom)
+                                   : "<ABSENT>",
+            productSubVersionInEeprom
+                ? std::to_string(*productSubVersionInEeprom)
+                : "<ABSENT>",
+            *pmUnitNameInEeprom);
+      }
     } catch (const std::exception& e) {
       auto errMsg = fmt::format(
           "Could not fetch contents of IDPROM {} in {}. {}",
@@ -402,12 +429,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         "or SlotTypeConfig::idpromConfig at {}",
         slotPath));
   }
-  dataStore_.updatePmUnitInfo(
-      slotPath,
-      *pmUnitName,
-      productionStateInEeprom,
-      productVersionInEeprom,
-      productSubVersionInEeprom);
+  dataStore_.updatePmUnitName(slotPath, *pmUnitName);
   return pmUnitName;
 }
 
@@ -744,6 +766,49 @@ void PlatformExplorer::publishFirmwareVersions() {
   }
 }
 
+void PlatformExplorer::publishHardwareVersions() {
+  auto chassisDevicePath = *platformConfig_.chassisEepromDevicePath();
+  if (!dataStore_.hasEepromContents(chassisDevicePath)) {
+    XLOGF(
+        ERR,
+        "Failed to report hardware version. EEPROM contents not found for {}",
+        chassisDevicePath);
+    return;
+  }
+
+  auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
+  auto prodState = chassisEepromContent.getProductionState();
+  auto prodSubState = chassisEepromContent.getProductionSubState();
+  auto variantVersion = chassisEepromContent.getVariantVersion();
+
+  // Report production state
+  if (!prodState.empty()) {
+    XLOG(INFO) << fmt::format("Reporting Production State: {}", prodState);
+    fb303::fbData->setCounter(fmt::format(kProductionState, prodState), 1);
+  } else {
+    XLOG(ERR) << "Production State not set";
+  }
+
+  // Report production sub-state
+  if (!prodSubState.empty()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production Sub-State: {}", prodSubState);
+    fb303::fbData->setCounter(
+        fmt::format(kProductionSubState, prodSubState), 1);
+  } else {
+    XLOG(ERR) << "Production Sub-State not set";
+  }
+
+  // Report variant version
+  if (!variantVersion.empty()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Variant Indicator: {}", variantVersion);
+    fb303::fbData->setCounter(fmt::format(kVariantVersion, variantVersion), 1);
+  } else {
+    XLOG(ERR) << "Variant Indicator not set";
+  }
+}
+
 PlatformManagerStatus PlatformExplorer::getPMStatus() const {
   return platformManagerStatus_.copy();
 }
@@ -759,6 +824,19 @@ void PlatformExplorer::updatePmStatus(const PlatformManagerStatus& newStatus) {
       status.failedDevices() = explorationSummary_.getFailedDevices();
     }
   });
+}
+
+std::optional<DataStore> PlatformExplorer::getDataStore() const {
+  bool ready = false;
+  platformManagerStatus_.withRLock([&](const PlatformManagerStatus& status) {
+    ready =
+        (status.explorationStatus() != ExplorationStatus::IN_PROGRESS &&
+         status.explorationStatus() != ExplorationStatus::UNSTARTED);
+  });
+  if (ready) {
+    return dataStore_;
+  }
+  return std::nullopt;
 }
 
 void PlatformExplorer::setupI2cDevice(
@@ -826,7 +904,7 @@ void PlatformExplorer::genHumanReadableEeproms() {
           devicePath);
       return;
     }
-    auto contents = dataStore_.getEepromContents(devicePath);
+    auto contents = dataStore_.getEepromContents(devicePath).getContents();
     std::ostringstream os;
     for (const auto& [key, value] : contents) {
       os << fmt::format("{}: {}\n", key, value);

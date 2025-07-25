@@ -25,6 +25,19 @@ folly::StringPiece saiStatusToString(sai_status_t status);
 sai_log_level_t saiLogLevelFromString(const std::string& logLevel);
 folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+std::string saiSwitchSdkHealthSeverityToString(
+    const sai_switch_asic_sdk_health_severity_t& severity);
+std::string saiSwitchSdkHealthCategoryToString(
+    const sai_switch_asic_sdk_health_category_t& category);
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+std::string saiSerTypeToString(const sai_ser_type_t& sai_ser_type);
+std::string saiSerCorrectionTypeToString(
+    const sai_ser_correction_type_t& sai_ser_correction_type);
+std::string saiSerLogTypeToString(sai_ser_log_type_t sai_ser_log_type);
+#endif
 } // namespace facebook::fboss
 
 /*
@@ -208,7 +221,7 @@ struct formatter<sai_map_t> {
   template <typename FormatContext>
   auto format(const sai_map_t& map, FormatContext& ctx) const {
     return format_to(
-        ctx.out(), "(mapping: key: {}, value: {}", map.key, map.value);
+        ctx.out(), "(mapping: key: {}, value: {})", map.key, map.value);
   }
 };
 
@@ -545,4 +558,94 @@ struct formatter<sai_fabric_port_reachability_t> {
         reach.reachable);
   }
 };
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+
+template <>
+struct formatter<sai_switch_asic_sdk_health_severity_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const sai_switch_asic_sdk_health_severity_t& arg,
+      FormatContext& ctx) const {
+    return format_to(
+        ctx.out(),
+        "{}",
+        facebook::fboss::saiSwitchSdkHealthSeverityToString(arg));
+  }
+};
+
+template <>
+struct formatter<sai_switch_asic_sdk_health_category_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const sai_switch_asic_sdk_health_category_t& arg,
+      FormatContext& ctx) const {
+    return format_to(
+        ctx.out(),
+        "{}",
+        facebook::fboss::saiSwitchSdkHealthCategoryToString(arg));
+  }
+};
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 15, 0)
+
+template <>
+struct formatter<sai_ser_type_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_ser_type_t& arg, FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", facebook::fboss::saiSerTypeToString(arg));
+  }
+};
+
+template <>
+struct formatter<sai_ser_correction_type_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_ser_correction_type_t& arg, FormatContext& ctx) const {
+    return format_to(
+        ctx.out(), "{}", facebook::fboss::saiSerCorrectionTypeToString(arg));
+  }
+};
+
+template <>
+struct formatter<sai_ser_log_type_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_ser_log_type_t& arg, FormatContext& ctx) const {
+    return format_to(
+        ctx.out(), "{}", facebook::fboss::saiSerLogTypeToString(arg));
+  }
+
+  template <typename FormatContext>
+  auto format(const std::vector<sai_ser_log_type_t>& arg, FormatContext& ctx)
+      const {
+    return format_to(ctx.out(), "[{}]", fmt::join(arg, ", "));
+  }
+};
+#endif
+
 } // namespace fmt

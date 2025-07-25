@@ -8,6 +8,7 @@
  *
  */
 #include <folly/IPAddress.h>
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -22,15 +23,16 @@ namespace {
 constexpr uint8_t kDefaultQueue = 0;
 constexpr uint8_t kTestingQueue = 7;
 constexpr uint32_t kDscp = 0x24;
+constexpr uint8_t kChenabTxQueue = 7;
 } // namespace
 
 namespace facebook::fboss {
 
 class AgentSendPacketToQueueTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
 
  protected:
@@ -44,20 +46,32 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     if (!isOutOfPort) {
       // need to set up ecmp for switching
       auto kEcmpWidthForTest = 1;
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(), getSw()->needL2EntryForNeighbor()};
       resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     }
   };
 
   auto verify = [=, this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
     auto port = ecmpHelper6.nhop(0).portDesc.phyPortID();
-    const uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
+    uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
+
+    // for chenab, when a packet is injected by CPU into port  with pipeline
+    // bypass  the queue used for tx is not 'deffault queue' but special
+    // internal queue  is used (queue 16) this queue is accounted against queue
+    // id 7
+    auto sw = getAgentEnsemble()->getSw();
+    auto asic = utility::getAsic(*sw, port);
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB && isOutOfPort) {
+      queueID = kChenabTxQueue;
+    }
 
     auto beforeOutPkts =
         folly::copy(getLatestPortStats(port).queueOutPackets_().value())
             .at(queueID);
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     // packet format shouldn't be matter in this test
@@ -115,18 +129,17 @@ TEST_F(AgentSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
 
 class AgentSendPacketToMulticastQueueTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     return {
-        production_features::ProductionFeature::L3_FORWARDING,
-        production_features::ProductionFeature::MULTICAST_QUEUE};
+        ProductionFeature::L3_FORWARDING, ProductionFeature::MULTICAST_QUEUE};
   }
 };
 
 TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
   auto ensemble = getAgentEnsemble();
   auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = utility::checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsic(l3Asics);
   auto masterLogicalPortIds = ensemble->masterLogicalPortIds();
   auto port = masterLogicalPortIds[0];
 
@@ -155,7 +168,7 @@ TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
     if (getSw()->getBootType() == BootType::WARM_BOOT) {
       return;
     }
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto randomMac = folly::MacAddress("01:02:03:04:05:06");

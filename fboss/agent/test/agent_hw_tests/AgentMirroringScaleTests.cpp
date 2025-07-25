@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 
@@ -58,29 +58,29 @@ using MirrorTypes = ::testing::Types<
 template <typename MirrorT>
 class AgentMirroringScaleTest : public AgentHwTest {
  public:
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
     if constexpr (std::is_same<typename MirrorT::AddrT, folly::IPAddressV6>::
                       value) {
       if constexpr (MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN) {
         return {
-            production_features::ProductionFeature::ERSPANV6_MIRRORING,
-            production_features::ProductionFeature::INGRESS_MIRRORING};
+            ProductionFeature::ERSPANV6_MIRRORING,
+            ProductionFeature::INGRESS_MIRRORING};
       }
       if constexpr (MirrorT::mirrorType == MirrorType::EGRESS_ERSPAN) {
         return {
-            production_features::ProductionFeature::ERSPANV6_MIRRORING,
-            production_features::ProductionFeature::EGRESS_MIRRORING};
+            ProductionFeature::ERSPANV6_MIRRORING,
+            ProductionFeature::EGRESS_MIRRORING};
       }
     }
     if constexpr (
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||
         MirrorT::mirrorType == MirrorType::INGRESS_ERSPAN) {
-      return {production_features::ProductionFeature::INGRESS_MIRRORING};
+      return {ProductionFeature::INGRESS_MIRRORING};
     } else if constexpr (
         MirrorT::mirrorType == MirrorType::EGRESS_SPAN ||
         MirrorT::mirrorType == MirrorType::EGRESS_ERSPAN) {
-      return {production_features::ProductionFeature::EGRESS_MIRRORING};
+      return {ProductionFeature::EGRESS_MIRRORING};
     }
   }
 
@@ -116,7 +116,7 @@ class AgentMirroringScaleTest : public AgentHwTest {
   }
 
   uint32_t getMaxMirrorsEntries(const std::vector<const HwAsic*>& asics) const {
-    auto asic = utility::checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsic(asics);
     uint32_t maxMirrorsEntries = asic->getMaxMirrors();
     if constexpr (
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||

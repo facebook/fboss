@@ -10,8 +10,6 @@
 
 #include "fboss/agent/hw/bcm/BcmCinter.h"
 
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
-
 #include <array>
 #include <iomanip>
 #include <iterator>
@@ -26,8 +24,6 @@
 #include <folly/MapUtil.h>
 #include <folly/Singleton.h>
 #include <folly/String.h>
-
-#include "fboss/agent/SysError.h"
 
 extern "C" {
 #if (defined(IS_OPENNSA))
@@ -181,11 +177,12 @@ void BcmCinter::setupGlobals() {
 template <typename C>
 void BcmCinter::writeCintLines(C&& lines) {
   auto constexpr kSeparator = ";\n";
+  auto numLines = lines.size();
   auto cint = join(kSeparator, std::forward<C>(lines)) + kSeparator;
   if (FLAGS_enable_bcm_cinter) {
     asyncLogger_->appendLog(cint.c_str(), cint.size());
   }
-  linesWritten_ += lines.size();
+  linesWritten_ += numLines;
 }
 
 void BcmCinter::writeCintLine(const std::string& cint) {
@@ -213,7 +210,7 @@ vector<string> BcmCinter::wrapFunc(const string& funcCall) const {
           "if (rv) { printf(\"\\nError around line ",
           linesWritten_.load(),
           " : ",
-          funcCall.substr(0, funcCall.find("(")),
+          funcCall.substr(0, funcCall.find('(')),
           ": %d -> %s\", rv, bcm_errmsg(rv));  }")};
   return cintLines;
 }

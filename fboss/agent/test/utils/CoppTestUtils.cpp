@@ -23,8 +23,8 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -235,7 +235,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   auto portQueueRate = cfg::PortQueueRate();
 
   if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
-    portQueueRate.pktsPerSec_ref() = getRange(0, pps);
+    portQueueRate.pktsPerSec() = getRange(0, pps);
   } else {
     uint32_t kbps;
     if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
@@ -243,7 +243,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
     } else {
       kbps = getCoppQueueKbpsFromPps(hwAsic, pps);
     }
-    portQueueRate.kbitsPerSec_ref() = getRange(0, kbps);
+    portQueueRate.kbitsPerSec() = getRange(0, kbps);
   }
 
   return portQueueRate;
@@ -941,23 +941,21 @@ defaultPostIngressCpuAclsForSai(
   if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
     return acls;
   }
+  // packets addressed to rif address with network control go to high-pri
   addHighPriAclForMyIPNetworkControl(
       hwAsic,
       cfg::ToCpuAction::TRAP,
       getCoppHighPriQueueId(hwAsic),
       acls,
       true /*isSai*/);
-  /*
-   * Unresolved route class ID to low pri queue.
-   * For unresolved route ACL, both the hostif trap and the ACL will
-   * be hit on TAJO and 2 packets will be punted to CPU.
-   * Do not rely on getCpuActionType but explicitly configure
-   * the cpu action to TRAP. Connected subnet route has the same class ID
-   * and also goes to low pri queue
-   */
-  addLowPriAclForUnresolvedRoutes(
-      hwAsic, cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
 
+  // packets addressed to rif address go to mid pri queue
+  addMidPriAclForIp2Me(
+      hwAsic,
+      cfg::ToCpuAction::TRAP,
+      getCoppMidPriQueueId({hwAsic}),
+      acls,
+      true /*isSai*/);
   return acls;
 }
 
@@ -1183,24 +1181,18 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
                : defaultCpuAclsForBcm(hwAsic, config);
 }
 
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes) {
-  auto counter = cfg::TrafficCounter();
-  *counter.name() = counterName;
-  if (counterTypes.has_value()) {
-    *counter.types() = counterTypes.value();
-  } else {
-    *counter.types() = {cfg::CounterType::PACKETS};
-  }
-  config->trafficCounters()->push_back(counter);
-}
-
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
     const HwAsic* hwAsic) {
   auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);
   auto coppMidPriQueueId = utility::getCoppMidPriQueueId({hwAsic});
+
+  auto ip2MeTrapQueueId = coppMidPriQueueId;
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // for chenab, by default IP2ME trap queue is low pri queue but packets
+    // destined to my_ip are set to mid pri by acl  and packets with network
+    // control dscp destined to my_ip are set to high pri by acl
+    ip2MeTrapQueueId = utility::kCoppLowPriQueueId;
+  }
   ControlPlane::RxReasonToQueue rxReasonToQueues = {
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::ARP, coppHighPriQueueId),
@@ -1213,7 +1205,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::BGPV6, coppHighPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
-          cfg::PacketRxReason::CPU_IS_NHOP, coppMidPriQueueId),
+          cfg::PacketRxReason::CPU_IS_NHOP, ip2MeTrapQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::LACP, coppHighPriQueueId),
       ControlPlane::makeRxReasonToQueueEntry(
@@ -1314,15 +1306,11 @@ cfg::MatchAction getToQueueActionForSai(
       userDefinedTrap.queueId() = queueId;
       action.userDefinedTrap() = userDefinedTrap;
     }
-    if (hwAsic->isSupported(
-            HwAsic::Feature::SAI_SET_TC_FOR_USER_DEFINED_TRAP)) {
-      // TODO-Chenab: remove this once required sdk support to be able to set
-      // "setTC" action is available with user defined trap.
-      // assume tc i maps to queue i for all i on sai switches
-      cfg::SetTcAction setTc;
-      setTc.tcValue() = queueId;
-      action.setTc() = setTc;
-    }
+    // "setTC" action is available with user defined trap.
+    // assume tc i maps to queue i for all i on sai switches
+    cfg::SetTcAction setTc;
+    setTc.tcValue() = queueId;
+    action.setTc() = setTc;
   } else {
     cfg::QueueMatchAction queueAction;
     queueAction.queueId() = queueId;
@@ -1330,6 +1318,11 @@ cfg::MatchAction getToQueueActionForSai(
   }
   if (toCpuAction) {
     action.toCpuAction() = toCpuAction.value();
+    if (!hwAsic->isSupported(
+            HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION)) {
+      // with user defined trap and cpu action specified, reset the set TC
+      action.setTc().reset();
+    }
   }
   return action;
 }
@@ -1384,15 +1377,17 @@ uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId) {
 }
 
 template <typename SwitchT>
-uint64_t getQueueOutPacketsWithRetry(
+std::map<int, uint64_t> getQueueOutPacketsWithRetry(
     SwitchT* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes) {
   uint64_t outPkts = 0;
-  const HwAsic* asic;
+  std::map<int, uint64_t> result;
+  const HwAsic* asic = nullptr;
   if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
     asic = static_cast<SwSwitch*>(switchPtr)->getHwAsicTable()->getHwAsicIf(
         switchId);
@@ -1401,15 +1396,40 @@ uint64_t getQueueOutPacketsWithRetry(
   }
 
   do {
-    for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
-      auto qOutPkts =
-          getCpuQueueOutPacketsAndBytes(switchPtr, i, switchId).first;
-      XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
-    }
+    if (!verifyPktCntInOtherQueues) {
+      for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
+        auto qOutPkts =
+            getCpuQueueOutPacketsAndBytes(switchPtr, i, switchId).first;
+        XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
+      }
 
-    outPkts = getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
-    if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
-      break;
+      result[queueId] =
+          getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
+      if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
+        break;
+      }
+    } else {
+      // Get all queue IDs and populate the result map with packet counts for
+      // each queue
+      auto queueIds = getCpuQueueIds({asic});
+      bool allQueuesReady = true;
+
+      for (auto qId : queueIds) {
+        auto qOutPkts =
+            getCpuQueueOutPacketsAndBytes(switchPtr, qId, switchId).first;
+        result[qId] = qOutPkts;
+        XLOG(DBG2) << "QueueID: " << qId << " qOutPkts: " << qOutPkts;
+
+        // For the primary queue we're checking, see if it meets the expected
+        // count
+        if (qId == queueId && qOutPkts < expectedNumPkts) {
+          allQueuesReady = false;
+        }
+      }
+
+      if (retryTimes == 0 || allQueuesReady) {
+        break;
+      }
     }
 
     /*
@@ -1422,11 +1442,12 @@ uint64_t getQueueOutPacketsWithRetry(
     sleep(1);
   } while (retryTimes-- > 0);
 
-  while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
-    outPkts = getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
+  while ((result[queueId] == expectedNumPkts) && postMatchRetryTimes--) {
+    result[queueId] =
+        getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
   }
 
-  return outPkts;
+  return result;
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
@@ -1504,20 +1525,22 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
   return std::pair(outPackets, outBytes);
 }
 
-template uint64_t getQueueOutPacketsWithRetry<SwSwitch>(
+template std::map<int, uint64_t> getQueueOutPacketsWithRetry<SwSwitch>(
     SwSwitch* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes);
 
-template uint64_t getQueueOutPacketsWithRetry<HwSwitch>(
+template std::map<int, uint64_t> getQueueOutPacketsWithRetry<HwSwitch>(
     HwSwitch* switchPtr,
     SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
+    bool verifyPktCntInOtherQueues,
     int postMatchRetryTimes);
 
 template <typename SwitchT>
@@ -1531,8 +1554,11 @@ void sendAndVerifyPkts(
     PortID srcPort,
     uint8_t trafficClass) {
   auto sendPkts = [&] {
-    auto vlanId = utility::firstVlanIDWithPorts(swState);
-    auto intfMac = utility::getMacForFirstInterfaceWithPorts(swState);
+    auto intf = utility::firstInterfaceWithPorts(swState);
+    std::optional<VlanID> vlanId =
+        utility::getSwitchVlanIDForTx(switchPtr, intf);
+
+    auto intfMac = intf->getMac();
     utility::sendTcpPkts(
         switchPtr,
         1 /*numPktsToSend*/,
@@ -1545,7 +1571,13 @@ void sendAndVerifyPkts(
         trafficClass);
   };
 
-  sendPktAndVerifyCpuQueue(switchPtr, switchId, queueId, sendPkts, 1);
+  sendPktAndVerifyCpuQueue(
+      switchPtr,
+      switchId,
+      queueId,
+      sendPkts,
+      1,
+      false /*verifyPktCntInOtherQueues*/);
 }
 
 /*
@@ -1677,13 +1709,24 @@ uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId) {
   return 0;
 }
 
-AgentConfig setTTL0PacketForwardingEnableConfig(
-    SwSwitch* sw,
-    AgentConfig& agentConfig) {
+std::vector<uint16_t> getCpuQueueIds(
+    const std::vector<const HwAsic*>& hwAsics) {
+  return {
+      utility::kCoppLowPriQueueId,
+      utility::getCoppMidPriQueueId(hwAsics),
+      utility::getCoppHighPriQueueId(hwAsics)};
+}
+
+AgentConfig setTTL0PacketForwardingEnableConfig(AgentConfig& agentConfig) {
   cfg::AgentConfig testConfig = agentConfig.thrift;
   cfg::SwitchConfig swConfig = testConfig.sw().value();
+  auto asicTable = HwAsicTable(
+      swConfig.switchSettings()->switchIdToSwitchInfo().value(),
+      std::nullopt,
+      swConfig.dsfNodes().value());
   // Setup TTL0 CPU queue
-  utility::setTTLZeroCpuConfig(sw->getHwAsicTable()->getL3Asics(), swConfig);
+  utility::setTTLZeroCpuConfig(asicTable.getL3Asics(), swConfig);
+  testConfig.sw() = swConfig;
   auto newAgentConfig = AgentConfig(
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));

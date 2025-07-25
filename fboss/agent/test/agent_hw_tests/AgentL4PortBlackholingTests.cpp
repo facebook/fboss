@@ -33,14 +33,14 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
   int kNumL4Ports() const {
     return pow(2, 16) - 1;
   }
-  std::vector<production_features::ProductionFeature>
-  getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::L3_FORWARDING};
   }
   void pumpTraffic(bool isV6) {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "101.0.0.1");
     auto dstIp = IPAddress(isV6 ? "2001::1" : "201.0.0.1");
-    auto vlanId = utility::firstVlanIDWithPorts(getProgrammedState());
+    auto vlanId = getVlanIDForTx();
     auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     enum class Dir { SRC_PORT, DST_PORT };
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {
@@ -64,9 +64,13 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
     auto setup = [=, this]() {
       const RouterID kRid{0};
       resolveNeighborAndProgramRoutes(
-          utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid), 1);
+          utility::EcmpSetupAnyNPorts6(
+              getProgrammedState(), getSw()->needL2EntryForNeighbor(), kRid),
+          1);
       resolveNeighborAndProgramRoutes(
-          utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
+          utility::EcmpSetupAnyNPorts4(
+              getProgrammedState(), getSw()->needL2EntryForNeighbor(), kRid),
+          1);
     };
     auto verify = [=, this]() {
       int numL4Ports = kNumL4Ports();
