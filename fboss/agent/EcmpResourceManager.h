@@ -122,6 +122,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
+  void decRouteUsageCount(NextHopGroupInfo& groupInfo);
   struct InputOutputState {
     InputOutputState(
         uint32_t _nonBackupEcmpGroupsCnt,

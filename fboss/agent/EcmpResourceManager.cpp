@@ -684,16 +684,40 @@ void EcmpResourceManager::routeDeleted(
     }
     nextHopGroup2Id_.erase(routeNhops);
   } else {
-    groupInfo->decRouteUsageCount();
+    decRouteUsageCount(*groupInfo);
     XLOG(DBG2) << "Delete route: " << removed->str()
                << " primray ecmp group count unchanged: "
                << inOutState->nonBackupEcmpGroupsCnt << " Group ID: " << groupId
                << " route usage count decremented to: "
                << groupInfo->getRouteUsageCount();
-    CHECK_GT(groupInfo->getRouteUsageCount(), 0);
   }
 }
 
+void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
+  groupInfo.decRouteUsageCount();
+  CHECK_GT(groupInfo.getRouteUsageCount(), 0);
+  if (!compressionPenaltyThresholdPct_) {
+    return;
+  }
+  auto updatePenalty = [&groupInfo](auto& mergedGroups2Info) {
+    const auto grpNhopsSize = groupInfo.getNhops().size();
+    bool updated{false};
+    for (auto& [mergedGroups, info] : mergedGroups2Info) {
+      if (!mergedGroups.contains(groupInfo.getID())) {
+        continue;
+      }
+      updated = true;
+      auto citr = info.groupId2Penalty.find(groupInfo.getID());
+      CHECK(citr != info.groupId2Penalty.end());
+      auto nhopsLost = grpNhopsSize - info.mergedNhops.size();
+      auto newPenalty = std::ceil((nhopsLost * 100.0) / grpNhopsSize) *
+          groupInfo.getRouteUsageCount();
+      citr->second = newPenalty;
+    }
+    return updated;
+  };
+  updatePenalty(candidateMergeGroups_) || updatePenalty(mergedGroups_);
+}
 void EcmpResourceManager::processRouteUpdates(
     const StateDelta& delta,
     InputOutputState* inOutState) {

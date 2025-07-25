@@ -79,6 +79,10 @@ void EcmpResourceMgrMergeGroupsTest::SetUp() {
                  << " lost: " << nhopsLost;
       EXPECT_EQ(consolidationInfo.mergedNhops.size(), nhops.size() - nhopsLost);
       EXPECT_EQ(consolidationInfo.groupId2Penalty.find(otherGrpId)->second, 0);
+      auto largerGroupPenalty = std::ceil(nhopsLost * 100.0 / nhops.size());
+      EXPECT_EQ(
+          consolidationInfo.groupId2Penalty.find(nhopsGrpId)->second,
+          largerGroupPenalty);
     }
   }
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
