@@ -573,9 +573,17 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
   if (compressionPenaltyThresholdPct_) {
     if (inserted) {
+      /*
+       * New group added, compute candidate merges
+       * for it
+       */
       computeCandidateMerges({idItr->second});
-    } else {
-      // TODO update candidate merge info
+    } else if (pfxInserted) {
+      /*
+       * New prefix points to existing group
+       * update consolidation penalties
+       */
+      updateConsolidationPenalty(*pitr->second);
     }
   }
 }
