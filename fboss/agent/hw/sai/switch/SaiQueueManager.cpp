@@ -340,8 +340,11 @@ void SaiQueueManager::changeQueue(
       // option to use a dedicated CPU queue config with buffer pool
       // specified explicitly as the reserved buffer pool.
     } else if (
-        !swPort || (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT)) {
-      // Unsupported for MANAGEMENT_PORT
+        !swPort ||
+        (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT ||
+         platform_->getAsic()->isSupported(
+             HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA))) {
+      // Supported for MANAGEMENT_PORT only on some ASICs
       changeQueueBufferProfile(queueHandle, newPortQueue);
     }
   }
