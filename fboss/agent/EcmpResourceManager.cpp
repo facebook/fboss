@@ -696,7 +696,10 @@ void EcmpResourceManager::routeDeleted(
 void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
   groupInfo.decRouteUsageCount();
   CHECK_GT(groupInfo.getRouteUsageCount(), 0);
-  if (!compressionPenaltyThresholdPct_) {
+  if (candidateMergeGroups_.empty() && mergedGroups_.empty()) {
+    // Early return if no merged groups exist. Can be due to compression
+    // threshold being 0 or if there is a single ECMP groups yet (so
+    // nothing to merge with)
     return;
   }
   auto updatePenalty = [&groupInfo](auto& mergedGroups2Info) {
@@ -716,7 +719,16 @@ void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
     }
     return updated;
   };
-  updatePenalty(candidateMergeGroups_) || updatePenalty(mergedGroups_);
+  if (!updatePenalty(candidateMergeGroups_)) {
+    XLOG(DBG2)
+        << " Group: " << groupInfo.getID()
+        << " not part of candidate merged groups, updating penalty in merged groups ";
+    CHECK(updatePenalty(mergedGroups_));
+  } else {
+    XLOG(DBG2) << " Group: " << groupInfo.getID()
+               << " penalty updated in of candidate merged groups";
+    DCHECK(!updatePenalty(mergedGroups_));
+  }
 }
 void EcmpResourceManager::processRouteUpdates(
     const StateDelta& delta,
