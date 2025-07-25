@@ -1302,7 +1302,7 @@ void SaiPortManager::changeQueue(
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
     managerTable_->queueManager().changeQueue(
-        queueHandle, *portQueue, swPort.get());
+        queueHandle, *portQueue, swPort.get(), swPort->getPortType());
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());

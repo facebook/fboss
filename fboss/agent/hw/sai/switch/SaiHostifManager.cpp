@@ -568,7 +568,8 @@ void SaiHostifManager::changeCpuVoq(
                              portVoq->getMaxDynamicSharedBytes().value()))
                        : "None")
                << " for cpu voq " << portVoq->getID();
-    managerTable_->queueManager().changeQueue(voqHandle, *portVoq);
+    managerTable_->queueManager().changeQueue(
+        voqHandle, *portVoq, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
     if (newPortVoq->getName().has_value()) {
       auto voqName = *newPortVoq->getName();
       cpuSysPortStats_.queueChanged(newPortVoq->getID(), voqName);
@@ -626,6 +627,7 @@ void SaiHostifManager::changeCpuQueue(
             newPortQueue->getStreamType(), true /*cpu port*/)) {
       portQueue->setScalingFactor(*defaultScalingFactor);
     }
+    // TODO(pshaikh) : this is where cpu port queue is being changed
     managerTable_->queueManager().changeQueue(
         queueHandle, *portQueue, nullptr /*swPort*/, cfg::PortType::CPU_PORT);
     if (newPortQueue->getName().has_value()) {

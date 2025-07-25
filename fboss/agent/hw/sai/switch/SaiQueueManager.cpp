@@ -227,7 +227,8 @@ void SaiQueueManager::changeQueueEcnWred(
 
 void SaiQueueManager::changeQueueBufferProfile(
     SaiQueueHandle* queueHandle,
-    const PortQueue& newPortQueue) {
+    const PortQueue& newPortQueue,
+    cfg::PortType /*type*/) {
   if (isVoqSwitchAndQueueHandleNotForVoq(queueHandle)) {
     // VOQ switches support buffer profiles on voqs only
     return;
@@ -316,6 +317,9 @@ void SaiQueueManager::changeQueue(
     const Port* swPort,
     const std::optional<cfg::PortType> portType) {
   CHECK(queueHandle);
+  CHECK(
+      swPort != nullptr ||
+      portType.has_value()); // provide either swPort or portType
   auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
   if ((queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
       (queueType != SAI_QUEUE_TYPE_MULTICAST_VOQ)) {
@@ -345,7 +349,10 @@ void SaiQueueManager::changeQueue(
          platform_->getAsic()->isSupported(
              HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA))) {
       // Supported for MANAGEMENT_PORT only on some ASICs
-      changeQueueBufferProfile(queueHandle, newPortQueue);
+      changeQueueBufferProfile(
+          queueHandle,
+          newPortQueue,
+          swPort ? swPort->getPortType() : *portType);
     }
   }
   if (queueType == SAI_QUEUE_TYPE_UNICAST) {
