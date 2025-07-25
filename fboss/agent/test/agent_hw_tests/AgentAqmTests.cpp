@@ -354,7 +354,11 @@ class AgentAqmTest : public AgentHwTest {
   // use WRED/ECN config or not. This helps validate functionality in AI
   // network which uses ECN alone, the case with both ECN and WRED as in
   // front end network or with just WRED.
-  void runTest(const uint8_t ecnVal, bool enableWred, bool enableEcn) {
+  void runTest(
+      const uint8_t ecnVal,
+      bool enableWred,
+      bool enableEcn,
+      bool warmbootTest = false) {
     if (!isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
       GTEST_SKIP();
       return;
@@ -410,7 +414,12 @@ class AgentAqmTest : public AgentHwTest {
       });
     };
 
-    verifyAcrossWarmBoots(setup, verify);
+    if (warmbootTest) {
+      // for warmboot test, we invoke the setup and verify post warmboot
+      verifyAcrossWarmBoots([] {}, [] {}, setup, verify);
+    } else {
+      verifyAcrossWarmBoots(setup, verify);
+    }
   }
 
   void queueWredThresholdSetup(
@@ -940,6 +949,14 @@ TEST_F(AgentAqmTest, verifyEct1) {
 
 TEST_F(AgentAqmEcnOnlyTest, verifyEcnWithoutWredConfig) {
   runTest(kECT1, false /* enableWred */, true /* enableEcn */);
+}
+
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnWithoutWredPostWarmboot) {
+  runTest(
+      kECT1,
+      false /* enableWred */,
+      true /* enableEcn */,
+      true /* warmbootTest */);
 }
 
 TEST_F(AgentAqmTest, verifyWredWithoutEcnConfig) {

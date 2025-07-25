@@ -27,7 +27,8 @@ class RuntimeConfigBuilder {
   RuntimeConfig buildRuntimeConfig(
       const BspTestsConfig& testConfig,
       const PlatformConfig& pmConfig,
-      const BspKmodsFile& kmods);
+      const BspKmodsFile& kmods,
+      const std::string& platformName);
 
  protected:
   std::tuple<std::string, std::string, int> getActualAdapter(

@@ -47,7 +47,7 @@ _sai_invariant_agent_test_prefix = "sai_invariant_agent_test"
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
-        ] if sai_impl.name == "leaba" else [],
+        ],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
         },

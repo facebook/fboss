@@ -171,10 +171,11 @@ Printer::compute_cell_dimensions(TableInternal& table) {
     Column column = table.column(i);
     size_t configured_width = column.get_configured_width();
     size_t computed_width = column.get_computed_width();
-    if (configured_width != 0)
+    if (configured_width != 0) {
       column_widths.push_back(configured_width);
-    else
+    } else {
       column_widths.push_back(computed_width);
+}
   }
 
   for (size_t i = 0; i < num_rows; ++i) {
@@ -222,8 +223,9 @@ inline void Printer::print_table(std::ostream& stream, TableInternal& table) {
           {row_heights[i], column_widths[j]},
           num_columns);
     }
-    if (border_top_printed)
+    if (border_top_printed) {
       stream << termcolor::reset << "\n";
+}
 
     // Print row contents with word wrapping
     for (size_t k = 0; k < row_heights[i]; ++k) {
@@ -236,8 +238,9 @@ inline void Printer::print_table(std::ostream& stream, TableInternal& table) {
             num_columns,
             k);
       }
-      if (k + 1 < row_heights[i])
+      if (k + 1 < row_heights[i]) {
         stream << termcolor::reset << "\n";
+}
     }
 
     if (i + 1 == num_rows) {
@@ -254,8 +257,9 @@ inline void Printer::print_table(std::ostream& stream, TableInternal& table) {
         }
       }
 
-      if (bottom_border_needed)
+      if (bottom_border_needed) {
         stream << termcolor::reset << "\n";
+}
       // Print bottom border for table
       for (size_t j = 0; j < num_columns; ++j) {
         print_cell_border_bottom(
@@ -266,8 +270,9 @@ inline void Printer::print_table(std::ostream& stream, TableInternal& table) {
             num_columns);
       }
     }
-    if (i + 1 < num_rows)
+    if (i + 1 < num_rows) {
       stream << termcolor::reset << "\n"; // Don't add newline after last row
+}
   }
 }
 
@@ -331,13 +336,13 @@ inline void Printer::print_row_in_cell(
     if (newlines_in_input == 0) {
       // Apply word wrapping to input text
       // Then display one word-wrapped line at a time within cell
-      if (column_width > (padding_left + padding_right))
+      if (column_width > (padding_left + padding_right)) {
         word_wrapped_text_2 = Format::word_wrap(
             text,
             column_width - padding_left - padding_right,
             cell.locale(),
             cell.is_multi_byte_character_support_enabled());
-      else {
+      } else {
         // Configured column width cannot be lower than (padding_left +
         // padding_right) This is a bad configuration E.g., the user is trying
         // to force the column width to be 5 when padding_left and padding_right
@@ -385,8 +390,9 @@ inline void Printer::print_row_in_cell(
 
       // Print right padding characters
       stream << std::string(padding_right, ' ');
-    } else
+    } else {
       stream << std::string(column_width, ' ');
+}
 
   } else {
     // Padding bottom
@@ -426,8 +432,9 @@ inline bool Printer::print_cell_border_top(
   auto corner_background_color = *format.corner_top_left_background_color_;
   auto border_top = *format.border_top_;
 
-  if ((corner == "" && border_top == "") || !*format.show_border_top_)
+  if ((corner == "" && border_top == "") || !*format.show_border_top_) {
     return false;
+}
 
   apply_element_style(stream, corner_color, corner_background_color, {});
   stream << corner;
@@ -473,8 +480,9 @@ inline bool Printer::print_cell_border_bottom(
   auto corner_background_color = *format.corner_bottom_left_background_color_;
   auto border_bottom = *format.border_bottom_;
 
-  if ((corner == "" && border_bottom == "") || !*format.show_border_bottom_)
+  if ((corner == "" && border_bottom == "") || !*format.show_border_bottom_) {
     return false;
+}
 
   apply_element_style(stream, corner_color, corner_background_color, {});
   stream << corner;

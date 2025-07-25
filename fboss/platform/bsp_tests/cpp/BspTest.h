@@ -91,6 +91,38 @@ class BspTest : public ::testing::Test {
     return std::nullopt;
   }
 
+  const std::optional<std::string> getExpectedErrorReason(
+      const std::string& pmName,
+      ExpectedErrorType type) const {
+    RuntimeConfig conf = GetRuntimeConfig();
+    if (conf.expectedErrors()->contains(pmName)) {
+      const auto& errors = conf.expectedErrors()->at(pmName);
+      if (errors.contains(type)) {
+        return errors.at(type);
+      }
+    }
+    return std::nullopt;
+  }
+
+  std::string getCurrentTestName() const {
+    const auto* test_info =
+        ::testing::UnitTest::GetInstance()->current_test_info();
+    return test_info ? test_info->name() : "UnknownTest";
+  }
+
+  // Record an error that occurred during testing
+  void recordExpectedError(
+      const std::string& testName,
+      const std::string& deviceName,
+      const std::string& reason);
+
+  // Overloaded recordError that automatically gets test name
+  void recordExpectedError(
+      const std::string& deviceName,
+      const std::string& reason) {
+    recordExpectedError(getCurrentTestName(), deviceName, reason);
+  }
+
   static BspTestEnvironment* env_;
 };
 

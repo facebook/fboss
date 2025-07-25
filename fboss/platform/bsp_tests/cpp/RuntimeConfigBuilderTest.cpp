@@ -93,13 +93,12 @@ TEST_F(RuntimeConfigBuilderTest, InvalidIncomingBus) {
 TEST_F(RuntimeConfigBuilderTest, CpuAdaptersAdded) {
   // Create a minimal BspTestsConfig
   bsp_tests::BspTestsConfig testConfig;
-  testConfig.platform() = "sample_platform";
   testConfig.testData() = std::map<std::string, DeviceTestData>();
   BspKmodsFile kmods;
 
   // Build the runtime config using the sample platform config
   auto runtimeConfig =
-      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods);
+      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods, "sample");
 
   // get all cpu adapters
   std::vector<I2CAdapter> cpuAdapters;
@@ -121,13 +120,12 @@ TEST_F(RuntimeConfigBuilderTest, CpuAdaptersAdded) {
 
 TEST_F(RuntimeConfigBuilderTest, MuxAdaptersAdded) {
   bsp_tests::BspTestsConfig testConfig;
-  testConfig.platform() = "sample_platform";
   testConfig.testData() = std::map<std::string, DeviceTestData>();
 
   // Create empty kmods
   BspKmodsFile kmods;
   auto runtimeConfig =
-      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods);
+      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods, "sample");
 
   // get all mux adapters
   std::vector<I2CAdapter> muxAdapters;
@@ -158,7 +156,6 @@ TEST_F(RuntimeConfigBuilderTest, MuxAdaptersAdded) {
 TEST_F(RuntimeConfigBuilderTest, I2cAdaptersTopLevel) {
   // Create a minimal BspTestsConfig
   bsp_tests::BspTestsConfig testConfig;
-  testConfig.platform() = "sample_platform";
   testConfig.testData() = std::map<std::string, DeviceTestData>();
 
   // Create empty kmods
@@ -166,7 +163,7 @@ TEST_F(RuntimeConfigBuilderTest, I2cAdaptersTopLevel) {
 
   // Build the runtime config using the sample platform config
   auto runtimeConfig =
-      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods);
+      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods, "sample");
 
   // Verify that the runtime config contains i2cAdapters at the top level
   ASSERT_GT(runtimeConfig.i2cAdapters()->size(), 0);
@@ -200,7 +197,6 @@ TEST_F(RuntimeConfigBuilderTest, I2cAdaptersTopLevel) {
 TEST_F(RuntimeConfigBuilderTest, PciDevicesWithAuxDevices) {
   // Create a minimal BspTestsConfig
   bsp_tests::BspTestsConfig testConfig;
-  testConfig.platform() = "sample_platform";
   testConfig.testData() = std::map<std::string, DeviceTestData>();
 
   // Create empty kmods
@@ -208,7 +204,7 @@ TEST_F(RuntimeConfigBuilderTest, PciDevicesWithAuxDevices) {
 
   // Build the runtime config
   auto runtimeConfig =
-      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods);
+      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods, "sample");
 
   // Verify that the runtime config contains PCI devices with auxDevices
   bool foundPciDevice = false;
@@ -278,7 +274,6 @@ TEST_F(RuntimeConfigBuilderTest, BuildConfigsForAllRealPlatforms) {
 
     // Create a minimal BspTestsConfig for this platform
     bsp_tests::BspTestsConfig testConfig;
-    testConfig.platform() = platformName;
     testConfig.testData() = std::map<std::string, DeviceTestData>();
 
     BspKmodsFile kmods;
@@ -286,8 +281,8 @@ TEST_F(RuntimeConfigBuilderTest, BuildConfigsForAllRealPlatforms) {
     // Attempt to build the runtime config
     RuntimeConfig runtimeConfig;
     EXPECT_NO_THROW({
-      runtimeConfig =
-          builder_->buildRuntimeConfig(testConfig, platformConfig, kmods);
+      runtimeConfig = builder_->buildRuntimeConfig(
+          testConfig, platformConfig, kmods, platformName);
     }) << "Failed to build runtime config for platform: "
        << platformName;
   }
