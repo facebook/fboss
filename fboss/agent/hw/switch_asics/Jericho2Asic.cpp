@@ -219,6 +219,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
+    case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
       return false;
   }
   return false;

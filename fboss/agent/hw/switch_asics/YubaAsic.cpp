@@ -214,6 +214,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
     case HwAsic::Feature::ROUTE_COUNTERS:
+    case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
       return false;
   }
   return false;

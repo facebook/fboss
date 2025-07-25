@@ -221,6 +221,7 @@ class HwAsic {
     TEMPERATURE_MONITORING,
     ROUTER_INTERFACE_STATISTICS,
     MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA,
+    CPU_PORT_EGRESS_BUFFER_POOL,
   };
 
   enum class AsicMode {
@@ -484,6 +485,8 @@ class HwAsic {
   virtual cfg::IpTunnelMode getTunnelDscpMode() const {
     return cfg::IpTunnelMode::PIPE;
   }
+
+  virtual uint64_t getCpuPortEgressPoolSize() const;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
