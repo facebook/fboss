@@ -53,7 +53,7 @@
     {
       "fruName": "FAN4",
       "fruType": "FAN",
-       "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD0/fan4_present",
           "desiredValue": 1
@@ -63,7 +63,7 @@
     {
       "fruName": "FAN5",
       "fruType": "FAN",
-        "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD1/fan1_present",
           "desiredValue": 1
@@ -73,7 +73,7 @@
     {
       "fruName": "FAN6",
       "fruType": "FAN",
-         "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD1/fan2_present",
           "desiredValue": 1
@@ -83,7 +83,7 @@
     {
       "fruName": "FAN7",
       "fruType": "FAN",
-          "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD1/fan3_present",
           "desiredValue": 1
@@ -93,7 +93,7 @@
     {
       "fruName": "FAN8",
       "fruType": "FAN",
-           "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD1/fan4_present",
           "desiredValue": 1
@@ -103,7 +103,7 @@
     {
       "fruName": "FAN9",
       "fruType": "FAN",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD2/fan1_present",
           "desiredValue": 1
@@ -113,7 +113,7 @@
     {
       "fruName": "FAN10",
       "fruType": "FAN",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD2/fan2_present",
           "desiredValue": 1
@@ -123,7 +123,7 @@
     {
       "fruName": "FAN11",
       "fruType": "FAN",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD2/fan3_present",
           "desiredValue": 1
@@ -133,7 +133,7 @@
     {
       "fruName": "FAN12",
       "fruType": "FAN",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/sensors/FAN_CPLD2/fan4_present",
           "desiredValue": 1
@@ -143,7 +143,7 @@
     {
       "fruName": "PSU1",
       "fruType": "PSU",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu1_present",
           "desiredValue": 1
@@ -153,7 +153,7 @@
     {
       "fruName": "PSU2",
       "fruType": "PSU",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu2_present",
           "desiredValue": 1
@@ -163,7 +163,7 @@
     {
       "fruName": "PSU3",
       "fruType": "PSU",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu3_present",
           "desiredValue": 1
@@ -173,7 +173,7 @@
     {
       "fruName": "PSU4",
       "fruType": "PSU",
-            "presenceDetection": {
+      "presenceDetection": {
         "sysfsFileHandle": {
           "presenceFilePath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu4_present",
           "desiredValue": 1
