@@ -12,14 +12,5 @@
 
 namespace facebook::fboss {
 
-void SaiBufferManager::publishGlobalWatermarks(
-    const uint64_t& /*globalHeadroomBytes*/,
-    const uint64_t& /*globalSharedBytes*/) const {};
-void SaiBufferManager::publishPgWatermarks(
-    const std::string& /*portName*/,
-    const int& /*pg*/,
-    const uint64_t& /*pgHeadroomBytes*/,
-    const uint64_t& /*pgSharedBytes*/) const {};
-
 void SaiBufferManager::loadCpuPortEgressBufferPool() {}
 } // namespace facebook::fboss

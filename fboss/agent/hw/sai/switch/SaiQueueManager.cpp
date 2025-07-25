@@ -228,13 +228,13 @@ void SaiQueueManager::changeQueueEcnWred(
 void SaiQueueManager::changeQueueBufferProfile(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue,
-    cfg::PortType /*type*/) {
+    cfg::PortType type) {
   if (isVoqSwitchAndQueueHandleNotForVoq(queueHandle)) {
     // VOQ switches support buffer profiles on voqs only
     return;
   }
   auto newBufferProfile =
-      managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
+      managerTable_->bufferManager().getOrCreateProfile(newPortQueue, type);
   if (newBufferProfile != queueHandle->bufferProfile) {
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::BufferProfileId(

@@ -100,7 +100,10 @@ SaiBufferManager::SaiBufferManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  // load cpu port buffer pool
+  loadCpuPortEgressBufferPool();
+}
 
 uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
   SaiSwitch* saiSwitch;
@@ -346,7 +349,8 @@ SaiBufferPoolHandle* SaiBufferManager::getIngressBufferPoolHandle() const {
 }
 
 SaiBufferPoolHandle* SaiBufferManager::getEgressBufferPoolHandle(
-    const PortQueue& queue) const {
+    const PortQueue& queue,
+    cfg::PortType type) const {
   if (ingressEgressBufferPoolHandle_) {
     return ingressEgressBufferPoolHandle_.get();
   } else {
@@ -541,9 +545,18 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
 
 template <typename BufferProfileTraits>
 BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
-    const PortQueue& queue) const {
+    const PortQueue& queue,
+    cfg::PortType type) const {
   typename BufferProfileTraits::Attributes::PoolId pool{
-      getEgressBufferPoolHandle(queue)->bufferPool->adapterKey()};
+      getEgressBufferPoolHandle(queue, type)->bufferPool->adapterKey()};
+  return profileCreateAttrs<BufferProfileTraits>(pool, queue, type);
+}
+
+template <typename BufferProfileTraits>
+BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
+    typename BufferProfileTraits::Attributes::PoolId pool,
+    const PortQueue& queue,
+    cfg::PortType /*type*/) const {
   std::optional<typename BufferProfileTraits::Attributes::ReservedBytes>
       reservedBytes;
   if (queue.getReservedBytes()) {
@@ -671,11 +684,30 @@ void SaiBufferManager::setupBufferPool(
 }
 
 std::shared_ptr<SaiBufferProfileHandle> SaiBufferManager::getOrCreateProfile(
-    const PortQueue& queue) {
+    const PortQueue& queue,
+    cfg::PortType type) {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL) &&
+      type == cfg::PortType::CPU_PORT) {
+    CHECK(egressCpuPortBufferPoolHandle_);
+
+    SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+        egressCpuPortBufferPoolHandle_->bufferPool->adapterKey()};
+    auto attributes =
+        profileCreateAttrs<SaiDynamicBufferProfileTraits>(pool, queue, type);
+    SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+        SaiDynamicBufferProfileTraits::CreateAttributes,
+        SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+
+    auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+    return std::make_shared<SaiBufferProfileHandle>(
+        store.setObject(k, attributes));
+  }
   setupBufferPool(queue);
 
   if (queue.getSharedBytes()) {
-    auto attributes = profileCreateAttrs<SaiStaticBufferProfileTraits>(queue);
+    auto attributes =
+        profileCreateAttrs<SaiStaticBufferProfileTraits>(queue, type);
     auto& store = saiStore_->get<SaiStaticBufferProfileTraits>();
     SaiStaticBufferProfileTraits::AdapterHostKey k = tupleProjection<
         SaiStaticBufferProfileTraits::CreateAttributes,
@@ -683,7 +715,8 @@ std::shared_ptr<SaiBufferProfileHandle> SaiBufferManager::getOrCreateProfile(
     return std::make_shared<SaiBufferProfileHandle>(
         store.setObject(k, attributes));
   } else {
-    auto attributes = profileCreateAttrs<SaiDynamicBufferProfileTraits>(queue);
+    auto attributes =
+        profileCreateAttrs<SaiDynamicBufferProfileTraits>(queue, type);
     auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
     SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
         SaiDynamicBufferProfileTraits::CreateAttributes,

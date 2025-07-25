@@ -75,7 +75,8 @@ class SaiBufferManager {
       const SaiPlatform* platform);
 
   std::shared_ptr<SaiBufferProfileHandle> getOrCreateProfile(
-      const PortQueue& queue);
+      const PortQueue& queue,
+      cfg::PortType type);
   std::shared_ptr<SaiBufferProfileHandle> getOrCreateIngressProfile(
       const state::PortPgFields& portPgConfig);
 
@@ -105,6 +106,7 @@ class SaiBufferManager {
  private:
   void setupBufferPool(const PortQueue& queue);
   void setupBufferPool(const state::PortPgFields& portPgConfig);
+  void loadCpuPortEgressBufferPool();
 
   void updateIngressBufferPoolStats();
   void updateEgressBufferPoolStats();
@@ -128,7 +130,13 @@ class SaiBufferManager {
       const uint64_t& pgSharedBytes) const;
   template <typename BufferProfileTraits>
   BufferProfileTraits::CreateAttributes profileCreateAttrs(
-      const PortQueue& queue) const;
+      const PortQueue& queue,
+      cfg::PortType type) const;
+  template <typename BufferProfileTraits>
+  BufferProfileTraits::CreateAttributes profileCreateAttrs(
+      typename BufferProfileTraits::Attributes::PoolId poolId,
+      const PortQueue& queue,
+      cfg::PortType type) const;
   template <typename BufferProfileTraits>
   BufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
       const state::PortPgFields& config) const;
@@ -147,7 +155,9 @@ class SaiBufferManager {
   void createOrUpdateIngressEgressBufferPool(
       uint64_t poolSize,
       std::optional<int32_t> newXoffSize);
-  SaiBufferPoolHandle* getEgressBufferPoolHandle(const PortQueue& queue) const;
+  SaiBufferPoolHandle* getEgressBufferPoolHandle(
+      const PortQueue& queue,
+      cfg::PortType type) const;
   const std::vector<sai_stat_id_t>&
   supportedIngressPriorityGroupWatermarkStats() const;
   const std::vector<sai_stat_id_t>&
@@ -165,6 +175,7 @@ class SaiBufferManager {
   uint64_t deviceWatermarkBytes_{0};
   std::map<std::string, uint64_t> globalHeadroomWatermarkBytes_{};
   std::map<std::string, uint64_t> globalSharedWatermarkBytes_{};
+  std::unique_ptr<SaiBufferPoolHandle> egressCpuPortBufferPoolHandle_;
 };
 
 } // namespace facebook::fboss
