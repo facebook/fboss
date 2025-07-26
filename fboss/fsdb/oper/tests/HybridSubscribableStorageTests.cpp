@@ -1407,7 +1407,7 @@ TYPED_TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
 
   // should fail gracefully
   delta.changes() = {unit};
-  EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
 
   // partially valid path should still fail
   unit.path()->raw() = {"inlineStruct", "invalid", "path"};

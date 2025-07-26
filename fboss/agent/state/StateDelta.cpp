@@ -88,7 +88,8 @@ StateDelta::StateDelta(
   // compute new state from old state and oper delta
   fsdb::CowStorage<state::SwitchState, SwitchState> cowState{old_->clone()};
   if (auto error = cowState.patch_impl(operDelta_.value())) {
-    throw FbossError("Error while applying the patch: ", error->toString());
+    throw FbossError(
+        "Error while applying the patch: ", static_cast<int>(error.value()));
   }
   new_ = cowState.root();
   new_->publish();
