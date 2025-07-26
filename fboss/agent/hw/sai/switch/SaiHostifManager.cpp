@@ -207,9 +207,22 @@ std::shared_ptr<SaiHostifUserDefinedTrapHandle>
 SaiHostifManager::ensureHostifUserDefinedTrap(uint32_t queueId) {
   XLOG(DBG2) << "ensure user defined trap for cpu queue " << queueId;
   auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
+  auto priority =
+      SaiHostifUserDefinedTrapTraits::Attributes::TrapPriority::defaultValue();
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    // Chenab has following hardware limitations -
+    //  - CPU queues in Chenab are 0...3.
+    //  - trap priorities are in range of 0...3.
+    //  - A trap group is per queue and all traps in same trap group have same
+    //  priority.
+    // Simplifying with queueId as priority.
+    priority = queueId;
+    CHECK(
+        queueId >= 0 || queueId <= platform_->getAsic()->getHiPriCpuQueueId());
+  }
   auto attributes = makeHostifUserDefinedTrapAttributes(
       hostifTrapGroup->adapterKey(),
-      SaiHostifUserDefinedTrapTraits::Attributes::TrapPriority::defaultValue(),
+      priority,
       SaiHostifUserDefinedTrapTraits::Attributes::TrapType::defaultValue());
   SaiHostifUserDefinedTrapTraits::AdapterHostKey k =
       GET_ATTR(HostifUserDefinedTrap, TrapGroup, attributes);

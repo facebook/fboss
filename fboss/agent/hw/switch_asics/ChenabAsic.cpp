@@ -5,7 +5,7 @@
 
 namespace {
 static constexpr int kDefaultMidPriCpuQueueId = 2;
-static constexpr int kDefaultHiPriCpuQueueId = 7;
+static constexpr int kDefaultHiPriCpuQueueId = 3;
 } // namespace
 
 namespace facebook::fboss {
