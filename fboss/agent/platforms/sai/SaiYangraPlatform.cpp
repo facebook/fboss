@@ -76,6 +76,7 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair(
       "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
   kv_map.insert(std::make_pair("SAI_DUMP_STORE_AMOUNT", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_HOSTIF_V2_ENABLED", "1"));
 
   return kv_map;
 }
