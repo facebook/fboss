@@ -34,6 +34,11 @@
         "profileID": 38
       },
       {
+        "aPortName": "eth1/22/1",
+        "zPortName": "eth1/23/1",
+        "profileID": 39
+      },
+      {
         "aPortName": "fab1/1/1",
         "zPortName": "fab1/4/1",
         "profileID": 42
