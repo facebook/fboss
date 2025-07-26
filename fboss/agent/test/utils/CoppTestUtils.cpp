@@ -181,10 +181,6 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
 }
 
 cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // prevent scheduling configuration on chenab for cpu queues
-    return cfg::QueueScheduling::INTERNAL;
-  }
   return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
 }
 
@@ -295,7 +291,7 @@ void addCpuQueueConfig(
     queue1.id() = kCoppDefaultPriQueueId;
     queue1.name() = "cpuQueue-default";
     queue1.streamType() = getCpuDefaultStreamType(hwAsic);
-    queue1.scheduling() = cfg::QueueScheduling::INTERNAL;
+    queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
     queue1.weight() = 0;
     cpuQueues.push_back(queue1);
   }
