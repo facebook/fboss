@@ -15,8 +15,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/lib/RefMap.h"
 
-#include <boost/container/flat_set.hpp>
 #include <memory>
+#include <ostream>
 
 namespace facebook::fboss {
 class StateDelta;
@@ -266,4 +266,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
   SwitchStats* switchStats_;
 };
+std::ostream& operator<<(
+    std::ostream& os,
+    const EcmpResourceManager::ConsolidationInfo& info);
 } // namespace facebook::fboss

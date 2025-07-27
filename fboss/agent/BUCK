@@ -753,9 +753,6 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
     ],
-    exported_external_deps = [
-        ("boost", None, "boost_container"),
-    ],
 )
 
 cpp_library(
