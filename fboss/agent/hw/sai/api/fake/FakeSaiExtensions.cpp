@@ -359,6 +359,11 @@ std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
+    AttributeLosslessEnable::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t>
 SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
   return std::nullopt;
