@@ -7,6 +7,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/if/gen-cpp2/AsicTempThriftAsyncClient.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThriftAsyncClient.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_clients.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
@@ -44,7 +45,7 @@ sensor_service::SensorReadResponse getSensorValueThroughThrift(
   return res;
 }
 
-sensor_service::SensorReadResponse getAsicTempThroughThrift(
+asic_temp::AsicTempResponse getAsicTempThroughThrift(
     int agentTempThriftPort,
     folly::EventBase& evb) {
   folly::SocketAddress sockAddr("::1", agentTempThriftPort);
@@ -52,14 +53,14 @@ sensor_service::SensorReadResponse getAsicTempThroughThrift(
       folly::AsyncSocket::newSocket(&evb, sockAddr, kSensorSendTimeoutMs);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  auto client = std::make_unique<apache::thrift::Client<
-      facebook::fboss::platform::sensor_service::SensorServiceThrift>>(
+  auto client = std::make_unique<
+      apache::thrift::Client<facebook::fboss::asic_temp::AsicTempThrift>>(
       std::move(channel));
-  sensor_service::SensorReadResponse res;
+  asic_temp::AsicTempResponse res;
   try {
-    res = client->future_getSensorValuesByNames({}).get();
+    res = client->future_getAsicTemp({}).get();
   } catch (std::exception& ex) {
-    XLOG(ERR) << "Exception talking to sensor_service. " << ex.what();
+    XLOG(ERR) << "Exception talking to wedge_agent. " << ex.what();
   }
   return res;
 }

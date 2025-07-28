@@ -710,6 +710,17 @@ add_fbthrift_cpp_library(
     json
 )
 add_fbthrift_cpp_library(
+  asic_temp_cpp2
+  fboss/agent/if/asic_temp.thrift
+  SERVICES
+    AsicTempThrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fboss_cpp2
+)
+add_fbthrift_cpp_library(
   agent_stats_cpp2
   fboss/agent/agent_stats.thrift
   OPTIONS
