@@ -727,8 +727,8 @@ add_fbthrift_cpp_library(
     json
     reflection
   DEPENDS
+    asic_temp_cpp2
     hardware_stats_cpp2
-    sensor_service_cpp2
     phy_cpp2
 )
 add_fbthrift_cpp_library(

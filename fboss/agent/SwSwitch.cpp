@@ -948,17 +948,15 @@ AgentStats SwSwitch::fillFsdbStats() {
       for (auto&& statEntry :
            *hwSwitchStats.switchTemperatureStats()->value()) {
         auto temp = *hwSwitchStats.switchTemperatureStats()->timeStamp();
-        facebook::fboss::platform::sensor_service::SensorData sensorData;
+        facebook::fboss::asic_temp::AsicTempData sensorData;
         sensorData.name() =
-            "sensor_" + std::to_string(switchIdx) + "_" + statEntry.first;
+            "asic_temp_" + std::to_string(switchIdx) + "_" + statEntry.first;
         sensorData.value() = statEntry.second;
         sensorData.timeStamp() =
             (*hwSwitchStats.switchTemperatureStats()->timeStamp())
                 .at(statEntry.first);
         agentStats.asicTemp()->insert(
-            std::pair<
-                std::string,
-                facebook::fboss::platform::sensor_service::SensorData>(
+            std::pair<std::string, facebook::fboss::asic_temp::AsicTempData>(
                 sensorData.name().value(), sensorData));
         XLOG(DBG5) << "add tempeture info to fsdb," << sensorData.name().value()
                    << "," << statEntry.second << ","

@@ -249,8 +249,8 @@ thrift_library(
     deps = [
         ":switch_config",
         "//fboss/agent/hw:hardware_stats",
+        "//fboss/agent/if:asic_temp",
         "//fboss/lib/phy:phy",
-        "//fboss/platform/sensor_service/if:sensor_service",
         "//thrift/annotation:cpp",
     ],
 )
