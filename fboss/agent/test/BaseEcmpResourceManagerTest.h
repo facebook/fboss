@@ -94,6 +94,8 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
     ASSERT_TRUE(nhopId.has_value());
     EXPECT_EQ(consolidator_->getRouteUsageCount(nhopId.value()), expectedCount);
   }
+  void addRoute(const RoutePrefixV6& prefix6, const RouteNextHopSet& nhops);
+  void rmRoute(const RoutePrefixV6& prefix6);
 
  private:
   virtual void setupFlags() const;
