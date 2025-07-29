@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/HwAgent.h"
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/Platform.h"
 
 namespace facebook::fboss {
 
@@ -31,6 +32,12 @@ HwInitResult HwAgent::initAgent(
   XLOG(DBG2) << "HwSwitch init done";
   inited_.post();
   return ret;
+}
+
+void HwAgent::stopThreads() {
+  if (platform_) {
+    platform_->stopThreads();
+  }
 }
 
 void HwAgent::waitForInitDone() {
