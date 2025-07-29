@@ -790,8 +790,9 @@ void WedgeManager::publishI2cTransactionStats() {
   // sub-class having platform specific implementation)
   auto counters = getI2cControllerStats();
 
-  if (counters.size() == 0)
+  if (counters.size() == 0) {
     return;
+  }
 
   // Populate the i2c stats per pim and per controller
 
