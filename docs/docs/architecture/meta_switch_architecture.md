@@ -250,27 +250,35 @@ Controller has 2+ root ports):
       should follow the requirements specified in [FBOSS BSP Kernel Module API
       Specification](/docs/platform/bsp_api_specification)
 2. System Status LED
-   1. System Status LED Behavior: The front-panel system LEDs and Port LED must
+   1. The front panel must contain the following LEDs:
+      1. System status LED (sys_led)
+      2. Fan status LED (fan_led)
+      3. PSU status LED (psu_led)
+      4. SMB status LED (smb_led)
+   2. Each front panel led must support the following colors:
+      1. Blue
+      2. Amber
+   3. System Status LED Behavior: The front-panel system LEDs and Port LED must
       be able to meet the requirements in the
       [OCP Panel Indicator Specification](#12-appendices)
       1. Exact behavior is to be managed by platform services
-   2. The front panel System Status LEDs (4 LED on the chassis) shall be
+   4. The front panel System Status LEDs (4 LED on the chassis) shall be
       interfaced via the FPGA and controlled by platform services
       1. If FPGA system watchdog timeout is reached: SYS Status LED is set to
          Amber by the FPGA, and it will remain Amber until X86 is up and LED is
          set by software again.
 3. Port Status LED
-   1. Each QSFP, OSFP or SFP ports will have one LED per port, and should be
-      able to support the following port LED behaviors controlled by FBOSS
-      Software
-      1. No Optics Plugged In: No light.
-      2. Optics Plugged in but port not enabled: No Light
-      3. Port is enabled but link is down: No Light
-      4. Configuration Mismatch (Wrong cable connection): Solid Green
-      5. Link is up at 100G/200G/400G/800G speeds: Solid Blue
-      6. Link is used via breakout cables: Solid Blue
-      7. Agent is starting (cold boot): Blinking Blue
-      8. Agent is starting (warm boot): Blinking Blue
+   1. Each QSFP, OSFP or SFP ports will have at least one LED per port
+   2. Each port led must support the following colors:
+      1. Blue
+      2. Amber
+   3. Each port led should be able to support the following port LED behaviors
+      controlled by FBOSS Software
+      1. No light
+      2. Solid Amber
+      3. Solid Blue
+      4. Blinking Blue
+      5. Blinking Amber
 
 ## 3. Power Sequencing
 

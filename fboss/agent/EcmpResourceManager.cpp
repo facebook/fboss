@@ -1083,4 +1083,17 @@ void EcmpResourceManager::computeCandidateMerges(
     }
   }
 }
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const EcmpResourceManager::ConsolidationInfo& info) {
+  std::stringstream ss;
+  ss << "Nhops: " << info.mergedNhops << std::endl;
+  ss << " Penalties:  " << std::endl;
+  for (const auto& [gid, penalty] : info.groupId2Penalty) {
+    ss << " gid:  " << gid << " penalty: " << penalty << std::endl;
+  }
+  os << ss.str();
+  return os;
+}
 } // namespace facebook::fboss

@@ -25,6 +25,7 @@ sai_status_t create_next_hop_group_fn(
   auto fs = FakeSai::getInstance();
   std::optional<int32_t> type;
   sai_object_id_t ars_id = SAI_NULL_OBJECT_ID;
+  sai_int32_t hash_algorithm = SAI_HASH_ALGORITHM_NONE;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
@@ -32,6 +33,9 @@ sai_status_t create_next_hop_group_fn(
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_ARS_OBJECT_ID:
         ars_id = attr_list[i].value.oid;
+        break;
+      case SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM:
+        hash_algorithm = attr_list[i].value.s32;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
@@ -44,7 +48,8 @@ sai_status_t create_next_hop_group_fn(
   if (type.value() != SAI_NEXT_HOP_GROUP_TYPE_ECMP) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *next_hop_group_id = fs->nextHopGroupManager.create(type.value(), ars_id);
+  *next_hop_group_id =
+      fs->nextHopGroupManager.create(type.value(), ars_id, hash_algorithm);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -67,6 +72,9 @@ sai_status_t get_next_hop_group_attribute_fn(
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_ARS_OBJECT_ID:
         attr[i].value.oid = nextHopGroup.ars_id;
+        break;
+      case SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM:
+        attr[i].value.s32 = nextHopGroup.hash_algorithm;
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST: {
         const auto& nextHopGroupMemberMap =

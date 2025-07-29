@@ -154,9 +154,11 @@ class BufferApiTest : public ::testing::Test {
     SaiIngressPriorityGroupTraits::Attributes::Index index{10};
     std::optional<SaiIngressPriorityGroupTraits::Attributes::BufferProfile>
         bufferProfile;
+    std::optional<SaiIngressPriorityGroupTraits::Attributes::LosslessEnable>
+        losslessEnable;
 
     SaiIngressPriorityGroupTraits::CreateAttributes c{
-        port, index, bufferProfile};
+        port, index, bufferProfile, losslessEnable};
     return bufferApi->create<SaiIngressPriorityGroupTraits>(c, 0);
   }
   void checkIngressPriorityGroup(IngressPriorityGroupSaiId id) const {

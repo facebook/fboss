@@ -168,7 +168,7 @@ of SAI headers. In order to run the build:
 
 #### Run the Build Helper
 
-By default, `build-helper.py` will use SAI version 1.14.0. If you are planning
+By default, `build-helper.py` will use SAI version 1.16.3. If you are planning
 on building against a different version of SAI, you must add another param to the
 build-helper.py command.
 
@@ -184,7 +184,7 @@ Supported values:
 # Run the build helper to stage the SDK in preparation for the build step
 ./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output
 
-# Run the build helper using SAI version 1.15.3 instead of the default 1.14.0
+# Run the build helper using SAI version 1.15.3 instead of the default 1.16.3
 ./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output 1.15.3
 ```
 
@@ -216,7 +216,7 @@ but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_
     - `SAI_VERSION_11_7_0_0_DNX_ODP`
     - `SAI_VERSION_12_0_EA_DNX_ODP`
     - `SAI_VERSION_13_0_EA_ODP`
-1. `SAI_VERSION` - can be omitted if you are using SAI 1.14.0. If using a more
+1. `SAI_VERSION` - can be omitted if you are using SAI 1.16.3. If using a more
 recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
 
 #### Build Against the SDK

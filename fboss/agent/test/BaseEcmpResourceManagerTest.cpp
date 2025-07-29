@@ -422,6 +422,28 @@ BaseEcmpResourceManagerTest::getNhopId(const RouteNextHopSet& nhops) const {
   return nhopId;
 }
 
+void BaseEcmpResourceManagerTest::addOrUpdateRoute(
+    const RoutePrefixV6& prefix6,
+    const RouteNextHopSet& nhops) {
+  auto newRoute = makeRoute(prefix6, nhops);
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  if (fib6->getNodeIf(prefix6.str())) {
+    fib6->updateNode(prefix6.str(), std::move(newRoute));
+  } else {
+    fib6->addNode(prefix6.str(), std::move(newRoute));
+  }
+  newState->publish();
+  consolidate(newState);
+}
+void BaseEcmpResourceManagerTest::rmRoute(const RoutePrefixV6& prefix6) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  fib6->removeNode(prefix6.str());
+  newState->publish();
+  consolidate(newState);
+}
+
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
   auto oldState = state_;
   auto newState = oldState->clone();

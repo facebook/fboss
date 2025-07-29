@@ -5,6 +5,7 @@
 #pragma once
 
 #include <folly/io/async/EventBase.h>
+#include "fboss/agent/if/gen-cpp2/asic_temp_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -20,7 +21,7 @@ sensor_service::SensorReadResponse getSensorValueThroughThrift(
     int sensorServiceThriftPort,
     folly::EventBase& evb);
 
-sensor_service::SensorReadResponse getAsicTempThroughThrift(
+facebook::fboss::asic_temp::AsicTempResponse getAsicTempThroughThrift(
     int agentTempThriftPort,
     folly::EventBase& evb);
 
