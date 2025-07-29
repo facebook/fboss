@@ -13,6 +13,7 @@
 using namespace facebook::fboss::utility;
 
 namespace facebook::fboss {
+
 const int kMaxLinks = 4;
 
 const int kLoadWeight2 = 60;
@@ -217,14 +218,15 @@ class AgentArsFlowletTest : public AgentArsBase {
 
   void verifyConfig(
       const RoutePrefixV6& testPrefix,
-      const cfg::SwitchConfig& cfg) {
+      const cfg::FlowletSwitchingConfig& flowletConfig,
+      bool flowletEnable = true) {
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
     EXPECT_TRUE(
         verifyPortFlowletConfig(testPrefix.toCidrNetwork(), portFlowletConfig));
 
     EXPECT_TRUE(verifyEcmpForFlowletSwitching(
-        testPrefix.toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+        testPrefix.toCidrNetwork(), flowletConfig, flowletEnable));
   }
 
   void modifyFlowletSwitchingConfig(cfg::SwitchConfig& cfg) const {
@@ -368,7 +370,7 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
   auto verify = [&]() {
     // switchingMode starts out as FLOWLET_QUALITY
     auto cfg = initialConfig(*getAgentEnsemble());
-    verifyConfig(testPrefixes[0], cfg);
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
     XLOG(INFO) << "Verified config change";
     // Modify the flowlet config switching mode to PER_PACKET_QUALITY
     modifyFlowletSwitchingConfig(cfg);
@@ -376,13 +378,13 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
     updatePortFlowletConfigs(
         cfg, kScalingFactor2(), kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
-    verifyConfig(testPrefixes[0], cfg);
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
     XLOG(INFO) << "Verified modified config change";
     // Modify to initial config to verify after warmboot
     // switching mode back to FLOWLET_QUALITY
     cfg = initialConfig(*getAgentEnsemble());
     applyNewConfig(cfg);
-    verifyConfig(prefixes[0], cfg);
+    verifyConfig(prefixes[0], *cfg.flowletSwitchingConfig());
     XLOG(INFO) << "Verified config change";
   };
 
