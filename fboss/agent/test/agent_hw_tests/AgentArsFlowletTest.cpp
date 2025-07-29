@@ -380,14 +380,93 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
     applyNewConfig(cfg);
     verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
     XLOG(INFO) << "Verified modified config change";
-    // Modify to initial config to verify after warmboot
-    // switching mode back to FLOWLET_QUALITY
     cfg = initialConfig(*getAgentEnsemble());
     applyNewConfig(cfg);
     verifyConfig(prefixes[0], *cfg.flowletSwitchingConfig());
     XLOG(INFO) << "Verified config change";
   };
 
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentArsFlowletTest, VerifyFlowletConfigRemoval) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
+
+  auto setup = [=, this]() {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+    XLOG(INFO) << "Programmed " << testPrefixes.size() << " prefixes across "
+               << testNhopSets.size() << " ECMP groups";
+  };
+
+  auto verify = [&]() {
+    // switchingMode starts out as FLOWLET_QUALITY
+    auto cfg = initialConfig(*getAgentEnsemble());
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+    XLOG(INFO) << "Verified inital config";
+    // Modify the flowlet config
+    modifyFlowletSwitchingConfig(cfg);
+    // Modify the port flowlet config
+    updatePortFlowletConfigs(
+        cfg, kScalingFactor2(), kLoadWeight2, kQueueWeight2);
+    applyNewConfig(cfg);
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+    XLOG(INFO) << "Verified modified config";
+    // Remove the flowlet configs
+    auto removedCfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+    auto expectedFlowletSetting = getFlowletSwitchingConfig(
+        cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
+    applyNewConfig(removedCfg);
+    XLOG(INFO) << "Applied removed config";
+    verifyConfig(testPrefixes[0], expectedFlowletSetting, false);
+    XLOG(INFO) << "Verified config removal";
+    // Modify to initial config to verify after warmboot applyNewConfig(
+    applyNewConfig(initialConfig(*getAgentEnsemble()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+/*
+ * This test setup static ECMP and update the static ECMP to DLB ECMP and revert
+ * the DLB ECMP to static ECMP and verify it.
+ */
+TEST_F(AgentArsFlowletTest, VerifyEcmpFlowletSwitchingEnable) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
+
+  auto setup = [=, this]() {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+
+    XLOG(INFO) << "Programmed " << testPrefixes.size() << " prefixes across "
+               << testNhopSets.size() << " ECMP groups";
+  };
+
+  auto verify = [&]() {
+    auto expectedFlowletSetting = getFlowletSwitchingConfig(
+        cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
+    // 1. setup static ECMP
+    auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+    applyNewConfig(cfg);
+    verifyConfig(testPrefixes[0], expectedFlowletSetting, false);
+    XLOG(INFO) << "Verified inital config";
+    // 2. update the static ECMP to DLB ECMP
+    updateFlowletConfigs(cfg);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
+    verifyConfig(testPrefixes[1], *cfg.flowletSwitchingConfig());
+    XLOG(INFO) << "Verified modified config";
+    // 3. revert the DLB ECMP to static ECMP
+    auto defaultCfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+
+    applyNewConfig(defaultCfg);
+    verifyConfig(testPrefixes[0], expectedFlowletSetting, false);
+    XLOG(INFO) << "Verified config removal";
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 
