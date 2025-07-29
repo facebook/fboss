@@ -98,6 +98,9 @@ class SaiBufferManager {
   void setIngressPriorityGroupBufferProfile(
       const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
       std::shared_ptr<SaiBufferProfileHandle> bufferProfile);
+  void setIngressPriorityGroupLosslessEnable(
+      const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
+      bool isLossless);
   SaiIngressPriorityGroupHandles loadIngressPriorityGroups(
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
   SaiBufferPoolHandle* getIngressBufferPoolHandle() const;

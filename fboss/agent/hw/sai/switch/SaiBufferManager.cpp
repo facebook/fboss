@@ -883,6 +883,15 @@ void SaiBufferManager::setIngressPriorityGroupBufferProfile(
   }
 }
 
+void SaiBufferManager::setIngressPriorityGroupLosslessEnable(
+    const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
+    bool isLossless) {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  ingressPriorityGroup->setOptionalAttribute(
+      SaiIngressPriorityGroupTraits::Attributes::LosslessEnable{isLossless});
+#endif
+}
+
 SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(
     const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds) {
   SaiIngressPriorityGroupHandles ingressPriorityGroupHandles;

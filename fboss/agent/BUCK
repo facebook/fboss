@@ -415,6 +415,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "buffer_utils",
+    srcs = [
+        "BufferUtils.cpp",
+    ],
+    headers = [
+        "BufferUtils.h",
+    ],
+    exported_deps = [
+        ":switch_config-cpp2-types",
+        ":utils",
+    ],
+)
+
+cpp_library(
     name = "dsfnode_utils",
     srcs = [
         "DsfNodeUtils.cpp",
@@ -666,6 +680,7 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":asic_utils",
+        ":buffer_utils",
         ":core",
         ":fboss-error",
         ":hw_asic_table",
@@ -867,6 +882,7 @@ cpp_library(
         ":agent_info-cpp2-types",
         ":agent_stats-cpp2-types",
         ":asic_utils",
+        ":buffer_utils",
         ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",
