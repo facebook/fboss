@@ -238,6 +238,82 @@ class AgentArsFlowletTest : public AgentArsBase {
     flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
     cfg.flowletSwitchingConfig() = flowletCfg;
   }
+
+  void verifyEcmpGroups(
+      std::vector<RoutePrefixV6> testPrefixes,
+      const cfg::SwitchConfig& cfg,
+      int numEcmp) {
+    for (int i = 0; i < numEcmp; i++) {
+      const auto& currentIp = testPrefixes[i];
+      EXPECT_TRUE(verifyEcmpForFlowletSwitching(
+          currentIp.toCidrNetwork(),
+          *cfg.flowletSwitchingConfig(),
+          true /* flowletEnable */));
+    }
+  }
+
+  void setupEcmpGroups(
+      std::vector<RoutePrefixV6>& testPrefixes,
+      std::vector<flat_set<PortDescriptor>>& testNhopSets,
+      int numEcmp) {
+    auto wrapper = getSw()->getRouteUpdater();
+    generateTestPrefixes(testPrefixes, testNhopSets, numEcmp);
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+  }
+  void flowletSwitchingWBHelper(
+      std::vector<RoutePrefixV6>& testPrefixes,
+      std::vector<flat_set<PortDescriptor>>& testNhopSets,
+      const cfg::SwitchingMode preMode,
+      int preMaxFlows,
+      int preEcmpScale,
+      cfg::SwitchingMode postMode,
+      int postMaxFlows,
+      int postEcmpScale) {
+    auto setup = [this,
+                  &testPrefixes,
+                  &testNhopSets,
+                  preMode,
+                  preMaxFlows,
+                  preEcmpScale]() {
+      auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+      updateFlowletConfigs(cfg, preMode, preMaxFlows);
+      updatePortFlowletConfigName(cfg);
+      applyNewConfig(cfg);
+      setupEcmpGroups(testPrefixes, testNhopSets, preEcmpScale);
+    };
+
+    auto verify = [this, &testPrefixes, preMode, preMaxFlows, preEcmpScale]() {
+      auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+      updateFlowletConfigs(cfg, preMode, preMaxFlows);
+      updatePortFlowletConfigName(cfg);
+      verifyEcmpGroups(testPrefixes, cfg, preEcmpScale);
+    };
+
+    auto setupPostWarmboot = [this,
+                              &testPrefixes,
+                              &testNhopSets,
+                              postMode,
+                              postMaxFlows,
+                              postEcmpScale]() {
+      auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+      updateFlowletConfigs(cfg, postMode, postMaxFlows);
+      updatePortFlowletConfigName(cfg);
+      applyNewConfig(cfg);
+      setupEcmpGroups(testPrefixes, testNhopSets, postEcmpScale);
+    };
+
+    auto verifyPostWarmboot =
+        [this, &testPrefixes, postMode, postMaxFlows, postEcmpScale]() {
+          auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+          updateFlowletConfigs(cfg, postMode, postMaxFlows);
+          updatePortFlowletConfigName(cfg);
+          verifyEcmpGroups(testPrefixes, cfg, postEcmpScale);
+        };
+
+    verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+  }
+
+  std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
 };
 
 /**
