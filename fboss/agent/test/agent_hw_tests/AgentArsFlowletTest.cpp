@@ -391,4 +391,33 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+/*
+ * This test verifies ability to configure ECMP groups without port config
+ */
+
+TEST_F(AgentArsFlowletTest, VerifySkipEcmpFlowletSwitchingEnable) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets, kMaxLinks);
+
+  auto setup = [=, this]() {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+
+    XLOG(INFO) << "Programmed " << testPrefixes.size() << " prefixes across "
+               << testNhopSets.size() << " ECMP groups";
+
+    auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+    updateFlowletConfigs(cfg);
+    applyNewConfig(cfg);
+  };
+
+  auto verify = [&]() {
+    auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+    updateFlowletConfigs(cfg);
+    applyNewConfig(cfg);
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
