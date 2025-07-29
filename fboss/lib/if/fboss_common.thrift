@@ -59,6 +59,7 @@ struct PlatformAgentSdkVersion {
   1: SdkVersionRolloutType rolloutType;
   2: optional string asicSdk;
   3: optional string saiSdk;
+  4: optional string saiVersion;
 }
 
 struct PlatformQsfpSdkVersion {
