@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -77,12 +76,6 @@ class AgentArsFlowletTest : public AgentArsBase {
         ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
                          : cfg::SwitchingMode::PER_PACKET_RANDOM);
     return cfg;
-  }
-
-  void resolveNextHop(const PortDescriptor& port) {
-    applyNewState([this, port](const std::shared_ptr<SwitchState>& state) {
-      return helper_->resolveNextHops(state, {port});
-    });
   }
 
   void generateTestPrefixes(
