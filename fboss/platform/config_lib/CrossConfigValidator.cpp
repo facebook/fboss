@@ -77,6 +77,15 @@ bool CrossConfigValidator::isValidFanServiceConfig(
       return false;
     }
   }
+  // add the sensor name validation check for shutdownCondition config
+  if (fanConfig.shutdownCondition()) {
+    for (const auto& condition : *fanConfig.shutdownCondition()->conditions()) {
+      if (!sensor_service::ConfigValidator().isValidSensorName(
+              *sensorConfig, *condition.sensorName())) {
+        return false;
+      }
+    }
+  }
   return true;
 }
 
