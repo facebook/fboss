@@ -74,8 +74,10 @@ enum FieldBitShift : uint8_t {
 };
 
 enum DeviceTechnologyCmis : uint8_t {
-  OPTICAL_MAX_VALUE_CMIS = 0b1001,
-  UNKNOWN_VALUE_CMIS = 0b1000,
+  OPTICAL_MAX_VALUE_CMIS = 0x09,
+  UNKNOWN_VALUE_CMIS = 0x08,
+  C_BAND_TUNABLE_LASER_CMIS = 0x10,
+  L_BAND_TUNABLE_LASER_CMIS = 0x11,
 };
 
 class CmisFieldInfo : public QsfpFieldInfo<CmisField, CmisPages> {

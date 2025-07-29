@@ -1358,11 +1358,13 @@ TransmitterTechnology CmisModule::getQsfpTransmitterTechnology() const {
   uint8_t transTech = *data;
   if (transTech == DeviceTechnologyCmis::UNKNOWN_VALUE_CMIS) {
     return TransmitterTechnology::UNKNOWN;
-  } else if (transTech <= DeviceTechnologyCmis::OPTICAL_MAX_VALUE_CMIS) {
+    // TODO(T232092663): Fix this, introduce the TUNABLE_OPTICS
+  } else if (
+      (transTech <= DeviceTechnologyCmis::OPTICAL_MAX_VALUE_CMIS) ||
+      (transTech == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS) ||
+      (transTech == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS)) {
     return TransmitterTechnology::OPTICAL;
   } else {
-    // TODO: Fix this, copper is 0xA to 0xF, and there is also tunable lasers
-    // for C-Band (0x10) and L-Band (0x11).
     return TransmitterTechnology::COPPER;
   }
 }
