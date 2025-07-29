@@ -24,7 +24,6 @@
 
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss::utility {
 
