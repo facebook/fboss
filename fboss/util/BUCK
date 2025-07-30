@@ -284,6 +284,7 @@ python_library(
         "facebook/process_known_bad_test.py",
     ],
     deps = [
+        "//libfb/py:employee",
         "//libfb/py/asyncio:mysql",
         "//libfb/py/asyncio:tasks",
         "//libfb/py/pyre:pyre",
@@ -319,5 +320,25 @@ python_binary(
     par_style = "xar",
     deps = [
         ":post_weekly_known_bad_test_lib",
+    ],
+)
+
+python_library(
+    name = "known_bad_test_report_lib",
+    srcs = ["known_bad_test_report.py"],
+    deps = [
+        "//analytics/bamboo:lite",
+        "//libfb/py:employee",
+        "//libfb/py:mail",
+        "//libfb/py/thrift_clients:oncall_thrift_client",
+    ],
+)
+
+python_binary(
+    name = "known_bad_test_report",
+    main_function = "fboss.util.known_bad_test_report.main",
+    par_style = "xar",
+    deps = [
+        ":known_bad_test_report_lib",
     ],
 )
