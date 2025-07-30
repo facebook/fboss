@@ -941,7 +941,7 @@
         {
           "name": "SMB_INNER_LEFT_LM75_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U72_LM75B_1/temp1_input",
-          "type": 1,
+          "type": 3,
           "thresholds": {
             "maxAlarmVal": 57,
             "upperCriticalVal": 62
