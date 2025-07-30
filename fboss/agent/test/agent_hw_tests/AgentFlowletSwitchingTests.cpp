@@ -39,18 +39,13 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    // TODO(ravi) fixed for SAI until spray support is available
+    auto cfg = AgentArsBase::initialConfig(ensemble);
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY,
-        ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
-                         : cfg::SwitchingMode::PER_PACKET_RANDOM);
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
     return cfg;
   }
 
@@ -210,6 +205,9 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
     AgentFlowletSwitchingTest::setCmdLineFlagOverrides();
     FLAGS_dlbResourceCheckEnable = false;
     FLAGS_flowletStatsEnable = true;
+    FLAGS_enable_ecmp_resource_manager = true;
+    FLAGS_ars_resource_percentage = 100;
+    FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -224,6 +222,7 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
 
 /* Add route 3001::1 > DLB
  * Add route 4001::1 > Spray
+ * Add route 5001::1 > Spray
  *
  * Test 1:
  * Send 3001::1 AR=1 hit ACL 1, do DLB
@@ -232,6 +231,10 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
  * Test 2:
  * Send 4001::1 AR=1 hit ACL 1, no DLB, random spray
  * Send 4001::1 AR=0 hit ACL 2, cancel spray, static ECMP
+ *
+ * Test 3:
+ * Send 5001::1 AR=1 hit ACL 1, no DLB, random spray
+ * Send 5001::1 AR=0 hit ACL 2, cancel spray, static ECMP
  */
 TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
   auto populatePortsAndDescs = [this](
@@ -257,7 +260,14 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
   flat_set<PortDescriptor> randomSprayPortDescs;
   populatePortsAndDescs(4, 8, sprayPortIDs, randomSprayPortDescs);
 
-  auto setup = [this, dlbPortDescs, randomSprayPortDescs]() {
+  std::vector<PortID> sprayPortIDs2;
+  flat_set<PortDescriptor> randomSprayPortDescs2;
+  populatePortsAndDescs(10, 14, sprayPortIDs2, randomSprayPortDescs2);
+
+  auto setup = [this,
+                dlbPortDescs,
+                randomSprayPortDescs,
+                randomSprayPortDescs2]() {
     generatePrefixes();
 
     auto newCfg{initialConfig(*getAgentEnsemble())};
@@ -300,6 +310,11 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     prefixes128.push_back(randomSprayPrefix);
     nhopSets128.push_back(randomSprayPortDescs);
 
+    // generate route hitting random spray
+    auto randomSprayPrefix2 = RoutePrefixV6{folly::IPAddressV6("5001::1"), 128};
+    prefixes128.push_back(randomSprayPrefix2);
+    nhopSets128.push_back(randomSprayPortDescs2);
+
     // 3. program routes
     helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
 
@@ -314,7 +329,9 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
       return out;
     });
   };
-  auto verify = [this, dlbPortIDs, sprayPortIDs]() {
+  auto verify = [this, dlbPortIDs, sprayPortIDs, sprayPortIDs2]() {
+    setEcmpMemberStatus(getAgentEnsemble());
+
     auto sendTrafficAndVerifyLB = [this](
                                       const folly::IPAddress& dstIp,
                                       int reserved,
@@ -395,20 +412,22 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
           EXPECT_EVENTUALLY_EQ(dlbAclCountAfter, dlbAclCountBefore);
         }
 
-        auto reassignmentCounterAfter =
-            getSw()
-                ->getHwSwitchStatsExpensive(switchId)
-                .flowletStats()
-                ->l3EcmpDlbPortReassignmentCount()
-                .value();
-        XLOG(DBG2) << "reassignmentCounter: " << reassignmentCounterBefore
-                   << " -> " << reassignmentCounterAfter;
-        if (is_dlb) {
-          EXPECT_EVENTUALLY_GT(
-              reassignmentCounterAfter, reassignmentCounterBefore);
-        } else {
-          EXPECT_EVENTUALLY_EQ(
-              reassignmentCounterAfter, reassignmentCounterBefore);
+        if (!getAgentEnsemble()->isSai()) {
+          auto reassignmentCounterAfter =
+              getSw()
+                  ->getHwSwitchStatsExpensive(switchId)
+                  .flowletStats()
+                  ->l3EcmpDlbPortReassignmentCount()
+                  .value();
+          XLOG(DBG2) << "reassignmentCounter: " << reassignmentCounterBefore
+                     << " -> " << reassignmentCounterAfter;
+          if (is_dlb) {
+            EXPECT_EVENTUALLY_GT(
+                reassignmentCounterAfter, reassignmentCounterBefore);
+          } else {
+            EXPECT_EVENTUALLY_EQ(
+                reassignmentCounterAfter, reassignmentCounterBefore);
+          }
         }
 
         auto portStats = getNextUpdatedPortStats(ports);
@@ -446,6 +465,17 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
         true);
     // Miss DLB ACL and do static hash
     sendTrafficAndVerifyLB(folly::IPAddress("4001::1"), 0, sprayPortIDs, false);
+
+    // Test 3
+    // Hit DLB ACL but do random spray. Verify another group just to be sure
+    sendTrafficAndVerifyLB(
+        folly::IPAddress("5001::1"),
+        utility::kRoceReserved,
+        sprayPortIDs2,
+        true);
+    // Miss DLB ACL and do static hash
+    sendTrafficAndVerifyLB(
+        folly::IPAddress("5001::1"), 0, sprayPortIDs2, false);
   };
 
   verifyAcrossWarmBoots(setup, verify);
