@@ -15,9 +15,12 @@ import typing as t
 from datetime import date
 from typing import Any, Dict, Optional
 
+import libfb.py.asyncio.tasks as task_api
+
 from analytics.bamboo import Bamboo as bb
 from libfb.py import employee
 from libfb.py.asyncio.await_utils import asyncio
+from libfb.py.asyncio.tasks import Task, TaskPriority
 from libfb.py.mail import async_send_internal_email
 from libfb.py.thrift_clients.oncall_thrift_client import OncallThriftClient
 
@@ -34,6 +37,9 @@ DEFAULT_OUTPUT_FILE = "known_bad_tests_data.json"
 ONCALL = "fboss_agent_push"
 PASSED = 1
 FAILED = 0
+USER_UNIX_ID = "prasoon"
+KNOWN_BAD_TEST = "known_bad_tests"
+FBOSS_KNOWN_BAD_TESTS = f"fboss_{KNOWN_BAD_TEST}"
 
 
 class UserAndEmailHandler:
@@ -53,8 +59,7 @@ class UserAndEmailHandler:
             logger.info(f"Current on-call for {oncall}: {oncall.uid}")
             return oncall
 
-    @staticmethod
-    def get_user_data(isUser: bool) -> t.Tuple[str, int, str]:
+    def _get_user_data(self, isUser: bool) -> t.Tuple[str, int, str]:
         """
         Get the current user's name and ID, falling back to on-call information if needed.
 
@@ -74,9 +79,8 @@ class UserAndEmailHandler:
             logger.info(f"User name: {user_name}, User ID: {oncall.uid}")
             return user_name, oncall.uid, oncall.person_email
 
-    @staticmethod
     async def send_email(
-        isUser: bool, html: str, images: Optional[Dict[str, bytes]]
+        self, isUser: bool, html: str, images: Optional[Dict[str, bytes]]
     ) -> None:
         """
         Send an email with the given HTML content and images.
@@ -87,7 +91,7 @@ class UserAndEmailHandler:
         """
         subject = "Known bad tests report. Date: %s" % date.today().strftime("%Y-%m-%d")
 
-        user_name, user_id, user_email = UserAndEmailHandler.get_user_data(isUser)
+        user_name, _user_id, user_email = self._get_user_data(isUser)
 
         if user_email:
             to_addrs = [user_email]
@@ -104,8 +108,19 @@ class UserAndEmailHandler:
             is_html=True,
         )
 
-    @staticmethod
-    def format_workplace_post(tests: Dict[str, int]) -> str:
+    async def create_task(self, isUser: bool, tests: Dict[str, int]) -> Task:
+        owner, _user_id, _user_email = self._get_user_data(isUser)
+
+        return await task_api.create_task(
+            creator=USER_UNIX_ID,
+            title="Known Bad Tests Passing Continuously for a week. Please remove them from known bad.",
+            description=self.text_format_known_bad_list(tests),
+            priority=TaskPriority.HIGH,
+            tags=[FBOSS_KNOWN_BAD_TESTS],
+            owner=owner,
+        )
+
+    def HTTP_format_known_bad_list(self, tests: Dict[str, int]) -> str:
         """Format the test data into a Workplace post."""
         html = "<h1>Known bad tests passing continuously for a week</h1>"
         html += "<p>Here is the list of known bad tests passing 7 times in a row:</p>"
@@ -116,6 +131,16 @@ class UserAndEmailHandler:
             html += f"<tr><td>{test_name}</td></tr>"
         html += "</table>"
         return html
+
+    def text_format_known_bad_list(self, tests: Dict[str, int]) -> str:
+        """Format the test data into a Workplace post."""
+        text = "Known bad tests passing continuously for a week\n"
+        text += "Here is the list of known bad tests passing 7 times in a row:\n"
+        text += "Please remove them from known bad.\n"
+        text += "Test Name\n"
+        for test_name, _status in tests.items():
+            text += f"{test_name}\n"
+        return text
 
 
 class ScubaQueryBuilder:
@@ -217,12 +242,12 @@ def main() -> Optional[int]:
 
             # send email to user or oncall
             logger.info("Sending email...")
-            html = UserAndEmailHandler.format_workplace_post(tests)
+            html = UserAndEmailHandler().HTTP_format_known_bad_list(tests)
 
             logger.info("html generated successfully for email body")
             images = {}
             return_code = asyncio.run(
-                UserAndEmailHandler.send_email(args.user, html, images)
+                UserAndEmailHandler().send_email(args.user, html, images)
             )
 
             if return_code == 0:
@@ -232,6 +257,13 @@ def main() -> Optional[int]:
                 return return_code
 
             logger.info(f"Email sent successfully return_code: {return_code}")
+
+            # create task for user or oncall
+            logger.info("Creating task for oncall...")
+            task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
+            logger.info(f"Task created successfully: {task.task_number}")
+        else:
+            logger.info("No known bad tests found")
 
     return 0
 
