@@ -80,6 +80,13 @@ struct SaiNextHopGroupTraits {
         sai_object_id_t,
         SaiObjectIdDefault>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    using HashAlgorithm = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM,
+        sai_int32_t,
+        StdNullOptDefault<sai_int32_t>>;
+#endif
   };
 
   using AdapterKey = NextHopGroupSaiId;
@@ -90,6 +97,10 @@ struct SaiNextHopGroupTraits {
       ,
       std::optional<Attributes::ArsObjectId>
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::HashAlgorithm>
+#endif
       >;
 };
 
@@ -97,6 +108,9 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, NextHopMemberList)
 SAI_ATTRIBUTE_NAME(NextHopGroup, Type)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(NextHopGroup, ArsObjectId)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(NextHopGroup, HashAlgorithm)
 #endif
 
 struct SaiNextHopGroupMemberTraits {

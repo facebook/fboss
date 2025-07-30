@@ -74,6 +74,10 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
       std::nullopt};
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<SaiNextHopGroupTraits::Attributes::HashAlgorithm> hashAlgorithm{
+      std::nullopt};
+#endif
 
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
@@ -98,7 +102,18 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       }
 #endif
     } else {
-      // TODO (ravi) update after random spray support becomes available
+      if (nextHopGroupHandle->desiredArsMode_.has_value() &&
+          (nextHopGroupHandle->desiredArsMode_.value() ==
+           cfg::SwitchingMode::PER_PACKET_RANDOM)) {
+        // setting hash algo to RANDOM is specific to TH* asics
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM)) {
+          hashAlgorithm = SaiNextHopGroupTraits::Attributes::HashAlgorithm{
+              SAI_HASH_ALGORITHM_RANDOM};
+        }
+#endif
+      }
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     nextHopGroupAdapterHostKey.mode =
@@ -114,6 +129,10 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       ,
       arsObjectId
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      hashAlgorithm
 #endif
   };
   nextHopGroupHandle->nextHopGroup =
