@@ -204,6 +204,27 @@ class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
 #endif
   }
 
+  sai_status_t _bulkCreate(
+      sai_object_id_t* ids,
+      sai_status_t* retStatus,
+      sai_object_id_t switch_id,
+      uint32_t* attrCount,
+      size_t objectCount,
+      const sai_attribute_t** attr) const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    return api_->create_next_hop_group_members(
+        switch_id,
+        objectCount,
+        attrCount,
+        attr,
+        SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR,
+        ids,
+        retStatus);
+#else
+    return SAI_STATUS_NOT_SUPPORTED;
+#endif
+  }
+
   sai_next_hop_group_api_t* api_;
   friend class SaiApi<NextHopGroupApi>;
 };
