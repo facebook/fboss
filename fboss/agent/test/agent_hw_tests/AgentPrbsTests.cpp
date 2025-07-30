@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
@@ -8,6 +9,14 @@
 
 namespace {
 constexpr auto kPrbsPolynomial = 9;
+constexpr auto kPrbsPolynomial13 = 13;
+
+int getKPrbsPolynomial(const facebook::fboss::cfg::AsicType& asicType) {
+  if (asicType == facebook::fboss::cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return kPrbsPolynomial13;
+  }
+  return kPrbsPolynomial;
+}
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -26,12 +35,17 @@ class AgentPrbsTest : public AgentHwTest {
          cfg::PortType::MANAGEMENT_PORT});
   }
 
+  cfg::AsicType getAsicType() const {
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    return asic->getAsicType();
+  }
+
  protected:
   void testEnablePortPrbs() {
     auto setup = [=, this]() {
       phy::PortPrbsState prbsState;
       prbsState.enabled() = true;
-      prbsState.polynominal() = kPrbsPolynomial;
+      prbsState.polynominal() = getKPrbsPolynomial(getAsicType());
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
         for (const auto& portId : getTestPortIds()) {
@@ -47,7 +61,7 @@ class AgentPrbsTest : public AgentHwTest {
         auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
         auto asicPrbs = port->getAsicPrbs();
         EXPECT_TRUE(*asicPrbs.enabled());
-        EXPECT_EQ(*asicPrbs.polynominal(), kPrbsPolynomial);
+        EXPECT_EQ(*asicPrbs.polynominal(), getKPrbsPolynomial(getAsicType()));
       }
     };
     verifyAcrossWarmBoots(setup, verify);
@@ -57,7 +71,7 @@ class AgentPrbsTest : public AgentHwTest {
     auto setup = [=, this]() {
       phy::PortPrbsState initialPrbsState;
       initialPrbsState.enabled() = true;
-      initialPrbsState.polynominal() = kPrbsPolynomial;
+      initialPrbsState.polynominal() = getKPrbsPolynomial(getAsicType());
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
         for (const auto& portId : getTestPortIds()) {
