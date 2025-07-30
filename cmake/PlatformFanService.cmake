@@ -60,6 +60,7 @@ target_link_libraries(fan_service_lib
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+  asic_temp_cpp2
 )
 
 add_executable(fan_service

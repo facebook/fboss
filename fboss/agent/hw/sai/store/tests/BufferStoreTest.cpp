@@ -103,9 +103,11 @@ class BufferStoreTest : public SaiStoreTest {
     SaiIngressPriorityGroupTraits::Attributes::Index index{10};
     std::optional<SaiIngressPriorityGroupTraits::Attributes::BufferProfile>
         bufferProfile{profileId};
+    std::optional<SaiIngressPriorityGroupTraits::Attributes::LosslessEnable>
+        losslessEnable;
 
     return SaiIngressPriorityGroupTraits::CreateAttributes{
-        port, index, bufferProfile};
+        port, index, bufferProfile, losslessEnable};
   }
 
   IngressPriorityGroupSaiId createIngressPriorityGroup(

@@ -54,9 +54,11 @@ ThriftMethodRateLimit::getThriftMethodRateLimitPreprocessFunc(
              const apache::thrift::server::PreprocessParams& params)
              -> apache::thrift::PreprocessResult {
     if (rateLimiter->isQpsLimitExceeded(params.method)) {
+      const apache::thrift::Cpp2ConnContext& ctx2 = params.connContext;
+      std::string client = ctx2.getPeerAddress()->describe();
       XLOG(WARN) << "reject thrift method due to rate limit: "
                  << rateLimiter->getQpsLimit(params.method)
-                 << " for method: " << params.method;
+                 << " for method: " << params.method << ", from: " << client;
       rateLimiter->incrementDenyCounter(params.method);
       if (!rateLimiter->getShadowMode()) {
         return apache::thrift::AppOverloadedException(

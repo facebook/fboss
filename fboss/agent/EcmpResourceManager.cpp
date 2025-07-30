@@ -573,9 +573,17 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
   if (compressionPenaltyThresholdPct_) {
     if (inserted) {
+      /*
+       * New group added, compute candidate merges
+       * for it
+       */
       computeCandidateMerges({idItr->second});
-    } else {
-      // TODO update candidate merge info
+    } else if (pfxInserted) {
+      /*
+       * New prefix points to existing group
+       * update consolidation penalties
+       */
+      updateConsolidationPenalty(*pitr->second);
     }
   }
 }
@@ -684,13 +692,55 @@ void EcmpResourceManager::routeDeleted(
     }
     nextHopGroup2Id_.erase(routeNhops);
   } else {
-    groupInfo->decRouteUsageCount();
+    decRouteUsageCount(*groupInfo);
     XLOG(DBG2) << "Delete route: " << removed->str()
                << " primray ecmp group count unchanged: "
                << inOutState->nonBackupEcmpGroupsCnt << " Group ID: " << groupId
                << " route usage count decremented to: "
                << groupInfo->getRouteUsageCount();
-    CHECK_GT(groupInfo->getRouteUsageCount(), 0);
+  }
+}
+
+void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
+  groupInfo.decRouteUsageCount();
+  CHECK_GT(groupInfo.getRouteUsageCount(), 0);
+  updateConsolidationPenalty(groupInfo);
+}
+
+void EcmpResourceManager::updateConsolidationPenalty(
+    NextHopGroupInfo& groupInfo) {
+  if (candidateMergeGroups_.empty() && mergedGroups_.empty()) {
+    // Early return if no merged groups exist. Can be due to compression
+    // threshold being 0 or if there is a single ECMP groups yet (so
+    // nothing to merge with)
+    return;
+  }
+  auto updatePenalty = [&groupInfo](auto& mergedGroups2Info) {
+    const auto grpNhopsSize = groupInfo.getNhops().size();
+    bool updated{false};
+    for (auto& [mergedGroups, info] : mergedGroups2Info) {
+      if (!mergedGroups.contains(groupInfo.getID())) {
+        continue;
+      }
+      updated = true;
+      auto citr = info.groupId2Penalty.find(groupInfo.getID());
+      CHECK(citr != info.groupId2Penalty.end());
+      auto nhopsLost = grpNhopsSize - info.mergedNhops.size();
+      auto newPenalty = std::ceil((nhopsLost * 100.0) / grpNhopsSize) *
+          groupInfo.getRouteUsageCount();
+      citr->second = newPenalty;
+    }
+    return updated;
+  };
+  if (!updatePenalty(candidateMergeGroups_)) {
+    XLOG(DBG2)
+        << " Group: " << groupInfo.getID()
+        << " not part of candidate merged groups, updating penalty in merged groups ";
+    CHECK(updatePenalty(mergedGroups_));
+  } else {
+    XLOG(DBG2) << " Group: " << groupInfo.getID()
+               << " penalty updated in of candidate merged groups";
+    DCHECK(!updatePenalty(mergedGroups_));
   }
 }
 
@@ -1032,5 +1082,18 @@ void EcmpResourceManager::computeCandidateMerges(
       // TODO: compute consolidation penalty
     }
   }
+}
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const EcmpResourceManager::ConsolidationInfo& info) {
+  std::stringstream ss;
+  ss << "Nhops: " << info.mergedNhops << std::endl;
+  ss << " Penalties:  " << std::endl;
+  for (const auto& [gid, penalty] : info.groupId2Penalty) {
+    ss << " gid:  " << gid << " penalty: " << penalty << std::endl;
+  }
+  os << ss.str();
+  return os;
 }
 } // namespace facebook::fboss

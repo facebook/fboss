@@ -279,6 +279,17 @@ bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port);
 
 bool getEepromCsumStatus(const DOMDataUnion& domDataUnion);
 
+std::pair<std::unique_ptr<TransceiverI2CApi>, int>
+getTransceiverIOBusFromPlatform(const std::string& /* platform */);
+
+std::pair<std::unique_ptr<TransceiverPlatformApi>, int>
+getTransceiverPlatformAPIFromMode(
+    PlatformType /* platformType */,
+    TransceiverI2CApi* /* i2cBus */);
+
+std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverIOBusFromMode(
+    PlatformType /* platformType */);
+
 std::pair<std::unique_ptr<facebook::fboss::TransceiverI2CApi>, int>
 getTransceiverAPI();
 

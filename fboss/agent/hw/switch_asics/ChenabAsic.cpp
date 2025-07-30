@@ -5,7 +5,7 @@
 
 namespace {
 static constexpr int kDefaultMidPriCpuQueueId = 2;
-static constexpr int kDefaultHiPriCpuQueueId = 7;
+static constexpr int kDefaultHiPriCpuQueueId = 3;
 } // namespace
 
 namespace facebook::fboss {
@@ -74,7 +74,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
-    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
@@ -90,6 +89,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
       return true;
+    case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:

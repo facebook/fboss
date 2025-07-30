@@ -4548,7 +4548,7 @@
       },
       {
         "logicalID": 351,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -4568,7 +4568,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/65/1"
         },
         "lookupClasses": [
           

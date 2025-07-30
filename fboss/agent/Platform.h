@@ -80,6 +80,14 @@ class Platform {
       int16_t switchIndex);
 
   /*
+   * Stop all threads that are running. The function is virtual to allow
+   * derived classes to stop additional threads. Currently, only WedgePlatform
+   * overrides the implementation to stop high frequency stats collection on
+   * BcmSwitch.
+   */
+  virtual void stopThreads() {}
+
+  /*
    * Two ways to get the configuration of the switch. config() will
    * pull current running config, reload( ) will also reload the
    * latest config from the default source for this platform before

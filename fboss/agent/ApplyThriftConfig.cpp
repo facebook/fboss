@@ -23,6 +23,7 @@
 #include "fboss/agent/AgentFeatures.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -2152,9 +2153,7 @@ ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
   std::vector<int16_t> tmpPfcPri;
   for (auto& portPgCfg : portPgCfgs) {
     // If we have non-zero value in headroom, then its a lossless PG
-    if ((portPgCfg->getHeadroomLimitBytes().has_value() &&
-         *portPgCfg->getHeadroomLimitBytes() != 0) ||
-        FLAGS_allow_zero_headroom_for_lossless_pg) {
+    if (utility::isLosslessPg(*portPgCfg)) {
       tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
     }
   }
@@ -5240,23 +5239,6 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         cfg::PortType::CPU_PORT);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
-
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // TODO-Chenab: ensure queue scheduling is set to internal until cpu
-      // queues can be configured.
-      std::transform(
-          newQueues.cbegin(),
-          newQueues.cend(),
-          newQueues.begin(),
-          [](auto queue) {
-            if (queue->getScheduling() == cfg::QueueScheduling::INTERNAL) {
-              return queue;
-            }
-            auto newQueue = queue->clone();
-            newQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-            return newQueue;
-          });
-    }
 
     if (cfg_->cpuVoqs()) {
       std::vector<cfg::PortQueue> cfgCpuVoqs = *cfg_->cpuVoqs();

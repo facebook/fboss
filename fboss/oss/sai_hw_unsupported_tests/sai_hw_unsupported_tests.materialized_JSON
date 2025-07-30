@@ -44,9 +44,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -127,9 +124,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -195,9 +189,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -261,9 +252,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
@@ -473,12 +461,6 @@
         },
         {
           "test_name_regex": "HwProdInvariants.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyWredThreshold"
         },
         {
           "test_name_regex": "HwSflowMirrorTest.*"
@@ -705,12 +687,6 @@
           "test_name_regex": "HwProdInvariants.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyWredThreshold"
-        },
-        {
           "test_name_regex": "HwSflowMirrorTest.*"
         },
         {
@@ -774,9 +750,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
@@ -986,12 +959,6 @@
         },
         {
           "test_name_regex": "HwProdInvariants.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyWredThreshold"
         },
         {
           "test_name_regex": "HwSflowMirrorTest.*"
@@ -1218,12 +1185,6 @@
           "test_name_regex": "HwProdInvariants.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyWredThreshold"
-        },
-        {
           "test_name_regex": "HwSflowMirrorTest.*"
         },
         {
@@ -1443,12 +1404,6 @@
         },
         {
           "test_name_regex": "HwProdInvariants.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyWredThreshold"
         },
         {
           "test_name_regex": "HwSflowMirrorTest.*"
@@ -1675,12 +1630,6 @@
           "test_name_regex": "HwProdInvariants.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyWredThreshold"
-        },
-        {
           "test_name_regex": "HwSflowMirrorTest.*"
         },
         {
@@ -1741,9 +1690,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
@@ -1826,9 +1772,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -1894,9 +1837,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -1960,9 +1900,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
@@ -2045,9 +1982,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -2113,9 +2047,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -2179,9 +2110,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
@@ -2264,9 +2192,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
-        },
-        {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         },
         {
@@ -2330,9 +2255,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentThAlpmRouteScaleTest.*"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"

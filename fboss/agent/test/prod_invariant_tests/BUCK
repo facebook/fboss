@@ -46,7 +46,6 @@ _sai_invariant_agent_test_prefix = "sai_invariant_agent_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
-            "--rpath='$ORIGIN'",
         ],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -79,7 +78,6 @@ _sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
-            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "leaba" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -112,7 +110,6 @@ _sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
-            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "leaba" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,

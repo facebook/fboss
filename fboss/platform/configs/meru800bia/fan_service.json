@@ -6,16 +6,16 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 100,
-  "optics" : [
+  "optics": [
     {
-      "opticName" : "osfp_group_1",
-      "access" : {
-        "accessType" : "ACCESS_TYPE_QSFP"
+      "opticName": "osfp_group_1",
+      "access": {
+        "accessType": "ACCESS_TYPE_QSFP"
       },
-      "portList" : [],
-      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
-      "tempToPwmMaps" : {
-        "OPTIC_TYPE_800_GENERIC" : {
+      "portList": [],
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps": {
+        "OPTIC_TYPE_800_GENERIC": {
           "5": 43,
           "69": 56,
           "70": 73,

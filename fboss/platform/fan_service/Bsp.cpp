@@ -211,6 +211,7 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::FR8_800G:
       case MediaInterfaceCode::LR4_2x400G_10KM:
+      case MediaInterfaceCode::ZR_800G:
         opticType = constants::OPTIC_TYPE_800_GENERIC();
         break;
       default:
@@ -335,7 +336,7 @@ void Bsp::getAsicTempDataOverThrift(
   try {
     auto agentReadResponse =
         getAsicTempThroughThrift(agentTempThriftPort_, evbSensor_);
-    for (auto& asicTempData : *agentReadResponse.sensorData()) {
+    for (auto& asicTempData : *agentReadResponse.asicTempData()) {
       // Again, for Thrift too, only honor the entry with value and timestamp.
       if (asicTempData.value() && asicTempData.timeStamp()) {
         pSensorData->updateSensorEntry(
@@ -346,7 +347,7 @@ void Bsp::getAsicTempDataOverThrift(
     }
     XLOG(INFO) << fmt::format(
         "Got Asic Temp data from agent.  Item count: {}",
-        agentReadResponse.sensorData()->size());
+        agentReadResponse.asicTempData()->size());
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to get ASIC temp data using Thrift, with error : "
               << e.what();

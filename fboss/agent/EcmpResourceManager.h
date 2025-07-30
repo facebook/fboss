@@ -15,8 +15,8 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/lib/RefMap.h"
 
-#include <boost/container/flat_set.hpp>
 #include <memory>
+#include <ostream>
 
 namespace facebook::fboss {
 class StateDelta;
@@ -103,12 +103,15 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const folly::CIDRNetwork& nw) const;
 
   struct ConsolidationInfo {
-    RouteNextHopSet mergedNhops;
     int maxPenalty() const;
     int avgPenalty() const;
+    bool operator==(const ConsolidationInfo& other) const {
+      return std::tie(mergedNhops, groupId2Penalty) ==
+          std::tie(other.mergedNhops, other.groupId2Penalty);
+    }
+    RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
-
   std::map<NextHopGroupIds, ConsolidationInfo> getConsolidationInfo(
       NextHopGroupId grpId) const;
 
@@ -123,6 +126,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
+  void decRouteUsageCount(NextHopGroupInfo& groupInfo);
+  void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
   struct InputOutputState {
     InputOutputState(
         uint32_t _nonBackupEcmpGroupsCnt,
@@ -261,4 +266,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
   SwitchStats* switchStats_;
 };
+std::ostream& operator<<(
+    std::ostream& os,
+    const EcmpResourceManager::ConsolidationInfo& info);
 } // namespace facebook::fboss

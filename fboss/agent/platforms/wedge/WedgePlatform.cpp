@@ -178,4 +178,10 @@ void WedgePlatform::stateChanged(const StateDelta& delta) {
   updatePorts(delta);
 }
 
+void WedgePlatform::stopThreads() {
+  if (hw_) {
+    hw_->stopHighFrequencyStatsThread();
+  }
+}
+
 } // namespace facebook::fboss

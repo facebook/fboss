@@ -120,7 +120,7 @@ TYPED_TEST(CowStorageTests, VerifyOperDeltaForSetOfPrimitives) {
   EXPECT_TRUE(storage.isPublished());
 
   auto initial = storage.get(root.setOfStrings()["v1"]).error();
-  EXPECT_EQ(initial.code(), StorageError::Code::INVALID_PATH);
+  EXPECT_EQ(initial, StorageError::INVALID_PATH);
 
   auto makeState = [](auto tc, auto val) -> folly::fbstring {
     OperState state;
@@ -362,22 +362,17 @@ TYPED_TEST(CowStorageTests, RemoveThrift) {
 
   EXPECT_EQ(storage.get(root.structMap()[1]).value(), member1);
   EXPECT_EQ(
-      storage.get(root.structMap()[2]).error().code(),
-      StorageError::Code::INVALID_PATH);
+      storage.get(root.structMap()[2]).error(), StorageError::INVALID_PATH);
   EXPECT_EQ(
-      storage.get(root.structMap()[3]).error().code(),
-      StorageError::Code::INVALID_PATH);
+      storage.get(root.structMap()[3]).error(), StorageError::INVALID_PATH);
   EXPECT_EQ(storage.get(root.structList()[0]).value(), member1);
   EXPECT_EQ(storage.get(root.structList()[1]).value(), member1);
   EXPECT_EQ(
-      storage.get(root.structList()[2]).error().code(),
-      StorageError::Code::INVALID_PATH);
+      storage.get(root.structList()[2]).error(), StorageError::INVALID_PATH);
   EXPECT_EQ(
-      storage.get(root.structList()[3]).error().code(),
-      StorageError::Code::INVALID_PATH);
+      storage.get(root.structList()[3]).error(), StorageError::INVALID_PATH);
   EXPECT_EQ(
-      storage.get(root.structList()[5]).error().code(),
-      StorageError::Code::INVALID_PATH);
+      storage.get(root.structList()[5]).error(), StorageError::INVALID_PATH);
 }
 
 TYPED_TEST(CowStorageTests, PatchDelta) {
@@ -440,8 +435,7 @@ TYPED_TEST(CowStorageTests, PatchDelta) {
   EXPECT_EQ(storage.get(root.tx()).value(), false);
   EXPECT_EQ(storage.get(root.rx()).value(), true);
   EXPECT_EQ(
-      storage.get(root.optionalString()).error().code(),
-      StorageError::Code::INVALID_PATH);
+      storage.get(root.optionalString()).error(), StorageError::INVALID_PATH);
   EXPECT_EQ(storage.get(root.member().min()).value(), 100);
   EXPECT_EQ(storage.get(root.structMap()[5].min()).value(), 1001);
   EXPECT_EQ(storage.get(root.enumMap()[TestEnum::FIRST].min()).value(), 2001);
@@ -775,12 +769,12 @@ TYPED_TEST(CowStorageTests, PatchInvalidDeltaPath) {
   delta.changes() = {unit};
 
   // should fail gracefully
-  EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
 
   // partially valid path should still fail
   unit.path()->raw() = {"inlineStruct", "invalid", "path"};
   delta.changes() = {unit};
-  EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
 }
 
 TYPED_TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
@@ -812,7 +806,7 @@ TYPED_TEST(CowStorageTests, PatchEmptyDeltaNonexistentPath) {
     OperDelta delta;
     delta.changes() = {unit};
 
-    EXPECT_EQ(storage.patch(delta)->code(), StorageError::Code::INVALID_PATH);
+    EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
     // None of the patches should creat the intermediate nodes
     EXPECT_EQ(storage.get(root.mapOfStructs())->size(), 0);
     EXPECT_EQ(storage.get(root.listofStructs())->size(), 0);

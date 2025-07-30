@@ -593,7 +593,7 @@ class ThriftStructNode : public NodeBaseT<
     // first clone root if needed
     auto newRoot = ((*root)->isPublished()) ? (*root)->clone() : *root;
 
-    ThriftTraverseResult result;
+    auto result = ThriftTraverseResult::OK;
     if (begin != end) {
       auto op = BasePathVisitorOperator(
           [](Serializable& node, PathIter begin, PathIter end) {
@@ -609,7 +609,7 @@ class ThriftStructNode : public NodeBaseT<
     }
 
     // if successful and changed, reset root
-    if (result && newRoot.get() != root->get()) {
+    if (result == ThriftTraverseResult::OK && newRoot.get() != root->get()) {
       (*root).swap(newRoot);
     }
     return result;
@@ -618,7 +618,7 @@ class ThriftStructNode : public NodeBaseT<
   static ThriftTraverseResult
   removePath(std::shared_ptr<Derived>* root, PathIter begin, PathIter end) {
     if (begin == end) {
-      return ThriftTraverseResult();
+      return ThriftTraverseResult::OK;
     }
 
     // first clone root if needed
@@ -641,7 +641,7 @@ class ThriftStructNode : public NodeBaseT<
         *newRoot, begin, end - 1, PathVisitOptions::visitFull(), op);
 
     // if successful, reset root
-    if (result) {
+    if (result == ThriftTraverseResult::OK) {
       (*root).swap(newRoot);
     }
     return result;

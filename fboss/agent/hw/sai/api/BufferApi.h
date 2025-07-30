@@ -306,13 +306,18 @@ struct SaiIngressPriorityGroupTraits {
         EnumType,
         SAI_INGRESS_PRIORITY_GROUP_ATTR_BUFFER_PROFILE,
         sai_object_id_t>;
+    struct AttributeLosslessEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LosslessEnable = SaiExtensionAttribute<bool, AttributeLosslessEnable>;
   };
 
   using AdapterKey = IngressPriorityGroupSaiId;
   using CreateAttributes = std::tuple<
       Attributes::Port,
       Attributes::Index,
-      std::optional<Attributes::BufferProfile>>;
+      std::optional<Attributes::BufferProfile>,
+      std::optional<Attributes::LosslessEnable>>;
   using AdapterHostKey = CreateAttributes;
 
   /*
@@ -328,6 +333,7 @@ struct SaiIngressPriorityGroupTraits {
 SAI_ATTRIBUTE_NAME(IngressPriorityGroup, Port);
 SAI_ATTRIBUTE_NAME(IngressPriorityGroup, Index);
 SAI_ATTRIBUTE_NAME(IngressPriorityGroup, BufferProfile);
+SAI_ATTRIBUTE_NAME(IngressPriorityGroup, LosslessEnable);
 
 template <>
 struct IsSaiObjectOwnedByAdapter<SaiIngressPriorityGroupTraits>

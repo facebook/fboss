@@ -159,6 +159,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::BASE_T_10G:
       case MediaInterfaceCode::CR_10G:
       case MediaInterfaceCode::DR1_200G:
+      case MediaInterfaceCode::ZR_800G:
         expectedMediaLanes = {0};
         break;
       case MediaInterfaceCode::UNKNOWN:
