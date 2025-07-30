@@ -645,7 +645,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
              *mediaIntfCode == MediaInterfaceCode::FR4_LITE_2x400G ||
              *mediaIntfCode == MediaInterfaceCode::LR4_2x400G_10KM ||
              *mediaIntfCode == MediaInterfaceCode::DR4_2x400G ||
-             *mediaIntfCode == MediaInterfaceCode::DR4_2x800G));
+             *mediaIntfCode == MediaInterfaceCode::DR4_2x800G ||
+             *mediaIntfCode == MediaInterfaceCode::ZR_800G));
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
         EXPECT_TRUE(*diagsCapability->prbsSystem());
@@ -658,7 +659,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
             *mediaIntfCode == MediaInterfaceCode::FR4_LITE_2x400G ||
             *mediaIntfCode == MediaInterfaceCode::LR4_2x400G_10KM ||
             *mediaIntfCode == MediaInterfaceCode::DR4_2x400G ||
-            *mediaIntfCode == MediaInterfaceCode::DR4_2x800G) {
+            *mediaIntfCode == MediaInterfaceCode::DR4_2x800G ||
+            *mediaIntfCode == MediaInterfaceCode::ZR_800G) {
           EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }
       }
