@@ -3,13 +3,20 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import argparse
+import getpass
 import json
 import logging
+import os
 import sys
 import time
-from typing import Any, Optional
+import typing as t
+from datetime import date
+from typing import Any, Dict, List, Optional
 
 from analytics.bamboo import Bamboo as bb
+from libfb.py import employee
+from libfb.py.mail import async_send_internal_email
+from libfb.py.thrift_clients.oncall_thrift_client import OncallThriftClient
 
 
 # Configure logging
@@ -20,12 +27,66 @@ logging.basicConfig(
 
 # Constants
 DEFAULT_MAX_RECORDS = "100"  # Default number of records returned from scuba
-DEFAULT_CLUSTER = "gp"
-DEFAULT_LOG_TYPE = "stderr"
 DEFAULT_OUTPUT_FILE = "chronos_job_data.json"
 ONCALL = "fboss_agent_push"
 PASSED = 1
 FAILED = 0
+
+
+class UserAndEmailHandler:
+    @staticmethod
+    def get_oncall_info(oncall_name: str) -> int:
+        """
+        Retrieve the user ID of the current on-call person for a given rotation by short name.
+
+        Args:
+            oncall_name (str): The short name of the on-call rotation.
+
+        Returns:
+            int: The user ID of the current on-call person.
+        """
+        with OncallThriftClient() as client:
+            oncall = client.getCurrentOncallForRotationByShortName(oncall_name)
+            return oncall.uid
+
+    @staticmethod
+    def get_user_data() -> t.Tuple[str, int]:
+        """
+        Get the current user's name and ID, falling back to on-call information if needed.
+
+        Returns:
+            tuple: A tuple containing:
+                - str: The username (either the current user or the on-call name)
+                - int: The user ID corresponding to the username
+        """
+        user_name = os.environ.get("SUDO_USER", getpass.getuser())
+        user_id = employee.unixname_to_uid(user_name)
+        if not user_id:
+            user_id = UserAndEmailHandler.get_oncall_info(ONCALL)
+            user_name = ONCALL
+        return user_name, user_id
+
+    @staticmethod
+    async def send_email(html: str, images: Dict[str, bytes]) -> None:
+        """
+        Send an email with the given HTML content and images.
+
+        Args:
+            html (str): The HTML content of the email.
+            images (Dict[str, bytes]): A dictionary of image names and their byte content to be included in the email.
+        """
+        subject = "Known bad tests report. Date: %s" % date.today().strftime("%Y-%m-%d")
+
+        user_name, user_id = UserAndEmailHandler.get_user_data()
+        to_addrs = [("%s@meta.com" % user_name)]
+        await async_send_internal_email(
+            sender="noreply@meta.com",
+            to=to_addrs,
+            subject=subject,
+            body=html,
+            inline_images=images,
+            is_html=True,
+        )
 
 
 class ScubaQueryBuilder:
