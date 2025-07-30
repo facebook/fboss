@@ -929,7 +929,6 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       getAgentEnsemble()->runDiagCommand(
           "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }
-    waitForPfcDeadlocksToSettle(portId);
   }
 };
 
@@ -960,6 +959,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
     validateGlobalPfcWatchdogCountersIncrement(
         globalDeadlockBefore, globalRecoveryBefore);
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
+    waitForPfcDeadlocksToSettle(portId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -992,6 +992,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
     // Reset watchdog
     setupWatchdog({portId}, false /* disable */);
+    waitForPfcDeadlocksToSettle(portId);
   };
 
   auto verify = [&]() {
