@@ -2,6 +2,8 @@
 
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+import argparse
+import json
 import logging
 import sys
 import time
@@ -39,7 +41,7 @@ class ScubaQueryBuilder:
 
         sql_query = f"""
             SELECT
-                SUM(1, `weight`) AS `hits`,
+                SUM(1, `weight`) AS `count`,
                 COUNT(1) AS `samples`,
                 `test_name`,
                 `status`
@@ -54,7 +56,7 @@ class ScubaQueryBuilder:
                 `test_name`,
                 `status`
             ORDER BY
-                `hits` DESC
+                `count` DESC
             LIMIT
                 {limit}
             """
@@ -73,7 +75,49 @@ class ScubaQueryBuilder:
 
 
 def main():
-    pass
+    """Main function to parse command line arguments and run the script."""
+    parser = argparse.ArgumentParser(
+        description="Get data from a Scuba for sai_agent_known_bad_test"
+    )
+
+    parser.add_argument(
+        "--scuba_query",
+        action="store_true",
+        help="Query Scuba for test results",
+    )
+
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print debug messages",
+    )
+
+    args = parser.parse_args()
+
+    if args.scuba_query:
+        # Query Scuba for test result
+        logger.info("Querying Scuba for test results...")
+        sql_query = ScubaQueryBuilder.build_query_for_test_results()
+        df = ScubaQueryBuilder.execute_query(sql_query)
+
+        if df is None:
+            logger.error("Error: Could not execute Scuba query")
+            return 1
+        logger.info(f"Scuba query returned {len(df)} rows")
+        tests = {}
+
+        for index, row in df.iterrows():
+            if row["status"] == PASSED and row["count"] == 7:
+                if row["test_name"] not in tests:
+                    tests[row["test_name"]] = row["status"]
+
+        # Write test data to a separate JSON file
+        if tests:
+            with open(DEFAULT_OUTPUT_FILE, "w") as f:
+                json.dump(tests, f, indent=2, default=str)
+            logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
+
+        return 0
 
 
 # No code to edit in the selected snippet.
