@@ -6922,7 +6922,7 @@
     "switchSettings": {
       "l2LearningMode": 0,
       "qcmEnable": false,
-      "ptpTcEnable": false,
+      "ptpTcEnable": true,
       "l2AgeTimerSeconds": 300,
       "maxRouteCounterIDs": 0,
       "blockNeighbors": [
