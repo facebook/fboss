@@ -330,6 +330,7 @@ python_library(
         "//analytics/bamboo:lite",
         "//libfb/py:employee",
         "//libfb/py:mail",
+        "//libfb/py/asyncio:await_utils",
         "//libfb/py/thrift_clients:oncall_thrift_client",
     ],
 )

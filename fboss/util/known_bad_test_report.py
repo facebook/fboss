@@ -11,23 +11,24 @@ import sys
 import time
 import typing as t
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from analytics.bamboo import Bamboo as bb
 from libfb.py import employee
+from libfb.py.asyncio.await_utils import asyncio
 from libfb.py.mail import async_send_internal_email
 from libfb.py.thrift_clients.oncall_thrift_client import OncallThriftClient
 
 
 # Configure logging
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 # Constants
 DEFAULT_MAX_RECORDS = "100"  # Default number of records returned from scuba
-DEFAULT_OUTPUT_FILE = "chronos_job_data.json"
+DEFAULT_OUTPUT_FILE = "known_bad_tests_data.json"
 ONCALL = "fboss_agent_push"
 PASSED = 1
 FAILED = 0
@@ -35,7 +36,7 @@ FAILED = 0
 
 class UserAndEmailHandler:
     @staticmethod
-    def get_oncall_info(oncall_name: str) -> int:
+    def get_oncall_info(oncall_name: str) -> Any:
         """
         Retrieve the user ID of the current on-call person for a given rotation by short name.
 
@@ -47,10 +48,11 @@ class UserAndEmailHandler:
         """
         with OncallThriftClient() as client:
             oncall = client.getCurrentOncallForRotationByShortName(oncall_name)
-            return oncall.uid
+            logger.info(f"Current on-call for {oncall}: {oncall.uid}")
+            return oncall
 
     @staticmethod
-    def get_user_data() -> t.Tuple[str, int]:
+    def get_user_data(isUser: bool) -> t.Tuple[str, int, str]:
         """
         Get the current user's name and ID, falling back to on-call information if needed.
 
@@ -58,16 +60,22 @@ class UserAndEmailHandler:
             tuple: A tuple containing:
                 - str: The username (either the current user or the on-call name)
                 - int: The user ID corresponding to the username
+                - str: The email of the on-call person
         """
-        user_name = os.environ.get("SUDO_USER", getpass.getuser())
-        user_id = employee.unixname_to_uid(user_name)
-        if not user_id:
-            user_id = UserAndEmailHandler.get_oncall_info(ONCALL)
+        if isUser:
+            user_name = os.environ.get("SUDO_USER", getpass.getuser())
+            user_id = employee.unixname_to_uid(user_name)
+            return user_name, user_id, ""
+        else:
+            oncall = UserAndEmailHandler.get_oncall_info(ONCALL)
             user_name = ONCALL
-        return user_name, user_id
+            logger.info(f"User name: {user_name}, User ID: {oncall.uid}")
+            return user_name, oncall.uid, oncall.person_email
 
     @staticmethod
-    async def send_email(html: str, images: Dict[str, bytes]) -> None:
+    async def send_email(
+        isUser: bool, html: str, images: Optional[Dict[str, bytes]]
+    ) -> None:
         """
         Send an email with the given HTML content and images.
 
@@ -77,8 +85,14 @@ class UserAndEmailHandler:
         """
         subject = "Known bad tests report. Date: %s" % date.today().strftime("%Y-%m-%d")
 
-        user_name, user_id = UserAndEmailHandler.get_user_data()
-        to_addrs = [("%s@meta.com" % user_name)]
+        user_name, user_id, user_email = UserAndEmailHandler.get_user_data(isUser)
+
+        if user_email:
+            to_addrs = [user_email]
+        else:
+            to_addrs = [("%s@meta.com" % user_name)]
+
+        logger.info(f"Sending email to {to_addrs}")
         await async_send_internal_email(
             sender="noreply@meta.com",
             to=to_addrs,
@@ -87,6 +101,19 @@ class UserAndEmailHandler:
             inline_images=images,
             is_html=True,
         )
+
+    @staticmethod
+    def format_workplace_post(tests: Dict[str, int]) -> str:
+        """Format the test data into a Workplace post."""
+        html = "<h1>Known bad tests passing continuously for a week</h1>"
+        html += "<p>Here is the list of known bad tests passing 7 times in a row:</p>"
+        html += "<p>Please remove them from known bad tests. </p>"
+        html += "<table>"
+        html += "<tr><th>Test Name</th><th>Status</th></tr>"
+        for test_name, status in tests.items():
+            html += f"<tr><td>{test_name}</td><td>{status}</td></tr>"
+        html += "</table>"
+        return html
 
 
 class ScubaQueryBuilder:
@@ -135,14 +162,14 @@ class ScubaQueryBuilder:
             return None
 
 
-def main():
+def main() -> Optional[int]:
     """Main function to parse command line arguments and run the script."""
     parser = argparse.ArgumentParser(
         description="Get data from a Scuba for sai_agent_known_bad_test"
     )
 
     parser.add_argument(
-        "--scuba_query",
+        "--query_scuba",
         action="store_true",
         help="Query Scuba for test results",
     )
@@ -153,9 +180,15 @@ def main():
         help="Print debug messages",
     )
 
+    parser.add_argument(
+        "--user",
+        action="store_true",
+        help="Send email to user instead of oncall",
+    )
+
     args = parser.parse_args()
 
-    if args.scuba_query:
+    if args.query_scuba:
         # Query Scuba for test result
         logger.info("Querying Scuba for test results...")
         sql_query = ScubaQueryBuilder.build_query_for_test_results()
@@ -167,10 +200,12 @@ def main():
         logger.info(f"Scuba query returned {len(df)} rows")
         tests = {}
 
-        for index, row in df.iterrows():
+        for _, row in df.iterrows():
             if row["status"] == PASSED and row["count"] == 7:
                 if row["test_name"] not in tests:
                     tests[row["test_name"]] = row["status"]
+
+        logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
 
         # Write test data to a separate JSON file
         if tests:
@@ -178,7 +213,25 @@ def main():
                 json.dump(tests, f, indent=2, default=str)
             logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
 
-        return 0
+            # send email to user or oncall
+            logger.info("Sending email...")
+            html = UserAndEmailHandler.format_workplace_post(tests)
+
+            logger.info("html generated successfully for email body")
+            images = {}
+            return_code = asyncio.run(
+                UserAndEmailHandler.send_email(args.user, html, images)
+            )
+
+            if return_code == 0:
+                logger.error(
+                    f"Error: Failed to send email to user, return_code: {return_code}"
+                )
+                return return_code
+
+            logger.info(f"Email sent successfully return_code: {return_code}")
+
+    return 0
 
 
 # No code to edit in the selected snippet.
