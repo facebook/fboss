@@ -2,6 +2,8 @@
 
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+# pyre-unsafe
+
 import argparse
 import getpass
 import json
@@ -107,11 +109,11 @@ class UserAndEmailHandler:
         """Format the test data into a Workplace post."""
         html = "<h1>Known bad tests passing continuously for a week</h1>"
         html += "<p>Here is the list of known bad tests passing 7 times in a row:</p>"
-        html += "<p>Please remove them from known bad tests. </p>"
+        html += "<p>Please remove them from known bad. </p>"
         html += "<table>"
-        html += "<tr><th>Test Name</th><th>Status</th></tr>"
-        for test_name, status in tests.items():
-            html += f"<tr><td>{test_name}</td><td>{status}</td></tr>"
+        html += "<tr><th>Test Name</th></tr>"
+        for test_name, _status in tests.items():
+            html += f"<tr><td>{test_name}</td></tr>"
         html += "</table>"
         return html
 
