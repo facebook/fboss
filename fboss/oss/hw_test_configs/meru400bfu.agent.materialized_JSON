@@ -5,7 +5,8 @@
     "enable_acl_table_group": "true",
     "log_variable_name": "true",
     "mode": "meru400bfu",
-    "skip_transceiver_programming": "true"
+    "skip_transceiver_programming": "true",
+    "use_full_dlb_scale": "true"
   },
   "sw": {
     "version": 0,
@@ -1710,5 +1711,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }
