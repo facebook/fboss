@@ -544,6 +544,12 @@ struct SaiAclEntryTraits {
         AclEntryActionBool,
         SaiAclEntryActionBoolFalse>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    using ActionSetEcmpHashAlgorithm = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM,
+        AclEntryActionU32>;
+#endif
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -609,6 +615,10 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::ActionSetArsObject>,
       std::optional<Attributes::ActionDisableArsForwarding>
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::ActionSetEcmpHashAlgorithm>
+#endif
       >;
 };
 
@@ -668,6 +678,9 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionSetUserTrap);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetArsObject);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(AclEntry, ActionSetEcmpHashAlgorithm);
 #endif
 
 struct SaiAclCounterTraits {
