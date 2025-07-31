@@ -98,6 +98,11 @@ class ManagedSaiNextHopGroupMember
     this->setObject(object);
   }
 
+  std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>>
+  getNhopGroupMemberObject() {
+    return this->getObject();
+  }
+
   void createObject(PublisherObjects added);
 
   void removeObject(size_t index, PublisherObjects removed);
@@ -173,6 +178,18 @@ class NextHopGroupMember {
         [&](auto arg) {
           CHECK(arg);
           return arg->setObjectOwnership(object);
+        },
+        managedNextHopGroupMember_);
+  }
+
+  std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>> getObject() {
+    return std::visit(
+        [&](auto arg) {
+          std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>> object;
+          if (arg) {
+            object = arg->getNhopGroupMemberObject();
+          }
+          return object;
         },
         managedNextHopGroupMember_);
   }
