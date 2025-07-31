@@ -485,25 +485,6 @@ TYPED_TEST(AgentNeighborTest, ResolveLinkLocalEntry) {
   this->verifyAcrossWarmBoots(setup, []() {});
 }
 
-TYPED_TEST(AgentNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
-  auto setup = [this]() {
-    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto state = this->addNeighbor(in);
-      return this->resolveNeighbor(state, this->kLookupClass);
-    });
-
-    this->verifyClassId(static_cast<int>(this->kLookupClass));
-    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      return this->resolveNeighbor(in, this->kLookupClass2);
-    });
-  };
-  auto verify = [this]() {
-    EXPECT_FALSE(this->isProgrammedToCPU());
-    this->verifyClassId(static_cast<int>(this->kLookupClass2));
-  };
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 TYPED_TEST(AgentNeighborTest, UnresolveResolvedEntry) {
   auto setup = [this]() {
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -741,6 +722,58 @@ TYPED_TEST(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
     EXPECT_FALSE(this->isProgrammedToCPU(
         this->masterLogicalInterfacePortIds()[1],
         this->neighborIP(this->masterLogicalInterfacePortIds()[1])));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+template <typename NeighborT>
+class AgentNeighborMetadataTest : public AgentNeighborTest<NeighborT> {
+ protected:
+  using IPAddrT = typename NeighborT::IPAddrT;
+  static auto constexpr programToTrunk = NeighborT::isTrunk;
+  static auto constexpr isIntfNbrTable = NeighborT::isIntfNbrTable;
+  using NTable = typename std::conditional_t<
+      std::is_same<IPAddrT, folly::IPAddressV4>::value,
+      ArpTable,
+      NdpTable>;
+
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    std::vector<ProductionFeature> features = {
+        ProductionFeature::L3_FORWARDING,
+        ProductionFeature::CLASS_ID_FOR_NEIGHBOR};
+    if (isIntfNbrTable) {
+      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+    } else {
+      features.push_back(ProductionFeature::VLAN);
+    }
+    if (programToTrunk) {
+      features.push_back(ProductionFeature::LAG);
+    }
+    return features;
+  }
+};
+
+TYPED_TEST_SUITE(AgentNeighborMetadataTest, NeighborTypes);
+
+TYPED_TEST(
+    AgentNeighborMetadataTest,
+    ResolvePendingEntryThenChangeLookupClass) {
+  auto setup = [this]() {
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto state = this->addNeighbor(in);
+      return this->resolveNeighbor(state, this->kLookupClass);
+    });
+
+    this->verifyClassId(static_cast<int>(this->kLookupClass));
+    this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return this->resolveNeighbor(in, this->kLookupClass2);
+    });
+  };
+  auto verify = [this]() {
+    EXPECT_FALSE(this->isProgrammedToCPU());
+    this->verifyClassId(static_cast<int>(this->kLookupClass2));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
