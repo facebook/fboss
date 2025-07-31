@@ -123,7 +123,7 @@ std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
 
 std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
     AttributeLosslessEnable::operator()() {
-#if defined(BRCM_SAI_SDK_GTE_13_0)
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
   return SAI_INGRESS_PRIORITY_GROUP_ATTR_LOSSLESS_ENABLE;
 #else
   return std::nullopt;
