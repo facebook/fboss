@@ -222,6 +222,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
+    case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
       return false;
   }
   return false;
