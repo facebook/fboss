@@ -193,6 +193,8 @@ Supported values:
 The following environment variables should be set depending on which platform and SDK version you are building:
 
 1. `SAI_BRCM_IMPL` - set to 1 if building against brcm-sai SDK
+1. `SAI_VERSION` - can be omitted if you are using SAI 1.16.3. If using a more
+recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
 1. `SAI_SDK_VERSION` - Should be set to a string depending on which version of the brcm-sai SDK you are
 building. Supported values can be found in [SaiVersion.h](https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/api/SaiVersion.h)
 but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_ODP", found in
@@ -216,8 +218,9 @@ but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_
     - `SAI_VERSION_11_7_0_0_DNX_ODP`
     - `SAI_VERSION_12_0_EA_DNX_ODP`
     - `SAI_VERSION_13_0_EA_ODP`
-1. `SAI_VERSION` - can be omitted if you are using SAI 1.16.3. If using a more
-recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
+1. `BENCHMARK_INSTALL` - set to 1 to install benchmark binaries
+1. `SKIP_ALL_INSTALL` - set to 1 to skip installing FBOSS artifacts
+1. `WITH_ASAN` - set to 1 to enable sanitization checking
 
 #### Build Against the SDK
 
