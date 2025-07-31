@@ -776,6 +776,27 @@ class SaiTracer {
         object_statuses);                                                  \
   }
 
+// TODO(zecheng): Add bulk remove functions
+#define WRAP_BULK_REMOVE_FUNC(obj_type, sai_obj_type, api_type)               \
+  sai_status_t wrap_remove_##obj_type##s(                                     \
+      uint32_t object_count,                                                  \
+      const sai_object_id_t* object_id,                                       \
+      sai_bulk_op_error_mode_t mode,                                          \
+      sai_status_t* object_statuses) {                                        \
+    for (int i = 0; i < object_count; i++) {                                  \
+      SaiTracer::getInstance()->logRemoveFn(                                  \
+          "remove_" #obj_type, object_id[i], sai_obj_type);                   \
+    }                                                                         \
+    auto begin = FLAGS_enable_elapsed_time_log                                \
+        ? std::chrono::system_clock::now()                                    \
+        : std::chrono::system_clock::time_point::min();                       \
+    auto rv = SaiTracer::getInstance()->api_type##Api_->remove_##obj_type##s( \
+        object_count, object_id, mode, object_statuses);                      \
+                                                                              \
+    SaiTracer::getInstance()->logPostInvocation(rv, object_id[0], begin);     \
+    return rv;                                                                \
+  }
+
 #define WRAP_GET_STATS_FUNC(obj_type, sai_obj_type, api_type)                \
   sai_status_t wrap_get_##obj_type##_stats(                                  \
       sai_object_id_t obj_type##_id,                                         \
