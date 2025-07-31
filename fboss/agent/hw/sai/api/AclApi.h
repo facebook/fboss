@@ -548,7 +548,8 @@ struct SaiAclEntryTraits {
     using ActionSetEcmpHashAlgorithm = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM,
-        AclEntryActionU32>;
+        AclEntryActionU32,
+        StdNullOptDefault<AclEntryActionU32>>;
 #endif
   };
 
