@@ -570,6 +570,40 @@ class SaiApi {
         keys, keys + createAttributes.size());
   }
 
+  template <typename AdapterKeyT>
+  void bulkRemove(const std::vector<AdapterKeyT>& keys) const {
+    if (UNLIKELY(skipHwWrites())) {
+      return;
+    }
+    if (UNLIKELY(failHwWrites())) {
+      XLOGF(
+          FATAL,
+          "Attempting to remove SAI obj {} while hw writes are blocked",
+          keys[0]);
+    }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOGF(
+          WARNING,
+          "Attempting to remove SAI obj {} while hw writes are not expected",
+          keys[0]);
+    }
+    auto g{SaiApiLock::getInstance()->lock()};
+    sai_status_t status;
+    sai_status_t retStatus[keys.size()];
+    {
+      TIME_CALL;
+      status = impl()._bulkRemove(keys.size(), keys.data(), retStatus);
+    }
+    saiApiCheckError(status, apiType(), fmt::format("Failed to bulk remove"));
+    for (auto idx = 0; idx < keys.size(); idx++) {
+      saiApiCheckError(
+          retStatus[idx],
+          apiType(),
+          fmt::format("Failed to remove SAI obj {}", keys[idx]));
+      XLOGF(DBG5, "bulk remove SAI obj {}", keys[idx]);
+    }
+  }
+
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
