@@ -239,6 +239,20 @@ class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
 #endif
   }
 
+  sai_status_t _bulkRemove(
+      size_t objectCount,
+      const NextHopGroupMemberSaiId* object_id,
+      sai_status_t* retStatus) const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    const unsigned long* objects =
+        reinterpret_cast<const unsigned long*>(object_id);
+    return api_->remove_next_hop_group_members(
+        objectCount, objects, SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR, retStatus);
+#else
+    return SAI_STATUS_NOT_SUPPORTED;
+#endif
+  }
+
   sai_next_hop_group_api_t* api_;
   friend class SaiApi<NextHopGroupApi>;
 };
