@@ -134,7 +134,8 @@ int main(int argc, char* argv[]) {
   // lowercase. This is because the fw_util configuration file for Darwin
   // requires these names to be in uppercase to function correctly with the AnR
   // tool.
-  if (lowerCasePlatformName != "darwin") {
+  if ((lowerCasePlatformName != "darwin") &&
+      (lowerCasePlatformName != "darwin48v")) {
     fw_target_name = toLower(fw_target_name);
   }
 
