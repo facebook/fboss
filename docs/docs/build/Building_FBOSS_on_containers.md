@@ -179,6 +179,7 @@ Supported values:
 1. 1.15.0
 1. 1.15.3
 1. 1.16.0
+1. 1.16.3
 
 ```
 # Run the build helper to stage the SDK in preparation for the build step
