@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -152,7 +153,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     // There is a sequencing issue where the delayed bulk create will cause
     // object removal during warmboot handle reclaiming. To workaround this,
     // disable bulk create during this process (as it is no-op in SDK).
-    if (platform_->getHwSwitch()->getRunState() >= SwitchRunState::CONFIGURED) {
+    if (platform_->getHwSwitch()->getRunState() >= SwitchRunState::CONFIGURED &&
+        !dynamic_cast<SaiSwitch*>(platform_->getHwSwitch())
+             ->getRollbackInProgress_()) {
       nextHopGroupHandle->bulkCreate = true;
     }
   }
