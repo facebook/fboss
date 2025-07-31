@@ -12,6 +12,7 @@ add_fbthrift_cpp_library(
 )
 
 add_executable(showtech
+  fboss/platform/showtech/I2cHelper.cpp
   fboss/platform/showtech/Main.cpp
   fboss/platform/showtech/Utils.cpp
 )

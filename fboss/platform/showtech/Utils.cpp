@@ -7,6 +7,8 @@
 
 #include <fmt/core.h>
 
+using namespace facebook::fboss::platform::showtech_config;
+
 namespace facebook::fboss::platform {
 
 void Utils::printHostDetails() {
@@ -84,14 +86,13 @@ void Utils::printI2cDetails() {
   auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
   std::cout << output << std::endl;
 
-  std::istringstream outputStream(output);
-  std::string line;
-  while (std::getline(outputStream, line)) {
-    std::istringstream lineStream(line);
-    std::string bus;
-    lineStream >> bus;
-    std::string busNumber = bus.substr(4); // Remove "i2c-" prefix
-    auto cmd = fmt::format("time i2cdetect -y {}", busNumber);
+  auto i2cBuses = i2cHelper_.findI2cBuses();
+  for (const auto& busInfo : i2cBuses) {
+    if (config_.i2cBusIgnore() &&
+        (*config_.i2cBusIgnore()).contains(busInfo.second)) {
+      continue;
+    }
+    auto cmd = fmt::format("time i2cdetect -y {}", busInfo.first);
     std::cout << fmt::format("##### Running `{}` #####", cmd) << std::endl;
     std::cout << platformUtils_.execCommand(cmd).second << std::endl;
   }
@@ -104,4 +105,5 @@ void Utils::runFbossCliCmd(const std::string& cmd) {
     std::cout << platformUtils_.execCommand(fullCmd).second << std::endl;
   }
 }
+
 } // namespace facebook::fboss::platform

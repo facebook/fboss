@@ -18,6 +18,7 @@ thrift_library(
 cpp_binary(
     name = "showtech",
     srcs = [
+        "I2cHelper.cpp",
         "Main.cpp",
         "Utils.cpp",
     ],
@@ -29,5 +30,6 @@ cpp_binary(
         "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/showtech:showtech_config-cpp2-types",
+        "//folly:string",
     ],
 )
