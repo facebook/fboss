@@ -703,7 +703,7 @@ cpp_library(
         "//task/if:if-cpp2-services",
         "//thrift/lib/cpp/transport:transport-core",
         "//thrift/lib/cpp/util:enum_utils",
-        "//thrift/lib/cpp2/async:client_buferred_stream",
+        "//thrift/lib/cpp2/async:client_buffered_stream",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/gen:module_types_h",
         "//thrift/lib/cpp2/protocol:protocol",
