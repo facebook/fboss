@@ -24,7 +24,10 @@ cpp_binary(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//fb303:logging",
+        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init_cli",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/showtech:showtech_config-cpp2-types",
     ],
 )

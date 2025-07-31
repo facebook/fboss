@@ -21,6 +21,8 @@ target_link_libraries(showtech
   fb303::fb303
   platform_utils
   showtech_config_cpp2
+  platform_config_lib
+  platform_name_lib
 )
 
 install(TARGETS showtech)
