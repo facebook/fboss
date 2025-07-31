@@ -33,7 +33,7 @@ class QsfpFieldInfo {
         offset(offset),
         length(length) {}
 
-  typedef std::unordered_map<QsfpField, QsfpFieldInfo> QsfpFieldMap;
+  using QsfpFieldMap = std::unordered_map<QsfpField, QsfpFieldInfo>;
 
   static QsfpFieldInfo getQsfpFieldAddress(
       const QsfpFieldMap& map,

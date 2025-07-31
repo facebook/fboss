@@ -115,7 +115,7 @@ class CmisFieldInfo : public QsfpFieldInfo<CmisField, CmisPages> {
 
 // Store multipliers for various conversion functions:
 
-typedef std::map<CmisField, std::uint32_t> CmisFieldMultiplier;
+using CmisFieldMultiplier = std::map<CmisField, std::uint32_t>;
 
 // Store the mapping between port speed and ApplicationCode.
 // We use the module Media Interface ID, which is located at the second byte
