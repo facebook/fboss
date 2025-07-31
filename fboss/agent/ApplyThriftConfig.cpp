@@ -110,6 +110,7 @@ using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
+constexpr auto kMcQueueScalingFactor = cfg::MMUScalingFactor::ONE_8TH;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
@@ -2270,10 +2271,12 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
         auto asic = checkSameAndGetAsic(hwAsicTable_->getL3Asics());
         uint8_t mcQueueId =
             asic->getQueueIdStart(streamType) + static_cast<uint8_t>(queueId);
-        XLOG(DBG2) << "Adding multicast queue " << static_cast<int>(mcQueueId);
+        XLOG(DBG2) << "Adding multicast queue " << static_cast<int>(mcQueueId)
+                   << " with scaling factor "
+                   << apache::thrift::util::enumNameSafe(kMcQueueScalingFactor);
         newPortQueue = std::make_shared<PortQueue>(mcQueueId);
         newPortQueue->setStreamType(streamType);
-        newPortQueue->setScalingFactor(cfg::MMUScalingFactor::FOUR);
+        newPortQueue->setScalingFactor(kMcQueueScalingFactor);
         newPortQueues.push_back(newPortQueue);
       } else {
         // Resetting defaut queues are not applicable to VOQs - we only
