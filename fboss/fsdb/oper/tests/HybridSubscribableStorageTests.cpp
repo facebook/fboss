@@ -331,10 +331,10 @@ TYPED_TEST(SubscribableStorageTests, PublishPatchesFromPureCowStorage) {
     Patch patch = patches.front();
     if (isInitial) {
       // make sure Patch.PatchNode has a value
-      auto rootPatch = patch.patch()->val_ref();
+      auto rootPatch = patch.patch()->val();
       EXPECT_TRUE(rootPatch);
     } else {
-      auto rootPatch = patch.patch()->struct_node_ref();
+      auto rootPatch = patch.patch()->struct_node();
       EXPECT_TRUE(rootPatch);
     }
     return patch;
