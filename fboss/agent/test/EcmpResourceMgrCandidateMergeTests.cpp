@@ -37,4 +37,20 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, incReference) {
   }
 }
 
+TEST_F(EcmpResourceMgrCandidateMergeTest, incDecReference) {
+  auto groupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+      RouterID(0), makePrefix(0).toCidrNetwork());
+  auto nhopsId = sw_->getEcmpResourceManager()
+                     ->getNhopsToId()
+                     .find(groupInfo->getNhops())
+                     ->second;
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+  auto newPrefix = makePrefix(numStartRoutes() + 1);
+  addRoute(newPrefix, groupInfo->getNhops());
+  rmRoute(newPrefix);
+  auto afterConsolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+  EXPECT_EQ(beforeConsolidationInfo, afterConsolidationInfo);
+}
 } // namespace facebook::fboss
