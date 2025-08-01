@@ -80,6 +80,8 @@ inline std::string toString(PlatformType mode) {
       return "MERU800BIA";
     case PlatformType::PLATFORM_MERU800BIAB:
       return "MERU800BIAB";
+    case PlatformType::PLATFORM_MERU800BIAC:
+      return "MERU800BIAC";
     case PlatformType::PLATFORM_MERU800BFA:
       return "MERU800BFA";
     case PlatformType::PLATFORM_MERU800BFA_P1:
