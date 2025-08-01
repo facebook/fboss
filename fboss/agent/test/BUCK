@@ -955,6 +955,7 @@ cpp_unittest(
     srcs = [
         "BaseEcmpResourceManagerTest.cpp",
         "EcmpResourceMgrBackupGrpTests.cpp",
+        "EcmpResourceMgrCandidateMergeTests.cpp",
         "EcmpResourceMgrGroupIdAllocationTests.cpp",
         "EcmpResourceMgrMergeGroupsTests.cpp",
         "EcmpResourceMgrRibFibTests.cpp",
