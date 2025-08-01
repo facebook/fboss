@@ -28,5 +28,10 @@ RUN apt install -y python3-mesonpy
 RUN apt install -y python3-jinja2
 RUN apt install -y gperf libcap-dev libmount-dev
 RUN apt install -y icu-devtools libicu-dev libicu72
-RUN apt install -y doxygen graphviz aspell
+# The following libraries are needed for building Broadcom SDK
+RUN apt install -y doxygen graphviz aspell bc libyaml-dev libyaml-libyaml-perl libmoose-perl libclone-perl \
+    libdata-compare-perl liblist-moreutils-perl libnamespace-autoclean-perl libyaml-perl libjson-xs-perl
+RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN pip install pyyaml filelock
+# ============================================================
 RUN python3 -m pip config set global.break-system-packages false
