@@ -29,7 +29,7 @@
         {
           "commandType": "writeToPort",
           "writeToPortArgs": {
-            "HexByteValue": "0x16",
+            "hexByteValue": "0x16",
             "portFile": "/dev/port",
             "hexOffset": "0xb2"
           }
@@ -293,6 +293,64 @@
       },
       "priority": 5
     },
+    "smb_cpld": {
+      "preUpgrade": [
+        {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "1",
+            "gpioChipPin": "7"
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
+            "chip": [
+              "W25X20"
+            ]
+          }
+        }
+      ],
+      "postUpgrade": [
+        {
+          "commandType": "gpioget",
+          "gpiogetArgs": {
+            "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipPin": "7"
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "linux_spi:dev=",
+          "programmer": "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1",
+          "chip": [
+            "W25X20"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/SMB_CPLD/fw_ver"
+      },
+      "priority": 6
+    },
     "scm_cpld": {
       "preUpgrade": [
         {
@@ -349,7 +407,7 @@
         "versionType": "sysfs",
         "path": "/run/devmap/cplds/SCM_CPLD/fw_ver"
       },
-      "priority": 6
+      "priority": 7
     },
     "pic_cpld1": {
       "preUpgrade": [
@@ -414,7 +472,7 @@
         "versionType": "sysfs",
         "path": "/run/devmap/cplds/PIC_T_CPLD/fw_ver"
       },
-      "priority": 7
+      "priority": 8
     },
     "pic_cpld2": {
       "preUpgrade": [
@@ -479,7 +537,7 @@
         "versionType": "sysfs",
         "path": "/run/devmap/cplds/PIC_B_CPLD/fw_ver"
       },
-      "priority": 8
+      "priority": 9
     }
   }
 }

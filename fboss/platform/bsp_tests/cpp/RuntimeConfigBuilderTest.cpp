@@ -253,7 +253,7 @@ TEST_F(RuntimeConfigBuilderTest, BuildConfigsForAllRealPlatforms) {
       "darwin",
       "minipack3n",
       "minipack3ba",
-      "icecube800bc",
+      "icecube",
       "darwin48v",
   };
 
