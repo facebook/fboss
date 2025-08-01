@@ -731,6 +731,9 @@ bool EcmpResourceManager::pruneFromMergedGroups(NextHopGroupId /*groupId*/) {
 
 void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
   groupInfo.decRouteUsageCount();
+  XLOG(DBG2) << " GID: " << groupInfo.getID()
+             << " route ref count decremented to : "
+             << groupInfo.getRouteUsageCount();
   CHECK_GT(groupInfo.getRouteUsageCount(), 0);
   updateConsolidationPenalty(groupInfo);
 }
@@ -756,6 +759,10 @@ void EcmpResourceManager::updateConsolidationPenalty(
       auto nhopsLost = grpNhopsSize - info.mergedNhops.size();
       auto newPenalty = std::ceil((nhopsLost * 100.0) / grpNhopsSize) *
           groupInfo.getRouteUsageCount();
+      XLOG(DBG2) << " GID: " << groupInfo.getID()
+                 << " merge penalty for: " << folly::join(", ", mergedGroups)
+                 << " prev penalty: " << citr->second
+                 << " new penalty: " << newPenalty;
       citr->second = newPenalty;
     }
     return updated;
@@ -767,7 +774,7 @@ void EcmpResourceManager::updateConsolidationPenalty(
     CHECK(updatePenalty(mergedGroups_));
   } else {
     XLOG(DBG2) << " Group: " << groupInfo.getID()
-               << " penalty updated in of candidate merged groups";
+               << " penalty updated in candidate merged groups";
     DCHECK(!updatePenalty(mergedGroups_));
   }
 }
