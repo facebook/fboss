@@ -64,4 +64,9 @@ std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
+    AttributeLosslessEnable::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

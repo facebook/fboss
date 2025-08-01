@@ -661,7 +661,7 @@
         {
           "name": "SMB_ADC_U6_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U6_ADC128D818_3/temp1_input",
-          "type": 1,
+          "type": 3,
           "thresholds": {
             "upperCriticalVal": 75,
             "maxAlarmVal": 70
@@ -671,7 +671,7 @@
         {
           "name": "SMB_U77_INLET_LEFT_BOT_LM75_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_U77_LM75B_1/temp1_input",
-          "type": 1,
+          "type": 3,
           "thresholds": {
             "upperCriticalVal": 65,
             "maxAlarmVal": 60
@@ -681,7 +681,7 @@
         {
           "name": "SMB_XP3R3V_PROT",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in0_input",
-          "type": 3,
+          "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.63,
             "maxAlarmVal": 3.465,
@@ -693,7 +693,7 @@
         {
           "name": "SMB_XP3R3V_LDO_PCIE",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in1_input",
-          "type": 3,
+          "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.63,
             "maxAlarmVal": 3.465,
@@ -705,7 +705,7 @@
         {
           "name": "SMB_XP3R3V_SSD",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in2_input",
-          "type": 3,
+          "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.63,
             "maxAlarmVal": 3.465,
@@ -717,7 +717,7 @@
         {
           "name": "SMB_XP12R0V_SSD",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in3_input",
-          "type": 3,
+          "type": 1,
           "thresholds": {
             "upperCriticalVal": 13.2,
             "maxAlarmVal": 12.6,
@@ -729,7 +729,7 @@
         {
           "name": "SMB_XP3R3V_CLK",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in4_input",
-          "type": 3,
+          "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.63,
             "maxAlarmVal": 3.465,
@@ -741,7 +741,7 @@
         {
           "name": "SMB_XP1R8V_CLK",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in5_input",
-          "type": 3,
+          "type": 1,
           "thresholds": {
             "upperCriticalVal": 1.98,
             "maxAlarmVal": 1.89,
@@ -753,7 +753,7 @@
         {
           "name": "SMB_XP3R3V_STBY",
           "sysfsPath": "/run/devmap/sensors/SMB_U7_ADC128D818_1/in6_input",
-          "type": 3,
+          "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.63,
             "maxAlarmVal": 3.465,

@@ -69,14 +69,16 @@ class SaiQueueManager {
       const std::optional<cfg::PortType> portType = std::nullopt);
   void changeQueueBufferProfile(
       SaiQueueHandle* queueHandle,
-      const PortQueue& newPortQueue);
+      const PortQueue& newPortQueue,
+      cfg::PortType portType);
   void changeQueueEcnWred(
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue);
   void changeQueueScheduler(
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue,
-      const Port* swPort);
+      const Port* swPort,
+      cfg::PortType portType);
   void changeQueueDeadlockEnable(
       SaiQueueHandle* queueHandle,
       const Port* swPort);
@@ -87,7 +89,7 @@ class SaiQueueManager {
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,
       const QueueConfig& queues,
-      const facebook::fboss::Port* swPort = nullptr);
+      const facebook::fboss::Port* swPort);
   void updateStats(
       const std::vector<SaiQueueHandle*>& queues,
       HwPortStats& stats,

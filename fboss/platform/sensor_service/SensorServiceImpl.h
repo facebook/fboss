@@ -16,8 +16,10 @@
 
 #include <folly/Synchronized.h>
 
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/PmUnitInfoFetcher.h"
+#include "fboss/platform/sensor_service/Utils.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
@@ -35,8 +37,13 @@ class SensorServiceImpl {
   auto static constexpr kHasReadFailure = "sensor_read.has.failures";
   auto static constexpr kCriticalThresholdViolation =
       "sensor_read.sensor_{}.type_{}.critical_threshold_violation";
+  auto static constexpr kAsicTemp = "asic_temp";
 
-  explicit SensorServiceImpl(const SensorConfig& sensorConfig);
+  explicit SensorServiceImpl(
+      const SensorConfig& sensorConfig,
+      const std::shared_ptr<Utils>& utils = std::make_shared<Utils>(),
+      const std::shared_ptr<PlatformUtils>& platformUtils =
+          std::make_shared<PlatformUtils>());
   ~SensorServiceImpl();
 
   std::vector<SensorData> getSensorsData(
@@ -57,11 +64,19 @@ class SensorServiceImpl {
       const std::optional<Thresholds>& thresholds,
       const std::optional<std::string>& compute);
 
+  void publishPerSensorStats(
+      const std::string& sensorName,
+      std::optional<float> value);
+
+  SensorData getAsicTemp(const SwitchAsicTemp& asicTemp);
+
   folly::Synchronized<std::map<std::string, SensorData>> polledData_{};
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
   SensorConfig sensorConfig_{};
+  std::shared_ptr<Utils> utils_{};
+  std::shared_ptr<PlatformUtils> platformUtils_{};
   PmUnitInfoFetcher pmUnitInfoFetcher_{};
 };
 

@@ -258,6 +258,7 @@ int hwAgentMain(
         // cause us to go over the JOIN_TIMEOUT.
         // Avoid it by flushing the queue.
         server->setQueueTimeout(std::chrono::seconds(1));
+
         server->stopListening();
 
         XLOG(DBG2) << "[Exit] Stopping Thrift Server";

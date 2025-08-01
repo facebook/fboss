@@ -227,13 +227,14 @@ void SaiQueueManager::changeQueueEcnWred(
 
 void SaiQueueManager::changeQueueBufferProfile(
     SaiQueueHandle* queueHandle,
-    const PortQueue& newPortQueue) {
+    const PortQueue& newPortQueue,
+    cfg::PortType type) {
   if (isVoqSwitchAndQueueHandleNotForVoq(queueHandle)) {
     // VOQ switches support buffer profiles on voqs only
     return;
   }
   auto newBufferProfile =
-      managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
+      managerTable_->bufferManager().getOrCreateProfile(newPortQueue, type);
   if (newBufferProfile != queueHandle->bufferProfile) {
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::BufferProfileId(
@@ -246,7 +247,8 @@ void SaiQueueManager::changeQueueBufferProfile(
 void SaiQueueManager::changeQueueScheduler(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue,
-    const Port* swPort) {
+    const Port* swPort,
+    cfg::PortType portType) {
   std::shared_ptr<SaiScheduler> newScheduler;
   if (newPortQueue.getScheduling() != cfg::QueueScheduling::INTERNAL) {
     newScheduler =
@@ -261,11 +263,18 @@ void SaiQueueManager::changeQueueScheduler(
         cfg::AsicType::ASIC_TYPE_CHENAB) {
       // Signal to SAI to use non-hierarchial QoS by setting the parent
       // scheduler node to the port.
-      auto portHandle =
-          managerTable_->portManager().getPortHandle(swPort->getID());
+      std::optional<PortSaiId> portSaiId{};
+
+      if (swPort) {
+        auto portHandle =
+            managerTable_->portManager().getPortHandle(swPort->getID());
+        portSaiId = portHandle->port->adapterKey();
+      } else {
+        CHECK_EQ(portType, cfg::PortType::CPU_PORT);
+        portSaiId = managerTable_->switchManager().getCpuPort();
+      }
       queueHandle->queue->setOptionalAttribute(
-          SaiQueueTraits::Attributes::ParentSchedulerNode(
-              portHandle->port->adapterKey()));
+          SaiQueueTraits::Attributes::ParentSchedulerNode(*portSaiId));
     }
     // Update scheduler reference after we have set the queue
     // scheduler attribute, else if this is the last queue
@@ -316,11 +325,22 @@ void SaiQueueManager::changeQueue(
     const Port* swPort,
     const std::optional<cfg::PortType> portType) {
   CHECK(queueHandle);
+  // the method configures queues for CPU port as well as front panel port,
+  // front panel port would have swPort but CPU port does not have swPort. In
+  // that case, portType is provided. this method is also invoked for system
+  // port which also has portType
+  CHECK(
+      swPort != nullptr ||
+      portType.has_value()); // provide either swPort or portType
   auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
   if ((queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
       (queueType != SAI_QUEUE_TYPE_MULTICAST_VOQ)) {
     if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-      changeQueueScheduler(queueHandle, newPortQueue, swPort);
+      changeQueueScheduler(
+          queueHandle,
+          newPortQueue,
+          swPort,
+          (swPort ? swPort->getPortType() : *portType));
     }
   }
   changeQueueEcnWred(queueHandle, newPortQueue);
@@ -340,9 +360,15 @@ void SaiQueueManager::changeQueue(
       // option to use a dedicated CPU queue config with buffer pool
       // specified explicitly as the reserved buffer pool.
     } else if (
-        !swPort || (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT)) {
-      // Unsupported for MANAGEMENT_PORT
-      changeQueueBufferProfile(queueHandle, newPortQueue);
+        !swPort ||
+        (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT ||
+         platform_->getAsic()->isSupported(
+             HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA))) {
+      // Supported for MANAGEMENT_PORT only on some ASICs
+      changeQueueBufferProfile(
+          queueHandle,
+          newPortQueue,
+          swPort ? swPort->getPortType() : *portType);
     }
   }
   if (queueType == SAI_QUEUE_TYPE_UNICAST) {
@@ -633,13 +659,6 @@ QueueConfig SaiQueueManager::getQueueSettings(
     if (auto scheduler = queueHandle.second->scheduler.get()) {
       managerTable_->schedulerManager().fillSchedulerSettings(
           scheduler, portQueue.get());
-    } else if (
-        platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
-      //  TODO(Chenab): For now, set scheduler as internal for chenab,
-      //  however identify settings which may be used to construct cold boot
-      //  state and use them in config
-      portQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
     }
     queueConfig.push_back(std::move(portQueue));
   }

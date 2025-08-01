@@ -29,10 +29,14 @@ class NextHopGroupApiTest : public ::testing::Test {
     return 50;
   }
 
+  sai_int32_t kHashAlgorithm() const {
+    return SAI_HASH_ALGORITHM_RANDOM;
+  }
+
   NextHopGroupSaiId createNextHopGroup(
       const sai_next_hop_group_type_t nextHopGroupType) const {
     return nextHopGroupApi->create<SaiNextHopGroupTraits>(
-        {nextHopGroupType, kArsObjectId()}, 0);
+        {nextHopGroupType, kArsObjectId(), kHashAlgorithm()}, 0);
   }
 
   NextHopGroupMemberSaiId createNextHopGroupMember(
@@ -89,10 +93,13 @@ TEST_F(NextHopGroupApiTest, getNextHopGroupAttributes) {
       nextHopGroupId, SaiNextHopGroupTraits::Attributes::Type());
   auto nextHopArsObjectIdGot = nextHopGroupApi->getAttribute(
       nextHopGroupId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
+  auto nextHopHashAlgorithmGot = nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::HashAlgorithm());
 
   EXPECT_EQ(nextHopMemberListGot.size(), 1);
   EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_GROUP_TYPE_ECMP);
   EXPECT_EQ(nextHopArsObjectIdGot, kArsObjectId());
+  EXPECT_EQ(nextHopHashAlgorithmGot, kHashAlgorithm());
 }
 
 // SAI spec does not support setting any attribute for next hop group post
@@ -116,6 +123,9 @@ TEST_F(NextHopGroupApiTest, setNextHopGroupAttributes) {
   auto nextHopArsObjectIdGot = nextHopGroupApi->getAttribute(
       nextHopGroupId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
   EXPECT_EQ(nextHopArsObjectIdGot, 60);
+  auto nextHopHashAlgorithmGot = nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::HashAlgorithm());
+  EXPECT_EQ(nextHopHashAlgorithmGot, SAI_HASH_ALGORITHM_RANDOM);
 }
 
 TEST_F(NextHopGroupApiTest, createNextHopGroupMember) {
@@ -226,6 +236,8 @@ TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   EXPECT_EQ("NextHopMemberList: [42, 100, 3]", fmt::format("{}", nhml));
   SaiNextHopGroupTraits::Attributes::ArsObjectId a{60};
   EXPECT_EQ("ArsObjectId: 60", fmt::format("{}", a));
+  SaiNextHopGroupTraits::Attributes::HashAlgorithm h{SAI_HASH_ALGORITHM_RANDOM};
+  EXPECT_EQ("HashAlgorithm: 2", fmt::format("{}", h));
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupMemberAttributes) {

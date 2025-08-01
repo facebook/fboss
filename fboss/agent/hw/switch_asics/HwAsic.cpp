@@ -216,4 +216,7 @@ const std::set<uint16_t>& HwAsic::getL1FabricPortsToConnectToL2() const {
       "Derived class must override getL1FabricPortsToConnectToL2, where applicable");
 }
 
+uint64_t HwAsic::getCpuPortEgressPoolSize() const {
+  throw FbossError("cpu port egress pool size is not available");
+}
 } // namespace facebook::fboss

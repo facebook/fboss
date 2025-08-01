@@ -249,6 +249,17 @@ class SaiObject {
     live_ = true;
   }
 
+  // Create a new one from adapter key, adapter host key and attributes
+  SaiObject(
+      const typename SaiObjectTraits::AdapterKey& adapterKey,
+      const typename SaiObjectTraits::AdapterHostKey& adapterHostKey,
+      const typename SaiObjectTraits::CreateAttributes& attributes)
+      : adapterKey_(adapterKey),
+        adapterHostKey_(adapterHostKey),
+        attributes_(attributes) {
+    live_ = true;
+  }
+
   bool live() const {
     return live_;
   }

@@ -159,6 +159,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::BASE_T_10G:
       case MediaInterfaceCode::CR_10G:
       case MediaInterfaceCode::DR1_200G:
+      case MediaInterfaceCode::ZR_800G:
         expectedMediaLanes = {0};
         break;
       case MediaInterfaceCode::UNKNOWN:
@@ -644,7 +645,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
              *mediaIntfCode == MediaInterfaceCode::FR4_LITE_2x400G ||
              *mediaIntfCode == MediaInterfaceCode::LR4_2x400G_10KM ||
              *mediaIntfCode == MediaInterfaceCode::DR4_2x400G ||
-             *mediaIntfCode == MediaInterfaceCode::DR4_2x800G));
+             *mediaIntfCode == MediaInterfaceCode::DR4_2x800G ||
+             *mediaIntfCode == MediaInterfaceCode::ZR_800G));
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
         EXPECT_TRUE(*diagsCapability->prbsSystem());
@@ -657,7 +659,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
             *mediaIntfCode == MediaInterfaceCode::FR4_LITE_2x400G ||
             *mediaIntfCode == MediaInterfaceCode::LR4_2x400G_10KM ||
             *mediaIntfCode == MediaInterfaceCode::DR4_2x400G ||
-            *mediaIntfCode == MediaInterfaceCode::DR4_2x800G) {
+            *mediaIntfCode == MediaInterfaceCode::DR4_2x800G ||
+            *mediaIntfCode == MediaInterfaceCode::ZR_800G) {
           EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }
       }

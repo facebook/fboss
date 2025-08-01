@@ -168,7 +168,7 @@ of SAI headers. In order to run the build:
 
 #### Run the Build Helper
 
-By default, `build-helper.py` will use SAI version 1.14.0. If you are planning
+By default, `build-helper.py` will use SAI version 1.16.3. If you are planning
 on building against a different version of SAI, you must add another param to the
 build-helper.py command.
 
@@ -179,12 +179,13 @@ Supported values:
 1. 1.15.0
 1. 1.15.3
 1. 1.16.0
+1. 1.16.3
 
 ```
 # Run the build helper to stage the SDK in preparation for the build step
 ./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output
 
-# Run the build helper using SAI version 1.15.3 instead of the default 1.14.0
+# Run the build helper using SAI version 1.15.3 instead of the default 1.16.3
 ./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output 1.15.3
 ```
 
@@ -193,6 +194,8 @@ Supported values:
 The following environment variables should be set depending on which platform and SDK version you are building:
 
 1. `SAI_BRCM_IMPL` - set to 1 if building against brcm-sai SDK
+1. `SAI_VERSION` - can be omitted if you are using SAI 1.16.3. If using a more
+recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
 1. `SAI_SDK_VERSION` - Should be set to a string depending on which version of the brcm-sai SDK you are
 building. Supported values can be found in [SaiVersion.h](https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/api/SaiVersion.h)
 but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_ODP", found in
@@ -216,8 +219,9 @@ but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_
     - `SAI_VERSION_11_7_0_0_DNX_ODP`
     - `SAI_VERSION_12_0_EA_DNX_ODP`
     - `SAI_VERSION_13_0_EA_ODP`
-1. `SAI_VERSION` - can be omitted if you are using SAI 1.14.0. If using a more
-recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
+1. `BENCHMARK_INSTALL` - set to 1 to install benchmark binaries
+1. `SKIP_ALL_INSTALL` - set to 1 to skip installing FBOSS artifacts
+1. `WITH_ASAN` - set to 1 to enable sanitization checking
 
 #### Build Against the SDK
 

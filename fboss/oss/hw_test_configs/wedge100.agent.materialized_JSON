@@ -4,7 +4,8 @@
     "counter_refresh_interval": "0",
     "enable_acl_table_group": "true",
     "log_variable_name": "true",
-    "skip_transceiver_programming": "true"
+    "skip_transceiver_programming": "true",
+    "use_full_dlb_scale": "true"
   },
   "sw": {
     "version": 0,
@@ -883,5 +884,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

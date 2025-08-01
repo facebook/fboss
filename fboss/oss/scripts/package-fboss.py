@@ -307,6 +307,9 @@ class PackageFboss:
             else:
                 lib_path = parts[0].split("(")[0].strip()
 
+            if "libc.so" in lib_path:
+                continue
+
             not_present = lib_path not in self.dependencies
             root_and_copy = lib_path.startswith("/lib") and self.copy_root_libs
             not_root = not lib_path.startswith("/lib")

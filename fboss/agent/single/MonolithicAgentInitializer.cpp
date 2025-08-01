@@ -2,27 +2,6 @@
 
 #include "fboss/agent/single/MonolithicAgentInitializer.h"
 
-#include <folly/ScopeGuard.h>
-#include <folly/SocketAddress.h>
-#include <folly/executors/FunctionScheduler.h>
-#include <folly/io/async/AsyncSignalHandler.h>
-#include <folly/io/async/EventBase.h>
-#include <folly/logging/Init.h>
-#include <folly/logging/xlog.h>
-#include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/FbossInit.h"
-#include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/SetupThrift.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
-#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
-
-#include "fboss/agent/ThriftHandler.h"
-#include "fboss/agent/TunManager.h"
-#include "fboss/lib/CommonFileUtils.h"
-
-#include <gflags/gflags.h>
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
@@ -30,6 +9,30 @@
 #include <functional>
 #include <mutex>
 #include <string>
+
+#include <folly/ScopeGuard.h>
+#include <folly/SocketAddress.h>
+#include <folly/executors/FunctionScheduler.h>
+#include <folly/io/async/AsyncSignalHandler.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/Init.h>
+#include <folly/logging/xlog.h>
+#include <gflags/gflags.h>
+
+#include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/FbossInit.h"
+#include "fboss/agent/HwAgent.h"
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/Platform.h"
+#include "fboss/agent/SetupThrift.h"
+#include "fboss/agent/SwAgentInitializer.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/TunManager.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
+#include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/restart_tracker/RestartTimeTracker.h"
+
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
 #include <sanitizer/lsan_interface.h>
@@ -159,6 +162,13 @@ void MonolithicAgentInitializer::handleExitSignal(bool gracefulExit) {
   } else {
     exit(1);
   }
+}
+
+void MonolithicAgentInitializer::stopServices() {
+  if (hwAgent_) {
+    hwAgent_->stopThreads();
+  }
+  SwAgentInitializer::stopServices();
 }
 
 std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>

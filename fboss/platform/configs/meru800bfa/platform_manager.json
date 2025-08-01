@@ -119,11 +119,15 @@
           "initRegSettings": [
             {
               "regOffset": 75,
-              "ioBuf": [31]
+              "ioBuf": [
+                31
+              ]
             },
             {
               "regOffset": 76,
-              "ioBuf": [3]
+              "ioBuf": [
+                3
+              ]
             }
           ]
         },

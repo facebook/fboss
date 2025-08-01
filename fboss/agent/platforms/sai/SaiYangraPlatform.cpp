@@ -76,7 +76,11 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair(
       "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
   kv_map.insert(std::make_pair("SAI_DUMP_STORE_AMOUNT", "1"));
-
+  kv_map.insert(std::make_pair("SAI_KEY_HOSTIF_V2_ENABLED", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_PRBS_ADMIN_TOGGLE_ENABLED", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_BIT_START", "0"));
+  kv_map.insert(
+      std::make_pair("SAI_KEY_ROUTE_METADATA_BIT_END", "4")); // 5 bit metadata
   return kv_map;
 }
 
@@ -120,7 +124,7 @@ std::string SaiYangraPlatform::getHwConfig() {
 }
 
 bool SaiYangraPlatform::isSerdesApiSupported() const {
-  return false;
+  return true;
 }
 std::vector<PortID> SaiYangraPlatform::getAllPortsInGroup(
     PortID /*portID*/) const {

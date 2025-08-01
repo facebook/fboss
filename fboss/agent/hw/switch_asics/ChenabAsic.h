@@ -78,6 +78,11 @@ class ChenabAsic : public HwAsic {
     return 64;
   }
 
+  uint64_t getCpuPortEgressPoolSize() const override {
+    // CPU egress buffer pool size is at least 3 MB
+    return 3 * 1024 * 1024;
+  }
+
  private:
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;

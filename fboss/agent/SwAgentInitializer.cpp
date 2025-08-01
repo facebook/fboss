@@ -170,6 +170,7 @@ void SwAgentInitializer::stopServer() {
   // cause us to go over the JOIN_TIMEOUT.
   // Avoid it by flushing the queue.
   server_->setQueueTimeout(std::chrono::seconds(1));
+
   server_->stopListening();
 
   XLOG(DBG2) << "Stopping thrift server";

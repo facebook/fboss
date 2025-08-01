@@ -117,6 +117,12 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING);
     }
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM)) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ECMP_HASH_ALGORITHM);
+    }
+#endif
     return actionTypeList;
   }
 }

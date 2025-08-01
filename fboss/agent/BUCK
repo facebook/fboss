@@ -249,8 +249,8 @@ thrift_library(
     deps = [
         ":switch_config",
         "//fboss/agent/hw:hardware_stats",
+        "//fboss/agent/if:asic_temp",
         "//fboss/lib/phy:phy",
-        "//fboss/platform/sensor_service/if:sensor_service",
         "//thrift/annotation:cpp",
     ],
 )
@@ -411,6 +411,20 @@ cpp_library(
     ],
     exported_external_deps = [
         "gflags",
+    ],
+)
+
+cpp_library(
+    name = "buffer_utils",
+    srcs = [
+        "BufferUtils.cpp",
+    ],
+    headers = [
+        "BufferUtils.h",
+    ],
+    exported_deps = [
+        ":switch_config-cpp2-types",
+        ":utils",
     ],
 )
 
@@ -666,6 +680,7 @@ cpp_library(
     exported_deps = [
         ":agent_features",
         ":asic_utils",
+        ":buffer_utils",
         ":core",
         ":fboss-error",
         ":hw_asic_table",
@@ -752,9 +767,6 @@ cpp_library(
         ":stats",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
-    ],
-    exported_external_deps = [
-        ("boost", None, "boost_container"),
     ],
 )
 
@@ -870,6 +882,7 @@ cpp_library(
         ":agent_info-cpp2-types",
         ":agent_stats-cpp2-types",
         ":asic_utils",
+        ":buffer_utils",
         ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",

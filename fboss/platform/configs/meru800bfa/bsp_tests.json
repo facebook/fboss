@@ -1,147 +1,204 @@
 {
-    "platform": "meru800bfa",
-    "testData": {
-        "SCM.SCM_MPS_PMBUS": {
-            "i2cTestData": {
-                "i2cDumpData": [],
-                "i2cGetData": [
-                    {
-                        "reg": "0x19",
-                        "expected": "0xd0"
-                    }
-                ],
-                "i2cSetData": []
-            },
-            "hwmonTestData": {
-                "expectedFeatures": ["in1", "in2", "temp1", "power1", "curr1"]
-            }
-        },
-        "SMB.IDPROM": {
-            "i2cTestData": {
-                "i2cDumpData": [
-                    {
-                        "start": "0x04",
-                        "end": "0x13",
-                        "expected": ["ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff", "ff", "ff", "ff", "ff"]
-                    }
-                ],
-                "i2cGetData": [
-                    {
-                        "reg": "0x04",
-                        "expected": "0xff"
-                    },
-                    {
-                        "reg": "0xff",
-                        "expected": "0xff"
-                    }
-                ],
-                "i2cSetData": []
-            }
-        },
-        "SMB.SMB_OASIS_CPLD0": {
-            "i2cTestData": {
-                "i2cDumpData": [],
-                "i2cGetData": [],
-                "i2cSetData": [
-                    {
-                        "reg": "0x02",
-                        "value": "0x66"
-                    }
-                ]
-            },
-            "hwmonTestData": {
-                "expectedFeatures": ["fan1", "fan2", "fan3"]
-            },
-            "watchdogTestData": {
-                "numWatchdogs": 1
-            },
-            "ledTestData": [
-                {
-                    "expectedColors": [],
-                    "ledType": "fan_led",
-                    "ledId": 1
-                },
-                {
-                    "expectedColors": [],
-                    "ledType": "fan_led",
-                    "ledId": 2
-                },
-                {
-                    "expectedColors": [],
-                    "ledType": "fan_led",
-                    "ledId": 3
-                },
-                {
-                    "expectedColors": [],
-                    "ledType": "fan_led",
-                    "ledId": 4
-                }
+  "testData": {
+    "SCM.SCM_MPS_PMBUS": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [
+          {
+            "reg": "0x19",
+            "expected": "0xd0"
+          }
+        ],
+        "i2cSetData": []
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "in1",
+          "in2",
+          "temp1",
+          "power1",
+          "curr1"
+        ]
+      }
+    },
+    "SMB.IDPROM": {
+      "i2cTestData": {
+        "i2cDumpData": [
+          {
+            "start": "0x04",
+            "end": "0x13",
+            "expected": [
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff"
             ]
+          }
+        ],
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xff"
+          },
+          {
+            "reg": "0xff",
+            "expected": "0xff"
+          }
+        ],
+        "i2cSetData": []
+      }
+    },
+    "SMB.SMB_OASIS_CPLD0": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x02",
+            "value": "0x66"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3"
+        ]
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      },
+      "ledTestData": [
+        {
+          "expectedColors": [],
+          "ledType": "fan_led",
+          "ledId": 1
         },
-        "SMB.SMB_OASIS_CPLD1": {
-            "i2cTestData": {
-                "i2cDumpData": [],
-                "i2cGetData": [],
-                "i2cSetData": [
-                    {
-                        "reg": "0x02",
-                        "value": "0x66"
-                    }
-                ]
-            },
-            "hwmonTestData": {
-                "expectedFeatures": ["fan1", "fan2", "fan3"]
-            }
+        {
+          "expectedColors": [],
+          "ledType": "fan_led",
+          "ledId": 2
         },
-        "SMB.SMB_OASIS_CPLD2": {
-            "i2cTestData": {
-                "i2cDumpData": [],
-                "i2cGetData": [],
-                "i2cSetData": [
-                    {
-                        "reg": "0x02",
-                        "value": "0x66"
-                    }
-                ]
-            },
-            "hwmonTestData": {
-                "expectedFeatures": ["fan1", "fan2", "fan3"]
-            }
+        {
+          "expectedColors": [],
+          "ledType": "fan_led",
+          "ledId": 3
         },
-        "SMB.OSFP_PORT1_LED1": {
-            "ledTestData": [
-                {
-                    "expectedColors": ["blue", "yellow"]
-                }
-            ]
-        },
-        "SMB.SMB_FAN_LED": {
-            "ledTestData": [
-                {
-                    "expectedColors": ["red", "green", "blue", "yellow"]
-                }
-            ]
-        },
-        "SMB.SMB_PSU_LED": {
-            "ledTestData": [
-                {
-                    "expectedColors": ["red", "green", "blue", "yellow"]
-                }
-            ]
-        },
-        "SMB.SMB_SYS_LED": {
-            "ledTestData": [
-                {
-                    "expectedColors": ["red", "green", "blue", "yellow"]
-                }
-            ]
-        },
-        "SMB.SMB_SMB_LED": {
-            "ledTestData": [
-                {
-                    "expectedColors": ["red", "green", "blue", "yellow"]
-                }
-            ]
+        {
+          "expectedColors": [],
+          "ledType": "fan_led",
+          "ledId": 4
         }
+      ]
+    },
+    "SMB.SMB_OASIS_CPLD1": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x02",
+            "value": "0x66"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3"
+        ]
+      }
+    },
+    "SMB.SMB_OASIS_CPLD2": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x02",
+            "value": "0x66"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3"
+        ]
+      }
+    },
+    "SMB.OSFP_PORT1_LED1": {
+      "ledTestData": [
+        {
+          "expectedColors": [
+            "blue",
+            "yellow"
+          ]
+        }
+      ]
+    },
+    "SMB.SMB_FAN_LED": {
+      "ledTestData": [
+        {
+          "expectedColors": [
+            "red",
+            "green",
+            "blue",
+            "yellow"
+          ]
+        }
+      ]
+    },
+    "SMB.SMB_PSU_LED": {
+      "ledTestData": [
+        {
+          "expectedColors": [
+            "red",
+            "green",
+            "blue",
+            "yellow"
+          ]
+        }
+      ]
+    },
+    "SMB.SMB_SYS_LED": {
+      "ledTestData": [
+        {
+          "expectedColors": [
+            "red",
+            "green",
+            "blue",
+            "yellow"
+          ]
+        }
+      ]
+    },
+    "SMB.SMB_SMB_LED": {
+      "ledTestData": [
+        {
+          "expectedColors": [
+            "red",
+            "green",
+            "blue",
+            "yellow"
+          ]
+        }
+      ]
     }
+  }
 }

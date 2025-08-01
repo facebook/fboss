@@ -173,8 +173,6 @@ class AgentDirectoryUtil {
 
   std::string getMaxPostSignalWaitTimeFile() const;
 
-  std::string getWrapperRefactorFlag() const;
-
   std::string exitTimeFile(const std::string& processName) const;
 
   std::string restartDurationFile(const std::string& processName) const;

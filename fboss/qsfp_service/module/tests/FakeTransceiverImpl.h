@@ -150,6 +150,11 @@ class Cmis2x400GFr4LpoTransceiver : public FakeTransceiverImpl {
   explicit Cmis2x400GFr4LpoTransceiver(int module, TransceiverManager* mgr);
 };
 
+class Cmis800GZrTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis800GZrTransceiver(int module, TransceiverManager* mgr);
+};
+
 class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x400GDr4Transceiver(int module, TransceiverManager* mgr);

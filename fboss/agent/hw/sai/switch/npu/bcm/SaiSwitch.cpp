@@ -992,11 +992,7 @@ void SaiSwitch::tamEventCallback(
 void SaiSwitch::hardResetSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
     const void* buffer) {
-/*
- * TODO: Change this to BRCM_SAI_SDK_DNX_GTE_12_0 once
- * 13.0 has this change
- */
-#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   const sai_switch_hard_reset_event_info_t* eventInfo =
       static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
   /*

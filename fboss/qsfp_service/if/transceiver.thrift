@@ -228,6 +228,7 @@ enum MediaInterfaceCode {
   DR4_2x800G = 23,
   DR1_200G = 24,
   FR4_LPO_2x400G = 25,
+  ZR_800G = 26,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -288,6 +289,11 @@ enum SMFMediaInterfaceCode {
   DR1_200G = 0x73,
   DR4_800G = 0x77,
   FR8_800G = 0xC1,
+  ZR_OIF_ZRA_800G = 0x6C,
+  ZR_OROADM_FLEXO_8E_DPO_800G = 0x68,
+  ZR_OROADM_FLEXO_6E_DPO_600G = 0x6A,
+  ZR_OROADM_FLEXO_4E_DO_400G = 0x64,
+  ZR_OPENZRP_OFEC_400G = 0x36,
 }
 
 enum Ethernet10GComplianceCode {

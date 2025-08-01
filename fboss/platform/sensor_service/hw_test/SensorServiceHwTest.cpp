@@ -54,6 +54,9 @@ std::vector<std::string> SensorServiceHwTest::allSensorNamesFromConfig() {
       sensors.push_back(*sensor.name());
     }
   }
+  if (sensorConfig_.switchAsicTemp()) {
+    sensors.emplace_back(SensorServiceImpl::kAsicTemp);
+  }
   return sensors;
 }
 

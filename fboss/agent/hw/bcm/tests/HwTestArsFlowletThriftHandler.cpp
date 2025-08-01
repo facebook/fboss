@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
-#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
@@ -17,6 +16,12 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
     std::unique_ptr<CIDRNetwork> ip,
     std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
     bool flowletEnabled) {
+  XLOG(INFO)
+      << "verifyEcmpForFlowletSwitchingHandler: Starting verification for IP "
+      << folly::IPAddress(*ip->IPAddress()).str() << "/"
+      << static_cast<int>(*ip->mask())
+      << ", flowletEnabled: " << (flowletEnabled ? "true" : "false");
+
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
 
   // Convert CIDRNetwork to folly::CIDRNetwork
@@ -25,6 +30,8 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
 
   auto ecmp = getEgressIdForRoute(
       bcmSwitch, follyPrefix.first, follyPrefix.second, kRid);
+  XLOG(DBG2) << "verifyEcmpForFlowletSwitchingHandler: Got ECMP ID " << ecmp
+             << " for route";
   bcm_l3_egress_ecmp_t existing;
   bcm_l3_egress_ecmp_t_init(&existing);
   existing.ecmp_intf = ecmp;
@@ -32,14 +39,24 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
   int pathsInHwCount;
   bool isVerified = true;
   bcm_l3_ecmp_get(bcmSwitch->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
+  XLOG(DBG2) << "verifyEcmpForFlowletSwitchingHandler: Found " << pathsInHwCount
+             << " paths in hardware for ECMP ID " << ecmp;
 
   // Extract flowlet configuration from settings
   auto flowletCfg = settings->flowletSwitchingConfig();
   uint32 flowletTableSize =
       flowletCfg ? static_cast<uint16>(*flowletCfg->flowletTableSize()) : 0;
 
+  XLOG(DBG2) << "verifyEcmpForFlowletSwitchingHandler: Flowlet table size: "
+             << flowletTableSize;
+
   if (flowletEnabled && flowletCfg) {
     auto dynamicMode = getFlowletDynamicMode(*flowletCfg->switchingMode());
+    XLOG(DBG2)
+        << "verifyEcmpForFlowletSwitchingHandler: Flowlet enabled with dynamic mode: "
+        << dynamicMode
+        << ", inactivity interval: " << *flowletCfg->inactivityIntervalUsecs()
+        << " usecs";
     if ((existing.dynamic_mode != dynamicMode) ||
         (existing.dynamic_age != *flowletCfg->inactivityIntervalUsecs()) ||
         (existing.dynamic_size != flowletTableSize)) {
@@ -72,6 +89,9 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
   }
 
   auto ecmp_members = getEcmpGroupInHw(bcmSwitch, ecmp, pathsInHwCount);
+  XLOG(DBG2) << "verifyEcmpForFlowletSwitchingHandler: Retrieved "
+             << ecmp_members.size() << " ECMP members from hardware";
+
   for (const auto& ecmp_member : ecmp_members) {
     int status = -1;
     bcm_l3_egress_ecmp_member_status_get(
@@ -86,6 +106,10 @@ bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
       }
     }
   }
+  XLOG(INFO) << "verifyEcmpForFlowletSwitchingHandler: Verification "
+             << (isVerified ? "PASSED" : "FAILED") << " for IP "
+             << folly::IPAddress(*ip->IPAddress()).str() << "/"
+             << static_cast<int>(*ip->mask());
   return isVerified;
 }
 

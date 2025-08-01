@@ -20,14 +20,13 @@ namespace facebook::fboss {
 void AgentPreStartExec::run() {
   AgentDirectoryUtil dirUtil;
   AgentCommandExecutor executor;
-  auto cppWedgeAgentWrapper = checkFileExists(dirUtil.getWrapperRefactorFlag());
   auto config = AgentConfig::fromDefaultFile();
   initFlagDefaults(*config->thrift.defaultCommandLineArgs());
   run(&executor,
       std::make_unique<AgentNetWhoAmI>(),
       dirUtil,
       std::move(config),
-      cppWedgeAgentWrapper || FLAGS_cpp_wedge_agent_wrapper,
+      FLAGS_cpp_wedge_agent_wrapper,
       FLAGS_netos,
       FLAGS_switch_index);
 }

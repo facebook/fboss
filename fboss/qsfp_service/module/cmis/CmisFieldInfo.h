@@ -74,8 +74,10 @@ enum FieldBitShift : uint8_t {
 };
 
 enum DeviceTechnologyCmis : uint8_t {
-  OPTICAL_MAX_VALUE_CMIS = 0b1001,
-  UNKNOWN_VALUE_CMIS = 0b1000,
+  OPTICAL_MAX_VALUE_CMIS = 0x09,
+  UNKNOWN_VALUE_CMIS = 0x08,
+  C_BAND_TUNABLE_LASER_CMIS = 0x10,
+  L_BAND_TUNABLE_LASER_CMIS = 0x11,
 };
 
 class CmisFieldInfo : public QsfpFieldInfo<CmisField, CmisPages> {
@@ -113,7 +115,7 @@ class CmisFieldInfo : public QsfpFieldInfo<CmisField, CmisPages> {
 
 // Store multipliers for various conversion functions:
 
-typedef std::map<CmisField, std::uint32_t> CmisFieldMultiplier;
+using CmisFieldMultiplier = std::map<CmisField, std::uint32_t>;
 
 // Store the mapping between port speed and ApplicationCode.
 // We use the module Media Interface ID, which is located at the second byte

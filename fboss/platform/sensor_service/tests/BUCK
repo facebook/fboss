@@ -55,3 +55,17 @@ cpp_unittest(
         "//fboss/platform/sensor_service:config_validator",
     ],
 )
+
+cpp_unittest(
+    name = "sensor_service_asic_temp_test",
+    srcs = [
+        "SensorServiceImplAsicTempTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fb303:service_data",
+        "//fboss/platform/helpers:mock_platform_utils",
+        "//fboss/platform/sensor_service:service",
+        "//fboss/platform/sensor_service:utils",
+    ],
+)

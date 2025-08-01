@@ -471,10 +471,10 @@ struct RouteNextHopEntry {
   // of default ecmp switching mode, when programming this
   // nhop group
   6: optional switch_config.SwitchingMode overrideEcmpSwitchingMode;
-  // OriginalUnprunedNextHops is only populated if we actually
+  // overrideNextHops is only populated if we actually
   // endup compressing nexthops due ECMP/DLB resources getting
   // exhausted.
-  7: optional list<common.NextHopThrift> originalUnprunedNextHops;
+  7: optional list<common.NextHopThrift> overrideNextHops;
 }
 
 struct RouteNextHopsMulti {

@@ -65,9 +65,15 @@ Current run path: {run_path}"""
     else:
         print(get_deps_path)
 
+    hostname = str(subprocess.check_output("hostname"))
+    is_facebook_machine = "facebook" in hostname or "fbinfra" in hostname
+    proxy_env_vars = "https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080"
+    if is_facebook_machine:
+        get_deps_path = f"{proxy_env_vars} {get_deps_path}"
+
     print(f"Starting build for {target}")
     subprocess.run(
-        f"""https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080 {get_deps_path} build """
+        f"""{get_deps_path} build """
         + '--allow-system-packages --num-jobs 32 --extra-cmake-defines=\'{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}\' --cmake-target'
         + f" {target} fboss",
         shell=True,
@@ -76,7 +82,7 @@ Current run path: {run_path}"""
     print(f"Completed build for {target}")
 
     show_build_dir_proc = subprocess.run(
-        f"""https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080 {get_deps_path} show-build-dir fboss""",
+        f"""{get_deps_path} show-build-dir fboss""",
         shell=True,
         capture_output=True,
         text=True,

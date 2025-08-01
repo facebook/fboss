@@ -13,6 +13,7 @@ This document outlines the requirements for the firmware repository, including d
 
 The firmware package for a given platform (e.g., `xylophia9000`) should be organized as follows:
 
+```
 xylophia9000/
 ├── firmware/
 │ └── package_0/
@@ -25,8 +26,7 @@ xylophia9000/
 │ ├── README.md
 │ └── evt/ (optional early EVT repo if images are not compatible with DVT due to critical HW changes)
 │   └── package_0/
-
-
+```
 
 ## Packages
 ---------

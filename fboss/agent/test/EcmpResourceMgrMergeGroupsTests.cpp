@@ -48,6 +48,43 @@ void EcmpResourceMgrMergeGroupsTest::SetUp() {
     newState->publish();
     consolidate(newState);
   }
+  const auto& nhops2Id = sw_->getEcmpResourceManager()->getNhopsToId();
+  auto expectedGrpId = 1;
+  for (const auto& nhops : defaultNhopSets()) {
+    auto nhopsGrpId = nhops2Id.find(nhops)->second;
+    EXPECT_EQ(expectedGrpId++, nhopsGrpId);
+    auto grpIdsToConsolidationInfo =
+        sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsGrpId);
+    for (EcmpResourceManager::NextHopGroupId otherGrpId = 1;
+         otherGrpId <= defaultNhopSets().size();
+         ++otherGrpId) {
+      EcmpResourceManager::NextHopGroupIds mergeGroupIds{
+          nhopsGrpId, otherGrpId};
+      if (nhopsGrpId == otherGrpId) {
+        CHECK(!grpIdsToConsolidationInfo.contains(mergeGroupIds));
+        continue;
+      }
+      // For any grp Ids x, y - just assert for penalties when
+      // x < y, since there is just a single entry for any x,y
+      // in the candidate merge groups - i.e. for the set {x, y}
+      // and not 2 distinct entries for x,y and y, x. Merging
+      // x, y is the same as merging y, x
+      if (nhopsGrpId > otherGrpId) {
+        continue;
+      }
+      auto consolidationInfo =
+          grpIdsToConsolidationInfo.find(mergeGroupIds)->second;
+      int nhopsLost = otherGrpId - nhopsGrpId;
+      XLOG(DBG2) << " Between grps: " << folly::join(", ", mergeGroupIds)
+                 << " lost: " << nhopsLost;
+      EXPECT_EQ(consolidationInfo.mergedNhops.size(), nhops.size() - nhopsLost);
+      EXPECT_EQ(consolidationInfo.groupId2Penalty.find(otherGrpId)->second, 0);
+      auto largerGroupPenalty = std::ceil(nhopsLost * 100.0 / nhops.size());
+      EXPECT_EQ(
+          consolidationInfo.groupId2Penalty.find(nhopsGrpId)->second,
+          largerGroupPenalty);
+    }
+  }
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
 }
 TEST_F(EcmpResourceMgrMergeGroupsTest, init) {}

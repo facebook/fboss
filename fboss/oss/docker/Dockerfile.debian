@@ -7,6 +7,8 @@ COPY . fboss
 WORKDIR fboss
 RUN rm -rf build/deps/github_hashes/
 RUN tar xvzf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
+RUN apt install python3-pip -y
+RUN python3 -m pip config set global.break-system-packages true
 RUN apt install -y wget autoconf automake binutils binutils-dev bzip2 \
     libbz2-dev cmake libdouble-conversion3 libdouble-conversion-dev libcurl4-openssl-dev \
     libcurl4 libdwarf-dev libevent-dev libffi-dev \
@@ -21,9 +23,10 @@ RUN dpkg -i libfast-float-dev_8.0.0-0.1_amd64.deb
 WORKDIR fboss
 RUN apt install -y bison flex
 RUN apt install -y openssl
-RUN apt install python3-pip -y
 RUN apt install -y python3-git
 RUN apt install -y python3-mesonpy
 RUN apt install -y python3-jinja2
 RUN apt install -y gperf libcap-dev libmount-dev
 RUN apt install -y icu-devtools libicu-dev libicu72
+RUN apt install -y doxygen graphviz aspell
+RUN python3 -m pip config set global.break-system-packages false

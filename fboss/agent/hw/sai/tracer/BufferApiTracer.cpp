@@ -56,6 +56,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramFadtMinTh)
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramFadtXonOffset)
   SAI_EXT_ATTR_MAP_2(BufferProfile, DynamicBufferProfile, SramDynamicTh)
+
+  SAI_EXT_ATTR_MAP(IngressPriorityGroup, LosslessEnable)
 }
 
 } // namespace

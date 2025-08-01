@@ -9,8 +9,12 @@ include "fboss/platform/bsp_tests/fbiob_device_config.thrift"
 // Test configuration structure
 // testData is mapping of pmName to DeviceTestData
 struct BspTestsConfig {
-  1: string platform;
-  2: map<string, DeviceTestData> testData;
+  1: map<string, DeviceTestData> testData;
+  2: map<string, map<ExpectedErrorType, string>> expectedErrors; //pmName : {errorType: reason}
+}
+enum ExpectedErrorType {
+  UNKNOWN_ERROR = 0,
+  I2C_NOT_DETECTABLE = 1,
 }
 
 struct DeviceTestData {
@@ -77,6 +81,7 @@ struct RuntimeConfig {
   /* pmName : adapter */
   4: platform_manager_config.BspKmodsFile kmods;
   5: map<string, DeviceTestData> testData;
+  6: map<string, map<ExpectedErrorType, string>> expectedErrors;
 }
 
 struct PciDeviceInfo {

@@ -118,7 +118,7 @@ class SffFieldInfo : public QsfpFieldInfo<SffField, SffPages> {
 
 // Store multipliers for various conversion functions:
 
-typedef std::map<SffField, std::uint32_t> SffFieldMultiplier;
+using SffFieldMultiplier = std::map<SffField, std::uint32_t>;
 
 } // namespace fboss
 } // namespace facebook

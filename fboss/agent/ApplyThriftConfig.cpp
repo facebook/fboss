@@ -23,6 +23,7 @@
 #include "fboss/agent/AgentFeatures.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -109,6 +110,7 @@ using namespace facebook::fboss;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
+constexpr auto kMcQueueScalingFactor = cfg::MMUScalingFactor::ONE_8TH;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
@@ -368,6 +370,7 @@ class ThriftConfigApplier {
       uint16_t maxQueues,
       cfg::StreamType streamType,
       std::optional<cfg::QosMap> qosMap = std::nullopt,
+      std::optional<cfg::PortType> portType = std::nullopt,
       bool resetDefaultQueue = true);
   // update cfg port queue attribute to state port queue object
   void setPortQueue(
@@ -954,6 +957,7 @@ std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
         kNumVoqs,
         cfg::StreamType::UNICAST,
         std::nullopt,
+        std::nullopt,
         false);
     if (!origSwitchSettings ||
         (origSwitchSettings->getDefaultVoqConfig() != *defaultVoqConfig)) {
@@ -983,6 +987,7 @@ QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
             cfgPortVoqs,
             kNumVoqs,
             cfg::StreamType::UNICAST,
+            std::nullopt,
             std::nullopt,
             false);
       } else {
@@ -2149,9 +2154,7 @@ ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
   std::vector<int16_t> tmpPfcPri;
   for (auto& portPgCfg : portPgCfgs) {
     // If we have non-zero value in headroom, then its a lossless PG
-    if ((portPgCfg->getHeadroomLimitBytes().has_value() &&
-         *portPgCfg->getHeadroomLimitBytes() != 0) ||
-        FLAGS_allow_zero_headroom_for_lossless_pg) {
+    if (utility::isLosslessPg(*portPgCfg)) {
       tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
     }
   }
@@ -2189,6 +2192,7 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     uint16_t maxQueues,
     cfg::StreamType streamType,
     std::optional<cfg::QosMap> qosMap,
+    std::optional<cfg::PortType> portType,
     bool resetDefaultQueue) {
   QueueConfig newPortQueues;
 
@@ -2259,14 +2263,32 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
       newQueues.erase(newQueueIter);
       newPortQueues.push_back(newPortQueue);
     } else if (resetDefaultQueue) {
-      // Resetting defaut queues are not applicable to VOQs - we only configure
-      // the ones present in config.
-      newPortQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
-      newPortQueue->setStreamType(streamType);
-      if (streamType == cfg::StreamType::FABRIC_TX) {
-        newPortQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+      if (hwAsicTable_->isFeatureSupportedOnAnyAsic(
+              HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA) &&
+          portType.has_value() && *portType == cfg::PortType::MANAGEMENT_PORT &&
+          streamType == cfg::StreamType::MULTICAST) {
+        // Program default multicast queue alpha, to enable sFlow on mgmt ports.
+        auto asic = checkSameAndGetAsic(hwAsicTable_->getL3Asics());
+        uint8_t mcQueueId =
+            asic->getQueueIdStart(streamType) + static_cast<uint8_t>(queueId);
+        XLOG(DBG2) << "Adding multicast queue " << static_cast<int>(mcQueueId)
+                   << " with scaling factor "
+                   << apache::thrift::util::enumNameSafe(kMcQueueScalingFactor);
+        newPortQueue = std::make_shared<PortQueue>(mcQueueId);
+        newPortQueue->setStreamType(streamType);
+        newPortQueue->setScalingFactor(kMcQueueScalingFactor);
+        newPortQueues.push_back(newPortQueue);
+      } else {
+        // Resetting defaut queues are not applicable to VOQs - we only
+        // configure the ones present in config.
+        newPortQueue =
+            std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
+        newPortQueue->setStreamType(streamType);
+        if (streamType == cfg::StreamType::FABRIC_TX) {
+          newPortQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+        }
+        newPortQueues.push_back(newPortQueue);
       }
-      newPortQueues.push_back(newPortQueue);
     }
   }
 
@@ -2415,7 +2437,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         cfgPortQueues,
         maxQueues,
         streamType,
-        qosMap);
+        qosMap,
+        *portConf->portType());
     portQueues.insert(
         portQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
   }
@@ -5215,26 +5238,10 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         *cfg_->cpuQueues(),
         asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
         streamType,
-        qosMap);
+        qosMap,
+        cfg::PortType::CPU_PORT);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
-
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // TODO-Chenab: ensure queue scheduling is set to internal until cpu
-      // queues can be configured.
-      std::transform(
-          newQueues.cbegin(),
-          newQueues.cend(),
-          newQueues.begin(),
-          [](auto queue) {
-            if (queue->getScheduling() == cfg::QueueScheduling::INTERNAL) {
-              return queue;
-            }
-            auto newQueue = queue->clone();
-            newQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-            return newQueue;
-          });
-    }
 
     if (cfg_->cpuVoqs()) {
       std::vector<cfg::PortQueue> cfgCpuVoqs = *cfg_->cpuVoqs();
@@ -5243,7 +5250,8 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
           cfgCpuVoqs,
           getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
           streamType,
-          qosMap);
+          qosMap,
+          cfg::PortType::CPU_PORT);
       newVoqs.insert(newVoqs.begin(), tmpPortVoqs.begin(), tmpPortVoqs.end());
     }
   }

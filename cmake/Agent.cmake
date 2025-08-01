@@ -234,6 +234,7 @@ add_library(core
   fboss/agent/ApplyThriftConfig.cpp
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp
+  fboss/agent/BufferUtils.cpp
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/DsfSession.cpp

@@ -67,6 +67,11 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   PlatformPort* getPlatformPort(PortID id) const override;
   void stateChanged(const StateDelta& delta) override;
 
+  /*
+   * Stops the high frequency stats collection for the BcmSwitch.
+   */
+  void stopThreads() override;
+
  protected:
   std::unique_ptr<WedgePortMapping> portMapping_;
 

@@ -92,6 +92,7 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_ARS_OBJECT:
     case SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING:
+    case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
       return true;
     default:
       return false;
@@ -836,6 +837,12 @@ sai_status_t set_acl_entry_attribute_fn(
           attr->value.aclaction.parameter.booldata;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
+      aclEntry.actionSetEcmpHashAlgorithmEnable = attr->value.aclaction.enable;
+      aclEntry.actionSetEcmpHashAlgorithmData =
+          attr->value.aclaction.parameter.oid;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -1110,6 +1117,12 @@ sai_status_t get_acl_entry_attribute_fn(
       case SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING:
         attr_list[i].value.aclaction.parameter.booldata =
             aclEntry.actionDisableArsForwarding;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
+        attr_list[i].value.aclaction.enable =
+            aclEntry.actionSetEcmpHashAlgorithmEnable;
+        attr_list[i].value.aclaction.parameter.oid =
+            aclEntry.actionSetEcmpHashAlgorithmData;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

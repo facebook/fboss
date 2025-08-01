@@ -121,8 +121,9 @@ class Row {
     for (size_t i = 0; i < size(); ++i) {
       auto cell = cells_[i];
       auto format = cell->format();
-      if (format.height_.has_value())
+      if (format.height_.has_value()) {
         result = std::max(result, *format.height_);
+}
     }
     return result;
   }
@@ -196,8 +197,9 @@ class Row {
 
     if (!word_wrapped_text.empty() &&
         word_wrapped_text[word_wrapped_text.size() - 1] !=
-            '\n') // text doesn't end with a newline
+            '\n') { // text doesn't end with a newline
       estimated_row_height += 1;
+}
 
     result += estimated_row_height;
 

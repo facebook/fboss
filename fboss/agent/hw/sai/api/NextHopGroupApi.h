@@ -80,6 +80,13 @@ struct SaiNextHopGroupTraits {
         sai_object_id_t,
         SaiObjectIdDefault>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    using HashAlgorithm = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM,
+        sai_int32_t,
+        StdNullOptDefault<sai_int32_t>>;
+#endif
   };
 
   using AdapterKey = NextHopGroupSaiId;
@@ -90,6 +97,10 @@ struct SaiNextHopGroupTraits {
       ,
       std::optional<Attributes::ArsObjectId>
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::HashAlgorithm>
+#endif
       >;
 };
 
@@ -97,6 +108,9 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, NextHopMemberList)
 SAI_ATTRIBUTE_NAME(NextHopGroup, Type)
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(NextHopGroup, ArsObjectId)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(NextHopGroup, HashAlgorithm)
 #endif
 
 struct SaiNextHopGroupMemberTraits {
@@ -199,6 +213,41 @@ class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
         attr,
         SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR,
         retStatus);
+#else
+    return SAI_STATUS_NOT_SUPPORTED;
+#endif
+  }
+
+  sai_status_t _bulkCreate(
+      sai_object_id_t* ids,
+      sai_status_t* retStatus,
+      sai_object_id_t switch_id,
+      uint32_t* attrCount,
+      size_t objectCount,
+      const sai_attribute_t** attr) const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    return api_->create_next_hop_group_members(
+        switch_id,
+        objectCount,
+        attrCount,
+        attr,
+        SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR,
+        ids,
+        retStatus);
+#else
+    return SAI_STATUS_NOT_SUPPORTED;
+#endif
+  }
+
+  sai_status_t _bulkRemove(
+      size_t objectCount,
+      const NextHopGroupMemberSaiId* object_id,
+      sai_status_t* retStatus) const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    const unsigned long* objects =
+        reinterpret_cast<const unsigned long*>(object_id);
+    return api_->remove_next_hop_group_members(
+        objectCount, objects, SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR, retStatus);
 #else
     return SAI_STATUS_NOT_SUPPORTED;
 #endif

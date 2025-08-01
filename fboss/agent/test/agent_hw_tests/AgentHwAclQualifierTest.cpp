@@ -51,29 +51,15 @@ void configureAllIpQualifiers(
     configureQualifier(acl->srcIp(), enableSrcIpQualifier, "::ffff:c0a8:1");
     configureQualifier(
         acl->dstIp(), enable, "2401:db00:3020:70e2:face:0:63:0/64");
-
-    configureQualifier(
-        acl->lookupClassNeighbor(),
-        enableLookupClass,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
-    configureQualifier(
-        acl->lookupClassRoute(),
-        enableLookupClass,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
-
   } else {
     configureQualifier(acl->srcIp(), enableSrcIpQualifier, "192.168.0.1");
     configureQualifier(acl->dstIp(), enable, "192.168.0.0/24");
-
-    configureQualifier(
-        acl->lookupClassNeighbor(),
-        enableLookupClass,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
-    configureQualifier(
-        acl->lookupClassRoute(),
-        enableLookupClass,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
   }
+
+  configureQualifier(
+      acl->lookupClassRoute(),
+      enableLookupClass,
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
   configureQualifier(
       acl->ipFrag(),
       enableIpFragQualifier,

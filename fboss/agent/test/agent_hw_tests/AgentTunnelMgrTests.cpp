@@ -320,8 +320,9 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkIpRuleEntriesRemoved Cmd: " << cmd;
     XLOG(DBG2) << "checkIpRuleEntriesRemoved Output: \n" << output;
 
-    if (output.find(folly::to<std::string>(intfIp)) != std::string::npos)
+    if (output.find(folly::to<std::string>(intfIp)) != std::string::npos) {
       return false;
+    }
 
     return true;
   }

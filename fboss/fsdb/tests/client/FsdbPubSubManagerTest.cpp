@@ -618,8 +618,8 @@ TYPED_TEST(
 
   folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
-  bool statPath_disconnected, statePath_disconnected;
-  bool statDelta_disconnected, stateDelta_disconnected;
+  bool statPath_disconnected{false}, statePath_disconnected{false};
+  bool statDelta_disconnected{false}, stateDelta_disconnected{false};
   this->addStatDeltaSubscription(
       this->makeOperDeltaCb(statDeltas),
       this->subscrStateChangeCb(statDeltas, [&statDelta_disconnected]() {

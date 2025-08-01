@@ -22,7 +22,7 @@ cpp_library(
         "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:logging",
         "//folly/synchronization:baton",
-        "//thrift/lib/cpp2/async:client_buferred_stream",
+        "//thrift/lib/cpp2/async:client_buffered_stream",
         "//thrift/lib/cpp2/async:rpc_options",
         "//thrift/lib/cpp2/async:sink",
     ],

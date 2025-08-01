@@ -71,6 +71,13 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
 
   void handleExitSignal(bool gracefulExit) override;
 
+  /*
+   * MonoithicAgentInitializer overrides stopServices to stop the HwAgent first,
+   * particularly the WedgePlatform BcmSwitch for high frequency stats
+   * collection.
+   */
+  void stopServices() override;
+
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
   getThrifthandlers() override;
 

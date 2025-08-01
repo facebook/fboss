@@ -89,6 +89,10 @@ std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
   aggPort = aggPort->modify(&nextState);
   aggPort->setForwardingState(portID_, forwardingState_);
   aggPort->setPartnerState(portID_, partnerState_);
+  XLOG(DBG2) << "Updated " << aggPort->getName()
+             << " forwardingSubportCount: " << aggPort->forwardingSubportCount()
+             << ", minLinkCount: " << aggPort->getMinimumLinkCount()
+             << ", up: " << static_cast<int>(aggPort->isUp());
   return nextState;
 }
 

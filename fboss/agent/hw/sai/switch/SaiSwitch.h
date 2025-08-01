@@ -204,6 +204,10 @@ class SaiSwitch : public HwSwitch {
 
   SaiManagerTable* managerTable();
 
+  bool getRollbackInProgress_() {
+    return rollbackInProgress_;
+  }
+
   /*
    * This method is not thread safe, it should only be used
    * from the SAI adapter's rx callback caller thread.
@@ -689,6 +693,7 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<SaiStore> saiStore_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
+  bool rollbackInProgress_{false};
   Callback* callback_{nullptr};
 
   SwitchSaiId saiSwitchId_;

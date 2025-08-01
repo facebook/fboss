@@ -328,485 +328,485 @@
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_1",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42000"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_1",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42000"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_2",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42100"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_2",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42100"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_3",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42200"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_3",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42200"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_4",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42300"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_4",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42300"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_5",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42400"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_5",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42400"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_6",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42500"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_6",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42500"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_7",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42600"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_7",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42600"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_8",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42700"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_8",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42700"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_9",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42800"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_9",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42800"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_10",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42900"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_10",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42900"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_11",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42a00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_11",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42a00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_12",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42b00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_12",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42b00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_13",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42c00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_13",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42c00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_14",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42d00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_14",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42d00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_15",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42e00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_15",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42e00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_16",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x42f00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_16",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42f00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_17",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43000"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_17",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43000"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_18",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43100"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_18",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43100"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_19",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43200"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_19",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43200"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_20",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43300"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_20",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43300"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_21",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43400"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_21",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43400"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_22",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43500"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_22",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43500"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_23",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43600"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_23",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43600"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_24",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43700"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_24",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43700"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_25",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43800"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_25",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43800"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_26",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43900"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_26",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43900"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_27",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43a00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_27",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43a00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_28",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43b00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_28",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43b00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_29",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43c00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_29",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43c00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_30",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43d00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_30",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43d00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_31",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43e00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_31",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43e00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_32",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x43f00"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_32",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43f00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_33",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x44000"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_33",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44000"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_34",
-              "deviceName": "dom1_i2c_master",
-              "csrOffset": "0x44100"
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_34",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44100"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_1",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a000"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_1",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a000"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_2",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a100"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_2",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a100"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_3",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a200"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_3",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a200"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_4",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a300"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_4",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a300"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_5",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a400"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_5",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a400"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_6",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a500"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_6",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a500"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_7",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a600"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_7",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a600"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_8",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a700"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_8",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a700"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_9",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a800"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_9",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a800"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_10",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4a900"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_10",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4a900"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_11",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4aa00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_11",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4aa00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_12",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4ab00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_12",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4ab00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_13",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4ac00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_13",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4ac00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_14",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4ad00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_14",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4ad00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_15",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4ae00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_15",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4ae00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_16",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4af00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_16",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4af00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_17",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b000"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_17",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b000"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_18",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b100"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_18",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b100"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_19",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b200"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_19",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b200"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_20",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b300"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_20",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b300"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_21",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b400"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_21",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b400"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_22",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b500"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_22",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b500"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_23",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b600"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_23",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b600"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_24",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b700"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_24",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b700"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_25",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b800"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_25",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b800"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_26",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4b900"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_26",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4b900"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_27",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4ba00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_27",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4ba00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_28",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4bb00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_28",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4bb00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_29",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4bc00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_29",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4bc00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_30",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4bd00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_30",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4bd00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_31",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4be00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_31",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4be00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_32",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4bf00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_32",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4bf00"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_33",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4c000"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_33",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4c000"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_34",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4c100"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_34",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4c100"
               }
             },
             {
               "fpgaIpBlockConfig": {
-              "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_35",
-              "deviceName": "dom2_i2c_master",
-              "csrOffset": "0x4cc00"
+                "pmUnitScopedName": "SMB_DOM2_I2C_MASTER_35",
+                "deviceName": "dom2_i2c_master",
+                "csrOffset": "0x4cc00"
               }
             }
           ],
@@ -2720,7 +2720,9 @@
           "initRegSettings": [
             {
               "regOffset": 11,
-              "ioBuf": [2]
+              "ioBuf": [
+                2
+              ]
             }
           ]
         },
@@ -2830,7 +2832,9 @@
           "initRegSettings": [
             {
               "regOffset": 177,
-              "ioBuf": [2]
+              "ioBuf": [
+                2
+              ]
             }
           ]
         },
@@ -2860,7 +2864,9 @@
           "initRegSettings": [
             {
               "regOffset": 11,
-              "ioBuf": [2]
+              "ioBuf": [
+                2
+              ]
             }
           ]
         },
@@ -3002,7 +3008,9 @@
           "initRegSettings": [
             {
               "regOffset": 11,
-              "ioBuf": [2]
+              "ioBuf": [
+                2
+              ]
             }
           ]
         },
@@ -3530,6 +3538,7 @@
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",
+    "fboss_iob_i2c",
     "ledtrig_timer"
   ]
 }

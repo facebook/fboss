@@ -330,6 +330,10 @@ class AclApiTest : public ::testing::Test {
     return false;
   }
 
+  sai_uint32_t kSetEcmpHashAlgorithm() const {
+    return SAI_HASH_ALGORITHM_RANDOM;
+  }
+
   const std::vector<sai_object_id_t>& kMirrorIngress() const {
     static const std::vector<sai_object_id_t> mirrorIngress{10, 11};
 
@@ -525,6 +529,9 @@ class AclApiTest : public ::testing::Test {
     SaiAclEntryTraits::Attributes::ActionDisableArsForwarding
         aclActionDisableArsForwarding{
             AclEntryActionBool(kDisableArsForwarding())};
+    SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm
+        aclActionSetEcmpHashAlgorithm{
+            AclEntryActionU32(kSetEcmpHashAlgorithm())};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -570,7 +577,8 @@ class AclApiTest : public ::testing::Test {
          aclActionMacsecFlow,
          aclActionSetUserTrap,
          aclActionSetArsObject,
-         aclActionDisableArsForwarding},
+         aclActionDisableArsForwarding,
+         aclActionSetEcmpHashAlgorithm},
         kSwitchID());
   }
 
@@ -709,6 +717,7 @@ class AclApiTest : public ::testing::Test {
       sai_object_id_t setUserTrap,
       sai_object_id_t setArsObject,
       bool disableArsForwarding,
+      sai_uint32_t setEcmpHashAlgorithm,
       bool enabled = true) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
@@ -799,6 +808,9 @@ class AclApiTest : public ::testing::Test {
     auto aclActionDisableArsForwardingGot = aclApi->getAttribute(
         aclEntryId,
         SaiAclEntryTraits::Attributes::ActionDisableArsForwarding());
+    auto aclActionSetEcmpHashAlgorithmGot = aclApi->getAttribute(
+        aclEntryId,
+        SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm());
 
     EXPECT_EQ(aclPriorityGot, priority);
     EXPECT_EQ(aclEnabledGot, enabled);
@@ -846,6 +858,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionSetUserTrapGot.getData(), setUserTrap);
     EXPECT_EQ(aclActionSetArsObjectGot.getData(), setArsObject);
     EXPECT_EQ(aclActionDisableArsForwardingGot.getData(), disableArsForwarding);
+    EXPECT_EQ(aclActionSetEcmpHashAlgorithmGot.getData(), setEcmpHashAlgorithm);
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -1090,7 +1103,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kMacsecFlow(),
       kSetUserTrap(),
       kSetArsObject(),
-      kDisableArsForwarding());
+      kDisableArsForwarding(),
+      kSetEcmpHashAlgorithm());
 }
 
 TEST_F(AclApiTest, getAclCounterAttribute) {
@@ -1300,6 +1314,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::ActionDisableArsForwarding
       aclActionDisableArsForwarding{
           AclEntryActionBool(kDisableArsForwarding())};
+  SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm
+      aclActionSetEcmpHashAlgorithm{AclEntryActionU32(kSetEcmpHashAlgorithm())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
@@ -1344,6 +1360,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionSetUserTrap);
   aclApi->setAttribute(aclEntryId, aclActionSetArsObject);
   aclApi->setAttribute(aclEntryId, aclActionDisableArsForwarding);
+  aclApi->setAttribute(aclEntryId, aclActionSetEcmpHashAlgorithm);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
@@ -1388,7 +1405,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kMacsecFlow2(),
       kSetUserTrap(),
       kSetArsObject(),
-      kDisableArsForwarding());
+      kDisableArsForwarding(),
+      kSetEcmpHashAlgorithm());
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction3{
       AclEntryActionU32(kPacketAction3())};

@@ -110,7 +110,7 @@ FsdbSensorSubscriber::getSensorData() const {
   return sensorSvcData.copy();
 }
 
-std::map<std::string, fboss::platform::sensor_service::SensorData>
+std::map<std::string, facebook::fboss::asic_temp::AsicTempData>
 FsdbSensorSubscriber::getAgentData() const {
   checkDataFreshness(
       sensorStatsLastUpdatedTime,

@@ -1071,6 +1071,138 @@ TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
   }
 }
 
+// TODO: T232388340 Further enhancement for full EEPROM support.
+TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
+  EXPECT_EQ(
+      info.tcvrState()->transceiverManagementInterface(),
+      TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 1);
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::ZR_800G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
+    EXPECT_EQ(
+        media.media()->get_smfCode(),
+        SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::ZR_800G);
+  }
+
+  // Check cmisStateChanged
+  EXPECT_TRUE(
+      info.tcvrState()->status() &&
+      info.tcvrState()->status()->cmisStateChanged() &&
+      *info.tcvrState()->status()->cmisStateChanged());
+
+  std::optional<DiagsCapability> diagsCapability =
+      transceiverManager_->getDiagsCapability(xcvrID);
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      *info.tcvrState(), diagsCapability, false);
+
+  EXPECT_TRUE(*diagsCapability->cdb());
+  EXPECT_TRUE(*diagsCapability->txOutputControl());
+
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("METAZR");
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  EXPECT_TRUE(diagsCap.has_value());
+  std::vector<prbs::PrbsPolynomial> expectedSysPolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS15Q,
+      prbs::PrbsPolynomial::PRBS13Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q,
+      prbs::PrbsPolynomial::PRBS31,
+      prbs::PrbsPolynomial::PRBS23,
+      prbs::PrbsPolynomial::PRBS15,
+      prbs::PrbsPolynomial::PRBS13,
+      prbs::PrbsPolynomial::PRBS9,
+      prbs::PrbsPolynomial::PRBS7};
+  std::vector<prbs::PrbsPolynomial> expectedLinePolynomials = {
+      prbs::PrbsPolynomial::PRBS31,
+      prbs::PrbsPolynomial::PRBS23,
+      prbs::PrbsPolynomial::PRBS15,
+      prbs::PrbsPolynomial::PRBS7};
+
+  auto linePrbsCapability = *(*diagsCap).prbsLineCapabilities();
+  auto sysPrbsCapability = *(*diagsCap).prbsSystemCapabilities();
+
+  tests.verifyPrbsPolynomials(expectedLinePolynomials, linePrbsCapability);
+  tests.verifyPrbsPolynomials(expectedSysPolynomials, sysPrbsCapability);
+
+  for (auto unsupportedApplication : {SMFMediaInterfaceCode::LR4_10_400G}) {
+    EXPECT_EQ(
+        xcvr->getApplicationField(
+            static_cast<uint8_t>(unsupportedApplication), 0),
+        std::nullopt);
+  }
+
+  for (auto supportedApplication :
+       {SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G}) {
+    auto applicationField = xcvr->getApplicationField(
+        static_cast<uint8_t>(supportedApplication), 0);
+    EXPECT_NE(applicationField, std::nullopt);
+    std::vector<int> expectedStartLanes;
+    switch (supportedApplication) {
+      case SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G:
+        expectedStartLanes = {0};
+        break;
+      default:
+        throw FbossError(
+            "Unhandled application ",
+            apache::thrift::util::enumNameSafe(supportedApplication));
+    }
+    EXPECT_EQ(applicationField->hostStartLanes, expectedStartLanes);
+    EXPECT_EQ(applicationField->mediaStartLanes, expectedStartLanes);
+  }
+
+  EXPECT_TRUE(diagsCap.value().cdb().value());
+  EXPECT_TRUE(diagsCap.value().prbsLine().value());
+  EXPECT_TRUE(diagsCap.value().prbsSystem().value());
+  EXPECT_TRUE(diagsCap.value().loopbackLine().value());
+  EXPECT_TRUE(diagsCap.value().loopbackSystem().value());
+  EXPECT_TRUE(diagsCap.value().txOutputControl().value());
+  EXPECT_TRUE(diagsCap.value().rxOutputControl().value());
+
+  // 1x800G
+  TransceiverPortState goodPortState1{
+      "", 0, cfg::PortSpeed::EIGHTHUNDREDG, 8, TransmitterTechnology::OPTICAL};
+  for (auto portState : {
+           goodPortState1,
+       }) {
+    EXPECT_TRUE(xcvr->tcvrPortStateSupported(portState));
+  }
+
+  TransceiverPortState badPortState1{
+      "",
+      0,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::COPPER}; // Copper not supported
+  TransceiverPortState badPortState2{
+      "",
+      0,
+      cfg::PortSpeed::FORTYG,
+      4,
+      TransmitterTechnology::OPTICAL}; // 40G not supported
+  TransceiverPortState badPortState3{
+      "",
+      1,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::OPTICAL}; // BAD START LANE
+  for (auto portState : {badPortState1, badPortState2, badPortState3}) {
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
+  }
+}
+
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<CmisCredo800AEC>(

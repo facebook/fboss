@@ -1038,6 +1038,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::optional<SaiAclEntryTraits::Attributes::ActionDisableArsForwarding>
       aclActionDisableArsForwarding{std::nullopt};
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm>
+      aclActionSetEcmpHashAlgorithm{std::nullopt};
+#endif
 
   auto action = addedAclEntry->getAclAction();
   if (action) {
@@ -1215,6 +1219,23 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             apache::thrift::util::enumNameSafe(*macsecFlowAction.action()));
       }
     }
+
+    if (matchAction.getEcmpHashAction()) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      auto ecmpHashAction = matchAction.getEcmpHashAction().value();
+      switch (*ecmpHashAction.switchingMode()) {
+        case cfg::SwitchingMode::FIXED_ASSIGNMENT:
+          aclActionSetEcmpHashAlgorithm =
+              SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm{
+                  SAI_HASH_ALGORITHM_NONE};
+          break;
+        default:
+          throw FbossError(
+              "Unsupported ecmp hash action", *ecmpHashAction.switchingMode());
+      }
+#endif
+    }
+
     /*
      * Chenab supports
      *  - Set ARS object
@@ -1304,6 +1325,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        || aclActionSetArsObject.has_value() ||
        aclActionDisableArsForwarding.has_value()
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+       || aclActionSetEcmpHashAlgorithm.has_value()
+#endif
       );
 
   if (!(matcherIsValid && actionIsValid)) {
@@ -1374,6 +1398,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       aclActionSetArsObject,
       aclActionDisableArsForwarding,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      aclActionSetEcmpHashAlgorithm,
 #endif
   };
 

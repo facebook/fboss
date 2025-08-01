@@ -298,7 +298,7 @@ void getPortInfoHelper(
                               ->cref<switch_config_tags::maximum>()
                               ->cref();
         PortQueueRate portQueueRate;
-        portQueueRate.pktsPerSec_ref() = range;
+        portQueueRate.pktsPerSec() = range;
 
         pq.portQueueRate() = portQueueRate;
       } else if (
@@ -311,7 +311,7 @@ void getPortInfoHelper(
                               ->cref<switch_config_tags::maximum>()
                               ->cref();
         PortQueueRate portQueueRate;
-        portQueueRate.kbitsPerSec_ref() = range;
+        portQueueRate.kbitsPerSec() = range;
 
         pq.portQueueRate() = portQueueRate;
       }
@@ -1122,8 +1122,7 @@ void ThriftHandler::getAclTableGroup(AclTableThrift& aclTableEntry) {
               const auto& aclEntry = aclMapEntry.second;
               aclTable.push_back(populateAclEntryThrift(*aclEntry));
             }
-            aclTableEntry.aclTableEntries_ref()[aclTableName] =
-                std::move(aclTable);
+            aclTableEntry.aclTableEntries()[aclTableName] = std::move(aclTable);
           }
         }
       }
@@ -1131,7 +1130,7 @@ void ThriftHandler::getAclTableGroup(AclTableThrift& aclTableEntry) {
   } else {
     std::vector<AclEntryThrift> aclTable;
     getAclTable(aclTable);
-    aclTableEntry.aclTableEntries_ref()
+    aclTableEntry.aclTableEntries()
         [cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()] =
         std::move(aclTable);
   }
@@ -1454,7 +1453,7 @@ void ThriftHandler::setInterfacePrbs(
     bool enabled =
         (state->generatorEnabled().value() && state->checkerEnabled().value());
     setPortPrbs(
-        portID, component, enabled, static_cast<int>(*state->polynomial_ref()));
+        portID, component, enabled, static_cast<int>(*state->polynomial()));
   } else if (
       !state->generatorEnabled().has_value() ||
       !state->checkerEnabled().has_value()) {

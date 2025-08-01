@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
@@ -975,6 +976,9 @@ void SaiPortManager::changePfcBuffers(
       managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
           ingressPriorityGroupHandles[pgId]->ingressPriorityGroup,
           bufferProfile);
+      managerTable_->bufferManager().setIngressPriorityGroupLosslessEnable(
+          ingressPriorityGroupHandles[pgId]->ingressPriorityGroup,
+          utility::isLosslessPg(portPgCfgThrift));
       // Keep track of ingressPriorityGroupHandle and bufferProfile per PG ID
       configuredIpgs[static_cast<IngressPriorityGroupID>(pgId)] =
           SaiIngressPriorityGroupHandleAndProfile{
@@ -1302,7 +1306,7 @@ void SaiPortManager::changeQueue(
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
     managerTable_->queueManager().changeQueue(
-        queueHandle, *portQueue, swPort.get());
+        queueHandle, *portQueue, swPort.get(), swPort->getPortType());
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());

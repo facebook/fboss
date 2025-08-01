@@ -85,8 +85,8 @@ if (NOT $ENV{SAI_VERSION} EQUAL "")
   message(STATUS "ENV SAI_VERSION is set")
   set (SAI_VERSION $ENV{SAI_VERSION})
 else()
-  message(STATUS "ENV SAI_VERSION is not set, using default:1.14.0")
-  set (SAI_VERSION "1.14.0")
+  message(STATUS "ENV SAI_VERSION is not set, using default:1.16.3")
+  set (SAI_VERSION "1.16.3")
 endif()
 
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
@@ -710,14 +710,25 @@ add_fbthrift_cpp_library(
     json
 )
 add_fbthrift_cpp_library(
+  asic_temp_cpp2
+  fboss/agent/if/asic_temp.thrift
+  SERVICES
+    AsicTempThrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fboss_cpp2
+)
+add_fbthrift_cpp_library(
   agent_stats_cpp2
   fboss/agent/agent_stats.thrift
   OPTIONS
     json
     reflection
   DEPENDS
+    asic_temp_cpp2
     hardware_stats_cpp2
-    sensor_service_cpp2
     phy_cpp2
 )
 add_fbthrift_cpp_library(
@@ -983,7 +994,6 @@ add_dependencies(fboss_platform_services
   platform_manager
   fw_util
   weutil
-  led_service
   data_corral_service
   # Unit Tests
   platform_config_lib_config_lib_test
@@ -1018,9 +1028,16 @@ add_dependencies(qsfp_targets
   wedge_qsfp_util
 )
 
+add_custom_target(led_targets)
+add_dependencies(led_targets
+  led_service
+  led_service_hw_test
+)
+
 add_custom_target(fboss_other_services)
 add_dependencies(fboss_other_services
   qsfp_targets
+  led_targets
   fboss2
   fsdb
 )

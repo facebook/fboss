@@ -232,6 +232,9 @@ class FakeAclEntry {
 
   bool actionDisableArsForwarding{false};
 
+  bool actionSetEcmpHashAlgorithmEnable{false};
+  sai_object_id_t actionSetEcmpHashAlgorithmData{};
+
   sai_object_id_t id;
 };
 

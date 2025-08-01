@@ -98,7 +98,14 @@ class SwAgentInitializer : public AgentInitializer {
   virtual void handleExitSignal(bool gracefulExit) = 0;
 
   void stopServer();
-  void stopServices();
+  /*
+   * Stop all services that are running. Currently, this stops the function
+   * scheduler. The function is virtual to allow derived classes to stop
+   * additional services. Currently, MonolithicAgentInitializer stops the
+   * HwAgent services, particularly the WedgePlatform BcmSwitch for high
+   * frequency stats collection.
+   */
+  virtual void stopServices();
   void waitForServerStopped();
 
  private:

@@ -48,6 +48,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     // Dual stage L1 (FE13) fabric features
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
       return fabricNodeRole_ == FabricNodeRole::DUAL_STAGE_L1;
+    case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     default:
       return false;
   }

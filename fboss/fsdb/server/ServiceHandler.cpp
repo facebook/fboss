@@ -537,7 +537,8 @@ ServiceHandler::makeSinkConsumer(
             }
             XLOG(DBG5) << "Chunk patch result "
                        << (patchErr
-                               ? fmt::format("error: {}", patchErr->toString())
+                               ? fmt::format(
+                                     "error: {}", fmt::underlying(*patchErr))
                                : "success");
           }
           co_return finalResponse;

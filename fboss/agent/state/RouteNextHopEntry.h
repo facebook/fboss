@@ -48,7 +48,7 @@ class RouteNextHopEntry
       std::optional<AclLookupClass> classID = std::nullopt,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
-      std::optional<NextHopSet> originalUnprunedNextHops = std::nullopt);
+      const std::optional<NextHopSet>& overrideNextHops = std::nullopt);
   RouteNextHopEntry(
       NextHopSet nhopSet,
       AdminDistance distance,
@@ -56,7 +56,7 @@ class RouteNextHopEntry
       std::optional<AclLookupClass> classID = std::nullopt,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
-      std::optional<NextHopSet> originalUnprunedNextHops = std::nullopt);
+      const std::optional<NextHopSet>& overrideNextHops = std::nullopt);
 
   RouteNextHopEntry(
       NextHop nhop,
@@ -65,7 +65,7 @@ class RouteNextHopEntry
       std::optional<AclLookupClass> classID = std::nullopt,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
           std::nullopt,
-      std::optional<NextHopSet> originalUnprunedNextHops = std::nullopt);
+      const std::optional<NextHopSet>& overrideNextHops = std::nullopt);
 
   RouteNextHopEntry(RouteNextHopEntry&& other) noexcept {
     this->fromThrift(other.toThrift());
