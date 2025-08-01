@@ -710,9 +710,21 @@ void EcmpResourceManager::nextHopGroupDeleted(NextHopGroupId groupId) {
     CHECK(pruneFromCandidateMerges(groupId));
   }
 }
-bool EcmpResourceManager::pruneFromCandidateMerges(NextHopGroupId /*groupId*/) {
-  return true;
+
+bool EcmpResourceManager::pruneFromCandidateMerges(NextHopGroupId groupId) {
+  bool pruned{false};
+  auto citr = candidateMergeGroups_.begin();
+  while (citr != candidateMergeGroups_.end()) {
+    if (citr->first.contains(groupId)) {
+      citr = candidateMergeGroups_.erase(citr);
+      pruned = true;
+    } else {
+      ++citr;
+    }
+  }
+  return pruned;
 }
+
 bool EcmpResourceManager::pruneFromMergedGroups(NextHopGroupId /*groupId*/) {
   XLOG(FATAL) << " Prune API from merged groups is a TODO";
 }
