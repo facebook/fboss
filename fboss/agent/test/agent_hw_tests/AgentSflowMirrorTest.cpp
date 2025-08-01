@@ -39,40 +39,6 @@ namespace facebook::fboss {
 template <typename AddrT>
 class AgentSflowMirrorTest : public AgentHwTest {
  public:
-  void applyPlatformConfigOverrides(
-      const cfg::SwitchConfig& sw,
-      cfg::PlatformConfig& config) const override {
-    // On TH5, force SDK to initialize multicast queues without an alpha
-    // setting, in order to test our multicast queue buffer config logic.
-    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
-      utility::modifyPlatformConfig(
-          config,
-          [](std::string& yamlCfg) {
-            std::string toReplace("LOSSY");
-            std::size_t pos = yamlCfg.find(toReplace);
-            if (pos != std::string::npos) {
-              yamlCfg.replace(
-                  pos,
-                  toReplace.length(),
-                  "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
-            }
-            yamlCfg += R"(
----
-device:
-  0:
-    TM_THD_MC_Q:
-      ?
-        PORT_ID: 76
-        TM_MC_Q_ID: [[0,3]]
-      :
-        DYNAMIC_SHARED_LIMITS: 0
-...
-)";
-          },
-          [](std::map<std::string, std::string>&) {});
-    }
-  }
-
   // Index in the sample ports where data traffic is expected!
   const int kDataTrafficPortIndex{0};
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -410,7 +376,7 @@ device:
     std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
     WITH_RETRIES({
       capturedPktBuf = snooper.waitForPacket(kTimeoutSecs);
-      ASSERT_EVENTUALLY_TRUE(capturedPktBuf.has_value());
+      EXPECT_EVENTUALLY_TRUE(capturedPktBuf.has_value());
     });
     folly::io::Cursor capturedPktCursor{capturedPktBuf->get()};
     auto capturedPkt = utility::EthFrame(capturedPktCursor);

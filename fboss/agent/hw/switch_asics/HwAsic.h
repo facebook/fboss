@@ -272,9 +272,6 @@ class HwAsic {
   virtual int getDefaultNumPortQueues(
       cfg::StreamType streamType,
       cfg::PortType portType) const = 0;
-  virtual int getQueueIdStart(cfg::StreamType streamType) const {
-    return 0;
-  }
   virtual uint32_t getMaxLabelStackDepth() const = 0;
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;
