@@ -13,21 +13,15 @@ namespace facebook::fboss::platform::data_corral_service {
 class LedManagerTests : public Test {
  public:
   void SetUp() override {
-    systemLedConfig_.presentLedColor() = LedColor::GREEN;
     systemLedConfig_.presentLedSysfsPath() = TemporaryFile().path().string();
-    systemLedConfig_.absentLedColor() = LedColor::RED;
     systemLedConfig_.absentLedSysfsPath() = TemporaryFile().path().string();
 
     auto fanLedConfig = LedConfig();
-    fanLedConfig.presentLedColor() = LedColor::GREEN;
     fanLedConfig.presentLedSysfsPath() = TemporaryFile().path().string();
-    fanLedConfig.absentLedColor() = LedColor::RED;
     fanLedConfig.absentLedSysfsPath() = TemporaryFile().path().string();
 
     auto psuLedConfig = LedConfig();
-    psuLedConfig.presentLedColor() = LedColor::GREEN;
     psuLedConfig.presentLedSysfsPath() = TemporaryFile().path().string();
-    psuLedConfig.absentLedColor() = LedColor::RED;
     psuLedConfig.absentLedSysfsPath() = TemporaryFile().path().string();
 
     fruTypeLedConfigs_ = {{"FAN", fanLedConfig}, {"PSU", psuLedConfig}};

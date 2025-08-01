@@ -1,26 +1,12 @@
 namespace cpp2 facebook.fboss.platform.data_corral_service
 
-enum LedColor {
-  OFF = 0,
-  GREEN = 1,
-  RED = 2,
-  BLUE = 3,
-  AMBER = 4,
-}
-
 // LedConfig holds a mechanism to program LED in the case of presence and absence.
 //
-// `presentLedColor`: Led color for presence
+// `presentLedSysfsPath`: Sysfs path for presence LED
 //
-// `presentLedSysfsPath`: Sysfs path for presence
-//
-// `absentLedColor`: Led color for absence
-//
-// `absentLedSysfsPath`: Sysfs path for absence.
+// `absentLedSysfsPath`: Sysfs path for absence LED
 struct LedConfig {
-  1: LedColor presentLedColor;
   2: string presentLedSysfsPath;
-  3: LedColor absentLedColor;
   4: string absentLedSysfsPath;
 }
 

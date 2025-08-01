@@ -22,8 +22,6 @@ namespace facebook::fboss::platform::data_corral_service {
 
 LedConfig getValidLedConfig() {
   auto ledConfig = LedConfig();
-  ledConfig.absentLedColor() = LedColor::BLUE;
-  ledConfig.presentLedColor() = LedColor::GREEN;
   ledConfig.presentLedSysfsPath() = "/sys/class/leds/1";
   ledConfig.absentLedSysfsPath() = "/sys/class/leds/2";
   return ledConfig;
