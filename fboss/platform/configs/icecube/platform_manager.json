@@ -2645,7 +2645,7 @@
           "busName": "MCB_IOB_I2C_MASTER_15",
           "address": "0x53",
           "kernelDeviceName": "24c64",
-          "pmUnitScopedName": "CHASSIS_IDPROM"
+          "pmUnitScopedName": "CHASSIS_EEPROM"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_16",
@@ -3055,7 +3055,7 @@
   },
   "symbolicLinkToDevicePath": {
     "/run/devmap/eeproms/MCB_EEPROM": "/[IDPROM]",
-    "/run/devmap/eeproms/CHASSIS_EEPROM": "/[CHASSIS_IDPROM]",
+    "/run/devmap/eeproms/CHASSIS_EEPROM": "/[CHASSIS_EEPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/COME_EEPROM": "/COMESE_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/PIC_T_EEPROM": "/PICT_SLOT@0/[IDPROM]",
@@ -3423,7 +3423,6 @@
     "/run/devmap/xcvrs/xcvr_io_65": "/[MCB_IOB_I2C_MASTER_28]",
     "/run/devmap/xcvrs/xcvr_ctrl_65": "/[IOB_XCVR_CTRL_PORT_65]"
   },
-  "chassisEepromDevicePath": "/[CHASSIS_IDPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "3.2.0-1",
