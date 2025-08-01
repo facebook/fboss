@@ -179,6 +179,7 @@ Supported values:
 1. 1.15.0
 1. 1.15.3
 1. 1.16.0
+1. 1.16.1
 1. 1.16.3
 
 ```
@@ -219,6 +220,7 @@ but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_
     - `SAI_VERSION_11_7_0_0_DNX_ODP`
     - `SAI_VERSION_12_0_EA_DNX_ODP`
     - `SAI_VERSION_13_0_EA_ODP`
+    - `SAI_VERSION_14_0_EA_ODP`
 1. `BENCHMARK_INSTALL` - set to 1 to install benchmark binaries
 1. `SKIP_ALL_INSTALL` - set to 1 to skip installing FBOSS artifacts
 1. `WITH_ASAN` - set to 1 to enable sanitization checking
