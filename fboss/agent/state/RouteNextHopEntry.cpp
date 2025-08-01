@@ -198,7 +198,8 @@ bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
       a.getAdminDistance() == b.getAdminDistance() &&
       a.getCounterID() == b.getCounterID() &&
       a.getClassID() == b.getClassID() &&
-      a.getOverrideEcmpSwitchingMode() == b.getOverrideEcmpSwitchingMode());
+      a.getOverrideEcmpSwitchingMode() == b.getOverrideEcmpSwitchingMode() &&
+      a.getOverrideNextHops() == b.getOverrideNextHops());
 }
 
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {
@@ -767,4 +768,12 @@ RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
       safe_cref<switch_state_tags::nexthops>()->toThrift(), true);
 }
 
+const std::optional<RouteNextHopSet> RouteNextHopEntry::getOverrideNextHops()
+    const {
+  std::optional<RouteNextHopSet> nhops;
+  if (auto nextHops = safe_cref<switch_state_tags::overrideNextHops>()) {
+    nhops = util::toRouteNextHopSet(nextHops->toThrift(), true);
+  }
+  return nhops;
+}
 } // namespace facebook::fboss
