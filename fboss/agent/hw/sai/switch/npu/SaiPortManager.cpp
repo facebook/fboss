@@ -1276,8 +1276,16 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
-    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
-    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+    if (platform_->getAsic()->getAsicType() !=
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // post2 and post3 are unsupported by chenab but fboss thrift model
+      // (phy.thrift) has them non-optional instead of passing them as zero,
+      // ignore them.
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+    }
     if (platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(
