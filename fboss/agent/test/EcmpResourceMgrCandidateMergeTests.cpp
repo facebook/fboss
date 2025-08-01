@@ -53,4 +53,22 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, incDecReference) {
       sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
   EXPECT_EQ(beforeConsolidationInfo, afterConsolidationInfo);
 }
+
+TEST_F(EcmpResourceMgrCandidateMergeTest, deleteNhopGroup) {
+  auto pfx = makePrefix(0);
+  auto groupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+      RouterID(0), pfx.toCidrNetwork());
+
+  auto nhopsId = sw_->getEcmpResourceManager()
+                     ->getNhopsToId()
+                     .find(groupInfo->getNhops())
+                     ->second;
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+  EXPECT_EQ(beforeConsolidationInfo.size(), 4);
+  rmRoute(pfx);
+  auto afterConsolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+  EXPECT_EQ(afterConsolidationInfo.size(), 0);
+}
 } // namespace facebook::fboss
