@@ -245,6 +245,11 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
+  return SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_RESTART_ISSU;
 }

@@ -462,6 +462,13 @@ struct SaiPortTraits {
         bool,
         AttributeFecErrorDetectEnable,
         SaiBoolDefaultFalse>;
+    struct AttributePgDropStatus {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PgDropStatus = SaiExtensionAttribute<
+        std::vector<sai_map_t>,
+        AttributePgDropStatus,
+        SaiListDefault<sai_map_list_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -732,6 +739,7 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
+SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
