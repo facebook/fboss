@@ -691,6 +691,7 @@ void EcmpResourceManager::routeDeleted(
                  << " Group ID: " << groupId << " removed";
     }
     nextHopGroup2Id_.erase(routeNhops);
+    nextHopGroupDeleted(groupId);
   } else {
     decRouteUsageCount(*groupInfo);
     XLOG(DBG2) << "Delete route: " << removed->str()
@@ -699,6 +700,21 @@ void EcmpResourceManager::routeDeleted(
                << " route usage count decremented to: "
                << groupInfo->getRouteUsageCount();
   }
+}
+
+void EcmpResourceManager::nextHopGroupDeleted(NextHopGroupId groupId) {
+  if (candidateMergeGroups_.empty() && mergedGroups_.empty()) {
+    return;
+  }
+  if (!pruneFromCandidateMerges(groupId)) {
+    CHECK(pruneFromCandidateMerges(groupId));
+  }
+}
+bool EcmpResourceManager::pruneFromCandidateMerges(NextHopGroupId /*groupId*/) {
+  return true;
+}
+bool EcmpResourceManager::pruneFromMergedGroups(NextHopGroupId /*groupId*/) {
+  XLOG(FATAL) << " Prune API from merged groups is a TODO";
 }
 
 void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
