@@ -364,7 +364,7 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
         portIdStatsMap = getSw()->getHwPortStats(ports);
         // Check collect timestamp is valid
         for (const auto& [_, portStats] : portIdStatsMap) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
