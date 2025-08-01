@@ -124,7 +124,7 @@ std::string SaiYangraPlatform::getHwConfig() {
 }
 
 bool SaiYangraPlatform::isSerdesApiSupported() const {
-  return false;
+  return true;
 }
 std::vector<PortID> SaiYangraPlatform::getAllPortsInGroup(
     PortID /*portID*/) const {

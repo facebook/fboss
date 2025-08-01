@@ -55,7 +55,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
-    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
@@ -89,6 +88,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
       return true;
+    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
@@ -403,7 +403,7 @@ uint32_t ChenabAsic::getSflowShimHeaderSize() const {
   return 9;
 }
 std::optional<uint32_t> ChenabAsic::getPortSerdesPreemphasis() const {
-  return 50;
+  return -15; // must be same as pre1
 }
 uint32_t ChenabAsic::getPacketBufferUnitSize() const {
   return 192;
