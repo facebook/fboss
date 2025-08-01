@@ -149,4 +149,43 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, updateRouteNhops) {
   }
 }
 
+TEST_F(EcmpResourceMgrCandidateMergeTest, updateAndDeleteRouteNhops) {
+  auto group1Info = sw_->getEcmpResourceManager()->getGroupInfo(
+      RouterID(0), makePrefix(0).toCidrNetwork());
+  auto nhopsIdGroup1 = sw_->getEcmpResourceManager()
+                           ->getNhopsToId()
+                           .find(group1Info->getNhops())
+                           ->second;
+  auto group2Info = sw_->getEcmpResourceManager()->getGroupInfo(
+      RouterID(0), makePrefix(1).toCidrNetwork());
+  auto nhopsIdGroup2 = sw_->getEcmpResourceManager()
+                           ->getNhopsToId()
+                           .find(group2Info->getNhops())
+                           ->second;
+  auto beforeConsolidationInfoGroup2 =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup2);
+  // Point prefix 0 to group2. This will cause nhop group1 to get
+  // deleted, since its ref count dropped to 0
+  updateRoute(makePrefix(0), group2Info->getNhops());
+
+  auto afterConsolidationInfoGroup1 =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup1);
+  EXPECT_TRUE(afterConsolidationInfoGroup1.empty());
+  auto afterConsolidationInfoGroup2 =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup2);
+
+  // After penalty should double for group2
+  for (const auto& [groupIds, consolidationInfo] :
+       beforeConsolidationInfoGroup2) {
+    if (groupIds.contains(nhopsIdGroup1)) {
+      EXPECT_FALSE(afterConsolidationInfoGroup2.contains(groupIds));
+      continue;
+    }
+    auto newConsolidationInfo =
+        afterConsolidationInfoGroup2.find(groupIds)->second;
+    EXPECT_EQ(
+        2 * consolidationInfo.groupId2Penalty.find(nhopsIdGroup2)->second,
+        newConsolidationInfo.groupId2Penalty.find(nhopsIdGroup2)->second);
+  }
+}
 } // namespace facebook::fboss
