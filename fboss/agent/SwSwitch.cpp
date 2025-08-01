@@ -1335,43 +1335,9 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     auto l3Asics = hwAsicTable_->getL3Asics();
     if (l3Asics.size()) {
       auto asic = checkSameAndGetAsic(l3Asics);
-      auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
-          ? asic->getMaxDlbEcmpGroups()
-          : asic->getMaxEcmpGroups();
-      std::optional<cfg::SwitchingMode> switchingMode;
-      std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
-      if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
-        switchingMode = flowletSwitchingConfig->getBackupSwitchingMode();
-      }
-      if (auto switchId = asic->getSwitchId()) {
-        const auto& switchSettings =
-            state->getSwitchSettings()->getSwitchSettings(HwSwitchMatcher(
-                std::unordered_set<SwitchID>({SwitchID(*switchId)})));
-        if (switchSettings) {
-          ecmpCompressionPenaltyThresholPct =
-              switchSettings->getEcmpCompressionThresholdPct();
-        }
-      }
-      if (maxEcmpGroups.has_value()) {
-        auto percentage = FLAGS_flowletSwitchingEnable
-            ? FLAGS_ars_resource_percentage
-            : FLAGS_ecmp_resource_percentage;
-        auto maxEcmps = std::floor(
-            *maxEcmpGroups * static_cast<double>(percentage) / 100.0);
-        XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
-                   << maxEcmps << " and backup group type: "
-                   << (switchingMode.has_value()
-                           ? apache::thrift::util::enumNameSafe(*switchingMode)
-                           : "None");
-
-        ecmpResourceManager_ = std::make_unique<EcmpResourceManager>(
-            maxEcmps,
-            ecmpCompressionPenaltyThresholPct.value_or(0),
-            switchingMode,
-            stats());
-        registerStateModifier(
-            ecmpResourceManager_.get(), "Ecmp Resource Manager");
-      }
+      ecmpResourceManager_ = makeEcmpResourceManager(state, asic, stats());
+      registerStateModifier(
+          ecmpResourceManager_.get(), "Ecmp Resource Manager");
     }
   }
   if (!hwAsicTable_->getVoqAsics().empty()) {

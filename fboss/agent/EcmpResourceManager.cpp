@@ -1084,6 +1084,48 @@ void EcmpResourceManager::computeCandidateMerges(
   }
 }
 
+std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
+    const std::shared_ptr<SwitchState>& state,
+    const HwAsic* asic,
+    SwitchStats* stats) {
+  std::unique_ptr<EcmpResourceManager> ecmpResourceManager = nullptr;
+  auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
+      ? asic->getMaxDlbEcmpGroups()
+      : asic->getMaxEcmpGroups();
+  std::optional<cfg::SwitchingMode> switchingMode;
+  std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
+  if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
+    switchingMode = flowletSwitchingConfig->getBackupSwitchingMode();
+  }
+  if (auto switchId = asic->getSwitchId()) {
+    const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
+        HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(*switchId)})));
+    if (switchSettings) {
+      ecmpCompressionPenaltyThresholPct =
+          switchSettings->getEcmpCompressionThresholdPct();
+    }
+  }
+  if (maxEcmpGroups.has_value()) {
+    auto percentage = FLAGS_flowletSwitchingEnable
+        ? FLAGS_ars_resource_percentage
+        : FLAGS_ecmp_resource_percentage;
+    auto maxEcmps =
+        std::floor(*maxEcmpGroups * static_cast<double>(percentage) / 100.0);
+    XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
+               << maxEcmps << " and backup group type: "
+               << (switchingMode.has_value()
+                       ? apache::thrift::util::enumNameSafe(*switchingMode)
+                       : "None");
+
+    ecmpResourceManager = std::make_unique<EcmpResourceManager>(
+        maxEcmps,
+        ecmpCompressionPenaltyThresholPct.value_or(0),
+        switchingMode,
+        stats);
+  }
+  return ecmpResourceManager;
+}
+
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::ConsolidationInfo& info) {
