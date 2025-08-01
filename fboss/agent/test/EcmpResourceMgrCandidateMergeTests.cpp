@@ -71,4 +71,31 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, deleteNhopGroup) {
       sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
   EXPECT_EQ(afterConsolidationInfo.size(), 0);
 }
+
+TEST_F(EcmpResourceMgrCandidateMergeTest, deleteAndAddNhopGroup) {
+  auto pfx = makePrefix(0);
+  auto groupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+      RouterID(0), pfx.toCidrNetwork());
+  auto nhops = groupInfo->getNhops();
+
+  auto nhopsId = sw_->getEcmpResourceManager()
+                     ->getNhopsToId()
+                     .find(groupInfo->getNhops())
+                     ->second;
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+  rmRoute(pfx);
+  auto afterConsolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+  EXPECT_EQ(afterConsolidationInfo.size(), 0);
+  addRoute(pfx, nhops);
+  auto newNhopsId =
+      sw_->getEcmpResourceManager()->getNhopsToId().find(nhops)->second;
+
+  // Same nhopId would be reused for new group
+  EXPECT_EQ(nhopsId, newNhopsId);
+  auto afterAddConsolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(newNhopsId);
+  EXPECT_EQ(beforeConsolidationInfo, afterAddConsolidationInfo);
+}
 } // namespace facebook::fboss
