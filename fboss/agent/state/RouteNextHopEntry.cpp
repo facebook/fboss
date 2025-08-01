@@ -776,4 +776,14 @@ const std::optional<RouteNextHopSet> RouteNextHopEntry::getOverrideNextHops()
   }
   return nhops;
 }
+
+void RouteNextHopEntry::setOverrideNextHops(
+    const std::optional<RouteNextHopSet>& nhops) {
+  if (nhops) {
+    ref<switch_state_tags::overrideNextHops>()->fromThrift(
+        util::fromRouteNextHopSet(*nhops));
+  } else {
+    ref<switch_state_tags::overrideNextHops>().reset();
+  }
+}
 } // namespace facebook::fboss
