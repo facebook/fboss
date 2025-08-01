@@ -10,6 +10,7 @@
 #pragma once
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/PreUpdateStateModifier.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -266,6 +267,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
   SwitchStats* switchStats_;
 };
+std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
+    const std::shared_ptr<SwitchState>& state,
+    const HwAsic* asic,
+    SwitchStats* stats = nullptr);
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::ConsolidationInfo& info);

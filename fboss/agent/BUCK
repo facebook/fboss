@@ -423,8 +423,8 @@ cpp_library(
         "BufferUtils.h",
     ],
     exported_deps = [
-        ":switch_config-cpp2-types",
         ":utils",
+        "//fboss/agent/state:state",
     ],
 )
 
@@ -765,6 +765,7 @@ cpp_library(
         ":fib_helpers",
         ":pre_update_state_modifier",
         ":stats",
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",
     ],
@@ -1497,6 +1498,7 @@ cpp_library(
         ":fboss_init_h",
         ":hw_switch",
         ":load_agent_config",
+        ":platform_base",
     ],
     exported_external_deps = [
         "gflags",

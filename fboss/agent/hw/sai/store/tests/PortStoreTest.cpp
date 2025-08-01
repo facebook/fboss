@@ -335,3 +335,16 @@ TEST_F(PortStoreTest, portSetDisableLinkTraining) {
   EXPECT_FALSE(saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::LinkTrainingEnable{}));
 }
+
+TEST_F(PortStoreTest, portGetPortPgPktDropStatus) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+
+  // Test reading the port PG packet drop status (read-only attribute)
+  auto pgPktDropStatus = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::PgDropStatus{});
+
+  // Since this is a read-only attribute, we just verify we can read it
+  // The fake implementation returns an empty vector by default
+  EXPECT_TRUE(pgPktDropStatus.empty());
+}
