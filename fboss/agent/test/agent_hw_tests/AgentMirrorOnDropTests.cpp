@@ -562,15 +562,18 @@ TEST_F(AgentMirrorOnDropDestMacTest, ModOnInterfacePortCleanup) {
   auto pkt = sendPackets(1, std::nullopt, kDestIp);
 
   // Dump counters and tables first, since assertions may abort the test.
-  std::string out;
-  getAgentEnsemble()->runDiagCommand("\n", out);
-  getAgentEnsemble()->runDiagCommand("show counters full\n", out);
-  XLOG(INFO) << ">>> After sendPacket 2\n" << out;
-  getAgentEnsemble()->runDiagCommand("dbal table dump table=ESEM_ARP\n", out);
-  XLOG(INFO) << out;
-  getAgentEnsemble()->runDiagCommand(
-      "dbal table dump table=MAC_SOURCE_ADDRESS_FULL\n", out);
-  XLOG(INFO) << out;
+  for (const auto& [switchId, _] : getAsics()) {
+    std::string out;
+    getAgentEnsemble()->runDiagCommand("\n", out, switchId);
+    getAgentEnsemble()->runDiagCommand("show counters full\n", out, switchId);
+    XLOG(INFO) << ">>> After sendPacket 2\n" << out;
+    getAgentEnsemble()->runDiagCommand(
+        "dbal table dump table=ESEM_ARP\n", out, switchId);
+    XLOG(INFO) << out;
+    getAgentEnsemble()->runDiagCommand(
+        "dbal table dump table=MAC_SOURCE_ADDRESS_FULL\n", out, switchId);
+    XLOG(INFO) << out;
+  }
 
   WITH_RETRIES_N(3, {
     XLOG(DBG3) << "Waiting for NIF packet...";
