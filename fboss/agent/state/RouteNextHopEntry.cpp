@@ -780,8 +780,7 @@ const std::optional<RouteNextHopSet> RouteNextHopEntry::getOverrideNextHops()
 void RouteNextHopEntry::setOverrideNextHops(
     const std::optional<RouteNextHopSet>& nhops) {
   if (nhops) {
-    ref<switch_state_tags::overrideNextHops>()->fromThrift(
-        util::fromRouteNextHopSet(*nhops));
+    set<switch_state_tags::overrideNextHops>(util::fromRouteNextHopSet(*nhops));
   } else {
     ref<switch_state_tags::overrideNextHops>().reset();
   }
