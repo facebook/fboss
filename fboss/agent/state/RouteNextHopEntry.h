@@ -177,7 +177,8 @@ class RouteNextHopEntry
       std::optional<RouteCounterID> counterID = std::nullopt,
       std::optional<AclLookupClass> classID = std::nullopt,
       std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
-          std::nullopt);
+          std::nullopt,
+      const std::optional<NextHopSet>& overridNextHops = std::nullopt);
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;
