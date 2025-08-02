@@ -24,46 +24,7 @@ namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
 class SwitchStats;
-
-class NextHopGroupInfo {
- public:
-  using NextHopGroupId = uint32_t;
-  using NextHopGroupItr = std::map<RouteNextHopSet, NextHopGroupId>::iterator;
-  NextHopGroupInfo(
-      NextHopGroupId id,
-      NextHopGroupItr ngItr,
-      bool isBackupEcmpGroupType = false)
-      : id_(id), ngItr_(ngItr), isBackupEcmpGroupType_(isBackupEcmpGroupType) {}
-  NextHopGroupId getID() const {
-    return id_;
-  }
-  size_t getRouteUsageCount() const {
-    CHECK_GT(routeUsageCount_, 0);
-    return routeUsageCount_;
-  }
-  void incRouteUsageCount() {
-    ++routeUsageCount_;
-  }
-  void decRouteUsageCount() {
-    --routeUsageCount_;
-  }
-  bool isBackupEcmpGroupType() const {
-    return isBackupEcmpGroupType_;
-  }
-  void setIsBackupEcmpGroupType(bool isBackupEcmp) {
-    isBackupEcmpGroupType_ = isBackupEcmp;
-  }
-  const RouteNextHopSet& getNhops() const {
-    return ngItr_->first;
-  }
-
- private:
-  static constexpr int kInvalidRouteUsageCount = 0;
-  NextHopGroupId id_;
-  NextHopGroupItr ngItr_;
-  bool isBackupEcmpGroupType_{false};
-  int routeUsageCount_{kInvalidRouteUsageCount};
-};
+class NextHopGroupInfo;
 
 class EcmpResourceManager : public PreUpdateStateModifier {
  public:
@@ -271,10 +232,52 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
   SwitchStats* switchStats_;
 };
+
+class NextHopGroupInfo {
+ public:
+  using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
+  using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
+  NextHopGroupInfo(
+      NextHopGroupId id,
+      NextHopGroupItr ngItr,
+      bool isBackupEcmpGroupType = false)
+      : id_(id), ngItr_(ngItr), isBackupEcmpGroupType_(isBackupEcmpGroupType) {}
+  NextHopGroupId getID() const {
+    return id_;
+  }
+  size_t getRouteUsageCount() const {
+    CHECK_GT(routeUsageCount_, 0);
+    return routeUsageCount_;
+  }
+  void incRouteUsageCount() {
+    ++routeUsageCount_;
+  }
+  void decRouteUsageCount() {
+    --routeUsageCount_;
+  }
+  bool isBackupEcmpGroupType() const {
+    return isBackupEcmpGroupType_;
+  }
+  void setIsBackupEcmpGroupType(bool isBackupEcmp) {
+    isBackupEcmpGroupType_ = isBackupEcmp;
+  }
+  const RouteNextHopSet& getNhops() const {
+    return ngItr_->first;
+  }
+
+ private:
+  static constexpr int kInvalidRouteUsageCount = 0;
+  NextHopGroupId id_;
+  NextHopGroupItr ngItr_;
+  bool isBackupEcmpGroupType_{false};
+  int routeUsageCount_{kInvalidRouteUsageCount};
+};
+
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const std::shared_ptr<SwitchState>& state,
     const HwAsic* asic,
     SwitchStats* stats = nullptr);
+
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::ConsolidationInfo& info);
