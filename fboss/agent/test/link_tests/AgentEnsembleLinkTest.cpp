@@ -53,9 +53,12 @@ const std::vector<std::string> l1LinkTestNames = {
 
 const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
 
-#ifndef IS_OSS
-static auto kSwAgentMemLimit = 3 * 1000 * 1000 * 1000L; // 3GB
-#endif
+long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
+  if (platform == facebook::fboss::PlatformType::PLATFORM_MERU800BIA) {
+    return 6 * 1000 * 1000 * 1000L; // 6GB
+  }
+  return 3 * 1000 * 1000 * 1000L; // 3GB
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -112,8 +115,13 @@ void AgentEnsembleLinkTest::TearDown() {
 void AgentEnsembleLinkTest::checkAgentMemoryInBounds() const {
 #ifndef IS_OSS
   int64_t memUsage = facebook::Proc::getMemoryUsage();
-  if (memUsage > kSwAgentMemLimit) {
-    throw FbossError("SW Agent RSS memory ", memUsage, " above 3GB");
+  auto memUsageThreshold = swAgentMemThreshold(getSw()->getPlatformType());
+  if (memUsage > memUsageThreshold) {
+    throw FbossError(
+        "SW Agent RSS memory ",
+        memUsage,
+        " above expected ",
+        memUsageThreshold);
   }
 #endif
 }
