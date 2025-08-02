@@ -16,6 +16,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/lib/RefMap.h"
 
+#include <gtest/gtest.h>
 #include <memory>
 #include <ostream>
 
@@ -116,6 +117,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       NextHopGroupId grpId) const;
 
  private:
+  FRIEND_TEST(EcmpResourceMgrCandidateMergeTest, optimalMergeSet);
   void nextHopGroupDeleted(NextHopGroupId groupId);
   bool pruneFromCandidateMerges(NextHopGroupId groupId);
   bool pruneFromMergedGroups(NextHopGroupId groupId);
@@ -196,7 +198,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const StateDelta& delta,
       InputOutputState* inOutState);
   void reclaimEcmpGroups(InputOutputState* inOutState);
-  std::set<NextHopGroupId> createOptimalMergeGroupSet();
+  std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
       RouterID rid,

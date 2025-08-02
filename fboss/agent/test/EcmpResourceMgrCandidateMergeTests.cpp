@@ -204,4 +204,10 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, maxPenalty) {
   EXPECT_EQ(maxPenalty({3, 5}), 12);
   EXPECT_EQ(maxPenalty({4, 5}), 6);
 }
+
+TEST_F(EcmpResourceMgrCandidateMergeTest, optimalMergeSet) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  EXPECT_EQ(optimalMergeSet, EcmpResourceManager::NextHopGroupIds({1, 2}));
+}
 } // namespace facebook::fboss

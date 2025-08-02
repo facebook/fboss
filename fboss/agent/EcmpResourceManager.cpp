@@ -250,11 +250,20 @@ int EcmpResourceManager::ConsolidationInfo::maxPenalty() const {
 }
 
 std::set<EcmpResourceManager::NextHopGroupId>
-EcmpResourceManager::createOptimalMergeGroupSet() {
+EcmpResourceManager::getOptimalMergeGroupSet() const {
   if (!compressionPenaltyThresholdPct_) {
     return {};
   }
-  XLOG(FATAL) << " Merge group algorithm is a TODO";
+  CHECK(!candidateMergeGroups_.empty());
+  auto citr = std::min_element(
+      candidateMergeGroups_.begin(),
+      candidateMergeGroups_.end(),
+      [](const auto& groupsAndInfoOne, const auto& groupsAndInfoTwo) {
+        return groupsAndInfoOne.second.maxPenalty() <
+            groupsAndInfoTwo.second.maxPenalty();
+      });
+
+  return citr->first;
 }
 
 EcmpResourceManager::InputOutputState::InputOutputState(
@@ -395,7 +404,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     NextHops2GroupId::iterator nhops2IdItr,
     bool ecmpDemandExceeded,
     InputOutputState* inOutState) {
-  auto mergeSet = createOptimalMergeGroupSet();
+  auto mergeSet = getOptimalMergeGroupSet();
   CHECK(mergeSet.empty()) << "Merge algo is a TODO";
   if (!backupEcmpGroupType_.has_value()) {
     throw FbossError("Ecmp limit reached but no backup ecmp group type set");

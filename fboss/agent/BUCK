@@ -761,6 +761,7 @@ cpp_library(
         "EcmpResourceManager.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         ":agent_features",
         ":fib_helpers",
         ":pre_update_state_modifier",
