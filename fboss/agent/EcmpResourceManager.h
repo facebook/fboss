@@ -81,7 +81,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
  private:
   FRIEND_TEST(EcmpResourceMgrCandidateMergeTest, optimalMergeSet);
   void nextHopGroupDeleted(NextHopGroupId groupId);
-  bool pruneFromCandidateMerges(NextHopGroupId groupId);
+  bool pruneFromCandidateMerges(const NextHopGroupIds& groupId);
   bool pruneFromMergedGroups(NextHopGroupId groupId);
   template <typename AddrT>
   bool routesEqual(

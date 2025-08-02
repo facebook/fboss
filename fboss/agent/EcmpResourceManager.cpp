@@ -731,19 +731,29 @@ void EcmpResourceManager::nextHopGroupDeleted(NextHopGroupId groupId) {
   if (candidateMergeGroups_.empty() && mergedGroups_.empty()) {
     return;
   }
-  if (!pruneFromCandidateMerges(groupId)) {
-    CHECK(pruneFromCandidateMerges(groupId));
+  if (!pruneFromCandidateMerges({groupId})) {
+    CHECK(pruneFromMergedGroups(groupId));
   }
 }
 
-bool EcmpResourceManager::pruneFromCandidateMerges(NextHopGroupId groupId) {
+bool EcmpResourceManager::pruneFromCandidateMerges(
+    const NextHopGroupIds& groupIds) {
   bool pruned{false};
   auto citr = candidateMergeGroups_.begin();
   while (citr != candidateMergeGroups_.end()) {
-    if (citr->first.contains(groupId)) {
-      citr = candidateMergeGroups_.erase(citr);
-      pruned = true;
-    } else {
+    auto gitr = groupIds.begin();
+    // Using search (logN) instead of intersection O(max(M, N)
+    // since we expected the passed in groupIds to be
+    // a very small set - or even a size of 1. This
+    // makes search for individual groupIds more efficient.
+    for (; gitr != groupIds.end(); ++gitr) {
+      if (citr->first.contains(*gitr)) {
+        citr = candidateMergeGroups_.erase(citr);
+        pruned = true;
+        break;
+      }
+    }
+    if (gitr == groupIds.end()) {
       ++citr;
     }
   }
