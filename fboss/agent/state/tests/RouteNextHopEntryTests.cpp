@@ -490,10 +490,12 @@ TEST(RouteNextHopEntry, setGetOverrideNextHops) {
   ASSERT_TRUE(nhopEntry.getOverrideNextHops().has_value());
   EXPECT_EQ(*nhopEntry.getOverrideNextHops(), overrideNhops);
   EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+  EXPECT_EQ(nhopEntry.normalizedNextHops(), overrideNhops);
   // Reset override nhops
   nhopEntry.setOverrideNextHops(std::nullopt);
   EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
   EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+  EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
 }
 
 TEST(RouteNextHopEntry, setGetOverrideSwitchingMode) {
@@ -537,15 +539,18 @@ TEST(RouteNextHopEntry, createWithOverrideNhops) {
     EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
     EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
     EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
     // Set override nhops
     nhopEntry.setOverrideNextHops(overrideNhops);
     EXPECT_TRUE(nhopEntry.getOverrideNextHops().has_value());
     EXPECT_EQ(nhopEntry.getOverrideNextHops(), overrideNhops);
     EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), overrideNhops);
     // reset override nhops
     nhopEntry.setOverrideNextHops(std::nullopt);
     EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
     EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
   }
   {
     RouteNextHopEntry nhopEntry(
@@ -558,10 +563,12 @@ TEST(RouteNextHopEntry, createWithOverrideNhops) {
     EXPECT_TRUE(nhopEntry.getOverrideNextHops().has_value());
     EXPECT_EQ(nhopEntry.getOverrideNextHops(), overrideNhops);
     EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), overrideNhops);
     // reset override nhops
     nhopEntry.setOverrideNextHops(std::nullopt);
     EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
     EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
   }
 }
 

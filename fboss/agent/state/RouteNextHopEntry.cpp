@@ -379,9 +379,15 @@ void RouteNextHopEntry::normalize(
 }
 
 RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
+  NextHopSet nhopSet;
+  if (auto overrideNhops = getOverrideNextHops()) {
+    nhopSet = *overrideNhops;
+  } else {
+    nhopSet = getNextHopSet();
+  }
   NextHopSet normalizedNextHops;
   // 1)
-  for (const auto& nhop : getNextHopSet()) {
+  for (const auto& nhop : nhopSet) {
     if (nhop.adjustedWeight() && nhop.adjustedWeight() == 0) {
       // skip nexthops with adjusted weight set to 0
       continue;
