@@ -404,17 +404,22 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     NextHops2GroupId::iterator nhops2IdItr,
     bool ecmpDemandExceeded,
     InputOutputState* inOutState) {
-  auto mergeSet = getOptimalMergeGroupSet();
-  CHECK(mergeSet.empty()) << "Merge algo is a TODO";
-  if (!backupEcmpGroupType_.has_value()) {
-    throw FbossError("Ecmp limit reached but no backup ecmp group type set");
+  auto grpInfo = nextHopGroupIdToInfo_.ref(nhops2IdItr->second);
+
+  if (!grpInfo) {
+    CHECK(ecmpDemandExceeded);
+    if (backupEcmpGroupType_.has_value()) {
+      std::tie(grpInfo, std::ignore) = nextHopGroupIdToInfo_.refOrEmplace(
+          nhops2IdItr->second,
+          nhops2IdItr->second,
+          nhops2IdItr,
+          true /*isBackupEcmpGroupType*/);
+    } else {
+      CHECK(compressionPenaltyThresholdPct_);
+      auto mergeSet = getOptimalMergeGroupSet();
+      CHECK(mergeSet.empty()) << "Merge algo is a TODO";
+    }
   }
-  std::shared_ptr<NextHopGroupInfo> grpInfo;
-  std::tie(grpInfo, std::ignore) = nextHopGroupIdToInfo_.refOrEmplace(
-      nhops2IdItr->second,
-      nhops2IdItr->second,
-      nhops2IdItr,
-      true /*isBackupEcmpGroupType*/);
   return updateForwardingInfoAndInsertDelta(
       rid, route, grpInfo, ecmpDemandExceeded, inOutState);
 }
@@ -427,14 +432,15 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     std::shared_ptr<NextHopGroupInfo>& grpInfo,
     bool ecmpDemandExceeded,
     InputOutputState* inOutState) {
-  CHECK(grpInfo->isBackupEcmpGroupType());
+  CHECK(grpInfo->hasOverrides());
   const auto& curForwardInfo = route->getForwardInfo();
   auto newForwardInfo = RouteNextHopEntry(
       curForwardInfo.normalizedNextHops(),
       curForwardInfo.getAdminDistance(),
       curForwardInfo.getCounterID(),
       curForwardInfo.getClassID(),
-      backupEcmpGroupType_);
+      backupEcmpGroupType_,
+      std::optional<RouteNextHopSet>(grpInfo->getOverrideNextHops()));
   auto newRoute = route->clone();
   newRoute->setResolved(std::move(newForwardInfo));
   newRoute->publish();

@@ -275,6 +275,17 @@ class NextHopGroupInfo {
   bool hasOverrideNextHops() const {
     return mergedGroupsToInfoItr_.has_value();
   }
+  bool hasOverrides() const {
+    return isBackupEcmpGroupType() || hasOverrideNextHops();
+  }
+
+  std::optional<RouteNextHopSet> getOverrideNextHops() const {
+    std::optional<RouteNextHopSet> overrideNhops;
+    if (mergedGroupsToInfoItr_.has_value()) {
+      overrideNhops = (*mergedGroupsToInfoItr_)->second.mergedNhops;
+    }
+    return overrideNhops;
+  }
 
  private:
   static constexpr int kInvalidRouteUsageCount = 0;
