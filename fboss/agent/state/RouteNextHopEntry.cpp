@@ -775,6 +775,11 @@ RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
       safe_cref<switch_state_tags::nexthops>()->toThrift(), true);
 }
 
+bool RouteNextHopEntry::hasOverrideSwitchingModeOrNhops() const {
+  return safe_cref<switch_state_tags::overrideEcmpSwitchingMode>() ||
+      safe_cref<switch_state_tags::overrideNextHops>();
+}
+
 const std::optional<RouteNextHopSet> RouteNextHopEntry::getOverrideNextHops()
     const {
   std::optional<RouteNextHopSet> nhops;

@@ -113,6 +113,7 @@ class RouteNextHopEntry
 
   const std::optional<NextHopSet> getOverrideNextHops() const;
   void setOverrideNextHops(const std::optional<NextHopSet>& nhops);
+  bool hasOverrideSwitchingModeOrNhops() const;
   NextHopSet normalizedNextHops() const;
 
   // Get the sum of the weights of all the nexthops in the entry

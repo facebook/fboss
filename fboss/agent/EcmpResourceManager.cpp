@@ -330,8 +330,7 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     bool ecmpDemandExceeded,
     bool addNewDelta) {
   if (ecmpDemandExceeded) {
-    CHECK(
-        newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
+    CHECK(newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops());
   }
   auto curStateDelta = getCurrentStateDelta();
   auto oldState = curStateDelta.newState();
