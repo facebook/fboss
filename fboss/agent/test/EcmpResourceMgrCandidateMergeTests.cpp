@@ -13,7 +13,14 @@
 namespace facebook::fboss {
 
 class EcmpResourceMgrCandidateMergeTest
-    : public EcmpResourceMgrMergeGroupsTest {};
+    : public EcmpResourceMgrMergeGroupsTest {
+ public:
+  int maxPenalty(const EcmpResourceManager::NextHopGroupIds& groups) const {
+    auto consolidationInfo =
+        sw_->getEcmpResourceManager()->getConsolidationInfo(*groups.begin());
+    return consolidationInfo.find(groups)->second.maxPenalty();
+  }
+};
 
 TEST_F(EcmpResourceMgrCandidateMergeTest, incReference) {
   auto groupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
@@ -187,5 +194,14 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, updateAndDeleteRouteNhops) {
         2 * consolidationInfo.groupId2Penalty.find(nhopsIdGroup2)->second,
         newConsolidationInfo.groupId2Penalty.find(nhopsIdGroup2)->second);
   }
+}
+
+TEST_F(EcmpResourceMgrCandidateMergeTest, maxPenalty) {
+  auto consolidationInfo =
+      sw_->getEcmpResourceManager()->getConsolidationInfo(5);
+  EXPECT_EQ(maxPenalty({1, 5}), 20);
+  EXPECT_EQ(maxPenalty({2, 5}), 16);
+  EXPECT_EQ(maxPenalty({3, 5}), 12);
+  EXPECT_EQ(maxPenalty({4, 5}), 6);
 }
 } // namespace facebook::fboss
