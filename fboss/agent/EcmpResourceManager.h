@@ -105,7 +105,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
 
   struct ConsolidationInfo {
     int maxPenalty() const;
-    int avgPenalty() const;
     bool operator==(const ConsolidationInfo& other) const {
       return std::tie(mergedNhops, groupId2Penalty) ==
           std::tie(other.mergedNhops, other.groupId2Penalty);

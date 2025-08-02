@@ -238,6 +238,17 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
              << inOutState->nonBackupEcmpGroupsCnt;
 }
 
+int EcmpResourceManager::ConsolidationInfo::maxPenalty() const {
+  CHECK(!groupId2Penalty.empty());
+  return std::max_element(
+             groupId2Penalty.begin(),
+             groupId2Penalty.end(),
+             [](const auto& idAndPenaltOne, const auto& idAndPenaltTwo) {
+               return idAndPenaltOne.second < idAndPenaltTwo.second;
+             })
+      ->second;
+}
+
 std::set<EcmpResourceManager::NextHopGroupId>
 EcmpResourceManager::createOptimalMergeGroupSet() {
   if (!compressionPenaltyThresholdPct_) {
