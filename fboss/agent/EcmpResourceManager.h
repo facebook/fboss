@@ -74,8 +74,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
-  std::map<NextHopGroupIds, ConsolidationInfo> getConsolidationInfo(
-      NextHopGroupId grpId) const;
+  using GroupIds2ConsolidationInfo =
+      std::map<NextHopGroupIds, ConsolidationInfo>;
+  GroupIds2ConsolidationInfo getConsolidationInfo(NextHopGroupId grpId) const;
 
  private:
   FRIEND_TEST(EcmpResourceMgrCandidateMergeTest, optimalMergeSet);
@@ -237,11 +238,18 @@ class NextHopGroupInfo {
  public:
   using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
+  using Groups2ConsolidationInfoItr =
+      EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
   NextHopGroupInfo(
       NextHopGroupId id,
       NextHopGroupItr ngItr,
-      bool isBackupEcmpGroupType = false)
-      : id_(id), ngItr_(ngItr), isBackupEcmpGroupType_(isBackupEcmpGroupType) {}
+      bool isBackupEcmpGroupType = false,
+      std::optional<Groups2ConsolidationInfoItr> mergedGroupsToInfoItr =
+          std::nullopt)
+      : id_(id),
+        ngItr_(ngItr),
+        isBackupEcmpGroupType_(isBackupEcmpGroupType),
+        mergedGroupsToInfoItr_(mergedGroupsToInfoItr) {}
   NextHopGroupId getID() const {
     return id_;
   }
@@ -264,12 +272,16 @@ class NextHopGroupInfo {
   const RouteNextHopSet& getNhops() const {
     return ngItr_->first;
   }
+  bool hasOverrideNextHops() const {
+    return mergedGroupsToInfoItr_.has_value();
+  }
 
  private:
   static constexpr int kInvalidRouteUsageCount = 0;
   NextHopGroupId id_;
   NextHopGroupItr ngItr_;
   bool isBackupEcmpGroupType_{false};
+  std::optional<Groups2ConsolidationInfoItr> mergedGroupsToInfoItr_;
   int routeUsageCount_{kInvalidRouteUsageCount};
 };
 

@@ -1089,9 +1089,7 @@ EcmpResourceManager::computeConsolidationInfo(
   return consolidationInfo;
 }
 
-std::map<
-    EcmpResourceManager::NextHopGroupIds,
-    EcmpResourceManager::ConsolidationInfo>
+EcmpResourceManager::GroupIds2ConsolidationInfo
 EcmpResourceManager::getConsolidationInfo(NextHopGroupId grpId) const {
   std::map<NextHopGroupIds, ConsolidationInfo> mergedGrps2Info;
   auto addMergedGroups = [&mergedGrps2Info, grpId](const auto& mergedGrpInfo) {
