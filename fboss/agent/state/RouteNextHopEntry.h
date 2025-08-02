@@ -173,12 +173,11 @@ class RouteNextHopEntry
   static state::RouteNextHopEntry getRouteNextHopEntryThrift(
       Action action,
       AdminDistance distance,
-      NextHopSet nhopSet = NextHopSet(),
-      std::optional<RouteCounterID> counterID = std::nullopt,
-      std::optional<AclLookupClass> classID = std::nullopt,
-      std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode =
-          std::nullopt,
-      const std::optional<NextHopSet>& overridNextHops = std::nullopt);
+      NextHopSet nhopSet,
+      std::optional<RouteCounterID> counterID,
+      std::optional<AclLookupClass> classID,
+      std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
+      const std::optional<NextHopSet>& overridNextHops);
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;
