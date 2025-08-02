@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-class EcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
+class BaseEcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
  private:
   void setupFlags() const override;
 

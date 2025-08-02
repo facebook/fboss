@@ -8,12 +8,12 @@
  *
  */
 
-#include "fboss/agent/test/EcmpResourceMgrMergeGroupsTests.h"
+#include "fboss/agent/test/BaseEcmpResourceMgrMergeGroupsTests.h"
 
 namespace facebook::fboss {
 
 class EcmpResourceMgrCandidateMergeTest
-    : public EcmpResourceMgrMergeGroupsTest {
+    : public BaseEcmpResourceMgrMergeGroupsTest {
  public:
   int maxPenalty(const EcmpResourceManager::NextHopGroupIds& groups) const {
     auto consolidationInfo =

@@ -8,12 +8,12 @@
  *
  */
 
-#include "fboss/agent/test/EcmpResourceMgrMergeGroupsTests.h"
+#include "fboss/agent/test/BaseEcmpResourceMgrMergeGroupsTests.h"
 
 namespace facebook::fboss {
 
-std::vector<RouteNextHopSet> EcmpResourceMgrMergeGroupsTest::defaultNhopSets()
-    const {
+std::vector<RouteNextHopSet>
+BaseEcmpResourceMgrMergeGroupsTest::defaultNhopSets() const {
   std::vector<RouteNextHopSet> defaultNhopGroups;
   auto beginNhops = defaultNhops();
   for (auto i = 0; i < numStartRoutes(); ++i) {
@@ -24,14 +24,14 @@ std::vector<RouteNextHopSet> EcmpResourceMgrMergeGroupsTest::defaultNhopSets()
   return defaultNhopGroups;
 }
 
-void EcmpResourceMgrMergeGroupsTest::setupFlags() const {
+void BaseEcmpResourceMgrMergeGroupsTest::setupFlags() const {
   FLAGS_enable_ecmp_resource_manager = true;
   FLAGS_ecmp_resource_percentage = 100;
 }
 
-void EcmpResourceMgrMergeGroupsTest::SetUp() {
+void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
   BaseEcmpResourceManagerTest::SetUp();
-  XLOG(DBG2) << "EcmpResourceMgrMergeGroupsTest SetUp";
+  XLOG(DBG2) << "BaseEcmpResourceMgrMergeGroupsTest SetUp";
   CHECK(state_->isPublished());
   auto newNhops = defaultNhopSets();
   CHECK_EQ(getPostConfigResolvedRoutes(state_).size(), newNhops.size());
@@ -87,9 +87,9 @@ void EcmpResourceMgrMergeGroupsTest::SetUp() {
   }
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
 }
-TEST_F(EcmpResourceMgrMergeGroupsTest, init) {}
+TEST_F(BaseEcmpResourceMgrMergeGroupsTest, init) {}
 
-TEST_F(EcmpResourceMgrMergeGroupsTest, reloadInvalidConfigs) {
+TEST_F(BaseEcmpResourceMgrMergeGroupsTest, reloadInvalidConfigs) {
   {
     // Both compression threshold and backup group type set
     auto newCfg = onePortPerIntfConfig(

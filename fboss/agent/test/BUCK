@@ -954,15 +954,15 @@ cpp_unittest(
     name = "ecmp_resource_manager_test",
     srcs = [
         "BaseEcmpResourceManagerTest.cpp",
+        "BaseEcmpResourceMgrMergeGroupsTests.cpp",
         "EcmpResourceMgrBackupGrpTests.cpp",
         "EcmpResourceMgrCandidateMergeTests.cpp",
         "EcmpResourceMgrGroupIdAllocationTests.cpp",
-        "EcmpResourceMgrMergeGroupsTests.cpp",
         "EcmpResourceMgrRibFibTests.cpp",
     ],
     headers = [
         "BaseEcmpResourceManagerTest.h",
-        "EcmpResourceMgrMergeGroupsTests.h",
+        "BaseEcmpResourceMgrMergeGroupsTests.h",
     ],
     deps = [
         ":hw_test_handle",
