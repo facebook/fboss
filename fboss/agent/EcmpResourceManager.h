@@ -269,6 +269,9 @@ class NextHopGroupInfo {
   void setIsBackupEcmpGroupType(bool isBackupEcmp) {
     isBackupEcmpGroupType_ = isBackupEcmp;
   }
+  void setMergedGroupInfoItr(std::optional<Groups2ConsolidationInfoItr> gitr) {
+    mergedGroupsToInfoItr_ = gitr;
+  }
   const RouteNextHopSet& getNhops() const {
     return ngItr_->first;
   }

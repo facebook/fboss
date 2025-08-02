@@ -552,10 +552,16 @@ void EcmpResourceManager::routeAddedOrUpdated(
                  << " route: " << newRoute->str();
       grpInfo = updateForwardingInfoAndInsertDelta(
           rid, newRoute, idItr, ecmpLimitReached, inOutState);
+      // If new group is not of backup ecmp type, increment non
+      // backup ecmp group count
+      inOutState->nonBackupEcmpGroupsCnt +=
+          grpInfo->isBackupEcmpGroupType() ? 0 : 1;
       XLOG(DBG2) << " Route  " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
-                 << " primray ecmp group count unchanged: "
+                 << " primray ecmp group count "
+                 << (grpInfo->isBackupEcmpGroupType() ? "unchanged: "
+                                                      : "incremented to: ")
                  << inOutState->nonBackupEcmpGroupsCnt;
     } else {
       std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
