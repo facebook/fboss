@@ -31,7 +31,7 @@ namespace facebook::fboss {
  * HwInvariantBitmask which can then be bit-masked with different HwInvariantOpt
  * values.
  */
-typedef uint32_t HwInvariantBitmask;
+using HwInvariantBitmask = uint32_t;
 enum HwInvariantOpt : HwInvariantBitmask {
   EMPTY_INVARIANT = 0x0000,
   MMU_LOSSLESS_INVARIANT = 0x0001,

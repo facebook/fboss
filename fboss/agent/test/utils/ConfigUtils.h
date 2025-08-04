@@ -268,7 +268,7 @@ bool isRswPlatform(PlatformType type);
  * lot to write out, so we define a simple type that's descriptive and saves a
  * few keystrokes.
  */
-typedef std::pair<std::vector<PortID>, std::vector<PortID>> UplinkDownlinkPair;
+using UplinkDownlinkPair = std::pair<std::vector<PortID>, std::vector<PortID>>;
 
 UplinkDownlinkPair getRswUplinkDownlinkPorts(
     const cfg::SwitchConfig& config,

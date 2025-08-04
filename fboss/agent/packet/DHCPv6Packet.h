@@ -51,7 +51,7 @@ enum class DHCPv6OptionType : uint16_t {
 struct DHCPv6Option;
 
 struct DHCPv6Packet {
-  typedef std::vector<uint8_t> Options;
+  using Options = std::vector<uint8_t>;
   enum { DHCP6_CLIENT_UDPPORT = 546 };
   enum { DHCP6_SERVERAGENT_UDPPORT = 547 };
   // IPV6_MIN_MTU - EthHdr - IPv6Hdr - UDPHdr
