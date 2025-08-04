@@ -196,37 +196,21 @@ symlinks are created by PlatformManager. All leds are found at `/sys/class/leds/
 
 LEDs are named with a common scheme:
 
-    <type><id?>_led:<color?>:status
+    <type><id?>_led:<color>:status
 
 For example:
 
     port10_led:blue:status
     sys_led:red:status
-    fan1_led:multicolor:status
     port1_led::status
 
-If an LED has only one color, the color will be omitted from the name. If the
-LED supports the multicolor system, `multicolor` will be used as the color name.
 If an LED has no `id` in the name, it is a system-level LED, for example
 front-panel LEDs.
 
-Led Types:
-
-- `port`
-- `fan`
-- `psu`
-- `sys`
-
 **Interface:**
 
-- Single-color LEDs:
-  - FBOSS services control LEDs by writing `0` or `max_brightness` to
-    `/sys/class/leds/<LED_NAME>/brightness` files.
-- Multicolor LEDs:
-  - the `multi_intensity` file in the LED directory is used to set RGB values
-    (in that order)
-  - Example:
-    - `echo 43 226 138 > /sys/class/leds/port1:multicolor:status/multi_intensity`
-
-A full description of the Multicolor LED API can be found here.
-[docs.kernel.org/leds/leds-class-multicolor](https://docs.kernel.org/leds/leds-class-multicolor.html)
+- FBOSS services control LEDs by writing `0` or `max_brightness` to
+  `/sys/class/leds/<LED_NAME>/brightness` files.
+- If a physical LED is separated into multiple logical LEDs (entries in
+  `/sys/class/leds/`), then writing non-zero to any color will turn off
+  the other colors.

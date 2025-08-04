@@ -65,10 +65,7 @@ consistent ABIs for user space software.
   * [10.3 Test Requirements](#103-test-requirements)
 * [11. LED Drivers](#11-led-drivers)
   * [11.1 LED Driver Development](#111-led-driver-development)
-    * [11.1.1 Multicolor LEDs](#1111-multicolor-leds)
-    * [11.1.2 Single Color LEDs](#1112-single-color-leds)
-  * [11.2 ABIs for User Space](#112-abis-for-user-space)
-  * [11.3 Test Requirements](#113-test-requirements)
+  * [11.2 Test Requirements](#112-test-requirements)
 * [12. SPI Master Drivers](#12-spi-master-drivers)
   * [12.1 SPI Master Driver Development](#121-spi-master-driver-development)
   * [12.2 ABIs for User Space](#122-abis-for-user-space)
@@ -645,37 +642,6 @@ section.
 
 ### 11.1 LED Driver Development
 
-LEDs shall be managed by the multicolor led class if the LED supports arbitrary
-colors via RGB intensities. If not, the LED should be managed following the
-single color LED specification.
-
-#### 11.1.1 Multicolor LEDs
-
-Multicolor LEDs must be registered by calling
-`devm_led_classdev_multicolor_register()` API. For more details please refer to:
-
-* [docs.kernel.org/leds/leds-class-multicolor.html](https://docs.kernel.org/leds/leds-class-multicolor.html)
-* [linux-leds.git](https://git.kernel.org/pub/scm/linux/kernel/git/pavel/linux-leds.git/commit/?h=for-next&id=55d5d3b46b08a4dc0b05343d24640744e7430ed7)
-
-Multicolor Conventions:
-
-* The `multi_index` file must be defaulted to `red green blue` in that order, as
-to maintain consistent color indexing.
-* `max_brightness` must be defaulted to 255.
-
-Naming conventions shall follow the same naming conventions listed in the Single
-Color LEDs section, with the following exception:
-
-* The directory name must include “multicolor” where `<color>` would be inserted
-for a single color LED.
-* Port LED example:
-  * `port%d_led:multicolor:status`, e.g. `port1_led:multicolor:status`
-
-#### 11.1.2 Single Color LEDs
-
-If an LED does not have multicolor functionality, the following specifications
-must be used.
-
 LED devices must be registered by calling `devm_led_classdev_register()` API.
 For more details, please refer to:
 
@@ -683,59 +649,45 @@ For more details, please refer to:
 
 LED Naming Conventions:
 
-* **Port LEDs:**
+* Any index (port num, fan num, led id) must be a 1-based integer.
 
+* **Port LEDs:**
   * If there is one LED per port, the LED sysfs entry must be
-    `port%d_led:<color>:status`. For example, `port1_led:blue:status`.
+    `port%d_led:<color>:status`. E.g.: `port1_led:blue:status`.
   * If there are multiple LEDs per port, the LED sysfs entries must be
-    `port%d_led%d:<color>:status`. For example, `port32_led1:blue:status` and
-    `port32_led2:blue:status`.
-  * The port index and LED index must be 1-based integers.
+    `port%d_led%d:<color>:status`. E.g.: `port32_led1:blue:status`
   * Device name must match `port_led`
-* **Fan LED(s):**
+* **Fan LEDs:**
   * The LED sysfs entry must be `fan%d_led:<color>:status`. For example,
-    `fan1_led:yellow:status` and `fan2_led:yellow:status`.
-  * The fan index must be 1-based integers.
+    `fan1_led:yellow:status`
   * General fan status LED should be named `fan_led:<color>:status` if it
     exists
   * Device name must match `fan_led`
-* **PSU LED(s):**
-  * The LED sysfs entry must be `psu%d_led:<color>:status`. For example,
-    `psu1_led:yellow:status` and `psu2_led:yellow:status`.
-  * The PSU index must be 1-based integers.
+* **PSU LEDs:**
+  * The LED sysfs entry must be `psu%d_led:<color>:status`. E.g.:
+    `psu1_led:yellow:status`
   * General psu status LED should be named `psu_led:<color>:status` if it
     exists
   * Device name must match `psu_led`
-* **System LED(s):**
-  * The LED sysfs entry must be `sys_led:<color>:status`. For example,
-    `sys_led:blue:status`
+* **System LED:**
   * General sys status LED should be named `sys_led:<color>:status` if it
     exists
   * Device name must match `sys_led`
+* **SMB LED:**
+  * General sys status LED should be named `smb_led:<color>:status` if it
+    exists
+  * Device name must match `smb_led`
 
-A few notes:
+Notes:
 
-* All the LED entries must follow `<devicename>:<color>:<function>` format,
-and this is easier for user space programs to parse LEDs. Leave `<color>` blank
-for single color LEDs.
-
-For example:
-
-* `fan1::status` is the name for fan1’s single color LED.
-* `pem:green:status` and `pem:red:status` are the names for multi-color PEM
-status LEDs.
+* All the LED entries must follow `<devicename>:<color>:<function>` format
 * Please make use of the pre-defined LED “colors” and “functions” defined in
 below header file. If you need additional types which are not defined in the
 header file, please reach out to Meta for support.
 
   [github.com/torvalds/linux/blob/master/include/dt-bindings/leds/common.h](https://github.com/torvalds/linux/blob/master/include/dt-bindings/leds/common.h)
 
-### 11.2 ABIs for User Space
-
-FBOSS services control LEDs by writing `0` or `max_brightness` to
-`/sys/class/leds/…/brightness` files.
-
-### 11.3 Test Requirements
+### 11.2 Test Requirements
 
 * Make sure all the required LEDs and LED colors are found at `/sys/class/leds`.
 * Write `0` to LEDs’ `brightness` file: make sure the color is turned off.
