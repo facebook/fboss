@@ -330,7 +330,7 @@ TEST(RadixTree, Erase4) {
     ++deleteCount;
   };
   RadixTree<IPAddressV4, int> rtree(deleteCallback), rtreeOrig;
-  typedef RadixTreeNode<IPAddressV4, int> IterValue;
+  using IterValue = RadixTreeNode<IPAddressV4, int>;
   auto counter = [](int cnt, const IterValue& /*i*/) { return cnt + 1; };
   setupTestTree4(rtree);
   setupTestTree4(rtreeOrig);
@@ -628,7 +628,7 @@ TEST(RadixTree, Iterator4) {
   // Verify that we get the same nodes regardless of whether we
   // iterate using a iterator or const iterator.
   const auto& crtree = rtree;
-  typedef RadixTreeNode<IPAddressV4, int> IterValue;
+  using IterValue = RadixTreeNode<IPAddressV4, int>;
   auto counter = [](int cnt, const IterValue& /*i*/) { return cnt + 1; };
 
   EXPECT_EQ(rtree.size(), accumulate(rtree.begin(), rtree.end(), 0, counter));
@@ -656,8 +656,8 @@ TEST(RadixTree, Iterator4) {
     EXPECT_EQ(rtree.end(), iitr);
     EXPECT_EQ(rtree.end(), jitr);
   }
-  typedef RadixTreeIterator<IPAddressV4, int> IterType;
-  typedef RadixTreeConstIterator<IPAddressV4, int> CIterType;
+  using IterType = RadixTreeIterator<IPAddressV4, int>;
+  using CIterType = RadixTreeConstIterator<IPAddressV4, int>;
   EXPECT_EQ(IterType(), rtree.end());
   EXPECT_EQ(CIterType(), crtree.end());
 }
@@ -685,7 +685,7 @@ TEST(RadixTree, Erase6) {
     ++deleteCount;
   };
   RadixTree<IPAddressV6, int> rtree(deleteCallback), rtreeOrig;
-  typedef RadixTreeNode<IPAddressV6, int> IterValue;
+  using IterValue = RadixTreeNode<IPAddressV6, int>;
   auto counter = [](int cnt, const IterValue& /*i*/) { return cnt + 1; };
   setupTestTree6(rtree);
   setupTestTree6(rtreeOrig);
@@ -986,7 +986,7 @@ TEST(RadixTree, Iterator6) {
   // Verify that we get the same nodes regardless of whether we
   // iterate using a iterator or const iterator.
   const auto& crtree = rtree;
-  typedef RadixTreeNode<IPAddressV6, int> IterValue;
+  using IterValue = RadixTreeNode<IPAddressV6, int>;
   auto counter = [](int cnt, const IterValue& /*i*/) { return cnt + 1; };
 
   EXPECT_EQ(rtree.size(), accumulate(rtree.begin(), rtree.end(), 0, counter));
@@ -1014,8 +1014,8 @@ TEST(RadixTree, Iterator6) {
     EXPECT_EQ(rtree.end(), iitr);
     EXPECT_EQ(rtree.end(), jitr);
   }
-  typedef RadixTreeIterator<IPAddressV6, int> IterType;
-  typedef RadixTreeConstIterator<IPAddressV6, int> CIterType;
+  using IterType = RadixTreeIterator<IPAddressV6, int>;
+  using CIterType = RadixTreeConstIterator<IPAddressV6, int>;
   EXPECT_EQ(IterType(), rtree.end());
   EXPECT_EQ(CIterType(), crtree.end());
 }
@@ -1176,7 +1176,7 @@ TEST(RadixTree, CombinedV4AndV6) {
   // point to the end.
   ipTree.erase(IPAddress(ip0_0_0_0), 1);
   {
-    typedef RadixTree<IPAddress, int> RadixTree;
+    using RadixTree = RadixTree<IPAddress, int>;
     typename RadixTree::ConstIterator exactMatchCitr, longestMatchCitr;
     typename RadixTree::Iterator exactMatchItr, longestMatchItr;
     exactMatchCitr = const_cast<const RadixTree*>(&ipTree)->exactMatch(
@@ -1293,9 +1293,9 @@ TEST(RadixTree, MoveConstructible) {
   RadixTree<IPAddressV4, std::unique_ptr<int>> rtree;
   RadixTree<IPAddress, std::unique_ptr<int>> ipRtree;
   std::vector<std::pair<IPAddressV4, uint8_t>> inserted;
-  typedef RadixTreeNode<IPAddressV4, std::unique_ptr<int>> IterValueIPv4;
-  typedef RadixTreeIterator<IPAddress, std::unique_ptr<int>>::ValueType
-      IterValueIP;
+  using IterValueIPv4 = RadixTreeNode<IPAddressV4, std::unique_ptr<int>>;
+  using IterValueIP =
+      RadixTreeIterator<IPAddress, std::unique_ptr<int>>::ValueType;
   auto counterIPv4 = [](int cnt, const IterValueIPv4& /*i*/) {
     return cnt + 1;
   };
@@ -1400,7 +1400,7 @@ TEST(RadixTree, PyRadixCompare) {
   RadixTree<IPAddressV4, NoDefaultConstructibleInt> rtree;
   PyRadixWrapper<IPAddressV4, NoDefaultConstructibleInt> pyrtree;
   std::vector<std::pair<IPAddressV4, uint8_t>> inserted;
-  typedef RadixTreeNode<IPAddressV4, NoDefaultConstructibleInt> IterValue;
+  using IterValue = RadixTreeNode<IPAddressV4, NoDefaultConstructibleInt>;
   auto counter = [](int cnt, const IterValue& /*i*/) { return cnt + 1; };
   auto const kInsertCount = 1000;
   set<Prefix4> prefixesSeen;
