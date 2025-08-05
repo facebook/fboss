@@ -290,6 +290,12 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto asicPrbs = swPort->getAsicPrbs();
   if (asicPrbs.enabled().value()) {
     initAsicPrbsStats(swPort);
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+      // linkscan is disabled after enabling PRBS on bcm platforms, thus need to
+      // trigger port link state update from FBOSS
+      platform_->getHwSwitch()->syncPortLinkState(swPort->getID());
+    }
   }
   return portSaiId;
 }
@@ -390,6 +396,12 @@ void SaiPortManager::changePortImpl(
   if (oldAsicPrbsEnabled != newAsicPrbsEnabled) {
     if (newAsicPrbsEnabled) {
       initAsicPrbsStats(newPort);
+      if (platform_->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+        // linkscan is disabled after enabling PRBS on bcm platforms, thus need
+        // to trigger port link state update from FBOSS
+        platform_->getHwSwitch()->syncPortLinkState(newPort->getID());
+      }
     } else {
       auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(newPort->getID());
       if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
