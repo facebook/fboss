@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/state/PortPgConfig.h"
 #include <folly/Conv.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <sstream>
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/NodeBase-defs.h"

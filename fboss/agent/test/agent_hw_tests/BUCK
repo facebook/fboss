@@ -130,7 +130,6 @@ cpp_library(
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
         "//fboss/agent/hw/test:hw_packet_utils",
-        "//fboss/agent/hw/test:hw_test_acl_utils",
         "//fboss/agent/hw/test:prod_config_factory",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/packet:ether_type",

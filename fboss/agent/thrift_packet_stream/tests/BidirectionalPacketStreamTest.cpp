@@ -2,9 +2,7 @@
 
 #include "fboss/agent/thrift_packet_stream/BidirectionalPacketStream.h"
 #include <folly/Memory.h>
-#include <folly/Random.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/io/async/EventBaseManager.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/xlog.h>
 #include <folly/portability/GMock.h>
