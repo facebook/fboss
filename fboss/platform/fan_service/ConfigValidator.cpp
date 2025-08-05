@@ -44,6 +44,7 @@ std::unordered_set<std::string> sensorPwmCalcTypes = {
 
 namespace facebook::fboss::platform::fan_service {
 bool ConfigValidator::isValid(const FanServiceConfig& config) {
+  XLOG(INFO) << "Validating fan_service config";
   if (config.controlInterval()) {
     if (*config.controlInterval()->pwmUpdateInterval() <= 0) {
       XLOG(ERR) << "Invalid pwm update interval: "
@@ -98,7 +99,6 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
     }
   }
 
-  XLOG(INFO) << "The config is valid";
   return true;
 }
 

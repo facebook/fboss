@@ -111,14 +111,14 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
        fs::directory_iterator(FLAGS_json_config_dir)) {
     std::string platformName = perPlatformDir.path().filename();
     XLOG(INFO) << fmt::format(
-        "Processing Platform {} in {}",
+        "Processing platform {} in {}",
         platformName,
         perPlatformDir.path().c_str());
 
     std::unordered_map<std::string, std::any> deserializedConfigs;
     // Fetch service configs by iterating over each platform directory
     for (const auto& jsonConfig : fs::directory_iterator(perPlatformDir)) {
-      XLOG(INFO) << "Processing Config " << jsonConfig.path();
+      XLOG(INFO) << "Processing config " << jsonConfig.path();
       std::string jsonConfigStr{};
       if (!folly::readFile(jsonConfig.path().c_str(), jsonConfigStr)) {
         XLOG(ERR) << "Could not read file " << jsonConfig.path();

@@ -467,7 +467,7 @@ bool ConfigValidator::isValidDeviceName(
 }
 
 bool ConfigValidator::isValid(const PlatformConfig& config) {
-  XLOG(INFO) << "Validating the config";
+  XLOG(INFO) << "Validating platform_manager config";
 
   // Verify presence of platform name
   if (config.platformName()->empty()) {

@@ -13,6 +13,7 @@ const re2::RE2 kSensorSymlinkRegex{"(?P<Path>/run/devmap/sensors/.+)(/.+)+"};
 }; // namespace
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
+  XLOG(INFO) << "Validating sensor_service config";
   if (!isValidPmUnitSensorsList(*sensorConfig.pmUnitSensorsList())) {
     return false;
   }

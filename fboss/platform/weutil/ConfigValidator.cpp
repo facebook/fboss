@@ -7,6 +7,7 @@ namespace facebook::fboss::platform::weutil {
 bool ConfigValidator::isValid(
     const weutil_config::WeutilConfig& config,
     const std::string& platformName) {
+  XLOG(INFO) << "Validating weutil config";
   std::unordered_set<std::string> uniqueNames{};
   for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
     XLOG(INFO) << fmt::format("Validating FruEepromConfig for {}", eepromName);
