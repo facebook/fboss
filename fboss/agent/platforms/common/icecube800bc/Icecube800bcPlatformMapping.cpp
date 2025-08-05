@@ -32276,15 +32276,20 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "TRANSCEIVER-OSFP-slot1/chip64",
       "type": 3,
       "physicalID": 63
+    },
+    {
+      "name": "TRANSCEIVER-QSFP28-slot1/chip65",
+      "type": 3,
+      "physicalID": 64
     }
   ],
   "platformSupportedProfiles": [
     {
       "factor": {
-        "profileID": 38
+        "profileID": 25
       },
       "profile": {
-        "speed": 400000,
+        "speed": 200000,
         "iphy": {
           "numLanes": 4,
           "modulation": 2,
@@ -32311,40 +32316,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
-        "profileID": 22
+        "profileID": 38
       },
       "profile": {
-        "speed": 100000,
-        "iphy": {
-          "numLanes": 4,
-          "modulation": 1,
-          "fec": 528,
-          "medium": 1,
-          "interfaceType": 10
-        }
-      }
-    },
-    {
-      "factor": {
-        "profileID": 23
-      },
-      "profile": {
-        "speed": 100000,
-        "iphy": {
-          "numLanes": 4,
-          "modulation": 1,
-          "fec": 528,
-          "medium": 2,
-          "interfaceType": 21
-        }
-      }
-    },
-    {
-      "factor": {
-        "profileID": 25
-      },
-      "profile": {
-        "speed": 200000,
+        "speed": 400000,
         "iphy": {
           "numLanes": 4,
           "modulation": 2,
