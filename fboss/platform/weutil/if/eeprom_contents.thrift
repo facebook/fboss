@@ -31,3 +31,10 @@ struct EepromContents {
   25: string vendorDefinedField3;
   26: string crc16;
 }
+
+enum ProductionState {
+  EVT = 1,
+  DVT = 2,
+  PVT = 3,
+  MP = 4,
+}
