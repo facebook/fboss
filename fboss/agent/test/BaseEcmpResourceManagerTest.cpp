@@ -293,11 +293,19 @@ void BaseEcmpResourceManagerTest::SetUp() {
   sw_ = handle_->getSw();
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
   // Taken from mock asic
+  auto asic = *sw_->getHwAsicTable()->getL3Asics().begin();
+  int asicMaxEcmpGroups, maxPct;
   if (getBackupEcmpSwitchingMode()) {
-    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
+    asicMaxEcmpGroups = *asic->getMaxDlbEcmpGroups();
+    maxPct = FLAGS_ars_resource_percentage;
   } else {
-    EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 18);
+    asicMaxEcmpGroups = *asic->getMaxEcmpGroups();
+    maxPct = FLAGS_ecmp_resource_percentage;
   }
+  EXPECT_EQ(
+      sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(),
+      std::floor(asicMaxEcmpGroups * maxPct / 100.0) -
+          FLAGS_ecmp_resource_manager_make_before_break_buffer);
   // Backup ecmp group type will come from default flowlet confg
   std::optional<cfg::SwitchingMode> expectedBackupSwitchingMode;
   if (cfg.flowletSwitchingConfig() &&
