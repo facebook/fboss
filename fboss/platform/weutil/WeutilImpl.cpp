@@ -2,6 +2,7 @@
 
 #include "fboss/platform/weutil/WeutilImpl.h"
 #include "fboss/platform/weutil/ContentValidator.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/Conv.h>
 #include <folly/Format.h>
@@ -12,17 +13,14 @@
 
 namespace {
 std::string getProductionStateString(const std::string& value) {
-  if (value == "1") {
-    return "EVT";
-  } else if (value == "2") {
-    return "DVT";
-  } else if (value == "3") {
-    return "PVT";
-  } else if (value == "4") {
-    return "MP";
+  try {
+    auto state = static_cast<facebook::fboss::platform::ProductionState>(
+        folly::to<int>(value));
+    return apache::thrift::util::enumNameOrThrow(state);
+  } catch (std::exception&) {
+    throw std::runtime_error(
+        fmt::format("Invalid Production State with value: '{}'", value));
   }
-  throw std::runtime_error(
-      fmt::format("Invalid Production State with value: '{}'", value));
 }
 } // namespace
 

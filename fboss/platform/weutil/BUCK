@@ -27,6 +27,7 @@ cpp_library(
         "//folly:string",
         "//folly/json:dynamic",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
