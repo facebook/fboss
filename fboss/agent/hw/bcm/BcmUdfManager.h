@@ -69,8 +69,8 @@ class BcmUdfManager {
     return udfPacketMatcherMap_;
   }
 
-  typedef std::map<std::string, bcm_udf_pkt_format_id_t> PacketMatcherIdMap;
-  typedef std::vector<std::string> PacketMatcherIds;
+  using PacketMatcherIdMap = std::map<std::string, bcm_udf_pkt_format_id_t>;
+  using PacketMatcherIds = std::vector<std::string>;
 
  private:
   void attachUdfPacketMatcher(

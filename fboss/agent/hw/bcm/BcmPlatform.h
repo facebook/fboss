@@ -40,7 +40,7 @@ class BcmPort;
  */
 class BcmPlatform : public Platform {
  public:
-  typedef std::map<bcm_port_t, BcmPlatformPort*> BcmPlatformPortMap;
+  using BcmPlatformPortMap = std::map<bcm_port_t, BcmPlatformPort*>;
 
   using Platform::Platform;
 

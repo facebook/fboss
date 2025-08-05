@@ -28,7 +28,7 @@ extern "C" {
 
 namespace facebook::fboss {
 
-typedef std::map<bcm_cos_queue_t, bcm_gport_t> CosQGportMap;
+using CosQGportMap = std::map<bcm_cos_queue_t, bcm_gport_t>;
 
 struct CosQueueGports {
   bcm_gport_t scheduler;

@@ -19,7 +19,7 @@ extern "C" {
 #define BCM_VER_SUPPORT_QCM \
   (BCM_VER_MAJOR == 6) && (BCM_VER_MINOR == 5) && (BCM_VER_RELEASE == 16)
 
-typedef std::set<int> QosQueueIds;
+using QosQueueIds = std::set<int>;
 
 namespace facebook::fboss {
 

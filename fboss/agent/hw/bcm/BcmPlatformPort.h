@@ -22,7 +22,7 @@ namespace facebook::fboss {
 class BcmPort;
 class BcmPlatform;
 
-typedef boost::container::flat_set<cfg::PortSpeed> LaneSpeeds;
+using LaneSpeeds = boost::container::flat_set<cfg::PortSpeed>;
 
 class BcmPlatformPort : public PlatformPort {
  public:

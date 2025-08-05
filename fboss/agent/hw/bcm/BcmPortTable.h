@@ -121,7 +121,7 @@ class BcmPortTable {
   using BcmPortMap =
       folly::ConcurrentHashMap<bcm_port_t, std::unique_ptr<BcmPort>>;
 
-  typedef std::vector<std::unique_ptr<BcmPortGroup>> BcmPortGroupList;
+  using BcmPortGroupList = std::vector<std::unique_ptr<BcmPortGroup>>;
 
   BcmSwitch* hw_{nullptr};
 
