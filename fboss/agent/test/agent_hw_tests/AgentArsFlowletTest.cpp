@@ -55,6 +55,7 @@ class AgentArsFlowletTest : public AgentArsBase {
       const override {
     return {
         ProductionFeature::DLB,
+        ProductionFeature::ARS_FLOWLET,
     };
   }
 
