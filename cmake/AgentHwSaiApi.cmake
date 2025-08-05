@@ -127,7 +127,6 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/api/oss/QueueApi.cpp
     fboss/agent/hw/sai/api/oss/MirrorApi.cpp
     fboss/agent/hw/sai/api/oss/SystemPortApi.cpp
-    fboss/agent/hw/sai/api/chenab/WredApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)

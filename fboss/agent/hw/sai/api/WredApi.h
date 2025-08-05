@@ -35,14 +35,21 @@ struct SaiWredTraits {
     /* Wred */
     using GreenEnable =
         SaiAttribute<EnumType, SAI_WRED_ATTR_GREEN_ENABLE, bool>;
-    using GreenMinThreshold =
-        SaiAttribute<EnumType, SAI_WRED_ATTR_GREEN_MIN_THRESHOLD, sai_uint32_t>;
-    using GreenMaxThreshold =
-        SaiAttribute<EnumType, SAI_WRED_ATTR_GREEN_MAX_THRESHOLD, sai_uint32_t>;
+    using GreenMinThreshold = SaiAttribute<
+        EnumType,
+        SAI_WRED_ATTR_GREEN_MIN_THRESHOLD,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using GreenMaxThreshold = SaiAttribute<
+        EnumType,
+        SAI_WRED_ATTR_GREEN_MAX_THRESHOLD,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using GreenDropProbability = SaiAttribute<
         EnumType,
         SAI_WRED_ATTR_GREEN_DROP_PROBABILITY,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiInt100Default<sai_uint32_t>>; /* Default probability is 100.*/
 
     /* ECN */
     using EcnMarkMode =
@@ -50,11 +57,13 @@ struct SaiWredTraits {
     using EcnGreenMinThreshold = SaiAttribute<
         EnumType,
         SAI_WRED_ATTR_ECN_GREEN_MIN_THRESHOLD,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using EcnGreenMaxThreshold = SaiAttribute<
         EnumType,
         SAI_WRED_ATTR_ECN_GREEN_MAX_THRESHOLD,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = WredSaiId;
@@ -111,19 +120,3 @@ class WredApi : public SaiApi<WredApi> {
 };
 
 } // namespace facebook::fboss
-
-#if defined(CHENAB_SAI_SDK)
-/* TODO(Chenab) : Remove this once separate thresholds for ECN and early drop */
-bool operator==(
-    const facebook::fboss::SaiWredTraits::AdapterHostKey& left,
-    const facebook::fboss::SaiWredTraits::AdapterHostKey& right);
-
-namespace std {
-template <>
-struct hash<facebook::fboss::SaiWredTraits::AdapterHostKey> {
-  size_t operator()(
-      const facebook::fboss::SaiWredTraits::AdapterHostKey& key) const;
-};
-} // namespace std
-
-#endif

@@ -643,19 +643,9 @@ class AgentAqmTest : public AgentHwTest {
 
       // Setup traffic loop
       setupEcmpTraffic();
-
-      // Send traffic
-      const int kNumPacketsToSend =
-          getAgentEnsemble()->getMinPktsForLineRate(portId);
-      sendPkts(
-          utility::kOlympicQueueToDscp().at(silverQueueId).front(),
-          kECT1,
-          kNumPacketsToSend);
     };
 
     auto verify = [=, this]() {
-      getAgentEnsemble()->waitForLineRateOnPort(portId);
-
       // Get stats to verify if additional packets are getting ECN marked
       HwPortStats beforePortStats =
           getAgentEnsemble()->getLatestPortStats(portId);
@@ -665,6 +655,16 @@ class AgentAqmTest : public AgentHwTest {
           silverQueueId,
           true /*useQueueStatsForAqm*/,
           beforeAqmQueueStats);
+
+      // Send traffic
+      const int kNumPacketsToSend =
+          getAgentEnsemble()->getMinPktsForLineRate(portId);
+      sendPkts(
+          utility::kOlympicQueueToDscp().at(silverQueueId).front(),
+          kECT1,
+          kNumPacketsToSend);
+
+      getAgentEnsemble()->waitForLineRateOnPort(portId);
 
       WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(200), {
         HwPortStats afterPortStats =
