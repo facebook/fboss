@@ -53,12 +53,14 @@ const std::vector<std::string> l1LinkTestNames = {
 
 const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
 
+#ifndef IS_OSS
 long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
   if (platform == facebook::fboss::PlatformType::PLATFORM_MERU800BIA) {
     return 6 * 1000 * 1000 * 1000L; // 6GB
   }
   return 3 * 1000 * 1000 * 1000L; // 3GB
 }
+#endif
 } // namespace
 
 namespace facebook::fboss {
