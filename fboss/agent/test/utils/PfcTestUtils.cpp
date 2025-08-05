@@ -65,7 +65,7 @@ void setupQosMapForPfc(
 }
 
 void setupPfc(
-    TestEnsembleIf* ensemble,
+    const TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::map<int, int>& tcToPgOverride) {
@@ -191,8 +191,13 @@ void setupPortPgConfig(
       pgConfig.sramResumeOffsetBytes() = 128 * 16 * 256;
       pgConfig.sramScalingFactor() = cfg::MMUScalingFactor::ONE_HALF;
     }
-    // set scaling factor
-    pgConfig.scalingFactor() = buffer.scalingFactor;
+    // set static/dynamic thresholds
+    if (buffer.pgShared.has_value()) {
+      pgConfig.staticLimitBytes() = *buffer.pgShared;
+    } else {
+      pgConfig.scalingFactor() = buffer.scalingFactor;
+    }
+
     portPgConfigs.emplace_back(pgConfig);
   }
 
@@ -203,8 +208,13 @@ void setupPortPgConfig(
     pgConfig.minLimitBytes() = buffer.minLimit;
     // headroom set 0 identifies lossy pgs
     pgConfig.headroomLimitBytes() = 0;
-    // set scaling factor
-    pgConfig.scalingFactor() = buffer.scalingFactor;
+    // set static/dynamic thresholds
+    if (buffer.pgShared.has_value()) {
+      pgConfig.staticLimitBytes() = *buffer.pgShared;
+    } else {
+      pgConfig.scalingFactor() = buffer.scalingFactor;
+    }
+
     portPgConfigs.emplace_back(pgConfig);
   }
 
@@ -271,7 +281,7 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
 }
 
 void setupPfcBuffers(
-    TestEnsembleIf* ensemble,
+    const TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
@@ -289,7 +299,7 @@ void setupPfcBuffers(
 }
 
 void setupPfcBuffers(
-    TestEnsembleIf* ensemble,
+    const TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,

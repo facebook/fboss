@@ -25,6 +25,7 @@ struct PfcBufferParams {
   facebook::fboss::cfg::MMUScalingFactor scalingFactor;
   std::optional<int> resumeOffset;
   std::optional<int> resumeThreshold;
+  std::optional<int> pgShared;
 
   static PfcBufferParams getPfcBufferParams(
       cfg::AsicType asicType,
@@ -33,7 +34,7 @@ struct PfcBufferParams {
 };
 
 void setupPfcBuffers(
-    TestEnsembleIf* ensemble,
+    const TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
@@ -41,7 +42,7 @@ void setupPfcBuffers(
     const std::map<int, int>& tcToPgOverride = {});
 
 void setupPfcBuffers(
-    TestEnsembleIf* ensemble,
+    const TestEnsembleIf* ensemble,
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
