@@ -41,7 +41,7 @@ class NeighborCache {
   friend class NeighborCacheEntry<NTable>;
 
  public:
-  typedef typename NTable::Entry::AddressType AddressType;
+  using AddressType = typename NTable::Entry::AddressType;
 
   virtual ~NeighborCache() {}
 

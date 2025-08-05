@@ -42,7 +42,7 @@ using std::string;
 using std::unique_ptr;
 using namespace facebook::fboss;
 
-typedef EthHdr::VlanTags_t VlanTags_t;
+using VlanTags_t = EthHdr::VlanTags_t;
 
 namespace {
 

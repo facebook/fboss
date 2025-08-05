@@ -158,11 +158,10 @@ inline bool operator&(SwitchFlags lhs, SwitchFlags rhs) {
  */
 class SwSwitch : public HwSwitchCallback {
  public:
-  typedef std::function<std::shared_ptr<SwitchState>(
-      const std::shared_ptr<SwitchState>&)>
-      StateUpdateFn;
+  using StateUpdateFn = std::function<std::shared_ptr<SwitchState>(
+      const std::shared_ptr<SwitchState>&)>;
 
-  typedef std::function<void(const StateDelta&)> StateUpdatedCallback;
+  using StateUpdatedCallback = std::function<void(const StateDelta&)>;
 
   using AllThreadsSwitchStats =
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
@@ -1031,8 +1030,8 @@ class SwSwitch : public HwSwitchCallback {
     return appliedStateDontUseDirectly_;
   }
 
-  typedef folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>
-      StateUpdateList;
+  using StateUpdateList =
+      folly::IntrusiveList<StateUpdate, &StateUpdate::listHook_>;
 
   // Forbidden copy constructor and assignment operator
   SwSwitch(SwSwitch const&) = delete;

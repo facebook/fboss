@@ -80,10 +80,10 @@ class NeighborCache;
 template <typename NTable>
 class NeighborCacheEntry : private folly::AsyncTimeout {
  public:
-  typedef typename NTable::Entry::AddressType AddressType;
-  typedef NeighborCache<NTable> Cache;
-  typedef NeighborCacheEntry<NTable> Entry;
-  typedef NeighborEntryFields<AddressType> EntryFields;
+  using AddressType = typename NTable::Entry::AddressType;
+  using Cache = NeighborCache<NTable>;
+  using Entry = NeighborCacheEntry<NTable>;
+  using EntryFields = NeighborEntryFields<AddressType>;
   NeighborCacheEntry(
       EntryFields fields,
       FbossEventBase* evb,

@@ -44,9 +44,9 @@ class NeighborCacheImpl {
   friend class NeighborCache<NTable>;
 
  public:
-  typedef typename NTable::Entry::AddressType AddressType;
-  typedef NeighborCacheEntry<NTable> Entry;
-  typedef typename Entry::EntryFields EntryFields;
+  using AddressType = typename NTable::Entry::AddressType;
+  using Entry = NeighborCacheEntry<NTable>;
+  using EntryFields = typename Entry::EntryFields;
 
   ~NeighborCacheImpl();
 

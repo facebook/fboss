@@ -106,7 +106,7 @@ class IPv6Handler : public StateObserver {
 
  private:
   struct ICMPHeaders;
-  typedef boost::container::flat_map<InterfaceID, IPv6RouteAdvertiser> RAMap;
+  using RAMap = boost::container::flat_map<InterfaceID, IPv6RouteAdvertiser>;
 
   // Forbidden copy constructor and assignment operator
   IPv6Handler(IPv6Handler const&) = delete;
