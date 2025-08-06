@@ -1586,7 +1586,7 @@ void BcmPort::updateStats() {
     XLOG(ERR) << "Failed to get queue length for port " << port_ << " :"
               << bcm_errmsg(ret);
   } else {
-    outQueueLen_.addValue(now.count(), qlength);
+    outQueueLen_.addValue(fb303::ExportedStat::TimePoint(now), qlength);
     // TODO: outQueueLen_ only exports the average queue length over the last
     // 60 seconds, 10 minutes, etc.
     // We should also export the current value.  We could use a simple counter
