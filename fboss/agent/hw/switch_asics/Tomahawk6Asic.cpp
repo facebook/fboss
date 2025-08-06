@@ -101,7 +101,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
-    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
       return true;
     // features not working well with bcmsim
@@ -112,10 +111,11 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
-    case HwAsic::Feature::ARS:
-    case HwAsic::Feature::BUFFER_POOL:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+    case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
+    case HwAsic::Feature::ARS:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
