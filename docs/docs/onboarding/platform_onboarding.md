@@ -95,7 +95,7 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] [Build a Ping test setup](https://facebook.github.io/fboss/docs/testing/ping_test/)
+   - [ ] [Build a Ping test setup](/docs/manuals/perform_a_ping_test/)
 
    **Outcomes:**
 
