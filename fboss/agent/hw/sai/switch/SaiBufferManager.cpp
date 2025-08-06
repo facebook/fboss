@@ -541,6 +541,22 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
           HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
     hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
   }
+
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  std::vector<sai_map_t> pgDiscardStatuses(
+      cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1);
+  for (int i = 0; i < pgDiscardStatuses.size(); ++i) {
+    pgDiscardStatuses[i].key = i; // pgId to query
+  }
+  pgDiscardStatuses = SaiApiTable::getInstance()->portApi().getAttribute(
+      portHandle->port->adapterKey(),
+      SaiPortTraits::Attributes::PgDropStatus{pgDiscardStatuses});
+  hwPortStats.pgInCongestionDiscardSeen_()->clear();
+  for (const auto& status : pgDiscardStatuses) {
+    (*hwPortStats.pgInCongestionDiscardSeen_())[status.key] =
+        status.value ? 1 : 0;
+  }
+#endif
 }
 
 template <typename BufferProfileTraits>

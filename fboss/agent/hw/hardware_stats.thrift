@@ -99,6 +99,7 @@ struct HwPortStats {
   65: map<i16, i64> pgInCongestionDiscards_ = {};
   66: optional i64 pfcDeadlockDetection_;
   67: optional i64 pfcDeadlockRecovery_;
+  68: map<i16, bool> pgInCongestionDiscardSeen_ = {};
 }
 
 struct HwSysPortStats {

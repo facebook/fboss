@@ -94,6 +94,8 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
       const override;
   const std::vector<folly::StringPiece>&
   kPriorityGroupMonotonicCounterStatKeys() const override;
+  const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
+      const override;
 
  private:
   std::chrono::seconds timeRetrieved_{0};

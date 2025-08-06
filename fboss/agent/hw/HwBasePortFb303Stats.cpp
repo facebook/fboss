@@ -137,6 +137,13 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
           : std::nullopt;
       portCounters_.reinitStat(newStatName, oldStatName);
     }
+    for (auto statKey : kPriorityGroupCounterStatKeys()) {
+      auto newStatName = pgStatName(statKey, portName_, i);
+      std::optional<std::string> oldStatName = oldPortName
+          ? std::optional<std::string>(pgStatName(statKey, *oldPortName, i))
+          : std::nullopt;
+      portCounters_.reinitStat(newStatName, oldStatName);
+    }
   }
 }
 
@@ -281,6 +288,14 @@ void HwBasePortFb303Stats::updatePgStat(
     int pg,
     int64_t val) {
   portCounters_.updateStat(now, pgStatName(statKey, portName_, pg), val);
+}
+
+void HwBasePortFb303Stats::setPgCounter(
+    const std::chrono::seconds& now,
+    folly::StringPiece statKey,
+    int pg,
+    int64_t val) {
+  fb303::fbData->setCounter(pgStatName(statKey, portName_, pg), val);
 }
 
 void HwBasePortFb303Stats::updateQueueWatermarkStats(

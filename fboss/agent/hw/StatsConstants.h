@@ -288,6 +288,10 @@ inline folly::StringPiece constexpr kInCongestionDiscards() {
   return "in_congestion_discards";
 }
 
+inline folly::StringPiece constexpr kInCongestionDiscardSeen() {
+  return "in_congestion_discard_seen";
+}
+
 inline folly::StringPiece constexpr kOutForwardingDiscards() {
   return "out_forwarding_discards";
 }

@@ -104,6 +104,8 @@ class HwBasePortFb303Stats {
       const = 0;
   virtual const std::vector<folly::StringPiece>&
   kPriorityGroupMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
+      const = 0;
 
  protected:
   void reinitStats(std::optional<std::string> oldPortName);
@@ -135,6 +137,14 @@ class HwBasePortFb303Stats {
    * update port priority group stat
    */
   void updatePgStat(
+      const std::chrono::seconds& now,
+      folly::StringPiece statKey,
+      int pg,
+      int64_t val);
+  /*
+   * Set the absolute value of a port priority group counter.
+   */
+  void setPgCounter(
       const std::chrono::seconds& now,
       folly::StringPiece statKey,
       int pg,
