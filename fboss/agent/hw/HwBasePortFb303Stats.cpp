@@ -130,7 +130,7 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
     }
   }
   for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX(); ++i) {
-    for (auto statKey : kPriorityGroupCounterStatKeys()) {
+    for (auto statKey : kPriorityGroupMonotonicCounterStatKeys()) {
       auto newStatName = pgStatName(statKey, portName_, i);
       std::optional<std::string> oldStatName = oldPortName
           ? std::optional<std::string>(pgStatName(statKey, *oldPortName, i))

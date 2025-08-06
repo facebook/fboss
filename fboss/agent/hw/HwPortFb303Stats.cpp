@@ -136,7 +136,7 @@ HwPortFb303Stats::kPfcMonotonicCounterStatKeys() const {
 }
 
 const std::vector<folly::StringPiece>&
-HwPortFb303Stats::kPriorityGroupCounterStatKeys() const {
+HwPortFb303Stats::kPriorityGroupMonotonicCounterStatKeys() const {
   static std::vector<folly::StringPiece> kPgKeys{
       kInCongestionDiscards(),
   };

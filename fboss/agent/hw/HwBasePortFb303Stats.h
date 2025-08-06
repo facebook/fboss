@@ -102,8 +102,8 @@ class HwBasePortFb303Stats {
   kOutMacsecPortMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
       const = 0;
-  virtual const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
-      const = 0;
+  virtual const std::vector<folly::StringPiece>&
+  kPriorityGroupMonotonicCounterStatKeys() const = 0;
 
  protected:
   void reinitStats(std::optional<std::string> oldPortName);

@@ -325,7 +325,7 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
     }
   }
   curValue = 1;
-  for (auto counterName : portStats.kPriorityGroupCounterStatKeys()) {
+  for (auto counterName : portStats.kPriorityGroupMonotonicCounterStatKeys()) {
     for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
          ++i) {
       EXPECT_EQ(
@@ -366,7 +366,7 @@ TEST(HwPortFb303StatsTest, StatsInit) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
   }
-  for (auto statKey : stats.kPriorityGroupCounterStatKeys()) {
+  for (auto statKey : stats.kPriorityGroupMonotonicCounterStatKeys()) {
     for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
          ++i) {
       EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -452,7 +452,7 @@ TEST(HwPortFb303StatsTest, ReInit) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
   }
-  for (auto statKey : stats.kPriorityGroupCounterStatKeys()) {
+  for (auto statKey : stats.kPriorityGroupMonotonicCounterStatKeys()) {
     for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
          ++i) {
       EXPECT_TRUE(fbData->getStatMap()->contains(

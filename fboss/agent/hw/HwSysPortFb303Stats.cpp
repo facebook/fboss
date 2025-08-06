@@ -69,7 +69,7 @@ HwSysPortFb303Stats::kPfcMonotonicCounterStatKeys() const {
 }
 
 const std::vector<folly::StringPiece>&
-HwSysPortFb303Stats::kPriorityGroupCounterStatKeys() const {
+HwSysPortFb303Stats::kPriorityGroupMonotonicCounterStatKeys() const {
   // No priority group stats on sys ports
   static std::vector<folly::StringPiece> kPgKeys{};
   return kPgKeys;
