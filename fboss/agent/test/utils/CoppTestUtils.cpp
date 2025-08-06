@@ -704,13 +704,19 @@ uint64_t getCpuQueueWatermarkBytes(HwPortStats& hwPortStats, int queueId) {
 }
 
 std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
-    std::shared_ptr<SwitchState> swState) {
+    std::shared_ptr<SwitchState> swState,
+    const PortID& srcPort) {
   VlanID downlinkBaseVlanId(kDownlinkBaseVlanId);
   auto intfMap = swState->getInterfaces()->modify(&swState);
   for (const auto& [_, intfMap] : *intfMap) {
     for (auto iter = intfMap->begin(); iter != intfMap->end(); ++iter) {
       auto intf = iter->second;
-      if (intf->getVlanID() >= downlinkBaseVlanId) {
+      if (intf->getType() == cfg::InterfaceType::VLAN &&
+          intf->getVlanID() >= downlinkBaseVlanId) {
+        return intf->clone();
+      } else if (
+          intf->getType() == cfg::InterfaceType::PORT &&
+          intf->getPortID() == srcPort) {
         return intf->clone();
       }
     }
@@ -1605,7 +1611,7 @@ void verifyCoppInvariantHelper(
     const HwAsic* hwAsic,
     std::shared_ptr<SwitchState> swState,
     PortID srcPort) {
-  auto intf = getEligibleInterface(swState);
+  auto intf = getEligibleInterface(swState, srcPort);
   if (!intf) {
     throw FbossError(
         "No eligible uplink/downlink interfaces in config to verify COPP invariant");
