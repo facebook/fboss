@@ -797,6 +797,11 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTechSupportType::operator()() {
+  return SAI_SWITCH_ATTR_TECH_SUPPORT_TYPE;
+}
+
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributePfcTcDldTimerGranularityInterval::operator()() {
   return std::nullopt;

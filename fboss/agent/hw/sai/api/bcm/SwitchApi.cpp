@@ -597,6 +597,15 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTechSupportType::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  // TODO (nivinl): Attr not yet available in 13.x!
+  return SAI_SWITCH_ATTR_TECH_SUPPORT_TYPE;
+#endif
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributePfcTcDldTimerGranularityInterval::operator()() {
 #if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_11_0)
