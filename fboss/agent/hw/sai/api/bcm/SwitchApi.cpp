@@ -161,6 +161,18 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramBlockTime() {
 }
 
 const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::dramQuarantinedBufferStats() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  // TODO (nivinl): Stats ID not yet available in 13.x!
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DRAM_QUARANTINE_BUFFER_STATUS};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
 SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   static const std::vector<sai_stat_id_t> stats{
