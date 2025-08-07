@@ -16,3 +16,18 @@ cpp_library(
         "//fboss/thrift_cow/visitors:visitors",
     ],
 )
+
+cpp_library(
+    name = "fsdb_thrift_struct_oper_instantiations",
+    srcs = [
+        "FsdbThriftStructOperStateInstantiations.cpp",
+    ],
+    headers = [
+        "FsdbThriftStructOperInstantiations.h",
+    ],
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:nodes",
+    ],
+)
