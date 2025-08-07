@@ -100,6 +100,17 @@ class CmisHelper final {
             SMFMediaInterfaceCode::FR4_400G,
         },
         {
+            // 2x400G-DR4
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+        },
+        {
             // 2x200G-FR4
             SMFMediaInterfaceCode::FR4_200G,
             SMFMediaInterfaceCode::FR4_200G,
@@ -208,6 +219,28 @@ class CmisHelper final {
             SMFMediaInterfaceCode::LR4_10_400G,
             SMFMediaInterfaceCode::LR4_10_400G,
             SMFMediaInterfaceCode::LR4_10_400G,
+        },
+        {
+            // 800G-DR4 + 400G-DR4
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+        },
+        {
+            // 400G-DR4 + 800G-DR4
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_400G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
+            SMFMediaInterfaceCode::DR4_800G,
         },
         {
             // 800G-DR4 + 800G-DR4
