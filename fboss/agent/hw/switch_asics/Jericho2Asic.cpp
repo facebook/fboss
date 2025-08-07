@@ -223,6 +223,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
+    case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
       return false;
   }
   return false;
