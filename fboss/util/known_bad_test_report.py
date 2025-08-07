@@ -13,7 +13,7 @@ import sys
 import time
 import typing as t
 from datetime import date
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import libfb.py.asyncio.tasks as task_api
 
@@ -34,6 +34,7 @@ logging.basicConfig(
 # Constants
 DEFAULT_MAX_RECORDS = "100"  # Default number of records returned from scuba
 DEFAULT_OUTPUT_FILE = "known_bad_tests_data.json"
+DEFAULT_CLUSTER = "gp"
 ONCALL = "fboss_agent_push"
 PASSED = 1
 FAILED = 0
@@ -177,6 +178,46 @@ class ScubaQueryBuilder:
 
         return sql_query
 
+    def build_query_for_chronos_job_id(
+        self,
+        job_name_prefix: str,
+        cluster: str = DEFAULT_CLUSTER,
+        excluded_reasons: Optional[List[str]] = None,
+        limit: str = DEFAULT_MAX_RECORDS,
+        queue: Optional[str] = None,
+    ) -> str:
+        """Build a Scuba query for Chronos jobs."""
+        current_time = int(time.time())
+        consider_results_since = str(current_time - 60 * 60 * 24)  # Last 24 hours
+
+        sql_base = f"""
+            SELECT
+                IF(exit_code != '0', "Fail", "Success"),
+                cluster_name + '/' + jobname,
+                `jobname`,
+                `jobId`,
+                `jobVersion`
+            FROM `chronos_job_instance_states`
+            WHERE
+                {consider_results_since} <= `time`
+                AND `time` <= {current_time}
+                AND (CONTAINS(cluster_name + '/' + jobname, ARRAY('{job_name_prefix}')))
+            """
+
+        if cluster:
+            sql_base += f" AND ((`cluster_name`) IN ('{cluster}'))"
+
+        if excluded_reasons:
+            excluded_reasons_str = "', '".join(excluded_reasons)
+            sql_base += f" AND NOT ((`reason`) IN ('{excluded_reasons_str}'))"
+
+        if queue:
+            sql_base += f" AND ((`queue`) IN ('{queue}'))"
+
+        sql_base += f" LIMIT {limit}"
+
+        return sql_base
+
     def execute_query(self, sql_query: str) -> Optional[Any]:
         """Execute a Scuba query and return the results."""
         try:
@@ -271,6 +312,18 @@ def main() -> Optional[int]:
                 logger.info("No email sent or task created")
         else:
             logger.info("No known bad tests found")
+
+        # query scuba for job ids
+        sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
+            "sai_agent_known_bad_test",
+        )
+        df = ScubaQueryBuilder().execute_query(sql_query)
+        if df is None:
+            logger.error("Error: Could not execute Scuba query")
+            return 1
+
+        for i, job_id in enumerate(df["jobId"]):
+            print(f"job id: {job_id}, job name: {df['jobname'][i]}")
 
     return 0
 
