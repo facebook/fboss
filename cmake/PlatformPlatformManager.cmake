@@ -147,7 +147,7 @@ target_link_libraries(platform_manager_platform_explorer
   platform_manager_utils
   platform_fs_utils
   fb303::fb303
-  weutil_fboss_eeprom_parser
+  weutil_fboss_eeprom_interface
   ioctl_smbus_eeprom_reader
   Folly::folly
 )
@@ -205,7 +205,7 @@ target_link_libraries(platform_manager
   platform_manager_service_cpp2
   platform_manager_snapshot_cpp2
   platform_manager_utils
-  weutil_fboss_eeprom_parser
+  weutil_fboss_eeprom_interface
   ioctl_smbus_eeprom_reader
   i2c_ctrl
   ${LIBGPIOD}
