@@ -32,3 +32,17 @@ cpp_library(
         "//fboss/thrift_cow/nodes:nodes",
     ],
 )
+
+cpp_library(
+    name = "fsdb_path_visitor_oper_state_instantiations",
+    srcs = [
+        "FsdbPathVisitorOperStateInstantiations.cpp",
+    ],
+    headers = [
+        "FsdbPathVisitorOperStateInstantiations.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/visitors:visitors",
+    ],
+)
