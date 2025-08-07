@@ -46,3 +46,17 @@ cpp_library(
         "//fboss/thrift_cow/visitors:visitors",
     ],
 )
+
+cpp_library(
+    name = "fsdb_thrift_struct_std_functions_instantiations",
+    srcs = [
+        "FsdbThriftStructStdFunctionsInstantiations.cpp",
+    ],
+    headers = [
+        "FsdbThriftStructStdFunctionsInstantiations.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:nodes",
+    ],
+)
