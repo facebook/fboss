@@ -92,5 +92,7 @@ cpp_library(
         ":fsdb_path_converter",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_state_sub_mgr_instantiations",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_thrift_struct_std_functions_instantiations",
     ],
 )
