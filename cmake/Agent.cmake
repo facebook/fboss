@@ -229,6 +229,17 @@ target_link_libraries(shel_manager
   ${GTEST}
 )
 
+add_library(fsdb_adapted_sub_manager
+  fboss/agent/FsdbAdaptedSubManager.cpp
+)
+
+target_link_libraries(fsdb_adapted_sub_manager
+  state
+  fsdb_sub_mgr
+  fsdb_model
+  cow_storage
+)
+
 add_library(core
   fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
@@ -244,7 +255,6 @@ add_library(core
   fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
-  fboss/agent/FsdbAdaptedSubManager.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
@@ -360,6 +370,7 @@ set(core_libs
   alert_logger
   Folly::folly
   bidirectional_packet_stream
+  fsdb_adapted_sub_manager
   fsdb_common_cpp2
   fsdb_model
   fsdb_stream_client
