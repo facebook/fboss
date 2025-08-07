@@ -14,3 +14,17 @@ target_link_libraries(weutil_crc16_ccitt_test
 )
 
 gtest_discover_tests(weutil_crc16_ccitt_test)
+
+add_executable(weutil_fboss_eeprom_interface_test
+  fboss/platform/weutil/test/FbossEepromInterfaceTest.cpp
+)
+
+target_link_libraries(weutil_fboss_eeprom_interface_test
+  weutil_fboss_eeprom_interface
+  weutil_eeprom_contents_cpp2
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(weutil_fboss_eeprom_interface_test)
