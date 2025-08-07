@@ -334,6 +334,7 @@ python_library(
         "//libfb/py/asyncio:sandcastle",
         "//libfb/py/asyncio:tasks",
         "//libfb/py/thrift_clients:oncall_thrift_client",
+        "//schedulers/chronos/py/scripts/chronos:ji_log_actions",
     ],
 )
 

@@ -25,6 +25,7 @@ from libfb.py.asyncio.sandcastle import AsyncSandcastleClient
 from libfb.py.asyncio.tasks import Task, TaskPriority
 from libfb.py.mail import async_send_internal_email
 from libfb.py.thrift_clients.oncall_thrift_client import OncallThriftClient
+from schedulers.chronos.py.scripts.chronos.ji_log_actions import get_chronos_ji_logs
 
 
 # Configure logging
@@ -286,6 +287,114 @@ class SandcastleClient:
             tests = int(match.group(1))
 
         return tests
+
+
+class ChronosJobExtractor:
+    """Main class to extract data from Chronos jobs."""
+
+    def __init__(self) -> None:
+        """Initialize the ChronosJobExtractor class."""
+
+    def get_logs(
+        self,
+        job_instance_id: int,
+        log_type: str = DEFAULT_LOG_TYPE,
+        cluster: str = DEFAULT_CLUSTER,
+    ) -> str:
+        """Get logs from a Chronos job instance."""
+        try:
+            return get_chronos_ji_logs(
+                job_instance_id=job_instance_id,
+                cluster=cluster,
+                log_type=log_type,
+                head=100,
+                tail=None,
+                suppress_logs=True,
+            )
+        except Exception as e:
+            if "Cannot find the job instance" in str(e):
+                error_msg = [
+                    f"Error: Job instance {job_instance_id} not found.",
+                    "This could be because:",
+                    "  1. The job ID is incorrect",
+                    "  2. The job has expired and its logs are no longer available",
+                    f"  3. The job belongs to a different cluster (default is '{cluster}')",
+                    "\nPlease verify the job ID and try again.",
+                    "For more information, see: https://www.internalfb.com/intern/wiki/ChronosGuide/logging-and-datasets/Chronos_Unified_Log_API/",
+                ]
+                logger.error("\n".join(error_msg))
+                return f"ERROR: Job instance {job_instance_id} not found."
+            else:
+                logger.error(f"Error retrieving Chronos logs: {e}")
+                raise
+
+    def _get_sandcastle_jobs_from_instance(
+        self, instance_id: int, cluster: str = DEFAULT_CLUSTER
+    ) -> List[str]:
+        """Get Sandcastle job IDs from a Chronos job instance."""
+        try:
+            instance_logs = self.get_logs(instance_id, cluster=cluster)
+
+            # Extract Sandcastle job IDs from logs
+            sandcastle_ids = []
+            for line in instance_logs.split("\n"):
+                if "Sandcastle job created:" in line:
+                    match = re.search(
+                        r"https://www\.internalfb\.com/intern/sandcastle/job/(\d+)/",
+                        line,
+                    )
+                    if match:
+                        sandcastle_ids.append(match.group(1))
+
+            return sandcastle_ids
+        except Exception as e:
+            logger.error(
+                f"Error getting Sandcastle jobs from instance {instance_id}: {e}"
+            )
+            return []
+
+    async def process_instance(
+        self,
+        instance_id: int,
+        job_name: str = "default_job_name",
+        cluster: str = DEFAULT_CLUSTER,
+        include_sandcastle: bool = True,
+    ) -> int:
+        """Process a Chronos job instance and return its data."""
+        try:
+            tests = 0
+            # Get Sandcastle jobs if requested
+            if include_sandcastle:
+                sandcastle_ids = self._get_sandcastle_jobs_from_instance(
+                    instance_id, cluster
+                )
+
+                for sc_id in sandcastle_ids:
+                    try:
+                        sc_logs = await SandcastleClient().get_logs(int(sc_id))
+
+                        # Process the "Run tests" step if it exists
+                        if "Run tests" in sc_logs:
+                            logger.info(
+                                f"Found 'Run tests' step in Sandcastle job {sc_id}"
+                            )
+                            tests = SandcastleClient()._extract_content_sandcastle_logs(
+                                sc_logs["Run tests"]
+                            )
+                            logger.info(f"Enqueued {tests} tests")
+                        else:
+                            logger.info(
+                                f"No 'Run tests' step found in Sandcastle job {sc_id}"
+                            )
+                            tests = 0
+                    except Exception as e:
+                        logger.error(f"Error processing Sandcastle job {sc_id}: {e}")
+
+            return tests
+
+        except Exception as e:
+            logger.error(f"Error processing instance {instance_id}: {e}")
+            return 0  # Changed return type to int
 
 
 def main() -> Optional[int]:
