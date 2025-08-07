@@ -43,8 +43,7 @@ FBOSS_KNOWN_BAD_TESTS = f"fboss_{KNOWN_BAD_TEST}"
 
 
 class UserAndEmailHandler:
-    @staticmethod
-    def get_oncall_info(oncall_name: str) -> Any:
+    def get_oncall_info(self, oncall_name: str) -> Any:
         """
         Retrieve the user ID of the current on-call person for a given rotation by short name.
 
@@ -74,7 +73,7 @@ class UserAndEmailHandler:
             user_id = employee.unixname_to_uid(user_name)
             return user_name, user_id, ""
         else:
-            oncall = UserAndEmailHandler.get_oncall_info(ONCALL)
+            oncall = UserAndEmailHandler().get_oncall_info(ONCALL)
             user_name = ONCALL
             logger.info(f"User name: {user_name}, User ID: {oncall.uid}")
             return user_name, oncall.uid, oncall.person_email
@@ -146,8 +145,8 @@ class UserAndEmailHandler:
 class ScubaQueryBuilder:
     """Class to build and execute Scuba queries for Chronos jobs."""
 
-    @staticmethod
     def build_query_for_test_results(
+        self,
         limit: str = DEFAULT_MAX_RECORDS,
     ) -> str:
         """Build a Scuba query for Chronos jobs."""
@@ -178,8 +177,7 @@ class ScubaQueryBuilder:
 
         return sql_query
 
-    @staticmethod
-    def execute_query(sql_query: str) -> Optional[Any]:
+    def execute_query(self, sql_query: str) -> Optional[Any]:
         """Execute a Scuba query and return the results."""
         try:
             df = bb.query_scuba_nullable(sql_query)
@@ -213,13 +211,19 @@ def main() -> Optional[int]:
         help="Send email to user instead of oncall",
     )
 
+    parser.add_argument(
+        "--send_notification",
+        action="store_true",
+        help="Send email to user or oncall",
+    )
+
     args = parser.parse_args()
 
     if args.query_scuba:
         # Query Scuba for test result
         logger.info("Querying Scuba for test results...")
-        sql_query = ScubaQueryBuilder.build_query_for_test_results()
-        df = ScubaQueryBuilder.execute_query(sql_query)
+        sql_query = ScubaQueryBuilder().build_query_for_test_results()
+        df = ScubaQueryBuilder().execute_query(sql_query)
 
         if df is None:
             logger.error("Error: Could not execute Scuba query")
@@ -241,27 +245,30 @@ def main() -> Optional[int]:
             logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
 
             # send email to user or oncall
-            logger.info("Sending email...")
-            html = UserAndEmailHandler().HTTP_format_known_bad_list(tests)
+            if args.send_notification:
+                logger.info("Sending email...")
+                html = UserAndEmailHandler().HTTP_format_known_bad_list(tests)
 
-            logger.info("html generated successfully for email body")
-            images = {}
-            return_code = asyncio.run(
-                UserAndEmailHandler().send_email(args.user, html, images)
-            )
-
-            if return_code == 0:
-                logger.error(
-                    f"Error: Failed to send email to user, return_code: {return_code}"
+                logger.info("html generated successfully for email body")
+                images = {}
+                return_code = asyncio.run(
+                    UserAndEmailHandler().send_email(args.user, html, images)
                 )
-                return return_code
 
-            logger.info(f"Email sent successfully return_code: {return_code}")
+                if return_code == 0:
+                    logger.error(
+                        f"Error: Failed to send email to user, return_code: {return_code}"
+                    )
+                    return return_code
 
-            # create task for user or oncall
-            logger.info("Creating task for oncall...")
-            task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
-            logger.info(f"Task created successfully: {task.task_number}")
+                logger.info(f"Email sent successfully return_code: {return_code}")
+
+                # create task for user or oncall
+                logger.info("Creating task for oncall...")
+                task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
+                logger.info(f"Task created successfully: {task.task_number}")
+            else:
+                logger.info("No email sent or task created")
         else:
             logger.info("No known bad tests found")
 
