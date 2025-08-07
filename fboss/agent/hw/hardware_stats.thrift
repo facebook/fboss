@@ -369,6 +369,7 @@ struct HwSwitchDramStats {
   1: optional i64 dramEnqueuedBytes;
   2: optional i64 dramDequeuedBytes;
   3: optional i64 dramBlockedTimeNsec;
+  4: optional i64 dramQuarantinedBufferCount;
 }
 
 struct HwSwitchCreditStats {
