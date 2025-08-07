@@ -9,6 +9,7 @@ import getpass
 import json
 import logging
 import os
+import re
 import sys
 import time
 import typing as t
@@ -20,6 +21,7 @@ import libfb.py.asyncio.tasks as task_api
 from analytics.bamboo import Bamboo as bb
 from libfb.py import employee
 from libfb.py.asyncio.await_utils import asyncio
+from libfb.py.asyncio.sandcastle import AsyncSandcastleClient
 from libfb.py.asyncio.tasks import Task, TaskPriority
 from libfb.py.mail import async_send_internal_email
 from libfb.py.thrift_clients.oncall_thrift_client import OncallThriftClient
@@ -41,6 +43,7 @@ FAILED = 0
 USER_UNIX_ID = "prasoon"
 KNOWN_BAD_TEST = "known_bad_tests"
 FBOSS_KNOWN_BAD_TESTS = f"fboss_{KNOWN_BAD_TEST}"
+DEFAULT_LOG_TYPE = "stderr"
 
 
 class UserAndEmailHandler:
@@ -226,6 +229,63 @@ class ScubaQueryBuilder:
         except Exception as e:
             logger.error(f"Error querying Scuba: {e}")
             return None
+
+
+class SandcastleClient:
+    """Class to interact with Sandcastle jobs."""
+
+    async def get_logs(self, job_id: int) -> Dict[str, str]:
+        """Get logs from a Sandcastle job."""
+        try:
+            async with AsyncSandcastleClient() as client:
+                job_logs_dict = {}
+
+                job_spec = await client.get_spec(job_id)
+
+                logger.info(f"Processing Sandcastle job: {job_id}")
+
+                # Extract steps based on job type
+                if "steps" in job_spec["args"]:
+                    steps = [s["name"] for s in job_spec["args"]["steps"]]
+                elif (
+                    job_spec["command"] == "SandcastleSkycastleCommand"
+                    and "steps" not in job_spec["args"]
+                ):
+                    # For SandcastleSkycastleCommand without steps, extract from logs
+                    workflow_log = await client.get_log(job_id)
+                    pattern = r'Starting step "(.*?)"'
+                    steps = [
+                        match
+                        for line in workflow_log
+                        for match in re.findall(pattern, line)
+                    ]
+                    logger.warning(
+                        f"Skycastle {job_id} unexpectedly has no steps created"
+                    )
+                else:
+                    raise ValueError(f"Unsupported command: {job_spec['command']}")
+
+                logger.info(f"Found {len(steps)} steps in Sandcastle job {job_id}")
+                logger.info("Getting logs for step: Run tests")
+                logs_list = await client.get_log(job_id, step_name="Run tests")
+                job_logs_dict["Run tests"] = "\n".join(logs_list)
+
+                return job_logs_dict
+
+        except Exception as e:
+            logger.error(f"Error retrieving Sandcastle logs for job {job_id}: {e}")
+            raise
+
+    def _extract_content_sandcastle_logs(self, logs: str) -> int:
+        """Extract content from Sandcastle logs."""
+        # Extract content from logs
+        tests = int(0)
+        # Use regex to find the pattern "Enqueued <number> tests"
+        match = re.search(r"multiprocess_test_orchestrator: Enqueued (\d+) tests", logs)
+        if match:
+            tests = int(match.group(1))
+
+        return tests
 
 
 def main() -> Optional[int]:
