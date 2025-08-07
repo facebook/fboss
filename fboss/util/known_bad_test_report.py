@@ -451,6 +451,12 @@ def main() -> Optional[int]:
         help="Create task for user or oncall",
     )
 
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Create json file with test data",
+    )
+
     args = parser.parse_args()
 
     if args.query_scuba:
@@ -497,7 +503,7 @@ def main() -> Optional[int]:
             logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
 
         # Write test data to a separate JSON file
-        if tests:
+        if args.json:
             with open(DEFAULT_OUTPUT_FILE, "w") as f:
                 json.dump(tests, f, indent=2, default=str)
                 json.dump(known_bad_jobs, f, indent=2, default=str)
