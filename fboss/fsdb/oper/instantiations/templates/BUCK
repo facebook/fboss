@@ -60,3 +60,18 @@ cpp_library(
         "//fboss/thrift_cow/nodes:nodes",
     ],
 )
+
+cpp_library(
+    name = "fsdb_state_sub_mgr_instantiations",
+    srcs = [
+        "FsdbStateSubscriptionManagerInstantiations.cpp",
+    ],
+    headers = [
+        "FsdbStateSubscriptionManagerInstantiations.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/oper:subscription_manager",
+        "//fboss/fsdb/oper/instantiations:fsdb_cow_root",
+        "//fboss/thrift_cow/nodes:nodes",
+    ],
+)
