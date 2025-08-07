@@ -224,6 +224,7 @@ class HwAsic {
     ACL_SET_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     BULK_CREATE_ECMP_MEMBER,
+    TECH_SUPPORT,
   };
 
   enum class AsicMode {
