@@ -35,7 +35,7 @@ logging.basicConfig(
 )
 
 # Constants
-DEFAULT_MAX_RECORDS = "100"  # Default number of records returned from scuba
+DEFAULT_MAX_RECORDS = "200"  # Default number of records returned from scuba
 DEFAULT_OUTPUT_FILE = "known_bad_tests_data.json"
 DEFAULT_CLUSTER = "gp"
 ONCALL = "fboss_agent_push"
@@ -152,11 +152,15 @@ class ScubaQueryBuilder:
 
     def build_query_for_test_results(
         self,
+        job_name_prefix: str,
         limit: str = DEFAULT_MAX_RECORDS,
+        consider_results_since: Optional[int] = None,
+        status: Optional[bool] = None,
     ) -> str:
         """Build a Scuba query for Chronos jobs."""
         current_time = int(time.time())
-        consider_results_since = str(current_time - 60 * 60 * 24 * 7)  # Last 7 days
+        if not consider_results_since:
+            consider_results_since = current_time - 60 * 60 * 24 * 7  # Last 7 days
 
         sql_query = f"""
             SELECT
@@ -168,16 +172,14 @@ class ScubaQueryBuilder:
             WHERE
                 {consider_results_since} <= `time`
                 AND `time` <= {current_time}
-                AND (CONTAINS(`sandcastle_alias`, ARRAY('sai_agent_known_bad_test')))
+                AND (CONTAINS(`sandcastle_alias`, ARRAY('{job_name_prefix}')))
                 AND ((`purpose`) IN ('stress-run'))
-                AND (`status`) IN (1)
+                AND (status IS TRUE)
             GROUP BY
                 `test_name`,
                 `status`
             ORDER BY
                 `count` DESC
-            LIMIT
-                {limit}
             """
 
         return sql_query
@@ -198,6 +200,7 @@ class ScubaQueryBuilder:
             SELECT
                 IF(exit_code != '0', "Fail", "Success"),
                 cluster_name + '/' + jobname,
+                `job_instance_id`,
                 `jobname`,
                 `jobId`,
                 `jobVersion`
@@ -217,8 +220,6 @@ class ScubaQueryBuilder:
 
         if queue:
             sql_base += f" AND ((`queue`) IN ('{queue}'))"
-
-        sql_base += f" LIMIT {limit}"
 
         return sql_base
 
@@ -432,7 +433,9 @@ def main() -> Optional[int]:
     if args.query_scuba:
         # Query Scuba for test result
         logger.info("Querying Scuba for test results...")
-        sql_query = ScubaQueryBuilder().build_query_for_test_results()
+        sql_query = ScubaQueryBuilder().build_query_for_test_results(
+            job_name_prefix="sai_agent_known_bad_test"
+        )
         df = ScubaQueryBuilder().execute_query(sql_query)
 
         if df is None:
@@ -476,7 +479,7 @@ def main() -> Optional[int]:
                 # create task for user or oncall
                 logger.info("Creating task for oncall...")
                 task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
-                logger.info(f"Task created successfully: {task.task_number}")
+                logger.info(f"Task created successfully: T{task.task_number}")
             else:
                 logger.info("No email sent or task created")
         else:
@@ -491,8 +494,19 @@ def main() -> Optional[int]:
             logger.error("Error: Could not execute Scuba query")
             return 1
 
-        for i, job_id in enumerate(df["jobId"]):
-            print(f"job id: {job_id}, job name: {df['jobname'][i]}")
+        known_bad_jobs = {}
+        for _i, (job_id, job_name, instance_id) in enumerate(
+            zip(df["jobId"], df["jobname"], df["job_instance_id"])
+        ):
+            logger.info(
+                f"job id: {job_id}, job name: {job_name} instance id: {instance_id}"
+            )
+            known_bad_jobs[job_name] = asyncio.run(
+                ChronosJobExtractor().process_instance(int(instance_id), job_name)
+            )
+
+        for job_name, job_count in known_bad_jobs.items():
+            logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
 
     return 0
 
