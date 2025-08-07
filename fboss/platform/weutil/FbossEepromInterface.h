@@ -32,8 +32,6 @@ class FbossEepromInterface {
   FbossEepromInterface(const std::string& eepromPath, const uint16_t offset);
   static FbossEepromInterface createEepromInterface(int version);
 
-  void setField(int typeCode, const std::string& value);
-
   const std::map<int, EepromFieldEntry>& getFieldDictionary() const;
 
   // TODO: Get rid of getContents() in the future.

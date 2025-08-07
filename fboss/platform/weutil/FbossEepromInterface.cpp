@@ -203,10 +203,6 @@ FbossEepromInterface FbossEepromInterface::createEepromInterface(int version) {
   return result;
 }
 
-void FbossEepromInterface::setField(int typeCode, const std::string& value) {
-  fieldMap_.at(typeCode).value = value;
-}
-
 const std::map<int, FbossEepromInterface::EepromFieldEntry>&
 FbossEepromInterface::getFieldDictionary() const {
   return fieldMap_;

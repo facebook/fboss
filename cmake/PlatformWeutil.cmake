@@ -24,7 +24,6 @@ add_library(weutil_crc16_ccitt_aug
 )
 
 add_library(weutil_fboss_eeprom_parser
-  fboss/platform/weutil/FbossEepromParser.cpp
   fboss/platform/weutil/ParserUtils.cpp
   fboss/platform/weutil/FbossEepromInterface.cpp
 )

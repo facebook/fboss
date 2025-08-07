@@ -39,19 +39,16 @@ cpp_library(
     name = "fboss_eeprom_lib",
     srcs = [
         "FbossEepromInterface.cpp",
-        "FbossEepromParser.cpp",
         "ParserUtils.cpp",
     ],
     headers = [
         "FbossEepromInterface.h",
-        "FbossEepromParser.h",
         "ParserUtils.h",
     ],
     exported_deps = [
         ":crc16_ccitt_aug",
         "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
         "//folly:string",
-        "//folly/logging:logging",
     ],
 )
 
