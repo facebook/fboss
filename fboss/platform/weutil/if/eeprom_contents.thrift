@@ -1,5 +1,5 @@
 namespace cpp2 facebook.fboss.platform
-namespace php NetengFbossPlatform
+namespace hack NetengFbossPlatform
 namespace py3 facebook.fboss.platform
 
 include "thrift/annotation/hack.thrift"
@@ -37,9 +37,9 @@ struct EepromContents {
 
 @hack.Attributes{
   attributes = [
-    "Oncalls('fboss_platform')",
+    "Oncalls('net_ui')",
     "JSEnum",
-    "GraphQLEnum('ProductionState')",
+    "GraphQLEnum('NetengFbossPlatformProductionState')",
     "SelfDescriptive",
     "RelayFlowEnum",
   ],
