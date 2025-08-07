@@ -238,6 +238,7 @@ TEST_F(SwSwitchTest, multiSwitchFb303Stats) {
     globalStats.dram_enqueued_bytes() = val;
     globalStats.dram_dequeued_bytes() = val;
     globalStats.dram_blocked_time_ns() = val;
+    globalStats.dram_quarantined_buffer_count() = val;
     globalStats.fabric_reachability_missing() = val;
     globalStats.fabric_reachability_mismatch() = val;
     globalStats.fabric_connectivity_bogus() = val;
@@ -269,6 +270,7 @@ TEST_F(SwSwitchTest, multiSwitchFb303Stats) {
     EXPECT_EQ(counters.value("dram_enqueued_bytes.sum"), expectedVal);
     EXPECT_EQ(counters.value("dram_dequeued_bytes.sum"), expectedVal);
     EXPECT_EQ(counters.value("dram_blocked_time_ns.sum"), expectedVal);
+    EXPECT_EQ(counters.value("dram_quarantined_buffer_count.sum"), expectedVal);
     EXPECT_EQ(counters.value("fabric_connectivity_missing"), expectedVal);
     EXPECT_EQ(counters.value("fabric_connectivity_mismatch"), expectedVal);
     EXPECT_EQ(counters.value("fabric_connectivity_bogus"), expectedVal);

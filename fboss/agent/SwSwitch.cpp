@@ -311,6 +311,12 @@ void accumulateFb303GlobalStats(
     dramBlockedTime += toAdd.dram_blocked_time_ns().value();
     accumulated.dram_blocked_time_ns() = dramBlockedTime;
   }
+  if (toAdd.dram_quarantined_buffer_count().has_value()) {
+    uint64_t dramQuarantinedBufferCount =
+        accumulated.dram_quarantined_buffer_count().value_or(0);
+    dramQuarantinedBufferCount += toAdd.dram_quarantined_buffer_count().value();
+    accumulated.dram_quarantined_buffer_count() = dramQuarantinedBufferCount;
+  }
   if (toAdd.vsq_resource_exhaustion_drops().has_value()) {
     int64_t drops = accumulated.vsq_resource_exhaustion_drops().value_or(0);
     drops += toAdd.vsq_resource_exhaustion_drops().value();
