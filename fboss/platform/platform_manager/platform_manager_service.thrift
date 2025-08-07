@@ -14,11 +14,11 @@ include "fboss/platform/weutil/if/eeprom_contents.thrift"
 
 @hack.Attributes{
   attributes = [
-    "Oncalls('net_ui')",
-    "JSEnum",
-    "GraphQLEnum('NetengFbossPlatformManagerExplorationStatus')",
-    "SelfDescriptive",
-    "RelayFlowEnum",
+    "\Oncalls('net_ui')",
+    "\JSEnum",
+    "\GraphQLEnum('NetengFbossPlatformManagerExplorationStatus')",
+    "\SelfDescriptive",
+    "\RelayFlowEnum",
   ],
 }
 enum ExplorationStatus {
@@ -31,11 +31,11 @@ enum ExplorationStatus {
 
 @hack.Attributes{
   attributes = [
-    "Oncalls('net_ui')",
-    "JSEnum",
-    "GraphQLEnum('NetengFbossPlatformManagerErrorCode')",
-    "SelfDescriptive",
-    "RelayFlowEnum",
+    "\Oncalls('net_ui')",
+    "\JSEnum",
+    "\GraphQLEnum('NetengFbossPlatformManagerErrorCode')",
+    "\SelfDescriptive",
+    "\RelayFlowEnum",
   ],
 }
 enum PlatformManagerErrorCode {
