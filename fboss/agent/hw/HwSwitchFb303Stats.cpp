@@ -149,6 +149,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "dram_blocked_time_ns",
           SUM,
           RATE),
+      dramQuarantinedBufferCount_(
+          map,
+          getCounterPrefix() + "dram_quarantined_buffer_count",
+          SUM,
+          RATE),
       deletedCreditBytes_(
           map,
           getCounterPrefix() + "deleted_credit_bytes",
@@ -638,6 +643,12 @@ void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
   }
   if (dramStats.dramBlockedTimeNsec().has_value()) {
     dramBlockedTimeNsec_.addValue(*dramStats.dramBlockedTimeNsec());
+  }
+  if (dramStats.dramQuarantinedBufferCount().has_value()) {
+    // DRAM quarantined buffer stats is read without clearing,
+    // hence cannot use addValue() directly.
+    updateValue(
+        dramQuarantinedBufferCount_, *dramStats.dramQuarantinedBufferCount());
   }
 }
 
