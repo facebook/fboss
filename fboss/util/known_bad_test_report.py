@@ -124,7 +124,9 @@ class UserAndEmailHandler:
             owner=owner,
         )
 
-    def HTTP_format_known_bad_list(self, tests: Dict[str, int]) -> str:
+    def HTTP_format_known_bad_list(
+        self, tests: Dict[str, int], known_bad_tests: Dict[str, int]
+    ) -> str:
         """Format the test data into a Workplace post."""
         html = "<h1>Known bad tests passing continuously for a week</h1>"
         html += "<p>Here is the list of known bad tests passing 7 times in a row:</p>"
@@ -134,6 +136,14 @@ class UserAndEmailHandler:
         for test_name, _status in tests.items():
             html += f"<tr><td>{test_name}</td></tr>"
         html += "</table>"
+        html += "<h1>Total known bad tests</h1>"
+        html += "<p>Here is the list of all known bad tests:</p>"
+        html += "<table>"
+        html += "<tr><th>Test Name</th></tr>"
+        for test_name, status in known_bad_tests.items():
+            html += f"<tr><td>{test_name}: {status}</td></tr>"
+        html += "</table>"
+
         return html
 
     def text_format_known_bad_list(self, tests: Dict[str, int]) -> str:
@@ -144,6 +154,13 @@ class UserAndEmailHandler:
         text += "Test Name\n"
         for test_name, _status in tests.items():
             text += f"{test_name}\n"
+
+        text += "\nTotal known bad tests\n"
+        text += "Here is the list of all known bad tests:\n"
+        text += "Test Name\n"
+        for test_name, status in tests.items():
+            text += f"{test_name}: {status}\n"
+
         return text
 
 
@@ -423,9 +440,15 @@ def main() -> Optional[int]:
     )
 
     parser.add_argument(
-        "--send_notification",
+        "--send_email",
         action="store_true",
         help="Send email to user or oncall",
+    )
+
+    parser.add_argument(
+        "--create_task",
+        action="store_true",
+        help="Create task for user or oncall",
     )
 
     args = parser.parse_args()
@@ -451,47 +474,12 @@ def main() -> Optional[int]:
 
         logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
 
-        # Write test data to a separate JSON file
-        if tests:
-            with open(DEFAULT_OUTPUT_FILE, "w") as f:
-                json.dump(tests, f, indent=2, default=str)
-            logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
-
-            # send email to user or oncall
-            if args.send_notification:
-                logger.info("Sending email...")
-                html = UserAndEmailHandler().HTTP_format_known_bad_list(tests)
-
-                logger.info("html generated successfully for email body")
-                images = {}
-                return_code = asyncio.run(
-                    UserAndEmailHandler().send_email(args.user, html, images)
-                )
-
-                if return_code == 0:
-                    logger.error(
-                        f"Error: Failed to send email to user, return_code: {return_code}"
-                    )
-                    return return_code
-
-                logger.info(f"Email sent successfully return_code: {return_code}")
-
-                # create task for user or oncall
-                logger.info("Creating task for oncall...")
-                task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
-                logger.info(f"Task created successfully: T{task.task_number}")
-            else:
-                logger.info("No email sent or task created")
-        else:
-            logger.info("No known bad tests found")
-
         # query scuba for job ids
         sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
             "sai_agent_known_bad_test",
         )
         df = ScubaQueryBuilder().execute_query(sql_query)
         if df is None:
-            logger.error("Error: Could not execute Scuba query")
             return 1
 
         known_bad_jobs = {}
@@ -507,6 +495,45 @@ def main() -> Optional[int]:
 
         for job_name, job_count in known_bad_jobs.items():
             logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
+
+        # Write test data to a separate JSON file
+        if tests:
+            with open(DEFAULT_OUTPUT_FILE, "w") as f:
+                json.dump(tests, f, indent=2, default=str)
+                json.dump(known_bad_jobs, f, indent=2, default=str)
+            logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
+
+            # send email to user or oncall
+            if args.send_email:
+                logger.info("Sending email...")
+                html = UserAndEmailHandler().HTTP_format_known_bad_list(
+                    tests, known_bad_jobs
+                )
+
+                logger.info("html generated successfully for email body")
+                images = {}
+                return_code = asyncio.run(
+                    UserAndEmailHandler().send_email(args.user, html, images)
+                )
+
+                if return_code == 0:
+                    logger.error(
+                        f"Error: Failed to send email to user, return_code: {return_code}"
+                    )
+
+                logger.info(f"Email sent successfully return_code: {return_code}")
+            else:
+                logger.info("No email sent")
+
+                # create task for user or oncall
+            if args.create_task:
+                logger.info("Creating task for oncall...")
+                task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
+                logger.info(f"Task created successfully: T{task.task_number}")
+            else:
+                logger.info("No task created")
+        else:
+            logger.info("No known bad tests found")
 
     return 0
 
