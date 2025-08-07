@@ -1,12 +1,23 @@
-#include "fboss/platform/weutil/FbossEepromInterface.h"
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
 
 #include <folly/String.h>
 
-#include <stdexcept>
+#include "fboss/platform/weutil/FbossEepromInterface.h"
+#include "fboss/platform/weutil/ParserUtils.h"
 
 namespace facebook::fboss::platform {
 
 namespace {
+
+// Header size in EEPROM. First two bytes are 0xFBFB followed
+// by a byte specifying the EEPROM version and one byte of 0xFF
+constexpr int kHeaderSize = 4;
+// Field Type and Length are 1 byte each.
+constexpr int kEepromTypeLengthSize = 2;
 
 using entryType = FbossEepromInterface::entryType;
 using entryType::FIELD_BE_HEX;
@@ -67,6 +78,113 @@ const std::map<int, FbossEepromInterface::EepromFieldEntry> kV6Map = {
     {250, {"CRC16", FIELD_BE_HEX, 2}}};
 
 } // namespace
+
+FbossEepromInterface::FbossEepromInterface(
+    const std::string& eepromPath,
+    const uint16_t offset) {
+  auto buffer = ParserUtils::loadEeprom(eepromPath, offset);
+  if (buffer.size() < kHeaderSize) {
+    throw std::runtime_error("Invalid EEPROM size");
+  }
+
+  version_ = buffer.at(2);
+  switch (version_) {
+    case 5:
+      fieldMap_ = kV5Map;
+      break;
+    case 6:
+      fieldMap_ = kV6Map;
+      break;
+    default:
+      throw std::runtime_error(
+          "Invalid EEPROM version : " + std::to_string(version_));
+  }
+
+  parseEepromBlobTLV(buffer);
+}
+
+void FbossEepromInterface::parseEepromBlobTLV(
+    const std::vector<uint8_t>& buffer) {
+  // A variable to count the number of items parsed so far
+  int juice = 0;
+  // According to the Meta EEPROM V5 spec and later,
+  // the actual data starts from 4th byte of eeprom.
+  int cursor = kHeaderSize;
+
+  std::string value;
+
+  while (cursor < buffer.size()) {
+    // Increment the item counter (mainly for debugging purposes)
+    // Very important to do this.
+    juice = juice + 1;
+    // First, get the itemCode of the TLV (T)
+    int fieldCode = static_cast<int>(buffer[cursor]);
+
+    // Vendors pad EEPROM with 0xff. Therefore, if item code is
+    // 0xff, then we reached to the end of the actual content.
+    if (fieldCode == 0xFF) {
+      break;
+    }
+
+    FbossEepromInterface::entryType fieldType{FIELD_INVALID};
+    std::string fieldName;
+    try {
+      fieldType = fieldMap_.at(fieldCode).fieldType;
+      fieldName = fieldMap_.at(fieldCode).fieldName;
+    }
+    // If no entry found, throw an exception
+    catch (const std::out_of_range&) {
+      std::cout << " Unknown field code " << fieldCode << " at position "
+                << cursor << " item number " << juice << std::endl;
+      throw std::runtime_error(
+          "Invalid field code in EEPROM at :" + std::to_string(cursor));
+    }
+
+    // Find Length and Variable (L and V)
+    int itemLength = buffer[cursor + 1];
+    unsigned char* itemDataPtr =
+        (unsigned char*)&buffer[cursor + kEepromTypeLengthSize];
+    // Parse the value according to the itemType
+    switch (fieldType) {
+      case FIELD_BE_UINT:
+        value = ParserUtils::parseBeUint(itemLength, itemDataPtr);
+        break;
+      case FIELD_BE_HEX:
+        value = ParserUtils::parseBeHex(itemLength, itemDataPtr);
+        break;
+      case FIELD_STRING:
+        value = ParserUtils::parseString(itemLength, itemDataPtr);
+        break;
+      case FIELD_MAC:
+        value = ParserUtils::parseMac(itemLength, itemDataPtr);
+        break;
+      default:
+        std::cout << " Unknown field type " << fieldType << " at position "
+                  << cursor << " item number " << juice << std::endl;
+        throw std::runtime_error("Invalid field type in EEPROM.");
+        break;
+    }
+    // Fill the corresponding field
+    fieldMap_.at(fieldCode).value = folly::trimWhitespace(value).str();
+    // Increment the cursor
+    cursor += itemLength + kEepromTypeLengthSize;
+    // the CRC16 is the last content, parsing must stop.
+    if (fieldName == "CRC16") {
+      uint16_t crcProgrammed = std::stoi(value, nullptr, 16);
+      uint16_t crcCalculated =
+          ParserUtils::calculateCrc16(buffer.data(), cursor);
+      if (crcProgrammed == crcCalculated) {
+        value.append(" (CRC Matched)");
+      } else {
+        std::stringstream ss;
+        ss << std::hex << crcCalculated;
+        value.append(" (CRC Mismatch. Expected 0x" + ss.str() + ")");
+      }
+      fieldMap_.at(fieldCode).value = value;
+      break;
+    }
+  }
+}
 
 FbossEepromInterface FbossEepromInterface::createEepromInterface(int version) {
   FbossEepromInterface result;
