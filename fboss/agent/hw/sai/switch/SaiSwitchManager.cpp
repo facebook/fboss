@@ -977,6 +977,23 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramReadOnlyStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::dramQuarantinedBufferStats().begin(),
+        SaiSwitchTraits::dramQuarantinedBufferStats().end());
+  }
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
     const {
   static std::vector<sai_stat_id_t> stats;
@@ -1285,6 +1302,14 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     HwSwitchDramStats dramStats;
     fillHwSwitchDramStats(switch_->getStats(switchDramStats), dramStats);
     platform_->getHwSwitch()->getSwitchStats()->update(dramStats);
+  }
+  auto switchDramReadOnlyStats = supportedDramReadOnlyStats();
+  if (switchDramReadOnlyStats.size()) {
+    switch_->updateStats(switchDramReadOnlyStats, SAI_STATS_MODE_READ);
+    HwSwitchDramStats dramReadOnlyStats;
+    fillHwSwitchDramStats(
+        switch_->getStats(switchDramReadOnlyStats), dramReadOnlyStats);
+    platform_->getHwSwitch()->getSwitchStats()->update(dramReadOnlyStats);
   }
   auto switchCreditStats = supportedCreditStats();
   if (switchCreditStats.size()) {
