@@ -2,6 +2,7 @@
 
 #include "fboss/platform/weutil/WeutilImpl.h"
 #include "fboss/platform/weutil/ContentValidator.h"
+#include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/Conv.h>
@@ -27,10 +28,10 @@ std::string getProductionStateString(const std::string& value) {
 namespace facebook::fboss::platform {
 
 WeutilImpl::WeutilImpl(const std::string& eepromPath, const uint16_t offset)
-    : parser_(eepromPath, offset) {}
+    : eepromPath_(eepromPath), offset_(offset) {}
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getContents() {
-  auto contents = parser_.getContents().getContents();
+  auto contents = FbossEepromInterface(eepromPath_, offset_).getContents();
   if (!ContentValidator().isValid(contents)) {
     throw std::runtime_error("Invalid EEPROM contents");
   }
