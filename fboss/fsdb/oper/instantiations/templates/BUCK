@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_patch_applier_oper_state_instantiations",
+    srcs = [
+        "FsdbPatchApplierOperStateInstantiations.cpp",
+    ],
+    headers = [
+        "FsdbPatchApplierOperStateInstantiations.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/visitors:visitors",
+    ],
+)
