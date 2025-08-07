@@ -20,6 +20,7 @@ cpp_library(
 cpp_library(
     name = "fsdb_thrift_struct_oper_instantiations",
     srcs = [
+        "FsdbThriftStructAgentDataInstantiations.cpp",
         "FsdbThriftStructOperStateInstantiations.cpp",
     ],
     headers = [

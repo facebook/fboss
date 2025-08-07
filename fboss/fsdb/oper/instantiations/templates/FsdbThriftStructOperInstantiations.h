@@ -21,6 +21,11 @@ extern template void ThriftStructNode<fsdb::FsdbOperStateRoot>::fromEncodedBuf(
     fsdb::OperProtocol proto,
     folly::IOBuf&& encoded);
 
+// Explicit instantiation for ThriftStructFields<AgentData>
+extern template struct ThriftStructFields<
+    fsdb::AgentData,
+    ThriftStructNode<fsdb::AgentData>>;
+
 // Explicit instantiation for ThriftStructFields<FsdbOperStateRoot>
 extern template struct ThriftStructFields<
     fsdb::FsdbOperStateRoot,
