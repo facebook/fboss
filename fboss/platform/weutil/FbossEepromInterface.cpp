@@ -203,11 +203,6 @@ FbossEepromInterface FbossEepromInterface::createEepromInterface(int version) {
   return result;
 }
 
-const std::map<int, FbossEepromInterface::EepromFieldEntry>&
-FbossEepromInterface::getFieldDictionary() const {
-  return fieldMap_;
-}
-
 std::vector<std::pair<std::string, std::string>>
 FbossEepromInterface::getContents() const {
   std::vector<std::pair<std::string, std::string>> contents;
