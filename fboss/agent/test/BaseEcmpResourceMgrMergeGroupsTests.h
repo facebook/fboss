@@ -35,6 +35,8 @@ class BaseEcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
     return kNumStartRoutes;
   }
   std::vector<RouteNextHopSet> defaultNhopSets() const;
+  std::vector<RouteNextHopSet> nextNhopSets(
+      int numSets = kNumStartRoutes) const;
   void SetUp() override;
 };
 
