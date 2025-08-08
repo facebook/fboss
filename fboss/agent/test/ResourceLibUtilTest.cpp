@@ -165,6 +165,25 @@ TEST(ResourceLibUtilTest, HostPrefixV6Generator) {
   }
 }
 
+TEST(ResourceLibUtilTest, HostPrefixV6WithOffsetGenerator) {
+  using IpT = folly::IPAddressV6;
+  using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
+
+  auto generator = utility::PrefixGenerator<IpT>(128);
+  std::array<RoutePrefixT, 5> hostPrefixes = {
+      RoutePrefixT{IpT("::4000:0"), 128},
+      RoutePrefixT{IpT("::8000:0"), 128},
+      RoutePrefixT{IpT("::c000:0"), 128},
+      RoutePrefixT{IpT("::1:0:0"), 128},
+      RoutePrefixT{IpT("::1:4000:0"), 128},
+  };
+
+  for (int i = 0; i < 5; i++) {
+    auto hostPrefix = generator.getNext({0, 0x40000000});
+    ASSERT_EQ(hostPrefix, hostPrefixes[i]);
+  }
+}
+
 TEST(ResourceLibUtilTest, LpmPrefixV6Generator) {
   using IpT = folly::IPAddressV6;
   using RoutePrefixT = RoutePrefix<folly::IPAddressV6>;
