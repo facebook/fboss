@@ -83,7 +83,8 @@
         63,
         69,
         72,
-        79
+        79,
+        86
     ],
     "jericho3": [
         2,
@@ -170,7 +171,8 @@
         65,
         67,
         69,
-        72
+        72,
+        86
     ],
     "tomahawk3": [
         2,
@@ -228,7 +230,8 @@
         72,
         80,
         81,
-        82
+        82,
+        86
     ],
     "tomahawk4": [
         2,
@@ -285,7 +288,9 @@
         80,
         81,
         82,
-        78
+        78,
+        85,
+        86
     ],
     "tomahawk5": [
         2,
@@ -340,7 +345,8 @@
         80,
         81,
         82,
-        84
+        84,
+        86
     ],
     "yuba": [
         2,
@@ -359,7 +365,6 @@
         21,
         23,
         25,
-        27,
         29,
         30,
         31,
@@ -386,7 +391,8 @@
         63,
         69,
         72,
-        79
+        79,
+        86
     ]
   },
   "asicToFeatureNames": {
@@ -473,7 +479,8 @@
         "UCMP",
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "CLASS_ID_FOR_NEIGHBOR"
     ],
     "jericho3": [
         "CPU_RX_TX",
@@ -560,7 +567,8 @@
         "MMU_TUNING",
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
-        "MODIFY_ACL_QUALIFIERS"
+        "MODIFY_ACL_QUALIFIERS",
+        "CLASS_ID_FOR_NEIGHBOR"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
@@ -618,7 +626,8 @@
         "MODIFY_ACL_QUALIFIERS",
         "PFC_WATCHDOG_GRANULARITY",
         "ARS_FLOWLET",
-        "ARS_SPRAY"
+        "ARS_SPRAY",
+        "CLASS_ID_FOR_NEIGHBOR"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -675,7 +684,9 @@
         "PFC_WATCHDOG_GRANULARITY",
         "ARS_FLOWLET",
         "ARS_SPRAY",
-        "ECMP_RANDOM_SPRAY"
+        "ECMP_RANDOM_SPRAY",
+        "HIGH_FREQUENCY_CPU_POLLING_STATS",
+        "CLASS_ID_FOR_NEIGHBOR"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -730,7 +741,8 @@
         "PFC_WATCHDOG_GRANULARITY",
         "ARS_FLOWLET",
         "ARS_SPRAY",
-        "STATIC_PG_SHARED_LIMIT"
+        "STATIC_PG_SHARED_LIMIT",
+        "CLASS_ID_FOR_NEIGHBOR"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -749,7 +761,6 @@
         "WRED",
         "JUMBO_FRAMES",
         "MAC_LEARNING",
-        "ROUTE_COUNTERS",
         "SFLOWv4_SAMPLING",
         "SFLOWv6_SAMPLING",
         "MIRROR_PACKET_TRUNCATION",
@@ -776,7 +787,8 @@
         "UCMP",
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "CLASS_ID_FOR_NEIGHBOR"
     ]
   }
 }
