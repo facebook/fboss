@@ -503,13 +503,6 @@ class SaiObjectStore {
           // to allow build
           return ObjectType(key, SaiUdfGroupTraits::AdapterHostKey{"udfGroup"});
         }
-#if defined(BRCM_SAI_SDK_XGS)
-        if constexpr (std::is_same_v<ObjectTraits, SaiWredTraits>) {
-          // Allow warm boot from version which doesn't save ahk
-          // TODO(zecheng): Remove after device warmbooted to 8.2
-          return ObjectType(key);
-        }
-#endif
         throw FbossError(
             "attempting to load an object whose adapter host key is not found.");
       }
