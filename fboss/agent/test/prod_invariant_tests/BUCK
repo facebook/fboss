@@ -1,6 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
-load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "SAI_BRCM_IMPLS", "SAI_LEABA_IMPLS", "SAI_NVIDIA_IMPLS", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 oncall("fboss_agent_push")
@@ -61,7 +61,7 @@ _sai_invariant_agent_test_prefix = "sai_invariant_agent_test"
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
-    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]
 
 _sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
@@ -94,7 +94,7 @@ _sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
-    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]
 
 _sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
@@ -127,5 +127,5 @@ _sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
-    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]
