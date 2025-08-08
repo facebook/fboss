@@ -33,7 +33,7 @@ class ResourceAccountantTest : public ::testing::Test {
         std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
     resourceAccountant_ = std::make_unique<ResourceAccountant>(
         asicTable_.get(), scopeResolver_.get());
-    FLAGS_ecmp_width = getMaxEcmpMembers();
+    FLAGS_ecmp_width = getMaxEcmpWidth();
   }
 
   const std::shared_ptr<Route<folly::IPAddressV6>> makeV6Route(
@@ -44,6 +44,9 @@ class ResourceAccountantTest : public ::testing::Test {
     return route;
   }
 
+  uint64_t getMaxEcmpWidth() {
+    return asicTable_->getHwAsic(SwitchID(0))->getMaxEcmpSize();
+  }
   uint64_t getMaxEcmpGroups() {
     auto maxEcmpGroups = asicTable_->getHwAsic(SwitchID(0))->getMaxEcmpGroups();
     CHECK(maxEcmpGroups.has_value());
@@ -70,7 +73,7 @@ class ResourceAccountantTest : public ::testing::Test {
 };
 
 TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
-  const auto ecmpWidth = (getMaxEcmpMembers() / 2) + 1;
+  const auto ecmpWidth = (getMaxEcmpWidth() / 2) + 1;
 
   RouteNextHopSet ecmpNexthops;
   for (int i = 0; i < ecmpWidth; i++) {
@@ -166,39 +169,67 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       false /* intermediateState */));
 
-  // Add one ECMP group with half of ECMP members limit plus 1
-  const auto ecmpWidth = (getMaxEcmpMembers() / 2) + 1;
-  RouteNextHopSet ecmpNexthops0;
-  for (int i = 0; i < ecmpWidth; i++) {
-    ecmpNexthops0.insert(ResolvedNextHop(
-        folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
-        InterfaceID(i + 1),
-        ecmpWeight));
+  // Add one ECMP group with max ECMP membere
+  const auto ecmpWidth = getMaxEcmpWidth();
+
+  // Add 3 groups of max ecmp width. This consumes 75% of ECMP members
+  std::vector<RouteNextHopSet> ecmpNexthops;
+  for (int i = 0; i < 3; ++i) {
+    RouteNextHopSet ecmpNexthopsCur;
+    for (int j = 0; j < ecmpWidth; j++) {
+      ecmpNexthopsCur.insert(ResolvedNextHop(
+          folly::IPAddress(folly::to<std::string>(i + 1, ".1.1.", j + 1)),
+          InterfaceID(i + 1),
+          ecmpWeight));
+    }
+    this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthopsCur] = 1;
+    this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
+    ecmpNexthops.push_back(std::move(ecmpNexthopsCur));
   }
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops0] = 1;
-  this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       false /* intermediateState */));
 
-  // Add another ECMP group with half of ECMP members limit plus 1
-  RouteNextHopSet ecmpNexthops1;
-  for (int i = 0; i < ecmpWidth; i++) {
-    ecmpNexthops1.insert(ResolvedNextHop(
-        folly::IPAddress(folly::to<std::string>("2.1.1.", i + 1)),
+  // Add a ecmp groups with 2 members. So resource usage now exceeds
+  // 75% of max ecmp members
+
+  RouteNextHopSet ecmpNexthops4;
+  for (int i = 0; i < 2; i++) {
+    ecmpNexthops4.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("100.1.1.", i + 1)),
         InterfaceID(i + 1),
         ecmpWeight));
   }
-  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops1] = 1;
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops4] = 1;
+  this->resourceAccountant_->ecmpMemberUsage_ += 2;
+  // Intermediate limit is 100%, which is not violated
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+  // End limit is 75% which is now violated
+  EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  // Add another ECMP group with max ECMP width
+  RouteNextHopSet ecmpNexthops5;
+  for (int i = 0; i < ecmpWidth; i++) {
+    ecmpNexthops4.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("4.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        ecmpWeight));
+  }
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops5] = 1;
   this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
+  // Both intermediate and end limit are violated
   EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
   EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
       false /* intermediateState */));
 
-  // Remove ecmpGroup1
-  this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops1);
+  // Remove ecmpGroup4, 5:
+  this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops4);
+  this->resourceAccountant_->ecmpMemberUsage_ -= 2;
+  this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops5);
   this->resourceAccountant_->ecmpMemberUsage_ -= ecmpWidth;
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
@@ -209,7 +240,7 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
   std::vector<RouteNextHopSet> ecmpNexthopsList;
   ecmpNexthopsList.reserve(
       (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0));
-  for (int i = 0;
+  for (int i = ecmpNexthops.size();
        i < (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0);
        i++) {
     ecmpNexthopsList.push_back(RouteNextHopSet{
@@ -226,7 +257,7 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
     this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;
     this->resourceAccountant_->ecmpMemberUsage_ += 2;
   }
-  this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops0);
+  this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops[0]);
   this->resourceAccountant_->ecmpMemberUsage_ -= ecmpWidth;
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       true /* intermediateState */));
@@ -252,45 +283,48 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
 }
 
 TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
-  // Add one ECMP group with half of ECMP members limit plus 1
-  const auto ecmpWidth = (getMaxEcmpMembers() / 2) + 1;
-  RouteNextHopSet ecmpNexthops0;
-  for (int i = 0; i < ecmpWidth; i++) {
-    ecmpNexthops0.insert(ResolvedNextHop(
-        folly::IPAddress(folly::to<std::string>("1::", i + 1)),
-        InterfaceID(i + 1),
-        ecmpWeight));
+  // Add one ECMP group with ECMP width limit
+  const auto ecmpWidth = getMaxEcmpWidth();
+  auto constexpr kEcmpGroupsOfHalfWidth = 7;
+  std::array<RouteNextHopSet, kEcmpGroupsOfHalfWidth> ecmpNexthops;
+  std::array<std::shared_ptr<RouteV6>, kEcmpGroupsOfHalfWidth> routes;
+  for (int i = 0; i < kEcmpGroupsOfHalfWidth; ++i) {
+    for (int j = 0; j < ecmpWidth / 2; j++) {
+      ecmpNexthops[i].insert(ResolvedNextHop(
+          folly::IPAddress(folly::to<std::string>(i + 1, "::", j + 1)),
+          InterfaceID(j + 1),
+          ecmpWeight));
+    }
+    routes[i] = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("100::", i + 1)), 128},
+        {ecmpNexthops[i], AdminDistance::EBGP});
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                        routes[i], true /* add */));
   }
-  const auto route0 = makeV6Route(
-      {folly::IPAddressV6("100::1"), 128},
-      {ecmpNexthops0, AdminDistance::EBGP});
-  EXPECT_TRUE(
-      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
-          route0, true /* add */));
 
-  // Add another ECMP group with half of ECMP members limit plus 1
-  RouteNextHopSet ecmpNexthops1;
+  // Add another ECMP group with max ECMP width
+  RouteNextHopSet ecmpNexthops8;
   for (int i = 0; i < ecmpWidth; i++) {
-    ecmpNexthops1.insert(ResolvedNextHop(
+    ecmpNexthops8.insert(ResolvedNextHop(
         folly::IPAddress(folly::to<std::string>("2.1.1.", i + 1)),
         InterfaceID(i + 1),
         ecmpWeight));
   }
-  const auto route1 = makeV6Route(
+  const auto route8 = makeV6Route(
       {folly::IPAddressV6("200::1"), 128},
-      {ecmpNexthops1, AdminDistance::EBGP});
+      {ecmpNexthops8, AdminDistance::EBGP});
   EXPECT_FALSE(this->resourceAccountant_
                    ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                       route1, true /* add */));
+                       route8, true /* add */));
 
-  // Rmove above route
+  // Remove above route
   EXPECT_TRUE(this->resourceAccountant_
                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                      route1, false /* add */));
-
-  // Add four groups (with width = 2 each) and remove ecmpGroup0
-  std::vector<std::shared_ptr<Route<folly::IPAddressV6>>> routes;
-  for (int i = 0; i < getMaxEcmpGroups(); i++) {
+                      route8, false /* add */));
+  // Add more groups (with width = 2 each) and
+  const auto groupsToAdd = getMaxEcmpGroups() - kEcmpGroupsOfHalfWidth + 1;
+  for (int i = 0; i < groupsToAdd; i++) {
     auto ecmpNextHops = RouteNextHopSet{
         ResolvedNextHop(
             folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
@@ -301,9 +335,9 @@ TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
             InterfaceID(i + 2),
             ecmpWeight)};
     const auto route = makeV6Route(
-        {folly::IPAddressV6(folly::to<std::string>(i + 1, "00::1")), 128},
+        {folly::IPAddressV6(folly::to<std::string>("300::", i + 1)), 128},
         {ecmpNextHops, AdminDistance::EBGP});
-    if (i < getMaxEcmpGroups() - 1) {
+    if (i < groupsToAdd - 1) {
       EXPECT_TRUE(this->resourceAccountant_
                       ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
                           route, true /* add */));
@@ -316,7 +350,7 @@ TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
 
   EXPECT_TRUE(this->resourceAccountant_
                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                      route0, false /* add */));
+                      routes[0], false /* add */));
 }
 
 TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
@@ -371,7 +405,7 @@ TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
   RouteNextHopSet ecmpNexthops;
   for (int i = 0; i < getMaxEcmpMembers() - 1; i++) {
     ecmpNexthops.insert(ResolvedNextHop(
-        folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+        folly::IPAddress(folly::to<std::string>("1::", i + 1)),
         InterfaceID(i + 1),
         i + 1));
   }

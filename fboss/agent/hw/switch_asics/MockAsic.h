@@ -139,13 +139,13 @@ class MockAsic : public HwAsic {
     return 128;
   }
   uint32_t getMaxEcmpSize() const override {
-    return 512;
+    return 128;
   }
   std::optional<uint32_t> getMaxEcmpGroups() const override {
     return 20;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
-    return 256;
+    return 512;
   }
   std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
     return 7;
