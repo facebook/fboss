@@ -278,13 +278,13 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
       const auto& inStats = *modelIntfMKAStats.ingressAclStats();
       const auto& outStats = *modelIntfMKAStats.egressAclStats();
 
-      Table table;
-      table.setHeader({"Counter Name", "IN", "OUT"});
-      table.addRow(
+      Table aclTable;
+      aclTable.setHeader({"Counter Name", "IN", "OUT"});
+      aclTable.addRow(
           {"DefaultAclPackets",
            std::to_string(*inStats.defaultAclStats()),
            std::to_string(*outStats.defaultAclStats())});
-      out << table << std::endl;
+      out << aclTable << std::endl;
     };
 
     for (auto& m : model.intfMKAStats().value()) {
