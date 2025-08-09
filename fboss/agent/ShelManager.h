@@ -45,6 +45,7 @@ class ShelManager : public PreUpdateStateModifier {
   folly::Synchronized<std::unordered_map<InterfaceID, uint64_t>> intf2RefCnt_;
 
   FRIEND_TEST(ShelManagerTest, RefCountAndIntf2AddDel);
+  FRIEND_TEST(ShelManagerTest, EcmpOverShelDisabledPort);
 };
 
 } // namespace facebook::fboss
