@@ -1018,6 +1018,7 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
       return 0;
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BIAB:
+    case PlatformType::PLATFORM_MERU800BIAC:
     case PlatformType::PLATFORM_JANGA800BIC:
       return 1024;
 
