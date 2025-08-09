@@ -51,12 +51,12 @@ TEST_F(ShelManagerTest, RefCountAndIntf2AddDel) {
   auto switchState = switchStateWithLocalSysPorts(kLocalSysPortRange);
 
   shelManager_->updateRefCount(ecmpNextHopSet, switchState, true /*add*/);
-  EXPECT_EQ(shelManager_->intf2RefCnt_.size(), ecmpWidth);
+  EXPECT_EQ(shelManager_->intf2RefCnt_.rlock()->size(), ecmpWidth);
   for (int i = 0; i < ecmpWidth; i++) {
-    EXPECT_EQ(shelManager_->intf2RefCnt_.at(InterfaceID(i + 1)), 1);
+    EXPECT_EQ(shelManager_->intf2RefCnt_.rlock()->at(InterfaceID(i + 1)), 1);
   }
 
   shelManager_->updateRefCount(ecmpNextHopSet, switchState, false /*add*/);
-  EXPECT_TRUE(shelManager_->intf2RefCnt_.empty());
+  EXPECT_TRUE(shelManager_->intf2RefCnt_.rlock()->empty());
 }
 } // namespace facebook::fboss

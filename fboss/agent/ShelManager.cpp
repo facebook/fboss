@@ -16,7 +16,7 @@ std::vector<StateDelta> ShelManager::modifyState(
 std::vector<StateDelta> ShelManager::reconstructFromSwitchState(
     const std::shared_ptr<SwitchState>& curState) {
   XLOG(DBG2) << "ShelManager reconstructing from switch state";
-  intf2RefCnt_.clear();
+  intf2RefCnt_.wlock()->clear();
   std::vector<StateDelta> deltas;
   deltas.emplace_back(std::make_shared<SwitchState>(), curState);
   return modifyStateImpl(deltas);
@@ -41,18 +41,19 @@ void ShelManager::updateRefCount(
       auto sysPort =
           origState->getSystemPorts()->getNodeIf(SystemPortID(nhop.intf()));
       if (sysPort && sysPort->getScope() == cfg::Scope::GLOBAL) {
-        auto iter = intf2RefCnt_.find(nhop.intf());
+        auto lockedMap = intf2RefCnt_.wlock();
+        auto iter = lockedMap->find(nhop.intf());
         if (add) {
-          if (iter == intf2RefCnt_.end()) {
-            intf2RefCnt_[nhop.intf()] = 1;
+          if (iter == lockedMap->end()) {
+            lockedMap->insert_or_assign(nhop.intf(), 1);
           } else {
             iter->second++;
           }
         } else {
-          CHECK(iter != intf2RefCnt_.end() && iter->second > 0);
+          CHECK(iter != lockedMap->end() && iter->second > 0);
           iter->second--;
           if (iter->second == 0) {
-            intf2RefCnt_.erase(iter);
+            lockedMap->erase(iter);
           }
         }
       }
@@ -122,7 +123,7 @@ void ShelManager::processRouteUpdates(const StateDelta& delta) {
 
 std::shared_ptr<SwitchState> ShelManager::processDelta(
     const StateDelta& delta) {
-  auto beforeIntf2RefCnt = intf2RefCnt_;
+  auto beforeIntf2RefCnt = folly::copy(*intf2RefCnt_.rlock());
   processRouteUpdates(delta);
   auto modifiedState = delta.newState()->clone();
 
@@ -143,8 +144,9 @@ std::shared_ptr<SwitchState> ShelManager::processDelta(
         }
       };
 
-  processIntfDiff(beforeIntf2RefCnt, intf2RefCnt_, true);
-  processIntfDiff(intf2RefCnt_, beforeIntf2RefCnt, false);
+  auto lockedMap = intf2RefCnt_.rlock();
+  processIntfDiff(beforeIntf2RefCnt, *lockedMap, true);
+  processIntfDiff(*lockedMap, beforeIntf2RefCnt, false);
   modifiedState->publish();
   return modifiedState;
 }
