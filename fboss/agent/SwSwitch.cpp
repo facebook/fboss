@@ -951,6 +951,9 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.fabricReachabilityStats()});
       agentStats.sysPortShelStateMap()->insert(
           {switchIdx, *hwSwitchStats.sysPortShelState()});
+      *agentStats.ecmpOverShelDisabledPort() |=
+          shelManager_->ecmpOverShelDisabledPort(
+              *hwSwitchStats.sysPortShelState());
       for (auto&& statEntry :
            *hwSwitchStats.switchTemperatureStats()->value()) {
         auto temp = *hwSwitchStats.switchTemperatureStats()->timeStamp();
