@@ -19,6 +19,8 @@ class ShelManager : public PreUpdateStateModifier {
       const std::shared_ptr<SwitchState>& curState) override;
   void updateDone() override;
   void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
+  bool ecmpOverShelDisabledPort(
+      const std::map<int, cfg::PortState>& sysPortShelState);
 
  private:
   void updateRefCount(

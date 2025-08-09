@@ -31,6 +31,20 @@ void ShelManager::updateFailed(const std::shared_ptr<SwitchState>& curState) {
   reconstructFromSwitchState(curState);
 }
 
+bool ShelManager::ecmpOverShelDisabledPort(
+    const std::map<int, cfg::PortState>& sysPortShelState) {
+  for (const auto& [sysPortId, portState] : sysPortShelState) {
+    if (portState == cfg::PortState::DISABLED) {
+      auto lockedMap = intf2RefCnt_.rlock();
+      if (lockedMap->find(static_cast<InterfaceID>(sysPortId)) !=
+          lockedMap->end()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void ShelManager::updateRefCount(
     const RouteNextHopEntry::NextHopSet& routeNhops,
     const std::shared_ptr<SwitchState>& origState,
