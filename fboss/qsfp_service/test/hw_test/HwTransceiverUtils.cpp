@@ -123,6 +123,7 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::DR4_2x800G:
       case MediaInterfaceCode::CR8_800G:
         switch (profile) {
+          case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
@@ -144,7 +145,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
-          case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
             expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
             break;
           default:
@@ -368,6 +368,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       verifyCopper53gProfile(tcvrState, mediaInterfaces);
       break;
 
+    case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
       verifyOptical800gProfile(mgmtInterface, mediaInterfaces);
       break;
