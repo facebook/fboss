@@ -99,5 +99,16 @@ std::vector<InputBalanceResult> checkInputBalanceDualStage(
     const std::unordered_map<std::string, cfg::DsfNode>& switchNameToDsfNode,
     bool verbose);
 
+std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
+    const InputBalanceDestType& inputBalanceDestType,
+    const std::string& dstSwitchName,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        inputCapacityForDst,
+    const std::vector<std::string>& outputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
+    bool verbose);
+
 } // namespace utility
 } // namespace facebook::fboss
