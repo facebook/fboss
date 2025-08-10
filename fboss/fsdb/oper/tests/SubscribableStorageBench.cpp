@@ -110,6 +110,63 @@ void bm_concurrent_get_set(
   suspender.rehire();
 }
 
+void bm_serve_initialSync(
+    uint32_t /* unused */,
+    uint32_t numPatchSubs,
+    uint32_t numPathSubs,
+    uint32_t numDeltaSubs) {
+  folly::BenchmarkSuspender suspender;
+
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen,
+      StorageBenchmarkHelper::Params().setStartWithInitializedData(false));
+  helper.startStorage();
+
+  folly::coro::AsyncScope asyncScope;
+  auto numThreads = numPatchSubs + numPathSubs + numDeltaSubs;
+  int nExpectedValues = 1;
+  auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(numThreads);
+
+  std::map<int, SubscriptionIdentifier> subIds;
+  int nSubs = 0;
+
+  for (int i = 0; i < numPatchSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("patch_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPatchSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues)));
+    nSubs++;
+  }
+
+  for (int i = 0; i < numPathSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("path_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPathSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues)));
+    nSubs++;
+  }
+
+  for (int i = 0; i < numDeltaSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("delta_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addDeltaSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues)));
+    nSubs++;
+  }
+
+  suspender.dismiss();
+
+  helper.setStorageData();
+
+  folly::coro::blockingWait(asyncScope.joinAsync());
+
+  suspender.rehire();
+}
+
 BENCHMARK_NAMED_PARAM(bm_get, threads_1, 1, kReadsPerTask);
 
 BENCHMARK_NAMED_PARAM(bm_get, threads_2, 2, kReadsPerTask);
@@ -176,6 +233,12 @@ BENCHMARK_NAMED_PARAM(
     kWritesPerTask,
     true,
     false);
+
+BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_path, 0, 1, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_delta, 0, 0, 1);
+
+BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_patch, 1, 0, 0);
 
 } // namespace facebook::fboss::fsdb::test
 
