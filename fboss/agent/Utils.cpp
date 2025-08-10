@@ -948,7 +948,6 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
       break;
     case cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR:
       throw FbossError("Valid desired DRAINED states are {DRAINED, UNDRAINED}");
-      break;
   }
 
   return newSwitchDrainState;
@@ -1024,7 +1023,6 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
     default:
       return 0;
   }
-  return 0;
 }
 
 std::string runShellCmd(const std::string& cmd) {

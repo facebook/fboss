@@ -363,7 +363,6 @@ void ReceiveMachine::timeoutExpired() noexcept {
       case ReceiveState::INITIALIZED:
       case ReceiveState::DEFAULTED:
         throw LACPError("invalid transition to ", state_);
-        break;
     }
   } catch (...) {
     std::exception_ptr e = std::current_exception();
@@ -453,7 +452,6 @@ void PeriodicTransmissionMachine::beginNextPeriod() {
       break;
     case PeriodicState::TX:
       throw LACPError("invalid transition to ", state_);
-      break;
   }
 }
 
