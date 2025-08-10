@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
+#include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 
 namespace {
@@ -22,26 +23,42 @@ namespace facebook::fboss::fsdb::test {
 class StorageBenchmarkHelper {
  public:
   using RootType = TestStruct;
-  StorageBenchmarkHelper(bool serveGetRequestsWithLastPublishedState = true)
-      : storage_(NaivePeriodicSubscribableCowStorage<RootType>(
+
+  struct Params {
+    Params(
+        bool largeUpdates = false,
+        bool serveGetRequestsWithLastPublishedState = true)
+        : largeUpdates(largeUpdates),
+          serveGetRequestsWithLastPublishedState(
+              serveGetRequestsWithLastPublishedState) {}
+
+    Params setLargeUpdates(bool val) {
+      this->largeUpdates = val;
+      return *this;
+    }
+
+    bool largeUpdates;
+    bool serveGetRequestsWithLastPublishedState;
+  };
+
+  explicit StorageBenchmarkHelper(
+      test_data::IDataGenerator& gen,
+      Params params = Params())
+      : gen_(gen),
+        params_(params),
+        storage_(NaivePeriodicSubscribableCowStorage<RootType>(
             {},
             NaivePeriodicSubscribableStorageBase::StorageParams()
                 .setServeGetRequestsWithLastPublishedState(
-                    serveGetRequestsWithLastPublishedState))) {
+                    params_.serveGetRequestsWithLastPublishedState))) {
     storage_.setConvertToIDPaths(true);
     // initialize test data versions
+    testData_.emplace_back(gen_.getStateUpdate(0, false));
     for (int version = 0; version < 2; version++) {
-      TestStruct data;
-      data.tx() = (version % 2) ? true : false;
-      for (int i = 1; i <= 1 * 1000; i++) {
-        TestStructSimple newStruct;
-        newStruct.min() = i;
-        newStruct.max() = version + i;
-        data.structMap()[i] = newStruct;
-      }
-      testData_.emplace_back(std::move(data));
+      testData_.emplace_back(
+          gen_.getStateUpdate(version, !params_.largeUpdates));
     }
-    storage_.set(root, testData_[0]);
+    storage_.set_encoded(*testData_[0].path()->path(), *testData_[0].state());
   }
 
   void startStorage() {
@@ -50,27 +67,26 @@ class StorageBenchmarkHelper {
 
   folly::coro::Task<void> getRequest(uint32_t numReads) {
     for (auto count = 0; count < numReads; count++) {
-      storage_.get_encoded(this->root.structMap(), OperProtocol::BINARY);
+      storage_.get_encoded(this->root.mapOfStructs(), OperProtocol::BINARY);
     }
     co_return;
   }
 
-  folly::coro::Task<void> publishData(uint32_t numWrites, bool useLargeData) {
+  folly::coro::Task<void> publishData(uint32_t numWrites) {
     for (auto count = 0; count < numWrites; count++) {
-      int version = (count % 2);
-      if (useLargeData) {
-        storage_.set(root, testData_[version]);
-      } else {
-        storage_.set(root.structMap()[42], testData_[version].structMap()[42]);
-      }
+      int version = 1 + (count % 2);
+      storage_.set_encoded(
+          *testData_[version].path()->path(), *testData_[version].state());
     }
     co_return;
   }
 
  private:
+  test_data::IDataGenerator& gen_;
+  Params params_;
   thriftpath::RootThriftPath<RootType> root;
   NaivePeriodicSubscribableCowStorage<RootType> storage_;
-  std::vector<RootType> testData_;
+  std::vector<TaggedOperState> testData_;
 };
 
 void bm_get(
@@ -79,7 +95,8 @@ void bm_get(
     uint32_t numReadsPerTask) {
   folly::BenchmarkSuspender suspender;
 
-  StorageBenchmarkHelper helper;
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(dataGen);
   helper.startStorage();
 
   // launch get requests from multiple threads
@@ -105,7 +122,9 @@ void bm_set(
     bool useLargeData) {
   folly::BenchmarkSuspender suspender;
 
-  StorageBenchmarkHelper helper;
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen, StorageBenchmarkHelper::Params().setLargeUpdates(useLargeData));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -114,8 +133,8 @@ void bm_set(
   suspender.dismiss();
 
   for (int i = 0; i < numThreads; i++) {
-    asyncScope.add(co_withExecutor(
-        executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
+    asyncScope.add(
+        co_withExecutor(executor.get(), helper.publishData(numWritesPerTask)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -134,7 +153,11 @@ void bm_concurrent_get_set(
 
   folly::BenchmarkSuspender suspender;
 
-  StorageBenchmarkHelper helper(serveGetRequestsWithLastPublishedState);
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen,
+      StorageBenchmarkHelper::Params(
+          useLargeData, serveGetRequestsWithLastPublishedState));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -142,8 +165,8 @@ void bm_concurrent_get_set(
 
   suspender.dismiss();
 
-  asyncScope.add(co_withExecutor(
-      executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
+  asyncScope.add(
+      co_withExecutor(executor.get(), helper.publishData(numWritesPerTask)));
 
   for (int i = 1; i < numThreads; i++) {
     asyncScope.add(

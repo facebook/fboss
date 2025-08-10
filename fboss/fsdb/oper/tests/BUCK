@@ -110,6 +110,7 @@ cpp_benchmark(
         "fbsource//third-party/googletest:gtest",
         "//fboss/fsdb/oper:subscribable_storage",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/thrift_cow/storage/tests:data_factory",
         "//folly:benchmark",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
