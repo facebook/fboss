@@ -34,7 +34,6 @@ class CmdShowInterfaceCountersFec : public CmdHandler<
       const ObjectArgType& /* system|line */) {
     throw std::runtime_error(
         "Incomplete command, please use one the subcommands");
-    return RetType();
   }
 
   void printOutput(const RetType& /* model */) {}
