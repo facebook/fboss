@@ -15,6 +15,7 @@
 namespace {
 constexpr auto kReadsPerTask = 1000;
 constexpr auto kWritesPerTask = 200;
+constexpr auto kNumIncrementalUpdates = 10;
 } // namespace
 
 namespace facebook::fboss::fsdb::test {
@@ -54,7 +55,10 @@ void bm_set(
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
   StorageBenchmarkHelper helper(
-      dataGen, StorageBenchmarkHelper::Params().setLargeUpdates(useLargeData));
+      dataGen,
+      StorageBenchmarkHelper::Params()
+          .setLargeUpdates(useLargeData)
+          .setNumUpdates(2));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -88,6 +92,7 @@ void bm_concurrent_get_set(
       dataGen,
       StorageBenchmarkHelper::Params()
           .setLargeUpdates(useLargeData)
+          .setNumUpdates(2)
           .setServeGetWithLastPublished(
               serveGetRequestsWithLastPublishedState));
   helper.startStorage();
@@ -167,6 +172,80 @@ void bm_serve_initialSync(
   suspender.rehire();
 }
 
+void bm_serve_update_state(
+    uint32_t /* unused */,
+    uint32_t numPatchSubs,
+    uint32_t numPathSubs,
+    uint32_t numDeltaSubs) {
+  folly::BenchmarkSuspender suspender;
+
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen,
+      StorageBenchmarkHelper::Params().setNumUpdates(kNumIncrementalUpdates));
+  helper.startStorage();
+
+  folly::coro::AsyncScope asyncScope;
+  auto numThreads = numPatchSubs + numPathSubs + numDeltaSubs;
+  int nExpectedValues = kNumIncrementalUpdates + 1;
+  auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(numThreads);
+
+  folly::Baton<> updateReceived;
+
+  std::optional<std::function<void()>> updateReceivedCb = [&]() {
+    updateReceived.post();
+  };
+
+  std::map<int, SubscriptionIdentifier> subIds;
+  int nSubs = 0;
+
+  for (int i = 0; i < numPatchSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("patch_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPatchSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues, updateReceivedCb)));
+    nSubs++;
+    updateReceivedCb = std::nullopt;
+  }
+
+  for (int i = 0; i < numPathSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("path_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPathSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues, updateReceivedCb)));
+    nSubs++;
+    updateReceivedCb = std::nullopt;
+  }
+
+  for (int i = 0; i < numDeltaSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("delta_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addDeltaSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues, updateReceivedCb)));
+    nSubs++;
+    updateReceivedCb = std::nullopt;
+  }
+
+  // wait for initial sync to complete
+  updateReceived.wait();
+  updateReceived.reset();
+
+  suspender.dismiss();
+
+  for (int version = 1; version <= kNumIncrementalUpdates; version++) {
+    helper.setStorageData(version);
+    updateReceived.wait();
+    updateReceived.reset();
+  }
+
+  folly::coro::blockingWait(asyncScope.joinAsync());
+
+  suspender.rehire();
+}
+
 BENCHMARK_NAMED_PARAM(bm_get, threads_1, 1, kReadsPerTask);
 
 BENCHMARK_NAMED_PARAM(bm_get, threads_2, 2, kReadsPerTask);
@@ -239,6 +318,14 @@ BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_path, 0, 1, 0);
 BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_delta, 0, 0, 1);
 
 BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_patch, 1, 0, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_path, 0, 1, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_delta, 0, 0, 1);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch, 1, 0, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch_1_delta, 1, 0, 1);
 
 } // namespace facebook::fboss::fsdb::test
 

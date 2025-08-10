@@ -17,7 +17,8 @@ class StorageBenchmarkHelper {
     Params()
         : largeUpdates(false),
           serveGetRequestsWithLastPublishedState(true),
-          startWithInitializedData(true) {}
+          startWithInitializedData(true),
+          numUpdates(0) {}
 
     Params& setLargeUpdates(bool val) {
       largeUpdates = val;
@@ -34,9 +35,15 @@ class StorageBenchmarkHelper {
       return *this;
     }
 
+    Params& setNumUpdates(int val) {
+      numUpdates = val;
+      return *this;
+    }
+
     bool largeUpdates;
     bool serveGetRequestsWithLastPublishedState;
     bool startWithInitializedData;
+    int numUpdates;
   };
 
   explicit StorageBenchmarkHelper(
@@ -54,15 +61,18 @@ class StorageBenchmarkHelper {
 
   folly::coro::Task<void> addPathSubscription(
       SubscriptionIdentifier&& subscriberId,
-      int nExpectedValues);
+      int nExpectedValues,
+      std::optional<std::function<void()>> onDataReceived = std::nullopt);
 
   folly::coro::Task<void> addDeltaSubscription(
       SubscriptionIdentifier&& subscriberId,
-      int nExpectedValues);
+      int nExpectedValues,
+      std::optional<std::function<void()>> onDataReceived = std::nullopt);
 
   folly::coro::Task<void> addPatchSubscription(
       SubscriptionIdentifier&& subscriberId,
-      int nExpectedValues);
+      int nExpectedValues,
+      std::optional<std::function<void()>> onDataReceived = std::nullopt);
 
  private:
   std::vector<std::string> getSubscriptionPath();
