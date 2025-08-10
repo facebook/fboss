@@ -81,7 +81,7 @@ std::optional<std::string> PlatformNameLib::getPlatformName() const {
   }
   try {
     return getPlatformNameFromBios();
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     return std::nullopt;
   }
 }

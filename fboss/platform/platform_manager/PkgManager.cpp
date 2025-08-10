@@ -224,7 +224,7 @@ void PkgManager::processAll() const {
   }
   try {
     loadRequiredKmods();
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     // This can happen when kmods are loaded from initramfs - causing conflicts
     // We need to unload them before loading again.
     XLOG(ERR) << fmt::format("Failed to load kmods. Unloading and retrying.");
