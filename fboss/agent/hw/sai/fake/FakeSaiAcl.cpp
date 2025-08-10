@@ -97,7 +97,6 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     default:
       return false;
   }
-  return false;
 }
 } // namespace facebook::fboss
 
@@ -255,7 +254,6 @@ sai_status_t create_acl_table_fn(
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
-        break;
     }
   }
 
@@ -1355,7 +1353,6 @@ sai_status_t create_acl_table_group_fn(
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
-        break;
     }
   }
 

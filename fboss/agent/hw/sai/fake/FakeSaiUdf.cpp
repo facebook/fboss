@@ -61,7 +61,6 @@ sai_status_t create_udf_fn(
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
-        break;
     }
   }
 
@@ -147,7 +146,6 @@ sai_status_t create_udf_match_fn(
         fs->udfMatchManager.remove(*udf_match_id);
         *udf_match_id = SAI_NULL_OBJECT_ID;
         return SAI_STATUS_INVALID_PARAMETER;
-        break;
     }
   }
   return SAI_STATUS_SUCCESS;
@@ -218,7 +216,6 @@ sai_status_t create_udf_group_fn(
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
-        break;
     }
   }
   if (!length) {
