@@ -22,7 +22,6 @@ class CmdSetPort : public CmdHandler<CmdSetPort, CmdSetPortTraits> {
       const ObjectArgType& /* queriedPortIds */) {
     throw std::runtime_error(
         "Incomplete command, please use one the subcommands");
-    return RetType();
   }
 
   void printOutput(const RetType& /* model */) {}

@@ -22,7 +22,6 @@ class CmdSetInterface
       const std::vector<std::string>& /* queriedIfs */) {
     throw std::runtime_error(
         "Incomplete command, please use one the subcommands");
-    return RetType();
   }
 
   void printOutput(const RetType& /* model */) {}
