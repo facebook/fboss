@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_agent_push")
@@ -101,6 +102,22 @@ cpp_unittest(
     ],
 )
 
+cpp_library(
+    name = "subscribable_storage_bench_helper",
+    srcs = [
+        "SubscribableStorageBenchHelper.cpp",
+    ],
+    headers = [
+        "SubscribableStorageBenchHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/thrift_cow/storage/tests:data_factory",
+        "//folly/coro:blocking_wait",
+    ],
+)
+
 cpp_benchmark(
     name = "subscribable_storage_bench",
     srcs = [
@@ -108,8 +125,8 @@ cpp_benchmark(
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
+        ":subscribable_storage_bench_helper",
         "//fboss/fsdb/oper:subscribable_storage",
-        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/thrift_cow/storage/tests:data_factory",
         "//folly:benchmark",
         "//folly/coro:async_scope",
@@ -117,6 +134,5 @@ cpp_benchmark(
         "//folly/executors:cpu_thread_pool_executor",
         "//folly/init:init",
         "//folly/json:dynamic",
-        "//folly/logging:logging",
     ],
 )

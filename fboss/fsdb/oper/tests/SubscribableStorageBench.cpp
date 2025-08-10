@@ -6,12 +6,11 @@
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
-#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
 #include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
-#include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
+#include "fboss/fsdb/oper/tests/SubscribableStorageBenchHelper.h"
 
 namespace {
 constexpr auto kReadsPerTask = 1000;
@@ -19,75 +18,6 @@ constexpr auto kWritesPerTask = 200;
 } // namespace
 
 namespace facebook::fboss::fsdb::test {
-
-class StorageBenchmarkHelper {
- public:
-  using RootType = TestStruct;
-
-  struct Params {
-    Params(
-        bool largeUpdates = false,
-        bool serveGetRequestsWithLastPublishedState = true)
-        : largeUpdates(largeUpdates),
-          serveGetRequestsWithLastPublishedState(
-              serveGetRequestsWithLastPublishedState) {}
-
-    Params setLargeUpdates(bool val) {
-      this->largeUpdates = val;
-      return *this;
-    }
-
-    bool largeUpdates;
-    bool serveGetRequestsWithLastPublishedState;
-  };
-
-  explicit StorageBenchmarkHelper(
-      test_data::IDataGenerator& gen,
-      Params params = Params())
-      : gen_(gen),
-        params_(params),
-        storage_(NaivePeriodicSubscribableCowStorage<RootType>(
-            {},
-            NaivePeriodicSubscribableStorageBase::StorageParams()
-                .setServeGetRequestsWithLastPublishedState(
-                    params_.serveGetRequestsWithLastPublishedState))) {
-    storage_.setConvertToIDPaths(true);
-    // initialize test data versions
-    testData_.emplace_back(gen_.getStateUpdate(0, false));
-    for (int version = 0; version < 2; version++) {
-      testData_.emplace_back(
-          gen_.getStateUpdate(version, !params_.largeUpdates));
-    }
-    storage_.set_encoded(*testData_[0].path()->path(), *testData_[0].state());
-  }
-
-  void startStorage() {
-    storage_.start();
-  }
-
-  folly::coro::Task<void> getRequest(uint32_t numReads) {
-    for (auto count = 0; count < numReads; count++) {
-      storage_.get_encoded(this->root.mapOfStructs(), OperProtocol::BINARY);
-    }
-    co_return;
-  }
-
-  folly::coro::Task<void> publishData(uint32_t numWrites) {
-    for (auto count = 0; count < numWrites; count++) {
-      int version = 1 + (count % 2);
-      storage_.set_encoded(
-          *testData_[version].path()->path(), *testData_[version].state());
-    }
-    co_return;
-  }
-
- private:
-  test_data::IDataGenerator& gen_;
-  Params params_;
-  thriftpath::RootThriftPath<RootType> root;
-  NaivePeriodicSubscribableCowStorage<RootType> storage_;
-  std::vector<TaggedOperState> testData_;
-};
 
 void bm_get(
     uint32_t /* unused */,
@@ -156,8 +86,10 @@ void bm_concurrent_get_set(
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
   StorageBenchmarkHelper helper(
       dataGen,
-      StorageBenchmarkHelper::Params(
-          useLargeData, serveGetRequestsWithLastPublishedState));
+      StorageBenchmarkHelper::Params()
+          .setLargeUpdates(useLargeData)
+          .setServeGetWithLastPublished(
+              serveGetRequestsWithLastPublishedState));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
