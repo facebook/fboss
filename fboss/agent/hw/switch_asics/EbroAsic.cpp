@@ -241,7 +241,6 @@ bool EbroAsic::isSupportedFabric(Feature feature) const {
     default:
       return false;
   }
-  return false;
 }
 
 int EbroAsic::getDefaultNumPortQueues(

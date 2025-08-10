@@ -232,7 +232,6 @@ bool YubaAsic::isSupportedFabric(Feature feature) const {
     default:
       return false;
   }
-  return false;
 }
 
 int YubaAsic::getDefaultNumPortQueues(
