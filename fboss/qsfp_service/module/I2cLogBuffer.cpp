@@ -313,13 +313,10 @@ I2cLogBuffer::Operation I2cLogBuffer::getOp(const char op) {
   switch (op) {
     case 'R':
       return Operation::Read;
-      break;
     case 'W':
       return Operation::Write;
-      break;
     default:
       throw std::invalid_argument(fmt::format("Invalid Operation :{}", op));
-      break;
   }
 }
 

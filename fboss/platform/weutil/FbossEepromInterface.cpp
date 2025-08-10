@@ -162,7 +162,6 @@ void FbossEepromInterface::parseEepromBlobTLV(
         std::cout << " Unknown field type " << fieldType << " at position "
                   << cursor << " item number " << juice << std::endl;
         throw std::runtime_error("Invalid field type in EEPROM.");
-        break;
     }
     // Fill the corresponding field
     fieldMap_.at(fieldCode).value = folly::trimWhitespace(value).str();
