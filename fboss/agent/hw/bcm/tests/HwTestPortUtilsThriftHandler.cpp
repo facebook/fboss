@@ -170,7 +170,7 @@ void HwTestThriftHandler::getAggPortInfo(
           aggPort->sortedSubports().size());
       aggPortInfo.numMembers() = aggPort->sortedSubports().size();
 
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       XLOG(DBG2) << "Lag handle not found for port " << aggPortId;
       aggPortInfo.isPresent() = false;
     }

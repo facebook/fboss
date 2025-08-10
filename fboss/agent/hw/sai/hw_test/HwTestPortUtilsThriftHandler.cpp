@@ -258,7 +258,7 @@ void HwTestThriftHandler::getAggPortInfo(
       aggPortInfo.numActiveMembers() =
           lagManager.getActiveMemberCount(aggPortId);
 
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       XLOG(DBG2) << "Lag handle not found for port " << aggPortId;
       aggPortInfo.isPresent() = false;
     }
