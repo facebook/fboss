@@ -56,7 +56,6 @@ int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
     default:
       //  this is for fake bcm
       return 115196;
-      break;
   }
 }
 int kGlobalHeadroomBufferCells(const HwSwitch* hwSwitch) {
