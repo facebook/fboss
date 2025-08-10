@@ -278,7 +278,6 @@ TEST(ModbusErrorTest, StringConversion) {
   auto errorMsg = [](uint8_t num) {
     try {
       throw ModbusError(num);
-      return std::string();
     } catch (ModbusError& err) {
       return std::string(err.what());
     }

@@ -104,7 +104,6 @@ inline std::string toString(PlatformType mode) {
       return "UNKNOWN";
   }
   throw std::runtime_error("Unknown mode");
-  return "Unknown";
 }
 
 enum class ExternalPhyVersion : char {

@@ -64,19 +64,16 @@ class BspSystemContainer {
   virtual bool isPimPresent(int /* pimID */) const {
     // Platforms that need this, should implement this function.
     CHECK(false);
-    return false;
   }
 
   virtual uint32_t getPimOffset(int /* pim */) const {
     // Platforms that need this, should implement this function.
     CHECK(false);
-    return 0;
   }
 
   virtual uint8_t getPimStartNum() const {
     // Platforms that need this, should implement this function.
     CHECK(false);
-    return 0;
   }
 
   virtual void initHW(bool forceReset = false) {}
@@ -84,7 +81,6 @@ class BspSystemContainer {
   virtual MultiPimPlatformPimContainer::PimType getPimType(int pim) {
     // Platforms with PIMs should implement this function.
     CHECK(false);
-    return MultiPimPlatformPimContainer::PimType();
   }
 
   void setPhyManager(PhyManager* phyMgr) {

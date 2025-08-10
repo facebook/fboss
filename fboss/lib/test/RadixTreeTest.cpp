@@ -27,7 +27,6 @@ IPAddressV4 getIP<IPAddressV4>(const radix_node_t& n) {
     return IPAddressV4(n.prefix->add.sin);
   }
   CHECK(false);
-  return IPAddressV4("0.0.0.0");
 }
 
 template <typename IPAddrType, typename T>
