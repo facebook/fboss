@@ -106,7 +106,6 @@ class BcmHostKey {
 
   uint32_t getLabel() const {
     throw FbossError("unlabeled host key has no label");
-    return 0;
   }
 
   bool needsMplsTunnel() const {
