@@ -101,6 +101,7 @@ cpp_library(
     link_whole = True,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
@@ -194,12 +195,14 @@ cpp_library(
         "//folly:file_util",
         "//folly:map_util",
         "//folly:network_address",
+        "//folly:scope_guard",
         "//folly/container:f14_hash",
         "//folly/executors:function_scheduler",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//folly/memory:mallctl_helper",
         "//folly/testing:test_util",
+        "//thrift/lib/cpp2/test:matcher",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),

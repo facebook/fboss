@@ -1,14 +1,19 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <chrono>
+#include <cstdint>
 #include <map>
 #include <memory>
+#include <string>
 #include <thread>
 #include <vector>
 
+#include "folly/ScopeGuard.h"
 #include "folly/container/F14Map.h"
 #include "folly/executors/FunctionScheduler.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "thrift/lib/cpp2/test/Matcher.h"
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitchThriftClientTable.h"
@@ -17,13 +22,28 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/highfreq_types.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
+
+using testing::_;
+using testing::Contains;
+using testing::Gt;
+using testing::Pair;
+
+using apache::thrift::test::ThriftField;
+namespace field = apache::thrift::ident;
 
 class AgentHighFrequencyStatsTest : public AgentHwTest {
  public:
@@ -94,6 +114,80 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
           utility::makePfcFramePacket(*getAgentEnsemble(), classVector),
           portId);
     }
+  }
+
+  const folly::IPAddressV6 kDestIp() const {
+    static const folly::IPAddressV6 destIp{"2620:0:1cfe:face:b00c::3"};
+    return destIp;
+  }
+
+  // Sends UDP packets to the destination IP. The UDP packets are sent on ECN1
+  // queue (queue 2).
+  void sendUdpPkts(
+      const folly::IPAddressV6& dstIp,
+      int cnt = 100,
+      int payloadSize = 6000) {
+    folly::MacAddress intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    const int queueId{
+        utility::getOlympicQueueId(utility::OlympicQueueType::ECN1)};
+    const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp{
+        utility::kOlympicQueueToDscp()};
+    auto dscpsIt = kOlympicQueueToDscp.find(queueId);
+    ASSERT_NE(dscpsIt, kOlympicQueueToDscp.end());
+    for (int i = 0; i < cnt; i++) {
+      getSw()->sendPacketSwitchedAsync(utility::makeUDPTxPacket(
+          getSw(),
+          getVlanIDForTx() /*vlan*/,
+          utility::MacAddressGenerator().get(intfMac.u64NBO() + 1) /*srcMac*/,
+          intfMac /*dstMac*/,
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::3") /*srcIp*/,
+          dstIp,
+          8000 /*srcPort*/,
+          8001 /*dstPort*/,
+          static_cast<uint8_t>(dscpsIt->second.at(0) << 2) /*dscp*/,
+          255 /*hopLimit*/,
+          std::vector<uint8_t>(payloadSize, 0xff) /*payload*/));
+    }
+  }
+
+  void setupEcmpTraffic(
+      const PortID& portId,
+      const folly::IPAddressV6& addr,
+      const folly::MacAddress& nextHopMac,
+      bool disableTtlDecrement = false) {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), nextHopMac};
+    const PortDescriptor port{portId};
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, {port});
+    });
+    SwSwitchRouteUpdateWrapper routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {RoutePrefixV6(addr, 128)});
+
+    if (disableTtlDecrement) {
+      utility::ttlDecrementHandlingForLoopbackTraffic(
+          getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
+    }
+  }
+
+  // Configures the switch with olympic queue config and qos maps.
+  void configureOlympicSwitchConfig() {
+    AgentEnsemble& ensemble = *getAgentEnsemble();
+    cfg::SwitchConfig config = ensemble.getCurrentConfig();
+    utility::addOlympicQueueConfig(&config, ensemble.getL3Asics());
+    utility::addOlympicQosMaps(config, ensemble.getL3Asics());
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
+    applyNewConfig(config);
+  }
+
+  void configureSwitchConfigAndOneLoopbackPort(const PortID& portId) {
+    configureOlympicSwitchConfig();
+    setupEcmpTraffic(
+        portId,
+        kDestIp(),
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        true /*disableTtlDecrement*/);
   }
 };
 
@@ -198,6 +292,54 @@ TEST_F(AgentHighFrequencyStatsTest, PfcTest) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Test device watermarks for high frequency stats collection. Set up ECMP
+// traffic loop on a port. Set up a thrift client to call the high frequency
+// stats collection API on the hw agent. Send traffic on the loopback port and
+// run the high frequency stats collection job simultaneously. Call the get high
+// frequency stats API. Verify that the device watermarks are non-zero.
+TEST_F(AgentHighFrequencyStatsTest, DeviceWatermarkTest) {
+  PortID loopbackPort{masterLogicalInterfacePortIds()[0]};
+
+  auto setup = [&]() { configureSwitchConfigAndOneLoopbackPort(loopbackPort); };
+
+  auto verify = [&]() {
+    apache::thrift::Client<FbossHwCtrl>* client =
+        getSw()->getHwSwitchThriftClientTable()->getClient(SwitchID(0));
+
+    HighFrequencyStatsCollectionConfig config{getCollectionConfig()};
+    config.statsConfig()->includeDeviceWatermark() = true;
+    client->sync_startHighFrequencyStatsCollection(config);
+    SCOPE_EXIT {
+      client->sync_stopHighFrequencyStatsCollection();
+    };
+
+    // Send traffic
+    sendUdpPkts(kDestIp());
+    SCOPE_EXIT {
+      bringDownPort(loopbackPort);
+      bringUpPort(loopbackPort);
+    };
+
+    GetHighFrequencyStatsOptions options{};
+    options.limit() = 1024;
+    std::vector<HwHighFrequencyStats> statsList;
+    // Poll the stats until at least 2 entries are present. At a 20ms polling
+    // interval and a 200ms collection duration, we should have near 10 entries,
+    // probably closer to 8-9 to account for the time to actually poll the
+    // watermark stats.
+    WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(20), {
+      client->sync_getHighFrequencyStats(statsList, options);
+      EXPECT_EVENTUALLY_GE(statsList.size(), 2);
+    });
+    EXPECT_THAT(
+        statsList,
+        Contains(ThriftField<field::itmPoolSharedWatermarkBytes>(
+            Contains(Pair(_, Gt(0))))));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // TODO(T233514960): Add test to verify polling regularly with increasing
 // timestamps
 // TODO(T233514960): Add test to verify polling polling with an accurate
@@ -205,5 +347,7 @@ TEST_F(AgentHighFrequencyStatsTest, PfcTest) {
 // TODO(T233514960): Add test to verify polling stops automatically after the
 // stats collection duration
 // TODO(T233514960): Add test to verify stop API ends stats polling
+// TODO(T233514960): Add test to verify get stats collection with timestamp
+// filters works as expected
 
 } // namespace facebook::fboss
