@@ -5,6 +5,7 @@
 #include "folly/IPAddress.h"
 
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
@@ -166,6 +167,12 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     newMirror->setEgressPortDesc(PortDescriptor(eventorPort));
     newMirror->setDestinationMac(
         getEventorPortInterfaceMac(state, eventorPort));
+  }
+  // For overriding the egress port in tests.
+  if (FLAGS_sflow_egress_port_id > 0) {
+    PortID egressPort(FLAGS_sflow_egress_port_id);
+    newMirror->setEgressPortDesc(PortDescriptor(egressPort));
+    newMirror->setDestinationMac(getEventorPortInterfaceMac(state, egressPort));
   }
 
   if (*mirror == *newMirror) {

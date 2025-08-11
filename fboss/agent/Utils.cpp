@@ -81,6 +81,7 @@ DEFINE_bool(
     allow_eventor_send_packet,
     false,
     "A test-only flag to allow sending packets directly out of the eventor");
+DEFINE_int32(sflow_egress_port_id, 0, "Force sflow to egress from a port");
 
 namespace facebook::fboss {
 

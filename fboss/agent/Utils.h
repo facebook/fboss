@@ -43,6 +43,7 @@ DECLARE_bool(allow_zero_headroom_for_lossless_pg);
 DECLARE_string(mod_dest_mac_override);
 DECLARE_bool(allow_nif_port_for_mod);
 DECLARE_bool(allow_eventor_send_packet);
+DECLARE_int32(sflow_egress_port_id);
 
 namespace folly {
 struct dynamic;
