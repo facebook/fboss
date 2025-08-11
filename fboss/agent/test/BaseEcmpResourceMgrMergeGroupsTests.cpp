@@ -24,6 +24,18 @@ BaseEcmpResourceMgrMergeGroupsTest::defaultNhopSets() const {
   return defaultNhopGroups;
 }
 
+std::vector<RouteNextHopSet> BaseEcmpResourceMgrMergeGroupsTest::nextNhopSets(
+    int numSets) const {
+  auto nhopsStart = defaultNhopSets().back();
+  std::vector<RouteNextHopSet> nhopsTo;
+  for (auto i = 0; i < numSets; ++i) {
+    nhopsStart.erase(nhopsStart.begin());
+    CHECK_GT(nhopsStart.size(), 1);
+    nhopsTo.push_back(nhopsStart);
+  }
+  return nhopsTo;
+}
+
 void BaseEcmpResourceMgrMergeGroupsTest::setupFlags() const {
   FLAGS_enable_ecmp_resource_manager = true;
   FLAGS_ecmp_resource_percentage = 100;

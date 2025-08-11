@@ -19,7 +19,6 @@
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 #include <folly/IPAddress.h>
-#include <map>
 #include <memory>
 #include <vector>
 
@@ -33,16 +32,17 @@ template <typename AddrT>
 folly::CIDRNetwork getNewPrefix(
     PrefixGenerator<AddrT>& prefixGenerator,
     const std::shared_ptr<facebook::fboss::SwitchState>& state,
-    facebook::fboss::RouterID routerId) {
+    const facebook::fboss::RouterID& routerId,
+    std::optional<typename IdT<AddrT>::type> offset = std::nullopt) {
   // Obtain a new prefix.
-  auto prefix = prefixGenerator.getNext();
+  auto prefix = offset.has_value() ? prefixGenerator.getNext(offset.value())
+                                   : prefixGenerator.getNext();
   while (findRoute<AddrT>(routerId, {prefix.network(), prefix.mask()}, state)) {
-    prefix = prefixGenerator.getNext();
+    prefix = offset.has_value() ? prefixGenerator.getNext(offset.value())
+                                : prefixGenerator.getNext();
   }
   return folly::CIDRNetwork{{prefix.network()}, prefix.mask()};
 }
-
-using Masklen2NumPrefixes = std::map<uint8_t, uint32_t>;
 
 /*
  * RouteDistributionGenerator takes a input state, distribution spec and
@@ -55,15 +55,24 @@ class RouteDistributionGenerator {
     folly::CIDRNetwork prefix;
     std::vector<UnresolvedNextHop> nhops;
   };
+  template <typename AddrT>
+  struct RouteDistribution {
+    uint8_t masklen{};
+    uint32_t numPrefixes{};
+    std::optional<typename IdT<AddrT>::type> offset =
+        std::nullopt; // offset used to generate prefix
+  };
   using RouteChunk = std::vector<Route>;
   using RouteChunks = std::vector<RouteChunk>;
   using ThriftRouteChunk = std::vector<UnicastRoute>;
   using ThriftRouteChunks = std::vector<ThriftRouteChunk>;
+  template <typename AddrT>
+  using RouteDistributionSpec = std::vector<RouteDistribution<AddrT>>;
 
   RouteDistributionGenerator(
       const std::shared_ptr<SwitchState>& startingState,
-      const Masklen2NumPrefixes& v6DistributionSpec,
-      const Masklen2NumPrefixes& v4DistributionSpec,
+      const RouteDistributionSpec<folly::IPAddressV6>& v6DistributionSpec,
+      const RouteDistributionSpec<folly::IPAddressV4>& v4DistributionSpec,
       unsigned int chunkSize,
       unsigned int ecmpWidth,
       bool needL2EntryForNeighbor,
@@ -113,8 +122,8 @@ class RouteDistributionGenerator {
   const std::vector<UnresolvedNextHop>& getNhops() const;
 
   const std::shared_ptr<SwitchState> startingState_;
-  const Masklen2NumPrefixes v6DistributionSpec_;
-  const Masklen2NumPrefixes v4DistributionSpec_;
+  const RouteDistributionSpec<folly::IPAddressV6> v6DistributionSpec_;
+  const RouteDistributionSpec<folly::IPAddressV4> v4DistributionSpec_;
   const unsigned int chunkSize_;
   const unsigned int ecmpWidth_;
   const bool needL2EntryForNeighbor_;
@@ -122,7 +131,8 @@ class RouteDistributionGenerator {
 
  protected:
   template <typename AddT>
-  void genRouteDistribution(const Masklen2NumPrefixes& routeDistribution) const;
+  void genRouteDistribution(
+      const RouteDistributionSpec<AddT>& routeDistributionSpec) const;
   virtual void genRoutes() const;
   /*
    * Caches for generated chunks. Mark mutable since caching is just a

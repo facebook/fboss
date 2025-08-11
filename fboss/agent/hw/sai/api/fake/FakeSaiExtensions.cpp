@@ -409,6 +409,12 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramBlockTime() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::dramQuarantinedBufferStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
@@ -795,6 +801,11 @@ SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return SAI_SWITCH_ATTR_TC_RATE_LIMIT_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTechSupportType::operator()() {
+  return SAI_SWITCH_ATTR_TECH_SUPPORT_TYPE;
 }
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::

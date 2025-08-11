@@ -108,6 +108,16 @@ class ScaleTestRouteScaleGenerator : public RouteDistributionGenerator {
       RouterID routerId = RouterID(0));
 };
 
+class HostPrefixRouteScaleGenerator : public RouteDistributionGenerator {
+ public:
+  explicit HostPrefixRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      const RouterID& routerId = RouterID(0));
+};
+
 class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   std::shared_ptr<SwitchState> resolveNextHops(

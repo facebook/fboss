@@ -39,7 +39,6 @@ sai_status_t create_next_hop_group_fn(
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
-        break;
     }
   }
   if (!type) {

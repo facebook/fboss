@@ -42,7 +42,6 @@ BcmQosPolicyHandle BcmQosPolicy::getHandle(BcmQosMap::Type type) const {
       break;
     case BcmQosMap::Type::IP_EGRESS:
       return static_cast<BcmQosPolicyHandle>(-1);
-      break;
     case BcmQosMap::Type::MPLS_INGRESS:
       if (ingressExpQosMap_) {
         return static_cast<BcmQosPolicyHandle>(ingressExpQosMap_->getHandle());

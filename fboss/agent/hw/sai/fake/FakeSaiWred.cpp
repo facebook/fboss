@@ -91,7 +91,6 @@ sai_status_t create_wred_fn(
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
-        break;
     }
   }
 

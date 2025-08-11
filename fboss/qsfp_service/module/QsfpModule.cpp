@@ -774,7 +774,6 @@ bool QsfpModule::isTransceiverFeatureSupported(
       case TransceiverFeature::CDB:
         throw FbossError(
             "Line/System side info is not needed to check Feature support in Transceiver");
-        return diagsCapability->cdb().value();
       case TransceiverFeature::PRBS:
         return (side == phy::Side::LINE)
             ? diagsCapability->prbsLine().value()

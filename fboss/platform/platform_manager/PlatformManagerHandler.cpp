@@ -36,7 +36,7 @@ void PlatformManagerHandler::getPmUnitInfo(
     auto pmUnitInfo =
         platformExplorer_.getPmUnitInfo(*pmUnitInfoReq->slotPath());
     pmUnitInfoResp.pmUnitInfo() = pmUnitInfo;
-  } catch (std::exception& e) {
+  } catch (std::exception&) {
     auto error = PlatformManagerError();
     error.errorCode() = PlatformManagerErrorCode::PM_UNIT_NOT_FOUND;
     error.message() = fmt::format(

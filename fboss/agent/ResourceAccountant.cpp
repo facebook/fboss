@@ -105,13 +105,28 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
   for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
     const auto ecmpGroupLimit = hwAsic->getMaxEcmpGroups();
     const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();
-    if ((ecmpGroupLimit.has_value() &&
-         ecmpGroupRefMap_.size() >
-             (ecmpGroupLimit.value() * resourcePercentage) /
-                 kHundredPercentage) ||
-        (ecmpMemberLimit.has_value() &&
-         ecmpMemberUsage_ > (ecmpMemberLimit.value() * resourcePercentage) /
-                 kHundredPercentage)) {
+    std::optional<int> ecmpGroupEnforcedLimit, ecmpMemberEnforcedLimit;
+    if (ecmpGroupLimit.has_value()) {
+      ecmpGroupEnforcedLimit =
+          (ecmpGroupLimit.value() * resourcePercentage / kHundredPercentage);
+    }
+    if (ecmpMemberLimit.has_value()) {
+      ecmpMemberEnforcedLimit =
+          (ecmpMemberLimit.value() * resourcePercentage / kHundredPercentage);
+    }
+
+    if (ecmpGroupEnforcedLimit.has_value() &&
+        ecmpGroupRefMap_.size() > *ecmpGroupEnforcedLimit) {
+      XLOG(DBG2) << " Ecmp group limit exceeded. Ecmp demand from this update: "
+                 << ecmpGroupRefMap_.size()
+                 << " ASIC limit: " << *ecmpGroupEnforcedLimit;
+      return false;
+    }
+    if (ecmpMemberEnforcedLimit.has_value() &&
+        ecmpMemberUsage_ > *ecmpMemberEnforcedLimit) {
+      XLOG(DBG2)
+          << " Ecmp member limit exceeded. Ecmp demand from this update: "
+          << ecmpMemberUsage_ << " ASIC Limit: " << *ecmpMemberEnforcedLimit;
       return false;
     }
   }

@@ -151,7 +151,6 @@ bool WedgeManager::platformSupportsI2cLogging() const {
   switch (platform) {
     case PlatformType::PLATFORM_WEDGE100:
       return false;
-      break;
     default:
       return true;
   }

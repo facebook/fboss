@@ -149,6 +149,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "dram_blocked_time_ns",
           SUM,
           RATE),
+      dramQuarantinedBufferCount_(
+          map,
+          getCounterPrefix() + "dram_quarantined_buffer_count",
+          SUM,
+          RATE),
       deletedCreditBytes_(
           map,
           getCounterPrefix() + "deleted_credit_bytes",
@@ -639,6 +644,12 @@ void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
   if (dramStats.dramBlockedTimeNsec().has_value()) {
     dramBlockedTimeNsec_.addValue(*dramStats.dramBlockedTimeNsec());
   }
+  if (dramStats.dramQuarantinedBufferCount().has_value()) {
+    // DRAM quarantined buffer stats is read without clearing,
+    // hence cannot use addValue() directly.
+    updateValue(
+        dramQuarantinedBufferCount_, *dramStats.dramQuarantinedBufferCount());
+  }
 }
 
 void HwSwitchFb303Stats::update(const HwSwitchCreditStats& creditStats) {
@@ -1124,6 +1135,8 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.dram_dequeued_bytes() = getCumulativeValue(dramDequeuedBytes_);
   hwFb303Stats.dram_blocked_time_ns() =
       getCumulativeValue(dramBlockedTimeNsec_);
+  hwFb303Stats.dram_quarantined_buffer_count() =
+      getCumulativeValue(dramQuarantinedBufferCount_);
   hwFb303Stats.fabric_reachability_missing() =
       getFabricConnectivityMismatchCount();
   hwFb303Stats.fabric_reachability_mismatch() =
@@ -1176,6 +1189,11 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
   updateValue(dramDequeuedBytes_, *globalStats.dram_dequeued_bytes());
   if (globalStats.dram_blocked_time_ns().has_value()) {
     updateValue(dramBlockedTimeNsec_, *globalStats.dram_blocked_time_ns());
+  }
+  if (globalStats.dram_quarantined_buffer_count().has_value()) {
+    updateValue(
+        dramQuarantinedBufferCount_,
+        *globalStats.dram_quarantined_buffer_count());
   }
   if (globalStats.vsq_resource_exhaustion_drops().has_value()) {
     updateValue(

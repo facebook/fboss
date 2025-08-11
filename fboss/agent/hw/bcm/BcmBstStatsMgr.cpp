@@ -70,8 +70,8 @@ void BcmBstStatsMgr::syncHighFrequencyStats(
     const HfStatsConfig& statsConfig) const {
   if (statsConfig.includeDeviceWatermark().value()) {
     int rv = bcm_cosq_bst_stat_sync(
-        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
-    bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
   }
   if (!hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     return;
@@ -114,8 +114,8 @@ void BcmBstStatsMgr::syncHighFrequencyStats(
   }
   if (syncQueue) {
     int rv = bcm_cosq_bst_stat_sync(
-        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdIngPool);
-    bcmCheckError(rv, "Failed to sync bcmBstStatIdIngPool stat");
+        hw_->getUnit(), (bcm_bst_stat_id_t)bcmBstStatIdUcast);
+    bcmCheckError(rv, "Failed to sync bcmBstStatIdUcast stat");
   }
 }
 

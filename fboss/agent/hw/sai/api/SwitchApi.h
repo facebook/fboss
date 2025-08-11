@@ -756,6 +756,11 @@ struct SaiSwitchTraits {
         std::vector<sai_map_t>,
         AttributeTcRateLimitList,
         SaiListDefault<sai_map_list_t>>;
+    struct AttributeTechSupportType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using TechSupportType =
+        SaiExtensionAttribute<sai_uint8_t, AttributeTechSupportType>;
     struct AttributePfcTcDldTimerGranularityInterval {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -942,6 +947,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>& rciWatermarkStats();
   static const std::vector<sai_stat_id_t>& dtlWatermarkStats();
   static const std::vector<sai_stat_id_t>& dramBlockTime();
+  static const std::vector<sai_stat_id_t>& dramQuarantinedBufferStats();
   static const std::vector<sai_stat_id_t>& egressCoreBufferWatermarkBytes();
   static const std::vector<sai_stat_id_t>& deletedCredits();
   static const std::vector<sai_stat_id_t>& sramMinBufferWatermarkBytes();
@@ -1107,6 +1113,8 @@ SAI_ATTRIBUTE_NAME(Switch, NumTemperatureSensors)
 SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccCorrectableError)
 SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccUnCorrectableError)
 SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
+
+SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

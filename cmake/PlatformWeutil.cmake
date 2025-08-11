@@ -23,12 +23,12 @@ add_library(weutil_crc16_ccitt_aug
   fboss/platform/weutil/Crc16CcittAug.cpp
 )
 
-add_library(weutil_fboss_eeprom_parser
-  fboss/platform/weutil/FbossEepromParser.cpp
+add_library(weutil_fboss_eeprom_interface
+  fboss/platform/weutil/ParserUtils.cpp
   fboss/platform/weutil/FbossEepromInterface.cpp
 )
 
-target_link_libraries(weutil_fboss_eeprom_parser
+target_link_libraries(weutil_fboss_eeprom_interface
   Folly::folly
   weutil_crc16_ccitt_aug
   weutil_eeprom_contents_cpp2
@@ -46,7 +46,7 @@ target_link_libraries(weutil_lib
   Folly::folly
   eeprom_content_validator
   weutil_config_cpp2
-  weutil_fboss_eeprom_parser
+  weutil_fboss_eeprom_interface
   platform_config_lib
   platform_name_lib
   ioctl_smbus_eeprom_reader

@@ -464,6 +464,7 @@ class HwSwitchFb303Stats {
   TLTimeseries dramEnqueuedBytes_;
   TLTimeseries dramDequeuedBytes_;
   TLTimeseries dramBlockedTimeNsec_;
+  TLTimeseries dramQuarantinedBufferCount_;
   // Credit stats
   TLTimeseries deletedCreditBytes_;
   // RQP errors

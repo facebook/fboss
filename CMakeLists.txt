@@ -1007,7 +1007,7 @@ add_dependencies(fboss_platform_services
   platform_manager_presence_checker_test
   platform_manager_i2c_explorer_test
   weutil_crc16_ccitt_test
-  weutil_fboss_eeprom_parser_test
+  weutil_fboss_eeprom_interface_test
   sensor_service_sw_test
   sensor_service_utils_test
   rackmon_test

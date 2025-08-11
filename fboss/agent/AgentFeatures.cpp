@@ -173,12 +173,6 @@ DEFINE_bool(
 
 DEFINE_bool(skip_buffer_reservation, false, "Enable skip reservation");
 
-// TODO(zecheng): Remove this once firmware support is ready
-DEFINE_bool(
-    conditional_entropy_cpu_seed_test_only,
-    false,
-    "Enable test-only feature for CPU updating conditional entropy seed");
-
 DEFINE_bool(
     fix_lossless_mode_per_pg,
     false,

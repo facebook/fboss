@@ -151,4 +151,26 @@ TEST(RouteDistributionGeneratorsTest, emptyV4AndV6Distribution) {
   verifyChunking(routeDistributionSwitchStatesGen, 0, 5);
 }
 
+TEST(RouteDistributionGeneratorsTest, v6DistributionWithOffset) {
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
+
+  std::optional<std::pair<uint64_t, uint64_t>> offset =
+      std::make_pair(0, 1 << 12);
+
+  auto routeDistributionSwitchStatesGen = utility::RouteDistributionGenerator(
+      handle->getSw()->getState(),
+      {
+          {65, 5},
+          {128, 5, offset},
+      },
+      {},
+      5,
+      2,
+      handle->getSw()->needL2EntryForNeighbor());
+
+  verifyRouteCount(routeDistributionSwitchStatesGen, kExtraRoutes, 10);
+  verifyChunking(routeDistributionSwitchStatesGen, 10, 5);
+}
+
 } // namespace facebook::fboss

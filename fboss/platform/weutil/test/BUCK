@@ -13,19 +13,6 @@ cpp_unittest(
 )
 
 cpp_unittest(
-    name = "fboss_eeprom_parser_test",
-    srcs = [
-        "FbossEepromParserTest.cpp",
-    ],
-    deps = [
-        "//fboss/platform/weutil:fboss_eeprom_lib",
-        "//fboss/platform/weutil:weutil_core",
-        "//folly:file_util",
-        "//folly/testing:test_util",
-    ],
-)
-
-cpp_unittest(
     name = "content_validator_test",
     srcs = ["ContentValidatorTest.cpp"],
     deps = [
@@ -53,5 +40,7 @@ cpp_unittest(
     deps = [
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
+        "//folly:file_util",
+        "//folly/testing:test_util",
     ],
 )

@@ -18,8 +18,20 @@ uint64_t ResourceCursor<uint64_t>::getNextId() {
 }
 
 template <>
+uint64_t ResourceCursor<uint64_t>::getNextId(uint64_t offset) {
+  current_ += offset;
+  return current_;
+}
+
+template <>
 uint32_t ResourceCursor<uint32_t>::getNextId() {
   return ++current_;
+}
+
+template <>
+uint32_t ResourceCursor<uint32_t>::getNextId(uint32_t offset) {
+  current_ += offset;
+  return current_;
 }
 
 template <>
@@ -43,6 +55,19 @@ IdV6 ResourceCursor<IdV6>::getNextId() {
     ++current_.second;
   } else {
     ++current_.first;
+  }
+  return current_;
+}
+
+template <>
+IdV6 ResourceCursor<IdV6>::getNextId(IdV6 offset) {
+  uint64_t secondSum = current_.second + offset.second;
+  if (secondSum < current_.second) { // overflow
+    current_.first += offset.first + 1;
+    current_.second = secondSum;
+  } else {
+    current_.first += offset.first;
+    current_.second = secondSum;
   }
   return current_;
 }

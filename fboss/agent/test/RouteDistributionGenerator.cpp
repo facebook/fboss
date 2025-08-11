@@ -44,8 +44,8 @@ namespace facebook::fboss::utility {
 
 RouteDistributionGenerator::RouteDistributionGenerator(
     const std::shared_ptr<SwitchState>& startingState,
-    const Masklen2NumPrefixes& v6DistributionSpec,
-    const Masklen2NumPrefixes& v4DistributionSpec,
+    const RouteDistributionSpec<folly::IPAddressV6>& v6DistributionSpec,
+    const RouteDistributionSpec<folly::IPAddressV4>& v4DistributionSpec,
     unsigned int chunkSize,
     unsigned int ecmpWidth,
     bool needL2EntryForNeighbor,
@@ -144,10 +144,10 @@ const std::vector<UnresolvedNextHop>& RouteDistributionGenerator::getNhops()
 
 template <typename AddrT>
 void RouteDistributionGenerator::genRouteDistribution(
-    const Masklen2NumPrefixes& routeDistribution) const {
-  for (const auto& maskLenAndNumPrefixes : routeDistribution) {
-    auto prefixGenerator = PrefixGenerator<AddrT>(maskLenAndNumPrefixes.first);
-    for (auto i = 0; i < maskLenAndNumPrefixes.second; ++i) {
+    const RouteDistributionSpec<AddrT>& routeDistributionSpec) const {
+  for (const auto& routeDistribution : routeDistributionSpec) {
+    auto prefixGenerator = PrefixGenerator<AddrT>(routeDistribution.masklen);
+    for (auto i = 0; i < routeDistribution.numPrefixes; ++i) {
       if (generatedRouteChunks_->empty() ||
           generatedRouteChunks_->back().size() == chunkSize_) {
         // Last chunk was full or we are just staring.
@@ -155,7 +155,11 @@ void RouteDistributionGenerator::genRouteDistribution(
         generatedRouteChunks_->emplace_back(RouteChunk{});
       }
       generatedRouteChunks_->back().emplace_back(Route{
-          getNewPrefix(prefixGenerator, startingState_, routerId_),
+          getNewPrefix(
+              prefixGenerator,
+              startingState_,
+              routerId_,
+              routeDistribution.offset),
           getNhops<AddrT>()});
     }
   }

@@ -51,12 +51,52 @@ TEST_F(ShelManagerTest, RefCountAndIntf2AddDel) {
   auto switchState = switchStateWithLocalSysPorts(kLocalSysPortRange);
 
   shelManager_->updateRefCount(ecmpNextHopSet, switchState, true /*add*/);
-  EXPECT_EQ(shelManager_->intf2RefCnt_.size(), ecmpWidth);
+  EXPECT_EQ(shelManager_->intf2RefCnt_.rlock()->size(), ecmpWidth);
   for (int i = 0; i < ecmpWidth; i++) {
-    EXPECT_EQ(shelManager_->intf2RefCnt_.at(InterfaceID(i + 1)), 1);
+    EXPECT_EQ(shelManager_->intf2RefCnt_.rlock()->at(InterfaceID(i + 1)), 1);
   }
 
   shelManager_->updateRefCount(ecmpNextHopSet, switchState, false /*add*/);
-  EXPECT_TRUE(shelManager_->intf2RefCnt_.empty());
+  EXPECT_TRUE(shelManager_->intf2RefCnt_.rlock()->empty());
 }
+
+TEST_F(ShelManagerTest, EcmpOverShelDisabledPort) {
+  auto ecmpWidth = 4;
+  auto ecmpWeight = 1;
+  std::vector<ResolvedNextHop> ecmpNexthops;
+  ecmpNexthops.reserve(ecmpWidth);
+  for (int i = 0; i < ecmpWidth; i++) {
+    ecmpNexthops.emplace_back(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        ecmpWeight);
+  }
+  RouteNextHopSet ecmpNextHopSet(ecmpNexthops.begin(), ecmpNexthops.end());
+  auto switchState = switchStateWithLocalSysPorts(kLocalSysPortRange);
+
+  // Update refCount for several interfaces
+  shelManager_->updateRefCount(ecmpNextHopSet, switchState, true /*add*/);
+
+  std::map<int, cfg::PortState> allEnabledSysPortShelState;
+  std::map<int, cfg::PortState> halfDisabledSysPortShelState;
+  for (int i = 0; i < ecmpWidth; i++) {
+    allEnabledSysPortShelState[i + 1] = cfg::PortState::ENABLED;
+    halfDisabledSysPortShelState[i + 1] =
+        (i % 2 == 0) ? cfg::PortState::DISABLED : cfg::PortState::ENABLED;
+  }
+
+  // Validate ecmpOverShelDisabledPort
+  EXPECT_FALSE(
+      shelManager_->ecmpOverShelDisabledPort(allEnabledSysPortShelState));
+  EXPECT_TRUE(
+      shelManager_->ecmpOverShelDisabledPort(halfDisabledSysPortShelState));
+
+  // Remove refCount and validate again
+  shelManager_->updateRefCount(ecmpNextHopSet, switchState, false /*add*/);
+  EXPECT_FALSE(
+      shelManager_->ecmpOverShelDisabledPort(allEnabledSysPortShelState));
+  EXPECT_FALSE(
+      shelManager_->ecmpOverShelDisabledPort(halfDisabledSysPortShelState));
+}
+
 } // namespace facebook::fboss

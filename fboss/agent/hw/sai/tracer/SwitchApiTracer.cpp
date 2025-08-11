@@ -167,6 +167,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, TriggerSimulatedEccCorrectableError)
   SAI_EXT_ATTR_MAP(Switch, TriggerSimulatedEccUnCorrectableError)
   SAI_EXT_ATTR_MAP(Switch, DefaultCpuEgressBufferPool)
+  SAI_EXT_ATTR_MAP(Switch, TechSupportType)
 }
 
 } // namespace

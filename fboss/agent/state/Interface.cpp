@@ -92,7 +92,6 @@ std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     // we would have unified v4 and v6 GW addresses
     return getAddressToReachFn(getAddressesCopy());
   }
-  return std::nullopt;
 }
 
 bool Interface::canReachAddress(const folly::IPAddress& dest) const {

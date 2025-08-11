@@ -29,7 +29,6 @@ bool RamonAsic::isSupported(Feature feature) const {
     default:
       return false;
   }
-  return false;
 }
 
 std::set<cfg::StreamType> RamonAsic::getQueueStreamTypes(

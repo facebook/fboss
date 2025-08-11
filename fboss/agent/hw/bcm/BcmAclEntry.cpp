@@ -485,7 +485,6 @@ void BcmAclEntry::applyFlowletAction(
       break;
     case cfg::FlowletAction::DISABLE:
       throw FbossError("Unsupported flowlet action ", flowletAction);
-      break;
     default:
       throw FbossError("Unrecognized flowlet action ", flowletAction);
   }

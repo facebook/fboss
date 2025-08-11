@@ -39,6 +39,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
+    case HwAsic::Feature::TECH_SUPPORT:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
@@ -52,7 +53,6 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     default:
       return false;
   }
-  return false;
 }
 
 std::set<cfg::StreamType> Ramon3Asic::getQueueStreamTypes(

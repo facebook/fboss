@@ -1,3 +1,5 @@
+load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_agent_push")
@@ -42,5 +44,32 @@ cpp_unittest(
         "//folly/logging:logging",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "data_factory",
+    headers = [
+        "TestDataFactory.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/thrift_cow/nodes:serializer",
+    ],
+)
+
+cpp_benchmark(
+    name = "cowstorage_bench",
+    srcs = [
+        "CowStorageBench.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":data_factory",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
     ],
 )

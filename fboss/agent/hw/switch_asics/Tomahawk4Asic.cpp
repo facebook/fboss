@@ -230,6 +230,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
+    case HwAsic::Feature::TECH_SUPPORT:
+    case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
       return false;
   }
   return false;

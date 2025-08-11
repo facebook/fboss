@@ -24,6 +24,35 @@ target_link_libraries(fsdb_cow_root_path_visitor
   thrift_cow_visitors
 )
 
+add_library(fsdb_patch_applier_oper_state_instantiations
+  fboss/fsdb/oper/instantiations/templates/FsdbPatchApplierOperStateInstantiations.cpp
+)
+
+target_link_libraries(fsdb_patch_applier_oper_state_instantiations
+  fsdb_model
+  thrift_cow_nodes
+  thrift_cow_visitors
+)
+
+add_library(fsdb_thrift_struct_oper_instantiations
+  fboss/fsdb/oper/instantiations/templates/FsdbThriftStructAgentDataInstantiations.cpp
+  fboss/fsdb/oper/instantiations/templates/FsdbThriftStructOperStateInstantiations.cpp
+)
+
+target_link_libraries(fsdb_thrift_struct_oper_instantiations
+  fsdb_model
+  thrift_cow_nodes
+)
+
+add_library(fsdb_path_visitor_oper_state_instantiations
+  fboss/fsdb/oper/instantiations/templates/FsdbPathVisitorOperStateInstantiations.cpp
+)
+
+target_link_libraries(fsdb_path_visitor_oper_state_instantiations
+  fsdb_model
+  thrift_cow_visitors
+)
+
 add_library(fsdb_cow_storage
   fboss/fsdb/oper/instantiations/FsdbCowStateStorage.cpp
   fboss/fsdb/oper/instantiations/FsdbCowStatsStorage.cpp
@@ -34,6 +63,9 @@ target_link_libraries(fsdb_cow_storage
   cow_storage
   fsdb_cow_root
   fsdb_cow_root_path_visitor
+  fsdb_patch_applier_oper_state_instantiations
+  fsdb_thrift_struct_oper_instantiations
+  fsdb_path_visitor_oper_state_instantiations
 )
 
 add_library(fsdb_cow_subscription_manager
@@ -59,6 +91,25 @@ target_link_libraries(fsdb_path_converter
   oper_path_helpers
 )
 
+add_library(fsdb_thrift_struct_std_functions_instantiations
+  fboss/fsdb/oper/instantiations/templates/FsdbThriftStructStdFunctionsInstantiations.cpp
+)
+
+target_link_libraries(fsdb_thrift_struct_std_functions_instantiations
+  fsdb_model
+  thrift_cow_nodes
+)
+
+add_library(fsdb_state_sub_mgr_instantiations
+  fboss/fsdb/oper/instantiations/templates/FsdbStateSubscriptionManagerInstantiations.cpp
+)
+
+target_link_libraries(fsdb_state_sub_mgr_instantiations
+  subscription_manager
+  fsdb_cow_root
+  thrift_cow_nodes
+)
+
 add_library(fsdb_naive_periodic_subscribable_storage
   fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStateStorage.cpp
   fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStatsStorage.cpp
@@ -70,6 +121,8 @@ target_link_libraries(fsdb_naive_periodic_subscribable_storage
   fsdb_cow_subscription_manager
   fsdb_path_converter
   subscribable_storage
+  fsdb_thrift_struct_std_functions_instantiations
+  fsdb_state_sub_mgr_instantiations
 )
 
 add_library(fsdb_cow_state_sub_mgr

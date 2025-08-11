@@ -21797,7 +21797,8 @@ std::pair<strings::fabricReachabilityStatsMap, ChildThriftPath<::std::map<::std:
 std::pair<strings::switchPipelineStatsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwSwitchPipelineStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::asicTemp, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::asic_temp::AsicTempData>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::sysPortShelStateMap, ChildThriftPath<::std::map<::std::int16_t, ::std::map<::std::int32_t, ::facebook::fboss::cfg::PortState>>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::hwRouterInterfaceStats, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwRouterInterfaceStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+std::pair<strings::hwRouterInterfaceStats, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwRouterInterfaceStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::ecmpOverShelDisabledPort, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<folly::F14FastMap<::std::string, ::facebook::fboss::HwPortStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwTrunkStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::HwResourceStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -21827,7 +21828,8 @@ std::pair<strings::hwRouterInterfaceStats, ChildThriftPath<::std::map<::std::str
    std::pair<std::integral_constant<apache::thrift::field_id_t, 28>, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwSwitchPipelineStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 29>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::asic_temp::AsicTempData>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 30>, ChildThriftPath<::std::map<::std::int16_t, ::std::map<::std::int32_t, ::facebook::fboss::cfg::PortState>>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 31>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwRouterInterfaceStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 31>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwRouterInterfaceStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 32>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::hwPortStats, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::hwTrunkStats, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -21858,7 +21860,8 @@ std::pair<strings::fabricReachabilityStatsMap, std::integral_constant<apache::th
 std::pair<strings::switchPipelineStatsMap, std::integral_constant<apache::thrift::field_id_t, 28>>,
 std::pair<strings::asicTemp, std::integral_constant<apache::thrift::field_id_t, 29>>,
 std::pair<strings::sysPortShelStateMap, std::integral_constant<apache::thrift::field_id_t, 30>>,
-std::pair<strings::hwRouterInterfaceStats, std::integral_constant<apache::thrift::field_id_t, 31>>>::template type_of<Name>;
+std::pair<strings::hwRouterInterfaceStats, std::integral_constant<apache::thrift::field_id_t, 31>>,
+std::pair<strings::ecmpOverShelDisabledPort, std::integral_constant<apache::thrift::field_id_t, 32>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -21894,6 +21897,7 @@ std::pair<strings::hwRouterInterfaceStats, std::integral_constant<apache::thrift
     STRUCT_CHILD_GETTERS(asicTemp, 29);
     STRUCT_CHILD_GETTERS(sysPortShelStateMap, 30);
     STRUCT_CHILD_GETTERS(hwRouterInterfaceStats, 31);
+    STRUCT_CHILD_GETTERS(ecmpOverShelDisabledPort, 32);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -21927,6 +21931,7 @@ std::pair<strings::hwRouterInterfaceStats, std::integral_constant<apache::thrift
     else if constexpr (__id == 29) { return asicTemp(); }
     else if constexpr (__id == 30) { return sysPortShelStateMap(); }
     else if constexpr (__id == 31) { return hwRouterInterfaceStats(); }
+    else if constexpr (__id == 32) { return ecmpOverShelDisabledPort(); }
   }
 
   template <typename T, T... Values>

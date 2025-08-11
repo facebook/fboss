@@ -67,4 +67,5 @@ struct AgentStats {
   29: map<string, asic_temp.AsicTempData> asicTemp;
   30: map<i16, map<i32, switch_config.PortState>> sysPortShelStateMap;
   31: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
+  32: i16 ecmpOverShelDisabledPort;
 }

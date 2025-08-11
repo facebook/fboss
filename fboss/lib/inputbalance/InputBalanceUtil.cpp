@@ -431,4 +431,74 @@ std::vector<InputBalanceResult> checkInputBalanceDualStage(
   return inputBalanceResult;
 }
 
+std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
+    const InputBalanceDestType& inputBalanceDestType,
+    const std::string& dstSwitchName,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        inputCapacityForDst,
+    const std::vector<std::string>& outputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
+    bool verbose) {
+  CHECK(inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTRA);
+
+  std::vector<InputBalanceResult> inputBalanceResult;
+
+  const auto& dstSwitch = dstSwitchName;
+
+  // Combine all input capacity from source RDSWs in the same cluster
+  std::vector<std::string> inputNeighbors;
+  std::vector<std::vector<std::string>> inputCapacityByVD;
+  inputCapacityByVD.resize(kNumVirtualDevice);
+
+  for (const auto& [srcRdsw, ports] : inputCapacityForDst) {
+    if (srcRdsw == dstSwitch) {
+      continue; // Skip self
+    }
+    inputNeighbors.push_back(srcRdsw);
+    auto singleCapacity = groupPortsByVD(ports, portToVirtualDevice);
+    for (int vd = 0; vd < kNumVirtualDevice; vd++) {
+      inputCapacityByVD.at(vd).insert(
+          inputCapacityByVD.at(vd).end(),
+          singleCapacity.at(vd).begin(),
+          singleCapacity.at(vd).end());
+    }
+  }
+
+  auto outputCapacityByVD = groupPortsByVD(outputCapacity, portToVirtualDevice);
+
+  auto inputLinkFailure = getLinkFailure(
+      inputNeighbors, neighborToLinkFailure, portToVirtualDevice);
+  auto outputLinkFailure =
+      getLinkFailure({dstSwitch}, neighborToLinkFailure, portToVirtualDevice);
+
+  for (int vd = 0; vd < kNumVirtualDevice; vd++) {
+    auto localLinkFailure = std::max(
+        0,
+        static_cast<int>(inputLinkFailure.at(vd).size()) -
+            static_cast<int>(outputLinkFailure.at(vd).size()));
+
+    bool balanced = (inputCapacityByVD.at(vd).size() + localLinkFailure) ==
+        outputCapacityByVD.at(vd).size();
+
+    InputBalanceResult result;
+    result.destinationSwitch = dstSwitch;
+    result.sourceSwitch = inputNeighbors;
+    result.balanced = balanced;
+    result.virtualDeviceID = vd;
+
+    if (verbose || !balanced) {
+      result.inputCapacity = inputCapacityByVD.at(vd);
+      result.outputCapacity = outputCapacityByVD.at(vd);
+      result.inputLinkFailure = inputLinkFailure.at(vd);
+      result.outputLinkFailure = outputLinkFailure.at(vd);
+    }
+
+    inputBalanceResult.push_back(result);
+  }
+
+  return inputBalanceResult;
+}
+
 } // namespace facebook::fboss::utility

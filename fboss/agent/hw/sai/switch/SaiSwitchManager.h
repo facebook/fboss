@@ -166,6 +166,7 @@ class SaiSwitchManager {
 
   const std::vector<sai_stat_id_t>& supportedDropStats() const;
   const std::vector<sai_stat_id_t>& supportedDramStats() const;
+  const std::vector<sai_stat_id_t>& supportedDramReadOnlyStats() const;
   const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedCreditStats() const;
   const std::vector<sai_stat_id_t>& supportedErrorStats() const;

@@ -18,7 +18,7 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
-#include "fboss/platform/weutil/FbossEepromParser.h"
+#include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -347,7 +347,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     try {
       dataStore_.updateEepromContents(
           Utils().createDevicePath(slotPath, "IDPROM"),
-          FbossEepromParser(eepromPath, *idpromConfig.offset()).getContents());
+          FbossEepromInterface(eepromPath, *idpromConfig.offset()));
       const auto& eepromContents = dataStore_.getEepromContents(
           Utils().createDevicePath(slotPath, "IDPROM"));
       pmUnitNameInEeprom = eepromContents.getProductName();
