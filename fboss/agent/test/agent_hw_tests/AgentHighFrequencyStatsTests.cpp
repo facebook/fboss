@@ -49,6 +49,45 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
   }
 
  protected:
+  // Returns a HighFrequencyStatsCollectionConfig with include device watermark
+  // set to false, a filter config, and a wait duration of 20ms for a collection
+  // duration of 200ms.
+  HighFrequencyStatsCollectionConfig getCollectionConfig() {
+    HighFrequencyStatsCollectionConfig config{};
+    // Poll every 20ms for 200 ms. Note that the current minimum polling
+    // interval is 20ms.
+    config.schedulerConfig()->statsWaitDurationInMicroseconds() = 20000;
+    config.schedulerConfig()->statsCollectionDurationInMicroseconds() = 200000;
+    config.statsConfig()->portStatsConfig()->filterConfig().ensure();
+    config.statsConfig()->includeDeviceWatermark() = false;
+    return config;
+  }
+
+  // Returns a HfPortStatsCollectionConfig with the no stats set.
+  HfPortStatsCollectionConfig getPortStatsCollectionConfig() {
+    HfPortStatsCollectionConfig config{};
+    config.includePfcRx() = false;
+    config.includePfcTx() = false;
+    config.includePgWatermark() = false;
+    config.includeQueueWatermark() = false;
+    return config;
+  }
+
+  // Returns a HighFrequencyStatsCollectionConfig with device watermark set to
+  // false and assigns portStatsConfig for the portNames in filterConfig.
+  HighFrequencyStatsCollectionConfig getCollectionConfigWithPortFilter(
+      std::span<const std::string> portNames,
+      const HfPortStatsCollectionConfig& portStatsConfig) {
+    HighFrequencyStatsCollectionConfig config{getCollectionConfig()};
+    for (const std::string& portName : portNames) {
+      config.statsConfig()
+          ->portStatsConfig()
+          ->filterConfig()
+          .value()[portName] = portStatsConfig;
+    }
+    return config;
+  }
+
   void sendPfcFrame(const std::vector<PortID>& portIds, uint8_t classVector) {
     for (const PortID& portId : portIds) {
       getSw()->sendPacketOutOfPortAsync(
@@ -98,32 +137,19 @@ TEST_F(AgentHighFrequencyStatsTest, PfcTest) {
 
     // Maintain a map of port ID to port name
     std::map<PortID, std::string> port2Name{};
-
-    // Set up the high frequency stats collection config
-    HighFrequencyStatsCollectionConfig config{};
-    config.schedulerConfig() = HfSchedulerConfig();
-    // Poll every 20ms for 200 ms. Note that the current minimum polling
-    // interval is 20ms.
-    const int64_t kStatsWaitDurationInMicroseconds = 20000;
-    config.schedulerConfig()->statsWaitDurationInMicroseconds() =
-        kStatsWaitDurationInMicroseconds;
-    config.schedulerConfig()->statsCollectionDurationInMicroseconds() = 200000;
-    config.statsConfig() = HfStatsConfig();
-    config.statsConfig()->portStatsConfig() = HfPortStatsConfig();
-    HfPortStatsCollectionConfig portStatsConfig{};
-    portStatsConfig.includePfcRx() = true;
-    portStatsConfig.includePfcTx() = true;
-    portStatsConfig.includePgWatermark() = false;
-    portStatsConfig.includeQueueWatermark() = false;
-    folly::F14FastMap<std::string, HfPortStatsCollectionConfig> filterConfig{};
+    std::vector<std::string> portNames{};
     for (const PortID& portId : portIds) {
       const std::shared_ptr<Port> port = state->getPort(portId);
       ASSERT_TRUE(port) << "No port found for portId: " << portId;
-      filterConfig[port->getName()] = portStatsConfig;
       port2Name[portId] = port->getName();
+      portNames.push_back(port->getName());
     }
-    config.statsConfig()->portStatsConfig()->filterConfig() = filterConfig;
-    config.statsConfig()->includeDeviceWatermark() = false;
+
+    HfPortStatsCollectionConfig portStatsConfig{getPortStatsCollectionConfig()};
+    portStatsConfig.includePfcRx() = true;
+    portStatsConfig.includePfcTx() = true;
+    HighFrequencyStatsCollectionConfig config{
+        getCollectionConfigWithPortFilter(portNames, portStatsConfig)};
 
     // Send PFC frames on all ports every 2.5ms to guarantee about 8 PFC frames
     // per collection interval.
@@ -139,7 +165,7 @@ TEST_F(AgentHighFrequencyStatsTest, PfcTest) {
     sendPfcScheduler.start();
     client->sync_startHighFrequencyStatsCollection(config);
 
-    // Wait for 4 seconds to ensure that the high frequency stats collection job
+    // Wait for 200ms to ensure that the high frequency stats collection job
     // is complete and stop both the threads.
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     client->sync_stopHighFrequencyStatsCollection();
