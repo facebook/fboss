@@ -1,3 +1,6 @@
 {
-  "platform": "sample"
+  "i2cBusIgnore": [
+    "Bus"
+  ]
 }
+
