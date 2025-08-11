@@ -783,6 +783,7 @@ cpp_library(
         ":pre_update_state_modifier",
         ":utils",
         "//fboss/agent/state:state",
+        "//folly:synchronized",
     ],
 )
 

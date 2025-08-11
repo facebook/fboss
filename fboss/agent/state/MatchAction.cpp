@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
-#include "fboss/agent/state/Thrifty.h"
 
 namespace facebook::fboss {
 
