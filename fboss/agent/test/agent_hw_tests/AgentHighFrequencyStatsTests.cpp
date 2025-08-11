@@ -39,6 +39,7 @@ namespace facebook::fboss {
 
 using testing::_;
 using testing::Contains;
+using testing::Eq;
 using testing::Gt;
 using testing::Pair;
 
@@ -122,7 +123,8 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
   }
 
   // Sends UDP packets to the destination IP. The UDP packets are sent on ECN1
-  // queue (queue 2).
+  // queue (queue 2) as the queue watermarks for production are measured for
+  // queue 2.
   void sendUdpPkts(
       const folly::IPAddressV6& dstIp,
       int cnt = 100,
@@ -335,6 +337,66 @@ TEST_F(AgentHighFrequencyStatsTest, DeviceWatermarkTest) {
         statsList,
         Contains(ThriftField<field::itmPoolSharedWatermarkBytes>(
             Contains(Pair(_, Gt(0))))));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test queue watermarks for high frequency stats collection. Set up ECMP
+// traffic loop on a port. Set up a thrift client to call the high frequency
+// stats collection API on the hw agent. Send traffic on the loopback port and
+// run the high frequency stats collection job simultaneously. Call the get high
+// frequency stats API using a port filter config for the port. Verify that the
+// queue watermarks are non-zero.
+TEST_F(AgentHighFrequencyStatsTest, QueueWatermarkTest) {
+  PortID loopbackPort{masterLogicalInterfacePortIds()[0]};
+
+  auto setup = [&]() { configureSwitchConfigAndOneLoopbackPort(loopbackPort); };
+
+  auto verify = [&]() {
+    apache::thrift::Client<FbossHwCtrl>* client =
+        getSw()->getHwSwitchThriftClientTable()->getClient(SwitchID(0));
+
+    const std::shared_ptr<Port> port =
+        getProgrammedState()->getPort(loopbackPort);
+    ASSERT_TRUE(port) << "No port found for portId: " << loopbackPort;
+    std::vector<std::string> portNames{port->getName()};
+
+    HfPortStatsCollectionConfig portStatsConfig{getPortStatsCollectionConfig()};
+    portStatsConfig.includeQueueWatermark() = true;
+    HighFrequencyStatsCollectionConfig config{
+        getCollectionConfigWithPortFilter(portNames, portStatsConfig)};
+
+    client->sync_startHighFrequencyStatsCollection(config);
+    SCOPE_EXIT {
+      client->sync_stopHighFrequencyStatsCollection();
+    };
+
+    // Send traffic
+    sendUdpPkts(kDestIp());
+    SCOPE_EXIT {
+      bringDownPort(loopbackPort);
+      bringUpPort(loopbackPort);
+    };
+
+    GetHighFrequencyStatsOptions options{};
+    options.limit() = 1024;
+    std::vector<HwHighFrequencyStats> statsList{};
+    // Poll the stats until at least 2 entries are present. At a 20ms polling
+    // interval and a 200ms collection duration, we should have near 10 entries,
+    // probably closer to 8-9 to account for the time to actually poll the
+    // watermark stats.
+    WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(20), {
+      client->sync_getHighFrequencyStats(statsList, options);
+      EXPECT_EVENTUALLY_GE(statsList.size(), 2);
+    });
+    EXPECT_THAT(
+        statsList,
+        Contains(ThriftField<field::portStats>(Contains(Pair(
+            Eq(port->getName()),
+            ThriftField<field::queueWatermarkBytes>(Contains(Pair(
+                Eq(utility::getOlympicQueueId(utility::OlympicQueueType::ECN1)),
+                Gt(0)))))))));
   };
 
   verifyAcrossWarmBoots(setup, verify);
