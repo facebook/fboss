@@ -15,6 +15,7 @@
 #include <map>
 #include <mutex>
 #include <optional>
+#include <ranges>
 #include <unordered_set>
 #include <utility>
 
@@ -4366,11 +4367,31 @@ HwHighFrequencyStats BcmSwitch::zeroHighFrequencyStatsTimestamp(
   return zeroed;
 }
 
+// Tests if two high frequency stats are different from each other.
 bool BcmSwitch::hasHighFrequencyStatsChanged(
     const HwHighFrequencyStats& statsA,
     const HwHighFrequencyStats& statsB) {
-  return zeroHighFrequencyStatsTimestamp(statsA) ==
+  return zeroHighFrequencyStatsTimestamp(statsA) !=
       zeroHighFrequencyStatsTimestamp(statsB);
+}
+
+bool BcmSwitch::hasNonZeroWatermark(const HwHighFrequencyStats& stats) {
+  auto isNonZero = [](int64_t value) { return value != 0; };
+  return std::ranges::any_of(
+             stats.itmPoolSharedWatermarkBytes().value() | std::views::values,
+             isNonZero) ||
+      std::ranges::any_of(
+             stats.portStats().value() | std::views::values,
+             [&](const HwHighFrequencyPortStats& portStats) {
+               return std::ranges::any_of(
+                          portStats.queueWatermarkBytes().value() |
+                              std::views::values,
+                          isNonZero) ||
+                   std::ranges::any_of(
+                          portStats.pgSharedWatermarkBytes().value() |
+                              std::views::values,
+                          isNonZero);
+             });
 }
 
 void BcmSwitch::collectHighFrequencyStats() {
@@ -4399,7 +4420,8 @@ void BcmSwitch::collectHighFrequencyStats() {
       {
         auto wlock = highFreqStatsData_.wlock();
         if (wlock->empty() ||
-            !hasHighFrequencyStatsChanged(wlock->back(), stats)) {
+            hasHighFrequencyStatsChanged(wlock->back(), stats) ||
+            hasNonZeroWatermark(stats)) {
           while (wlock->size() >= maxDataSize) {
             wlock->pop_front();
           }

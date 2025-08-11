@@ -1250,6 +1250,7 @@ class BcmSwitch : public BcmSwitchIf {
   static bool hasHighFrequencyStatsChanged(
       const HwHighFrequencyStats& a,
       const HwHighFrequencyStats& b);
+  static bool hasNonZeroWatermark(const HwHighFrequencyStats& stats);
   void collectHighFrequencyStats();
   HighFrequencyStatsCollectionConfig highFreqStatsThreadConfig_{};
   static constexpr int64_t kHfMinWaitDurationUs_{20000};
