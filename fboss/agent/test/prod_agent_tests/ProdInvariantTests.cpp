@@ -74,7 +74,10 @@ void ProdInvariantTest::SetUp() {
   for (auto& uplinkPort : ecmpUplinlinkPorts) {
     ecmpPorts_.push_back(PortDescriptor(uplinkPort));
   }
-  setupAgentTestEcmp(ecmpPorts_);
+
+  if (ecmpPorts_.size() >= kEcmpWidth) {
+    setupAgentTestEcmp(ecmpPorts_);
+  }
   XLOG(DBG2) << "ProdInvariantTest setup done";
 }
 
@@ -426,7 +429,9 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
   auto verify = [&]() {
     verifyAcl();
     verifyCopp();
-    verifyLoadBalancing();
+    if (ecmpPorts_.size() >= kEcmpWidth) {
+      verifyLoadBalancing();
+    }
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
     verifyThriftHandler();
