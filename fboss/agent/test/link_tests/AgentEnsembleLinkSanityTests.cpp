@@ -122,8 +122,6 @@ TEST_F(AgentEnsembleLinkTest, getTransceivers) {
   auto verify = [this]() {
     WITH_RETRIES({
       auto ports = getCabledTransceiverPorts();
-      // Set the port status on all cabled ports to false. The link should go
-      // down
       for (const auto& port : ports) {
         auto transceiverId =
             getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(port);

@@ -114,8 +114,6 @@ TEST_F(LinkTest, getTransceivers) {
   auto verify = [this]() {
     WITH_RETRIES({
       auto ports = getCabledTransceiverPorts();
-      // Set the port status on all cabled ports to false. The link should go
-      // down
       for (const auto& port : ports) {
         auto transceiverId =
             platform()->getPlatformPort(port)->getTransceiverID().value();
