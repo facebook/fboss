@@ -462,6 +462,8 @@ struct VdmPerfMonitorStatsForOds {
   3: i64 statsCollectionTme;
 }
 
+// We plan to deprecate this.
+// Prefer use of VdmPerfMonitorStats instead
 struct VdmDiagsStats {
   1: double preFecBerMediaMin;
   2: double preFecBerMediaMax;
