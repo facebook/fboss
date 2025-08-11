@@ -88,6 +88,7 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
           PlatformType::PLATFORM_MERU400BIU>(platformMapping, threads);
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BIAB:
+    case PlatformType::PLATFORM_MERU800BIAC:
       return createBspWedgeManager<
           Meru800biaBspPlatformMapping,
           PlatformType::PLATFORM_MERU800BIA>(platformMapping, threads);
