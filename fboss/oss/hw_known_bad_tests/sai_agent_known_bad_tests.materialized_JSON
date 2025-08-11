@@ -89,9 +89,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -192,9 +189,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -421,9 +415,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -515,9 +506,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -771,9 +759,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -874,9 +859,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1046,9 +1028,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -1140,9 +1119,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1393,9 +1369,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1496,9 +1469,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1806,9 +1776,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -1900,9 +1867,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2177,9 +2141,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2280,9 +2241,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2479,9 +2437,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -2573,9 +2528,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2904,9 +2856,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3007,9 +2956,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3290,9 +3236,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -3384,9 +3327,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3553,9 +3493,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3656,9 +3593,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3800,9 +3734,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -3903,9 +3834,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4066,9 +3994,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -4160,9 +4085,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4347,9 +4269,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -4450,9 +4369,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4612,9 +4528,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -4715,9 +4628,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4932,9 +4842,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -5026,9 +4933,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5354,9 +5258,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -5457,9 +5358,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5737,9 +5635,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -5831,9 +5726,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6018,9 +5910,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -6112,9 +6001,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6299,9 +6185,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -6402,9 +6285,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6559,9 +6439,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -6662,9 +6539,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6840,9 +6714,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -6943,9 +6814,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7124,9 +6992,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -7227,9 +7092,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7390,9 +7252,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -7493,9 +7352,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7656,9 +7512,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -7750,9 +7603,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7937,9 +7787,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -8031,9 +7878,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8218,9 +8062,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -8321,9 +8162,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8478,9 +8316,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -8581,9 +8416,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8759,9 +8591,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -8862,9 +8691,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9043,9 +8869,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -9146,9 +8969,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9309,9 +9129,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -9412,9 +9229,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9575,9 +9389,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -9669,9 +9480,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9913,9 +9721,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -10016,9 +9821,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10320,9 +10122,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -10414,9 +10213,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10682,9 +10478,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -10785,9 +10578,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10975,9 +10765,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -11069,9 +10856,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11394,9 +11178,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -11497,9 +11278,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11828,9 +11606,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -11922,9 +11697,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12187,9 +11959,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -12290,9 +12059,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12471,9 +12237,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -12565,9 +12328,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12824,9 +12584,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -12927,9 +12684,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13246,9 +13000,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -13340,9 +13091,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13644,9 +13392,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -13747,9 +13492,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -14129,9 +13871,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -14420,9 +14159,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -14721,9 +14457,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
         },
         {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
-        },
-        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -15006,9 +14739,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentHgridDuRouteScaleTest.hgridDuScaleTest$"
-        },
-        {
-          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.*AgentSflowMirror.*VerifySampledPacketRate$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
