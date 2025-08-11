@@ -2482,9 +2482,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         throw FbossError(
             "Port ",
             orig->getID(),
-            " pg name",
+            " pg name ",
             *portPgConfigName,
-            "does not exist in portPgConfig map");
+            " does not exist in portPgConfig map");
       }
       portPgCfgs = updatePortPgConfigs(it->second, orig);
       // validate that the given pg profile points to valid
