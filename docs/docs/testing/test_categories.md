@@ -42,53 +42,88 @@ deploying in production networks.
 
 ### Agent HW Tests
 
-- Vlan tests: all tests matching `.*Vlan.*`
-- L2 learning: `.*L2ClassID.* | .*MacLearning.* | .*MacSwLearning.*`
-- Neighbor resolution: `*Neighbor.*`
-- L3 routing: `.*L3.* | .*HwRoute.*`
-- Control Plane: `.*Copp.* | .*PacketSend.* | .*RxReason.* | .*PacketFlood.*`
-- Port: `.*HwTest_PROFILE.* | .*FlextPort.*`
-- Queuing: `.*SendPacketToQueue.* | .*DscpQueueMapping.* | .*PortBandwidth.*`
-- Prbs: `.*PRBS.*`
+`run_test.py`:
+```bash
+./bin/run_test.py sai_agent --filter_file=./share/hw_sanity_tests/t0_agent_hw_tests.conf --config ./share/hw_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t0_agent_hw_tests.conf
+```
+
+### SAI Tests
+
+`run_test.py`:
+```bash
+./bin/run_test.py sai --filter_file=./share/hw_sanity_tests/t0_sai_tests.conf --config ./share/hw_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t0_sai_tests.conf
+```
 
 ### QSFP HW Tests
 
-- EmptyHwTest.CheckInit
-- HwTest.i2cStressRead
-- HwTest.i2cStressWrite
-- HwTransceiverResetTest.verifyResetControl
-- HwTransceiverResetTest.resetTranscieverAndDetectPresence
-- HwStateMachineTest.CheckPortsProgrammed
-- HwTest.cmisPageChange
+`run_test.py`:
+```bash
+./bin/run_test.py qsfp --filter_file=./share/hw_sanity_tests/t0_qsfp_hw_tests.conf --qsfp-config ./share/qsfp_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t0_qsfp_hw_tests.conf
+```
 
 ### Link Tests
 
-- AgentEnsembleEmptyLinkTest.CheckInit
-- AgentEnsembleLinkTest.trafficRxTx
-- AgentEnsembleLinkTest.asicLinkFlap
-- AgentEnsembleLinkTest.getTransceivers
-- AgentEnsembleLinkTest.iPhyInfoTest
+`run_test.py`:
+```bash
+./bin/run_test.py link --filter_file=./share/hw_sanity_tests/t0_link_tests.conf --config ./share/link_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t0_link_tests.conf
+```
+
+### BSP Tests
+
+- All BSP tests are T0
 
 ## T1 Tests
 
 ### Agent HW Tests
 
-- Acl: `.*Acl.* | .*DscpMarking.*`
-- Warmboot: `.*warm_boot.*`
-- PFC: `.*HwInPause.* | .*Pfc.*`
-- QoS: `.*Qos.*`
-- Aqm: `.*Aqm.*`
-- ECMP: `.*Ecmp.* | .*LoadBalancer.* | .*SaiNextHopGroup.*`
-- UDA ACL/Hashing: `.*HwUdfTest.*`
-- Queue Per Host: `.*QueuePerHost.*`
+`run_test.py`:
+```bash
+./bin/run_test.py sai_agent --filter_file=./share/hw_sanity_tests/t1_agent_hw_tests.conf --config ./share/hw_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t1_agent_hw_tests.conf
+```
+
+### SAI Tests
+
+`run_test.py`:
+```bash
+./bin/run_test.py sai --filter_file=./share/hw_sanity_tests/t1_sai_tests.conf --config ./share/hw_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t1_sai_tests.conf
+```
 
 ## T2 Tests
 
 ### Agent HW Tests
 
-- Hashing: `.*HashPolarization.*`
-- Trunk/LAG: `.*Trunk.*`
-- sFlow/Mirroing: `.*Sflow.* | .*Mirror.*`
-- PTP: `.*Ptp.*`
-- MMU Tuning: `.*HwIngressBufferTest.* | .*MmuTuning.*`
-- Stats: `.*ResourceStats.*`
+`run_test.py`:
+```bash
+./bin/run_test.py sai_agent --filter_file=./share/hw_sanity_tests/t2_agent_hw_tests.conf --config ./share/hw_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t2_agent_hw_tests.conf
+```
+
+### SAI Tests
+
+`run_test.py`:
+```bash
+./bin/run_test.py sai --filter_file=./share/hw_sanity_tests/t2_sai_tests.conf --config ./share/hw_test_configs/$CONFIG ...
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t2_sai_tests.conf
+```
