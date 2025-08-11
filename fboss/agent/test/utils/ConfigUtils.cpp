@@ -1200,7 +1200,6 @@ bool isRswPlatform(PlatformType type) {
   };
   return false;
 }
-
 /*
  * Returns a pair of vectors of the form (uplinks, downlinks). Pertains
  * specifically to default RSW platforms, where all downlink ports are
@@ -1298,23 +1297,33 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   // First populate masterPorts with all ports, analogous to
   // masterLogicalPortIds, then slice uplinks/downlinks according to ecmpWidth.
 
-  // just for brevity, mostly in return statement
-  using PortList = std::vector<PortID>;
-  PortList masterPorts;
+  std::vector<PortID> uplinks, downlinks;
+  std::set<PortID> aggports;
 
-  for (const auto& port : *config.ports()) {
-    if (isEnabledPortWithSubnet(port, config)) {
-      masterPorts.push_back(PortID(folly::copy(port.logicalID().value())));
+  // Get all aggregate ports
+  for (auto aggrPort : *config.aggregatePorts()) {
+    for (auto memberPort : *aggrPort.memberPorts()) {
+      aggports.insert(folly::copy(PortID(memberPort.memberPortID().value())));
     }
   }
 
-  auto begin = masterPorts.begin();
-  CHECK_GE(masterPorts.size(), ecmpWidth)
+  for (const auto& port : *config.ports()) {
+    if (isEnabledPortWithSubnet(port, config)) {
+      if (aggports.find(PortID(port.logicalID().value())) == aggports.end()) {
+        if (uplinks.size() < ecmpWidth) {
+          uplinks.emplace_back(folly::copy(port.logicalID().value()));
+        } else {
+          downlinks.emplace_back(folly::copy(port.logicalID().value()));
+        }
+      } else {
+        downlinks.emplace_back(folly::copy(port.logicalID().value()));
+      }
+    }
+  }
+  CHECK_GE(uplinks.size() + downlinks.size(), ecmpWidth)
       << "Not enough ports with subnet in config. Need  " << ecmpWidth
-      << " ports, but found only " << masterPorts.size();
-  auto mid = masterPorts.begin() + ecmpWidth;
-  auto end = masterPorts.end();
-  return std::pair(PortList(begin, mid), PortList(mid, end));
+      << " ports, but found only " << uplinks.size() + downlinks.size();
+  return std::pair(uplinks, downlinks);
 }
 // Set any ports in this port group to use the specified speed,
 // and disables any ports that don't support this speed.
