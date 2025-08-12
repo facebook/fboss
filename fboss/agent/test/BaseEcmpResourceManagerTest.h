@@ -102,6 +102,18 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   }
   void rmRoute(const RoutePrefixV6& prefix6);
 
+  void assertTargetState(
+      const std::shared_ptr<SwitchState>& targetState,
+      const std::shared_ptr<SwitchState>& endStatePrefixes,
+      const std::set<RouteV6::Prefix>& overflowPrefixes,
+      const EcmpResourceManager* consolidatorToCheck = nullptr,
+      bool checkStats = true);
+  void assertEndState(
+      const std::shared_ptr<SwitchState>& endStatePrefixes,
+      const std::set<RouteV6::Prefix>& overflowPrefixes) {
+    assertTargetState(state_, endStatePrefixes, overflowPrefixes);
+  }
+
  private:
   void addOrUpdateRoute(
       const RoutePrefixV6& prefix6,

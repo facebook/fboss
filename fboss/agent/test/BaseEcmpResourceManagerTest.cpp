@@ -430,6 +430,95 @@ BaseEcmpResourceManagerTest::getNhopId(const RouteNextHopSet& nhops) const {
   return nhopId;
 }
 
+void BaseEcmpResourceManagerTest::assertTargetState(
+    const std::shared_ptr<SwitchState>& targetState,
+    const std::shared_ptr<SwitchState>& endStatePrefixes,
+    const std::set<RouteV6::Prefix>& overflowPrefixes,
+    const EcmpResourceManager* consolidatorToCheck,
+    bool checkStats) {
+  consolidatorToCheck =
+      consolidatorToCheck ? consolidatorToCheck : consolidator_.get();
+  EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
+  std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups;
+  for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
+    auto route = cfib(targetState)->exactMatch(inRoute->prefix());
+    ASSERT_TRUE(route->isResolved());
+    ASSERT_NE(route, nullptr);
+    auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
+        RouterID(0), inRoute->prefix().toCidrNetwork());
+    bool isEcmpRoute = route->isResolved() &&
+        route->getForwardInfo().getNextHopSet().size() > 1;
+    if (isEcmpRoute) {
+      ASSERT_NE(consolidatorGrpInfo, nullptr);
+      if (consolidatorToCheck == consolidator_.get()) {
+        /*
+         * If consolidatorToCheck is the same as test class consolidator
+         * assert that group infos b/w SwSwitch's consolidator_ and
+         * Test class consolidator match
+         */
+
+        auto swSwitchGroupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+            RouterID(0), route->prefix().toCidrNetwork());
+        ASSERT_NE(swSwitchGroupInfo, nullptr);
+        auto swGroupId = swSwitchGroupInfo->getID();
+        auto consolidatorGroupId = swSwitchGroupInfo->getID();
+        auto consolidatorRouteUsageCount =
+            consolidatorGrpInfo->getRouteUsageCount();
+        auto swRouteUsageCount = swSwitchGroupInfo->getRouteUsageCount();
+        auto consolidatorIsBackupEcmpType =
+            consolidatorGrpInfo->isBackupEcmpGroupType();
+        auto swIsBackupEcmpType = swSwitchGroupInfo->isBackupEcmpGroupType();
+        EXPECT_EQ(
+            std::tie(swGroupId, swRouteUsageCount, swIsBackupEcmpType),
+            std::tie(
+                consolidatorGroupId,
+                consolidatorRouteUsageCount,
+                consolidatorIsBackupEcmpType));
+      }
+    }
+    if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
+      EXPECT_TRUE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
+          << " expected route " << route->str()
+          << " to have override ECMP group type or ecmp nhops";
+      if (getBackupEcmpSwitchingMode()) {
+        EXPECT_EQ(
+            route->getForwardInfo().getOverrideEcmpSwitchingMode(),
+            consolidatorToCheck->getBackupEcmpSwitchingMode());
+        EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
+        if (isEcmpRoute) {
+          backupEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+        }
+      }
+      if (getEcmpCompressionThresholdPct()) {
+        EXPECT_TRUE(route->getForwardInfo().getOverrideNextHops().has_value());
+        EXPECT_EQ(
+            route->getForwardInfo().getOverrideNextHops(),
+            consolidatorToCheck
+                ->getGroupInfo(RouterID(0), route->prefix().toCidrNetwork())
+                ->getOverrideNextHops());
+        // Merged groups also take up primary ecmp groups
+        primaryEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+      }
+    } else {
+      EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+      if (isEcmpRoute) {
+        EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
+        EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
+        primaryEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+      }
+    }
+  }
+  if (checkStats) {
+    EXPECT_EQ(
+        sw_->stats()->getPrimaryEcmpGroupsExhausted(),
+        backupEcmpGroups.size() ? 1 : 0);
+    EXPECT_EQ(
+        sw_->stats()->getPrimaryEcmpGroupsCount(), primaryEcmpGroups.size());
+    EXPECT_EQ(
+        sw_->stats()->getBackupEcmpGroupsCount(), backupEcmpGroups.size());
+  }
+}
+
 void BaseEcmpResourceManagerTest::addOrUpdateRoute(
     const RoutePrefixV6& prefix6,
     const RouteNextHopSet& nhops) {
