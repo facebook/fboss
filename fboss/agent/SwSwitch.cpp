@@ -2059,7 +2059,7 @@ void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
 
   forEachChangedRoute(
       delta,
-      [&rid2prefix2SwitchingMode](
+      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
           RouterID rid, const auto& oldRoute, const auto& newRoute) {
         if (!newRoute->isResolved()) {
           return;
@@ -2071,6 +2071,10 @@ void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
             rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
                 newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
           }
+          if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
+            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideNextHops();
+          }
         } else {
           // both are resolved
           if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() !=
@@ -2078,15 +2082,25 @@ void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
             rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
                 newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
           }
+          if (oldRoute->getForwardInfo().getOverrideNextHops() !=
+              newRoute->getForwardInfo().getOverrideNextHops()) {
+            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideNextHops();
+          }
         }
       },
-      [&rid2prefix2SwitchingMode](RouterID rid, const auto& newRoute) {
+      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
+          RouterID rid, const auto& newRoute) {
         if (newRoute->isResolved() &&
             newRoute->getForwardInfo()
                 .getOverrideEcmpSwitchingMode()
                 .has_value()) {
           rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
               newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+        }
+        if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
+          rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+              newRoute->getForwardInfo().getOverrideNextHops();
         }
       },
       [&rid2prefix2SwitchingMode](RouterID /*rid*/, const auto& /*oldRoute*/) {
