@@ -118,8 +118,9 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   }
   if (switchStats_) {
     switchStats_->setPrimaryEcmpGroupsCount(inOutState->nonBackupEcmpGroupsCnt);
-    auto backupEcmpGroupCount =
-        nextHopGroup2Id_.size() - inOutState->nonBackupEcmpGroupsCnt;
+    auto backupEcmpGroupCount = backupEcmpGroupType_.has_value()
+        ? nextHopGroup2Id_.size() - inOutState->nonBackupEcmpGroupsCnt
+        : 0;
     switchStats_->setBackupEcmpGroupsCount(backupEcmpGroupCount);
     switchStats_->setPrimaryEcmpGroupsExhausted(backupEcmpGroupCount > 0);
   }
