@@ -77,6 +77,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       std::map<NextHopGroupIds, ConsolidationInfo>;
   GroupIds2ConsolidationInfo getConsolidationInfo(NextHopGroupId grpId) const;
   std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
+  std::map<NextHopGroupId, std::set<Prefix>> getGroupIdToPrefix() const;
 
  private:
   void nextHopGroupDeleted(NextHopGroupId groupId);

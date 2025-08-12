@@ -1207,6 +1207,20 @@ void EcmpResourceManager::computeCandidateMerges(
   }
 }
 
+std::map<
+    EcmpResourceManager::NextHopGroupId,
+    std::set<EcmpResourceManager::Prefix>>
+EcmpResourceManager::getGroupIdToPrefix() const {
+  std::map<NextHopGroupId, std::set<Prefix>> toRet;
+  std::for_each(
+      prefixToGroupInfo_.begin(),
+      prefixToGroupInfo_.end(),
+      [&toRet](const auto& prefixAndGrpInfo) {
+        toRet[prefixAndGrpInfo.second->getID()].insert(prefixAndGrpInfo.first);
+      });
+  return toRet;
+}
+
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const std::shared_ptr<SwitchState>& state,
     const HwAsic* asic,
