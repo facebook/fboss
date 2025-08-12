@@ -13,6 +13,8 @@ def indent(text: str, level: int = 1) -> str:
 def run_cmd(cmd: str, **kwargs: Any) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(
         cmd,
+        shell=True,
+        check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,

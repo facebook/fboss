@@ -8,10 +8,20 @@ python_library(
     name = "fixmyfboss_library",
     srcs = [
         "check.py",
+        "config.py",
+        "platform_name_lib.py",
         "remediation.py",
         "status.py",
         "utils.py",
     ] + glob(["modules/*.py"]),
+    resources = {
+        "//fboss/platform:configs": "fboss_config_files",
+    },
+    deps = [
+        "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",
+        "//fboss/platform/platform_manager:platform_manager_config-python-types",
+        "//thrift/lib/py3:types",
+    ],
 )
 
 python_binary(
