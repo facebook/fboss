@@ -120,22 +120,36 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
         }
       }
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
-        EXPECT_TRUE(
-            route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value())
+        EXPECT_TRUE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
             << " expected route " << route->str()
-            << " to have override ECMP group type";
-        EXPECT_EQ(
-            route->getForwardInfo().getOverrideEcmpSwitchingMode(),
-            consolidatorToCheck->getBackupEcmpSwitchingMode());
-        if (isEcmpRoute) {
+            << " to have override ECMP group type or ecmp nhops";
+        if (getBackupEcmpSwitchingMode()) {
+          EXPECT_EQ(
+              route->getForwardInfo().getOverrideEcmpSwitchingMode(),
+              consolidatorToCheck->getBackupEcmpSwitchingMode());
           EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
-          backupEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+          if (isEcmpRoute) {
+            backupEcmpGroups.insert(
+                route->getForwardInfo().normalizedNextHops());
+          }
+        }
+        if (getEcmpCompressionThresholdPct()) {
+          EXPECT_TRUE(
+              route->getForwardInfo().getOverrideNextHops().has_value());
+          EXPECT_EQ(
+              route->getForwardInfo().getOverrideNextHops(),
+              consolidatorToCheck
+                  ->getGroupInfo(RouterID(0), route->prefix().toCidrNetwork())
+                  ->getOverrideNextHops());
+          // Merged groups also take up primary ecmp groups
+          primaryEcmpGroups.insert(
+              route->getForwardInfo().normalizedNextHops());
         }
       } else {
-        EXPECT_FALSE(
-            route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value());
+        EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
         if (isEcmpRoute) {
           EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
+          EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
           primaryEcmpGroups.insert(
               route->getForwardInfo().normalizedNextHops());
         }
