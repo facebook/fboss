@@ -43,6 +43,21 @@ bool pruneFromMergeGroupsImpl(
   }
   return pruned;
 }
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const EcmpResourceManager::NextHopGroupIds& gids) {
+  os << "[" << folly::join(", ", gids) << "]";
+  return os;
+}
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::vector<EcmpResourceManager::NextHopGroupId>& gids) {
+  os << "[" << folly::join(", ", gids) << "]";
+  return os;
+}
+
 } // namespace
 
 const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
@@ -875,7 +890,7 @@ void EcmpResourceManager::updateConsolidationPenalty(
       auto newPenalty = std::ceil((nhopsLost * 100.0) / grpNhopsSize) *
           groupInfo.getRouteUsageCount();
       XLOG(DBG2) << " GID: " << groupInfo.getID()
-                 << " merge penalty for: " << folly::join(", ", mergedGroups)
+                 << " merge penalty for: " << mergedGroups
                  << " prev penalty: " << citr->second
                  << " new penalty: " << newPenalty;
       citr->second = newPenalty;
@@ -1165,8 +1180,7 @@ EcmpResourceManager::computeConsolidationInfo(
     mergedNhops = std::move(tmpMergeNhops);
   }
   ConsolidationInfo consolidationInfo;
-  XLOG(DBG2) << " Computing consolidation penaties for: "
-             << folly::join(", ", grpIds);
+  XLOG(DBG2) << " Computing consolidation penaties for: " << grpIds;
   for (auto grpId : grpIds) {
     const auto& grpInfo = nextHopGroupIdToInfo_.ref(grpId);
     CHECK_GE(grpInfo->getNhops().size(), mergedNhops.size());
@@ -1201,8 +1215,7 @@ EcmpResourceManager::getConsolidationInfo(NextHopGroupId grpId) const {
 
 void EcmpResourceManager::computeCandidateMerges(
     const std::vector<NextHopGroupId>& groupIds) {
-  XLOG(DBG2) << " Will compute candidate merges for : "
-             << folly::join(", ", groupIds);
+  XLOG(DBG2) << " Will compute candidate merges for : " << groupIds;
   NextHopGroupIds alreadyMergedGroups;
   std::for_each(
       mergedGroups_.begin(),
@@ -1297,6 +1310,16 @@ std::ostream& operator<<(
   for (const auto& [gid, penalty] : info.groupId2Penalty) {
     ss << " gid:  " << gid << " penalty: " << penalty << std::endl;
   }
+  os << ss.str();
+  return os;
+}
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const EcmpResourceManager::Prefix& ridAndPfx) {
+  const auto& [rid, pfx] = ridAndPfx;
+  std::stringstream ss;
+  ss << " RID: " << rid << " prefix: " << pfx.first << " / " << (int)pfx.second;
   os << ss.str();
   return os;
 }

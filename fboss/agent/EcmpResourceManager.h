@@ -310,4 +310,8 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::ConsolidationInfo& info);
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const EcmpResourceManager::Prefix& pfx);
 } // namespace facebook::fboss
