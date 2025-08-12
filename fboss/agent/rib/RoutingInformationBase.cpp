@@ -456,7 +456,8 @@ void RibRouteTables::setOverrideEcmpMode(
           curForwardInfo.getAdminDistance(),
           curForwardInfo.getCounterID(),
           curForwardInfo.getClassID(),
-          overrideEcmpMode);
+          overrideEcmpMode,
+          curForwardInfo.getOverrideNextHops());
       ritr->value()->setResolved(newForwardInfo);
       ritr->value()->publish();
     };
@@ -467,6 +468,53 @@ void RibRouteTables::setOverrideEcmpMode(
         updateRoute(v4Rib, prefix.first.asV4(), prefix.second, ecmpMode);
       } else {
         updateRoute(v6Rib, prefix.first.asV6(), prefix.second, ecmpMode);
+      }
+    }
+  });
+  updateFib(resolver, rid, fibUpdateCallback, cookie);
+}
+
+void RibRouteTables::setOverrideEcmpNhops(
+    const SwitchIdScopeResolver* resolver,
+    RouterID rid,
+    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
+        prefix2Nhops,
+    const FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  updateRib(rid, [&](auto& routeTable) {
+    // Update rib
+    auto updateRoute = [](auto& rib,
+                          auto ip,
+                          uint8_t mask,
+                          std::optional<RouteNextHopSet> overrideNhops) {
+      auto ritr = rib.exactMatch(ip, mask);
+      if (ritr == rib.end()) {
+        return;
+      }
+      auto& ribRoute = ritr->value();
+      if (!ribRoute->isResolved() ||
+          ribRoute->getForwardInfo().getOverrideNextHops() == overrideNhops) {
+        return;
+      }
+      ritr->value() = ribRoute->clone();
+      const auto& curForwardInfo = ritr->value()->getForwardInfo();
+      auto newForwardInfo = RouteNextHopEntry(
+          curForwardInfo.getNextHopSet(),
+          curForwardInfo.getAdminDistance(),
+          curForwardInfo.getCounterID(),
+          curForwardInfo.getClassID(),
+          curForwardInfo.getOverrideEcmpSwitchingMode(),
+          overrideNhops);
+      ritr->value()->setResolved(newForwardInfo);
+      ritr->value()->publish();
+    };
+    auto& v4Rib = routeTable.v4NetworkToRoute;
+    auto& v6Rib = routeTable.v6NetworkToRoute;
+    for (const auto& [prefix, nhops] : prefix2Nhops) {
+      if (prefix.first.isV4()) {
+        updateRoute(v4Rib, prefix.first.asV4(), prefix.second, nhops);
+      } else {
+        updateRoute(v6Rib, prefix.first.asV6(), prefix.second, nhops);
       }
     }
   });
@@ -681,6 +729,21 @@ void RoutingInformationBase::setOverrideEcmpModeAsync(
   auto updateFn = [=, this]() {
     ribTables_.setOverrideEcmpMode(
         resolver, rid, prefix2EcmpMode, fibUpdateCallback, cookie);
+  };
+  ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
+}
+
+void RoutingInformationBase::setOverrideEcmpNhopsAsync(
+    const SwitchIdScopeResolver* resolver,
+    RouterID rid,
+    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
+        prefix2Nhops,
+    const FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  ensureRunning();
+  auto updateFn = [=, this]() {
+    ribTables_.setOverrideEcmpNhops(
+        resolver, rid, prefix2Nhops, fibUpdateCallback, cookie);
   };
   ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
 }
