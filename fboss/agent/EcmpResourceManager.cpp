@@ -434,6 +434,11 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
         if (!mergeSet.contains(pfxGrpInfo->getID())) {
           continue;
         }
+        if (!pfxGrpInfo->hasOverrideNextHops()) {
+          // Converting from primary group to merged group
+          // decrement primary group count
+          --inOutState->nonBackupEcmpGroupsCnt;
+        }
         pfxGrpInfo->setMergedGroupInfoItr(mitr);
         auto newState = inOutState->out.back().newState();
         auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>();
@@ -449,6 +454,8 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
         updateForwardingInfoAndInsertDelta(
             rid, existingRoute, pfxGrpInfo, ecmpDemandExceeded, inOutState);
       }
+      // We added one merged group, so increment nonBackupEcmpGroupsCnt
+      ++inOutState->nonBackupEcmpGroupsCnt;
     }
     CHECK(insertedGrp);
   } else if (compressionPenaltyThresholdPct_) {
