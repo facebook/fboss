@@ -176,43 +176,43 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
     return;
   }
   XLOG(DBG2) << " Can reclaim : " << canReclaim << " non primary groups";
-  std::unordered_set<NextHopGroupId> allBackupGroupIds;
-  std::vector<std::shared_ptr<NextHopGroupInfo>> backupGroupsSorted;
+  std::unordered_set<NextHopGroupId> allOverrideGroupIds;
+  std::vector<std::shared_ptr<NextHopGroupInfo>> overrideGroupsSorted;
   std::for_each(
       nextHopGroupIdToInfo_.begin(),
       nextHopGroupIdToInfo_.end(),
-      [&backupGroupsSorted, &allBackupGroupIds](const auto& idAndGrpRef) {
+      [&overrideGroupsSorted, &allOverrideGroupIds](const auto& idAndGrpRef) {
         auto groupInfo = idAndGrpRef.second.lock();
         if (groupInfo->isBackupEcmpGroupType()) {
-          backupGroupsSorted.push_back(groupInfo);
-          allBackupGroupIds.insert(groupInfo->getID());
+          overrideGroupsSorted.push_back(groupInfo);
+          allOverrideGroupIds.insert(groupInfo->getID());
         }
       });
-  if (backupGroupsSorted.empty()) {
+  if (overrideGroupsSorted.empty()) {
     return;
   }
   XLOG(DBG2) << " Will reclaim : "
              << std::min(
                     canReclaim,
-                    static_cast<uint32_t>(backupGroupsSorted.size()))
+                    static_cast<uint32_t>(overrideGroupsSorted.size()))
              << " non primary groups";
   std::unordered_set<NextHopGroupId> groupIdsToReclaim;
-  if (allBackupGroupIds.size() > canReclaim) {
+  if (allOverrideGroupIds.size() > canReclaim) {
     // Sort groups by number of routes pointing to this group.
     std::sort(
-        backupGroupsSorted.begin(),
-        backupGroupsSorted.end(),
+        overrideGroupsSorted.begin(),
+        overrideGroupsSorted.end(),
         [](const auto& lgroup, const auto& rgroup) {
           return lgroup->getRouteUsageCount() < rgroup->getRouteUsageCount();
         });
     int claimed = 0;
-    for (auto gitr = backupGroupsSorted.rbegin();
-         gitr != backupGroupsSorted.rend() && claimed < canReclaim;
+    for (auto gitr = overrideGroupsSorted.rbegin();
+         gitr != overrideGroupsSorted.rend() && claimed < canReclaim;
          ++gitr, ++claimed) {
       groupIdsToReclaim.insert((*gitr)->getID());
     }
   } else {
-    groupIdsToReclaim = std::move(allBackupGroupIds);
+    groupIdsToReclaim = std::move(allOverrideGroupIds);
   }
   auto oldState = inOutState->out.back().newState();
   auto newState = oldState->clone();
