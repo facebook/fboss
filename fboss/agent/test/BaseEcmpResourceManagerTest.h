@@ -113,6 +113,8 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const std::set<RouteV6::Prefix>& overflowPrefixes) {
     assertTargetState(state_, endStatePrefixes, overflowPrefixes);
   }
+  std::set<RouteV6::Prefix> getPrefixesForGroups(
+      const EcmpResourceManager::NextHopGroupIds& grpIds) const;
 
  private:
   void addOrUpdateRoute(

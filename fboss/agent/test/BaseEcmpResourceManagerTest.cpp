@@ -533,12 +533,25 @@ void BaseEcmpResourceManagerTest::addOrUpdateRoute(
   newState->publish();
   consolidate(newState);
 }
+
 void BaseEcmpResourceManagerTest::rmRoute(const RoutePrefixV6& prefix6) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
   fib6->removeNode(prefix6.str());
   newState->publish();
   consolidate(newState);
+}
+
+std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
+    const EcmpResourceManager::NextHopGroupIds& grpIds) const {
+  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
+  std::set<RouteV6::Prefix> prefixes;
+  for (auto grpId : grpIds) {
+    for (const auto& [_, pfx] : grpId2Prefixes.at(grpId)) {
+      prefixes.insert(RouteV6::Prefix(pfx.first.asV6(), pfx.second));
+    }
+  }
+  return prefixes;
 }
 
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
