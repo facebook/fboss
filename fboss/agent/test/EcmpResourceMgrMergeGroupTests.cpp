@@ -24,4 +24,24 @@ class EcmpResourceMgrMergeGroupTest
 // Base class add 5 groups, which is within in the
 // Ecmp resource mgr limit.
 TEST_F(EcmpResourceMgrMergeGroupTest, init) {}
+
+TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
+  std::set<RouteV6::Prefix> addedPrefixes;
+  // Update a route pointing to new nhops. ECMP limit is breached during
+  // update due to make before break. Then the reclaim step notices
+  // a freed up primary ECMP group and reclaims it back. So in the
+  // end no prefixes have back up ecmp group override set.
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto newRoute = makeRoute(nextPrefix(), *nhopSets.begin())->clone();
+  newRoute->setResolved(
+      RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
+  addedPrefixes.insert(newRoute->prefix());
+  fib6->addNode(newRoute);
+  auto deltas = consolidate(newState);
+  // Route delta + reclaim delta
+  EXPECT_EQ(deltas.size(), 1);
+}
 } // namespace facebook::fboss
