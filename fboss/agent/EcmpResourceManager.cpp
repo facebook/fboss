@@ -329,9 +329,6 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     const std::shared_ptr<Route<AddrT>>& newRoute,
     bool ecmpDemandExceeded,
     bool addNewDelta) {
-  if (ecmpDemandExceeded) {
-    CHECK(newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops());
-  }
   auto curStateDelta = getCurrentStateDelta();
   auto oldState = curStateDelta.newState();
   CHECK(oldState->isPublished());
@@ -469,7 +466,14 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     std::shared_ptr<NextHopGroupInfo>& grpInfo,
     bool ecmpDemandExceeded,
     InputOutputState* inOutState) {
-  CHECK(grpInfo->hasOverrides());
+  if (ecmpDemandExceeded && backupEcmpGroupType_) {
+    // If ecmpDemandExceeded and we have backupEcmpGroupType_ set,
+    // then this group should spillover to backup ecmpType config.
+    // For merge group mode, we are not guaranteed which groups
+    // will be picked for merge, so we can't assert that the
+    // new groups  will always be of merge type.
+    CHECK(grpInfo->isBackupEcmpGroupType());
+  }
   const auto& curForwardInfo = route->getForwardInfo();
   auto newForwardInfo = RouteNextHopEntry(
       curForwardInfo.normalizedNextHops(),
