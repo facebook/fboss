@@ -324,3 +324,8 @@ DEFINE_bool(
     enable_high_frequency_stats_polling,
     false,
     "Enable high frequency stats polling");
+
+DEFINE_bool(
+    dsf_headroom_pool_size_multiplication_factor_fix,
+    false,
+    "Fix the headroom pool size multiplication factor for DSF");

@@ -110,3 +110,4 @@ DECLARE_int32(agent_exit_delay_s);
 DECLARE_bool(dsf_single_stage_r192_f40_e32);
 
 DECLARE_bool(enable_high_frequency_stats_polling);
+DECLARE_bool(dsf_headroom_pool_size_multiplication_factor_fix);

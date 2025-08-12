@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
@@ -320,10 +321,22 @@ void SaiBufferManager::setupIngressEgressBufferPool(
         platform_->getAsic()->getNumCores();
   }
   std::optional<int32_t> newXoffSize;
-  if (bufferPoolCfg &&
+  if (bufferPoolCfg && bufferPoolCfg->headroomBytes().has_value() &&
       platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    newXoffSize = *(*bufferPoolCfg).headroomBytes() *
-        platform_->getAsic()->getNumMemoryBuffers();
+    if (FLAGS_dsf_headroom_pool_size_multiplication_factor_fix) {
+      // This flag is set as part of disruptive upgrade config. This
+      // flag setting needs a cold boot to take effect. Fixing the
+      // multiplication factor used in the headroom pool size
+      // computation. There are 4 cores in DNX and the headroom size
+      // expected to be passed in from agent config is the per core
+      // headroom pool size. So, multiplying it with the number of
+      // cores to get the headroom pool size at the ASIC level.
+      newXoffSize =
+          *bufferPoolCfg->headroomBytes() * platform_->getAsic()->getNumCores();
+    } else {
+      newXoffSize = *bufferPoolCfg->headroomBytes() *
+          platform_->getAsic()->getNumMemoryBuffers();
+    }
   }
   if (!ingressEgressBufferPoolHandle_) {
     createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
