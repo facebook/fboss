@@ -804,7 +804,7 @@ void EcmpResourceManager::routeDeleted(
   }
   auto groupInfo = nextHopGroupIdToInfo_.ref(groupId);
   if (!groupInfo) {
-    if (!removed->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+    if (!removed->getForwardInfo().hasOverrideSwitchingModeOrNhops()) {
       // Last reference to this ECMP group gone, check if this group was
       // of primary ECMP group type
       --inOutState->nonBackupEcmpGroupsCnt;
