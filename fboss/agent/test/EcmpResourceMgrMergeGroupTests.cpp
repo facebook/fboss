@@ -26,7 +26,11 @@ class EcmpResourceMgrMergeGroupTest
 TEST_F(EcmpResourceMgrMergeGroupTest, init) {}
 
 TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
-  std::set<RouteV6::Prefix> addedPrefixes;
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto overflowPrefixes = getPrefixesForGroups(
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet());
+  EXPECT_EQ(overflowPrefixes.size(), 2);
   // Update a route pointing to new nhops. ECMP limit is breached during
   // update due to make before break. Then the reclaim step notices
   // a freed up primary ECMP group and reclaims it back. So in the
@@ -38,10 +42,10 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   auto newRoute = makeRoute(nextPrefix(), *nhopSets.begin())->clone();
   newRoute->setResolved(
       RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
-  addedPrefixes.insert(newRoute->prefix());
   fib6->addNode(newRoute);
   auto deltas = consolidate(newState);
   // Route delta + reclaim delta
   EXPECT_EQ(deltas.size(), 1);
+  assertEndState(newState, overflowPrefixes);
 }
 } // namespace facebook::fboss
