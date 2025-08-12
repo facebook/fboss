@@ -150,9 +150,6 @@ int processOption(
 
 namespace facebook::fboss {
 
-constexpr uint16_t DHCPv4Handler::kBootPSPort;
-constexpr uint16_t DHCPv4Handler::kBootPCPort;
-
 bool DHCPv4Handler::isDHCPv4Packet(const UDPHeader& udpHdr) {
   auto srcPort = udpHdr.srcPort;
   auto dstPort = udpHdr.dstPort;
