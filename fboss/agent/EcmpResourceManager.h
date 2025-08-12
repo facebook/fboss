@@ -35,9 +35,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
-  using PrefixToGroupInfo = std::unordered_map<
-      std::pair<RouterID, folly::CIDRNetwork>,
-      std::shared_ptr<NextHopGroupInfo>>;
+  using Prefix = std::pair<RouterID, folly::CIDRNetwork>;
+  using PrefixToGroupInfo =
+      std::unordered_map<Prefix, std::shared_ptr<NextHopGroupInfo>>;
 
   std::vector<StateDelta> modifyState(
       const std::vector<StateDelta>& deltas) override;
