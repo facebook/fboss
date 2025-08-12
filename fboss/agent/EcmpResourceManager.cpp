@@ -18,6 +18,32 @@
 #include <limits>
 
 namespace facebook::fboss {
+namespace {
+bool pruneFromMergeGroupsImpl(
+    const EcmpResourceManager::NextHopGroupIds& groupIdsToPrune,
+    EcmpResourceManager::GroupIds2ConsolidationInfo& pruneFrom) {
+  bool pruned{false};
+  auto citr = pruneFrom.begin();
+  while (citr != pruneFrom.end()) {
+    auto gitr = groupIdsToPrune.begin();
+    // Using search (logN) instead of intersection O(max(M, N)
+    // since we expected the passed in groupIds to be
+    // a very small set - or even a size of 1. This
+    // makes search for individual groupIds more efficient.
+    for (; gitr != groupIdsToPrune.end(); ++gitr) {
+      if (citr->first.contains(*gitr)) {
+        citr = pruneFrom.erase(citr);
+        pruned = true;
+        break;
+      }
+    }
+    if (gitr == groupIdsToPrune.end()) {
+      ++citr;
+    }
+  }
+  return pruned;
+}
+} // namespace
 
 const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
     RouterID rid,
@@ -804,36 +830,18 @@ void EcmpResourceManager::nextHopGroupDeleted(NextHopGroupId groupId) {
     return;
   }
   if (!pruneFromCandidateMerges({groupId})) {
-    CHECK(pruneFromMergedGroups(groupId));
+    CHECK(pruneFromMergedGroups({groupId}));
   }
 }
 
 bool EcmpResourceManager::pruneFromCandidateMerges(
     const NextHopGroupIds& groupIds) {
-  bool pruned{false};
-  auto citr = candidateMergeGroups_.begin();
-  while (citr != candidateMergeGroups_.end()) {
-    auto gitr = groupIds.begin();
-    // Using search (logN) instead of intersection O(max(M, N)
-    // since we expected the passed in groupIds to be
-    // a very small set - or even a size of 1. This
-    // makes search for individual groupIds more efficient.
-    for (; gitr != groupIds.end(); ++gitr) {
-      if (citr->first.contains(*gitr)) {
-        citr = candidateMergeGroups_.erase(citr);
-        pruned = true;
-        break;
-      }
-    }
-    if (gitr == groupIds.end()) {
-      ++citr;
-    }
-  }
-  return pruned;
+  return pruneFromMergeGroupsImpl(groupIds, candidateMergeGroups_);
 }
 
-bool EcmpResourceManager::pruneFromMergedGroups(NextHopGroupId /*groupId*/) {
-  XLOG(FATAL) << " Prune API from merged groups is a TODO";
+bool EcmpResourceManager::pruneFromMergedGroups(
+    const NextHopGroupIds& groupIds) {
+  return pruneFromMergeGroupsImpl(groupIds, mergedGroups_);
 }
 
 void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {

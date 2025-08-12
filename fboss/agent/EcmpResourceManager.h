@@ -81,8 +81,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
 
  private:
   void nextHopGroupDeleted(NextHopGroupId groupId);
-  bool pruneFromCandidateMerges(const NextHopGroupIds& groupId);
-  bool pruneFromMergedGroups(NextHopGroupId groupId);
+  bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
+  bool pruneFromMergedGroups(const NextHopGroupIds& groupIds);
   template <typename AddrT>
   bool routesEqual(
       const std::shared_ptr<Route<AddrT>>& oldRoute,
@@ -271,6 +271,9 @@ class NextHopGroupInfo {
   }
   void setMergedGroupInfoItr(std::optional<Groups2ConsolidationInfoItr> gitr) {
     mergedGroupsToInfoItr_ = gitr;
+  }
+  std::optional<Groups2ConsolidationInfoItr> getMergedGroupInfoItr() const {
+    return mergedGroupsToInfoItr_;
   }
   const RouteNextHopSet& getNhops() const {
     return ngItr_->first;
