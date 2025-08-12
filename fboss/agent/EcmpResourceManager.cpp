@@ -431,6 +431,13 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
           nhops2IdItr->second,
           nhops2IdItr,
           false /*isBackupEcmpGroupType*/);
+      /*
+       * Since merged group will create a new ECMP group. We create a
+       * single new delta for migrating all relvant prefixes to merged
+       * group and adding the new group that got us to exceed the ECMP
+       * limit
+       */
+      bool addNewDelta{true};
       for (auto& [ridAndPfx, pfxGrpInfo] : prefixToGroupInfo_) {
         if (!mergeSet.contains(pfxGrpInfo->getID())) {
           continue;
@@ -453,7 +460,15 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
         }
         CHECK(existingRoute);
         updateForwardingInfoAndInsertDelta(
-            rid, existingRoute, pfxGrpInfo, ecmpDemandExceeded, inOutState);
+            rid,
+            existingRoute,
+            pfxGrpInfo,
+            ecmpDemandExceeded,
+            inOutState,
+            addNewDelta);
+        // Only the first prefix update needs to start a new delta.
+        // Rest will just queue updates on that same delta
+        addNewDelta &= false;
       }
       // We added one merged group, so increment nonBackupEcmpGroupsCnt
       ++inOutState->nonBackupEcmpGroupsCnt;
@@ -473,7 +488,8 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     const std::shared_ptr<Route<AddrT>>& route,
     std::shared_ptr<NextHopGroupInfo>& grpInfo,
     bool ecmpDemandExceeded,
-    InputOutputState* inOutState) {
+    InputOutputState* inOutState,
+    bool addNewDelta) {
   if (ecmpDemandExceeded && backupEcmpGroupType_) {
     // If ecmpDemandExceeded and we have backupEcmpGroupType_ set,
     // then this group should spillover to backup ecmpType config.
@@ -493,7 +509,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
   auto newRoute = route->clone();
   newRoute->setResolved(std::move(newForwardInfo));
   newRoute->publish();
-  inOutState->addOrUpdateRoute(rid, newRoute, ecmpDemandExceeded);
+  inOutState->addOrUpdateRoute(rid, newRoute, ecmpDemandExceeded, addNewDelta);
   inOutState->updated = true;
   return grpInfo;
 }

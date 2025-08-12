@@ -173,7 +173,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::shared_ptr<Route<AddrT>>& route,
       std::shared_ptr<NextHopGroupInfo>& grpInfo,
       bool ecmpDemandExceeded,
-      InputOutputState* inOutState);
+      InputOutputState* inOutState,
+      bool addNewDelta = false);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> ecmpGroupDemandExceeded(
       RouterID rid,

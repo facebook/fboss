@@ -45,7 +45,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   fib6->addNode(newRoute);
   auto deltas = consolidate(newState);
   // Route delta + reclaim delta
-  EXPECT_EQ(deltas.size(), 1);
+  EXPECT_EQ(deltas.size(), 2);
   assertEndState(newState, overflowPrefixes);
 }
 } // namespace facebook::fboss
