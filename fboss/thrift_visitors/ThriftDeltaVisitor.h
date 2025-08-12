@@ -290,12 +290,20 @@ struct ThriftDeltaVisitor<apache::thrift::type::struct_t<Node>> {
     bool hasDifferences{false};
 
     apache::thrift::op::for_each_field_id<Node>([&]<class Id>(Id) {
-      // Look for the expected member name
-      path.push_back(apache::thrift::op::get_name_v<Node, Id>.str());
-
       // Check for optionality
       auto oldNodeField = apache::thrift::op::get<Id>(oldNode);
       auto newNodeField = apache::thrift::op::get<Id>(newNode);
+
+      if constexpr (apache::thrift::detail::is_optional_field_ref_v<
+                        decltype(oldNodeField)>) {
+        // skip optional fields that are not set
+        if (!oldNodeField.has_value() && !newNodeField.has_value()) {
+          return;
+        }
+      }
+
+      // Look for the expected member name
+      path.push_back(apache::thrift::op::get_name_v<Node, Id>.str());
 
       if (apache::thrift::op::getValueOrNull(oldNodeField) == nullptr &&
           apache::thrift::op::getValueOrNull(newNodeField) != nullptr) {
