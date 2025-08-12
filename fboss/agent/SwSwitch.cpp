@@ -2052,6 +2052,10 @@ void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
       RouterID,
       std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
       rid2prefix2SwitchingMode;
+  std::map<
+      RouterID,
+      std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
+      rid2prefix2Nhops;
 
   forEachChangedRoute(
       delta,
@@ -2089,6 +2093,9 @@ void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
       });
   for (const auto& [rid, prefixes] : rid2prefix2SwitchingMode) {
     getRouteUpdater().programEcmpSwitchingModeAsync(rid, prefixes);
+  }
+  for (const auto& [rid, prefixes] : rid2prefix2Nhops) {
+    getRouteUpdater().programEcmpNhopOverridesAsync(rid, prefixes);
   }
 }
 
