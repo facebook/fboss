@@ -42,10 +42,6 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
       fsdbSensorSubscriber_->subscribeToQsfpServiceState();
     }
   }
-  thread_.reset(new std::thread([=, this] {
-    folly::setThreadName("bsp-evb-thread");
-    evbSensor_.loopForever();
-  }));
 }
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
@@ -413,10 +409,6 @@ bool Bsp::setFanLedSysfs(const std::string& path, int val) {
 }
 
 Bsp::~Bsp() {
-  if (thread_) {
-    evbSensor_.runInEventBaseThread([this] { evbSensor_.terminateLoopSoon(); });
-    thread_->join();
-  }
   fsdbSensorSubscriber_.reset();
   fsdbPubSubMgr_.reset();
 }

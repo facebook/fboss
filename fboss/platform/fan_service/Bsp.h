@@ -58,7 +58,6 @@ class Bsp {
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   bool writeToWatchdog(const std::string& value);
-  std::shared_ptr<std::thread> thread_{nullptr};
   void getAsicTempDataOverThrift(
       const std::shared_ptr<SensorData>& pSensorData);
   void getAsicTempThroughFsdb(const std::shared_ptr<SensorData>& pSensorData);
@@ -71,7 +70,7 @@ class Bsp {
   // Private Attributes
   int sensordThriftPort_{5970};
   int qsfpSvcThriftPort_{5910};
-  int agentTempThriftPort_{5972};
+  int agentTempThriftPort_{5959};
   bool initialSensorDataRead_{false};
 
   bool writeFd(int fd, const std::string& val) {
