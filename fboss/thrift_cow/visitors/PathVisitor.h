@@ -147,43 +147,86 @@ struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
  * final type.
  */
 
-// TODO: enable more details
-enum class ThriftTraverseResult {
-  OK,
-  NON_EXISTENT_NODE,
-  INVALID_ARRAY_INDEX,
-  INVALID_MAP_KEY,
-  INVALID_STRUCT_MEMBER,
-  INVALID_VARIANT_MEMBER,
-  INCORRECT_VARIANT_MEMBER,
-  VISITOR_EXCEPTION,
-  INVALID_SET_MEMBER,
-};
+// Class that represents the result of traversing a thrift structure
+class ThriftTraverseResult {
+ public:
+  // Result codes
+  enum class Code {
+    OK,
+    NON_EXISTENT_NODE,
+    INVALID_ARRAY_INDEX,
+    INVALID_MAP_KEY,
+    INVALID_STRUCT_MEMBER,
+    INVALID_VARIANT_MEMBER,
+    INCORRECT_VARIANT_MEMBER,
+    VISITOR_EXCEPTION,
+    INVALID_SET_MEMBER,
+  };
 
-inline std::string traverseResultString(ThriftTraverseResult result) {
-  switch (result) {
-    case ThriftTraverseResult::OK:
-      return "OK";
-    case ThriftTraverseResult::NON_EXISTENT_NODE:
-      return "NON_EXISTENT_NODE";
-    case ThriftTraverseResult::INVALID_ARRAY_INDEX:
-      return "INVALID_ARRAY_INDEX";
-    case ThriftTraverseResult::INVALID_MAP_KEY:
-      return "INVALID_MAP_KEY";
-    case ThriftTraverseResult::INVALID_STRUCT_MEMBER:
-      return "INVALID_STRUCT_MEMBER";
-    case ThriftTraverseResult::INVALID_VARIANT_MEMBER:
-      return "INVALID_VARIANT_MEMBER";
-    case ThriftTraverseResult::INCORRECT_VARIANT_MEMBER:
-      return "INCORRECT_VARIANT_MEMBER";
-    case ThriftTraverseResult::VISITOR_EXCEPTION:
-      return "VISITOR_EXCEPTION";
-    case ThriftTraverseResult::INVALID_SET_MEMBER:
-      return "INVALID_SET_MEMBER";
-    default:
-      return "ThriftTraverseResult::unknown";
+  // Constructors
+  ThriftTraverseResult() : code_(Code::OK) {}
+  ThriftTraverseResult(Code code, const std::string& message)
+      : code_(code), errorMessage_(message) {}
+
+  // Implicit conversion to bool for conditional checks
+  explicit operator bool() const {
+    return code_ == Code::OK;
   }
-}
+
+  // Accessors
+  Code code() const {
+    return code_;
+  }
+
+  std::optional<std::string> errorMessage() const {
+    return errorMessage_;
+  }
+
+  std::string toString() const {
+    return folly::to<std::string>(
+        "ThriftTraverseResult::",
+        codeString(),
+        errorMessage_.has_value() ? "(" + errorMessage_.value() + ")" : "");
+  }
+
+  // Comparison operators
+  bool operator==(const ThriftTraverseResult& other) const {
+    return code_ == other.code_;
+  }
+
+  bool operator!=(const ThriftTraverseResult& other) const {
+    return !(*this == other);
+  }
+
+ private:
+  std::string codeString() const {
+    switch (code_) {
+      case ThriftTraverseResult::Code::OK:
+        return "OK";
+      case ThriftTraverseResult::Code::NON_EXISTENT_NODE:
+        return "NON_EXISTENT_NODE";
+      case ThriftTraverseResult::Code::INVALID_ARRAY_INDEX:
+        return "INVALID_ARRAY_INDEX";
+      case ThriftTraverseResult::Code::INVALID_MAP_KEY:
+        return "INVALID_MAP_KEY";
+      case ThriftTraverseResult::Code::INVALID_STRUCT_MEMBER:
+        return "INVALID_STRUCT_MEMBER";
+      case ThriftTraverseResult::Code::INVALID_VARIANT_MEMBER:
+        return "INVALID_VARIANT_MEMBER";
+      case ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER:
+        return "INCORRECT_VARIANT_MEMBER";
+      case ThriftTraverseResult::Code::VISITOR_EXCEPTION:
+        return "VISITOR_EXCEPTION";
+      case ThriftTraverseResult::Code::INVALID_SET_MEMBER:
+        return "INVALID_SET_MEMBER";
+      default:
+        return "ThriftTraverseResult::unknown";
+    }
+  }
+
+  Code code_;
+  std::optional<std::string> errorMessage_;
+};
 
 /*
  * invokeVisitorFnHelper allows us to support two different visitor
@@ -293,14 +336,18 @@ visitNode(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
     try {
       params.op.template visitTyped<TC, Node>(node, cursor, params.end);
       if (cursor == params.end) {
-        return ThriftTraverseResult::OK;
+        return ThriftTraverseResult();
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", visitNode(Cow) exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
   }
 
@@ -336,15 +383,19 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", <Set>(Thrift) exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     using ValueTType = typename Obj::value_type;
 
@@ -356,11 +407,23 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
         // Recurse further
         return PathVisitorImpl<ValueTypeClass>::visit(*it, params, cursor);
       } else {
-        return ThriftTraverseResult::NON_EXISTENT_NODE;
+        std::string message = folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " <Set>(Thrift) at: ",
+            (cursor == params.end ? "(end)" : *cursor));
+        return ThriftTraverseResult(
+            ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
       }
     }
     // if we get here, we must have a malformed value
-    return ThriftTraverseResult::INVALID_SET_MEMBER;
+    std::string message = folly::to<std::string>(
+        "path: ",
+        folly::join("/", params.begin, params.end),
+        " <Set>(Thrift) at: ",
+        (cursor == params.end ? "(end)" : *cursor));
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::INVALID_SET_MEMBER, message);
   }
 
   template <typename Node, typename Op>
@@ -375,15 +438,19 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", <Set>(Hybrid) exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     auto& tObj = node.ref();
     using ValueTType = typename Node::ThriftType::value_type;
@@ -396,11 +463,23 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
         // Recurse further
         return PathVisitorImpl<ValueTypeClass>::visit(*it, params, cursor);
       } else {
-        return ThriftTraverseResult::NON_EXISTENT_NODE;
+        std::string message = folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " <Set>(Hybrid) at: ",
+            (cursor == params.end ? "(end)" : *cursor));
+        return ThriftTraverseResult(
+            ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
       }
     }
     // if we get here, we must have a malformed value
-    return ThriftTraverseResult::INVALID_SET_MEMBER;
+    std::string message = folly::to<std::string>(
+        "path: ",
+        folly::join("/", params.begin, params.end),
+        " <Set>(Hybrid) at: ",
+        (cursor == params.end ? "(end)" : *cursor));
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::INVALID_SET_MEMBER, message);
   }
 
   template <typename Fields, typename Op>
@@ -421,12 +500,24 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
         // Recurse further
         return PathVisitorImpl<ValueTypeClass>::visit(**it, params, cursor);
       } else {
-        return ThriftTraverseResult::NON_EXISTENT_NODE;
+        std::string message = folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " <Set> at: ",
+            (cursor == params.end ? "(end)" : *cursor));
+        return ThriftTraverseResult(
+            ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
       }
     }
 
     // if we get here, we must have a malformed value
-    return ThriftTraverseResult::INVALID_SET_MEMBER;
+    std::string message = folly::to<std::string>(
+        "path: ",
+        folly::join("/", params.begin, params.end),
+        " <Set> at: ",
+        (cursor == params.end ? "(end)" : *cursor));
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::INVALID_SET_MEMBER, message);
   }
 };
 
@@ -455,20 +546,30 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", visit<List>(Thrift) exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     // Parse and pop token. Also check for index bound
     auto index = folly::tryTo<size_t>(*cursor++);
     if (index.hasError() || index.value() >= tObj.size()) {
-      return ThriftTraverseResult::INVALID_ARRAY_INDEX;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " (Thrift) at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_ARRAY_INDEX, message);
     }
     return PathVisitorImpl<ValueTypeClass>::visit(
         tObj.at(index.value()), params, cursor);
@@ -484,22 +585,32 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", visit<List>(Hybrid) exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     // get the value based on the key
     auto& tObj = node.ref();
     // Parse and pop token. Also check for index bound
     auto index = folly::tryTo<size_t>(*cursor++);
     if (index.hasError() || index.value() >= tObj.size()) {
-      return ThriftTraverseResult::INVALID_ARRAY_INDEX;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " <List>(Hybrid) at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_ARRAY_INDEX, message);
     }
     return PathVisitorImpl<ValueTypeClass>::visit(
         tObj.at(index.value()), params, cursor);
@@ -516,7 +627,13 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
     // Parse and pop token. Also check for index bound
     auto index = folly::tryTo<size_t>(*cursor++);
     if (index.hasError() || index.value() >= fields.size()) {
-      return ThriftTraverseResult::INVALID_ARRAY_INDEX;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " <List> at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_ARRAY_INDEX, message);
     }
 
     // Recurse at a given index
@@ -556,15 +673,19 @@ struct PathVisitorImpl<
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", <Map>(Thrift) exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     // get the value based on the key
     using KeyT = typename folly::remove_cvref_t<decltype(tObj)>::key_type;
@@ -572,9 +693,21 @@ struct PathVisitorImpl<
     auto token = *cursor++;
     auto key = folly::tryTo<KeyT>(token);
     if (!key.hasValue()) {
-      return ThriftTraverseResult::INVALID_MAP_KEY;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " <Map>(Thrift) at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_MAP_KEY, message);
     } else if (tObj.find(key.value()) == tObj.end()) {
-      return ThriftTraverseResult::NON_EXISTENT_NODE;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " <Map>(Thrift) at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
     }
     return PathVisitorImpl<MappedTypeClass>::visit(
         tObj.at(*key), params, cursor);
@@ -590,15 +723,19 @@ struct PathVisitorImpl<
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "Exception while traversing path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", <Map>(Hybrid) exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     // get the value based on the key
     auto& tObj = node.ref();
@@ -607,9 +744,21 @@ struct PathVisitorImpl<
     auto token = *cursor++;
     auto key = folly::tryTo<KeyT>(token);
     if (!key.hasValue()) {
-      return ThriftTraverseResult::INVALID_MAP_KEY;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " <Map>(Hybrid) at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_MAP_KEY, message);
     } else if (tObj.find(key.value()) == tObj.end()) {
-      return ThriftTraverseResult::NON_EXISTENT_NODE;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " <Map>(Hybrid) at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
     }
     return PathVisitorImpl<MappedTypeClass>::visit(
         tObj.at(*key), params, cursor);
@@ -639,11 +788,23 @@ struct PathVisitorImpl<
               *fields.ref(key.value()), params, cursor);
         }
       } else {
-        return ThriftTraverseResult::NON_EXISTENT_NODE;
+        std::string message = folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " <Map> at: ",
+            (cursor == params.end ? "(end)" : *cursor));
+        return ThriftTraverseResult(
+            ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
       }
     }
 
-    return ThriftTraverseResult::INVALID_MAP_KEY;
+    std::string message = folly::to<std::string>(
+        "path: ",
+        folly::join("/", params.begin, params.end),
+        " <Map> at: ",
+        (cursor == params.end ? "(end)" : *cursor));
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::INVALID_MAP_KEY, message);
   }
 };
 
@@ -670,10 +831,13 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
     // TODO: implement specialization for hybrid nodes
-    XLOG(ERR) << "Unimplemented visitation for hybrid node: path: "
-              << folly::join("/", params.begin, params.end)
-              << " at: " << (cursor == params.end ? "(end)" : *cursor);
-    return ThriftTraverseResult::VISITOR_EXCEPTION;
+    std::string message = folly::to<std::string>(
+        "Unsupported hybrid node visitation: path: ",
+        folly::join("/", params.begin, params.end),
+        " at: ",
+        (cursor == params.end ? "(end)" : *cursor));
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
   }
 
   template <typename Fields, typename Op>
@@ -686,7 +850,7 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
   {
     using MemberTypes = typename Fields::MemberTypes;
 
-    auto result = ThriftTraverseResult::INVALID_VARIANT_MEMBER;
+    std::optional<ThriftTraverseResult> result;
 
     // Get key
     auto key = *cursor++;
@@ -698,7 +862,13 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
 
       if (folly::to_underlying(fields.type()) !=
           descriptor::metadata::id::value) {
-        result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
+        std::string message = folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " <Variant>.val at: ",
+            (cursor == params.end ? "(end)" : *cursor));
+        result = ThriftTraverseResult(
+            ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER, message);
         return;
       }
 
@@ -714,7 +884,16 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
       }
     });
 
-    return result;
+    if (!result.has_value()) {
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " <Variant> at: ",
+          (cursor == params.end ? "(end)" : *cursor));
+      result = ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_VARIANT_MEMBER, message);
+    }
+    return result.value();
   }
 };
 
@@ -744,22 +923,26 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Node>(node, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     auto& tObj = node.ref();
     using T = typename Node::ThriftType;
     // Get key
     auto key = *cursor++;
     // Perform linear search over all members for key
-    ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
+    std::optional<ThriftTraverseResult> result;
     using Members = typename apache::thrift::reflect_struct<T>::members;
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
@@ -770,16 +953,32 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       if constexpr (
           member::optional::value == apache::thrift::optionality::optional) {
         if (!member::is_set(tObj)) {
-          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          std::string message = folly::to<std::string>(
+              "path: ",
+              folly::join("/", params.begin, params.end),
+              " at: ",
+              (cursor == params.end ? "(end)" : *cursor));
+          *result = ThriftTraverseResult(
+              ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
           return;
         }
       }
       // Recurse further
       auto& child = getter{}(tObj);
-      result = PathVisitorImpl<tc>::visit(child, params, cursor);
+      *result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
-    return result;
+    if (!result.has_value()) {
+      result = ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_STRUCT_MEMBER,
+          folly::to<std::string>(
+              "path: ",
+              folly::join("/", params.begin, params.end),
+              " at: ",
+              (cursor == params.end ? "(end)" : *cursor)));
+    }
+
+    return result.value();
   }
 
   template <typename Obj, typename Op>
@@ -791,20 +990,24 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
         params.op.template visitTyped<TC, Obj>(tObj, cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Exception while traversing path: "
-                << folly::join("/", params.begin, params.end)
-                << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                << ", exception: " << ex.what();
-      return ThriftTraverseResult::VISITOR_EXCEPTION;
+      std::string message = folly::to<std::string>(
+          "Exception while traversing path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ", exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
     // Get key
     auto key = *cursor++;
     // Perform linear search over all members for key
-    ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
+    std::optional<ThriftTraverseResult> result;
     using Members =
         typename apache::thrift::reflect_struct<std::remove_cv_t<Obj>>::members;
     visitMember<Members>(key, [&](auto indexed) {
@@ -816,7 +1019,13 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       if constexpr (
           member::optional::value == apache::thrift::optionality::optional) {
         if (!member::is_set(tObj)) {
-          result = ThriftTraverseResult::NON_EXISTENT_NODE;
+          std::string message = folly::to<std::string>(
+              "path: ",
+              folly::join("/", params.begin, params.end),
+              " at: ",
+              (cursor == params.end ? "(end)" : *cursor));
+          result = ThriftTraverseResult(
+              ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
           return;
         }
       }
@@ -825,7 +1034,17 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
-    return result;
+    if (!result.has_value()) {
+      result = ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_STRUCT_MEMBER,
+          folly::to<std::string>(
+              "path: ",
+              folly::join("/", params.begin, params.end),
+              " at: ",
+              (cursor == params.end ? "(end)" : *cursor)));
+    }
+
+    return result.value();
   }
 
   template <typename Fields, typename Op>
@@ -841,7 +1060,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     // Get key
     auto key = *cursor++;
 
-    ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
+    std::optional<ThriftTraverseResult> result;
 
     visitMember<Members>(key, [&](auto indexed) {
       using member = decltype(fatal::tag_type(indexed));
@@ -853,7 +1072,13 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
 
       if (!child) {
         // child is unset, cannot traverse through missing optional child
-        result = ThriftTraverseResult::NON_EXISTENT_NODE;
+        std::string message = folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " at: ",
+            (cursor == params.end ? "(end)" : *cursor));
+        result = ThriftTraverseResult(
+            ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
         return;
       }
 
@@ -867,7 +1092,17 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       }
     });
 
-    return result;
+    if (!result.has_value()) {
+      result = ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_STRUCT_MEMBER,
+          folly::to<std::string>(
+              "path: ",
+              folly::join("/", params.begin, params.end),
+              " at: ",
+              (cursor == params.end ? "(end)" : *cursor)));
+    }
+
+    return result.value();
   }
 };
 
@@ -897,14 +1132,14 @@ struct PathVisitorImpl {
   visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor) {
     if constexpr (optional_field<folly::remove_cvref_t<Node>>::value) {
       if (params.options.skipOptionalOrImmutablePrimitiveNode) {
-        return ThriftTraverseResult::OK;
+        return ThriftTraverseResult();
       }
     }
     if constexpr (is_cow_type_v<Node>) {
       if constexpr (!std::is_same_v<typename Node::CowType, HybridNodeType>) {
         if (params.options.skipOptionalOrImmutablePrimitiveNode &&
             node.immutable) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       }
     }
@@ -920,17 +1155,27 @@ struct PathVisitorImpl {
             std::remove_const_t<Node>>(
             *const_cast<std::remove_const_t<Node>*>(&node), cursor, params.end);
         if (cursor == params.end) {
-          return ThriftTraverseResult::OK;
+          return ThriftTraverseResult();
         }
       } catch (const std::exception& ex) {
-        XLOG(ERR) << "Exception while traversing path: "
-                  << folly::join("/", params.begin, params.end)
-                  << " at: " << (cursor == params.end ? "(end)" : *cursor)
-                  << ", exception: " << ex.what();
-        return ThriftTraverseResult::VISITOR_EXCEPTION;
+        std::string message = folly::to<std::string>(
+            "Exception while traversing path: ",
+            folly::join("/", params.begin, params.end),
+            " at: ",
+            (cursor == params.end ? "(end)" : *cursor),
+            ", exception: ",
+            ex.what());
+        return ThriftTraverseResult(
+            ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
       }
     }
-    return ThriftTraverseResult::NON_EXISTENT_NODE;
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::NON_EXISTENT_NODE,
+        folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " at: ",
+            (cursor == params.end ? "(end)" : *cursor)));
   }
 };
 

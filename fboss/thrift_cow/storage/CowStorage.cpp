@@ -7,16 +7,16 @@ namespace facebook::fboss::fsdb {
 namespace detail {
 
 std::optional<StorageError> parseTraverseResult(
-    thrift_cow::ThriftTraverseResult traverseResult) {
-  if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
+    const thrift_cow::ThriftTraverseResult& traverseResult) {
+  if (traverseResult) {
     return std::nullopt;
   } else if (
-      traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
+      traverseResult.code() ==
+      thrift_cow::ThriftTraverseResult::Code::VISITOR_EXCEPTION) {
     XLOG(DBG3) << "Visitor exception on traverse";
     return StorageError::TYPE_ERROR;
   } else {
-    XLOG(DBG3) << "Visitor error on traverse: "
-               << static_cast<int>(traverseResult);
+    XLOG(DBG3) << "Visitor error on traverse: " << traverseResult.toString();
     return StorageError::INVALID_PATH;
   }
 }
