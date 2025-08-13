@@ -19,6 +19,17 @@ class EcmpResourceMgrMergeGroupTest
     FLAGS_enable_ecmp_resource_manager = true;
     FLAGS_ecmp_resource_percentage = 35;
   }
+  void assertCost(
+      const EcmpResourceManager::NextHopGroupIds& mergedGroups) const {
+    auto consolidationInfo =
+        sw_->getEcmpResourceManager()->getConsolidationInfo(
+            *mergedGroups.begin());
+    auto expectedPenalty =
+        consolidationInfo.find(mergedGroups)->second.maxPenalty();
+    for (auto gid : mergedGroups) {
+      EXPECT_EQ(sw_->getEcmpResourceManager()->getCost(gid), expectedPenalty);
+    }
+  }
 };
 
 // Base class add 5 groups, which is within in the
@@ -28,8 +39,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, init) {}
 TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   // Cache prefixes to be affected by optimal merge grp selection.
   // We will later assert that these start pointing to merged groups.
-  auto overflowPrefixes = getPrefixesForGroups(
-      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet());
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 2);
   // Update a route pointing to new nhops. ECMP limit is breached during
   // update due to make before break. Then the reclaim step notices
@@ -47,5 +59,6 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   // Route delta + reclaim delta
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(newState, overflowPrefixes);
+  assertCost(optimalMergeSet);
 }
 } // namespace facebook::fboss
