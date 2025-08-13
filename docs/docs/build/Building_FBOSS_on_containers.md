@@ -42,21 +42,6 @@ them from the root of the repository:
 ```bash file=./static/code_snips/build_docker_image.sh
 ```
 
-### Load the Published Docker Image from GitHub
-
-**Skip this step if the previous build step worked, as this is not preferred.**
-
-Instead of building the Docker image yourself, you can also obtain an image
-tarball from GitHub (e.g. https://github.com/facebook/fboss/actions/runs/14961317578).
-The advantage of using this image instead of building it yourself is that the
-published image includes all relevant sources, including sources for dependencies,
-which means that building FBOSS binaries from this image eliminates the need for
-a network connection at the time of building (which would normally be required in
-order to download sources or clone Git repositories for those same dependencies).
-
-```bash file=./static/code_snips/load_docker_image.sh
-```
-
 ## Start the FBOSS Container
 
 ### Start a Container for Platform Stack
@@ -67,6 +52,11 @@ order to download sources or clone Git repositories for those same dependencies)
 ### Start a Container for Forwarding Stack
 
 ```bash file=./static/code_snips/start_forwarding_stack_container.sh
+```
+
+### Enter the Container
+
+```bash file=./static/code_snips/enter_docker_container.sh
 ```
 
 At this point, you should be dropped into a root shell within the Docker container
@@ -118,14 +108,4 @@ Any buildable target will be specified in the cmake scripts either by
 `add_executable` or `add_library`. Example command below:
 
 ```bash file=./static/code_snips/build_with_cmake_target.sh
-```
-
-### Build with Local Changes
-
-If you want to make changes locally and then build, you will need another flag which tells
-`getdeps.py` to pick them up. You can use the flag `--src-dir` to tell it where changes are
-located. Because you will be making changes to the FBOSS repo, you can add the flag like seen
-in this example command:
-
-```bash file=./static/code_snips/build_with_src_dir.sh
 ```

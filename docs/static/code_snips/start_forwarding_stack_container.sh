@@ -20,7 +20,3 @@ sudo docker run -d -v /path_to_sdk:/opt/sdk:z -it \
 sudo docker run -d -v /path_to_sdk:/opt/sdk:z \
 -v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
 --name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-
-# Attaches our current terminal to a new bash shell in the docker container so
-# that we can perform the build within it
-sudo docker exec -it FBOSS_DOCKER_CONTAINER bash

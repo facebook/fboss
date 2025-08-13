@@ -14,6 +14,7 @@ oncall: fboss_oss
 ## Overview
 
 This document describes the steps involved in onboarding a new platform to FBOSS using OSS.
+For common problems and their solutions, please refer to the [troubleshooting guide](/docs/onboarding/troubleshooting/).
 
 ## Preparation Steps
 1. Request access of [FBOSS OSS New Platform Onboarding Tracker Template](https://docs.google.com/spreadsheets/d/1jZiAA9cBWnQml0frf4mC5cnWqsJRL4EK7w3qiYwl5Fo/edit?usp=sharing)
@@ -23,24 +24,27 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
 ## Steps
 
-1. **Add Initial Support for Platform Services**
+1. [[Manual](/docs/manuals/add_initial_support_for_platform_services/)] **Add Initial Support for Platform Services**
 
    **Work Items:**
 
-   - [ ] [Add platform manager support](/docs/manuals/add_platform_manager_support/)
+   - [ ] Add platform manager support
    - [ ] Add BSP support
-   - [ ] Build platform services
-   - [ ] Ensure platform manager can start
-   - [ ] Run HW tests for platform services
+   - [ ] Build, run, and test platform services
 
    **Outcomes:**
 
-   - [ ] Platform Services can build
-   - [ ] Platform Manager can start
-   - [ ] BSP can be loaded
-   - [ ] Sensor Service HW Tests pass
-   - [ ] Fan Service HW Tests pass
-   - [ ] Platform Manager HW Tests pass
+   - [ ] `platform_manager.json` is committed to the FBOSS repository
+   - [ ] `platform_manager.json` abides by the specification
+   - [ ] the BSP repository is setup and accessible by Meta
+   - [ ] the BSP abides by the API specification and development requirements
+   - [ ] the BSP is compiled as out-of-tree kernel modules and deployed in FBOSS to unblock FBOSS development
+   - [ ] `bsp_tests.json` is modified as needed based on guidance in `bsp_tests_config.thrift`
+   - [ ] 100% of BSP tests pass
+   - [ ] expected errors are defined in the test config if and only if the hardware has a valid reason and this is agreed to by Meta
+   - [ ] platform services can be built successfully
+   - [ ] platform manager can start successfully
+   - [ ] 100% of platform service hardware tests pass
 
 2. **Add Necessary Development Code**
 
