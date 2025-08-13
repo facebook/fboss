@@ -235,8 +235,8 @@ void ProdInvariantTest::verifyLoadBalancing(int numPackets) {
         return ensemble->getLatestPortStats(portIds);
       };
   utility::pumpTrafficAndVerifyLoadBalanced(
-      [=]() { sendTraffic(numPackets); },
-      [=]() {
+      [=, this]() { sendTraffic(numPackets); },
+      [=, this]() {
         auto ports = std::make_unique<std::vector<int32_t>>();
         auto ecmpPortIds = getEcmpPortIds();
         for (auto ecmpPortId : ecmpPortIds) {
@@ -244,7 +244,7 @@ void ProdInvariantTest::verifyLoadBalancing(int numPackets) {
         }
         ensemble->clearPortStats(ports);
       },
-      [=]() {
+      [=, this]() {
         return utility::isLoadBalanced(
             ecmpPorts_,
             std::vector<NextHopWeight>(ecmpPorts_.size(), 1),
