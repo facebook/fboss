@@ -128,10 +128,19 @@ bool isEnabledPortWithSubnet(
     const cfg::SwitchConfig& config) {
   auto ingressVlan = folly::copy(port.ingressVlan().value());
   for (const auto& intf : *config.interfaces()) {
-    if (folly::copy(intf.vlanID().value()) == ingressVlan) {
-      return (
-          !intf.ipAddresses().value().empty() &&
-          folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+    if (cfg::InterfaceType::VLAN == intf.type()) {
+      if (folly::copy(intf.vlanID().value()) == ingressVlan) {
+        return (
+            !intf.ipAddresses().value().empty() &&
+            folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+      }
+    } else if (cfg::InterfaceType::PORT == intf.type()) {
+      if (folly::copy(intf.portID().to_optional().value()) ==
+          port.logicalID().value()) {
+        return (
+            !intf.ipAddresses().value().empty() &&
+            folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+      }
     }
   }
   return false;
