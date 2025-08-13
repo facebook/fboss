@@ -1395,10 +1395,22 @@ void removeSubsumedPorts(
 bool checkConfigHasAclEntry(
     const cfg::SwitchConfig& config,
     std::string aclName) {
-  auto acls = *config.acls();
-  for (const auto& acl : acls) {
-    if (acl.name().value() == aclName) {
-      return true;
+  if (isSaiConfig(config)) {
+    for (const auto& aclTableGroup : *config.aclTableGroups()) {
+      for (const auto& aclTable : *aclTableGroup.aclTables()) {
+        for (const auto& acl : *aclTable.aclEntries()) {
+          if (acl.name().value() == aclName) {
+            return true;
+          }
+        }
+      }
+    }
+  } else {
+    auto acls = *config.acls();
+    for (const auto& acl : acls) {
+      if (acl.name().value() == aclName) {
+        return true;
+      }
     }
   }
   return false;

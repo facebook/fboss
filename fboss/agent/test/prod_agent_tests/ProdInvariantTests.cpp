@@ -581,15 +581,20 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
         utility::kUdfAclRoceOpcodeName,
         utility::kUdfAclRoceOpcodeStats);
 
+    auto config = getSw()->getConfig();
     // verify flowlet ACL to enable DLB
     sendAndVerifyRoCETraffic(
         utility::kUdfRoceOpcodeWriteImmediate,
         "flowlet-selective-enable",
-        "flowlet-selective-stats");
+        utility::isSaiConfig(config) ? "flowlet-selective-enable"
+                                     : "flowlet-selective-stats");
 
     // 12 is a random opcode not ack or write-imm. This ACL will go away once
     // all RTSWs transition to spray
-    sendAndVerifyRoCETraffic(12, "flowlet-enable", "flowlet-stats");
+    sendAndVerifyRoCETraffic(
+        12,
+        "flowlet-enable",
+        utility::isSaiConfig(config) ? "flowlet-enable" : "flowlet-stats");
 
     ASSERT_TRUE(flowletAclsFound_ > 0);
   }
