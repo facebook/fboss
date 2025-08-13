@@ -76,6 +76,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   };
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
+  using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
   GroupIds2ConsolidationInfo getConsolidationInfo(NextHopGroupId grpId) const;
   std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
   std::map<NextHopGroupId, std::set<Prefix>> getGroupIdToPrefix() const;
@@ -240,7 +241,7 @@ class NextHopGroupInfo {
   using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
   using Groups2ConsolidationInfoItr =
-      EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
+      EcmpResourceManager::GroupIds2ConsolidationInfoItr;
   NextHopGroupInfo(
       NextHopGroupId id,
       NextHopGroupItr ngItr,

@@ -44,6 +44,43 @@ bool pruneFromMergeGroupsImpl(
   return pruned;
 }
 
+void clearRouteOverrides(
+    const EcmpResourceManager::Prefix& ridAndPfx,
+    std::shared_ptr<SwitchState>& newState) {
+  auto updateFib = [](const auto& routePfx, auto fib) {
+    auto route = fib->exactMatch(routePfx)->clone();
+    const auto& curForwardInfo = route->getForwardInfo();
+    auto newForwardInfo = RouteNextHopEntry(
+        curForwardInfo.getNextHopSet(),
+        curForwardInfo.getAdminDistance(),
+        curForwardInfo.getCounterID(),
+        curForwardInfo.getClassID());
+    CHECK(curForwardInfo.hasOverrideSwitchingModeOrNhops());
+    if (curForwardInfo.getOverrideEcmpSwitchingMode()) {
+      XLOG(DBG2) << " Reclaimed and moved : " << route->str()
+                 << " to primary ECMP group type";
+    } else {
+      XLOG(DBG2) << " Cleared override (merged) next hops for : "
+                 << route->str();
+    }
+    route->setResolved(newForwardInfo);
+    route->publish();
+    fib->updateNode(route);
+  };
+  const auto& [rid, pfx] = ridAndPfx;
+  if (pfx.first.isV6()) {
+    auto fib6 =
+        newState->getFibs()->getNode(rid)->getFibV6()->modify(rid, &newState);
+    RoutePrefixV6 routePfx(pfx.first.asV6(), pfx.second);
+    updateFib(routePfx, fib6);
+  } else {
+    auto fib4 =
+        newState->getFibs()->getNode(rid)->getFibV4()->modify(rid, &newState);
+    RoutePrefixV4 routePfx(pfx.first.asV4(), pfx.second);
+    updateFib(routePfx, fib4);
+  }
+}
+
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::NextHopGroupIds& gids) {
@@ -191,7 +228,7 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
       nextHopGroupIdToInfo_.end(),
       [&overrideGroupsSorted, &allOverrideGroupIds](const auto& idAndGrpRef) {
         auto groupInfo = idAndGrpRef.second.lock();
-        if (groupInfo->isBackupEcmpGroupType()) {
+        if (groupInfo->hasOverrides()) {
           overrideGroupsSorted.push_back(groupInfo);
           allOverrideGroupIds.insert(groupInfo->getID());
         }
@@ -211,6 +248,10 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
         overrideGroupsSorted.begin(),
         overrideGroupsSorted.end(),
         [](const auto& lgroup, const auto& rgroup) {
+          CHECK_EQ(
+              lgroup->isBackupEcmpGroupType(), rgroup->isBackupEcmpGroupType());
+          CHECK_EQ(
+              lgroup->hasOverrideNextHops(), rgroup->hasOverrideNextHops());
           return lgroup->cost() < rgroup->cost();
         });
     int claimed = 0;
@@ -230,32 +271,8 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
     }
 
     grpInfo->setIsBackupEcmpGroupType(false);
-    auto updateFib = [](const auto& routePfx, auto fib) {
-      auto route = fib->exactMatch(routePfx)->clone();
-      const auto& curForwardInfo = route->getForwardInfo();
-      auto newForwardInfo = RouteNextHopEntry(
-          curForwardInfo.getNextHopSet(),
-          curForwardInfo.getAdminDistance(),
-          curForwardInfo.getCounterID(),
-          curForwardInfo.getClassID());
-      XLOG(DBG2) << " Reclaimed and moved : " << route->str()
-                 << " to primary ECMP group type";
-      route->setResolved(newForwardInfo);
-      route->publish();
-      fib->updateNode(route);
-    };
-    const auto& [rid, pfx] = ridAndPfx;
-    if (pfx.first.isV6()) {
-      auto fib6 =
-          newState->getFibs()->getNode(rid)->getFibV6()->modify(rid, &newState);
-      RoutePrefixV6 routePfx(pfx.first.asV6(), pfx.second);
-      updateFib(routePfx, fib6);
-    } else {
-      auto fib4 =
-          newState->getFibs()->getNode(rid)->getFibV4()->modify(rid, &newState);
-      RoutePrefixV4 routePfx(pfx.first.asV4(), pfx.second);
-      updateFib(routePfx, fib4);
-    }
+    grpInfo->setMergedGroupInfoItr(std::nullopt);
+    clearRouteOverrides(ridAndPfx, newState);
   }
   newState->publish();
   /*
@@ -487,14 +504,19 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
        * limit
        */
       bool addNewDelta{true};
+      XLOG(DBG2) << "Merging : " << mergeSet << std::endl
+                 << "Consolidation info: " << mitr->second;
       for (auto& [ridAndPfx, pfxGrpInfo] : prefixToGroupInfo_) {
         if (!mergeSet.contains(pfxGrpInfo->getID())) {
           continue;
         }
+        XLOG(DBG2) << "Migrating : " << ridAndPfx << " to merged ECMP group";
         if (!pfxGrpInfo->hasOverrideNextHops()) {
           // Converting from primary group to merged group
           // decrement primary group count
           --inOutState->nonBackupEcmpGroupsCnt;
+          XLOG(DBG2) << "Primary ecmp group decremented to: "
+                     << inOutState->nonBackupEcmpGroupsCnt;
         }
         pfxGrpInfo->setMergedGroupInfoItr(mitr);
         auto newState = inOutState->out.back().newState();
@@ -521,6 +543,9 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
       }
       // We added one merged group, so increment nonBackupEcmpGroupsCnt
       ++inOutState->nonBackupEcmpGroupsCnt;
+      XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
+                 << ". Incremented primary ecmp group count to : "
+                 << inOutState->nonBackupEcmpGroupsCnt;
     }
     CHECK(insertedGrp);
   } else if (compressionPenaltyThresholdPct_) {
@@ -667,16 +692,15 @@ void EcmpResourceManager::routeAddedOrUpdated(
                  << " route: " << newRoute->str();
       grpInfo = updateForwardingInfoAndInsertDelta(
           rid, newRoute, idItr, ecmpLimitReached, inOutState);
-      // If new group is not of backup ecmp type, increment non
+      // If new group does not have override mode or nhops, increment non
       // backup ecmp group count
-      inOutState->nonBackupEcmpGroupsCnt +=
-          grpInfo->isBackupEcmpGroupType() ? 0 : 1;
+      inOutState->nonBackupEcmpGroupsCnt += grpInfo->hasOverrides() ? 0 : 1;
       XLOG(DBG2) << " Route  " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
                  << " primray ecmp group count "
-                 << (grpInfo->isBackupEcmpGroupType() ? "unchanged: "
-                                                      : "incremented to: ")
+                 << (grpInfo->hasOverrides() ? "unchanged: "
+                                             : "incremented to: ")
                  << inOutState->nonBackupEcmpGroupsCnt;
     } else {
       std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
@@ -832,7 +856,7 @@ void EcmpResourceManager::routeDeleted(
       // of primary ECMP group type
       --inOutState->nonBackupEcmpGroupsCnt;
       XLOG(DBG2) << "Delete route: " << removed->str()
-                 << " primray ecmp group count decremented to: "
+                 << " primary ecmp group count decremented to: "
                  << inOutState->nonBackupEcmpGroupsCnt
                  << " Group ID: " << groupId << " removed";
     }
