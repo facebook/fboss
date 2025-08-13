@@ -46,6 +46,7 @@ enum PlatformType {
   PLATFORM_MINIPACK3N = 38,
   PLATFORM_ICECUBE800BC = 39,
   PLATFORM_MERU800BIAC = 40,
+  PLATFORM_GLATH05A_64O = 41,
 
   # Placeholder for unknown platform type
   PLATFORM_UNKNOWN = 1000,
