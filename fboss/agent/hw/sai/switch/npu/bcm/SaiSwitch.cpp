@@ -992,6 +992,10 @@ void SaiSwitch::tamEventCallback(
 void SaiSwitch::hardResetSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
     const void* buffer) {
+  if (FLAGS_ignore_asic_hard_reset_notification) {
+    XLOG(INFO) << "Got hard reset event, but ignoring as configured!";
+    return;
+  }
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   const sai_switch_hard_reset_event_info_t* eventInfo =
       static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
