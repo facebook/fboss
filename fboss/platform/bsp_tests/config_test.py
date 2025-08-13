@@ -247,6 +247,7 @@ class ConfigTest(unittest.TestCase):
 
     def test_real_config(self) -> None:
         platform_to_vendor = {
+            "glath05a-64o": "arista",
             "janga800bic": "fboss",
             "meru800bfa": "arista",
             "meru800bia": "arista",
