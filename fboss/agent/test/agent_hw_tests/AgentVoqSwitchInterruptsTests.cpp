@@ -53,6 +53,15 @@ class AgentVoqSwitchInterruptTest : public AgentHwTest {
   }
 };
 
+class AgentVoqSwitchVendorSwitchInterruptTest
+    : public AgentVoqSwitchInterruptTest {
+ public:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_ignore_asic_hard_reset_notification = true;
+  }
+};
+
 TEST_F(AgentVoqSwitchInterruptTest, ireError) {
   auto verify = [=, this]() {
     constexpr auto kIreErrorIncjectorCintStr = R"(
@@ -232,6 +241,76 @@ TEST_F(AgentVoqSwitchInterruptTest, softResetErrors) {
         XLOG(INFO) << " Switch index: " << idx
                    << " Asic soft reset errors: " << asicSoftResetErrors;
         EXPECT_EVENTUALLY_GT(asicSoftResetErrors, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentVoqSwitchVendorSwitchInterruptTest, blockLevelErrorInterruptsTest) {
+  auto verify = [=, this]() {
+    constexpr auto kTriggerBlockWiseInterruptsCintStr = R"(
+  cint_reset();
+  int count = 11;
+  int event_ids[count] = {2321, 521, 792, 728, 1087, 935, 2659, 1079, 2230, 1952, 2438};
+  int i;
+  for (i=0; i < count; i++) {
+    bcm_switch_event_control_t event_ctrl;
+    event_ctrl.event_id = event_ids[i];
+    event_ctrl.index = 0; /* core id */
+    event_ctrl.action = bcmSwitchEventForce;
+    bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
+  }
+  sal_usleep(100000);
+  for (i=0; i < count; i++) {
+    bcm_switch_event_control_t event_ctrl;
+    event_ctrl.event_id = event_ids[i];
+    event_ctrl.index = 0; /* core id */
+    event_ctrl.action = bcmSwitchEventForce;
+    bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 0);
+  }
+)";
+    WITH_RETRIES({
+      runCint(kTriggerBlockWiseInterruptsCintStr);
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        XLOG(INFO) << "Errors for switch id " << idx;
+        auto dramErrors = asicError.dramErrors().value_or(0);
+        XLOG(INFO) << "DRAM errors: " << dramErrors;
+        EXPECT_EVENTUALLY_GT(dramErrors, 0);
+        auto egressTmErrors = asicError.egressTmErrors().value_or(0);
+        XLOG(INFO) << "Egress TM errors: " << egressTmErrors;
+        EXPECT_EVENTUALLY_GT(egressTmErrors, 0);
+        auto fabricLinkErrors = asicError.fabricLinkErrors().value_or(0);
+        XLOG(INFO) << "Fabric Link errors: " << fabricLinkErrors;
+        EXPECT_EVENTUALLY_GT(fabricLinkErrors, 0);
+        auto fabricRxErrors = asicError.fabricRxErrors().value_or(0);
+        XLOG(INFO) << "Fabric RX errors: " << fabricRxErrors;
+        EXPECT_EVENTUALLY_GT(fabricRxErrors, 0);
+        auto fabricTxErrors = asicError.fabricTxErrors().value_or(0);
+        XLOG(INFO) << "Fabric TX errors: " << fabricTxErrors;
+        EXPECT_EVENTUALLY_GT(fabricTxErrors, 0);
+        auto ingressTmErrors = asicError.ingressTmErrors().value_or(0);
+        XLOG(INFO) << "Ingress TM errors: " << ingressTmErrors;
+        EXPECT_EVENTUALLY_GT(ingressTmErrors, 0);
+        auto ingressPpErrors = asicError.ingressPpErrors().value_or(0);
+        XLOG(INFO) << "Ingress PP errors: " << ingressPpErrors;
+        EXPECT_EVENTUALLY_GT(ingressPpErrors, 0);
+        auto egressPpErrors = asicError.egressPpErrors().value_or(0);
+        XLOG(INFO) << "Egress PP errors: " << egressPpErrors;
+        EXPECT_EVENTUALLY_GT(egressPpErrors, 0);
+        auto counterAndMeterErrors =
+            asicError.counterAndMeterErrors().value_or(0);
+        XLOG(INFO) << "Counter and Meter errors: " << counterAndMeterErrors;
+        EXPECT_EVENTUALLY_GT(counterAndMeterErrors, 0);
+        auto fabricTopologyErrors =
+            asicError.fabricTopologyErrors().value_or(0);
+        XLOG(INFO) << "Fabric Topology errors: " << fabricTopologyErrors;
+        EXPECT_EVENTUALLY_GT(fabricTopologyErrors, 0);
+        auto networkInterfaceErrors =
+            asicError.networkInterfaceErrors().value_or(0);
+        XLOG(INFO) << "Network Interface errors: " << networkInterfaceErrors;
+        EXPECT_EVENTUALLY_GT(networkInterfaceErrors, 0);
       }
     });
   };
