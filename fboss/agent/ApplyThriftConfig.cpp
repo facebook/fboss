@@ -366,6 +366,7 @@ class ThriftConfigApplier {
   QueueConfig updatePortQueues(
       const std::vector<std::shared_ptr<PortQueue>>& origPortQueues,
       const std::vector<cfg::PortQueue>& cfgPortQueues,
+      uint16_t baseQueueId,
       uint16_t maxQueues,
       cfg::StreamType streamType,
       std::optional<cfg::QosMap> qosMap = std::nullopt,
@@ -952,6 +953,7 @@ std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
     std::optional<QueueConfig> defaultVoqConfig = updatePortQueues(
         origPortQueues,
         *cfg_->defaultVoqConfig(),
+        0 /*baseQueueId*/,
         kNumVoqs,
         cfg::StreamType::UNICAST,
         std::nullopt,
@@ -982,6 +984,7 @@ QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
         return updatePortQueues(
             voqs,
             cfgPortVoqs,
+            0 /*baseQueueId*/,
             kNumVoqs,
             cfg::StreamType::UNICAST,
             std::nullopt,
@@ -2185,6 +2188,7 @@ bool ThriftConfigApplier::isPortFlowletConfigUnchanged(
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
     const std::vector<cfg::PortQueue>& cfgPortQueues,
+    uint16_t baseQueueId,
     uint16_t maxQueues,
     cfg::StreamType streamType,
     std::optional<cfg::QosMap> qosMap,
@@ -2215,7 +2219,8 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   // if there is a config present for any of these queues, we update the
   // PortQueue according to this
   // Otherwise we reset it to the default values for this queue type
-  for (auto queueId = 0; queueId < maxQueues; queueId++) {
+  for (auto queueId = baseQueueId; queueId < baseQueueId + maxQueues;
+       queueId++) {
     auto newQueueIter = newQueues.find(queueId);
     std::shared_ptr<PortQueue> newPortQueue;
     if (newQueueIter != newQueues.end()) {
@@ -2407,11 +2412,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   CHECK(asic != nullptr);
   QueueConfig portQueues;
   for (auto streamType : asic->getQueueStreamTypes(*portConf->portType())) {
+    auto baseQueueId =
+        asic->getBasePortQueueId(streamType, *portConf->portType());
     auto maxQueues =
         asic->getDefaultNumPortQueues(streamType, *portConf->portType());
     auto tmpPortQueues = updatePortQueues(
         orig->getPortQueues()->impl(),
         cfgPortQueues,
+        baseQueueId,
         maxQueues,
         streamType,
         qosMap);
@@ -5212,6 +5220,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     auto tmpPortQueues = updatePortQueues(
         origCPU->getQueuesConfig(),
         *cfg_->cpuQueues(),
+        asic->getBasePortQueueId(streamType, cfg::PortType::CPU_PORT),
         asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
         streamType,
         qosMap);
@@ -5223,6 +5232,7 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
       auto tmpPortVoqs = updatePortQueues(
           origCPU->getVoqsConfig(),
           cfgCpuVoqs,
+          0 /*baseQueueId*/,
           getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
           streamType,
           qosMap);
