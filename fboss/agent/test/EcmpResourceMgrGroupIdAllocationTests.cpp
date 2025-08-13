@@ -12,7 +12,15 @@
 
 namespace facebook::fboss {
 
-class NextHopIdAllocatorTest : public BaseEcmpResourceManagerTest {};
+class NextHopIdAllocatorTest : public BaseEcmpResourceManagerTest {
+ public:
+  void assertRouteUsageCount(
+      EcmpResourceManager::NextHopGroupId groupId,
+      int usageCount) const {
+    EXPECT_EQ(consolidator_->getRouteUsageCount(groupId), usageCount);
+    EXPECT_EQ(consolidator_->getCost(groupId), usageCount);
+  }
+};
 
 TEST_F(NextHopIdAllocatorTest, init) {
   const auto& nhops2Id = consolidator_->getNhopsToId();
@@ -20,9 +28,7 @@ TEST_F(NextHopIdAllocatorTest, init) {
   auto id = *getNhopId(defaultNhops());
   EXPECT_EQ(id, 1);
   // All routes point to same nhop group
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(id),
-      numPostConfigResolvedRoutes(state_));
+  assertRouteUsageCount(id, numPostConfigResolvedRoutes(state_));
 }
 
 TEST_F(NextHopIdAllocatorTest, addRouteSameNhops) {
@@ -37,9 +43,7 @@ TEST_F(NextHopIdAllocatorTest, addRouteSameNhops) {
   auto id = *getNhopId(defaultNhops());
   EXPECT_EQ(id, 1);
   // All routes point to same nhop group
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(id),
-      numPostConfigResolvedRoutes(state_));
+  assertRouteUsageCount(id, numPostConfigResolvedRoutes(state_));
 }
 
 TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
@@ -56,13 +60,12 @@ TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
   auto idDefaultNhops = *getNhopId(defaultNhops());
   EXPECT_EQ(idDefaultNhops, 1);
   // All but one routes point to same nhop group
-  EXPECT_EQ(
-      numPostConfigResolvedRoutes(state_) - 1,
-      consolidator_->getRouteUsageCount(idDefaultNhops));
+  assertRouteUsageCount(
+      idDefaultNhops, numPostConfigResolvedRoutes(state_) - 1);
   auto idNewNhops = *getNhopId(newNhops);
   EXPECT_EQ(idNewNhops, 2);
   // One route points to new nhop group
-  EXPECT_EQ(consolidator_->getRouteUsageCount(2), 1);
+  assertRouteUsageCount(idNewNhops, 1);
 }
 
 TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
@@ -81,25 +84,21 @@ TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
     auto routesBefore = fib6->size();
     // All routes point to same nhop group
     auto postConfigRoutesBefore = numPostConfigResolvedRoutes(newState);
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(groupId), postConfigRoutesBefore);
+    assertRouteUsageCount(groupId, postConfigRoutesBefore);
     fib6->addNode(newRoute);
     EXPECT_EQ(fib6->size(), routesBefore + 1);
     consolidate(newState);
     // New nhops don't get a id, since no resolved routes point to it
     EXPECT_FALSE(getNhopId(newNhops).has_value());
     // All routes point to same nhop group, new route is unresolved
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(groupId), postConfigRoutesBefore);
+    assertRouteUsageCount(groupId, postConfigRoutesBefore);
   }
   {
     auto newerState = newState->clone();
     auto fib6 = fib(newerState);
     auto routesBefore = fib6->size();
     // All resolved routes point to same nhop group
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(groupId),
-        numPostConfigResolvedRoutes(newState));
+    assertRouteUsageCount(groupId, numPostConfigResolvedRoutes(newState));
     fib6->removeNode(newRoute);
     EXPECT_EQ(fib6->size(), routesBefore - 1);
     consolidate(newerState);
@@ -108,9 +107,7 @@ TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
     EXPECT_EQ(*getNhopId(defaultNhops()), groupId);
     EXPECT_FALSE(getNhopId(newNhops).has_value());
     // All resolved routes point to same nhop group
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(groupId),
-        numPostConfigResolvedRoutes(newerState));
+    assertRouteUsageCount(groupId, numPostConfigResolvedRoutes(state_));
   }
 }
 
@@ -130,10 +127,10 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhops) {
   EXPECT_EQ(defaultNhopsId, 1);
   EXPECT_EQ(newNhopsId, 2);
   // All but one route point to defaultNhops
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(defaultNhopsId),
-      numPostConfigResolvedRoutes(newState) - 1);
-  EXPECT_EQ(consolidator_->getRouteUsageCount(newNhopsId), 1);
+  assertRouteUsageCount(
+      defaultNhopsId, numPostConfigResolvedRoutes(state_) - 1);
+  // One route points to new nhop group
+  assertRouteUsageCount(newNhopsId, 1);
 }
 
 TEST_F(NextHopIdAllocatorTest, updateAllRoutes) {
@@ -155,9 +152,7 @@ TEST_F(NextHopIdAllocatorTest, updateAllRoutes) {
   auto newNhopsId = *getNhopId(newNhops);
   EXPECT_EQ(newNhopsId, 2);
   // All routes route point to newNhopsId
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(newNhopsId),
-      numPostConfigResolvedRoutes(newState));
+  assertRouteUsageCount(newNhopsId, numPostConfigResolvedRoutes(state_));
 }
 
 TEST_F(NextHopIdAllocatorTest, updateRouteNhopsMultipleTimes) {
@@ -181,10 +176,9 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhopsMultipleTimes) {
     EXPECT_EQ(defaultNhopsId, 1);
     EXPECT_EQ(newNhopsId, 2);
     // All but one route point to defaultNhops
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(defaultNhopsId),
-        numPostConfigResolvedRoutes(newState) - 1);
-    EXPECT_EQ(consolidator_->getRouteUsageCount(newNhopsId), 1);
+    assertRouteUsageCount(
+        defaultNhopsId, numPostConfigResolvedRoutes(state_) - 1);
+    assertRouteUsageCount(newNhopsId, 1);
   }
   {
     // Update first route to newer nhops
@@ -202,10 +196,9 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhopsMultipleTimes) {
     EXPECT_EQ(defaultNhopsId, 1);
     EXPECT_EQ(newerNhopsId, 3);
     // All but one route point to defaultNhops
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(defaultNhopsId),
-        numPostConfigResolvedRoutes(newState) - 1);
-    EXPECT_EQ(consolidator_->getRouteUsageCount(newerNhopsId), 1);
+    assertRouteUsageCount(
+        defaultNhopsId, numPostConfigResolvedRoutes(state_) - 1);
+    assertRouteUsageCount(newerNhopsId, 1);
   }
   {
     // Update first route back to default nhops
@@ -222,9 +215,7 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhopsMultipleTimes) {
     EXPECT_FALSE(getNhopId(newerNhops).has_value());
     EXPECT_EQ(defaultNhopsId, 1);
     // All routes point to defaultNhops
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(defaultNhopsId),
-        numPostConfigResolvedRoutes(newState));
+    assertRouteUsageCount(defaultNhopsId, numPostConfigResolvedRoutes(state_));
   }
 }
 
@@ -275,8 +266,7 @@ TEST_F(NextHopIdAllocatorTest, updateRouteToUnresolved) {
   updatedRoute->clearForward();
   auto resolvedRoutesBefore = numPostConfigResolvedRoutes(newState);
   // All routes point to defaultNhops
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(defaultNhopsId), resolvedRoutesBefore);
+  assertRouteUsageCount(defaultNhopsId, resolvedRoutesBefore);
   fib6->updateNode(updatedRoute);
   EXPECT_EQ(fib6->size(), routesBefore);
   consolidate(newState);
@@ -284,9 +274,7 @@ TEST_F(NextHopIdAllocatorTest, updateRouteToUnresolved) {
   EXPECT_EQ(nhops2Id.size(), 1);
   EXPECT_EQ(*getNhopId(defaultNhops()), defaultNhopsId);
   // All but newly unresolved route point to defaultNhops
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(defaultNhopsId),
-      resolvedRoutesBefore - 1);
+  assertRouteUsageCount(defaultNhopsId, resolvedRoutesBefore - 1);
 }
 
 TEST_F(NextHopIdAllocatorTest, updateAndDeleteRoute) {
@@ -308,10 +296,8 @@ TEST_F(NextHopIdAllocatorTest, updateAndDeleteRoute) {
     EXPECT_EQ(defaultNhopsId, 1);
     EXPECT_EQ(newNhopsId, 2);
     // All but one route point to defaultNhops
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(defaultNhopsId),
-        resolvedRoutesBefore - 1);
-    EXPECT_EQ(consolidator_->getRouteUsageCount(newNhopsId), 1);
+    assertRouteUsageCount(defaultNhopsId, resolvedRoutesBefore - 1);
+    assertRouteUsageCount(newNhopsId, 1);
   }
   {
     // delete route
@@ -327,9 +313,7 @@ TEST_F(NextHopIdAllocatorTest, updateAndDeleteRoute) {
     auto defaultNhopsId = *getNhopId(defaultNhops());
     EXPECT_FALSE(getNhopId(newNhops).has_value());
     EXPECT_EQ(defaultNhopsId, 1);
-    EXPECT_EQ(
-        consolidator_->getRouteUsageCount(defaultNhopsId),
-        numPostConfigResolvedRoutes(state_));
+    assertRouteUsageCount(defaultNhopsId, numPostConfigResolvedRoutes(state_));
   }
 }
 
@@ -341,16 +325,12 @@ TEST_F(NextHopIdAllocatorTest, deleteRoute) {
   auto routesBefore = fib6->size();
   auto defaultNhopsId = *getNhopId(defaultNhops());
   EXPECT_EQ(defaultNhopsId, 1);
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(defaultNhopsId),
-      numPostConfigResolvedRoutes(newState));
+  assertRouteUsageCount(defaultNhopsId, numPostConfigResolvedRoutes(state_));
   fib6->removeNode(makeRoute(makePrefix(0), defaultNhops()));
   EXPECT_EQ(fib6->size(), routesBefore - 1);
   consolidate(newState);
   EXPECT_EQ(nhops2Id.size(), 1);
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(defaultNhopsId),
-      numPostConfigResolvedRoutes(newState));
+  assertRouteUsageCount(defaultNhopsId, numPostConfigResolvedRoutes(state_));
 }
 
 TEST_F(NextHopIdAllocatorTest, deleteAllRoute) {
@@ -359,9 +339,7 @@ TEST_F(NextHopIdAllocatorTest, deleteAllRoute) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
   auto defaultNhopsId = *getNhopId(defaultNhops());
-  EXPECT_EQ(
-      consolidator_->getRouteUsageCount(defaultNhopsId),
-      numPostConfigResolvedRoutes(newState));
+  assertRouteUsageCount(defaultNhopsId, numPostConfigResolvedRoutes(state_));
   fib6->clear();
   EXPECT_EQ(fib6->size(), 0);
   consolidate(newState);

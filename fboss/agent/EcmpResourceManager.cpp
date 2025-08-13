@@ -997,6 +997,15 @@ size_t EcmpResourceManager::getRouteUsageCount(NextHopGroupId nhopGrpId) const {
   }
   throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
 }
+
+size_t EcmpResourceManager::getCost(NextHopGroupId nhopGrpId) const {
+  auto grpInfo = nextHopGroupIdToInfo_.ref(nhopGrpId);
+  if (grpInfo) {
+    return grpInfo->cost();
+  }
+  throw FbossError("Unable to find nhop group ID: ", nhopGrpId);
+}
+
 void EcmpResourceManager::updateDone() {
   XLOG(DBG2) << " Update done";
   preUpdateState_.reset();
