@@ -305,16 +305,16 @@ struct ThriftDeltaVisitor<apache::thrift::type::struct_t<Node>> {
       // Look for the expected member name
       path.push_back(apache::thrift::op::get_name_v<Node, Id>.str());
 
-      if (apache::thrift::op::getValueOrNull(oldNodeField) == nullptr &&
-          apache::thrift::op::getValueOrNull(newNodeField) != nullptr) {
+      if (apache::thrift::op::get_value_or_null(oldNodeField) == nullptr &&
+          apache::thrift::op::get_value_or_null(newNodeField) != nullptr) {
         hasDifferences = true;
         f(path,
           apache::thrift::op::get_type_tag<Node, Id>{},
           std::optional<apache::thrift::op::get_native_type<Node, Id>>(),
           std::make_optional(*newNodeField));
       } else if (
-          apache::thrift::op::getValueOrNull(oldNodeField) != nullptr &&
-          apache::thrift::op::getValueOrNull(newNodeField) == nullptr) {
+          apache::thrift::op::get_value_or_null(oldNodeField) != nullptr &&
+          apache::thrift::op::get_value_or_null(newNodeField) == nullptr) {
         hasDifferences = true;
         f(path,
           apache::thrift::op::get_type_tag<Node, Id>{},
