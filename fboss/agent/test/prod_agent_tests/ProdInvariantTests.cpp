@@ -53,7 +53,7 @@ void ProdInvariantTest::setupAgentTestEcmp(
       forProdConfig,
       {cfg::PortType::INTERFACE_PORT});
 
-  getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+  getSw()->updateStateBlocking("Resolve v6 nhops", [&](auto state) {
     return ecmp6.resolveNextHops(state, ports);
   });
 
@@ -498,7 +498,7 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
       ports.insert(ecmpPort);
     });
 
-    getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+    getSw()->updateStateBlocking("Resolve v4 nhops", [&](auto state) {
       utility::EcmpSetupTargetedPorts4 ecmp4(
           state, getSw()->needL2EntryForNeighbor());
       return ecmp4.resolveNextHops(state, ports);
