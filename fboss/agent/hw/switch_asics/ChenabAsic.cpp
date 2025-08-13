@@ -458,4 +458,9 @@ uint32_t ChenabAsic::getThresholdGranularity() const {
   return getPacketBufferUnitSize() * 64;
 }
 
+std::vector<prbs::PrbsPolynomial> ChenabAsic::getSupportedPrbsPolynomials()
+    const {
+  return {prbs::PrbsPolynomial::PRBS13};
+}
+
 } // namespace facebook::fboss

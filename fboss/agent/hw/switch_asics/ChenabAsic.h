@@ -83,6 +83,9 @@ class ChenabAsic : public HwAsic {
     return 3 * 1024 * 1024;
   }
 
+  std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()
+      const override;
+
  private:
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
