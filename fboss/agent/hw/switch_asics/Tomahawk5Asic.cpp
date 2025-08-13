@@ -244,6 +244,15 @@ int Tomahawk5Asic::getDefaultNumPortQueues(
       " combination");
 }
 
+int Tomahawk5Asic::getBasePortQueueId(
+    cfg::StreamType streamType,
+    cfg::PortType portType) const {
+  if (streamType == cfg::StreamType::MULTICAST) {
+    return portType == cfg::PortType::MANAGEMENT_PORT ? 8 : 0;
+  }
+  return 0;
+}
+
 const std::map<cfg::PortType, cfg::PortLoopbackMode>&
 Tomahawk5Asic::desiredLoopbackModes() const {
   static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
