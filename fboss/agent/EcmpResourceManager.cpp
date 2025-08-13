@@ -211,7 +211,7 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
         overrideGroupsSorted.begin(),
         overrideGroupsSorted.end(),
         [](const auto& lgroup, const auto& rgroup) {
-          return lgroup->getRouteUsageCount() < rgroup->getRouteUsageCount();
+          return lgroup->cost() < rgroup->cost();
         });
     int claimed = 0;
     for (auto gitr = overrideGroupsSorted.rbegin();
