@@ -126,21 +126,29 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     return makeRet(delta);
   }
 
-  uint32_t nonBackupEcmpGroupsCnt{0};
+  uint32_t unmergedGroups{0};
+  std::set<const ConsolidationInfo*> mergedGroups;
   std::optional<InputOutputState> inOutState(
       std::move(switchingModeChangeResult));
   if (!inOutState.has_value()) {
-    inOutState = InputOutputState(nonBackupEcmpGroupsCnt, delta);
+    inOutState = InputOutputState(unmergedGroups, delta);
   }
+
   std::for_each(
       nextHopGroupIdToInfo_.cbegin(),
       nextHopGroupIdToInfo_.cend(),
-      [&nonBackupEcmpGroupsCnt](const auto& idAndInfo) {
-        // TODO - account for merged groups
-        nonBackupEcmpGroupsCnt +=
-            idAndInfo.second.lock()->isBackupEcmpGroupType() ? 0 : 1;
+      [&unmergedGroups, &mergedGroups](const auto& idAndInfo) {
+        auto groupInfo = idAndInfo.second.lock();
+        unmergedGroups += groupInfo->hasOverrides() ? 0 : 1;
+        if (auto gitr = groupInfo->getMergedGroupInfoItr()) {
+          mergedGroups.insert(&(*gitr)->second);
+        }
       });
-  inOutState->nonBackupEcmpGroupsCnt = nonBackupEcmpGroupsCnt;
+  inOutState->nonBackupEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
+  XLOG(DBG2) << " Start delta processing, primary group count: "
+             << inOutState->nonBackupEcmpGroupsCnt << " with " << unmergedGroups
+             << " unmerged groups and " << mergedGroups.size()
+             << " merged groups";
   return consolidateImpl(delta, &(*inOutState));
 }
 
