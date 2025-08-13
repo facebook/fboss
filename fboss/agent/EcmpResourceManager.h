@@ -285,6 +285,12 @@ class NextHopGroupInfo {
     return isBackupEcmpGroupType() || hasOverrideNextHops();
   }
 
+  int cost() const {
+    return mergedGroupsToInfoItr_.has_value()
+        ? (*mergedGroupsToInfoItr_)->second.maxPenalty()
+        : routeUsageCount_;
+  }
+
   std::optional<RouteNextHopSet> getOverrideNextHops() const {
     std::optional<RouteNextHopSet> overrideNhops;
     if (mergedGroupsToInfoItr_.has_value()) {
