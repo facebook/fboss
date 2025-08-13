@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -164,8 +165,9 @@ void ProdInvariantTest::setupConfigFlag() {
 }
 
 void ProdInvariantTest::sendTraffic(int numPackets) {
-  auto mac = utility::getInterfaceMac(
-      getSw()->getState(), getSw()->getState()->getVlans()->getFirstVlanID());
+  auto state = getSw()->getState();
+  auto intfID = utility::firstInterfaceIDWithPorts(state);
+  auto mac = utility::getInterfaceMac(state, intfID);
   std::optional<PortID> portId = std::nullopt;
   int hopLimit = 255;
   utility::pumpTraffic(
@@ -173,7 +175,7 @@ void ProdInvariantTest::sendTraffic(int numPackets) {
       utility::getAllocatePktFn(getSw()),
       utility::getSendPktFunc(getSw()),
       mac,
-      getSw()->getState()->getVlans()->getFirstVlanID(),
+      getAgentEnsemble()->getVlanIDForTx(),
       portId,
       hopLimit,
       numPackets);
