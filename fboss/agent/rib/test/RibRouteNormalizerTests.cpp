@@ -20,8 +20,15 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
   RibRouteWeightNormalizerTest(
       int numRacks,
       int numPlanePathsPerRack,
-      int rackId = 1)
-      : RibRouteWeightNormalizer(numRacks, numPlanePathsPerRack, rackId) {}
+      int rackId = 1,
+      int numSpineFailuresToSkip = 0,
+      int spinePruneStepCount = 1)
+      : RibRouteWeightNormalizer(
+            numRacks,
+            numPlanePathsPerRack,
+            rackId,
+            numSpineFailuresToSkip,
+            spinePruneStepCount) {}
 
   static void runNextHopPruningTest(
       std::map<int, int>& planeIdToRemoteCapacity,

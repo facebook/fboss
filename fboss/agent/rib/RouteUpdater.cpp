@@ -31,6 +31,14 @@
 DEFINE_int32(nsf_rack_id, 1, "Rack id inNSF pod");
 DEFINE_int32(nsf_num_racks_per_pod, 6, "Number of racks in NSF pod");
 DEFINE_int32(nsf_num_parallel_rack_links, 6, "Parallel links in NSF pod");
+DEFINE_int32(
+    nsf_num_spine_failures_to_skip,
+    0,
+    "Spine failure count to skip pruning");
+DEFINE_int32(
+    nsf_spine_prune_step_count,
+    1,
+    "Step count for next spine failure to prune");
 DEFINE_bool(
     enable_capacity_pruning,
     false,
@@ -60,7 +68,9 @@ RibRouteUpdater::RibRouteUpdater(
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
           FLAGS_nsf_num_parallel_rack_links,
-          FLAGS_nsf_rack_id) {}
+          FLAGS_nsf_rack_id,
+          FLAGS_nsf_num_spine_failures_to_skip,
+          FLAGS_nsf_spine_prune_step_count) {}
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
@@ -72,7 +82,9 @@ RibRouteUpdater::RibRouteUpdater(
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
           FLAGS_nsf_num_parallel_rack_links,
-          FLAGS_nsf_rack_id) {}
+          FLAGS_nsf_rack_id,
+          FLAGS_nsf_num_spine_failures_to_skip,
+          FLAGS_nsf_spine_prune_step_count) {}
 
 void RibRouteUpdater::update(
     const std::map<ClientID, std::vector<RouteEntry>>& toAdd,
