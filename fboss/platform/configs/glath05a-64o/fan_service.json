@@ -1,21 +1,21 @@
 {
   "pwmBoostOnNumDeadFan": 1,
   "pwmBoostOnNumDeadSensor": 0,
-  "pwmBoostOnNoQsfpAfterInSec": 55,
-  "pwmBoostValue": 95,
+  "pwmBoostOnNoQsfpAfterInSec": 31,
+  "pwmBoostValue": 75,
   "pwmTransitionValue": 75,
   "pwmLowerThreshold": 54,
   "pwmUpperThreshold": 100,
-  "optics" : [
+  "optics": [
     {
-      "opticName" : "osfp_group_1",
-      "access" : {
-        "accessType" : "ACCESS_TYPE_QSFP"
+      "opticName": "osfp_group_1",
+      "access": {
+        "accessType": "ACCESS_TYPE_QSFP"
       },
-      "portList" : [],
-      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
-      "tempToPwmMaps" : {
-        "OPTIC_TYPE_800_GENERIC" : {
+      "portList": [],
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps": {
+        "OPTIC_TYPE_800_GENERIC": {
           "5": 54,
           "66": 58,
           "67": 60,
