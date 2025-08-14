@@ -84,6 +84,62 @@ EepromData kEepromV6 = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff};
 
+// ONIE TlvInfo format test data
+// clang-format off
+EepromData eepromOnie = {
+    // Header: "TlvInfo\x00" + version(0x01) + total_length(0x0050 = 80 bytes)
+    0x54, 0x6c, 0x76, 0x49, 0x6e, 0x66, 0x6f, 0x00, 0x01, 0x00, 0x50,
+    // Product Name TLV (0x21, length=11, "TestProduct")
+    0x21, 0x0b,
+    0x54, 0x65, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74,
+    // Part Number TLV (0x22, length=7, "PN12345")
+    0x22, 0x07, 0x50, 0x4e, 0x31, 0x32, 0x33, 0x34, 0x35,
+    // Serial Number TLV (0x23, length=9, "SN1234567")
+    0x23, 0x09, 0x53, 0x4e, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+    // Base MAC Address TLV (0x24, length=6, 00:11:22:33:44:55)
+    0x24, 0x06, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55,
+    // MAC Addresses TLV (0x2A, length=2, 256 addresses)
+    0x2a, 0x02, 0x01, 0x00,
+    // Manufacturer TLV (0x2B, length=7, "TestMfg")
+    0x2b, 0x07, 0x54, 0x65, 0x73, 0x74, 0x4d, 0x66, 0x67,
+    // CRC-32 TLV (0xFE, length=4, placeholder CRC)
+    0xfe, 0x04, 0x12, 0x34, 0x56, 0x78
+};
+
+// Real device ONIE EEPROM data from Nexthop NH-4010
+EepromData eepromOnieReal = {
+    // Header: "TlvInfo\x00" + version(0x01) + total_length(0x0076 = 118 bytes)
+    0x54, 0x6c, 0x76, 0x49, 0x6e, 0x66, 0x6f, 0x00, 0x01, 0x00, 0x76,
+    // Product Name TLV (0x21, length=7, "NH-4010")
+    0x21, 0x07, 0x4e, 0x48, 0x2d, 0x34, 0x30, 0x31, 0x30,
+    // Part Number TLV (0x22, length=12, "950-00001-01")
+    0x22, 0x0c,
+    0x39, 0x35, 0x30, 0x2d, 0x30, 0x30, 0x30, 0x30, 0x31, 0x2d, 0x30, 0x31,
+    // Serial Number TLV (0x23, length=14, "NH-FSJ25160005")
+    0x23, 0x0e,
+    0x4e, 0x48, 0x2d, 0x46, 0x53, 0x4a, 0x32,
+    0x35, 0x31, 0x36, 0x30, 0x30, 0x30, 0x35,
+    // Base MAC Address TLV (0x24, length=6, E8:E4:9D:00:18:28)
+    0x24, 0x06, 0xe8, 0xe4, 0x9d, 0x00, 0x18, 0x28,
+    // Device Version TLV (0x26, length=1, 1)
+    0x26, 0x01, 0x01,
+    // Label Revision TLV (0x27, length=2, "P1")
+    0x27, 0x02, 0x50, 0x31,
+    // Platform Name TLV (0x28, length=22, "x86_64-nexthop_4010-r0")
+    0x28, 0x16, 0x78, 0x38, 0x36, 0x5f, 0x36, 0x34, 0x2d, 0x6e, 0x65, 0x78,
+    0x74, 0x68, 0x6f, 0x70, 0x5f, 0x34, 0x30, 0x31, 0x30, 0x2d, 0x72, 0x30,
+    // Manufacturer TLV (0x2B, length=7, "Nexthop")
+    0x2b, 0x07, 0x4e, 0x65, 0x78, 0x74, 0x68, 0x6f, 0x70,
+    // Vendor TLV (0x2D, length=7, "Nexthop")
+    0x2d, 0x07, 0x4e, 0x65, 0x78, 0x74, 0x68, 0x6f, 0x70,
+    // Service Tag TLV (0x2F, length=14, "www.nexthop.ai")
+    0x2f, 0x0e, 0x77, 0x77, 0x77, 0x2e, 0x6e, 0x65,
+    0x78, 0x74, 0x68, 0x6f, 0x70, 0x2e, 0x61, 0x69,
+    // CRC-32 TLV (0xFE, length=4, 0xB06FDC7B)
+    0xfe, 0x04, 0xb0, 0x6f, 0xdc, 0x7b,
+};
+// clang-format on
+
 FbossEepromInterface createFbossEepromInterface(const EepromData& data) {
   folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
   std::string fileName = tmpDir.path().string() + "/eepromContent";
@@ -219,6 +275,68 @@ TEST(FbossEepromInterfaceTest, V5ObjWrongCrc) {
   EepromContents expectedObj = createEepromContents(5, false);
 
   EXPECT_EQ(actualObj, expectedObj);
+}
+
+TEST(FbossEepromOnieTest, OnieFormat) {
+  std::vector<std::pair<std::string, std::string>> expectedContentsDummy = {
+      {"Format", "ONIE TlvInfo"},
+      {"Product Name", "TestProduct"},
+      {"Part Number", "PN12345"},
+      {"Serial Number", "SN1234567"},
+      {"Base MAC Address", "00:11:22:33:44:55"},
+      {"Manufacture Date", ""},
+      {"Device Version", ""},
+      {"Label Revision", ""},
+      {"Platform Name", ""},
+      {"ONIE Version", ""},
+      {"MAC Addresses", "256"},
+      {"Manufacturer", "TestMfg"},
+      {"Manufacture Country", ""},
+      {"Vendor Name", ""},
+      {"Diag Version", ""},
+      {"Service Tag", ""},
+      {"Vendor Extension", ""},
+      {"CRC-32", "0x12345678 (CRC Mismatch. Expected 0x7e83c97f)"},
+  };
+  std::vector<std::pair<std::string, std::string>> expectedContentsNH4010 = {
+      {"Format", "ONIE TlvInfo"},
+      {"Product Name", "NH-4010"},
+      {"Part Number", "950-00001-01"},
+      {"Serial Number", "NH-FSJ25160005"},
+      {"Base MAC Address", "e8:e4:9d:00:18:28"},
+      {"Manufacture Date", ""},
+      {"Device Version", "1"},
+      {"Label Revision", "P1"},
+      {"Platform Name", "x86_64-nexthop_4010-r0"},
+      {"ONIE Version", ""},
+      {"MAC Addresses", ""},
+      {"Manufacturer", "Nexthop"},
+      {"Manufacture Country", ""},
+      {"Vendor Name", "Nexthop"},
+      {"Diag Version", ""},
+      {"Service Tag", "www.nexthop.ai"},
+      {"Vendor Extension", ""},
+      {"CRC-32", "0xb06fdc7b (CRC Matched)"},
+  };
+
+  std::vector<
+      std::pair<EepromData, std::vector<std::pair<std::string, std::string>>>>
+      testCases = {
+          {eepromOnie, expectedContentsDummy},
+          {eepromOnieReal, expectedContentsNH4010},
+      };
+
+  for (auto& [eepromData, expectedContents] : testCases) {
+    folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+    std::string fileName = tmpDir.path().string() + "/eepromContent";
+    folly::writeFile(eepromData, fileName.c_str());
+    FbossEepromInterface interface(fileName, 0);
+    auto parsedContents = interface.getContents();
+    ASSERT_EQ(expectedContents.size(), parsedContents.size());
+    for (size_t i = 0; i < expectedContents.size(); i++) {
+      EXPECT_EQ(parsedContents[i], expectedContents[i]);
+    }
+  }
 }
 
 } // namespace facebook::fboss::platform
