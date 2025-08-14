@@ -163,6 +163,11 @@ std::string ParserUtils::parseMac(int len, unsigned char* ptr) {
   return retVal;
 }
 
+// For ONIE format, Parse MAC with the format XX:XX:XX:XX:XX:XX (no size field)
+std::string ParserUtils::parseOnieMac(int len, unsigned char* ptr) {
+  return parseMacHelper(len, ptr, true);
+}
+
 std::string ParserUtils::parseDate(int len, unsigned char* ptr) {
   std::string retVal;
   if (len != 4) {
