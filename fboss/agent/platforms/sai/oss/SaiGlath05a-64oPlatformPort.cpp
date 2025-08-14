@@ -15,7 +15,8 @@ void SaiGlath05a_64oPlatformPort::linkStatusChanged(
     bool /* up */,
     bool /* adminUp */) {}
 
-void SaiGlath05a_64oPlatformPort::externalState(PortLedExternalState /* lfs */) {}
+void SaiGlath05a_64oPlatformPort::externalState(
+    PortLedExternalState /* lfs */) {}
 
 uint32_t SaiGlath05a_64oPlatformPort::getCurrentLedState() const {
   return static_cast<uint32_t>(currentLedState_);

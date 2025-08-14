@@ -8,11 +8,10 @@
  *
  */
 
- #include "fboss/agent/platforms/sai/SaiGlath05a-64oPlatform.h"
+#include "fboss/agent/platforms/sai/SaiGlath05a-64oPlatform.h"
 
- namespace facebook::fboss {
- 
- void SaiGlath05a_64oPlatform::initLEDs() {}
- 
- } // namespace facebook::fboss
- 
+namespace facebook::fboss {
+
+void SaiGlath05a_64oPlatform::initLEDs() {}
+
+} // namespace facebook::fboss
