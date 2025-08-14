@@ -10,6 +10,7 @@ cpp_library(
     srcs = [
         "utils/CdevUtils.cpp",
         "utils/GpioUtils.cpp",
+        "utils/HwmonUtils.cpp",
         "utils/I2CUtils.cpp",
         "utils/KmodUtils.cpp",
         "utils/WatchdogUtils.cpp",
@@ -41,6 +42,7 @@ cpp_binary(
         "BspTestRunner.cpp",
         "CdevTests.cpp",
         "GpioTests.cpp",
+        "HwmonTests.cpp",
         "I2CTests.cpp",
         "KmodTests.cpp",
         "LedTests.cpp",

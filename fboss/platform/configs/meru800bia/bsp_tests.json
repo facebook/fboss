@@ -17,6 +17,37 @@
           }
         ]
       }
+    },
+    "SCM.SCM_MPS_PMBUS": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "pin",
+          "iout1"
+        ]
+      }
+    },
+    "PSU.PSU_PMBUS": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vcap",
+          "vout1",
+          "fan1",
+          "fan2",
+          "fan3",
+          "fan4",
+          "temp1",
+          "temp2",
+          "temp3",
+          "pin",
+          "pout1",
+          "iin",
+          "iout1"
+        ]
+      }
     }
   }
 }
