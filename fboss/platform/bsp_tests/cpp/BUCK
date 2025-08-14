@@ -18,7 +18,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
-        "//fboss/platform/bsp_tests:bsp_tests_config-cpp2-types",
+        "//fboss/platform/bsp_tests:bsp_tests_runtime_config-cpp2-types",
         "//fboss/platform/bsp_tests:fbiob_device_config-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:fbiob_ioctl_h",
@@ -90,6 +90,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/platform/bsp_tests:bsp_tests_config-cpp2-types",
+        "//fboss/platform/bsp_tests:bsp_tests_runtime_config-cpp2-types",
         "//fboss/platform/bsp_tests:fbiob_device_config-cpp2-types",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/platform_manager:config_utils",

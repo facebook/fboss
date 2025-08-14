@@ -6,6 +6,7 @@
 #include <string>
 #include <tuple>
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_runtime_config_types.h"
 #include "fboss/platform/bsp_tests/gen-cpp2/fbiob_device_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 

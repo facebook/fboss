@@ -17,7 +17,7 @@
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_runtime_config_types.h"
 #include "fboss/platform/bsp_tests/gen-cpp2/fbiob_device_config_types.h"
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
