@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "glath05a-64o_platform_mapping",
+    srcs = [
+        "Glath05a-64oPlatformMapping.cpp",
+    ],
+    headers = [
+        "Glath05a-64oPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)
