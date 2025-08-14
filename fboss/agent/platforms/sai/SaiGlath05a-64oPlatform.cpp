@@ -25,7 +25,8 @@ SaiGlath05a_64oPlatform::SaiGlath05a_64oPlatform(
           std::move(productInfo),
           platformMappingStr.empty()
               ? std::make_unique<Glath05a_64oPlatformMapping>()
-              : std::make_unique<Glath05a_64oPlatformMapping>(platformMappingStr),
+              : std::make_unique<Glath05a_64oPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 void SaiGlath05a_64oPlatform::setupAsic(
