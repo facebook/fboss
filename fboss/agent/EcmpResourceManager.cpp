@@ -213,56 +213,45 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   return std::move(inOutState->out);
 }
 
-void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
-  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
-  auto canReclaim = maxEcmpGroups_ - inOutState->nonBackupEcmpGroupsCnt;
-  if (!canReclaim) {
-    XLOG(DBG2) << " Unable to reclaim any non primary groups";
-    return;
-  }
-  XLOG(DBG2) << " Can reclaim : " << canReclaim << " non primary groups";
-  std::unordered_set<NextHopGroupId> allOverrideGroupIds;
-  std::vector<std::shared_ptr<NextHopGroupInfo>> overrideGroupsSorted;
+std::vector<std::shared_ptr<const NextHopGroupInfo>>
+EcmpResourceManager::getGroupsToReclaimByCost(uint32_t canReclaim) const {
+  std::vector<std::shared_ptr<const NextHopGroupInfo>> overrideGroupsSorted;
   std::for_each(
       nextHopGroupIdToInfo_.begin(),
       nextHopGroupIdToInfo_.end(),
-      [&overrideGroupsSorted, &allOverrideGroupIds](const auto& idAndGrpRef) {
+      [&overrideGroupsSorted](const auto& idAndGrpRef) {
         auto groupInfo = idAndGrpRef.second.lock();
         if (groupInfo->hasOverrides()) {
           overrideGroupsSorted.push_back(groupInfo);
-          allOverrideGroupIds.insert(groupInfo->getID());
         }
       });
   if (overrideGroupsSorted.empty()) {
-    return;
+    return overrideGroupsSorted;
   }
   XLOG(DBG2) << " Will reclaim : "
              << std::min(
                     canReclaim,
                     static_cast<uint32_t>(overrideGroupsSorted.size()))
              << " non primary groups";
-  std::unordered_set<NextHopGroupId> groupIdsToReclaim;
-  if (allOverrideGroupIds.size() > canReclaim) {
-    // Sort groups by number of routes pointing to this group.
-    std::sort(
-        overrideGroupsSorted.begin(),
-        overrideGroupsSorted.end(),
-        [](const auto& lgroup, const auto& rgroup) {
-          CHECK_EQ(
-              lgroup->isBackupEcmpGroupType(), rgroup->isBackupEcmpGroupType());
-          CHECK_EQ(
-              lgroup->hasOverrideNextHops(), rgroup->hasOverrideNextHops());
-          return lgroup->cost() < rgroup->cost();
-        });
-    int claimed = 0;
-    for (auto gitr = overrideGroupsSorted.rbegin();
-         gitr != overrideGroupsSorted.rend() && claimed < canReclaim;
-         ++gitr, ++claimed) {
-      groupIdsToReclaim.insert((*gitr)->getID());
-    }
-  } else {
-    groupIdsToReclaim = std::move(allOverrideGroupIds);
-  }
+  // Reverse sort groups by cost. So higher cost groups come first
+  std::sort(
+      overrideGroupsSorted.begin(),
+      overrideGroupsSorted.end(),
+      [](const auto& lgroup, const auto& rgroup) {
+        CHECK_EQ(
+            lgroup->isBackupEcmpGroupType(), rgroup->isBackupEcmpGroupType());
+        CHECK_EQ(lgroup->hasOverrideNextHops(), rgroup->hasOverrideNextHops());
+        return lgroup->cost() > rgroup->cost();
+      });
+  overrideGroupsSorted.resize(
+      std::min(static_cast<size_t>(canReclaim), overrideGroupsSorted.size()));
+  return overrideGroupsSorted;
+}
+
+void EcmpResourceManager::reclaimBackupGroups(
+    const std::vector<std::shared_ptr<const NextHopGroupInfo>>& toReclaimSorted,
+    const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+    InputOutputState* inOutState) {
   auto oldState = inOutState->out.back().newState();
   auto newState = oldState->clone();
   for (auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
@@ -303,6 +292,42 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
   inOutState->updated = true;
   XLOG(DBG2) << " Primary ECMP Groups after reclaim: "
              << inOutState->nonBackupEcmpGroupsCnt;
+}
+
+void EcmpResourceManager::reclaimMergeGroups(
+    const std::vector<
+        std::shared_ptr<const NextHopGroupInfo>>& /*toReclaimSorted*/,
+    const std::unordered_set<NextHopGroupId>& /*groupIdsToReclaim*/,
+    InputOutputState* /*inOutState*/) {
+  // TODO
+}
+
+void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
+  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
+  auto canReclaim = maxEcmpGroups_ - inOutState->nonBackupEcmpGroupsCnt;
+  if (!canReclaim) {
+    XLOG(DBG2) << " Unable to reclaim any non primary groups";
+    return;
+  }
+  XLOG(DBG2) << " Can reclaim : " << canReclaim << " non primary groups";
+  auto overrideGroupsSorted = getGroupsToReclaimByCost(canReclaim);
+  if (overrideGroupsSorted.empty()) {
+    XLOG(DBG2) << " No override groups available for reclaim";
+    return;
+  }
+  std::unordered_set<NextHopGroupId> groupIdsToReclaim;
+  std::for_each(
+      overrideGroupsSorted.begin(),
+      overrideGroupsSorted.end(),
+      [&groupIdsToReclaim](
+          const std::shared_ptr<const NextHopGroupInfo>& grpInfo) {
+        groupIdsToReclaim.insert(grpInfo->getID());
+      });
+  if (backupEcmpGroupType_) {
+    reclaimBackupGroups(overrideGroupsSorted, groupIdsToReclaim, inOutState);
+  } else {
+    reclaimMergeGroups(overrideGroupsSorted, groupIdsToReclaim, inOutState);
+  }
 }
 
 int EcmpResourceManager::ConsolidationInfo::maxPenalty() const {

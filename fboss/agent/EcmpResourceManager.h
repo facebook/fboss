@@ -76,7 +76,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   };
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
-  using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
   GroupIds2ConsolidationInfo getConsolidationInfo(NextHopGroupId grpId) const;
   std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
   std::map<NextHopGroupId, std::set<Prefix>> getGroupIdToPrefix() const;
@@ -161,6 +160,18 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
       InputOutputState* inOutState);
+  std::vector<std::shared_ptr<const NextHopGroupInfo>> getGroupsToReclaimByCost(
+      uint32_t canReclaim) const;
+  void reclaimBackupGroups(
+      const std::vector<std::shared_ptr<const NextHopGroupInfo>>&
+          toReclaimSorted,
+      const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+      InputOutputState* inOutState);
+  void reclaimMergeGroups(
+      const std::vector<std::shared_ptr<const NextHopGroupInfo>>&
+          toReclaimSorted,
+      const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+      InputOutputState* inOutState);
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
@@ -241,7 +252,7 @@ class NextHopGroupInfo {
   using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
   using Groups2ConsolidationInfoItr =
-      EcmpResourceManager::GroupIds2ConsolidationInfoItr;
+      EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
   NextHopGroupInfo(
       NextHopGroupId id,
       NextHopGroupItr ngItr,
