@@ -131,7 +131,9 @@
           "initRegSettings": [
             {
               "regOffset": 3,
-              "ioBuf": [100]
+              "ioBuf": [
+                100
+              ]
             }
           ]
         },
@@ -143,7 +145,9 @@
           "initRegSettings": [
             {
               "regOffset": 3,
-              "ioBuf": [110]
+              "ioBuf": [
+                110
+              ]
             }
           ]
         },
@@ -1528,27 +1532,21 @@
                 "pmUnitScopedName": "SYSTEM_STATUS_LED",
                 "deviceName": "sys_led",
                 "csrOffset": "0x6050"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              }
             },
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "FAN_STATUS_LED",
                 "deviceName": "fan_led",
                 "csrOffset": "0x6060"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              }
             },
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "PSU1_STATUS_LED",
                 "deviceName": "psu_led",
                 "csrOffset": "0x6070"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              }
             }
           ],
           "xcvrCtrlConfigs": [
@@ -2086,7 +2084,9 @@
           "initRegSettings": [
             {
               "regOffset": 16,
-              "ioBuf": [-128]
+              "ioBuf": [
+                -128
+              ]
             }
           ]
         }
