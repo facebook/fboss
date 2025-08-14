@@ -53,9 +53,10 @@ struct GpioTestData {
 }
 
 struct GpioLineInfo {
-  1: string name;
-  2: string direction;
-  3: optional i32 getValue;
+  1: i32 index;
+  2: string name;
+  3: string direction;
+  4: optional i32 getValue;
 }
 
 struct HwmonTestData {
@@ -125,4 +126,5 @@ struct I2CDevice {
   2: i32 channel;
   3: string deviceName;
   4: string address;
+  5: bool isGpioChip;
 }

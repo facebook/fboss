@@ -326,6 +326,7 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       i2cDevice.channel() = channel;
       i2cDevice.deviceName() = *pmDev.kernelDeviceName();
       i2cDevice.address() = *pmDev.address();
+      i2cDevice.isGpioChip() = *pmDev.isGpioChip();
 
       auto adapter = findAdapter(i2cAdapters, adapterPmUnit, adapterName);
       adapter->i2cDevices()->push_back(i2cDevice);

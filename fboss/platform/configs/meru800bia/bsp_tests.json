@@ -4,6 +4,19 @@
       "watchdogTestData": {
         "numWatchdogs": 1
       }
+    },
+    "SMB.SMB_PCA": {
+      "gpioTestData": {
+        "numLines": 16,
+        "lines": [
+          {
+            "index": 0,
+            "name": "unnamed",
+            "direction": "input",
+            "getValue": 1
+          }
+        ]
+      }
     }
   }
 }
