@@ -80,10 +80,18 @@ class StaticMapping:
     ) -> List[int]:
         lane_dict = {}
         for a in self._a_values:
-            if a.chip.core_id == core_id and direction == TX:
-                lane_dict[a.lane.tx_physical_lane] = a.lane.logical_id
-            elif a.chip.core_id == core_id and direction == RX:
-                lane_dict[a.lane.rx_physical_lane] = a.lane.logical_id
+            if (
+                a.chip.core_id == core_id
+                and direction == TX
+                and a.lane.tx_physical_lane is not None
+            ):
+                lane_dict[a.lane.logical_id] = a.lane.tx_physical_lane
+            elif (
+                a.chip.core_id == core_id
+                and direction == RX
+                and a.lane.rx_physical_lane is not None
+            ):
+                lane_dict[a.lane.logical_id] = a.lane.rx_physical_lane
             else:
                 continue
 
@@ -115,13 +123,9 @@ class StaticMapping:
         pn_swap_dict = {}
         for a in self._a_values:
             if a.chip.core_id == core_id and direction == TX:
-                pn_swap_dict[a.lane.tx_physical_lane] = (
-                    1 if a.lane.tx_polarity_swap else 0
-                )
+                pn_swap_dict[a.lane.logical_id] = 1 if a.lane.tx_polarity_swap else 0
             elif a.chip.core_id == core_id and direction == RX:
-                pn_swap_dict[a.lane.rx_physical_lane] = (
-                    1 if a.lane.rx_polarity_swap else 0
-                )
+                pn_swap_dict[a.lane.logical_id] = 1 if a.lane.rx_polarity_swap else 0
             else:
                 continue
 
