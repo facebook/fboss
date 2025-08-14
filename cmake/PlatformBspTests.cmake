@@ -23,6 +23,7 @@ add_library(bsp_test_utils
   fboss/platform/bsp_tests/cpp/utils/CdevUtils.cpp
   fboss/platform/bsp_tests/cpp/utils/KmodUtils.cpp
   fboss/platform/bsp_tests/cpp/utils/I2CUtils.cpp
+  fboss/platform/bsp_tests/cpp/utils/WatchdogUtils.cpp
 )
 
 target_link_libraries(bsp_test_utils

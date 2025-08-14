@@ -11,6 +11,7 @@ cpp_library(
         "utils/CdevUtils.cpp",
         "utils/I2CUtils.cpp",
         "utils/KmodUtils.cpp",
+        "utils/WatchdogUtils.cpp",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
