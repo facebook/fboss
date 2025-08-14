@@ -61,6 +61,7 @@ add_executable(bsp_tests
   fboss/platform/bsp_tests/cpp/KmodTests.cpp
   fboss/platform/bsp_tests/cpp/I2CTests.cpp
   fboss/platform/bsp_tests/cpp/LedTests.cpp
+  fboss/platform/bsp_tests/cpp/WatchdogTests.cpp
 )
 
 target_link_libraries(bsp_tests

@@ -105,6 +105,9 @@
       },
       "ledTestData": {
         "createsLeds": true
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
       }
     },
     "SMB.FAN2_CPLD": {
@@ -127,6 +130,9 @@
       },
       "ledTestData": {
         "createsLeds": true
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
       }
     }
   }

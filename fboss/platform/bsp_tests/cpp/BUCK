@@ -42,6 +42,7 @@ cpp_binary(
         "I2CTests.cpp",
         "KmodTests.cpp",
         "LedTests.cpp",
+        "WatchdogTests.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",

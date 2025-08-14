@@ -1,1 +1,9 @@
-{}
+{
+  "testData": {
+    "SMB.FAN_CPLD": {
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      }
+    }
+  }
+}
