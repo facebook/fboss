@@ -43,8 +43,10 @@ cpp_binary(
         "KmodTests.cpp",
         "LedTests.cpp",
         "WatchdogTests.cpp",
+        "XcvrTests.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":bsp_test_environment",
         ":utils",
