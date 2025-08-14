@@ -22,7 +22,7 @@ struct DeviceTestData {
   2: optional HwmonTestData hwmonTestData;
   3: optional GpioTestData gpioTestData;
   4: optional WatchdogTestData watchdogTestData;
-  5: optional list<LedTestData> ledTestData;
+  5: optional LedTestData ledTestData;
 }
 
 struct I2CTestData {
@@ -67,9 +67,7 @@ struct WatchdogTestData {
 }
 
 struct LedTestData {
-  1: list<string> expectedColors;
-  2: optional string ledType;
-  3: optional i32 ledId;
+  1: bool createsLeds;
 }
 
 // Runtime configuration structure - final configuration used in BspTests

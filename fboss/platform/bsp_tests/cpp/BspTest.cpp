@@ -15,6 +15,19 @@ void BspTest::recordExpectedError(
   env_->recordExpectedError(testName, deviceName, reason);
 }
 
+std::tuple<I2CAdapter, I2CDevice> BspTest::getI2cAdapterAndDevice(
+    std::string pmName) {
+  for (const auto& [_, adapter] : *GetRuntimeConfig().i2cAdapters()) {
+    for (const auto& i2cDevice : *adapter.i2cDevices()) {
+      if (*i2cDevice.pmName() == pmName) {
+        return std::make_tuple(adapter, i2cDevice);
+      }
+    }
+  }
+  throw std::runtime_error(
+      fmt::format("No I2C device found with pmName {}", pmName));
+}
+
 TEST_F(BspTest, UsingFixture) {
   const auto& config = GetPlatformManagerConfig();
   EXPECT_FALSE(config.platformName()->empty())

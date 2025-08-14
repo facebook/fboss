@@ -217,7 +217,6 @@ std::unordered_map<std::string, std::string> CdevUtils::findPciDirs(
     if (!found) {
       auto errorMsg = fmt::format(
           "Could not find dir for PCI device {}", makePciName(pciDevice));
-      XLOG(ERR) << errorMsg;
       throw std::runtime_error(errorMsg);
     }
   }

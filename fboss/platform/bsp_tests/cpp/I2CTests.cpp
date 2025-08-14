@@ -123,15 +123,6 @@ class I2CTest : public BspTest {
     }
     return adapters;
   }
-
-  void registerAdapterForCleanup(const I2CAdapter& adapter, int id) {
-    if (adapter.pciAdapterInfo().has_value()) {
-      registerDeviceForCleanup(
-          *adapter.pciAdapterInfo()->pciInfo(),
-          *adapter.pciAdapterInfo()->auxData(),
-          id);
-    }
-  }
 };
 
 TEST_F(I2CTest, I2CAdapterNames) {
