@@ -60,5 +60,8 @@ std::unique_ptr<WedgeManager> createBspWedgeManager(
     const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
         threads);
 
+std::unique_ptr<WedgeManager> createGlath05a_64oWedgeManager(
+    const std::string& platformMappingStr);
+
 } // namespace fboss
 } // namespace facebook
