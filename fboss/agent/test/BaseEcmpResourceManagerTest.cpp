@@ -535,12 +535,13 @@ void BaseEcmpResourceManagerTest::addOrUpdateRoute(
   consolidate(newState);
 }
 
-void BaseEcmpResourceManagerTest::rmRoute(const RoutePrefixV6& prefix6) {
+std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoute(
+    const RoutePrefixV6& prefix6) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
   fib6->removeNode(prefix6.str());
   newState->publish();
-  consolidate(newState);
+  return consolidate(newState);
 }
 
 std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
