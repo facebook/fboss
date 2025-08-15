@@ -509,37 +509,35 @@ def main() -> Optional[int]:
                 json.dump(known_bad_jobs, f, indent=2, default=str)
             logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
 
-            # send email to user or oncall
-            if args.send_email:
-                logger.info("Sending email...")
-                html = UserAndEmailHandler().HTTP_format_known_bad_list(
-                    tests, known_bad_jobs
+        # send email to user or oncall
+        if args.send_email:
+            logger.info("Sending email...")
+            html = UserAndEmailHandler().HTTP_format_known_bad_list(
+                tests, known_bad_jobs
+            )
+
+            logger.info("html generated successfully for email body")
+            images = {}
+            return_code = asyncio.run(
+                UserAndEmailHandler().send_email(args.user, html, images)
+            )
+
+            if return_code == 0:
+                logger.error(
+                    f"Error: Failed to send email to user, return_code: {return_code}"
                 )
 
-                logger.info("html generated successfully for email body")
-                images = {}
-                return_code = asyncio.run(
-                    UserAndEmailHandler().send_email(args.user, html, images)
-                )
-
-                if return_code == 0:
-                    logger.error(
-                        f"Error: Failed to send email to user, return_code: {return_code}"
-                    )
-
-                logger.info(f"Email sent successfully return_code: {return_code}")
-            else:
-                logger.info("No email sent")
-
-                # create task for user or oncall
-            if args.create_task:
-                logger.info("Creating task for oncall...")
-                task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
-                logger.info(f"Task created successfully: T{task.task_number}")
-            else:
-                logger.info("No task created")
+            logger.info(f"Email sent successfully return_code: {return_code}")
         else:
-            logger.info("No known bad tests found")
+            logger.info("No email sent")
+
+            # create task for user or oncall
+        if args.create_task:
+            logger.info("Creating task for oncall...")
+            task = asyncio.run(UserAndEmailHandler().create_task(args.user, tests))
+            logger.info(f"Task created successfully: T{task.task_number}")
+        else:
+            logger.info("No task created")
 
     return 0
 
