@@ -257,6 +257,40 @@ getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo) {
   return neighborToLinkFailure;
 }
 
+std::unordered_map<std::string, std::vector<std::string>>
+filterReachabilityByDst(
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        reachability,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::string>>& neighborToPorts) {
+  std::unordered_map<std::string, std::vector<std::string>>
+      filteredReachability;
+  for (const auto& dstSwitch : dstSwitchNames) {
+    auto reachabilityIter = reachability.find(dstSwitch);
+    if (reachabilityIter == reachability.end()) {
+      std::cout << "[WARNING] No reachability data for switch " + dstSwitch
+                << std::endl;
+      continue;
+    }
+    std::set<std::string> portToDstSwitch;
+    const auto neighborToPortsIter = neighborToPorts.find(dstSwitch);
+    if (neighborToPortsIter != neighborToPorts.end()) {
+      for (const auto& [neighborPort, myPort] : neighborToPortsIter->second) {
+        portToDstSwitch.insert(myPort);
+      }
+    }
+
+    for (const auto& port : reachabilityIter->second) {
+      if (portToDstSwitch.find(port) != portToDstSwitch.end()) {
+        filteredReachability[dstSwitch].push_back(port);
+      }
+    }
+  }
+  return filteredReachability;
+}
+
 std::unordered_map<std::string, int> getPortToVirtualDeviceId(
     const std::map<int32_t, PortInfoThrift>& myPortInfo) {
   std::unordered_map<std::string, int> portToVD;
