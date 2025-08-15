@@ -7,14 +7,14 @@
 
 #include <gtest/gtest.h>
 
-namespace facebook::fboss::thrift_cow {
+namespace facebook::fboss {
 
 using k = test_tags::strings;
 
 ADD_THRIFT_RESOLVER_MAPPING(TestStruct, DerivedTestStructNode);
-class DerivedTestStructNode : public ThriftStructNode<TestStruct> {
+class DerivedTestStructNode : public thrift_cow::ThriftStructNode<TestStruct> {
  public:
-  using Base = ThriftStructNode<TestStruct>;
+  using Base = thrift_cow::ThriftStructNode<TestStruct>;
   using Base::Base;
 
   int getInlineInt() const {
@@ -36,9 +36,10 @@ TEST(ThriftStructNodeResolverTests, DerivedTestStructNodeTest) {
 }
 
 ADD_THRIFT_RESOLVER_MAPPING(ParentTestStruct, DerivedParentTestNode);
-class DerivedParentTestNode : public ThriftStructNode<ParentTestStruct> {
+class DerivedParentTestNode
+    : public thrift_cow::ThriftStructNode<ParentTestStruct> {
  public:
-  using Base = ThriftStructNode<ParentTestStruct>;
+  using Base = thrift_cow::ThriftStructNode<ParentTestStruct>;
   using Base::Base;
 
   std::shared_ptr<DerivedTestStructNode> getChild() const {
@@ -62,9 +63,10 @@ TEST(ThriftStructNodeResolverTests, DerivedParentTestStructNodeTest) {
 }
 
 template <typename Dervived, typename Resolver>
-struct ThriftStructNodeMulti : public ThriftStructNode<TestStruct, Resolver> {
+struct ThriftStructNodeMulti
+    : public thrift_cow::ThriftStructNode<TestStruct, Resolver> {
  public:
-  using Base = ThriftStructNode<TestStruct, Resolver>;
+  using Base = thrift_cow::ThriftStructNode<TestStruct, Resolver>;
   using Base::Base;
 
   int getInlineInt() const {
@@ -85,25 +87,29 @@ struct ThriftMapNodeA;
 struct ThriftMapNodeB;
 
 template <>
-struct ResolveMemberType<StructA, k::mapA> : std::true_type {
+struct thrift_cow::ResolveMemberType<StructA, k::mapA> : std::true_type {
   using type = ThriftMapNodeA;
 };
 
 template <>
-struct ResolveMemberType<StructA, k::mapB> : std::true_type {
+struct thrift_cow::ResolveMemberType<StructA, k::mapB> : std::true_type {
   using type = ThriftMapNodeB;
 };
 
-struct StructA : public ThriftStructNodeMulti<StructA, TypeIdentity<StructA>> {
-  using Base = ThriftStructNodeMulti<StructA, TypeIdentity<StructA>>;
+struct StructA
+    : public ThriftStructNodeMulti<StructA, thrift_cow::TypeIdentity<StructA>> {
+  using Base =
+      ThriftStructNodeMulti<StructA, thrift_cow::TypeIdentity<StructA>>;
   using Base::Base;
 
  private:
   friend class CloneAllocator;
 };
 
-struct StructB : public ThriftStructNodeMulti<StructB, TypeIdentity<StructB>> {
-  using Base = ThriftStructNodeMulti<StructB, TypeIdentity<StructB>>;
+struct StructB
+    : public ThriftStructNodeMulti<StructB, thrift_cow::TypeIdentity<StructB>> {
+  using Base =
+      ThriftStructNodeMulti<StructB, thrift_cow::TypeIdentity<StructB>>;
   using Base::Base;
 
  private:
@@ -117,7 +123,7 @@ using String2TestStructType = std::map<std::string, TestStruct>;
 
 template <typename...>
 struct ConvertToStructATraits {
-  using default_type = ThriftStructNode<TestStruct>;
+  using default_type = thrift_cow::ThriftStructNode<TestStruct>;
   using struct_type = StructA;
   using type = std::shared_ptr<struct_type>;
   using isChild = std::true_type;
@@ -134,7 +140,7 @@ struct ThriftMapTraitsA {
 
 template <typename...>
 struct ConvertToStructBTraits {
-  using default_type = ThriftStructNode<TestStruct>;
+  using default_type = thrift_cow::ThriftStructNode<TestStruct>;
   using struct_type = StructB;
   using type = std::shared_ptr<struct_type>;
   using isChild = std::true_type;
@@ -150,8 +156,10 @@ struct ThriftMapTraitsB {
 };
 
 template <typename Derived, typename MapTraits>
-struct ThriftMapNodeMulti : ThriftMapNode<MapTraits, TypeIdentity<Derived>> {
-  using Base = ThriftMapNode<MapTraits, TypeIdentity<Derived>>;
+struct ThriftMapNodeMulti
+    : thrift_cow::ThriftMapNode<MapTraits, thrift_cow::TypeIdentity<Derived>> {
+  using Base =
+      thrift_cow::ThriftMapNode<MapTraits, thrift_cow::TypeIdentity<Derived>>;
   using Base::Base;
 
  private:
@@ -249,7 +257,7 @@ TEST(ThriftMapNodeResolverTests, MultipleResolversInSameStruct) {
   dataThrift.mapB()->emplace("B0", TestStruct{});
   dataThrift.mapB()->emplace("B1", TestStruct{});
 
-  ThriftStructNode<TestStruct> data0{dataThrift};
+  thrift_cow::ThriftStructNode<TestStruct> data0{dataThrift};
   auto mapA0 = data0.get<k::mapA>();
   auto mapB0 = data0.get<k::mapB>();
   static_assert(
@@ -278,4 +286,4 @@ TEST(ThriftMapNodeResolverTests, MultipleResolversInSameStruct) {
           ThriftMapNodeB>,
       "Unexpected");
 }
-} // namespace facebook::fboss::thrift_cow
+} // namespace facebook::fboss
