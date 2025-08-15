@@ -120,7 +120,7 @@ void verifyDscpToQueueMapping(SwSwitch* sw, const std::vector<PortID>& ports) {
   auto getPortStats = [&]() { return sw->getHwPortStats(ports); };
 
   auto q2dscpMap = utility::getOlympicQosMaps(sw->getConfig());
-  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
+  EXPECT_TRUE(utility::verifyQueueMappingsInvariantEcmpHelper(
       q2dscpMap, sw, sw->getState(), getPortStats, ports));
 }
 
