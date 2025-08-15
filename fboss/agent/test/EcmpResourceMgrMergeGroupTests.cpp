@@ -30,6 +30,23 @@ class EcmpResourceMgrMergeGroupTest
       EXPECT_EQ(sw_->getEcmpResourceManager()->getCost(gid), expectedPenalty);
     }
   }
+  void assertGroupsAreMerged(
+      const EcmpResourceManager::NextHopGroupIds& mergedGroups) const {
+    XLOG(DBG2) << " Asserting for merged group: " << "["
+               << folly::join(", ", mergedGroups) << "]";
+    std::for_each(mergedGroups.begin(), mergedGroups.end(), [this](auto gid) {
+      // Groups from  merge set should no longer
+      // be candidates.
+      EXPECT_EQ(
+          sw_->getEcmpResourceManager()
+              ->getCandidateMergeConsolidationInfo(gid)
+              .size(),
+          0);
+      EXPECT_TRUE(sw_->getEcmpResourceManager()
+                      ->getMergeGroupConsolidationInfo(gid)
+                      .has_value());
+    });
+  }
 };
 
 // Base class add 5 groups, which is within in the
