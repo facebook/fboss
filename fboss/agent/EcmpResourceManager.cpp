@@ -95,6 +95,13 @@ std::ostream& operator<<(
   return os;
 }
 
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::unordered_set<EcmpResourceManager::NextHopGroupId>& gids) {
+  os << "[" << folly::join(", ", gids) << "]";
+  return os;
+}
+
 } // namespace
 
 const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
@@ -214,7 +221,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
 }
 
 std::vector<std::shared_ptr<const NextHopGroupInfo>>
-EcmpResourceManager::getGroupsToReclaimByCost(uint32_t canReclaim) const {
+EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
   std::vector<std::shared_ptr<const NextHopGroupInfo>> overrideGroupsSorted;
   std::for_each(
       nextHopGroupIdToInfo_.begin(),
@@ -243,8 +250,71 @@ EcmpResourceManager::getGroupsToReclaimByCost(uint32_t canReclaim) const {
         CHECK_EQ(lgroup->hasOverrideNextHops(), rgroup->hasOverrideNextHops());
         return lgroup->cost() > rgroup->cost();
       });
-  overrideGroupsSorted.resize(
-      std::min(static_cast<size_t>(canReclaim), overrideGroupsSorted.size()));
+  if (backupEcmpGroupType_) {
+    // Reclaiming each backup ECMP group just creates one more primary ECMP
+    // group so we can reclaim as many backup groups as we have space for
+    // (canReclaim)
+    overrideGroupsSorted.resize(
+        std::min(static_cast<size_t>(canReclaim), overrideGroupsSorted.size()));
+  } else {
+    /*
+    Logic is
+    - Start from the highest cost to lowest cost groups
+    - Calculate unmerge cost, if it fits in the available space
+    add it to ordered list of groups to unmerge.
+    - Find all the other groups that are part of the merge set
+    and add them to the ordered list as well. E.g. say we have
+    a merge set of groups [1, 3] and [2, 4]. Both of which have
+    a cost of say X. Then in our ordered (by cost) group we may see
+    the groups in the following order [4, 3, 2, 1]. And say we have
+    space to create 2 more groups. If we go in the above order
+    order at step where we unmerge 3, we will have prefixes pointing
+    to the following groups
+    - groups  4, 3 and the original merged groups [1, 3] and [2, 4].
+    At this point we already created 2 more groups so we can't proceed.
+    - OTOH if we unmerge merged groups together. Viz. we go in the order
+    (say) [4, 2, 3, 1] - we will be able to unmerge both and free
+    up the merged groups. This also follows that we merge in unmerge
+    a merge set together.
+    */
+    std::vector<std::shared_ptr<const NextHopGroupInfo>>
+        reclaimableMergedGroups;
+    std::unordered_set<NextHopGroupId> reclaimedGroups;
+    for (auto oitr = overrideGroupsSorted.begin();
+         oitr != overrideGroupsSorted.end() &&
+         reclaimedGroups.size() < canReclaim;
+         ++oitr) {
+      const auto& overrideGroup = *oitr;
+      if (reclaimedGroups.contains(overrideGroup->getID())) {
+        // Already reclaimed continue
+        continue;
+      }
+      auto mergeGrpInfoItr = (*oitr)->getMergedGroupInfoItr();
+      CHECK(mergeGrpInfoItr.has_value());
+      const auto& [mergeSet, _] = *mergeGrpInfoItr.value();
+      CHECK_GT(mergeSet.size(), 0);
+      auto spaceRemaining = canReclaim - reclaimedGroups.size();
+      // Merge set will create mergeSet.size() primary groups primary group and
+      // delete one merged group
+      auto curGroupDemand = mergeSet.size() - 1;
+      if (curGroupDemand > spaceRemaining) {
+        XLOG(DBG2) << " Cannot unmerge : " << mergeSet
+                   << " demaand: " << curGroupDemand
+                   << " space remaining: " << spaceRemaining;
+        continue;
+      }
+      std::for_each(
+          mergeSet.begin(),
+          mergeSet.end(),
+          [&reclaimedGroups, &reclaimableMergedGroups, this](auto gid) {
+            reclaimedGroups.insert(gid);
+            // We reclaim all groups that are part of a merge set together
+            reclaimableMergedGroups.emplace_back(
+                nextHopGroupIdToInfo_.ref(gid));
+          });
+    }
+    overrideGroupsSorted = std::move(reclaimableMergedGroups);
+  }
   return overrideGroupsSorted;
 }
 
@@ -258,9 +328,7 @@ void EcmpResourceManager::reclaimBackupGroups(
     if (!groupIdsToReclaim.contains(grpInfo->getID())) {
       continue;
     }
-
     grpInfo->setIsBackupEcmpGroupType(false);
-    grpInfo->setMergedGroupInfoItr(std::nullopt);
     clearRouteOverrides(ridAndPfx, newState);
   }
   newState->publish();
@@ -310,7 +378,7 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
     return;
   }
   XLOG(DBG2) << " Can reclaim : " << canReclaim << " non primary groups";
-  auto overrideGroupsSorted = getGroupsToReclaimByCost(canReclaim);
+  auto overrideGroupsSorted = getGroupsToReclaimOrdered(canReclaim);
   if (overrideGroupsSorted.empty()) {
     XLOG(DBG2) << " No override groups available for reclaim";
     return;
@@ -323,6 +391,8 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
           const std::shared_ptr<const NextHopGroupInfo>& grpInfo) {
         groupIdsToReclaim.insert(grpInfo->getID());
       });
+  XLOG(DBG2) << " Will reclaim prefixes pointing to groups: "
+             << groupIdsToReclaim;
   if (backupEcmpGroupType_) {
     reclaimBackupGroups(overrideGroupsSorted, groupIdsToReclaim, inOutState);
   } else {
