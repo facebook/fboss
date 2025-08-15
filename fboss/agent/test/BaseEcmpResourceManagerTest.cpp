@@ -268,6 +268,7 @@ RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
        ++offset) {
     auto pfx = makePrefix(offset);
     if (!fib6->exactMatch(pfx)) {
+      XLOG(DBG2) << " Next pfx: " << pfx.str();
       return pfx;
     }
   }

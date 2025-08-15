@@ -220,9 +220,9 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   return std::move(inOutState->out);
 }
 
-std::vector<std::shared_ptr<const NextHopGroupInfo>>
+std::vector<std::shared_ptr<NextHopGroupInfo>>
 EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
-  std::vector<std::shared_ptr<const NextHopGroupInfo>> overrideGroupsSorted;
+  std::vector<std::shared_ptr<NextHopGroupInfo>> overrideGroupsSorted;
   std::for_each(
       nextHopGroupIdToInfo_.begin(),
       nextHopGroupIdToInfo_.end(),
@@ -277,8 +277,7 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
     up the merged groups. This also follows that we merge in unmerge
     a merge set together.
     */
-    std::vector<std::shared_ptr<const NextHopGroupInfo>>
-        reclaimableMergedGroups;
+    std::vector<std::shared_ptr<NextHopGroupInfo>> reclaimableMergedGroups;
     std::unordered_set<NextHopGroupId> reclaimedGroups;
     for (auto oitr = overrideGroupsSorted.begin();
          oitr != overrideGroupsSorted.end() &&
@@ -319,7 +318,7 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
 }
 
 void EcmpResourceManager::reclaimBackupGroups(
-    const std::vector<std::shared_ptr<const NextHopGroupInfo>>& toReclaimSorted,
+    const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
     const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
     InputOutputState* inOutState) {
   auto oldState = inOutState->out.back().newState();
@@ -363,11 +362,43 @@ void EcmpResourceManager::reclaimBackupGroups(
 }
 
 void EcmpResourceManager::reclaimMergeGroups(
-    const std::vector<
-        std::shared_ptr<const NextHopGroupInfo>>& /*toReclaimSorted*/,
-    const std::unordered_set<NextHopGroupId>& /*groupIdsToReclaim*/,
-    InputOutputState* /*inOutState*/) {
-  // TODO
+    const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimOrdered,
+    const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+    InputOutputState* inOutState) {
+  std::unordered_map<NextHopGroupId, std::vector<Prefix>> gid2Prefix;
+  std::for_each(
+      prefixToGroupInfo_.begin(),
+      prefixToGroupInfo_.end(),
+      [&gid2Prefix](const auto& pfxAndGroupInfo) {
+        gid2Prefix[pfxAndGroupInfo.second->getID()].push_back(
+            pfxAndGroupInfo.first);
+      });
+  for (auto i = 0; i < toReclaimOrdered.size();) {
+    auto curMergeGrpItr = toReclaimOrdered[i]->getMergedGroupInfoItr();
+    CHECK(curMergeGrpItr.has_value());
+    const auto& curMergeSet = (*curMergeGrpItr)->first;
+    CHECK_GT(curMergeSet.size(), 1);
+    auto oldState = inOutState->out.back().newState();
+    auto newState = oldState->clone();
+    for (auto mGid : curMergeSet) {
+      for (const auto& pfx : gid2Prefix[mGid]) {
+        clearRouteOverrides(pfx, newState);
+      }
+      CHECK(toReclaimOrdered[i]->getMergedGroupInfoItr().has_value());
+      toReclaimOrdered[i++]->setMergedGroupInfoItr(std::nullopt);
+    }
+    newState->publish();
+    // We put each unmerge on a new delta, to ensure that all
+    // constitutent groups get unmerged and we reclaim the merged
+    // group at the end of this processing.
+    inOutState->out.emplace_back(oldState, newState);
+    // Reclaimed curMergeSet.size() groups and deleted all references
+    // to the merged group.
+    inOutState->nonBackupEcmpGroupsCnt += curMergeSet.size() - 1;
+    inOutState->updated = true;
+  }
+  // TODO - prune reclaimed groups from merged groups and recompute
+  // candidate merges.
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {

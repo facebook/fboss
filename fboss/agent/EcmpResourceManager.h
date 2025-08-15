@@ -160,16 +160,14 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
       InputOutputState* inOutState);
-  std::vector<std::shared_ptr<const NextHopGroupInfo>>
-  getGroupsToReclaimOrdered(uint32_t canReclaim) const;
+  std::vector<std::shared_ptr<NextHopGroupInfo>> getGroupsToReclaimOrdered(
+      uint32_t canReclaim) const;
   void reclaimBackupGroups(
-      const std::vector<std::shared_ptr<const NextHopGroupInfo>>&
-          toReclaimSorted,
+      const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
       InputOutputState* inOutState);
   void reclaimMergeGroups(
-      const std::vector<std::shared_ptr<const NextHopGroupInfo>>&
-          toReclaimSorted,
+      const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
       InputOutputState* inOutState);
   void reclaimEcmpGroups(InputOutputState* inOutState);
