@@ -81,6 +81,19 @@ void clearRouteOverrides(
   }
 }
 
+EcmpResourceManager::GroupIds2ConsolidationInfo getConsolidationInfos(
+    const EcmpResourceManager::GroupIds2ConsolidationInfo&
+        gids2ConsolidationInfo,
+    EcmpResourceManager::NextHopGroupId gid) {
+  EcmpResourceManager::GroupIds2ConsolidationInfo mergedGrps2Info;
+  for (const auto& [mergedGrps, info] : gids2ConsolidationInfo) {
+    if (mergedGrps.contains(gid)) {
+      mergedGrps2Info.insert({mergedGrps, info});
+    }
+  }
+  return mergedGrps2Info;
+}
+
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::NextHopGroupIds& gids) {
@@ -1365,19 +1378,22 @@ EcmpResourceManager::computeConsolidationInfo(
   return consolidationInfo;
 }
 
+std::optional<EcmpResourceManager::ConsolidationInfo>
+EcmpResourceManager::getMergeGroupConsolidationInfo(
+    NextHopGroupId grpId) const {
+  std::optional<ConsolidationInfo> info;
+  auto infos = getConsolidationInfos(mergedGroups_, grpId);
+  if (infos.size()) {
+    CHECK_EQ(infos.size(), 1);
+    info = infos.begin()->second;
+  }
+  return info;
+}
+
 EcmpResourceManager::GroupIds2ConsolidationInfo
-EcmpResourceManager::getConsolidationInfo(NextHopGroupId grpId) const {
-  std::map<NextHopGroupIds, ConsolidationInfo> mergedGrps2Info;
-  auto addMergedGroups = [&mergedGrps2Info, grpId](const auto& mergedGrpInfo) {
-    for (const auto& [mergedGrps, info] : mergedGrpInfo) {
-      if (mergedGrps.contains(grpId)) {
-        mergedGrps2Info.insert({mergedGrps, info});
-      }
-    }
-  };
-  addMergedGroups(candidateMergeGroups_);
-  addMergedGroups(mergedGroups_);
-  return mergedGrps2Info;
+EcmpResourceManager::getCandidateMergeConsolidationInfo(
+    NextHopGroupId grpId) const {
+  return getConsolidationInfos(candidateMergeGroups_, grpId);
 }
 
 void EcmpResourceManager::computeCandidateMerges(

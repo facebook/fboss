@@ -22,10 +22,10 @@ class EcmpResourceMgrMergeGroupTest
   void assertCost(
       const EcmpResourceManager::NextHopGroupIds& mergedGroups) const {
     auto consolidationInfo =
-        sw_->getEcmpResourceManager()->getConsolidationInfo(
-            *mergedGroups.begin());
-    auto expectedPenalty =
-        consolidationInfo.find(mergedGroups)->second.maxPenalty();
+        sw_->getEcmpResourceManager()
+            ->getMergeGroupConsolidationInfo(*mergedGroups.begin())
+            .value();
+    auto expectedPenalty = consolidationInfo.maxPenalty();
     for (auto gid : mergedGroups) {
       EXPECT_EQ(sw_->getEcmpResourceManager()->getCost(gid), expectedPenalty);
     }
