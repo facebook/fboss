@@ -202,6 +202,7 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     float previousSensorValue = readCache.processedReadValue;
     float sensorValue = readCache.lastReadValue;
     bool deadFanExists = (numFanFailed_ > 0);
+    bool moreThanOneDeadFanExists = (numFanFailed_ > 1);
     bool accelerate =
         ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
     if (accelerate && !deadFanExists) {
@@ -209,9 +210,17 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     } else if (!accelerate && !deadFanExists) {
       tableToUse = *sensor.normalDownTable();
     } else if (accelerate && deadFanExists) {
-      tableToUse = *sensor.failUpTable();
+      if(moreThanOneDeadFanExists && sensor.twoRotorsFailUpTable()) {
+        tableToUse = *sensor.twoRotorsFailUpTable();
+      } else {
+        tableToUse = *sensor.failUpTable();
+      }
     } else {
-      tableToUse = *sensor.failDownTable();
+      if(moreThanOneDeadFanExists && sensor.twoRotorsFailDownTable()) {
+        tableToUse = *sensor.twoRotorsFailDownTable();
+      } else {
+        tableToUse = *sensor.failDownTable();
+      }
     }
     // Start with the lowest value
     targetPwm = tableToUse.begin()->second;
