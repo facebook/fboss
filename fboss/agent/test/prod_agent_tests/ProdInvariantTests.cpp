@@ -73,12 +73,13 @@ void ProdInvariantTest::SetUp() {
                                 is_mmu_lossless_mode())
                                 .first;
   for (auto& uplinkPort : ecmpUplinlinkPorts) {
+    if (!getSw()->getState()->getPort(uplinkPort)->isPortUp()) {
+      continue;
+    }
     ecmpPorts_.push_back(PortDescriptor(uplinkPort));
   }
 
-  if (ecmpPorts_.size() >= kEcmpWidth) {
-    setupAgentTestEcmp(ecmpPorts_);
-  }
+  setupAgentTestEcmp(ecmpPorts_);
   XLOG(DBG2) << "ProdInvariantTest setup done";
 }
 
@@ -197,6 +198,10 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
   for (auto portDesc : ecmpPorts_) {
     EXPECT_TRUE(portDesc.isPhysicalPort());
     auto portId = portDesc.phyPortID();
+    auto port = getAgentEnsemble()->getSw()->getState()->getPort(portId);
+    if (!port->isUp() || !port->isEnabled()) {
+      continue;
+    }
     ecmpPortIds.emplace_back(portId);
   }
   return ecmpPortIds;
@@ -463,6 +468,9 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
             getSw()->getPlatformType(), getSw()->getConfig(), kEcmpWidth, false)
             .first;
     for (auto& uplinkPort : ecmpUplinlinkPorts) {
+      if (!getSw()->getState()->getPort(uplinkPort)->isPortUp()) {
+        continue;
+      }
       ecmpPorts_.push_back(PortDescriptor(uplinkPort));
     }
     setupRSWMhnicEcmpV4(ecmpPorts_);
@@ -764,6 +772,9 @@ class ProdInvariantStswTest : public ProdInvariantRtswTest {
                                  is_mmu_lossless_mode())
                                  .second;
     for (auto& downlinkPort : ecmpDownlinkPorts) {
+      if (!getSw()->getState()->getPort(downlinkPort)->isPortUp()) {
+        continue;
+      }
       ecmpPorts_.emplace_back(downlinkPort);
     }
     setupAgentTestEcmp(ecmpPorts_);
