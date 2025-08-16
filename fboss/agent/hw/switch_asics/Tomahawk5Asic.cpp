@@ -217,6 +217,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
+    case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
       return false;
   }
   return false;
