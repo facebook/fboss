@@ -173,6 +173,18 @@ SaiSwitchTraits::dramQuarantinedBufferStats() {
 }
 
 const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  // TODO (nivinl): Stats ID not yet available in 14.x!
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_FABRIC_INTER_CELL_JITTER_MAX_IN_CLOCKS};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
 SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   static const std::vector<sai_stat_id_t> stats{
