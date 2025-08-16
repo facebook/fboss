@@ -265,14 +265,13 @@ std::vector<std::string> getInterfaceDevicesInCluster(
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap) {
   std::map<std::string, std::string> portToNeighbor;
+
   for (const auto& [switchID, ports] : std::as_const(*portMap)) {
     for (const auto& [portID, port] : std::as_const(*ports)) {
       if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
         const auto& neighborReachability = port->getExpectedNeighborValues();
         if (neighborReachability->size() != 1) {
-          throw std::runtime_error(
-              "No expected neighbor or more than one expected neighbor for port " +
-              port->getName());
+          continue;
         }
 
         std::string expectedNeighborName = *port->getExpectedNeighborValues()
@@ -554,15 +553,13 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
 
   std::vector<InputBalanceResult> inputBalanceResult;
 
-  const auto& dstSwitch = dstSwitchName;
-
   // Combine all input capacity from source RDSWs in the same cluster
   std::vector<std::string> inputNeighbors;
   std::vector<std::vector<std::string>> inputCapacityByVD;
   inputCapacityByVD.resize(kNumVirtualDevice);
 
   for (const auto& [srcRdsw, ports] : inputCapacityForDst) {
-    if (srcRdsw == dstSwitch) {
+    if (srcRdsw == dstSwitchName) {
       continue; // Skip self
     }
     inputNeighbors.push_back(srcRdsw);
@@ -579,8 +576,8 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
 
   auto inputLinkFailure = getLinkFailure(
       inputNeighbors, neighborToLinkFailure, portToVirtualDevice);
-  auto outputLinkFailure =
-      getLinkFailure({dstSwitch}, neighborToLinkFailure, portToVirtualDevice);
+  auto outputLinkFailure = getLinkFailure(
+      {dstSwitchName}, neighborToLinkFailure, portToVirtualDevice);
 
   for (int vd = 0; vd < kNumVirtualDevice; vd++) {
     auto localLinkFailure = std::max(
@@ -592,7 +589,7 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
         outputCapacityByVD.at(vd).size();
 
     InputBalanceResult result;
-    result.destinationSwitch = dstSwitch;
+    result.destinationSwitch = dstSwitchName;
     result.sourceSwitch = inputNeighbors;
     result.balanced = balanced;
     result.virtualDeviceID = vd;
