@@ -38,7 +38,7 @@ sensor_service::SensorReadResponse getSensorValueThroughThrift(
       std::move(channel));
   sensor_service::SensorReadResponse res;
   try {
-    res = client->future_getSensorValuesByNames({}).get();
+    client->sync_getSensorValuesByNames(res, {});
   } catch (std::exception& ex) {
     XLOG(ERR) << "Exception talking to sensor_service. " << ex.what();
   }
@@ -58,7 +58,7 @@ asic_temp::AsicTempResponse getAsicTempThroughThrift(
       std::move(channel));
   asic_temp::AsicTempResponse res;
   try {
-    res = client->future_getAsicTemp({}).get();
+    client->sync_getAsicTemp(res, {});
   } catch (std::exception& ex) {
     XLOG(ERR) << "Exception talking to wedge_agent. " << ex.what();
   }
