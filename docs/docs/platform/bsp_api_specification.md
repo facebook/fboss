@@ -214,3 +214,12 @@ front-panel LEDs.
 - If a physical LED is separated into multiple logical LEDs (entries in
   `/sys/class/leds/`), then writing non-zero to any color will turn off
   the other colors.
+  - This behavior must be reflected in the `brightness` file. For example,
+    ```bash
+    $ echo 1 > /sys/class/leds/port1_led:blue:status/brightness
+    $ cat /sys/class/leds/port1_led:blue:status/brightness
+    1
+    $ echo 1 > /sys/class/leds/port1_led:amber:status/brightness
+    $ cat /sys/class/leds/port1_led:blue:status/brightness
+    0
+    ```
