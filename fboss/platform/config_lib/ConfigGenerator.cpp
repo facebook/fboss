@@ -57,7 +57,7 @@ std::any deserialize(
     } else if (serviceName == "weutil") {
       return SimpleJSONSerializer::deserialize<WeutilConfig>(jsonConfigStr);
     } else if (serviceName == "fw_util") {
-      return SimpleJSONSerializer::deserialize<NewFwUtilConfig>(jsonConfigStr);
+      return SimpleJSONSerializer::deserialize<FwUtilConfig>(jsonConfigStr);
     } else if (serviceName == "led_manager") {
       return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
     } else if (serviceName == "bsp_tests") {

@@ -28,12 +28,12 @@ void FwUtilImpl::init() {
   ConfigLib configLib(configFilePath_);
   std::string fwUtilConfJson = configLib.getFwUtilConfig();
   try {
-    apache::thrift::SimpleJSONSerializer::deserialize<NewFwUtilConfig>(
+    apache::thrift::SimpleJSONSerializer::deserialize<FwUtilConfig>(
         fwUtilConfJson, fwUtilConfig_);
   } catch (const std::exception& e) {
-    XLOG(ERR) << "Error deserializing NewFwUtilConfig: " << e.what();
+    XLOG(ERR) << "Error deserializing FwUtilConfig: " << e.what();
   }
-  for (const auto& [fpd, fwConfigs] : *fwUtilConfig_.newFwConfigs()) {
+  for (const auto& [fpd, fwConfigs] : *fwUtilConfig_.fwConfigs()) {
     fwDeviceNamesByPrio_.emplace_back(fpd, *fwConfigs.priority());
   }
   // Sort firmware devices by priority
@@ -63,8 +63,8 @@ void FwUtilImpl::doFirmwareAction(
     const std::string& action) {
   XLOG(INFO, " Analyzing the given FW action for execution");
 
-  auto iter = fwUtilConfig_.newFwConfigs()->find(fpd);
-  if (iter == fwUtilConfig_.newFwConfigs()->end()) {
+  auto iter = fwUtilConfig_.fwConfigs()->find(fpd);
+  if (iter == fwUtilConfig_.fwConfigs()->end()) {
     XLOG(INFO)
         << fpd
         << " is not part of the firmware target_name list Please run ./fw-util --helpon=Flags for the right usage";
@@ -155,7 +155,7 @@ void FwUtilImpl::printVersion(const std::string& fpd) {
 
 void FwUtilImpl::doVersionAudit() {
   bool mismatch = false;
-  for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.newFwConfigs()) {
+  for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.fwConfigs()) {
     std::string desiredVersion = *fwConfig.desiredVersion();
     if (desiredVersion.empty()) {
       XLOGF(

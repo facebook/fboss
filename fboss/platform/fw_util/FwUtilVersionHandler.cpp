@@ -11,7 +11,7 @@ namespace facebook::fboss::platform::fw_util {
 void FwUtilVersionHandler::printDarwinVersion(const std::string& fpd) {
   if (fpd == "all") {
     for (const auto& orderedfpd : fwDeviceNamesByPrio_) {
-      auto iter = fwUtilConfig_.newFwConfigs()->find(orderedfpd.first);
+      auto iter = fwUtilConfig_.fwConfigs()->find(orderedfpd.first);
       std::string versionCmd = *iter->second.version()->getVersionCmd();
       auto [exitStatus, version] = PlatformUtils().execCommand(versionCmd);
       if (exitStatus != 0) {
@@ -20,8 +20,8 @@ void FwUtilVersionHandler::printDarwinVersion(const std::string& fpd) {
       std::cout << orderedfpd.first << " : " << version;
     }
   } else {
-    auto iter = fwUtilConfig_.newFwConfigs()->find(fpd);
-    if (iter != fwUtilConfig_.newFwConfigs()->end()) {
+    auto iter = fwUtilConfig_.fwConfigs()->find(fpd);
+    if (iter != fwUtilConfig_.fwConfigs()->end()) {
       std::string versionCmd = *iter->second.version()->getVersionCmd();
       auto [exitStatus, version] = PlatformUtils().execCommand(versionCmd);
       if (exitStatus != 0) {
@@ -38,8 +38,8 @@ void FwUtilVersionHandler::printDarwinVersion(const std::string& fpd) {
 
 std::string FwUtilVersionHandler::getSingleVersion(const std::string& fpd) {
   std::string version;
-  auto iter = fwUtilConfig_.newFwConfigs()->find(fpd);
-  if (iter == fwUtilConfig_.newFwConfigs()->end()) {
+  auto iter = fwUtilConfig_.fwConfigs()->find(fpd);
+  if (iter == fwUtilConfig_.fwConfigs()->end()) {
     throw std::runtime_error(
         "Firmware target name not found in config: " + fpd +
         " Please use ./fw-util --helpon=Flags for the right usage");

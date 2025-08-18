@@ -5,7 +5,7 @@ namespace facebook::fboss::platform::fw_util {
 
 void FwUtilImpl::doPostUpgrade(const std::string& fpd) {
   XLOG(INFO) << "Running postUpgrade operation for " << fpd;
-  if (auto postUpgrade = fwUtilConfig_.newFwConfigs()->at(fpd).postUpgrade()) {
+  if (auto postUpgrade = fwUtilConfig_.fwConfigs()->at(fpd).postUpgrade()) {
     for (const auto& operation : *postUpgrade) {
       doPostUpgradeOperation(operation, fpd);
     }

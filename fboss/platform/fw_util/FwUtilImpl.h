@@ -96,7 +96,7 @@ class FwUtilImpl {
   void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
 
-  NewFwUtilConfig fwUtilConfig_{};
+  FwUtilConfig fwUtilConfig_{};
   std::map<std::string, std::vector<std::string>> spiChip_;
   std::string platformName_;
   std::string fwBinaryFile_;
