@@ -763,6 +763,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // ARS port load past weight
         std::nullopt, // ARS port load future weight
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+        std::nullopt, // ARS link state
+#endif
         std::nullopt, // Reachability Group
         std::nullopt, // CondEntropyRehashEnable
         std::nullopt, // CondEntropyRehashPeriodUS
@@ -845,6 +848,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadScalingFactor, // ARS scaling factor
       arsPortLoadPastWeight, // ARS port load past weight
       arsPortLoadFutureWeight, // ARS port load future weight
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+      std::nullopt,
 #endif
       reachabilityGroup,
       condEntropyRehashEnable,

@@ -108,6 +108,10 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
   return SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID;
 }
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
+  return std::nullopt;
+}
 
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
