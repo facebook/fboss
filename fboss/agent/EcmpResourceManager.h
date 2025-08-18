@@ -167,11 +167,11 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       uint32_t canReclaim) const;
   void reclaimBackupGroups(
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
-      const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+      const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
   void reclaimMergeGroups(
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
-      const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+      const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>

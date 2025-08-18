@@ -19,30 +19,6 @@
 
 namespace facebook::fboss {
 namespace {
-bool pruneFromMergeGroupsImpl(
-    const EcmpResourceManager::NextHopGroupIds& groupIdsToPrune,
-    EcmpResourceManager::GroupIds2ConsolidationInfo& pruneFrom) {
-  bool pruned{false};
-  auto citr = pruneFrom.begin();
-  while (citr != pruneFrom.end()) {
-    auto gitr = groupIdsToPrune.begin();
-    // Using search (logN) instead of intersection O(max(M, N)
-    // since we expected the passed in groupIds to be
-    // a very small set - or even a size of 1. This
-    // makes search for individual groupIds more efficient.
-    for (; gitr != groupIdsToPrune.end(); ++gitr) {
-      if (citr->first.contains(*gitr)) {
-        citr = pruneFrom.erase(citr);
-        pruned = true;
-        break;
-      }
-    }
-    if (gitr == groupIdsToPrune.end()) {
-      ++citr;
-    }
-  }
-  return pruned;
-}
 
 void clearRouteOverrides(
     const EcmpResourceManager::Prefix& ridAndPfx,
@@ -115,6 +91,31 @@ std::ostream& operator<<(
   return os;
 }
 
+bool pruneFromMergeGroupsImpl(
+    const EcmpResourceManager::NextHopGroupIds& groupIdsToPrune,
+    EcmpResourceManager::GroupIds2ConsolidationInfo& pruneFrom) {
+  bool pruned{false};
+  auto citr = pruneFrom.begin();
+  while (citr != pruneFrom.end()) {
+    auto gitr = groupIdsToPrune.begin();
+    // Using search (logN) instead of intersection O(max(M, N)
+    // since we expected the passed in groupIds to be
+    // a very small set - or even a size of 1. This
+    // makes search for individual groupIds more efficient.
+    for (; gitr != groupIdsToPrune.end(); ++gitr) {
+      if (citr->first.contains(*gitr)) {
+        XLOG(DBG2) << " Pruning: " << citr->first;
+        citr = pruneFrom.erase(citr);
+        pruned = true;
+        break;
+      }
+    }
+    if (gitr == groupIdsToPrune.end()) {
+      ++citr;
+    }
+  }
+  return pruned;
+}
 } // namespace
 
 const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
@@ -332,7 +333,7 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
 
 void EcmpResourceManager::reclaimBackupGroups(
     const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
-    const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+    const NextHopGroupIds& groupIdsToReclaim,
     InputOutputState* inOutState) {
   auto oldState = inOutState->out.back().newState();
   auto newState = oldState->clone();
@@ -376,7 +377,7 @@ void EcmpResourceManager::reclaimBackupGroups(
 
 void EcmpResourceManager::reclaimMergeGroups(
     const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimOrdered,
-    const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+    const NextHopGroupIds& groupIdsToReclaim,
     InputOutputState* inOutState) {
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> gid2Prefix;
   std::for_each(
@@ -427,7 +428,7 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
     XLOG(DBG2) << " No override groups available for reclaim";
     return;
   }
-  std::unordered_set<NextHopGroupId> groupIdsToReclaim;
+  NextHopGroupIds groupIdsToReclaim;
   std::for_each(
       overrideGroupsSorted.begin(),
       overrideGroupsSorted.end(),
@@ -1022,6 +1023,7 @@ void EcmpResourceManager::nextHopGroupDeleted(NextHopGroupId groupId) {
 
 bool EcmpResourceManager::pruneFromCandidateMerges(
     const NextHopGroupIds& groupIds) {
+  XLOG(DBG2) << " Pruning from candidate merges: " << groupIds;
   return pruneFromMergeGroupsImpl(groupIds, candidateMergeGroups_);
 }
 
@@ -1409,17 +1411,19 @@ void EcmpResourceManager::computeCandidateMerges(
             mergedGroupsAndPenalty.first.end());
       });
   for (auto grpId : groupIds) {
-    if (alreadyMergedGroups.contains(grpId)) {
-      continue;
-    }
+    CHECK(!alreadyMergedGroups.contains(grpId))
+        << "Computing candidate merges for : " << grpId
+        << " for already merged group";
     for (const auto& [grpToMergeWith, _] : nextHopGroupIdToInfo_) {
-      if (grpToMergeWith == grpId) {
+      if (alreadyMergedGroups.contains(grpToMergeWith) ||
+          grpToMergeWith == grpId) {
         continue;
       }
       NextHopGroupIds candidateMerge{grpId, grpToMergeWith};
       auto consolidationInfo = computeConsolidationInfo(candidateMerge);
       candidateMergeGroups_.insert(
           {candidateMerge, std::move(consolidationInfo)});
+      XLOG(DBG3) << " Added candidate merge group:" << candidateMerge;
     }
     for (const auto& [grpsToMergeWith, _] : mergedGroups_) {
       DCHECK(!grpsToMergeWith.contains(grpId));

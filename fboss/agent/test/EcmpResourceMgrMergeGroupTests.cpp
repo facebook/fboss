@@ -76,6 +76,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   // Route delta + reclaim delta
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(newState, overflowPrefixes);
+  assertGroupsAreMerged(optimalMergeSet);
   assertCost(optimalMergeSet);
 }
 
