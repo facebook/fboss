@@ -78,22 +78,14 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
   auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 2);
-  // Update a route pointing to new nhops. ECMP limit is breached during
+  // Add a route pointing to new nhops. ECMP limit is breached during
   // update due to make before break. Then the reclaim step notices
   // a freed up primary ECMP group and reclaims it back. So in the
   // end no prefixes have back up ecmp group override set.
-  auto nhopSets = nextNhopSets();
-  auto oldState = state_;
-  auto newState = oldState->clone();
-  auto fib6 = fib(newState);
-  auto newRoute = makeRoute(nextPrefix(), *nhopSets.begin())->clone();
-  newRoute->setResolved(
-      RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
-  fib6->addNode(newRoute);
-  auto deltas = consolidate(newState);
+  auto deltas = addNextRoute();
   // Route delta + reclaim delta
   EXPECT_EQ(deltas.size(), 2);
-  assertEndState(newState, overflowPrefixes);
+  assertEndState(sw_->getState(), overflowPrefixes);
   assertGroupsAreMerged(optimalMergeSet);
   assertCost(optimalMergeSet);
 }
@@ -108,21 +100,10 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
           *optimalMergeSet.begin());
   auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 2);
-  // Update a route pointing to new nhops. ECMP limit is breached during
-  // update due to make before break. Then the reclaim step notices
-  // a freed up primary ECMP group and reclaims it back. So in the
-  // end no prefixes have back up ecmp group override set.
-  auto nhopSets = nextNhopSets();
-  auto oldState = state_;
-  auto newState = oldState->clone();
-  auto fib6 = fib(newState);
-  auto newRoute = makeRoute(nextPrefix(), *nhopSets.begin())->clone();
-  newRoute->setResolved(
-      RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
-  fib6->addNode(newRoute);
-  consolidate(newState);
+  auto newPrefix = nextPrefix();
+  addNextRoute();
   assertGroupsAreMerged(optimalMergeSet);
-  auto deltas = rmRoute(newRoute->prefix());
+  auto deltas = rmRoute(newPrefix);
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(sw_->getState(), {});
   assertGroupsAreUnMerged(optimalMergeSet);

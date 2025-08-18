@@ -100,6 +100,19 @@ void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
   }
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
 }
+
+std::vector<StateDelta> BaseEcmpResourceMgrMergeGroupsTest::addNextRoute() {
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto newRoute = makeRoute(nextPrefix(), *nhopSets.begin())->clone();
+  newRoute->setResolved(
+      RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
+  fib6->addNode(newRoute);
+  return consolidate(newState);
+}
+
 TEST_F(BaseEcmpResourceMgrMergeGroupsTest, init) {}
 
 TEST_F(BaseEcmpResourceMgrMergeGroupsTest, reloadInvalidConfigs) {
