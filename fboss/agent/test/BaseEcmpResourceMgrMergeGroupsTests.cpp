@@ -26,12 +26,15 @@ BaseEcmpResourceMgrMergeGroupsTest::defaultNhopSets() const {
 
 std::vector<RouteNextHopSet> BaseEcmpResourceMgrMergeGroupsTest::nextNhopSets(
     int numSets) const {
-  auto nhopsStart = defaultNhopSets().back();
+  auto nhopsCur = defaultNhopSets().back();
   std::vector<RouteNextHopSet> nhopsTo;
-  for (auto i = 0; i < numSets; ++i) {
-    nhopsStart.erase(nhopsStart.begin());
-    CHECK_GT(nhopsStart.size(), 1);
-    nhopsTo.push_back(nhopsStart);
+  auto allNhops = sw_->getEcmpResourceManager()->getNhopsToId();
+  while (nhopsTo.size() < numSets) {
+    CHECK_GT(nhopsCur.size(), 2);
+    nhopsCur.erase(nhopsCur.begin());
+    if (!allNhops.contains(nhopsCur)) {
+      nhopsTo.push_back(nhopsCur);
+    }
   }
   return nhopsTo;
 }
@@ -102,7 +105,7 @@ void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
 }
 
 std::vector<StateDelta> BaseEcmpResourceMgrMergeGroupsTest::addNextRoute() {
-  auto nhopSets = nextNhopSets();
+  auto nhopSets = nextNhopSets(1);
   auto oldState = state_;
   auto newState = oldState->clone();
   auto fib6 = fib(newState);

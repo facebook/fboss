@@ -112,4 +112,41 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
           *optimalMergeSet.begin());
   EXPECT_EQ(beforeConsolidationInfo, afterConsolidationInfo);
 }
+
+TEST_F(EcmpResourceMgrMergeGroupTest, reclaimPrioritizesGroupsWithHigherCost) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          *optimalMergeSet.begin());
+  auto deltas = addNextRoute();
+  EXPECT_EQ(deltas.size(), 2);
+  assertGroupsAreMerged(optimalMergeSet);
+  auto nextOptimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto nextOverflowPrefixes = getPrefixesForGroups(nextOptimalMergeSet);
+  EXPECT_EQ(nextOverflowPrefixes.size(), 2);
+  deltas = addNextRoute();
+  EXPECT_EQ(deltas.size(), 2);
+  assertGroupsAreMerged(optimalMergeSet);
+  assertGroupsAreMerged(nextOptimalMergeSet);
+  // Remove one route to make space for reclaiming one of the
+  // merged groups
+  deltas = rmRoute(*getPrefixesWithoutOverrides().begin());
+  EXPECT_EQ(deltas.size(), 2);
+  // Assert that highest cost - nextOptimalMergeSet gets reclaimed,
+  // while the optimalMergeSet remains merged. That is, merge
+  // is done in order of lowest to highest cost, while reclaim is
+  // done in the reverse order.
+  assertGroupsAreMerged(optimalMergeSet);
+  assertGroupsAreUnMerged(nextOptimalMergeSet);
+  // Remove one more prefix and assert that all merged groups are
+  // reclaimed
+  deltas = rmRoute(*getPrefixesWithoutOverrides().begin());
+  EXPECT_EQ(deltas.size(), 2);
+  assertGroupsAreUnMerged(optimalMergeSet);
+}
 } // namespace facebook::fboss
