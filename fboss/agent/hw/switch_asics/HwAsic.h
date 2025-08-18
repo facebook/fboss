@@ -226,6 +226,9 @@ class HwAsic {
     BULK_CREATE_ECMP_MEMBER,
     TECH_SUPPORT,
     DRAM_QUARANTINED_BUFFER_STATS,
+    MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA,
+    SAI_PORT_PG_DROP_STATUS,
+    FABRIC_INTER_CELL_JITTER_WATERMARK,
   };
 
   enum class AsicMode {
@@ -273,6 +276,11 @@ class HwAsic {
   virtual int getDefaultNumPortQueues(
       cfg::StreamType streamType,
       cfg::PortType portType) const = 0;
+  virtual int getBasePortQueueId(
+      cfg::StreamType streamType,
+      cfg::PortType portType) const {
+    return 0;
+  }
   virtual uint32_t getMaxLabelStackDepth() const = 0;
   virtual uint64_t getMMUSizeBytes() const = 0;
   virtual uint32_t getMaxMirrors() const = 0;

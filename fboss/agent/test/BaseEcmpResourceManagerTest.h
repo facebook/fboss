@@ -100,7 +100,21 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   void updateRoute(const RoutePrefixV6& prefix6, const RouteNextHopSet& nhops) {
     addOrUpdateRoute(prefix6, nhops);
   }
-  void rmRoute(const RoutePrefixV6& prefix6);
+  std::vector<StateDelta> rmRoute(const RoutePrefixV6& prefix6);
+
+  void assertTargetState(
+      const std::shared_ptr<SwitchState>& targetState,
+      const std::shared_ptr<SwitchState>& endStatePrefixes,
+      const std::set<RouteV6::Prefix>& overflowPrefixes,
+      const EcmpResourceManager* consolidatorToCheck = nullptr,
+      bool checkStats = true);
+  void assertEndState(
+      const std::shared_ptr<SwitchState>& endStatePrefixes,
+      const std::set<RouteV6::Prefix>& overflowPrefixes) {
+    assertTargetState(state_, endStatePrefixes, overflowPrefixes);
+  }
+  std::set<RouteV6::Prefix> getPrefixesForGroups(
+      const EcmpResourceManager::NextHopGroupIds& grpIds) const;
 
  private:
   void addOrUpdateRoute(

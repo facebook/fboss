@@ -114,6 +114,21 @@ void Bsp::kickWatchdog() {
   if (!writeToWatchdog(valueStr)) {
     XLOG(ERR) << "Failed to kick watchdog";
   }
+  XLOG_EVERY_MS(INFO, 5000) << "Watchdog has been kicked";
+}
+
+void Bsp::closeWatchdog() {
+  if (!watchdogFd_.has_value()) {
+    return;
+  }
+  std::cout << "Closing watchdog" << std::endl;
+  try {
+    writeToWatchdog("V");
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Error magic closing watchdog: " << e.what();
+  }
+  close(watchdogFd_.value());
+  watchdogFd_.reset();
 }
 
 bool Bsp::writeToWatchdog(const std::string& value) {
@@ -122,24 +137,23 @@ bool Bsp::writeToWatchdog(const std::string& value) {
     return false;
   }
   auto sysfsPath = config_.watchdog()->sysfsPath()->c_str();
-  int fd = open(sysfsPath, O_WRONLY);
-  if (fd < 0) {
-    XLOG(ERR) << "Failed to open watchdog";
-    return false;
+  if (!watchdogFd_.has_value()) {
+    int fd = open(sysfsPath, O_WRONLY);
+    if (fd < 0) {
+      XLOG(ERR) << fmt::format("Failed to open watchdog file: {}", sysfsPath);
+      return false;
+    }
+    watchdogFd_ = fd;
+    XLOG(INFO) << fmt::format(
+        "Opened watchdog file: {} ({})", sysfsPath, watchdogFd_.value());
   }
   bool res = false;
   try {
-    res = writeFd(fd, value);
+    res = writeFd(watchdogFd_.value(), value);
   } catch (std::exception& e) {
     XLOG(ERR) << "Could not write to watchdog: " << e.what();
     res = false;
   }
-  try {
-    writeFd(fd, "V");
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Failed to magic close watchdog: " << e.what();
-  }
-  close(fd);
   return res;
 }
 
@@ -411,6 +425,7 @@ bool Bsp::setFanLedSysfs(const std::string& path, int val) {
 Bsp::~Bsp() {
   fsdbSensorSubscriber_.reset();
   fsdbPubSubMgr_.reset();
+  closeWatchdog();
 }
 
 } // namespace facebook::fboss::platform::fan_service

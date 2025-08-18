@@ -21,7 +21,12 @@ namespace facebook::fboss {
 
 class RibRouteWeightNormalizer {
  public:
-  RibRouteWeightNormalizer(int numRacks, int numPlanePathsPerRack, int rackId);
+  RibRouteWeightNormalizer(
+      int numRacks,
+      int numPlanePathsPerRack,
+      int rackId,
+      int numSpineFailuresToSkip,
+      int spinePruneStepCount);
   virtual ~RibRouteWeightNormalizer() = default;
   int getNumPathsToPrune(int numFailures, RackId dstRack, RackId srcRack);
   RouteNextHopSet getNormalizedNexthops(RouteNextHopSet& nhop);
@@ -33,6 +38,8 @@ class RibRouteWeightNormalizer {
   int numRacks_;
   int numPlanePathsPerRack_;
   int rackId_;
+  int numSpineFailuresToSkip_;
+  int spinePruneStepCount_;
   /* num failures to number of paths to be pruned for dest, src rack id */
   std::vector<std::vector<std::vector<int>>> pruneLookupTable_;
 };

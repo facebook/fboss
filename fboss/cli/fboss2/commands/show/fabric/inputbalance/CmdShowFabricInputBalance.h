@@ -109,12 +109,13 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
       std::vector<utility::InputBalanceResult> inputBalanceResult;
       auto nameToDsfNode = utility::switchNameToDsfNode(dsfNodeMap);
+
+      // TODO(zecheng): Handle dst switches in different clusters.
+      auto dstClusterID = *nameToDsfNode.at(dstSwitchName.at(0)).clusterId();
       if (dsfNode.fabricLevel() == 2) {
         // Dual stage SDSW
         auto clusterIDToFabricDevices =
             utility::groupFabricDevicesByCluster(nameToDsfNode);
-        // TODO(zecheng): Handle dst switches in different clusters.
-        auto dstClusterID = *nameToDsfNode.at(dstSwitchName.at(0)).clusterId();
 
         for (const auto& [clusterID, fabricDevices] :
              clusterIDToFabricDevices) {
@@ -135,23 +136,43 @@ class CmdShowFabricInputBalance : public CmdHandler<
           }
         }
       } else {
-        // Dual stage FDSW - for now only check inter-zone destination.
+        // Dual stage FDSW
         auto localClusterID = dsfNodeMap.at(switchID).clusterId();
         CHECK(localClusterID.has_value());
+
         auto localRDSW = utility::getInterfaceDevicesInCluster(
             nameToDsfNode, localClusterID.value());
         auto neighborReachability =
             getNeighborReachability(localRDSW, neighborToPorts, dstSwitchName);
 
-        return createModel(utility::checkInputBalanceDualStage(
-            utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTER,
-            dstSwitchName,
-            neighborReachability,
-            selfReachability,
-            neighborToLinkFailure,
-            portToVirtualDevice,
-            nameToDsfNode,
-            true /* verbose */));
+        if (localClusterID.value() != dstClusterID) {
+          // Inter-zone destination
+          return createModel(utility::checkInputBalanceDualStage(
+              utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTER,
+              dstSwitchName,
+              neighborReachability,
+              selfReachability,
+              neighborToLinkFailure,
+              portToVirtualDevice,
+              nameToDsfNode,
+              true /* verbose */));
+        } else {
+          // Intra-zone destination - need to filter out output reachability
+          // towards SDSW
+
+          selfReachability = utility::filterReachabilityByDst(
+              dstSwitchName, selfReachability, neighborToPorts);
+
+          return createModel(utility::checkInputBalanceDualStage(
+              utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTRA,
+              dstSwitchName,
+              neighborReachability,
+              selfReachability,
+              neighborToLinkFailure,
+              portToVirtualDevice,
+              nameToDsfNode,
+              true /* verbose */));
+        }
       }
 
       return createModel(inputBalanceResult);

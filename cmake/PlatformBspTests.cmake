@@ -5,10 +5,6 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
-  DEPENDS
-    fbiob_device_config_cpp2
-    platform_manager_config_cpp2
-
 )
 
 add_fbthrift_cpp_library(
@@ -19,16 +15,33 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_fbthrift_cpp_library(
+  bsp_tests_runtime_config_cpp2
+  fboss/platform/bsp_tests/bsp_tests_runtime_config.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fbiob_device_config_cpp2
+    platform_manager_config_cpp2
+    bsp_tests_config_cpp2
+)
+
+
 add_library(bsp_test_utils
   fboss/platform/bsp_tests/cpp/utils/CdevUtils.cpp
+  fboss/platform/bsp_tests/cpp/utils/GpioUtils.cpp
+  fboss/platform/bsp_tests/cpp/utils/HwmonUtils.cpp
   fboss/platform/bsp_tests/cpp/utils/KmodUtils.cpp
   fboss/platform/bsp_tests/cpp/utils/I2CUtils.cpp
+  fboss/platform/bsp_tests/cpp/utils/WatchdogUtils.cpp
 )
 
 target_link_libraries(bsp_test_utils
   fmt::fmt
   ${GTEST}
   bsp_tests_config_cpp2
+  bsp_tests_runtime_config_cpp2
   fbiob_device_config_cpp2
   platform_utils
   platform_manager_pkg_manager
@@ -45,6 +58,7 @@ add_library(bsp_test_environment
 target_link_libraries(bsp_test_environment
   ${GTEST}
   bsp_tests_config_cpp2
+  bsp_tests_runtime_config_cpp2
   platform_config_lib
   platform_manager_config_utils
   platform_manager_pkg_manager
@@ -57,8 +71,12 @@ add_executable(bsp_tests
   fboss/platform/bsp_tests/cpp/BspTest.cpp
   fboss/platform/bsp_tests/cpp/BspTestRunner.cpp
   fboss/platform/bsp_tests/cpp/CdevTests.cpp
+  fboss/platform/bsp_tests/cpp/GpioTests.cpp
   fboss/platform/bsp_tests/cpp/KmodTests.cpp
   fboss/platform/bsp_tests/cpp/I2CTests.cpp
+  fboss/platform/bsp_tests/cpp/LedTests.cpp
+  fboss/platform/bsp_tests/cpp/WatchdogTests.cpp
+  fboss/platform/bsp_tests/cpp/XcvrTests.cpp
 )
 
 target_link_libraries(bsp_tests

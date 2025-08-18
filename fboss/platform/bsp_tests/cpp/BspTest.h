@@ -30,6 +30,8 @@ class BspTest : public ::testing::Test {
     KmodUtils::unloadKmods(*env_->getRuntimeConfig().kmods());
   }
 
+  std::tuple<I2CAdapter, I2CDevice> getI2cAdapterAndDevice(std::string pmName);
+
  protected:
   static void SetUpTestSuite() {
     env_ = BspTestEnvironment::GetInstance();
@@ -51,15 +53,7 @@ class BspTest : public ::testing::Test {
   std::vector<DeviceToCleanup> devicesToCleanup_;
 
   void TearDown() override {
-    // Clean up all created devices
-    for (const auto& device : devicesToCleanup_) {
-      try {
-        CdevUtils::deleteDevice(device.pciDevice, device.auxDevice, device.id);
-      } catch (const std::exception& e) {
-        XLOG(ERR) << "Failed to delete device during cleanup: " << e.what();
-      }
-    }
-    devicesToCleanup_.clear();
+    cleanupDevices();
   }
 
   // Helper to register a device for cleanup
@@ -68,6 +62,26 @@ class BspTest : public ::testing::Test {
       const fbiob::AuxData& auxDevice,
       const int id) {
     devicesToCleanup_.push_back({pciDevice, auxDevice, id});
+  }
+
+  void registerAdapterForCleanup(const I2CAdapter& adapter, int id) {
+    if (adapter.pciAdapterInfo().has_value()) {
+      registerDeviceForCleanup(
+          *adapter.pciAdapterInfo()->pciInfo(),
+          *adapter.pciAdapterInfo()->auxData(),
+          id);
+    }
+  }
+
+  void cleanupDevices() {
+    for (const auto& device : devicesToCleanup_) {
+      try {
+        CdevUtils::deleteDevice(device.pciDevice, device.auxDevice, device.id);
+      } catch (const std::exception& e) {
+        XLOG(ERR) << "Failed to delete device during cleanup: " << e.what();
+      }
+    }
+    devicesToCleanup_.clear();
   }
 
   const RuntimeConfig& GetRuntimeConfig() const {

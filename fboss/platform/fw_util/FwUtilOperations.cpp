@@ -32,7 +32,9 @@ void FwUtilImpl::doGpiosetOperation(
   std::string gpioChip = getGpioChip(*config.gpioChip());
   // Execute the gpioset command
   std::vector<std::string> gpiosetCmd = {
-      "/usr/bin/gpioset", gpioChip, *config.gpioChipPin() + "=1"};
+      "/usr/bin/gpioset",
+      gpioChip,
+      *config.gpioChipPin() + "=" + *config.gpioChipValue()};
   auto [exitStatus, standardOut] = PlatformUtils().runCommand(gpiosetCmd);
   checkCmdStatus(gpiosetCmd, exitStatus);
 }

@@ -189,7 +189,7 @@ bool verifyQueueMappings(
     uint32_t sleep = 200);
 
 template <typename SwitchT>
-bool verifyQueueMappingsInvariantHelper(
+bool verifyQueueMappingsInvariantEcmpHelper(
     const std::map<int, std::vector<uint8_t>>& q2dscpMap,
     SwitchT* sw,
     std::shared_ptr<SwitchState> swState,
@@ -240,6 +240,67 @@ bool verifyQueueMappingsInvariantHelper(
         ecmpPort,
         sleep);
   }
+  return mappingVerified;
+}
+
+template <typename SwitchT>
+bool verifyQueueMappingsInvariantSinglePortHelper(
+    const std::map<int, std::vector<uint8_t>>& q2dscpMap,
+    SwitchT* sw,
+    std::shared_ptr<SwitchState> swState,
+    const std::function<std::map<PortID, HwPortStats>()>& getAllHwPortStats,
+    const PortID& portId,
+    uint32_t sleep = 20) {
+  auto portStatsBefore = getAllHwPortStats();
+  // Get the port from the state
+  auto port = swState->getPorts()->getNodeIf(portId);
+  if (!port) {
+    throw FbossError("Port not found: ", portId);
+  }
+
+  // Get the interface for this port
+  auto intfID = port->getInterfaceID();
+  auto intf = swState->getInterfaces()->getNodeIf(intfID);
+
+  if (!intf) {
+    throw FbossError("Interface not found for port: ", portId);
+  }
+
+  std::optional<VlanID> vlanId = utility::getSwitchVlanIDForTx(sw, intf);
+  auto intfMac = intf->getMac();
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+
+  for (const auto& q2dscps : q2dscpMap) {
+    for (auto dscp : q2dscps.second) {
+      auto pkt = makeTCPTxPacket(
+          sw,
+          vlanId,
+          srcMac,
+          intfMac,
+          folly::IPAddressV6("1::10"),
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+          8000,
+          8001,
+          dscp << 2);
+      if constexpr (std::is_same_v<SwitchT, HwSwitch>) {
+        sw->sendPacketOutOfPortAsync(std::move(pkt), portId);
+      } else {
+        sw->sendPacketOutOfPortAsync(std::move(pkt), portId);
+      }
+    }
+  }
+
+  // For devices with no uplink ports, we're only checking using a single
+  // downlink port
+  bool mappingVerified = false;
+  XLOG(DBG2) << "Verifying mapping for port: " << static_cast<int>(portId);
+
+  // Check if this port ID exists in the map
+  if (portStatsBefore.find(portId) != portStatsBefore.end()) {
+    mappingVerified = verifyQueueMappings(
+        portStatsBefore[portId], q2dscpMap, getAllHwPortStats, portId, sleep);
+  }
+
   return mappingVerified;
 }
 

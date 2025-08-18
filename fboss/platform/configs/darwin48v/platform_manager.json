@@ -76,7 +76,8 @@
           "busName": "ROOK_SMBUS2@0",
           "address": "0x50",
           "kernelDeviceName": "24c16",
-          "pmUnitScopedName": "CHASSIS_EEPROM"
+          "pmUnitScopedName": "CHASSIS_EEPROM",
+          "isEeprom": true
         },
         {
           "busName": "SCD_SMBUS1@0",

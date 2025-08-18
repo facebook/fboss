@@ -17,10 +17,14 @@ namespace facebook::fboss {
 RibRouteWeightNormalizer::RibRouteWeightNormalizer(
     int numRacks,
     int numPlanePathsPerRack,
-    int rackId)
+    int rackId,
+    int numSpineFailuresToSkip,
+    int spinePruneStepCount)
     : numRacks_(numRacks),
       numPlanePathsPerRack_(numPlanePathsPerRack),
       rackId_(rackId),
+      numSpineFailuresToSkip_(numSpineFailuresToSkip),
+      spinePruneStepCount_(spinePruneStepCount),
       pruneLookupTable_(
           numRacks * numPlanePathsPerRack + 1,
           std::vector<std::vector<int>>(
@@ -158,8 +162,15 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
     int numSpineFailures = 0;
     if (topologyInfo.spine_capacity() && *topologyInfo.spine_capacity()) {
       // total spine capaity and rack capacity in pod should be matching
-      numSpineFailures =
-          numRacks_ * numPlanePathsPerRack_ - *topologyInfo.spine_capacity();
+      numSpineFailures = std::max(
+          0,
+          numRacks_ * numPlanePathsPerRack_ - *topologyInfo.spine_capacity() -
+              numSpineFailuresToSkip_);
+      // if numSpineFailures > 0, apply step count logic
+      if (numSpineFailures > 0) {
+        int stepGroup = (numSpineFailures - 1) / spinePruneStepCount_;
+        numSpineFailures = stepGroup * spinePruneStepCount_ + 1;
+      }
     }
     if (numRackFailures || numSpineFailures) {
       hasFailure = true;

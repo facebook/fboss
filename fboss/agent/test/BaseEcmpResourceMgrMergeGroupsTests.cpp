@@ -66,7 +66,8 @@ void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
     auto nhopsGrpId = nhops2Id.find(nhops)->second;
     EXPECT_EQ(expectedGrpId++, nhopsGrpId);
     auto grpIdsToConsolidationInfo =
-        sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsGrpId);
+        sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+            nhopsGrpId);
     for (EcmpResourceManager::NextHopGroupId otherGrpId = 1;
          otherGrpId <= defaultNhopSets().size();
          ++otherGrpId) {

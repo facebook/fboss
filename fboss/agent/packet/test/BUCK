@@ -70,3 +70,16 @@ cpp_unittest(
         "//folly/io:iobuf",
     ],
 )
+
+cpp_unittest(
+    name = "sflow_packet_test",
+    srcs = [
+        "SflowPacketTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/packet:sflow_structs",
+        "//folly:network_address",
+    ],
+)

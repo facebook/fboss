@@ -481,6 +481,28 @@ void PlatformExplorer::exploreI2cDevices(
                 slotPath, *i2cDeviceConfig.pmUnitScopedName()),
             Utils().resolveWatchdogCharDevPath(i2cDevicePath));
       }
+      if (*i2cDeviceConfig.isEeprom()) {
+        auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
+        try {
+          auto eepromPath = i2cDevicePath + "/eeprom";
+          dataStore_.updateEepromContents(
+              Utils().createDevicePath(
+                  slotPath, *i2cDeviceConfig.pmUnitScopedName()),
+              FbossEepromInterface(eepromPath, 0));
+        } catch (const std::exception& e) {
+          auto errMsg = fmt::format(
+              "Could not fetch contents of EEPROM device {} in {}. {}",
+              *i2cDeviceConfig.pmUnitScopedName(),
+              slotPath,
+              e.what());
+          XLOG(ERR) << errMsg;
+          explorationSummary_.addError(
+              ExplorationErrorType::IDPROM_READ,
+              slotPath,
+              *i2cDeviceConfig.pmUnitScopedName(),
+              errMsg);
+        }
+      }
     } catch (const std::exception& ex) {
       auto errMsg = fmt::format(
           "Failed to explore I2C device {} at {}. {}",
@@ -919,9 +941,23 @@ void PlatformExplorer::genHumanReadableEeproms() {
       continue;
     }
     const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-    if (deviceName != "IDPROM") {
+    auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
+    std::optional<I2cDeviceConfig> matchingConfig;
+
+    // Search through i2cDeviceConfigs to find one with matching
+    // pmUnitScopedName
+    for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs()) {
+      if (*i2cDeviceConfig.pmUnitScopedName() == deviceName) {
+        matchingConfig = i2cDeviceConfig;
+        break;
+      }
+    }
+
+    bool isEeprom = matchingConfig && *matchingConfig->isEeprom();
+    if (deviceName != "IDPROM" && !isEeprom) {
       XLOG(WARNING) << fmt::format(
-          "{} is not IDPROM. Skip generating eeprom content.", linkPath);
+          "{} is not IDPROM or EEPROM. Skip generating eeprom content.",
+          linkPath);
       continue;
     }
     writeEepromContent(devicePath, linkPath);

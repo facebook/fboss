@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -53,7 +54,7 @@ void ProdInvariantTest::setupAgentTestEcmp(
       forProdConfig,
       {cfg::PortType::INTERFACE_PORT});
 
-  getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+  getSw()->updateStateBlocking("Resolve v6 nhops", [&](auto state) {
     return ecmp6.resolveNextHops(state, ports);
   });
 
@@ -72,12 +73,13 @@ void ProdInvariantTest::SetUp() {
                                 is_mmu_lossless_mode())
                                 .first;
   for (auto& uplinkPort : ecmpUplinlinkPorts) {
+    if (!getSw()->getState()->getPort(uplinkPort)->isPortUp()) {
+      continue;
+    }
     ecmpPorts_.push_back(PortDescriptor(uplinkPort));
   }
 
-  if (ecmpPorts_.size() >= kEcmpWidth) {
-    setupAgentTestEcmp(ecmpPorts_);
-  }
+  setupAgentTestEcmp(ecmpPorts_);
   XLOG(DBG2) << "ProdInvariantTest setup done";
 }
 
@@ -164,8 +166,9 @@ void ProdInvariantTest::setupConfigFlag() {
 }
 
 void ProdInvariantTest::sendTraffic(int numPackets) {
-  auto mac = utility::getInterfaceMac(
-      getSw()->getState(), getSw()->getState()->getVlans()->getFirstVlanID());
+  auto state = getSw()->getState();
+  auto intfID = utility::firstInterfaceIDWithPorts(state);
+  auto mac = utility::getInterfaceMac(state, intfID);
   std::optional<PortID> portId = std::nullopt;
   int hopLimit = 255;
   utility::pumpTraffic(
@@ -173,7 +176,7 @@ void ProdInvariantTest::sendTraffic(int numPackets) {
       utility::getAllocatePktFn(getSw()),
       utility::getSendPktFunc(getSw()),
       mac,
-      getSw()->getState()->getVlans()->getFirstVlanID(),
+      getAgentEnsemble()->getVlanIDForTx(),
       portId,
       hopLimit,
       numPackets);
@@ -195,6 +198,10 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
   for (auto portDesc : ecmpPorts_) {
     EXPECT_TRUE(portDesc.isPhysicalPort());
     auto portId = portDesc.phyPortID();
+    auto port = getAgentEnsemble()->getSw()->getState()->getPort(portId);
+    if (!port->isUp() || !port->isEnabled()) {
+      continue;
+    }
     ecmpPortIds.emplace_back(portId);
   }
   return ecmpPortIds;
@@ -233,8 +240,8 @@ void ProdInvariantTest::verifyLoadBalancing(int numPackets) {
         return ensemble->getLatestPortStats(portIds);
       };
   utility::pumpTrafficAndVerifyLoadBalanced(
-      [=]() { sendTraffic(numPackets); },
-      [=]() {
+      [=, this]() { sendTraffic(numPackets); },
+      [=, this]() {
         auto ports = std::make_unique<std::vector<int32_t>>();
         auto ecmpPortIds = getEcmpPortIds();
         for (auto ecmpPortId : ecmpPortIds) {
@@ -242,7 +249,7 @@ void ProdInvariantTest::verifyLoadBalancing(int numPackets) {
         }
         ensemble->clearPortStats(ports);
       },
-      [=]() {
+      [=, this]() {
         return utility::isLoadBalanced(
             ecmpPorts_,
             std::vector<NextHopWeight>(ecmpPorts_.size(), 1),
@@ -284,15 +291,27 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   auto q2dscpMap = utility::getOlympicQosMaps(config);
   // To account for switches that take longer to update port stats, bump sleep
   // time to 100ms.
-  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
-      q2dscpMap,
-      getSw(),
-      getSw()->getState(),
-      getPortStatsFn,
-      getEcmpPortIds(),
-      100 /* sleep in ms */));
-  XLOG(DBG2) << "Verify DSCP to Queue Mapping Done";
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  if (ecmpPorts_.size() == 0) {
+    EXPECT_TRUE(utility::verifyQueueMappingsInvariantSinglePortHelper(
+        q2dscpMap,
+        getSw(),
+        getSw()->getState(),
+        getPortStatsFn,
+        getDownlinkPort(),
+        100 /* sleep in ms */));
+    XLOG(DBG2) << "Verify DSCP to Queue Mapping Done for single port";
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  } else {
+    EXPECT_TRUE(utility::verifyQueueMappingsInvariantEcmpHelper(
+        q2dscpMap,
+        getSw(),
+        getSw()->getState(),
+        getPortStatsFn,
+        getEcmpPortIds(),
+        100 /* sleep in ms */));
+    XLOG(DBG2) << "Verify DSCP to Queue Mapping Done";
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
 }
 
 void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
@@ -449,6 +468,9 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
             getSw()->getPlatformType(), getSw()->getConfig(), kEcmpWidth, false)
             .first;
     for (auto& uplinkPort : ecmpUplinlinkPorts) {
+      if (!getSw()->getState()->getPort(uplinkPort)->isPortUp()) {
+        continue;
+      }
       ecmpPorts_.push_back(PortDescriptor(uplinkPort));
     }
     setupRSWMhnicEcmpV4(ecmpPorts_);
@@ -498,7 +520,7 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
       ports.insert(ecmpPort);
     });
 
-    getSw()->updateStateBlocking("Resolve nhops", [&](auto state) {
+    getSw()->updateStateBlocking("Resolve v4 nhops", [&](auto state) {
       utility::EcmpSetupTargetedPorts4 ecmp4(
           state, getSw()->needL2EntryForNeighbor());
       return ecmp4.resolveNextHops(state, ports);
@@ -581,15 +603,20 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
         utility::kUdfAclRoceOpcodeName,
         utility::kUdfAclRoceOpcodeStats);
 
+    auto config = getSw()->getConfig();
     // verify flowlet ACL to enable DLB
     sendAndVerifyRoCETraffic(
         utility::kUdfRoceOpcodeWriteImmediate,
         "flowlet-selective-enable",
-        "flowlet-selective-stats");
+        utility::isSaiConfig(config) ? "flowlet-selective-enable"
+                                     : "flowlet-selective-stats");
 
     // 12 is a random opcode not ack or write-imm. This ACL will go away once
     // all RTSWs transition to spray
-    sendAndVerifyRoCETraffic(12, "flowlet-enable", "flowlet-stats");
+    sendAndVerifyRoCETraffic(
+        12,
+        "flowlet-enable",
+        utility::isSaiConfig(config) ? "flowlet-enable" : "flowlet-stats");
 
     ASSERT_TRUE(flowletAclsFound_ > 0);
   }
@@ -745,6 +772,9 @@ class ProdInvariantStswTest : public ProdInvariantRtswTest {
                                  is_mmu_lossless_mode())
                                  .second;
     for (auto& downlinkPort : ecmpDownlinkPorts) {
+      if (!getSw()->getState()->getPort(downlinkPort)->isPortUp()) {
+        continue;
+      }
       ecmpPorts_.emplace_back(downlinkPort);
     }
     setupAgentTestEcmp(ecmpPorts_);

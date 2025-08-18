@@ -42,7 +42,8 @@
         73,
         74,
         82,
-        83
+        83,
+        87
     ],
     "ebro": [
         2,
@@ -231,7 +232,8 @@
         80,
         81,
         82,
-        86
+        86,
+        87
     ],
     "tomahawk4": [
         2,
@@ -290,7 +292,8 @@
         82,
         78,
         85,
-        86
+        86,
+        87
     ],
     "tomahawk5": [
         2,
@@ -346,7 +349,8 @@
         81,
         82,
         84,
-        86
+        86,
+        87
     ],
     "yuba": [
         2,
@@ -438,7 +442,8 @@
         "ERSPANv4_SAMPLING",
         "ERSPANv6_SAMPLING",
         "ARS_SPRAY",
-        "ROUTER_INTERFACE_COUNTERS"
+        "ROUTER_INTERFACE_COUNTERS",
+        "UDF_HASH"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -627,7 +632,8 @@
         "PFC_WATCHDOG_GRANULARITY",
         "ARS_FLOWLET",
         "ARS_SPRAY",
-        "CLASS_ID_FOR_NEIGHBOR"
+        "CLASS_ID_FOR_NEIGHBOR",
+        "UDF_HASH"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -686,7 +692,8 @@
         "ARS_SPRAY",
         "ECMP_RANDOM_SPRAY",
         "HIGH_FREQUENCY_CPU_POLLING_STATS",
-        "CLASS_ID_FOR_NEIGHBOR"
+        "CLASS_ID_FOR_NEIGHBOR",
+        "UDF_HASH"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
@@ -742,7 +749,8 @@
         "ARS_FLOWLET",
         "ARS_SPRAY",
         "STATIC_PG_SHARED_LIMIT",
-        "CLASS_ID_FOR_NEIGHBOR"
+        "CLASS_ID_FOR_NEIGHBOR",
+        "UDF_HASH"
     ],
     "yuba": [
         "CPU_RX_TX",

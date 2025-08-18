@@ -359,13 +359,18 @@ void SaiQueueManager::changeQueue(
       // or configs on CPU queues for such platforms, need to provide an
       // option to use a dedicated CPU queue config with buffer pool
       // specified explicitly as the reserved buffer pool.
-    } else if (
-        !swPort || (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT)) {
-      // Unsupported for MANAGEMENT_PORT
+    } else if (!swPort) {
+      changeQueueBufferProfile(queueHandle, newPortQueue, *portType);
+    } else if (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT) {
       changeQueueBufferProfile(
-          queueHandle,
-          newPortQueue,
-          swPort ? swPort->getPortType() : *portType);
+          queueHandle, newPortQueue, swPort->getPortType());
+    } else if (platform_->getAsic()->isSupported(
+                   HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA)) {
+      // TODO(maxgg): Call changeQueueBufferProfile after next push.
+      XLOG(DBG2) << "Cleaning up buffer profiles on queue "
+                 << queueHandle->queue->adapterKey();
+      queueHandle->queue->setOptionalAttribute(
+          SaiQueueTraits::Attributes::BufferProfileId(SAI_NULL_OBJECT_ID));
     }
   }
   if (queueType == SAI_QUEUE_TYPE_UNICAST) {

@@ -429,4 +429,13 @@ bool I2CUtils::createI2CDevice(const I2CDevice& device, int bus) {
   }
 }
 
+std::string I2CUtils::getI2CDir(int busNum, const std::string& address) {
+  // Get the address suffix (remove "0x" prefix and pad with zeros)
+  std::string addrSuffix = address.substr(2);
+  while (addrSuffix.length() < 4) {
+    addrSuffix = fmt::format("0{}", addrSuffix);
+  }
+  return fmt::format("/sys/bus/i2c/devices/{}-{}/", busNum, addrSuffix);
+}
+
 } // namespace facebook::fboss::platform::bsp_tests::cpp

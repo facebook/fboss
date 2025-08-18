@@ -30,7 +30,7 @@ RUN apt install -y gperf libcap-dev libmount-dev
 RUN apt install -y icu-devtools libicu-dev libicu72
 # The following libraries are needed for building Broadcom SDK
 RUN apt install -y doxygen graphviz aspell bc libyaml-dev libyaml-libyaml-perl libmoose-perl libclone-perl \
-    libdata-compare-perl liblist-moreutils-perl libnamespace-autoclean-perl libyaml-perl libjson-xs-perl
+    libdata-compare-perl liblist-moreutils-perl libnamespace-autoclean-perl libyaml-perl libjson-xs-perl xxd
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN pip install pyyaml filelock
 # ============================================================

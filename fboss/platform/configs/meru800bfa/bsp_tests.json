@@ -60,7 +60,7 @@
         "i2cSetData": []
       }
     },
-    "SMB.SMB_OASIS_CPLD0": {
+    "SMB.FAN0_CPLD": {
       "i2cTestData": {
         "i2cDumpData": [],
         "i2cGetData": [],
@@ -81,30 +81,11 @@
       "watchdogTestData": {
         "numWatchdogs": 1
       },
-      "ledTestData": [
-        {
-          "expectedColors": [],
-          "ledType": "fan_led",
-          "ledId": 1
-        },
-        {
-          "expectedColors": [],
-          "ledType": "fan_led",
-          "ledId": 2
-        },
-        {
-          "expectedColors": [],
-          "ledType": "fan_led",
-          "ledId": 3
-        },
-        {
-          "expectedColors": [],
-          "ledType": "fan_led",
-          "ledId": 4
-        }
-      ]
+      "ledTestData": {
+        "createsLeds": true
+      }
     },
-    "SMB.SMB_OASIS_CPLD1": {
+    "SMB.FAN1_CPLD": {
       "i2cTestData": {
         "i2cDumpData": [],
         "i2cGetData": [],
@@ -121,9 +102,15 @@
           "fan2",
           "fan3"
         ]
+      },
+      "ledTestData": {
+        "createsLeds": true
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
       }
     },
-    "SMB.SMB_OASIS_CPLD2": {
+    "SMB.FAN2_CPLD": {
       "i2cTestData": {
         "i2cDumpData": [],
         "i2cGetData": [],
@@ -140,65 +127,13 @@
           "fan2",
           "fan3"
         ]
+      },
+      "ledTestData": {
+        "createsLeds": true
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
       }
-    },
-    "SMB.OSFP_PORT1_LED1": {
-      "ledTestData": [
-        {
-          "expectedColors": [
-            "blue",
-            "yellow"
-          ]
-        }
-      ]
-    },
-    "SMB.SMB_FAN_LED": {
-      "ledTestData": [
-        {
-          "expectedColors": [
-            "red",
-            "green",
-            "blue",
-            "yellow"
-          ]
-        }
-      ]
-    },
-    "SMB.SMB_PSU_LED": {
-      "ledTestData": [
-        {
-          "expectedColors": [
-            "red",
-            "green",
-            "blue",
-            "yellow"
-          ]
-        }
-      ]
-    },
-    "SMB.SMB_SYS_LED": {
-      "ledTestData": [
-        {
-          "expectedColors": [
-            "red",
-            "green",
-            "blue",
-            "yellow"
-          ]
-        }
-      ]
-    },
-    "SMB.SMB_SMB_LED": {
-      "ledTestData": [
-        {
-          "expectedColors": [
-            "red",
-            "green",
-            "blue",
-            "yellow"
-          ]
-        }
-      ]
     }
   }
 }

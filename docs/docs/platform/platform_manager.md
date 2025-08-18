@@ -57,6 +57,9 @@ files, and the same generic software should run on all platforms going forward.
 
 - Configuration: Vendor will provide the platform specific configuration
   according to the specification in fboss repository.
+    - **Note:** The [specification](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/platform_manager_config.thrift)
+    contains more thorough descriptions of PlatformManager terminology along
+    with implementation details.
 - Handoff: Vendor will run PlatformManager as part of the handoff. The running
   and testing instructions will be provided in fboss repository.
 - PCI Device IDs: All PCI devices (e.g., FPGA) should have unique Vendor ID and

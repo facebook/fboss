@@ -142,6 +142,7 @@ cpp_library(
     ],
     headers = ["NetworkAITestUtils.h"],
     exported_deps = [
+        ":config_utils",
         ":queue_test_utils",
         ":traffic_policy_utils",
         ":voq_test_utils",

@@ -225,6 +225,9 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
+    case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
+    case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
+    case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
       return false;
   }
   return false;
@@ -456,6 +459,11 @@ ChenabAsic::desiredLoopbackModes() const {
 
 uint32_t ChenabAsic::getThresholdGranularity() const {
   return getPacketBufferUnitSize() * 64;
+}
+
+std::vector<prbs::PrbsPolynomial> ChenabAsic::getSupportedPrbsPolynomials()
+    const {
+  return {prbs::PrbsPolynomial::PRBS13};
 }
 
 } // namespace facebook::fboss

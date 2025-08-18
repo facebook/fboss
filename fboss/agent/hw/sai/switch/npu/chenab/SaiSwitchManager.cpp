@@ -37,4 +37,9 @@ void fillHwSwitchPipelineStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void fillHwSwitchSaiExtensionDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& /* dropStats */) {
+  CHECK_EQ(counterId2Value.size(), 0);
+}
 } // namespace facebook::fboss

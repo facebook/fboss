@@ -13,7 +13,7 @@ oncall: fboss_oss
 ---
 
 ## Requirements
- - FBOSS OSS binaries built per the instructions in Building FBOSS OSS on Docker Containers
+ - FBOSS OSS binaries built per the instructions in the [build guide](/docs/build/building_fboss_on_docker_containers/)
  - HW switch running CentOS 9
  - ASIC vendor SDK kmods built as per the instructions from ASIC vendor and installed on the HW switch
 
@@ -24,76 +24,20 @@ Things like binaries, dependencies, config files, helper scripts, and more will 
 
 It can also be compressed to create a tarball for ease of use.
 
-On the container used for building FBOSS:
-
-```
-# Navigate to the fboss repository
-cd /var/FBOSS/fboss
-
-# Creates a package directory with prefix /var/FBOSS/tmp_bld_dir/fboss_bins
-./fboss/oss/scripts/package-fboss.py --copy-root-libs --scratch-path /var/FBOSS/tmp_bld_dir/
-
-# Creates a tarball called "fboss_bins.tar.zst" under /var/FBOSS/tmp_bld_dir/
-./fboss/oss/scripts/package-fboss.py --copy-root-libs --scratch-path /var/FBOSS/tmp_bld_dir/ --compress
+```bash file=./static/code_snips/package_fboss.sh
 ```
 
 This package directory or tarball can now be copied over to the test switch for exercising FBOSS and associated tests.
 
 ## Copy the Directory or Tarball to the Switch
 
-From the host that the container is running on, use the appropriate command to copy the FBOSS package directory or tarball
-to the switch:
-
-```
-# Copy the directory
-scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins-<$pkg-id> root@<$switchName>:/opt/
-
-# Copy the tarball
-scp /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins.tar.zst root@<$switchName>:/opt/
-```
-
-Then set up the package on the switch:
-
-```
-cd /opt
-
-# If using directory
-ln -s /opt/fboss_bins-<$pkg-id> /opt/fboss
-
-# If using tarball
-mkdir fboss && mv fboss_bins.tar.zst fboss/
-cd fboss && tar -xvf fboss_bins.tar.zst
+```bash file=./static/code_snips/copy_and_set_up_package.sh
 ```
 
 ## Check Dependencies
 
-Set up FBOSS environment variables:
-
+```bash file=./static/code_snips/check_dependencies.sh
 ```
-cd /opt/fboss
-source ./bin/setup_fboss_env
-```
-
-Verify that all runtime dependencies are satisified for the test binary including the libraries installed in /opt/fboss:
-
-```
-ldd /opt/fboss/bin/<$binaryName>
-
-# Ensure you dont see any 'not found'. Example:
-$ ldd /opt/fboss/bin/sai_test-fake
-        ...
-        # Good
-        libcurl.so.4 => /lib64/libcurl.so.4 (0x00007f3f26d39000)
-        libyaml-0.so.2 => /opt/fboss/lib/libyaml-0.so.2 (0x00007f3f26d18000)
-        ...
-        # Bad
-        libre2.so.9 => not found
-        libsodium.so.23 => not found
-        ...
-```
-
-If there are any missing libraries, then those need to be installed on the switch using "sudo dnf install ..." if the switch has internet access. Alternatively,
-the missing libraries can be copied from the FBOSS build's scratch path `/opt/app/FBOSS_DIR/tmp_bld_dir/installed/<missing_lib*>/` to switch `/opt/fboss/lib/`.
 
 ## Run FBOSS
 

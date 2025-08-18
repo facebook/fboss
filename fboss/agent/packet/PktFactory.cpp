@@ -802,8 +802,13 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
     uint32_t egressInterface,
     uint32_t samplingRate,
     const std::vector<uint8_t>& payload) {
+  uint32_t payloadSize = payload.size();
+  if (payloadSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
+    payloadSize = (payloadSize / sflow::XDR_BASIC_BLOCK_SIZE + 1) *
+        sflow::XDR_BASIC_BLOCK_SIZE;
+  }
   auto txPacket = allocatePacket(
-      ethHdr.size() + ipHdr.size() + udpHdr.size() + 104 + payload.size());
+      ethHdr.size() + ipHdr.size() + udpHdr.size() + 104 + payloadSize);
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr

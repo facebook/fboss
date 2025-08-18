@@ -329,3 +329,8 @@ DEFINE_bool(
     dsf_headroom_pool_size_multiplication_factor_fix,
     false,
     "Fix the headroom pool size multiplication factor for DSF");
+
+DEFINE_bool(
+    ignore_asic_hard_reset_notification,
+    false,
+    "Ignore ASIC hard reset notification received from SAI/SDK");

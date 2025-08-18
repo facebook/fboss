@@ -31,6 +31,8 @@ class Tomahawk5Asic : public BroadcomXgsAsic {
   int getDefaultNumPortQueues(
       cfg::StreamType streamType,
       cfg::PortType portType) const override;
+  int getBasePortQueueId(cfg::StreamType streamType, cfg::PortType portType)
+      const override;
   uint32_t getMaxLabelStackDepth() const override {
     return 9;
   }

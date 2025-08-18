@@ -1,5 +1,5 @@
 {
-  "pwmBoostOnNumDeadFan": 2,
+  "pwmBoostOnNumDeadFan": 3,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 0,
   "pwmBoostValue": 70,
@@ -14,93 +14,49 @@
     "sensorReadInterval": 5,
     "pwmUpdateInterval": 5
   },
-  "optics": [
-    {
-      "opticName": "qsfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
-      "portList": [],
-      "aggregationType": "OPTIC_AGGREGATION_TYPE_PID",
-      "pidSettings": {
-        "OPTIC_TYPE_800_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 3.0
-        },
-        "OPTIC_TYPE_400_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 3.0
-        },
-        "OPTIC_TYPE_200_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 3.0
-        },
-        "OPTIC_TYPE_100_GENERIC": {
-          "kp": -4,
-          "ki": -0.06,
-          "kd": 0,
-          "setPoint": 67.0,
-          "posHysteresis": 0.0,
-          "negHysteresis": 3.0
-        }
-      }
-    }
-  ],
   "sensors": [
     {
       "sensorName": "NETLAKE_U1_CPU_UNCORE_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
-        "kp": -4,
-        "ki": -0.06,
+        "kp": 2,
+        "ki": 0.6,
         "kd": 0,
         "setPoint": 97.0,
-        "posHysteresis": 0.0,
-        "negHysteresis": 8.0
-      }
-    },
-    {
-      "sensorName": "SMB_U7_LM75B_TH6_OUTLET",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
-      "pidSetting": {
-        "kp": -8,
-        "ki": -0.06,
-        "kd": 0,
-        "setPoint": 97.0,
-        "posHysteresis": 0.0,
+        "posHysteresis": 3.0,
         "negHysteresis": 3.0
       }
     },
     {
-      "sensorName": "SMB_U8_LM75B_TH6_INLET",
+      "sensorName": "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_PID",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
-        "kp": -8,
-        "ki": -0.06,
+        "kp": 2,
+        "ki": 0.6,
         "kd": 0,
-        "setPoint": 97.0,
-        "posHysteresis": 0.0,
+        "setPoint": 105.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
+      }
+    },
+    {
+      "sensorName": "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 105.0,
+        "posHysteresis": 3.0,
         "negHysteresis": 3.0
       }
     },
@@ -109,30 +65,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -140,30 +80,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -171,30 +95,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -202,30 +110,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -233,30 +125,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -264,30 +140,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -295,30 +155,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -326,30 +170,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -357,30 +185,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -388,30 +200,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -419,30 +215,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -450,30 +230,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -481,30 +245,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -512,30 +260,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -543,30 +275,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -574,30 +290,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -605,30 +305,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -636,30 +320,14 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -667,92 +335,29 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
-      "sensorName": "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
+      "sensorName": "MCB_PU1497_XP3R3V_OSFP_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 116.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
       }
     },
     {
@@ -762,59 +367,28 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
+        "30": 50,
+        "35": 60,
+        "37": 65,
+        "42": 70
       },
       "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
+        "28": 50,
+        "33": 60,
+        "35": 65,
+        "40": 70
       },
       "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
+        "30": 60,
+        "35": 70,
+        "37": 75,
+        "42": 80
       },
       "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "MCB_U60_MCB_COME_OUTLET_TSENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+        "28": 60,
+        "33": 70,
+        "35": 75,
+        "40": 80
       }
     },
     {
@@ -824,338 +398,28 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
+        "30": 50,
+        "35": 60,
+        "37": 65,
+        "42": 70
       },
       "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
+        "28": 50,
+        "33": 60,
+        "35": 65,
+        "40": 70
       },
       "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
+        "30": 60,
+        "35": 70,
+        "37": 75,
+        "42": 80
       },
       "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "MCB_U63_PB_OUTLET_TSENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "MCB_PU1497_XP3R3V_OSFP_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_PU4_XDPE15284_PVCCIN_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_PU4_XDPE15284_P1V8_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_PU31_TDA38640_PVNN_PCH_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_PU32_TDA38640_P1V05_STBY_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_U18_INLET_SENSOR_TMP75_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
-      }
-    },
-    {
-      "sensorName": "COME_U39_OUTLET_SENSOR_TMP75_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable": {
-        "31": 25,
-        "32": 30,
-        "37": 35,
-        "42": 60
-      },
-      "normalDownTable": {
-        "29": 25,
-        "30": 30,
-        "35": 35,
-        "40": 60
-      },
-      "failUpTable": {
-        "31": 30,
-        "32": 35,
-        "37": 40,
-        "42": 65
-      },
-      "failDownTable": {
-        "29": 30,
-        "30": 35,
-        "35": 40,
-        "40": 65
+        "28": 60,
+        "33": 70,
+        "35": 75,
+        "40": 80
       }
     }
   ],
@@ -1271,8 +535,8 @@
       "zoneName": "zone1",
       "sensorNames": [
         "NETLAKE_U1_CPU_UNCORE_TEMP",
-        "SMB_U7_LM75B_TH6_OUTLET",
-        "SMB_U8_LM75B_TH6_INLET",
+        "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
+        "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
         "SMB_PU2978_XP0R8V_TH6_VDDC_TEMP",
         "SMB_PU1342_XP0R8V_PT_VDDC_1_TEMP",
         "SMB_PU1342_XP1R5V_TH6_RVDD_0_TEMP",
@@ -1292,22 +556,9 @@
         "SMB_PU2056_XP0R8V_PT_VDDC_4_TEMP",
         "SMB_PU2203_XP0R8V_PT_VDDC_0_TEMP",
         "SMB_PU2203_XP0R72V_PB_TRVDD_0_TEMP",
-        "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
-        "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
-        "MCB_U61_MCB_COME_INLET_TSENSOR",
-        "MCB_U60_MCB_COME_OUTLET_TSENSOR",
-        "MCB_U62_PB_INLET_TSENSOR",
-        "MCB_U63_PB_OUTLET_TSENSOR",
         "MCB_PU1497_XP3R3V_OSFP_TEMP",
-        "COME_PU4_XDPE15284_PVCCIN_TEMP",
-        "COME_PU4_XDPE15284_P1V8_TEMP",
-        "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_TEMP",
-        "COME_PU31_TDA38640_PVNN_PCH_TEMP",
-        "COME_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
-        "COME_PU32_TDA38640_P1V05_STBY_TEMP",
-        "COME_U18_INLET_SENSOR_TMP75_TEMP",
-        "COME_U39_OUTLET_SENSOR_TMP75_TEMP",
-        "qsfp_group_1"
+        "MCB_U61_MCB_COME_INLET_TSENSOR",
+        "MCB_U62_PB_INLET_TSENSOR"
       ],
       "fanNames": [
         "FAN_1_F",

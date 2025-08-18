@@ -13,6 +13,8 @@
 
 #include <algorithm>
 
+namespace facebook::fboss::utility {
+
 namespace {
 
 constexpr auto kNumVirtualDevice = 4;
@@ -77,9 +79,64 @@ std::vector<std::string> getSdswsInCluster(
   return sdsws;
 }
 
-} // namespace
+void computeInputCapacityAndNeighbor(
+    const std::string& dstSwitch,
+    const std::string& neighborSwitch,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborReachability,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
+    std::vector<std::vector<std::string>>& inputCapacityByVD,
+    std::vector<std::string>& inputNeighbors) {
+  auto neighborReachIter = neighborReachability.find(dstSwitch);
+  if (neighborReachIter == neighborReachability.end()) {
+    std::cout << "[WARNING] No input capacity data for switch " + dstSwitch +
+            " from neighbor " + neighborSwitch;
+    return;
+  }
+  inputNeighbors.emplace_back(neighborSwitch);
+  auto singleCapacity =
+      groupPortsByVD(neighborReachIter->second, portToVirtualDevice);
+  for (int vd = 0; vd < kNumVirtualDevice; vd++) {
+    inputCapacityByVD.at(vd).insert(
+        inputCapacityByVD.at(vd).end(),
+        singleCapacity.at(vd).begin(),
+        singleCapacity.at(vd).end());
+  }
+}
 
-namespace facebook::fboss::utility {
+std::vector<InputBalanceResult> checkInputBalanceResult(
+    const std::string& dstSwitch,
+    const std::vector<std::string>& inputNeighbors,
+    const std::vector<std::vector<std::string>>& inputCapacityByVD,
+    const std::vector<std::vector<std::string>>& outputCapacityByVD,
+    const std::vector<std::vector<std::string>>& inputLinkFailure,
+    const std::vector<std::vector<std::string>>& outputLinkFailure,
+    bool verbose) {
+  std::vector<InputBalanceResult> inputBalanceResults;
+  for (int vd = 0; vd < kNumVirtualDevice; vd++) {
+    auto localLinkFailure = std::max(
+        0,
+        static_cast<int>(inputLinkFailure.at(vd).size()) -
+            static_cast<int>(outputLinkFailure.at(vd).size()));
+    bool balanced = (inputCapacityByVD.at(vd).size() + localLinkFailure) ==
+        outputCapacityByVD.at(vd).size();
+    InputBalanceResult result;
+    result.destinationSwitch = dstSwitch;
+    result.sourceSwitch = inputNeighbors;
+    result.balanced = balanced;
+    result.virtualDeviceID = vd;
+    if (verbose || !balanced) {
+      result.inputCapacity = inputCapacityByVD.at(vd);
+      result.outputCapacity = outputCapacityByVD.at(vd);
+      result.inputLinkFailure = inputLinkFailure.at(vd);
+      result.outputLinkFailure = outputLinkFailure.at(vd);
+    }
+    inputBalanceResults.push_back(result);
+  }
+  return inputBalanceResults;
+}
+
+} // namespace
 
 bool isDualStage(const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
   for (const auto& [_, dsfNode] : dsfNodeMap) {
@@ -208,14 +265,13 @@ std::vector<std::string> getInterfaceDevicesInCluster(
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap) {
   std::map<std::string, std::string> portToNeighbor;
+
   for (const auto& [switchID, ports] : std::as_const(*portMap)) {
     for (const auto& [portID, port] : std::as_const(*ports)) {
       if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
         const auto& neighborReachability = port->getExpectedNeighborValues();
         if (neighborReachability->size() != 1) {
-          throw std::runtime_error(
-              "No expected neighbor or more than one expected neighbor for port " +
-              port->getName());
+          continue;
         }
 
         std::string expectedNeighborName = *port->getExpectedNeighborValues()
@@ -255,6 +311,40 @@ getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo) {
     }
   }
   return neighborToLinkFailure;
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+filterReachabilityByDst(
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        reachability,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::string>>& neighborToPorts) {
+  std::unordered_map<std::string, std::vector<std::string>>
+      filteredReachability;
+  for (const auto& dstSwitch : dstSwitchNames) {
+    auto reachabilityIter = reachability.find(dstSwitch);
+    if (reachabilityIter == reachability.end()) {
+      std::cout << "[WARNING] No reachability data for switch " + dstSwitch
+                << std::endl;
+      continue;
+    }
+    std::set<std::string> portToDstSwitch;
+    const auto neighborToPortsIter = neighborToPorts.find(dstSwitch);
+    if (neighborToPortsIter != neighborToPorts.end()) {
+      for (const auto& [neighborPort, myPort] : neighborToPortsIter->second) {
+        portToDstSwitch.insert(myPort);
+      }
+    }
+
+    for (const auto& port : reachabilityIter->second) {
+      if (portToDstSwitch.find(port) != portToDstSwitch.end()) {
+        filteredReachability[dstSwitch].push_back(port);
+      }
+    }
+  }
+  return filteredReachability;
 }
 
 std::unordered_map<std::string, int> getPortToVirtualDeviceId(
@@ -354,7 +444,8 @@ std::vector<InputBalanceResult> checkInputBalanceDualStage(
     bool verbose) {
   CHECK(
       inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_SDSW_INTER ||
-      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER);
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER ||
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTRA);
   std::vector<InputBalanceResult> inputBalanceResult;
   for (const auto& dstSwitch : dstSwitchNames) {
     auto outputCapacityIter = outputCapacity.find(dstSwitch);
@@ -378,6 +469,9 @@ std::vector<InputBalanceResult> checkInputBalanceDualStage(
     } else if (
         inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER) {
       outputNeighbors = getSdswsInCluster(switchNameToDsfNode);
+    } else {
+      // DUAL_STAGE_FDSW_INTRA
+      outputNeighbors = {dstSwitch};
     }
     if (outputNeighbors.empty()) {
       throw std::runtime_error("Unexpected empty output neighbor.");
@@ -385,47 +479,61 @@ std::vector<InputBalanceResult> checkInputBalanceDualStage(
     auto outputLinkFailure = getLinkFailure(
         outputNeighbors, neighborToLinkFailure, portToVirtualDevice);
 
-    std::vector<std::string> inputNeighbors;
-    std::vector<std::vector<std::string>> inputCapacityByVD;
-    inputCapacityByVD.resize(kNumVirtualDevice);
-    for (const auto& [neighborSwitch, neighborReachability] : inputCapacity) {
-      inputNeighbors.emplace_back(neighborSwitch);
-      auto neighborReachIter = neighborReachability.find(dstSwitch);
-      if (neighborReachIter == neighborReachability.end()) {
-        std::cout << "[WARNING] No input capacity data for switch " +
-                dstSwitch + " from neighbor " + neighborSwitch;
-        continue;
+    if (inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_SDSW_INTER ||
+        inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER) {
+      std::vector<std::string> inputNeighbors;
+      std::vector<std::vector<std::string>> inputCapacityByVD;
+      inputCapacityByVD.resize(kNumVirtualDevice);
+      for (const auto& [neighborSwitch, neighborReachability] : inputCapacity) {
+        computeInputCapacityAndNeighbor(
+            dstSwitch,
+            neighborSwitch,
+            neighborReachability,
+            portToVirtualDevice,
+            inputCapacityByVD,
+            inputNeighbors);
       }
-      auto singleCapacity =
-          groupPortsByVD(neighborReachIter->second, portToVirtualDevice);
-      for (int vd = 0; vd < kNumVirtualDevice; vd++) {
-        inputCapacityByVD.at(vd).insert(
-            inputCapacityByVD.at(vd).end(),
-            singleCapacity.at(vd).begin(),
-            singleCapacity.at(vd).end());
+      auto inputLinkFailure = getLinkFailure(
+          inputNeighbors, neighborToLinkFailure, portToVirtualDevice);
+      auto results = checkInputBalanceResult(
+          dstSwitch,
+          inputNeighbors,
+          inputCapacityByVD,
+          outputCapacityByVD,
+          inputLinkFailure,
+          outputLinkFailure,
+          verbose);
+      inputBalanceResult.insert(
+          inputBalanceResult.end(), results.begin(), results.end());
+    } else {
+      // DUAL_STAGE_FDSW_INTRA
+      for (const auto& [neighborSwitch, neighborReachability] : inputCapacity) {
+        if (neighborSwitch == dstSwitch) {
+          continue; // Skipping reachability back to dstSwitch
+        }
+        std::vector<std::string> inputNeighbors;
+        std::vector<std::vector<std::string>> inputCapacityByVD;
+        inputCapacityByVD.resize(kNumVirtualDevice);
+        computeInputCapacityAndNeighbor(
+            dstSwitch,
+            neighborSwitch,
+            neighborReachability,
+            portToVirtualDevice,
+            inputCapacityByVD,
+            inputNeighbors);
+        auto inputLinkFailure = getLinkFailure(
+            inputNeighbors, neighborToLinkFailure, portToVirtualDevice);
+        auto results = checkInputBalanceResult(
+            dstSwitch,
+            inputNeighbors,
+            inputCapacityByVD,
+            outputCapacityByVD,
+            inputLinkFailure,
+            outputLinkFailure,
+            verbose);
+        inputBalanceResult.insert(
+            inputBalanceResult.end(), results.begin(), results.end());
       }
-    }
-    auto inputLinkFailure = getLinkFailure(
-        inputNeighbors, neighborToLinkFailure, portToVirtualDevice);
-    for (int vd = 0; vd < kNumVirtualDevice; vd++) {
-      auto localLinkFailure = std::max(
-          0,
-          static_cast<int>(inputLinkFailure.at(vd).size()) -
-              static_cast<int>(outputLinkFailure.at(vd).size()));
-      bool balanced = (inputCapacityByVD.at(vd).size() + localLinkFailure) ==
-          outputCapacityByVD.at(vd).size();
-      InputBalanceResult result;
-      result.destinationSwitch = dstSwitch;
-      result.sourceSwitch = inputNeighbors;
-      result.balanced = balanced;
-      result.virtualDeviceID = vd;
-      if (verbose || !balanced) {
-        result.inputCapacity = inputCapacityByVD.at(vd);
-        result.outputCapacity = outputCapacityByVD.at(vd);
-        result.inputLinkFailure = inputLinkFailure.at(vd);
-        result.outputLinkFailure = outputLinkFailure.at(vd);
-      }
-      inputBalanceResult.push_back(result);
     }
   }
   return inputBalanceResult;
@@ -445,15 +553,13 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
 
   std::vector<InputBalanceResult> inputBalanceResult;
 
-  const auto& dstSwitch = dstSwitchName;
-
   // Combine all input capacity from source RDSWs in the same cluster
   std::vector<std::string> inputNeighbors;
   std::vector<std::vector<std::string>> inputCapacityByVD;
   inputCapacityByVD.resize(kNumVirtualDevice);
 
   for (const auto& [srcRdsw, ports] : inputCapacityForDst) {
-    if (srcRdsw == dstSwitch) {
+    if (srcRdsw == dstSwitchName) {
       continue; // Skip self
     }
     inputNeighbors.push_back(srcRdsw);
@@ -470,8 +576,8 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
 
   auto inputLinkFailure = getLinkFailure(
       inputNeighbors, neighborToLinkFailure, portToVirtualDevice);
-  auto outputLinkFailure =
-      getLinkFailure({dstSwitch}, neighborToLinkFailure, portToVirtualDevice);
+  auto outputLinkFailure = getLinkFailure(
+      {dstSwitchName}, neighborToLinkFailure, portToVirtualDevice);
 
   for (int vd = 0; vd < kNumVirtualDevice; vd++) {
     auto localLinkFailure = std::max(
@@ -483,7 +589,7 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
         outputCapacityByVD.at(vd).size();
 
     InputBalanceResult result;
-    result.destinationSwitch = dstSwitch;
+    result.destinationSwitch = dstSwitchName;
     result.sourceSwitch = inputNeighbors;
     result.balanced = balanced;
     result.virtualDeviceID = vd;

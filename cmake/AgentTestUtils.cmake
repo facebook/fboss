@@ -52,6 +52,7 @@ add_library(fabric_test_utils
 )
 
 target_link_libraries(fabric_test_utils
+  agent_ensemble
   fboss_types
   stats
   switch_config_cpp2

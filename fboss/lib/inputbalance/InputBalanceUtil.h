@@ -68,6 +68,15 @@ std::map<std::string, std::string> getPortToNeighbor(
 std::unordered_map<std::string, std::vector<std::string>>
 getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo);
 
+std::unordered_map<std::string, std::vector<std::string>>
+filterReachabilityByDst(
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        reachability,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::string>>& neighborPortsMap);
+
 std::unordered_map<std::string, int> getPortToVirtualDeviceId(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
 

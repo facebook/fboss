@@ -62,7 +62,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         },
         items: [
           {label: 'Onboard', position: 'left', docId: 'onboarding/platform_onboarding', type: 'doc'},
-          {label: 'Manuals', position: 'left', docId: 'manuals/add_platform_manager_support', type: 'doc'},
+          {label: 'Manuals', position: 'left', docId: 'manuals/add_initial_support_for_platform_services', type: 'doc'},
           {label: 'Build', position: 'left', docId: 'build/building_fboss_on_docker_containers', type: 'doc'},
           {label: 'Develop', position: 'left', docId: 'developing/platform_mapping', type: 'doc'},
           {label: 'Test', position: 'left', docId: 'testing/test_categories', type: 'doc'},

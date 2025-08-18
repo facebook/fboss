@@ -3091,7 +3091,8 @@
           "busName": "INCOMING@0",
           "address": "0x53",
           "kernelDeviceName": "24c64",
-          "pmUnitScopedName": "CHASSIS_IDPROM"
+          "pmUnitScopedName": "CHASSIS_IDPROM",
+          "isEeprom": true
         },
         {
           "busName": "INCOMING@1",
@@ -3533,7 +3534,7 @@
   "chassisEepromDevicePath": "/FCBTOP_SLOT@0/[CHASSIS_IDPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "3.2.0-1",
+  "bspKmodsRpmVersion": "3.3.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

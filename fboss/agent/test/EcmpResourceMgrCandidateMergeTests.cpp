@@ -17,7 +17,8 @@ class EcmpResourceMgrCandidateMergeTest
  public:
   int maxPenalty(const EcmpResourceManager::NextHopGroupIds& groups) const {
     auto consolidationInfo =
-        sw_->getEcmpResourceManager()->getConsolidationInfo(*groups.begin());
+        sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+            *groups.begin());
     return consolidationInfo.find(groups)->second.maxPenalty();
   }
 };
@@ -30,11 +31,13 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, incReference) {
                      .find(groupInfo->getNhops())
                      ->second;
   auto beforeConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   auto newPrefix = makePrefix(numStartRoutes() + 1);
   addRoute(newPrefix, groupInfo->getNhops());
   auto afterConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   EXPECT_EQ(beforeConsolidationInfo.size(), afterConsolidationInfo.size());
   for (const auto& [groupIds, consolidationInfo] : beforeConsolidationInfo) {
     auto newConsolidationInfo = afterConsolidationInfo.find(groupIds)->second;
@@ -52,12 +55,14 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, incDecReference) {
                      .find(groupInfo->getNhops())
                      ->second;
   auto beforeConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   auto newPrefix = makePrefix(numStartRoutes() + 1);
   addRoute(newPrefix, groupInfo->getNhops());
   rmRoute(newPrefix);
   auto afterConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   EXPECT_EQ(beforeConsolidationInfo, afterConsolidationInfo);
 }
 
@@ -71,11 +76,13 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, deleteNhopGroup) {
                      .find(groupInfo->getNhops())
                      ->second;
   auto beforeConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   EXPECT_EQ(beforeConsolidationInfo.size(), 4);
   rmRoute(pfx);
   auto afterConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   EXPECT_EQ(afterConsolidationInfo.size(), 0);
 }
 
@@ -90,10 +97,12 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, deleteAndAddNhopGroup) {
                      .find(groupInfo->getNhops())
                      ->second;
   auto beforeConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   rmRoute(pfx);
   auto afterConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsId);
   EXPECT_EQ(afterConsolidationInfo.size(), 0);
   addRoute(pfx, nhops);
   auto newNhopsId =
@@ -102,7 +111,8 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, deleteAndAddNhopGroup) {
   // Same nhopId would be reused for new group
   EXPECT_EQ(nhopsId, newNhopsId);
   auto afterAddConsolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(newNhopsId);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          newNhopsId);
   EXPECT_EQ(beforeConsolidationInfo, afterAddConsolidationInfo);
 }
 
@@ -114,7 +124,8 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, updateRouteNhops) {
                            .find(group1Info->getNhops())
                            ->second;
   auto beforeConsolidationInfoGroup1 =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup1);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsIdGroup1);
   auto group2Info = sw_->getEcmpResourceManager()->getGroupInfo(
       RouterID(0), makePrefix(1).toCidrNetwork());
   auto nhopsIdGroup2 = sw_->getEcmpResourceManager()
@@ -122,7 +133,8 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, updateRouteNhops) {
                            .find(group2Info->getNhops())
                            ->second;
   auto beforeConsolidationInfoGroup2 =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup2);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsIdGroup2);
   // First point new prefix to group1
   auto newPrefix = makePrefix(numStartRoutes() + 1);
   addRoute(newPrefix, group1Info->getNhops());
@@ -130,9 +142,11 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, updateRouteNhops) {
   updateRoute(newPrefix, group2Info->getNhops());
 
   auto afterConsolidationInfoGroup1 =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup1);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsIdGroup1);
   auto afterConsolidationInfoGroup2 =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup2);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsIdGroup2);
   // before and after should be equal for  group 1 - modulo merge with group2
   // (since group2 ref count got updated to 2)
   for (auto [groupIds, consolidationInfo] : beforeConsolidationInfoGroup1) {
@@ -170,16 +184,19 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, updateAndDeleteRouteNhops) {
                            .find(group2Info->getNhops())
                            ->second;
   auto beforeConsolidationInfoGroup2 =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup2);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsIdGroup2);
   // Point prefix 0 to group2. This will cause nhop group1 to get
   // deleted, since its ref count dropped to 0
   updateRoute(makePrefix(0), group2Info->getNhops());
 
   auto afterConsolidationInfoGroup1 =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup1);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsIdGroup1);
   EXPECT_TRUE(afterConsolidationInfoGroup1.empty());
   auto afterConsolidationInfoGroup2 =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsIdGroup2);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          nhopsIdGroup2);
 
   // After penalty should double for group2
   for (const auto& [groupIds, consolidationInfo] :
@@ -198,7 +215,7 @@ TEST_F(EcmpResourceMgrCandidateMergeTest, updateAndDeleteRouteNhops) {
 
 TEST_F(EcmpResourceMgrCandidateMergeTest, maxPenalty) {
   auto consolidationInfo =
-      sw_->getEcmpResourceManager()->getConsolidationInfo(5);
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(5);
   EXPECT_EQ(maxPenalty({1, 5}), 20);
   EXPECT_EQ(maxPenalty({2, 5}), 16);
   EXPECT_EQ(maxPenalty({3, 5}), 12);

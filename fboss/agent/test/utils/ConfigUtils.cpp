@@ -128,10 +128,19 @@ bool isEnabledPortWithSubnet(
     const cfg::SwitchConfig& config) {
   auto ingressVlan = folly::copy(port.ingressVlan().value());
   for (const auto& intf : *config.interfaces()) {
-    if (folly::copy(intf.vlanID().value()) == ingressVlan) {
-      return (
-          !intf.ipAddresses().value().empty() &&
-          folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+    if (cfg::InterfaceType::VLAN == intf.type()) {
+      if (folly::copy(intf.vlanID().value()) == ingressVlan) {
+        return (
+            !intf.ipAddresses().value().empty() &&
+            folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+      }
+    } else if (cfg::InterfaceType::PORT == intf.type()) {
+      if (folly::copy(intf.portID().to_optional().value()) ==
+          port.logicalID().value()) {
+        return (
+            !intf.ipAddresses().value().empty() &&
+            folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+      }
     }
   }
   return false;
@@ -1395,10 +1404,22 @@ void removeSubsumedPorts(
 bool checkConfigHasAclEntry(
     const cfg::SwitchConfig& config,
     std::string aclName) {
-  auto acls = *config.acls();
-  for (const auto& acl : acls) {
-    if (acl.name().value() == aclName) {
-      return true;
+  if (isSaiConfig(config)) {
+    for (const auto& aclTableGroup : *config.aclTableGroups()) {
+      for (const auto& aclTable : *aclTableGroup.aclTables()) {
+        for (const auto& acl : *aclTable.aclEntries()) {
+          if (acl.name().value() == aclName) {
+            return true;
+          }
+        }
+      }
+    }
+  } else {
+    auto acls = *config.acls();
+    for (const auto& acl : acls) {
+      if (acl.name().value() == aclName) {
+        return true;
+      }
     }
   }
   return false;

@@ -15,9 +15,7 @@ dependencies on Docker containers.
 ## Clone the FBOSS Repository
 We will be working out of the root of the repository:
 
-```
-git clone https://github.com/facebook/fboss.git
-cd fboss
+```bash file=./static/code_snips/clone_fboss.sh
 ```
 
 ## Set Up the FBOSS Container
@@ -29,9 +27,7 @@ build a completely fresh container to use. The below commands will stop any
 existing Docker containers and clean the image cache so that the subsequent
 steps will build the container from scratch:
 
-```
-sudo docker container kill -a && sudo docker container prune -f
-sudo docker image prune -af
+```bash file=./static/code_snips/clean_docker.sh
 ```
 
 ### Build the FBOSS Docker Image
@@ -43,97 +39,24 @@ build the image, which installs required dependencies. Note that the path
 to the Dockerfile is relative, so the below commands assume you are currently running
 them from the root of the repository:
 
-```
-# Builds a docker container image that is tagged as fboss_docker:latest
-sudo docker build . -t fboss_docker -f fboss/oss/docker/Dockerfile
-```
-
-### Load the Published Docker Image from GitHub
-
-**Skip this step if the previous build step worked, as this is not preferred.**
-
-Instead of building the Docker image yourself, you can also obtain an image
-tarball from GitHub (e.g. https://github.com/facebook/fboss/actions/runs/14961317578).
-The advantage of using this image instead of building it yourself is that the
-published image includes all relevant sources, including sources for dependencies,
-which means that building FBOSS binaries from this image eliminates the need for
-a network connection at the time of building (which would normally be required in
-order to download sources or clone Git repositories for those same dependencies).
-
-In order to use this image, you can download it from GitHub and decompress it using `zstd`:
-
-```
-zstd -d fboss_debian_docker_image.tar.zst
-```
-
-You can then load the image via:
-
-```
-sudo docker load < fboss_debian_docker_image.tar
+```bash file=./static/code_snips/build_docker_image.sh
 ```
 
 ## Start the FBOSS Container
 
-We will now start the container using the FBOSS image. There are various things to consider
-when starting the container, so be sure to read through the different commands here and choose
-what seems appropriate for your situation.
+### Start a Container for Platform Stack
 
-### Simple Start
-
-If you know your host has enough space for the build, this is the simplest command you can
-run to start the container:
-
-```
-sudo docker run -d -it --name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
+```bash file=./static/code_snips/start_platform_stack_container.sh
 ```
 
-### Allocate More Space
+### Start a Container for Forwarding Stack
 
-A full FBOSS build may take significant space (> 50GB of storage), in which
-case you may want to choose a more specific location for the output (e.g. a
-disk with more space). You can do this by mounting a volume inside the
-container using the `-v` flag as shown below. In this example,
-the path `/opt/app/localbuild` from the host is mounted in the container
-as `/var/FBOSS/tmp_bld_dir`:
-
-```
-sudo docker run -d -v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
---name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
+```bash file=./static/code_snips/start_forwarding_stack_container.sh
 ```
 
-### Make SDK Artifacts Available
+### Enter the Container
 
-**Skip to the next section if you are building using fake SAI.**
-
-When building against a precompiled SDK, you can mount directories from your host to the
-container in order to make the SDK artifacts available.
-
-Assuming the existence of `/path/to/sdk/lib/libsai_impl.a` and `/path/to/sdk/include/*.h`
-for the static library and headers respectively, the below command will mount
-those paths to `/opt/sdk/lib/libsai_impl.a` and `/opt/sdk/include/*.h` respectively:
-
-```
-sudo docker run -d -v /path/to/sdk:/opt/sdk:z -it \
---name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-```
-
-If you need to allocate more space, you can mount another volume within the container like
-in the steps shown in [Allocate More Space](./#allocate-more-space):
-
-```
-sudo docker run -d -v /path/to/sdk:/opt/sdk:z \
--v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z -it \
---name=FBOSS_DOCKER_CONTAINER fboss_docker:latest bash
-```
-
-## Enter the FBOSS Container
-
-We can now enter the container:
-
-```
-# Attaches our current terminal to a new bash shell in the docker container so
-# that we can perform the build within it
-sudo docker exec -it FBOSS_DOCKER_CONTAINER bash
+```bash file=./static/code_snips/enter_docker_container.sh
 ```
 
 At this point, you should be dropped into a root shell within the Docker container
@@ -144,22 +67,15 @@ and can proceed with the next steps to start the build.
 Instructions for building FBOSS binaries may have slight differences based on
 which SDK you are linking against.
 
-### Build Using Fake SAI
+### Build Platform Stack
 
-**Skip to the next section if you are building against a precompiled SDK.**
+You only need one command to build the Platform Stack, where `$TARGET` is
+`fboss_platform_services`:
 
-The fake SAI sources are included in the FBOSS git repository, and therefore
-don't require any additional steps. You can start the build immediately by using the
-commands below:
-
-```
-export BUILD_SAI_FAKE=1
-time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
---extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
---scratch-path /var/FBOSS/tmp_bld_dir fboss
+```bash file=./static/code_snips/build_with_cmake_target.sh
 ```
 
-### Build Against a Precompiled SDK
+### Build Forwarding Stack
 
 This section assumes that you have a precompiled SDK library which you want to
 link against. More specifically, you'll need the static library `libsai_impl.a`
@@ -168,78 +84,20 @@ of SAI headers. In order to run the build:
 
 #### Run the Build Helper
 
-By default, `build-helper.py` will use SAI version 1.16.3. If you are planning
-on building against a different version of SAI, you must add another param to the
-build-helper.py command.
-
-Supported values:
-
-1. 1.13.2
-1. 1.14.0
-1. 1.15.0
-1. 1.15.3
-1. 1.16.0
-1. 1.16.1
-1. 1.16.3
-
-```
-# Run the build helper to stage the SDK in preparation for the build step
-./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output
-
-# Run the build helper using SAI version 1.15.3 instead of the default 1.16.3
-./fboss/oss/scripts/build-helper.py /opt/sdk/lib/libsai_impl.a /opt/sdk/include/ /var/FBOSS/sai_impl_output 1.15.3
+```bash file=./static/code_snips/build_helper.sh
 ```
 
 #### Set Important Environment Variables
 
-The following environment variables should be set depending on which platform and SDK version you are building:
-
-1. `SAI_BRCM_IMPL` - set to 1 if building against brcm-sai SDK
-1. `SAI_VERSION` - can be omitted if you are using SAI 1.16.3. If using a more
-recent version of SAI from https://github.com/opencomputeproject/SAI, this should be set to the semantic version e.g. 1.16.1.
-1. `SAI_SDK_VERSION` - Should be set to a string depending on which version of the brcm-sai SDK you are
-building. Supported values can be found in [SaiVersion.h](https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/api/SaiVersion.h)
-but are listed below for convenience. Default value is "SAI_VERSION_11_0_EA_DNX_ODP", found in
-[CMakeLists.txt](https://github.com/facebook/fboss/blob/main/CMakeLists.txt#L108)
-    - `SAI_VERSION_8_2_0_0_ODP`
-    - `SAI_VERSION_8_2_0_0_SIM_ODP`
-    - `SAI_VERSION_9_2_0_0_ODP`
-    - `SAI_VERSION_9_0_EA_SIM_ODP`
-    - `SAI_VERSION_10_0_EA_ODP`
-    - `SAI_VERSION_10_0_EA_SIM_ODP`
-    - `SAI_VERSION_10_2_0_0_ODP`
-    - `SAI_VERSION_11_0_EA_ODP`
-    - `SAI_VERSION_11_0_EA_SIM_ODP`
-    - `SAI_VERSION_11_3_0_0_ODP`
-    - `SAI_VERSION_11_7_0_0_ODP`
-    - `SAI_VERSION_10_0_EA_DNX_ODP`
-    - `SAI_VERSION_10_0_EA_DNX_SIM_ODP`
-    - `SAI_VERSION_11_0_EA_DNX_ODP`
-    - `SAI_VERSION_11_0_EA_DNX_SIM_ODP`
-    - `SAI_VERSION_11_3_0_0_DNX_ODP`
-    - `SAI_VERSION_11_7_0_0_DNX_ODP`
-    - `SAI_VERSION_12_0_EA_DNX_ODP`
-    - `SAI_VERSION_13_0_EA_ODP`
-    - `SAI_VERSION_14_0_EA_ODP`
-1. `BENCHMARK_INSTALL` - set to 1 to install benchmark binaries
-1. `SKIP_ALL_INSTALL` - set to 1 to skip installing FBOSS artifacts
-1. `WITH_ASAN` - set to 1 to enable sanitization checking
+```bash file=./static/code_snips/important_environment_variables.sh
+```
 
 #### Build Against the SDK
 
-Ensure you are in the right directory, set your relevant environment variables, and start the build:
+Ensure you are in the right directory, set your relevant environment variables,
+and start the build:
 
-```
-# Navigate to the right directory
-cd /var/FBOSS/fboss
-
-# Set environment variables according to the previous step
-export SAI_BRCM_IMPL=1
-
-# Start the build
-time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
---extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
---scratch-path /var/FBOSS/tmp_bld_dir fboss
+```bash file=./static/code_snips/build_forwarding_stack.sh
 ```
 
 ### Limit the Build to a Specific Target
@@ -249,21 +107,5 @@ Buildable targets can be found by examining the cmake scripts in the repository.
 Any buildable target will be specified in the cmake scripts either by
 `add_executable` or `add_library`. Example command below:
 
-```
-time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
---extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
---scratch-path /var/FBOSS/tmp_bld_dir --cmake-target qsfp_service fboss
-```
-
-### Build with Local Changes
-
-If you want to make changes locally and then build, you will need another flag which tells
-`getdeps.py` to pick them up. You can use the flag `--src-dir` to tell it where changes are
-located. Because you will be making changes to the FBOSS repo, you can add the flag like seen
-in this example command:
-
-```
-time ./build/fbcode_builder/getdeps.py build --allow-system-packages \
---extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}' \
---scratch-path /var/FBOSS/tmp_bld_dir --cmake-target qsfp_service --src-dir . fboss
+```bash file=./static/code_snips/build_with_cmake_target.sh
 ```
