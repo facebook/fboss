@@ -28,9 +28,10 @@ void getTransceivers(
 sensor_service::SensorReadResponse getSensorValueThroughThrift(
     int sensorServiceThriftPort,
     folly::EventBase& evb) {
+  folly::EventBase evbSensorInternal;
   folly::SocketAddress sockAddr("::1", sensorServiceThriftPort);
   auto socket =
-      folly::AsyncSocket::newSocket(&evb, sockAddr, kSensorSendTimeoutMs);
+      folly::AsyncSocket::newSocket(&evbSensorInternal, sockAddr, kSensorSendTimeoutMs);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
   auto client = std::make_unique<apache::thrift::Client<
@@ -48,9 +49,10 @@ sensor_service::SensorReadResponse getSensorValueThroughThrift(
 asic_temp::AsicTempResponse getAsicTempThroughThrift(
     int agentTempThriftPort,
     folly::EventBase& evb) {
+  folly::EventBase evbAsicInternal;
   folly::SocketAddress sockAddr("::1", agentTempThriftPort);
   auto socket =
-      folly::AsyncSocket::newSocket(&evb, sockAddr, kSensorSendTimeoutMs);
+      folly::AsyncSocket::newSocket(&evbAsicInternal, sockAddr, kSensorSendTimeoutMs);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
   auto client = std::make_unique<
