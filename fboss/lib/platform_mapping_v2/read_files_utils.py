@@ -128,7 +128,7 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
 def read_port_profile_mapping(
     directory: Dict[str, str], prefix: str, multi_npu: bool
 ) -> PortProfileMapping:
-    PORT_PROFILE_MAPPING_SUFFIX = "_profile_mapping.csv"
+    PORT_PROFILE_MAPPING_SUFFIX = "_port_profile_mapping.csv"
     Column = column_int_enum_generator(
         "GLOBAL_PORT_ID LOGICAL_PORT_ID PORT_NAME SUPPORTED_PROFILES ATTACHED_COREID ATTACHED_CORE_PORTID VIRTUAL_DEVICE_ID PORT_TYPE SCOPE",
     )
