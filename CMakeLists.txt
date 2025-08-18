@@ -997,6 +997,8 @@ add_dependencies(fboss_platform_services
   fw_util
   weutil
   data_corral_service
+  # Utilities
+  sensor_service_client
   # Unit Tests
   platform_config_lib_config_lib_test
   platform_manager_device_path_resolver_test
