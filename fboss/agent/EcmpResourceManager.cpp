@@ -411,8 +411,8 @@ void EcmpResourceManager::reclaimMergeGroups(
     inOutState->nonBackupEcmpGroupsCnt += curMergeSet.size() - 1;
     inOutState->updated = true;
   }
-  // TODO - prune reclaimed groups from merged groups and recompute
-  // candidate merges.
+  pruneFromMergedGroups(groupIdsToReclaim);
+  computeCandidateMerges({groupIdsToReclaim.begin(), groupIdsToReclaim.end()});
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {

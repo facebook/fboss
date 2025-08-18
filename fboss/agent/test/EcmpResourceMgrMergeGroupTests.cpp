@@ -47,6 +47,24 @@ class EcmpResourceMgrMergeGroupTest
                       .has_value());
     });
   }
+  void assertGroupsAreUnMerged(
+      const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const {
+    XLOG(DBG2) << " Asserting for ununmerged group: " << "["
+               << folly::join(", ", unmergedGroups) << "]";
+    std::for_each(
+        unmergedGroups.begin(), unmergedGroups.end(), [this](auto gid) {
+          // Groups from  unmerge set should no longer
+          // be candidates.
+          EXPECT_GT(
+              sw_->getEcmpResourceManager()
+                  ->getCandidateMergeConsolidationInfo(gid)
+                  .size(),
+              0);
+          EXPECT_FALSE(sw_->getEcmpResourceManager()
+                           ->getMergeGroupConsolidationInfo(gid)
+                           .has_value());
+        });
+  }
 };
 
 // Base class add 5 groups, which is within in the
@@ -83,8 +101,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
 TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
   // Cache prefixes to be affected by optimal merge grp selection.
   // We will later assert that these start pointing to merged groups.
-  auto overflowPrefixes = getPrefixesForGroups(
-      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet());
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 2);
   // Update a route pointing to new nhops. ECMP limit is breached during
   // update due to make before break. Then the reclaim step notices
@@ -99,8 +118,10 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
       RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
   fib6->addNode(newRoute);
   consolidate(newState);
+  assertGroupsAreMerged(optimalMergeSet);
   auto deltas = rmRoute(newRoute->prefix());
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(sw_->getState(), {});
+  assertGroupsAreUnMerged(optimalMergeSet);
 }
 } // namespace facebook::fboss
