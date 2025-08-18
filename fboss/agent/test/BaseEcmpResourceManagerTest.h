@@ -94,11 +94,15 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
     ASSERT_TRUE(nhopId.has_value());
     EXPECT_EQ(consolidator_->getRouteUsageCount(nhopId.value()), expectedCount);
   }
-  void addRoute(const RoutePrefixV6& prefix6, const RouteNextHopSet& nhops) {
-    addOrUpdateRoute(prefix6, nhops);
+  std::vector<StateDelta> addRoute(
+      const RoutePrefixV6& prefix6,
+      const RouteNextHopSet& nhops) {
+    return addOrUpdateRoute(prefix6, nhops);
   }
-  void updateRoute(const RoutePrefixV6& prefix6, const RouteNextHopSet& nhops) {
-    addOrUpdateRoute(prefix6, nhops);
+  std::vector<StateDelta> updateRoute(
+      const RoutePrefixV6& prefix6,
+      const RouteNextHopSet& nhops) {
+    return addOrUpdateRoute(prefix6, nhops);
   }
   std::vector<StateDelta> rmRoute(const RoutePrefixV6& prefix6);
 
@@ -119,7 +123,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   std::set<RouteV6::Prefix> getPrefixesWithoutOverrides() const;
 
  private:
-  void addOrUpdateRoute(
+  std::vector<StateDelta> addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops);
   virtual void setupFlags() const;
