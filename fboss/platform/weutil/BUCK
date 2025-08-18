@@ -46,6 +46,7 @@ cpp_library(
         "ParserUtils.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":crc16_ccitt_aug",
         "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
         "//folly:string",

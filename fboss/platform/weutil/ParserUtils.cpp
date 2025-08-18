@@ -1,4 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+#include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -60,22 +61,26 @@ std::vector<uint8_t> ParserUtils::loadEeprom(
   try {
     file.seekg(0, std::ios::end);
     fileSize = file.tellg();
+    if (fileSize < 0) {
+      throw std::runtime_error(
+          fmt::format("EEPROM {} does not exist, or is empty!", eeprom));
+    }
+
     // bytesToRead cannot be bigger than the remaining bytes of the file from
     // the offset. That is, we cannot read beyond the end of the file.
     // If the remaining bytes are smaller than max, then we only read up to
     // the end of the file.
     bytesToRead = fileSize - offset;
+    if (bytesToRead < 0) {
+      throw std::runtime_error("Offset greater than file size");
+    }
     result.resize(bytesToRead);
   } catch (std::exception& ex) {
     std::cout << "Failed to detect EEPROM size (" << eeprom
               << "): " << ex.what() << std::endl;
     throw std::runtime_error("Unabled to detect EEPROM size.");
   }
-  if (fileSize < 0) {
-    std::cout << "EEPROM (" << eeprom << ") does not exist, or is empty!"
-              << std::endl;
-    throw std::runtime_error("Unable to read EEPROM.");
-  }
+
   // Now, read the eeprom
   try {
     file.seekg(offset, std::ios::beg);
