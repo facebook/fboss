@@ -61,10 +61,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     return maxEcmpGroups_;
   }
 
-  const NextHopGroupInfo* getGroupInfo(
-      RouterID rid,
-      const folly::CIDRNetwork& nw) const;
-
   struct ConsolidationInfo {
     int maxPenalty() const;
     bool operator==(const ConsolidationInfo& other) const {
@@ -76,12 +72,20 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   };
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
+  /*
+   * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
+   * non test code.
+   */
   std::optional<ConsolidationInfo> getMergeGroupConsolidationInfo(
       NextHopGroupId grpId) const;
   GroupIds2ConsolidationInfo getCandidateMergeConsolidationInfo(
       NextHopGroupId grpId) const;
   std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
   std::map<NextHopGroupId, std::set<Prefix>> getGroupIdToPrefix() const;
+  const NextHopGroupInfo* getGroupInfo(
+      RouterID rid,
+      const folly::CIDRNetwork& nw) const;
+  /* Test helper API end */
 
  private:
   void nextHopGroupDeleted(NextHopGroupId groupId);

@@ -556,6 +556,21 @@ std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
   return prefixes;
 }
 
+std::set<RouteV6::Prefix>
+BaseEcmpResourceManagerTest::getPrefixesWithoutOverrides() const {
+  std::set<RouteV6::Prefix> prefixes;
+  EcmpResourceManager::NextHopGroupIds nonOverrideGids;
+  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
+  for (const auto& [_, pfxs] : grpId2Prefixes) {
+    auto grpInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+        pfxs.begin()->first, pfxs.begin()->second);
+    if (!grpInfo->hasOverrides()) {
+      nonOverrideGids.insert(grpInfo->getID());
+    }
+  }
+  return getPrefixesForGroups(nonOverrideGids);
+}
+
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
   auto oldState = state_;
   auto newState = oldState->clone();

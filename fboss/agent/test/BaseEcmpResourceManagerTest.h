@@ -116,6 +116,8 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   std::set<RouteV6::Prefix> getPrefixesForGroups(
       const EcmpResourceManager::NextHopGroupIds& grpIds) const;
 
+  std::set<RouteV6::Prefix> getPrefixesWithoutOverrides() const;
+
  private:
   void addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
