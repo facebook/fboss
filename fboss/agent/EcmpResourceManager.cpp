@@ -412,7 +412,7 @@ void EcmpResourceManager::reclaimMergeGroups(
     inOutState->updated = true;
   }
   pruneFromMergedGroups(groupIdsToReclaim);
-  computeCandidateMerges({groupIdsToReclaim.begin(), groupIdsToReclaim.end()});
+  computeCandidateMerges(groupIdsToReclaim.begin(), groupIdsToReclaim.end());
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
@@ -1398,9 +1398,10 @@ EcmpResourceManager::getCandidateMergeConsolidationInfo(
   return getConsolidationInfos(candidateMergeGroups_, grpId);
 }
 
+template <std::forward_iterator ForwardIt>
 void EcmpResourceManager::computeCandidateMerges(
-    const std::vector<NextHopGroupId>& groupIds) {
-  XLOG(DBG2) << " Will compute candidate merges for : " << groupIds;
+    ForwardIt begin,
+    ForwardIt end) {
   NextHopGroupIds alreadyMergedGroups;
   std::for_each(
       mergedGroups_.begin(),
@@ -1410,7 +1411,8 @@ void EcmpResourceManager::computeCandidateMerges(
             mergedGroupsAndPenalty.first.begin(),
             mergedGroupsAndPenalty.first.end());
       });
-  for (auto grpId : groupIds) {
+  while (begin != end) {
+    auto grpId = *begin++;
     CHECK(!alreadyMergedGroups.contains(grpId))
         << "Computing candidate merges for : " << grpId
         << " for already merged group";
