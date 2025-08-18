@@ -103,6 +103,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
   // We will later assert that these start pointing to merged groups.
   auto optimalMergeSet =
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          *optimalMergeSet.begin());
   auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 2);
   // Update a route pointing to new nhops. ECMP limit is breached during
@@ -123,5 +126,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(sw_->getState(), {});
   assertGroupsAreUnMerged(optimalMergeSet);
+  auto afterConsolidationInfo =
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          *optimalMergeSet.begin());
+  EXPECT_EQ(beforeConsolidationInfo, afterConsolidationInfo);
 }
 } // namespace facebook::fboss
