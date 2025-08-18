@@ -334,3 +334,8 @@ DEFINE_bool(
     ignore_asic_hard_reset_notification,
     false,
     "Ignore ASIC hard reset notification received from SAI/SDK");
+
+DEFINE_bool(
+    cleanup_probed_kernel_data,
+    false,
+    "Remove probed routes, addresses, rules, and interfaces from the kernel");
