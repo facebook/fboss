@@ -659,4 +659,35 @@ TEST_F(AgentFabricSwitchTest, verifySourceRoutedCellHandling) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
+TEST_F(AgentFabricSwitchTest, verifyFabricInterCellJitterWatermark) {
+  auto verify = [&]() {
+    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
+      std::string out;
+      WITH_RETRIES({
+        // Mark module ID 1 as reachable over some fabric ports
+        getAgentEnsemble()->runDiagCommand(
+            "mod RTP_RMHMT 1 1 LINK_BIT_MAP=1\n", out, switchId);
+        // Send packets to module ID 1, such that length is > 512B.
+        // These will be split into multiple cells and sent over the
+        // fabric links and will be reassembled back into packets,
+        // resulting in some value in inter cell jitter watermark.
+        getAgentEnsemble()->runDiagCommand(
+            "TX 100 DeSTination=0 DeSTinationModid=1 LENgth=1400\n",
+            out,
+            switchId);
+        auto watermarkStats = getAllSwitchWatermarkStats();
+        auto switchWatermarksIter = watermarkStats.find(switchId);
+        ASSERT_EVENTUALLY_TRUE(switchWatermarksIter != watermarkStats.end());
+        auto jitterWatermark =
+            switchWatermarksIter->second.fabricInterCellJitterWatermarkUsec();
+        ASSERT_EVENTUALLY_TRUE(jitterWatermark.has_value());
+        EXPECT_EVENTUALLY_GT(jitterWatermark.value(), 0);
+        XLOG(DBG0) << "Fabric Inter Cell Jitter Watermark usec : "
+                   << jitterWatermark.value();
+      });
+    }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss
