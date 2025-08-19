@@ -445,6 +445,7 @@ struct PciDeviceConfig {
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
   15: optional string desiredDriver;
   16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
+  17: list<FpgaIpBlockConfig> mdioBusConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
