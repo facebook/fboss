@@ -62,6 +62,9 @@ std::vector<std::string> getInterfaceDevicesInCluster(
     const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode,
     int clusterID);
 
+std::vector<std::string> getLayer2FabricDevicesInCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode);
+
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
 

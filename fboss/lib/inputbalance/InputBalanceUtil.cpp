@@ -262,6 +262,19 @@ std::vector<std::string> getInterfaceDevicesInCluster(
   return intfDevices;
 }
 
+std::vector<std::string> getLayer2FabricDevicesInCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode) {
+  std::vector<std::string> layer2Devices;
+  for (const auto& [name, dsfNode] : nameToDsfNode) {
+    if (dsfNode.type() == cfg::DsfNodeType::FABRIC_NODE &&
+        dsfNode.fabricLevel().has_value() &&
+        dsfNode.fabricLevel().value() == 2) {
+      layer2Devices.emplace_back(name);
+    }
+  }
+  return layer2Devices;
+}
+
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap) {
   std::map<std::string, std::string> portToNeighbor;
