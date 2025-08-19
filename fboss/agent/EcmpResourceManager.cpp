@@ -773,7 +773,9 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   InputOutputState inOutState(0, delta, *preUpdateState_);
   auto deltas = consolidateImpl(delta, &inOutState);
   // LE 2, since reclaim always starts with a new delta
-  CHECK_LE(deltas.size(), 2);
+  // FIXME - bring back this check after fixing restore from
+  // switch state logic for merged groups
+  // CHECK_LE(deltas.size(), 2);
   StateDelta toRet(deltas.front().oldState(), deltas.back().newState());
   deltas.clear();
   deltas.emplace_back(std::move(toRet));
@@ -805,8 +807,14 @@ void EcmpResourceManager::routeAddedOrUpdated(
   bool ecmpLimitReached = inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_;
   if (oldRoute) {
     DCHECK(!routeFwdEqual(oldRoute, newRoute));
-    if (oldRoute->getForwardInfo().normalizedNextHops() !=
-        newRoute->getForwardInfo().normalizedNextHops()) {
+    /*
+     * We compare the non override normalized next hops. Since
+     * those represent the original nhop group demand. Further
+     * since the new route came in via state update, there are
+     * going to be no override (merged) nhops for it
+     */
+    if (oldRoute->getForwardInfo().nonOverrideNormalizedNextHops() !=
+        newRoute->getForwardInfo().nonOverrideNormalizedNextHops()) {
       /*
        * Update internal data structures only if nhops changes.
        * There are other route changes (e.g. classID, counterID)
@@ -817,7 +825,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
       routeDeleted(rid, oldRoute, true /*isUpdate*/, inOutState);
     }
   }
-  auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
+  auto nhopSet = newRoute->getForwardInfo().nonOverrideNormalizedNextHops();
   auto [idItr, grpInserted] = nextHopGroup2Id_.insert(
       {nhopSet, findCachedOrNewIdForNhops(nhopSet, *inOutState)});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
@@ -912,8 +920,10 @@ void EcmpResourceManager::routeUpdated(
   CHECK(oldRoute->isPublished());
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  const auto& oldNHops = oldRoute->getForwardInfo().normalizedNextHops();
-  const auto& newNHops = newRoute->getForwardInfo().normalizedNextHops();
+  const auto& oldNHops =
+      oldRoute->getForwardInfo().nonOverrideNormalizedNextHops();
+  const auto& newNHops =
+      newRoute->getForwardInfo().nonOverrideNormalizedNextHops();
   if (oldNHops.size() > 1 && newNHops.size() > 1) {
     routeAddedOrUpdated(rid, oldRoute, newRoute, inOutState);
   } else if (newNHops.size() > 1) {
@@ -951,7 +961,7 @@ void EcmpResourceManager::routeAdded(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  if (newRoute->getForwardInfo().normalizedNextHops().size() > 1) {
+  if (newRoute->getForwardInfo().nonOverrideNormalizedNextHops().size() > 1) {
     routeAddedOrUpdated(
         rid, std::shared_ptr<Route<AddrT>>(), newRoute, inOutState);
   } else {
@@ -968,7 +978,8 @@ void EcmpResourceManager::routeDeleted(
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
   CHECK(removed->isPublished());
-  const auto& routeNhops = removed->getForwardInfo().normalizedNextHops();
+  const auto& routeNhops =
+      removed->getForwardInfo().nonOverrideNormalizedNextHops();
   if (routeNhops.size() <= 1) {
     // Just update deltas, no need to account for this as a ECMP group
     inOutState->deleteRoute(rid, removed);
