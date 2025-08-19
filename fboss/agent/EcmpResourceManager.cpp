@@ -816,12 +816,12 @@ void EcmpResourceManager::routeAddedOrUpdated(
     }
   }
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
-  auto [idItr, inserted] = nextHopGroup2Id_.insert(
+  auto [idItr, grpInserted] = nextHopGroup2Id_.insert(
       {nhopSet, findCachedOrNewIdForNhops(nhopSet, *inOutState)});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
   bool isBackupEcmpGroupType =
       newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
-  if (inserted) {
+  if (grpInserted) {
     if (ecmpLimitReached && !isBackupEcmpGroupType) {
       /*
        * If ECMP limit is reached and route does not point to a backup
@@ -843,9 +843,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
                                              : "incremented to: ")
                  << inOutState->nonBackupEcmpGroupsCnt;
     } else {
-      std::tie(grpInfo, inserted) = nextHopGroupIdToInfo_.refOrEmplace(
+      std::tie(grpInfo, grpInserted) = nextHopGroupIdToInfo_.refOrEmplace(
           idItr->second, idItr->second, idItr, isBackupEcmpGroupType);
-      CHECK(inserted);
+      CHECK(grpInserted);
       inOutState->addOrUpdateRoute(
           rid, newRoute, false /* ecmpDemandExceeded*/);
       inOutState->nonBackupEcmpGroupsCnt += isBackupEcmpGroupType ? 0 : 1;
@@ -858,7 +858,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
   } else {
     // Route points to a existing group
     grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
-    if (grpInfo->isBackupEcmpGroupType() && !isBackupEcmpGroupType) {
+    if (grpInfo->hasOverrides() !=
+        newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops()) {
       auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
           rid, newRoute, idItr, false /*ecmpLimitReached*/, inOutState);
       CHECK_EQ(existingGrpInfo, grpInfo);
@@ -882,7 +883,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
   if (compressionPenaltyThresholdPct_) {
-    if (inserted) {
+    if (grpInserted) {
       /*
        * New group added, compute candidate merges
        * for it
