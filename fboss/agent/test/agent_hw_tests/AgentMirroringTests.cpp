@@ -691,7 +691,7 @@ TYPED_TEST(AgentIngressAclErspanMirroringTest, UpdateErspanAclMirror) {
 
 TYPED_TEST(
     AgentIngressPortErspanMirroringTruncateTest,
-    TrucatePortErspanMirror) {
+    TruncatePortErspanMirror) {
   this->testPortMirrorWithLargePacket(utility::kIngressErspan);
 }
 
@@ -713,7 +713,7 @@ TYPED_TEST(AgentEgressAclErspanMirroringTest, ErspanAclMirror) {
 
 TYPED_TEST(
     AgentEgressPortErspanMirroringTruncateTest,
-    TrucatePortErspanMirror) {
+    TruncatePortErspanMirror) {
   this->testPortMirrorWithLargePacket(utility::kEgressErspan);
 }
 
