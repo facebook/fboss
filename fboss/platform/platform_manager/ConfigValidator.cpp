@@ -39,7 +39,8 @@ constexpr auto kSymlinkDirs = {
     "gpiochips",
     "xcvrs",
     "flashes",
-    "watchdogs"};
+    "watchdogs",
+    "mdio-busses"};
 // Supported modalias - spidev +
 // https://github.com/torvalds/linux/blob/master/drivers/spi/spidev.c#L702
 constexpr auto kSpiDevModaliases = {
@@ -359,6 +360,9 @@ bool ConfigValidator::isValidPciDeviceConfig(
   for (const auto& config : *pciDeviceConfig.miscCtrlConfigs()) {
     fpgaIpBlockConfigs.push_back(config);
   }
+  for (const auto& config : *pciDeviceConfig.mdioBusConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
 
   std::set<std::string> uniqueNames{};
   for (const auto& config : fpgaIpBlockConfigs) {
@@ -538,7 +542,8 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.gpioChipConfigs(),
               *pciDeviceConfig.watchdogConfigs(),
               *pciDeviceConfig.infoRomConfigs(),
-              *pciDeviceConfig.miscCtrlConfigs())) {
+              *pciDeviceConfig.miscCtrlConfigs(),
+              *pciDeviceConfig.mdioBusConfigs())) {
         return true;
       }
     }
