@@ -90,7 +90,7 @@ class TunManager : public StateObserver {
 
  private:
   /**
-   * @brief Probed routes from the kernel.
+   * @brief Probed route from the kernel.
    */
   struct ProbedRoute {
     /*< Address family (AF_INET for IPv4, AF_INET6 for IPv6) */
@@ -268,6 +268,9 @@ class TunManager : public StateObserver {
   bool probeDone_{false};
 
   uint64_t numSyncs_{0};
+
+  /*< Container to store probed routes from kernel */
+  std::vector<ProbedRoute> probedRoutes_;
 
   enum : uint8_t {
     /**
