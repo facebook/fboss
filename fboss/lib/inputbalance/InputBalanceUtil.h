@@ -122,5 +122,10 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
     const std::unordered_map<std::string, int>& portToVirtualDevice,
     bool verbose);
 
+std::vector<std::pair<std::string, InputBalanceDestType>>
+getSrcSwitchesToCheckInputBalance(
+    const std::string& switchName,
+    const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
+
 } // namespace utility
 } // namespace facebook::fboss

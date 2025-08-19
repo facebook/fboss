@@ -620,4 +620,62 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
   return inputBalanceResult;
 }
 
+std::vector<std::pair<std::string, InputBalanceDestType>>
+getSrcSwitchesToCheckInputBalance(
+    const std::string& dstSwitchName,
+    const std::map<int64_t, cfg::DsfNode>& dsfNodeMap) {
+  std::vector<std::pair<std::string, InputBalanceDestType>> result;
+
+  if (!isDualStage(dsfNodeMap)) {
+    // For single stage, return all fabric nodes with SINGLE_STAGE_FDSW_INTRA
+    for (const auto& [_, dsfNode] : dsfNodeMap) {
+      if (dsfNode.type() == cfg::DsfNodeType::FABRIC_NODE) {
+        result.emplace_back(
+            dsfNode.name().value(),
+            InputBalanceDestType::SINGLE_STAGE_FDSW_INTRA);
+      }
+    }
+    return result;
+  }
+
+  auto nameToDsfNode = switchNameToDsfNode(dsfNodeMap);
+
+  auto it = nameToDsfNode.find(dstSwitchName);
+  if (it == nameToDsfNode.end()) {
+    throw std::runtime_error("No DSF node found for " + dstSwitchName);
+  }
+  auto inputClusterId = it->second.clusterId();
+
+  if (!inputClusterId.has_value()) {
+    throw std::runtime_error(
+        "No cluster ID found for input DSF node: " + dstSwitchName);
+  }
+
+  for (const auto& [_, dsfNode] : dsfNodeMap) {
+    if (dsfNode.type() == cfg::DsfNodeType::FABRIC_NODE &&
+        dsfNode.fabricLevel().has_value()) {
+      auto switchName = dsfNode.name().value();
+
+      if (dsfNode.fabricLevel().value() == 1 &&
+          dsfNode.clusterId().has_value()) {
+        if (switchName == dstSwitchName) {
+          continue;
+        }
+
+        int clusterID = dsfNode.clusterId().value();
+        InputBalanceDestType destType = (clusterID == inputClusterId.value())
+            ? InputBalanceDestType::DUAL_STAGE_FDSW_INTRA
+            : InputBalanceDestType::DUAL_STAGE_FDSW_INTER;
+
+        result.emplace_back(switchName, destType);
+      } else if (dsfNode.fabricLevel().value() == 2) {
+        result.emplace_back(
+            switchName, InputBalanceDestType::DUAL_STAGE_SDSW_INTER);
+      }
+    }
+  }
+
+  return result;
+}
+
 } // namespace facebook::fboss::utility
