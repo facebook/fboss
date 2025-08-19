@@ -131,17 +131,22 @@ void validateBufferPoolWatermarkCounters(
     uint64_t globalHeadroomWatermark{};
     uint64_t globalSharedWatermark{};
     ensemble->getSw()->updateStats();
-    for (const auto& [switchIdx, stats] :
-         ensemble->getSw()->getHwSwitchStatsExpensive()) {
-      for (const auto& [pool, bytes] :
-           *stats.switchWatermarkStats()->globalHeadroomWatermarkBytes()) {
-        globalHeadroomWatermark += bytes;
+    // Watermarks may be cleared on read by the stats thread, so read the
+    // cached p100 value from fb303 instead.
+    for (auto asic : ensemble->getL3Asics()) {
+      facebook::fboss::SwitchID switchId(*asic->getSwitchId());
+      auto sharedCounters = ensemble->getFb303RegexCounters(
+          "buffer_watermark_global_shared(.itm.*)?.p100.60", switchId);
+      for (const auto& [_, val] : sharedCounters) {
+        globalSharedWatermark += val;
       }
-      for (const auto& [pool, bytes] :
-           *stats.switchWatermarkStats()->globalSharedWatermarkBytes()) {
-        globalSharedWatermark += bytes;
+      auto headroomCounters = ensemble->getFb303RegexCounters(
+          "buffer_watermark_global_headroom(.itm.*)?.p100.60", switchId);
+      for (const auto& [_, val] : sharedCounters) {
+        globalHeadroomWatermark += val;
       }
     }
+
     for (auto portId : portIds) {
       XLOG(INFO) << "validateBufferPoolWatermarkCounters: Port " << portId
                  << ": "
