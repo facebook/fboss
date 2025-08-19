@@ -142,11 +142,12 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
         auto localRDSW = utility::getInterfaceDevicesInCluster(
             nameToDsfNode, localClusterID.value());
-        auto neighborReachability =
-            getNeighborReachability(localRDSW, neighborToPorts, dstSwitchName);
 
         if (localClusterID.value() != dstClusterID) {
           // Inter-zone destination
+
+          auto neighborReachability = getNeighborReachability(
+              localRDSW, neighborToPorts, dstSwitchName);
           return createModel(utility::checkInputBalanceDualStage(
               utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTER,
               dstSwitchName,
@@ -162,6 +163,13 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
           selfReachability = utility::filterReachabilityByDst(
               dstSwitchName, selfReachability, neighborToPorts);
+
+          // Also need to check reachability from SDSW and local RDSW
+          auto neighbors =
+              utility::getLayer2FabricDevicesInCluster(nameToDsfNode);
+          neighbors.insert(neighbors.end(), localRDSW.begin(), localRDSW.end());
+          auto neighborReachability = getNeighborReachability(
+              neighbors, neighborToPorts, dstSwitchName);
 
           return createModel(utility::checkInputBalanceDualStage(
               utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTRA,
