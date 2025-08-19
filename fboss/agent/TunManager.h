@@ -89,6 +89,20 @@ class TunManager : public StateObserver {
   bool isValidNlSocket();
 
  private:
+  /**
+   * @brief Probed routes from the kernel.
+   */
+  struct ProbedRoute {
+    /*< Address family (AF_INET for IPv4, AF_INET6 for IPv6) */
+    int family{};
+    /*< Routing table identifier */
+    int tableId{};
+    /*< Destination address/network as string */
+    std::string destination;
+    /*< Network interface index */
+    int ifIndex{};
+  };
+
   // no copy to assign
   TunManager(const TunManager&) = delete;
   TunManager& operator=(const TunManager&) = delete;
