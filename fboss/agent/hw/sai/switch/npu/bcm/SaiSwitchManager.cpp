@@ -27,17 +27,14 @@ void fillHwSwitchDramStats(
       case SAI_SWITCH_STAT_DEVICE_DRAM_DEQUEUED_BYTES:
         hwSwitchDramStats.dramDequeuedBytes() = value;
         break;
-#if defined(BRCM_SAI_SDK_GTE_11_0)
       case SAI_SWITCH_STAT_DEVICE_DRAM_BLOCK_TOTAL_TIME:
         hwSwitchDramStats.dramBlockedTimeNsec() = value;
         break;
 #endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-      // TODO (nivinl): Stats ID not yet available in 13.x!
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_SWITCH_STAT_DRAM_QUARANTINE_BUFFER_STATUS:
         hwSwitchDramStats.dramQuarantinedBufferCount() = value;
         break;
-#endif
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);

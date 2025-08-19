@@ -162,8 +162,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramBlockTime() {
 
 const std::vector<sai_stat_id_t>&
 SaiSwitchTraits::dramQuarantinedBufferStats() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-  // TODO (nivinl): Stats ID not yet available in 13.x!
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_SWITCH_STAT_DRAM_QUARANTINE_BUFFER_STATUS};
 #else
@@ -623,8 +622,7 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeTechSupportType::operator()() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-  // TODO (nivinl): Attr not yet available in 13.x!
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   return SAI_SWITCH_ATTR_TECH_SUPPORT_TYPE;
 #endif
   return std::nullopt;
