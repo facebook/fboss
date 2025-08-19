@@ -714,7 +714,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
   }
   const auto& curForwardInfo = route->getForwardInfo();
   auto newForwardInfo = RouteNextHopEntry(
-      curForwardInfo.normalizedNextHops(),
+      curForwardInfo.getNextHopSet(),
       curForwardInfo.getAdminDistance(),
       curForwardInfo.getCounterID(),
       curForwardInfo.getClassID(),
