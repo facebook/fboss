@@ -411,7 +411,7 @@ void EcmpResourceManager::reclaimMergeGroups(
     inOutState->nonBackupEcmpGroupsCnt += curMergeSet.size() - 1;
     inOutState->updated = true;
   }
-  pruneFromMergedGroups(groupIdsToReclaim);
+  pruneFromMergeGroupsImpl(groupIdsToReclaim, mergedGroups_);
   computeCandidateMerges(groupIdsToReclaim.begin(), groupIdsToReclaim.end());
 }
 
@@ -1030,6 +1030,7 @@ bool EcmpResourceManager::pruneFromCandidateMerges(
 
 bool EcmpResourceManager::pruneFromMergedGroups(
     const NextHopGroupIds& groupIds) {
+  XLOG(DBG2) << " Pruning from  merged groups: " << groupIds;
   return pruneFromMergeGroupsImpl(groupIds, mergedGroups_);
 }
 
