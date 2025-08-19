@@ -781,13 +781,15 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
 }
 
 template <typename AddrT>
-bool EcmpResourceManager::routesEqual(
+bool EcmpResourceManager::routeFwdEqual(
     const std::shared_ptr<Route<AddrT>>& oldRoute,
     const std::shared_ptr<Route<AddrT>>& newRoute) const {
-  return oldRoute->getForwardInfo().normalizedNextHops() ==
-      newRoute->getForwardInfo().normalizedNextHops() &&
+  return oldRoute->getForwardInfo().getNextHopSet() ==
+      newRoute->getForwardInfo().getNextHopSet() &&
       oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() ==
-      newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+      newRoute->getForwardInfo().getOverrideEcmpSwitchingMode() &&
+      oldRoute->getForwardInfo().getOverrideNextHops() ==
+      newRoute->getForwardInfo().getOverrideNextHops();
 }
 
 template <typename AddrT>
@@ -802,7 +804,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
   bool ecmpLimitReached = inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_;
   if (oldRoute) {
-    DCHECK(!routesEqual(oldRoute, newRoute));
+    DCHECK(!routeFwdEqual(oldRoute, newRoute));
     if (oldRoute->getForwardInfo().normalizedNextHops() !=
         newRoute->getForwardInfo().normalizedNextHops()) {
       /*
@@ -1104,7 +1106,7 @@ void EcmpResourceManager::processRouteUpdates(
         }
         // Both old and new are resolved
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
-        if (!routesEqual(oldRoute, newRoute)) {
+        if (!routeFwdEqual(oldRoute, newRoute)) {
           routeUpdated(rid, oldRoute, newRoute, inOutState);
         } else {
           // Nexthops and override group type did not change,
