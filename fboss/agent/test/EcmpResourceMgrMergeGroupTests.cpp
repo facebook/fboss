@@ -90,6 +90,40 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   assertCost(optimalMergeSet);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, incReferenceToMergedGroup) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto deltas = addNextRoute();
+  EXPECT_EQ(deltas.size(), 2);
+  auto gid = *optimalMergeSet.begin();
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getMergeGroupConsolidationInfo(gid);
+  auto gidPfx =
+      *sw_->getEcmpResourceManager()->getGroupIdToPrefix()[gid].begin();
+  auto newPrefix = nextPrefix();
+  deltas = addRoute(
+      newPrefix,
+      sw_->getEcmpResourceManager()
+          ->getGroupInfo(gidPfx.first, gidPfx.second)
+          ->getNhops());
+  EXPECT_EQ(deltas.size(), 1);
+  auto afterConsolidationInfo =
+      sw_->getEcmpResourceManager()->getMergeGroupConsolidationInfo(gid);
+  EXPECT_EQ(
+      beforeConsolidationInfo->groupId2Penalty.size(),
+      afterConsolidationInfo->groupId2Penalty.size());
+  for (auto [group, beforePenalty] : beforeConsolidationInfo->groupId2Penalty) {
+    if (group == gid) {
+      EXPECT_EQ(
+          afterConsolidationInfo->groupId2Penalty[group], 2 * beforePenalty);
+    } else {
+      EXPECT_EQ(afterConsolidationInfo->groupId2Penalty[group], beforePenalty);
+    }
+  }
+}
+
 TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
   // Cache prefixes to be affected by optimal merge grp selection.
   // We will later assert that these start pointing to merged groups.
