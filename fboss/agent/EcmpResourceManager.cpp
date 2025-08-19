@@ -77,20 +77,6 @@ std::ostream& operator<<(
   return os;
 }
 
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::vector<EcmpResourceManager::NextHopGroupId>& gids) {
-  os << "[" << folly::join(", ", gids) << "]";
-  return os;
-}
-
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::unordered_set<EcmpResourceManager::NextHopGroupId>& gids) {
-  os << "[" << folly::join(", ", gids) << "]";
-  return os;
-}
-
 bool pruneFromMergeGroupsImpl(
     const EcmpResourceManager::NextHopGroupIds& groupIdsToPrune,
     EcmpResourceManager::GroupIds2ConsolidationInfo& pruneFrom) {
