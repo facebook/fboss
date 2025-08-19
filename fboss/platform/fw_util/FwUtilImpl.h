@@ -43,6 +43,8 @@ class FwUtilImpl {
   std::string printFpdList();
   void doFirmwareAction(const std::string&, const std::string&);
   void printVersion(const std::string&);
+  // Finds matching fpd case-insensitive
+  std::tuple<std::string, FwConfig> getFpd(const std::string&);
 
  private:
   void doPreUpgrade(const std::string&);
