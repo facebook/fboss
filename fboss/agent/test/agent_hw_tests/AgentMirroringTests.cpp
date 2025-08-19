@@ -23,10 +23,6 @@
 
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-const std::string kIngressSpan = "ingress_span";
-const std::string kIngressErspan = "ingress_erspan";
-const std::string kEgressSpan = "egress_span";
-const std::string kEgressErspan = "egress_erspan";
 
 const std::string kMirrorAcl = "mirror_acl";
 
@@ -654,7 +650,7 @@ TYPED_TEST(AgentIngressPortSpanMirroringTest, SpanPortMirror) {
 }
 
 TYPED_TEST(AgentIngressPortSpanMirroringTest, UpdateSpanPortMirror) {
-  this->testUpdatePortMirror(kIngressSpan);
+  this->testUpdatePortMirror(utility::kIngressSpan);
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveSpanMirror) {
@@ -670,7 +666,7 @@ TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveErspanMirror) {
 }
 
 TYPED_TEST(AgentIngressPortErspanMirroringTest, UpdateErspanPortMirror) {
-  this->testUpdatePortMirror(kIngressErspan);
+  this->testUpdatePortMirror(utility::kIngressErspan);
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, SpanAclMirror) {
@@ -678,7 +674,7 @@ TYPED_TEST(AgentIngressAclSpanMirroringTest, SpanAclMirror) {
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, UpdateSpanAclMirror) {
-  this->testUpdateAclMirror(kIngressSpan);
+  this->testUpdateAclMirror(utility::kIngressSpan);
 }
 
 TYPED_TEST(AgentIngressAclErspanMirroringTest, ErspanAclMirror) {
@@ -686,7 +682,7 @@ TYPED_TEST(AgentIngressAclErspanMirroringTest, ErspanAclMirror) {
 }
 
 TYPED_TEST(AgentIngressAclErspanMirroringTest, UpdateErspanAclMirror) {
-  this->testUpdateAclMirror(kIngressErspan);
+  this->testUpdateAclMirror(utility::kIngressErspan);
 }
 
 TYPED_TEST(
