@@ -12,6 +12,7 @@ add_fbthrift_cpp_library(
 )
 
 add_executable(showtech
+  fboss/platform/showtech/I2cHelper.cpp
   fboss/platform/showtech/Main.cpp
   fboss/platform/showtech/Utils.cpp
 )
@@ -21,6 +22,8 @@ target_link_libraries(showtech
   fb303::fb303
   platform_utils
   showtech_config_cpp2
+  platform_config_lib
+  platform_name_lib
 )
 
 install(TARGETS showtech)
