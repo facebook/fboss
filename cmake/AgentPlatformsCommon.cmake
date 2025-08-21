@@ -48,5 +48,6 @@ target_link_libraries(platform_mapping_utils
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   icecube800bc_platform_mapping
+  glath05a-64o_platform_mapping
   ${RE2}
 )
