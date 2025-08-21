@@ -538,11 +538,13 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::addOrUpdateRoute(
   return consolidate(newState);
 }
 
-std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoute(
-    const RoutePrefixV6& prefix6) {
+std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoutes(
+    const std::vector<RoutePrefixV6>& prefix6s) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
-  fib6->removeNode(prefix6.str());
+  for (const auto& prefix6 : prefix6s) {
+    fib6->removeNode(prefix6.str());
+  }
   newState->publish();
   return consolidate(newState);
 }

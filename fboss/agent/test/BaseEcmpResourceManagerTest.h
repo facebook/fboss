@@ -104,7 +104,10 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const RouteNextHopSet& nhops) {
     return addOrUpdateRoute(prefix6, nhops);
   }
-  std::vector<StateDelta> rmRoute(const RoutePrefixV6& prefix6);
+  std::vector<StateDelta> rmRoutes(const std::vector<RoutePrefixV6>& prefix6s);
+  std::vector<StateDelta> rmRoute(const RoutePrefixV6& prefix6) {
+    return rmRoutes({prefix6});
+  }
 
   void assertTargetState(
       const std::shared_ptr<SwitchState>& targetState,
