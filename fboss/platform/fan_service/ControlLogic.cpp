@@ -210,13 +210,13 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     } else if (!accelerate && !deadFanExists) {
       tableToUse = *sensor.normalDownTable();
     } else if (accelerate && deadFanExists) {
-      if(moreThanOneDeadFanExists && sensor.twoRotorsFailUpTable()) {
+      if (moreThanOneDeadFanExists && sensor.twoRotorsFailUpTable()) {
         tableToUse = *sensor.twoRotorsFailUpTable();
       } else {
         tableToUse = *sensor.failUpTable();
       }
     } else {
-      if(moreThanOneDeadFanExists && sensor.twoRotorsFailDownTable()) {
+      if (moreThanOneDeadFanExists && sensor.twoRotorsFailDownTable()) {
         tableToUse = *sensor.twoRotorsFailDownTable();
       } else {
         tableToUse = *sensor.failDownTable();
