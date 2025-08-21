@@ -374,11 +374,11 @@ void EcmpResourceManager::reclaimBackupGroups(
              << inOutState->nonBackupEcmpGroupsCnt;
 }
 
-void EcmpResourceManager::reclaimMergeGroups(
-    const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimOrdered,
-    const NextHopGroupIds& groupIdsToReclaimIn,
+void EcmpResourceManager::updateMergedGroups(
+    const std::set<NextHopGroupIds>& mergeSetsToUpdate,
+    const NextHopGroupIds& groupIdsToReclaimOrPruneIn,
     InputOutputState* inOutState) {
-  NextHopGroupIds groupIdsToReclaim = groupIdsToReclaimIn;
+  NextHopGroupIds groupIdsToReclaimOrPrune = groupIdsToReclaimOrPruneIn;
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> gid2Prefix;
   std::for_each(
       prefixToGroupInfo_.begin(),
@@ -387,22 +387,19 @@ void EcmpResourceManager::reclaimMergeGroups(
         gid2Prefix[pfxAndGroupInfo.second->getID()].push_back(
             pfxAndGroupInfo.first);
       });
-  for (auto i = 0; i < toReclaimOrdered.size();) {
-    auto curMergeGrpItr = toReclaimOrdered[i]->getMergedGroupInfoItr();
-    CHECK(curMergeGrpItr.has_value());
-    const auto& curMergeSet = (*curMergeGrpItr)->first;
+  for (const auto& curMergeSet : mergeSetsToUpdate) {
     CHECK_GT(curMergeSet.size(), 1);
     /*
      * To allow for partial reclaims, we compute a newMergeSet.
      * newMergeSet is the set of groups in curMergeSet which
-     * are not to be reclaimed.
+     * are not to be reclaimed or pruned
      */
     NextHopGroupIds newMergeSet;
     std::set_difference(
         curMergeSet.begin(),
         curMergeSet.end(),
-        groupIdsToReclaim.begin(),
-        groupIdsToReclaim.end(),
+        groupIdsToReclaimOrPrune.begin(),
+        groupIdsToReclaimOrPrune.end(),
         std::inserter(newMergeSet, newMergeSet.begin()));
     auto oldState = inOutState->out.back().newState();
     auto newState = oldState->clone();
@@ -416,8 +413,10 @@ void EcmpResourceManager::reclaimMergeGroups(
         for (const auto& pfx : gid2Prefix[mGid]) {
           updateRouteOverrides(pfx, newState);
         }
-        CHECK(toReclaimOrdered[i]->getMergedGroupInfoItr().has_value());
-        toReclaimOrdered[i++]->setMergedGroupInfoItr(std::nullopt);
+        if (auto grpInfo = nextHopGroupIdToInfo_.ref(mGid)) {
+          CHECK(grpInfo->getMergedGroupInfoItr().has_value());
+          grpInfo->setMergedGroupInfoItr(std::nullopt);
+        }
       }
     }
     /*
@@ -437,7 +436,7 @@ void EcmpResourceManager::reclaimMergeGroups(
       XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet << std::endl
                  << " since it has only one member group remaining: "
                  << newMergeSet;
-      groupIdsToReclaim.insert(*newMergeSet.begin());
+      groupIdsToReclaimOrPrune.insert(*newMergeSet.begin());
     } else {
       XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet;
     }
@@ -461,8 +460,28 @@ void EcmpResourceManager::reclaimMergeGroups(
     inOutState->nonBackupEcmpGroupsCnt += curMergeSet.size() - 1;
     inOutState->updated = true;
   }
-  pruneFromMergeGroupsImpl(groupIdsToReclaim, mergedGroups_);
-  computeCandidateMerges(groupIdsToReclaim.begin(), groupIdsToReclaim.end());
+  pruneFromMergeGroupsImpl(groupIdsToReclaimOrPrune, mergedGroups_);
+  // TODO remove pruned groups from groupIdsToReclaimOrPrune before
+  // computingCandidateMerges
+  computeCandidateMerges(
+      groupIdsToReclaimOrPrune.begin(), groupIdsToReclaimOrPrune.end());
+}
+
+void EcmpResourceManager::reclaimMergeGroups(
+    const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimOrdered,
+    const NextHopGroupIds& groupIdsToReclaim,
+    InputOutputState* inOutState) {
+  std::set<NextHopGroupIds> mergeSetsToUpdate;
+  std::for_each(
+      toReclaimOrdered.begin(),
+      toReclaimOrdered.end(),
+      [&mergeSetsToUpdate](const auto& grpInfo) {
+        auto curMergeGrpItr = grpInfo->getMergedGroupInfoItr();
+        CHECK(curMergeGrpItr.has_value());
+        const auto& curMergeSet = (*curMergeGrpItr)->first;
+        mergeSetsToUpdate.insert(curMergeSet);
+      });
+  updateMergedGroups(mergeSetsToUpdate, groupIdsToReclaim, inOutState);
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {

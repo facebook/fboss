@@ -185,6 +185,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
+  void updateMergedGroups(
+      const std::set<NextHopGroupIds>& mergeSetsToUpdate,
+      const NextHopGroupIds& groupIdsToReclaim,
+      InputOutputState* inOutState);
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
