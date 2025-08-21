@@ -4,6 +4,7 @@
 
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 
+#include <folly/logging/xlog.h>
 #include "fboss/lib/fpga/FbFpgaI2c.h"
 #include "fboss/lib/fpga/FbFpgaPimQsfpController.h"
 #include "fboss/lib/fpga/FbFpgaSpi.h"
@@ -38,16 +39,21 @@ class MinipackBasePimContainer : public MultiPimPlatformPimContainer {
   }
 
   bool isPimPresent() const override;
+  void markPimInitialized();
+  bool isPimInitialized() const;
 
   void initHW(bool /* forceReset */ = false) override {
     // no-op
   }
+
+  PimState getPimState() const override;
 
  protected:
   static constexpr auto kNumLedPerPim = 16;
   std::unique_ptr<FbFpgaPimQsfpController> pimQsfpController_;
   std::unique_ptr<MinipackLed> ledControllers_[kNumLedPerPim];
   std::unique_ptr<MinipackPimController> pimController_;
+  std::unique_ptr<FpgaMemoryRegion> basePimControl_;
   int pim_;
 };
 
