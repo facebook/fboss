@@ -23,6 +23,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge800baPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatform.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/platforms/sai/SaiJanga800bicPlatform.h"
@@ -36,7 +37,6 @@
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge800baPlatform.h"
 
 namespace facebook::fboss {
 
