@@ -188,6 +188,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
     } else if (modelName.find("ICECUBE") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
+    } else if (modelName.find("WEDGE800BA") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800BA;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -254,6 +256,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_YANGRA;
     } else if (FLAGS_mode == "minipack3n") {
       type_ = PlatformType::PLATFORM_MINIPACK3N;
+    } else if (FLAGS_mode == "wedge800ba") {
+      type_ = PlatformType::PLATFORM_WEDGE800BA;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
