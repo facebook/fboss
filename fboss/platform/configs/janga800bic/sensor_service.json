@@ -8273,8 +8273,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan1_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8284,8 +8284,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan2_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }
@@ -8295,8 +8295,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan3_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8306,8 +8306,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan4_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }
@@ -8317,8 +8317,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan5_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8328,8 +8328,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan6_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }
@@ -8339,8 +8339,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan7_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8350,8 +8350,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan8_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }
@@ -8370,8 +8370,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan1_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8381,8 +8381,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan2_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }
@@ -8392,8 +8392,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan3_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8403,8 +8403,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan4_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }
@@ -8414,8 +8414,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan5_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8425,8 +8425,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan6_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }
@@ -8436,8 +8436,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan7_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 12100,
-            "maxAlarmVal": 11000,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2400,
             "lowerCriticalVal": 1250
           }
@@ -8447,8 +8447,8 @@
           "sysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD_2/fan8_input",
           "type": 4,
           "thresholds": {
-            "upperCriticalVal": 14850,
-            "maxAlarmVal": 13500,
+            "upperCriticalVal": 20000,
+            "maxAlarmVal": 18000,
             "minAlarmVal": 2900,
             "lowerCriticalVal": 1500
           }

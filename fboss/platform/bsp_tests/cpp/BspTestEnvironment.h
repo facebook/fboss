@@ -10,6 +10,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_runtime_config_types.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 

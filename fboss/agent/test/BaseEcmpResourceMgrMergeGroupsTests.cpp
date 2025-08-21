@@ -26,12 +26,15 @@ BaseEcmpResourceMgrMergeGroupsTest::defaultNhopSets() const {
 
 std::vector<RouteNextHopSet> BaseEcmpResourceMgrMergeGroupsTest::nextNhopSets(
     int numSets) const {
-  auto nhopsStart = defaultNhopSets().back();
+  auto nhopsCur = defaultNhopSets().back();
   std::vector<RouteNextHopSet> nhopsTo;
-  for (auto i = 0; i < numSets; ++i) {
-    nhopsStart.erase(nhopsStart.begin());
-    CHECK_GT(nhopsStart.size(), 1);
-    nhopsTo.push_back(nhopsStart);
+  auto allNhops = sw_->getEcmpResourceManager()->getNhopsToId();
+  while (nhopsTo.size() < numSets) {
+    CHECK_GT(nhopsCur.size(), 2);
+    nhopsCur.erase(nhopsCur.begin());
+    if (!allNhops.contains(nhopsCur)) {
+      nhopsTo.push_back(nhopsCur);
+    }
   }
   return nhopsTo;
 }
@@ -66,7 +69,8 @@ void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
     auto nhopsGrpId = nhops2Id.find(nhops)->second;
     EXPECT_EQ(expectedGrpId++, nhopsGrpId);
     auto grpIdsToConsolidationInfo =
-        sw_->getEcmpResourceManager()->getConsolidationInfo(nhopsGrpId);
+        sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+            nhopsGrpId);
     for (EcmpResourceManager::NextHopGroupId otherGrpId = 1;
          otherGrpId <= defaultNhopSets().size();
          ++otherGrpId) {
@@ -99,6 +103,19 @@ void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
   }
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
 }
+
+std::vector<StateDelta> BaseEcmpResourceMgrMergeGroupsTest::addNextRoute() {
+  auto nhopSets = nextNhopSets(1);
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto newRoute = makeRoute(nextPrefix(), *nhopSets.begin())->clone();
+  newRoute->setResolved(
+      RouteNextHopEntry(*nhopSets.begin(), kDefaultAdminDistance));
+  fib6->addNode(newRoute);
+  return consolidate(newState);
+}
+
 TEST_F(BaseEcmpResourceMgrMergeGroupsTest, init) {}
 
 TEST_F(BaseEcmpResourceMgrMergeGroupsTest, reloadInvalidConfigs) {

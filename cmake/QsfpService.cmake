@@ -33,6 +33,7 @@ target_link_libraries(qsfp_lib
     qsfp_bsp_core
     thrift_cow_serializer
     io_stats_recorder
+    cmis_cpp2
 )
 
 add_library(qsfp_config

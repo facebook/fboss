@@ -473,7 +473,7 @@ add_executable(fboss2
 
 target_link_libraries(fboss2
   CLI11::CLI11
-  tabulate
+  tabulate::tabulate
   fb303_cpp2
   ctrl_cpp2
   hw_ctrl_cpp2
@@ -534,30 +534,5 @@ target_link_libraries(fboss2
   show_interface_counters_fec_uncorrectable
   ${RE2}
 )
-
-add_library(tabulate
-  fboss/cli/fboss2/tabulate/asciidoc_exporter.hpp
-  fboss/cli/fboss2/tabulate/cell.hpp
-  fboss/cli/fboss2/tabulate/color.hpp
-  fboss/cli/fboss2/tabulate/column.hpp
-  fboss/cli/fboss2/tabulate/column_format.hpp
-  fboss/cli/fboss2/tabulate/exporter.hpp
-  fboss/cli/fboss2/tabulate/font_align.hpp
-  fboss/cli/fboss2/tabulate/font_style.hpp
-  fboss/cli/fboss2/tabulate/format.hpp
-  fboss/cli/fboss2/tabulate/latex_exporter.hpp
-  fboss/cli/fboss2/tabulate/markdown_exporter.hpp
-  fboss/cli/fboss2/tabulate/optional_lite.hpp
-  fboss/cli/fboss2/tabulate/printer.hpp
-  fboss/cli/fboss2/tabulate/row.hpp
-  fboss/cli/fboss2/tabulate/table.hpp
-  fboss/cli/fboss2/tabulate/table_internal.hpp
-  fboss/cli/fboss2/tabulate/tabulate.hpp
-  fboss/cli/fboss2/tabulate/termcolor.hpp
-  fboss/cli/fboss2/tabulate/utf8.hpp
-  fboss/cli/fboss2/tabulate/variant_lite.hpp
-)
-
-set_target_properties(tabulate PROPERTIES LINKER_LANGUAGE CXX)
 
 install(TARGETS fboss2)

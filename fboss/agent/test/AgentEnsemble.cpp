@@ -25,6 +25,7 @@
 
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <folly/testing/TestUtil.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/ReconnectingRequestChannel.h>
 #include <thrift/lib/cpp2/async/RetryingRequestChannel.h>
@@ -445,6 +446,16 @@ void AgentEnsemble::runDiagCommand(
         false /* bypassFilter */);
     output = out;
   }
+}
+
+void AgentEnsemble::runCint(
+    const std::string& cintData,
+    std::string& output,
+    const SwitchID& switchId) {
+  folly::test::TemporaryFile file;
+  folly::writeFull(file.fd(), cintData.c_str(), cintData.size());
+  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  runDiagCommand(cmd, output, switchId);
 }
 
 LinkStateToggler* AgentEnsemble::getLinkToggler() {

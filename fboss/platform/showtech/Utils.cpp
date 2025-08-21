@@ -7,6 +7,8 @@
 
 #include <fmt/core.h>
 
+using namespace facebook::fboss::platform::showtech_config;
+
 namespace facebook::fboss::platform {
 
 void Utils::printHostDetails() {
@@ -44,13 +46,13 @@ void Utils::printFwutilDetails() {
             << std::endl;
 }
 
-void Utils::printLspciDetails(bool verbose) {
+void Utils::printLspciDetails() {
   std::cout << "##### LSPCI #####" << std::endl;
-  std::string cmd = verbose ? "lspci -vvv" : "lspci";
+  std::string cmd = "lspci -vvv";
   std::cout << platformUtils_.execCommand(cmd).second << std::endl;
 }
 
-void Utils::printPortDetails(bool verbose) {
+void Utils::printPortDetails() {
   runFbossCliCmd("port");
   runFbossCliCmd("fabric");
   runFbossCliCmd("lldp");
@@ -59,8 +61,8 @@ void Utils::printPortDetails(bool verbose) {
   runFbossCliCmd("interface flaps");
   runFbossCliCmd("interface phy");
   runFbossCliCmd("transceiver");
-  if (verbose && !std::filesystem::exists("/etc/ramdisk")) {
-    std::cout << "#### wedge_qsfp_util ####" << std::endl;
+  if (!std::filesystem::exists("/etc/ramdisk")) {
+    std::cout << "##### wedge_qsfp_util #####" << std::endl;
     auto [ret, output] =
         platformUtils_.execCommand("timeout 30 wedge_qsfp_util");
     std::cout << output << std::endl;
@@ -79,22 +81,21 @@ void Utils::printSensorDetails() {
             << std::endl;
 }
 
-void Utils::printI2cDetails(bool verbose) {
+void Utils::printI2cDetails() {
   std::cout << "##### I2C Information #####" << std::endl;
   auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
   std::cout << output << std::endl;
-  if (!verbose) {
-    return;
-  }
-  std::istringstream outputStream(output);
-  std::string line;
-  while (std::getline(outputStream, line)) {
-    std::istringstream lineStream(line);
-    std::string bus;
-    lineStream >> bus;
-    std::string busNumber = bus.substr(4); // Remove "i2c-" prefix
-    auto cmd = fmt::format("time i2cdetect -y {}", busNumber);
-    std::cout << fmt::format("##### Running `{}` #####", cmd) << std::endl;
+
+  auto i2cBuses = i2cHelper_.findI2cBuses();
+  for (const auto& [busNum, busName] : i2cBuses) {
+    if (config_.i2cBusIgnore()->contains(busName)) {
+      std::cout << fmt::format("Skipping bus `i2c-{} - {}`", busNum, busName)
+                << std::endl;
+      continue;
+    }
+    auto cmd = fmt::format("time i2cdetect -y {}", busNum);
+    std::cout << fmt::format("##### Running `{}` for {} #####", cmd, busName)
+              << std::endl;
     std::cout << platformUtils_.execCommand(cmd).second << std::endl;
   }
 }
@@ -106,4 +107,5 @@ void Utils::runFbossCliCmd(const std::string& cmd) {
     std::cout << platformUtils_.execCommand(fullCmd).second << std::endl;
   }
 }
+
 } // namespace facebook::fboss::platform

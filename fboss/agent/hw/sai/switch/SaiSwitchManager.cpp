@@ -1035,6 +1035,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
         SaiSwitchTraits::fdrFifoWatermarkBytes().begin(),
         SaiSwitchTraits::fdrFifoWatermarkBytes().end());
   }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::fabricInterCellJitterWatermarkStats().begin(),
+        SaiSwitchTraits::fabricInterCellJitterWatermarkStats().end());
+  }
   return stats;
 }
 

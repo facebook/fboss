@@ -3552,7 +3552,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/14/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3571,43 +3571,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 199,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/14/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/10/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3624,7 +3588,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/16/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3643,43 +3607,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 203,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/16/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/12/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3840,7 +3768,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/10/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3859,43 +3787,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 215,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/10/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/14/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3912,7 +3804,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/12/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3931,43 +3823,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 219,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/12/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/16/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -4128,7 +3984,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/6/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -4147,43 +4003,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 231,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/6/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/2/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -4416,7 +4236,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/2/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -4435,43 +4255,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0,
-        "scope": 0,
-        "conditionalEntropyRehash": false
-      },
-      {
-        "logicalID": 247,
-        "state": 2,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/2/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          "2": "eth1/6/5"
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -4728,7 +4512,7 @@
         "scope": 0
       },
       {
-        "intfID": 2000,
+        "intfID": 2001,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4743,7 +4527,7 @@
         "portID": 1
       },
       {
-        "intfID": 2001,
+        "intfID": 2002,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4758,7 +4542,7 @@
         "portID": 3
       },
       {
-        "intfID": 2002,
+        "intfID": 2003,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4773,7 +4557,7 @@
         "portID": 5
       },
       {
-        "intfID": 2003,
+        "intfID": 2004,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4788,7 +4572,7 @@
         "portID": 7
       },
       {
-        "intfID": 2004,
+        "intfID": 2005,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4803,7 +4587,7 @@
         "portID": 9
       },
       {
-        "intfID": 2005,
+        "intfID": 2006,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4818,7 +4602,7 @@
         "portID": 11
       },
       {
-        "intfID": 2006,
+        "intfID": 2007,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4833,7 +4617,7 @@
         "portID": 13
       },
       {
-        "intfID": 2007,
+        "intfID": 2008,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4848,7 +4632,7 @@
         "portID": 15
       },
       {
-        "intfID": 2008,
+        "intfID": 2009,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4863,7 +4647,7 @@
         "portID": 17
       },
       {
-        "intfID": 2009,
+        "intfID": 2010,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4878,7 +4662,7 @@
         "portID": 19
       },
       {
-        "intfID": 2010,
+        "intfID": 2011,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4893,7 +4677,7 @@
         "portID": 21
       },
       {
-        "intfID": 2011,
+        "intfID": 2012,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4908,7 +4692,7 @@
         "portID": 23
       },
       {
-        "intfID": 2012,
+        "intfID": 2013,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4923,7 +4707,7 @@
         "portID": 25
       },
       {
-        "intfID": 2013,
+        "intfID": 2014,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4938,7 +4722,7 @@
         "portID": 27
       },
       {
-        "intfID": 2014,
+        "intfID": 2015,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4953,7 +4737,7 @@
         "portID": 29
       },
       {
-        "intfID": 2015,
+        "intfID": 2016,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4968,7 +4752,7 @@
         "portID": 31
       },
       {
-        "intfID": 2016,
+        "intfID": 2017,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4983,7 +4767,7 @@
         "portID": 33
       },
       {
-        "intfID": 2017,
+        "intfID": 2018,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -4998,7 +4782,7 @@
         "portID": 35
       },
       {
-        "intfID": 2018,
+        "intfID": 2019,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5013,7 +4797,7 @@
         "portID": 37
       },
       {
-        "intfID": 2019,
+        "intfID": 2020,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5028,7 +4812,7 @@
         "portID": 39
       },
       {
-        "intfID": 2020,
+        "intfID": 2021,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5043,7 +4827,7 @@
         "portID": 41
       },
       {
-        "intfID": 2021,
+        "intfID": 2022,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5058,7 +4842,7 @@
         "portID": 43
       },
       {
-        "intfID": 2022,
+        "intfID": 2023,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5073,7 +4857,7 @@
         "portID": 45
       },
       {
-        "intfID": 2023,
+        "intfID": 2024,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5088,7 +4872,7 @@
         "portID": 47
       },
       {
-        "intfID": 2024,
+        "intfID": 2025,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5103,7 +4887,7 @@
         "portID": 49
       },
       {
-        "intfID": 2025,
+        "intfID": 2026,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5118,7 +4902,7 @@
         "portID": 51
       },
       {
-        "intfID": 2026,
+        "intfID": 2027,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5133,7 +4917,7 @@
         "portID": 53
       },
       {
-        "intfID": 2027,
+        "intfID": 2028,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5148,7 +4932,7 @@
         "portID": 55
       },
       {
-        "intfID": 2028,
+        "intfID": 2029,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5163,7 +4947,7 @@
         "portID": 57
       },
       {
-        "intfID": 2029,
+        "intfID": 2030,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5178,7 +4962,7 @@
         "portID": 59
       },
       {
-        "intfID": 2030,
+        "intfID": 2031,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5193,7 +4977,7 @@
         "portID": 61
       },
       {
-        "intfID": 2031,
+        "intfID": 2032,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5208,7 +4992,7 @@
         "portID": 63
       },
       {
-        "intfID": 2032,
+        "intfID": 2033,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5223,7 +5007,7 @@
         "portID": 65
       },
       {
-        "intfID": 2033,
+        "intfID": 2034,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5238,7 +5022,7 @@
         "portID": 67
       },
       {
-        "intfID": 2034,
+        "intfID": 2035,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5253,7 +5037,7 @@
         "portID": 69
       },
       {
-        "intfID": 2035,
+        "intfID": 2036,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5268,7 +5052,7 @@
         "portID": 71
       },
       {
-        "intfID": 2036,
+        "intfID": 2037,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5283,7 +5067,7 @@
         "portID": 73
       },
       {
-        "intfID": 2037,
+        "intfID": 2038,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5298,7 +5082,7 @@
         "portID": 75
       },
       {
-        "intfID": 2038,
+        "intfID": 2039,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5313,7 +5097,7 @@
         "portID": 77
       },
       {
-        "intfID": 2039,
+        "intfID": 2040,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5328,7 +5112,7 @@
         "portID": 79
       },
       {
-        "intfID": 2040,
+        "intfID": 2041,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5343,7 +5127,7 @@
         "portID": 81
       },
       {
-        "intfID": 2041,
+        "intfID": 2042,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5358,7 +5142,7 @@
         "portID": 83
       },
       {
-        "intfID": 2042,
+        "intfID": 2043,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5373,7 +5157,7 @@
         "portID": 85
       },
       {
-        "intfID": 2043,
+        "intfID": 2044,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5388,7 +5172,7 @@
         "portID": 87
       },
       {
-        "intfID": 2044,
+        "intfID": 2045,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5403,7 +5187,7 @@
         "portID": 89
       },
       {
-        "intfID": 2045,
+        "intfID": 2046,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5418,7 +5202,7 @@
         "portID": 91
       },
       {
-        "intfID": 2046,
+        "intfID": 2047,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5433,7 +5217,7 @@
         "portID": 93
       },
       {
-        "intfID": 2047,
+        "intfID": 2048,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5448,7 +5232,7 @@
         "portID": 95
       },
       {
-        "intfID": 2048,
+        "intfID": 2049,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5463,7 +5247,7 @@
         "portID": 97
       },
       {
-        "intfID": 2049,
+        "intfID": 2050,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5478,7 +5262,7 @@
         "portID": 99
       },
       {
-        "intfID": 2050,
+        "intfID": 2051,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5493,7 +5277,7 @@
         "portID": 101
       },
       {
-        "intfID": 2051,
+        "intfID": 2052,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5508,7 +5292,7 @@
         "portID": 103
       },
       {
-        "intfID": 2052,
+        "intfID": 2053,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5523,7 +5307,7 @@
         "portID": 105
       },
       {
-        "intfID": 2053,
+        "intfID": 2054,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5538,7 +5322,7 @@
         "portID": 107
       },
       {
-        "intfID": 2054,
+        "intfID": 2055,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5553,7 +5337,7 @@
         "portID": 109
       },
       {
-        "intfID": 2055,
+        "intfID": 2056,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5568,7 +5352,7 @@
         "portID": 111
       },
       {
-        "intfID": 2056,
+        "intfID": 2057,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5583,7 +5367,7 @@
         "portID": 113
       },
       {
-        "intfID": 2057,
+        "intfID": 2058,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5598,7 +5382,7 @@
         "portID": 115
       },
       {
-        "intfID": 2058,
+        "intfID": 2059,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5613,7 +5397,7 @@
         "portID": 117
       },
       {
-        "intfID": 2059,
+        "intfID": 2060,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5628,7 +5412,7 @@
         "portID": 119
       },
       {
-        "intfID": 2060,
+        "intfID": 2061,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5643,7 +5427,7 @@
         "portID": 121
       },
       {
-        "intfID": 2061,
+        "intfID": 2062,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5658,7 +5442,7 @@
         "portID": 123
       },
       {
-        "intfID": 2062,
+        "intfID": 2063,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5673,7 +5457,7 @@
         "portID": 125
       },
       {
-        "intfID": 2063,
+        "intfID": 2064,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5688,7 +5472,7 @@
         "portID": 127
       },
       {
-        "intfID": 2064,
+        "intfID": 2065,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5703,7 +5487,7 @@
         "portID": 129
       },
       {
-        "intfID": 2065,
+        "intfID": 2066,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5718,7 +5502,7 @@
         "portID": 131
       },
       {
-        "intfID": 2066,
+        "intfID": 2067,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5733,7 +5517,7 @@
         "portID": 133
       },
       {
-        "intfID": 2067,
+        "intfID": 2068,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5748,7 +5532,7 @@
         "portID": 135
       },
       {
-        "intfID": 2068,
+        "intfID": 2069,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5763,7 +5547,7 @@
         "portID": 137
       },
       {
-        "intfID": 2069,
+        "intfID": 2070,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5778,7 +5562,7 @@
         "portID": 139
       },
       {
-        "intfID": 2070,
+        "intfID": 2071,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5793,7 +5577,7 @@
         "portID": 141
       },
       {
-        "intfID": 2071,
+        "intfID": 2072,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5808,7 +5592,7 @@
         "portID": 143
       },
       {
-        "intfID": 2072,
+        "intfID": 2073,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5823,7 +5607,7 @@
         "portID": 145
       },
       {
-        "intfID": 2073,
+        "intfID": 2074,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5838,7 +5622,7 @@
         "portID": 147
       },
       {
-        "intfID": 2074,
+        "intfID": 2075,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5853,7 +5637,7 @@
         "portID": 149
       },
       {
-        "intfID": 2075,
+        "intfID": 2076,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5868,7 +5652,7 @@
         "portID": 151
       },
       {
-        "intfID": 2076,
+        "intfID": 2077,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5883,7 +5667,7 @@
         "portID": 153
       },
       {
-        "intfID": 2077,
+        "intfID": 2078,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5898,7 +5682,7 @@
         "portID": 155
       },
       {
-        "intfID": 2078,
+        "intfID": 2079,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5913,7 +5697,7 @@
         "portID": 157
       },
       {
-        "intfID": 2079,
+        "intfID": 2080,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5928,7 +5712,7 @@
         "portID": 159
       },
       {
-        "intfID": 2080,
+        "intfID": 2081,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5943,7 +5727,7 @@
         "portID": 161
       },
       {
-        "intfID": 2081,
+        "intfID": 2082,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5958,7 +5742,7 @@
         "portID": 163
       },
       {
-        "intfID": 2082,
+        "intfID": 2083,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5973,7 +5757,7 @@
         "portID": 165
       },
       {
-        "intfID": 2083,
+        "intfID": 2084,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -5988,7 +5772,7 @@
         "portID": 167
       },
       {
-        "intfID": 2084,
+        "intfID": 2085,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6003,7 +5787,7 @@
         "portID": 169
       },
       {
-        "intfID": 2085,
+        "intfID": 2086,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6018,7 +5802,7 @@
         "portID": 171
       },
       {
-        "intfID": 2086,
+        "intfID": 2087,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6033,7 +5817,7 @@
         "portID": 173
       },
       {
-        "intfID": 2087,
+        "intfID": 2088,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6048,7 +5832,7 @@
         "portID": 175
       },
       {
-        "intfID": 2088,
+        "intfID": 2089,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6063,7 +5847,7 @@
         "portID": 177
       },
       {
-        "intfID": 2089,
+        "intfID": 2090,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6078,7 +5862,7 @@
         "portID": 179
       },
       {
-        "intfID": 2090,
+        "intfID": 2091,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6093,7 +5877,7 @@
         "portID": 181
       },
       {
-        "intfID": 2091,
+        "intfID": 2092,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6108,7 +5892,7 @@
         "portID": 183
       },
       {
-        "intfID": 2092,
+        "intfID": 2093,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6123,7 +5907,7 @@
         "portID": 185
       },
       {
-        "intfID": 2093,
+        "intfID": 2094,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6138,7 +5922,7 @@
         "portID": 187
       },
       {
-        "intfID": 2094,
+        "intfID": 2095,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6153,7 +5937,7 @@
         "portID": 189
       },
       {
-        "intfID": 2095,
+        "intfID": 2096,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6168,7 +5952,7 @@
         "portID": 191
       },
       {
-        "intfID": 2096,
+        "intfID": 2097,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6183,7 +5967,7 @@
         "portID": 193
       },
       {
-        "intfID": 2097,
+        "intfID": 2098,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6198,7 +5982,7 @@
         "portID": 195
       },
       {
-        "intfID": 2098,
+        "intfID": 2099,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6213,7 +5997,7 @@
         "portID": 197
       },
       {
-        "intfID": 2099,
+        "intfID": 2101,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6225,10 +6009,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 199
+        "portID": 201
       },
       {
-        "intfID": 2100,
+        "intfID": 2103,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6240,10 +6024,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 201
+        "portID": 205
       },
       {
-        "intfID": 2101,
+        "intfID": 2104,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6255,10 +6039,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 203
+        "portID": 207
       },
       {
-        "intfID": 2102,
+        "intfID": 2105,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6270,10 +6054,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 205
+        "portID": 209
       },
       {
-        "intfID": 2103,
+        "intfID": 2106,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6285,10 +6069,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 207
+        "portID": 211
       },
       {
-        "intfID": 2104,
+        "intfID": 2107,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6300,10 +6084,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 209
+        "portID": 213
       },
       {
-        "intfID": 2105,
+        "intfID": 2109,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6315,10 +6099,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 211
+        "portID": 217
       },
       {
-        "intfID": 2106,
+        "intfID": 2111,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6330,10 +6114,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 213
+        "portID": 221
       },
       {
-        "intfID": 2107,
+        "intfID": 2112,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6345,10 +6129,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 215
+        "portID": 223
       },
       {
-        "intfID": 2108,
+        "intfID": 2113,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6360,10 +6144,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 217
+        "portID": 225
       },
       {
-        "intfID": 2109,
+        "intfID": 2114,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6375,10 +6159,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 219
+        "portID": 227
       },
       {
-        "intfID": 2110,
+        "intfID": 2115,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6390,10 +6174,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 221
+        "portID": 229
       },
       {
-        "intfID": 2111,
+        "intfID": 2117,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6405,10 +6189,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 223
+        "portID": 233
       },
       {
-        "intfID": 2112,
+        "intfID": 2118,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6420,10 +6204,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 225
+        "portID": 235
       },
       {
-        "intfID": 2113,
+        "intfID": 2119,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6435,10 +6219,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 227
+        "portID": 237
       },
       {
-        "intfID": 2114,
+        "intfID": 2120,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6450,10 +6234,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 229
+        "portID": 239
       },
       {
-        "intfID": 2115,
+        "intfID": 2121,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6465,10 +6249,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 231
+        "portID": 241
       },
       {
-        "intfID": 2116,
+        "intfID": 2122,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6480,10 +6264,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 233
+        "portID": 243
       },
       {
-        "intfID": 2117,
+        "intfID": 2123,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6495,10 +6279,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 235
+        "portID": 245
       },
       {
-        "intfID": 2118,
+        "intfID": 2125,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6510,10 +6294,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 237
+        "portID": 249
       },
       {
-        "intfID": 2119,
+        "intfID": 2126,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6525,10 +6309,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 239
+        "portID": 251
       },
       {
-        "intfID": 2120,
+        "intfID": 2127,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6540,10 +6324,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 241
+        "portID": 253
       },
       {
-        "intfID": 2121,
+        "intfID": 2128,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6555,10 +6339,10 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 243
+        "portID": 255
       },
       {
-        "intfID": 2122,
+        "intfID": 2129,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6570,105 +6354,15 @@
         "isStateSyncDisabled": true,
         "type": 3,
         "scope": 0,
-        "portID": 245
+        "portID": 257
       },
       {
-        "intfID": 2123,
+        "intfID": 2130,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
           "2524::/64",
           "134.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 3,
-        "scope": 0,
-        "portID": 247
-      },
-      {
-        "intfID": 2124,
-        "routerID": 0,
-        "vlanID": 0,
-        "ipAddresses": [
-          "2525::/64",
-          "135.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 3,
-        "scope": 0,
-        "portID": 249
-      },
-      {
-        "intfID": 2125,
-        "routerID": 0,
-        "vlanID": 0,
-        "ipAddresses": [
-          "2526::/64",
-          "136.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 3,
-        "scope": 0,
-        "portID": 251
-      },
-      {
-        "intfID": 2126,
-        "routerID": 0,
-        "vlanID": 0,
-        "ipAddresses": [
-          "2527::/64",
-          "137.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 3,
-        "scope": 0,
-        "portID": 253
-      },
-      {
-        "intfID": 2127,
-        "routerID": 0,
-        "vlanID": 0,
-        "ipAddresses": [
-          "2528::/64",
-          "138.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 3,
-        "scope": 0,
-        "portID": 255
-      },
-      {
-        "intfID": 2128,
-        "routerID": 0,
-        "vlanID": 0,
-        "ipAddresses": [
-          "2529::/64",
-          "139.0.0.0/24"
-        ],
-        "mtu": 9000,
-        "isVirtual": false,
-        "isStateSyncDisabled": true,
-        "type": 3,
-        "scope": 0,
-        "portID": 257
-      },
-      {
-        "intfID": 2129,
-        "routerID": 0,
-        "vlanID": 0,
-        "ipAddresses": [
-          "2530::/64",
-          "140.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -6748,7 +6442,7 @@
           {
             "matcher": "cpuPolicing-high-NetworkControl-linkLocal-v6",
             "action": {
-              "toCpuAction": 0,
+              "toCpuAction": 1,
               "userDefinedTrap": {
                 "queueId": 3
               }
@@ -6757,7 +6451,7 @@
           {
             "matcher": "cpuPolicing-high-NetworkControl-ff02::/16",
             "action": {
-              "toCpuAction": 0,
+              "toCpuAction": 1,
               "userDefinedTrap": {
                 "queueId": 3
               }
@@ -6766,7 +6460,7 @@
           {
             "matcher": "cpuPolicing-mid-linkLocal-v6",
             "action": {
-              "toCpuAction": 0,
+              "toCpuAction": 1,
               "userDefinedTrap": {
                 "queueId": 2
               }
@@ -6775,7 +6469,43 @@
           {
             "matcher": "cpuPolicing-mid-ff02::/16",
             "action": {
-              "toCpuAction": 0,
+              "toCpuAction": 1,
+              "userDefinedTrap": {
+                "queueId": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-myip-network-control-acl-v6",
+            "action": {
+              "toCpuAction": 1,
+              "userDefinedTrap": {
+                "queueId": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-myip-network-control-acl-v4",
+            "action": {
+              "toCpuAction": 1,
+              "userDefinedTrap": {
+                "queueId": 3
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-ip2me-acl-v6",
+            "action": {
+              "toCpuAction": 1,
+              "userDefinedTrap": {
+                "queueId": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-ip2me-acl-v4",
+            "action": {
+              "toCpuAction": 1,
               "userDefinedTrap": {
                 "queueId": 2
               }
@@ -6982,29 +6712,34 @@
                 "dstIp": "ff02::/16",
                 "srcPort": 0,
                 "name": "cpuPolicing-CPU-Port-Mcast-v6",
-                "actionType": 1
+                "actionType": 1,
+                "etherType": 34525
               },
               {
                 "dstIp": "fe80::/10",
                 "dscp": 48,
                 "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
-                "actionType": 1
+                "actionType": 1,
+                "etherType": 34525
               },
               {
                 "dstIp": "ff02::/16",
                 "dscp": 48,
                 "name": "cpuPolicing-high-NetworkControl-ff02::/16",
-                "actionType": 1
+                "actionType": 1,
+                "etherType": 34525
               },
               {
                 "dstIp": "fe80::/10",
                 "name": "cpuPolicing-mid-linkLocal-v6",
-                "actionType": 1
+                "actionType": 1,
+                "etherType": 34525
               },
               {
                 "dstIp": "ff02::/16",
                 "name": "cpuPolicing-mid-ff02::/16",
-                "actionType": 1
+                "actionType": 1,
+                "etherType": 34525
               }
             ],
             "actionTypes": [
@@ -7030,6 +6765,58 @@
           }
         ],
         "stage": 0
+      },
+      {
+        "name": "post-lookup-ingress-ACL-Table-Group",
+        "aclTables": [
+          {
+            "name": "PostLookupAclTable1",
+            "priority": 0,
+            "aclEntries": [
+              {
+                "dscp": 48,
+                "name": "cpuPolicing-high-myip-network-control-acl-v6",
+                "actionType": 1,
+                "lookupClassRoute": 1,
+                "etherType": 34525
+              },
+              {
+                "dscp": 48,
+                "name": "cpuPolicing-high-myip-network-control-acl-v4",
+                "actionType": 1,
+                "lookupClassRoute": 1,
+                "etherType": 2048
+              },
+              {
+                "name": "cpuPolicing-mid-ip2me-acl-v6",
+                "actionType": 1,
+                "lookupClassRoute": 1,
+                "etherType": 34525
+              },
+              {
+                "name": "cpuPolicing-mid-ip2me-acl-v4",
+                "actionType": 1,
+                "lookupClassRoute": 1,
+                "etherType": 2048
+              }
+            ],
+            "actionTypes": [
+              1,
+              0,
+              6,
+              3
+            ],
+            "qualifiers": [
+              22,
+              15,
+              21
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 3
       }
     ],
     "mirrorOnDropReports": [

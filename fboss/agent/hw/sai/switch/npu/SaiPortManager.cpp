@@ -15,7 +15,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
-#if defined(BRCM_SAI_SDK_DNX)
+#if defined(BRCM_SAI_SDK_DNX) || defined(BRCM_SAI_SDK_XGS)
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
 #else
@@ -659,6 +659,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadPastWeight = std::nullopt;
   std::optional<SaiPortTraits::Attributes::ArsPortLoadFutureWeight>
       arsPortLoadFutureWeight = std::nullopt;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+  std::optional<SaiPortTraits::Attributes::ArsLinkState> arsLinkState =
+      std::nullopt;
+#endif
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     auto flowletCfg = swPort->getPortFlowletConfig();
@@ -672,6 +676,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
         arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
       }
+      // exclude 14.0 until this attr is ported there by BCM
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
+    defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
+      if (swPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC) {
+        arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
+      }
+#endif
     }
   }
 #endif
@@ -763,6 +774,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // ARS port load past weight
         std::nullopt, // ARS port load future weight
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+        std::nullopt, // ARS link state
+#endif
         std::nullopt, // Reachability Group
         std::nullopt, // CondEntropyRehashEnable
         std::nullopt, // CondEntropyRehashPeriodUS
@@ -845,6 +859,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadScalingFactor, // ARS scaling factor
       arsPortLoadPastWeight, // ARS port load past weight
       arsPortLoadFutureWeight, // ARS port load future weight
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+      arsLinkState,
 #endif
       reachabilityGroup,
       condEntropyRehashEnable,

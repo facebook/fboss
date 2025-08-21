@@ -137,6 +137,12 @@ SaiSwitchTraits::dramQuarantinedBufferStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;

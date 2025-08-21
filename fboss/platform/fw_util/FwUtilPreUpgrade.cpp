@@ -5,7 +5,7 @@ namespace facebook::fboss::platform::fw_util {
 
 void FwUtilImpl::doPreUpgrade(const std::string& fpd) {
   XLOG(INFO) << "Running preUpgrade operation for " << fpd;
-  if (auto preUpgrade = fwUtilConfig_.newFwConfigs()->at(fpd).preUpgrade()) {
+  if (auto preUpgrade = fwUtilConfig_.fwConfigs()->at(fpd).preUpgrade()) {
     for (const auto& operation : *preUpgrade) {
       doPreUpgradeOperation(operation, fpd);
     }

@@ -469,4 +469,14 @@ SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
+    defined(BRCM_SAI_SDK_XGS)
+  return SAI_PORT_ATTR_ARS_LINK_STATE;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss

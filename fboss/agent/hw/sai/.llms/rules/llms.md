@@ -1,3 +1,7 @@
+---
+oncalls: [fboss_agent]
+---
+
 ## Adding SAI attributes
 
 When implementing a new SAI attribute, follow the steps below:
@@ -27,3 +31,8 @@ fbcode/fboss/agent/hw/sai/api/fake/saifakeextensions.h
 ```
 buck test fbcode//fboss/agent/hw/sai/store/tests:buffer_store_test-fake fbcode//fboss/agent/hw/sai/api/tests:buffer_api_test-fake
 ```
+
+Note that VSCode does not define all the necessary compilation flags, so code
+guarded in `#if SAI_API_VERSION >= ...` or `#if defined(...)` blocks may
+appear to have compile errors. Please ignore these errors. In general, do not
+make any changes to unrelated attributes.

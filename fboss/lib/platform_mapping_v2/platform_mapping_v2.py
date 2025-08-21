@@ -1,6 +1,6 @@
 # pyre-strict
 import sys
-from typing import Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.helpers import (
@@ -38,6 +38,36 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortProfileConfigEntry,
 )
 
+# If you want to generate multiple platform mapping variants for a single platform,
+# define a base platform that includes common files (e.g. si_settings.csv) and
+# create variant folders with specialized files (e.g. port_profile_mapping.csv).
+_PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
+    "janga800bic": [
+        "janga800bic_dctype1_prod",
+        "janga800bic_dctype1_test_fixture",
+        "janga800bic_dctypef_prod",
+        "janga800bic_dctypef_test_fixture",
+    ],
+    "meru800bia": [
+        "meru800bia_100g_nif_port_breakout",
+        "meru800bia_800g",
+        "meru800bia_dual_stage_edsw",
+        "meru800bia_dual_stage_rdsw",
+        "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
+        "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
+    ],
+    "tahan800bc": [
+        "tahan800bc_chassis",
+        "tahan800bc_test_fixture",
+    ],
+}
+
+_PLATFORM_TO_BASE_PLATFORM: Dict[str, str] = {
+    variant: base
+    for base, variants in _PLATFORM_VARIANTS_MAP.items()
+    for variant in variants
+}
+
 
 class PlatformMappingParser:
     def __init__(
@@ -51,57 +81,45 @@ class PlatformMappingParser:
         self.version = version
         self._directory_map = directory_map
         self._multi_npu = multi_npu
-        self._static_mapping: StaticMapping
-        self._port_profile_mapping: PortProfileMapping
-        self._profile_settings: ProfileSettings
-        self._si_settings: SiSettings
+        self._static_mapping: Optional[StaticMapping] = None
+        self._port_profile_mapping: Optional[PortProfileMapping] = None
+        self._profile_settings: Optional[ProfileSettings] = None
+        self._si_settings: Optional[SiSettings] = None
         self._asic_vendor_config: Optional[AsicVendorConfig] = None
         self._read_csvs()
 
-    def get_directory(self, port_profile: bool = False) -> Dict[str, str]:
-        if (
-            self.platform
-            in [
-                "meru800bia_100g_nif_port_breakout",
-                "meru800bia_800g",
-                "meru800bia_dual_stage_edsw",
-                "meru800bia_dual_stage_rdsw",
-            ]
-            and port_profile is False
-        ):
-            return self._directory_map["meru800bia"]
-        return self._directory_map[self.platform]
+    def get_directory(self, use_base_platform: bool = False) -> Dict[str, str]:
+        return (
+            self._directory_map[_PLATFORM_TO_BASE_PLATFORM[self.platform]]
+            if use_base_platform
+            else self._directory_map[self.platform]
+        )
 
-    def get_mapping_prefix(self, port_profile: bool = False) -> str:
-        if port_profile:
-            prefix = (
-                self.platform
-                if self.platform
-                in [
-                    "meru800bia_100g_nif_port_breakout",
-                    "meru800bia_800g",
-                    "meru800bia_dual_stage_edsw",
-                    "meru800bia_dual_stage_rdsw",
-                ]
-                else self.platform + "_port"
+    def get_mapping_prefix(self) -> str:
+        return (
+            _PLATFORM_TO_BASE_PLATFORM[self.platform]
+            if self.platform in _PLATFORM_TO_BASE_PLATFORM
+            else self.platform
+        )
+
+    def _read_csvs_with_base_platform_fallback(
+        self, reader_func: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> Any:
+        # First attempt to search for the actual platform file, then fall back to the base platform.
+        try:
+            return reader_func(
+                self.get_directory(),
+                self.get_mapping_prefix(),
+                *args,
+                **kwargs,
             )
-        else:
-            prefix = (
-                "meru800bia"
-                if self.platform
-                in [
-                    "meru800bia_100g_nif_port_breakout",
-                    "meru800bia_800g",
-                    "meru800bia_dual_stage_edsw",
-                    "meru800bia_dual_stage_rdsw",
-                ]
-                else self.platform
+        except FileNotFoundError:
+            return reader_func(
+                self.get_directory(use_base_platform=True),
+                self.get_mapping_prefix(),
+                *args,
+                **kwargs,
             )
-        if self.platform in ["tahan800bc_test_fixture", "tahan800bc_chassis"]:
-            prefix = "tahan800bc_port" if port_profile else "tahan800bc"
-        if "janga" in self.platform:
-            prefix = "janga800bic_port" if port_profile else "janga800bic"
-        return prefix
 
     def _read_csvs(self) -> None:
         if self.platform == "yangra":
@@ -111,40 +129,49 @@ class PlatformMappingParser:
             self._profile_settings = ProfileSettings(speed_settings=[])
             self._si_settings = SiSettings(si_settings=[])
             return
-        self._port_profile_mapping = read_port_profile_mapping(
-            directory=self.get_directory(port_profile=True),
-            prefix=self.get_mapping_prefix(port_profile=True),
-            multi_npu=self._multi_npu,
+
+        self._port_profile_mapping = self._read_csvs_with_base_platform_fallback(
+            read_port_profile_mapping, multi_npu=self._multi_npu
+        )
+        self._static_mapping = self._read_csvs_with_base_platform_fallback(
+            read_static_mapping
+        )
+        self._profile_settings = self._read_csvs_with_base_platform_fallback(
+            read_profile_settings
+        )
+        self._si_settings = self._read_csvs_with_base_platform_fallback(
+            read_si_settings, version=self.version
         )
 
-        self._static_mapping = read_static_mapping(
-            directory=self.get_directory(), prefix=self.get_mapping_prefix()
-        )
-        self._profile_settings = read_profile_settings(
-            directory=self.get_directory(), prefix=self.get_mapping_prefix()
-        )
-        self._si_settings = read_si_settings(
-            directory=self.get_directory(),
-            prefix=self.get_mapping_prefix(),
-            version=self.version,
-        )
+        # Asic Vendor Config
+        # We don't fail if asic_vendor_config is not found, since this file isn't needed for platform mapping generation directly.
         try:
-            self._asic_vendor_config = read_asic_vendor_config(
-                directory=self.get_directory(), prefix=self.get_mapping_prefix()
+            self._asic_vendor_config = self._read_csvs_with_base_platform_fallback(
+                read_asic_vendor_config
             )
         except FileNotFoundError:
             print("No asic vendor config found...", file=sys.stderr)
 
     def get_static_mapping(self) -> StaticMapping:
+        if not self._static_mapping:
+            raise TypeError(f"Static mapping file not defined for {self.platform}")
         return self._static_mapping
 
     def get_port_profile_mapping(self) -> PortProfileMapping:
+        if not self._port_profile_mapping:
+            raise TypeError(
+                f"Port profile mapping file not defined for {self.platform}"
+            )
         return self._port_profile_mapping
 
     def get_profile_settings(self) -> ProfileSettings:
+        if not self._profile_settings:
+            raise TypeError(f"Profile settings file not defined for {self.platform}")
         return self._profile_settings
 
     def get_si_settings(self) -> SiSettings:
+        if not self._si_settings:
+            raise TypeError(f"SI settings file not defined for {self.platform}")
         return self._si_settings
 
     def get_asic_vendor_config(self) -> Optional[AsicVendorConfig]:

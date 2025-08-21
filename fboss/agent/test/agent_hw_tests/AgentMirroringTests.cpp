@@ -1,32 +1,35 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/test/AgentHwTest.h"
+#include <boost/range/combine.hpp>
+#include <folly/IPAddress.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/lib/CommonUtils.h"
-
-#include <folly/IPAddress.h>
-#include "fboss/agent/TxPacket.h"
-
-#include "fboss/agent/test/gen-cpp2/production_features_types.h"
-
-#include <boost/range/combine.hpp>
-#include <folly/logging/xlog.h>
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace {
 using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
-const std::string kIngressSpan = "ingress_span";
-const std::string kIngressErspan = "ingress_erspan";
-const std::string kEgressSpan = "egress_span";
-const std::string kEgressErspan = "egress_erspan";
+class IPAddressNameGenerator {
+ public:
+  template <typename T>
+  static std::string GetName(int) {
+    if constexpr (std::is_same_v<T, folly::IPAddressV4>) {
+      return "IPv4";
+    }
+    if constexpr (std::is_same_v<T, folly::IPAddressV6>) {
+      return "IPv6";
+    }
+  }
+};
 
 const std::string kMirrorAcl = "mirror_acl";
 
@@ -638,23 +641,53 @@ class AgentEgressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
   }
 };
 
-TYPED_TEST_SUITE(AgentIngressPortSpanMirroringTest, TestTypes);
-TYPED_TEST_SUITE(AgentIngressPortErspanMirroringTest, TestTypes);
-TYPED_TEST_SUITE(AgentIngressPortErspanMirroringTruncateTest, TestTypes);
-TYPED_TEST_SUITE(AgentIngressAclSpanMirroringTest, TestTypes);
-TYPED_TEST_SUITE(AgentIngressAclErspanMirroringTest, TestTypes);
-TYPED_TEST_SUITE(AgentEgressPortSpanMirroringTest, TestTypes);
-TYPED_TEST_SUITE(AgentEgressPortErspanMirroringTest, TestTypes);
-TYPED_TEST_SUITE(AgentEgressPortErspanMirroringTruncateTest, TestTypes);
-TYPED_TEST_SUITE(AgentEgressAclSpanMirroringTest, TestTypes);
-TYPED_TEST_SUITE(AgentEgressAclErspanMirroringTest, TestTypes);
+TYPED_TEST_SUITE(
+    AgentIngressPortSpanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentIngressPortErspanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentIngressPortErspanMirroringTruncateTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentIngressAclSpanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentIngressAclErspanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentEgressPortSpanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentEgressPortErspanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentEgressPortErspanMirroringTruncateTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentEgressAclSpanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
+TYPED_TEST_SUITE(
+    AgentEgressAclErspanMirroringTest,
+    TestTypes,
+    IPAddressNameGenerator);
 
 TYPED_TEST(AgentIngressPortSpanMirroringTest, SpanPortMirror) {
   this->testPortMirror(utility::kIngressSpan);
 }
 
 TYPED_TEST(AgentIngressPortSpanMirroringTest, UpdateSpanPortMirror) {
-  this->testUpdatePortMirror(kIngressSpan);
+  this->testUpdatePortMirror(utility::kIngressSpan);
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveSpanMirror) {
@@ -670,7 +703,7 @@ TYPED_TEST(AgentIngressAclSpanMirroringTest, RemoveErspanMirror) {
 }
 
 TYPED_TEST(AgentIngressPortErspanMirroringTest, UpdateErspanPortMirror) {
-  this->testUpdatePortMirror(kIngressErspan);
+  this->testUpdatePortMirror(utility::kIngressErspan);
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, SpanAclMirror) {
@@ -678,7 +711,7 @@ TYPED_TEST(AgentIngressAclSpanMirroringTest, SpanAclMirror) {
 }
 
 TYPED_TEST(AgentIngressAclSpanMirroringTest, UpdateSpanAclMirror) {
-  this->testUpdateAclMirror(kIngressSpan);
+  this->testUpdateAclMirror(utility::kIngressSpan);
 }
 
 TYPED_TEST(AgentIngressAclErspanMirroringTest, ErspanAclMirror) {
@@ -686,12 +719,12 @@ TYPED_TEST(AgentIngressAclErspanMirroringTest, ErspanAclMirror) {
 }
 
 TYPED_TEST(AgentIngressAclErspanMirroringTest, UpdateErspanAclMirror) {
-  this->testUpdateAclMirror(kIngressErspan);
+  this->testUpdateAclMirror(utility::kIngressErspan);
 }
 
 TYPED_TEST(
     AgentIngressPortErspanMirroringTruncateTest,
-    TrucatePortErspanMirror) {
+    TruncatePortErspanMirror) {
   this->testPortMirrorWithLargePacket(utility::kIngressErspan);
 }
 
@@ -713,7 +746,7 @@ TYPED_TEST(AgentEgressAclErspanMirroringTest, ErspanAclMirror) {
 
 TYPED_TEST(
     AgentEgressPortErspanMirroringTruncateTest,
-    TrucatePortErspanMirror) {
+    TruncatePortErspanMirror) {
   this->testPortMirrorWithLargePacket(utility::kEgressErspan);
 }
 
@@ -770,7 +803,10 @@ class AgentErspanIngressSamplingTest
   }
 };
 
-TYPED_TEST_SUITE(AgentErspanIngressSamplingTest, TestTypes);
+TYPED_TEST_SUITE(
+    AgentErspanIngressSamplingTest,
+    TestTypes,
+    IPAddressNameGenerator);
 
 TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
   auto kSampleRate = 1000;

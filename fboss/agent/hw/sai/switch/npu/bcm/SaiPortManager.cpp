@@ -20,6 +20,11 @@
 
 #include <folly/logging/xlog.h>
 
+extern "C" {
+#include <sai.h>
+#include <saiextensions.h>
+}
+
 namespace facebook::fboss {
 
 // Hack as this SAI implementation does support port removal. Port can only be
@@ -225,6 +230,15 @@ void SaiPortManager::changePortFlowletConfig(
         SaiPortTraits::Attributes::ArsPortLoadPastWeight{loadPastWeight});
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::ArsPortLoadFutureWeight{loadFutureWeight});
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
+    defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
+    // for test purposes, BCM ARS requires the link state to force up
+    if (newPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC) {
+      int arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::ArsLinkState{arsLinkState});
+    }
 #endif
   } else {
     XLOG(DBG4) << "Port flowlet setting unchanged for " << newPort->getName();

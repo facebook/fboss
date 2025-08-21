@@ -8,7 +8,7 @@ class FwUtilVersionHandler {
  public:
   explicit FwUtilVersionHandler(
       const std::vector<std::pair<std::string, int>>& fwDeviceNamesByPrio,
-      const fw_util_config::NewFwUtilConfig& fwUtilConfig)
+      const fw_util_config::FwUtilConfig& fwUtilConfig)
       : fwDeviceNamesByPrio_(fwDeviceNamesByPrio),
         fwUtilConfig_(fwUtilConfig){};
   ~FwUtilVersionHandler() = default;
@@ -18,7 +18,7 @@ class FwUtilVersionHandler {
 
  private:
   std::vector<std::pair<std::string, int>> fwDeviceNamesByPrio_;
-  fw_util_config::NewFwUtilConfig fwUtilConfig_{};
+  fw_util_config::FwUtilConfig fwUtilConfig_{};
 };
 
 } // namespace facebook::fboss::platform::fw_util

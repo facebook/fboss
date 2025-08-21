@@ -43,6 +43,8 @@ class FwUtilImpl {
   std::string printFpdList();
   void doFirmwareAction(const std::string&, const std::string&);
   void printVersion(const std::string&);
+  // Finds matching fpd case-insensitive
+  std::tuple<std::string, FwConfig> getFpd(const std::string&);
 
  private:
   void doPreUpgrade(const std::string&);
@@ -96,7 +98,7 @@ class FwUtilImpl {
   void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
 
-  NewFwUtilConfig fwUtilConfig_{};
+  FwUtilConfig fwUtilConfig_{};
   std::map<std::string, std::vector<std::string>> spiChip_;
   std::string platformName_;
   std::string fwBinaryFile_;

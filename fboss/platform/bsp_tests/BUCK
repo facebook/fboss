@@ -25,7 +25,19 @@ thrift_library(
     thrift_srcs = {
         "bsp_tests_config.thrift": [],
     },
+)
+
+thrift_library(
+    name = "bsp_tests_runtime_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "bsp_tests_runtime_config.thrift": [],
+    },
     deps = [
+        ":bsp_tests_config",
         ":fbiob_device_config",
         "//fboss/platform/platform_manager:platform_manager_config",
         "//thrift/annotation:thrift",

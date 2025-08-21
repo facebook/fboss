@@ -57,7 +57,7 @@ std::any deserialize(
     } else if (serviceName == "weutil") {
       return SimpleJSONSerializer::deserialize<WeutilConfig>(jsonConfigStr);
     } else if (serviceName == "fw_util") {
-      return SimpleJSONSerializer::deserialize<NewFwUtilConfig>(jsonConfigStr);
+      return SimpleJSONSerializer::deserialize<FwUtilConfig>(jsonConfigStr);
     } else if (serviceName == "led_manager") {
       return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
     } else if (serviceName == "bsp_tests") {
@@ -199,7 +199,7 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
 }
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv);
+  folly::Init init(&argc, &argv);
   fs::path hdrPath = fs::path(FLAGS_install_dir) / kHdrName;
 
   XLOG(INFO) << "Current working directory is: " << fs::current_path();

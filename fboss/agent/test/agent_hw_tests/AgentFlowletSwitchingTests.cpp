@@ -332,8 +332,6 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     });
   };
   auto verify = [this, dlbPortIDs, sprayPortIDs, sprayPortIDs2]() {
-    setEcmpMemberStatus(getAgentEnsemble());
-
     auto sendTrafficAndVerifyLB = [this](
                                       const folly::IPAddress& dstIp,
                                       int reserved,
@@ -490,8 +488,6 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   };
 
   auto verify = [this]() {
-    setEcmpMemberStatus(getAgentEnsemble());
-
     auto verifyCounts = [this](int destPort, bool bumpOnHit) {
       // gather stats for all ECMP members
       int pktsBefore[kEcmpWidth];

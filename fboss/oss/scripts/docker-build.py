@@ -237,7 +237,7 @@ def run_fboss_build(
     build_cmd = [
         "./build/fbcode_builder/getdeps.py",
         "build",
-        '--extra-cmake-defines={"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}',
+        '--extra-cmake-defines={"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20", "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/gcc", "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/g++"}',
         "--scratch-path",
         f"{CONTAINER_SCRATCH_PATH}",
     ]

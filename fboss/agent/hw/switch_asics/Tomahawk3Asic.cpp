@@ -215,6 +215,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
+    case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
       return false;
   }
   return false;

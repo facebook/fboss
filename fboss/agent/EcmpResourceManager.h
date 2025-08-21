@@ -61,10 +61,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     return maxEcmpGroups_;
   }
 
-  const NextHopGroupInfo* getGroupInfo(
-      RouterID rid,
-      const folly::CIDRNetwork& nw) const;
-
   struct ConsolidationInfo {
     int maxPenalty() const;
     bool operator==(const ConsolidationInfo& other) const {
@@ -76,16 +72,27 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   };
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
-  GroupIds2ConsolidationInfo getConsolidationInfo(NextHopGroupId grpId) const;
+  /*
+   * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
+   * non test code.
+   */
+  std::optional<ConsolidationInfo> getMergeGroupConsolidationInfo(
+      NextHopGroupId grpId) const;
+  GroupIds2ConsolidationInfo getCandidateMergeConsolidationInfo(
+      NextHopGroupId grpId) const;
   std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
   std::map<NextHopGroupId, std::set<Prefix>> getGroupIdToPrefix() const;
+  const NextHopGroupInfo* getGroupInfo(
+      RouterID rid,
+      const folly::CIDRNetwork& nw) const;
+  /* Test helper API end */
 
  private:
   void nextHopGroupDeleted(NextHopGroupId groupId);
   bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
   bool pruneFromMergedGroups(const NextHopGroupIds& groupIds);
   template <typename AddrT>
-  bool routesEqual(
+  bool routeFwdEqual(
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& newRoute) const;
 
@@ -160,17 +167,15 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
       InputOutputState* inOutState);
-  std::vector<std::shared_ptr<const NextHopGroupInfo>> getGroupsToReclaimByCost(
+  std::vector<std::shared_ptr<NextHopGroupInfo>> getGroupsToReclaimOrdered(
       uint32_t canReclaim) const;
   void reclaimBackupGroups(
-      const std::vector<std::shared_ptr<const NextHopGroupInfo>>&
-          toReclaimSorted,
-      const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+      const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
+      const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
   void reclaimMergeGroups(
-      const std::vector<std::shared_ptr<const NextHopGroupInfo>>&
-          toReclaimSorted,
-      const std::unordered_set<NextHopGroupId>& groupIdsToReclaim,
+      const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
+      const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>
@@ -230,7 +235,11 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   NextHopGroupId findNextAvailableId() const;
   ConsolidationInfo computeConsolidationInfo(
       const NextHopGroupIds& grpIds) const;
-  void computeCandidateMerges(const std::vector<NextHopGroupId>& groupIds);
+  template <std::forward_iterator ForwardIt>
+  void computeCandidateMerges(ForwardIt begin, ForwardIt end);
+  void computeCandidateMerges(const std::vector<NextHopGroupId>& gids) {
+    computeCandidateMerges(gids.begin(), gids.end());
+  }
 
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;

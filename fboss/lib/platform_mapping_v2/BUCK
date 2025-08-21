@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
 load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 
 oncall("fboss_optics_phy")
@@ -171,6 +172,9 @@ ci_sandcastle(
     ],
     command = "SandcastleUniversalCommand",
     oncall = "fboss_optics_phy",
+    schedules = [
+        ci.diff,
+    ],
 )
 
 python_binary(

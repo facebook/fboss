@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_runtime_config_types.h"
 namespace facebook::fboss::platform::bsp_tests::cpp {
 
 class CdevUtils {
