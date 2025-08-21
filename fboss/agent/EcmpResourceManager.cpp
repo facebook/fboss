@@ -20,25 +20,38 @@
 namespace facebook::fboss {
 namespace {
 
-void clearRouteOverrides(
+void updateRouteOverrides(
     const EcmpResourceManager::Prefix& ridAndPfx,
-    std::shared_ptr<SwitchState>& newState) {
-  auto updateFib = [](const auto& routePfx, auto fib) {
+    std::shared_ptr<SwitchState>& newState,
+    std::optional<cfg::SwitchingMode> backupSwitchingMode = std::nullopt,
+    std::optional<EcmpResourceManager::GroupIds2ConsolidationInfoItr>
+        mergeInfoItr = std::nullopt) {
+  CHECK(!(backupSwitchingMode.has_value() && mergeInfoItr.has_value()));
+  auto updateFib = [backupSwitchingMode, mergeInfoItr](
+                       const auto& routePfx, auto fib) {
     auto route = fib->exactMatch(routePfx)->clone();
     const auto& curForwardInfo = route->getForwardInfo();
+    std::optional<RouteNextHopSet> overrideNhops;
+    if (mergeInfoItr) {
+      overrideNhops = (*mergeInfoItr)->second.mergedNhops;
+    }
     auto newForwardInfo = RouteNextHopEntry(
         curForwardInfo.getNextHopSet(),
         curForwardInfo.getAdminDistance(),
         curForwardInfo.getCounterID(),
-        curForwardInfo.getClassID());
+        curForwardInfo.getClassID(),
+        backupSwitchingMode,
+        overrideNhops);
     CHECK(curForwardInfo.hasOverrideSwitchingModeOrNhops());
-    if (curForwardInfo.getOverrideEcmpSwitchingMode()) {
-      XLOG(DBG2) << " Reclaimed and moved : " << route->str()
-                 << " to primary ECMP group type";
-    } else {
-      XLOG(DBG2) << " Cleared override (merged) next hops for : "
-                 << route->str();
-    }
+    XLOG(DBG2) << " Set : " << route->str() << " backup switching mode to : "
+               << (backupSwitchingMode.has_value()
+                       ? apache::thrift::util::enumNameSafe(
+                             *backupSwitchingMode)
+                       : "null")
+               << " override next hops to : "
+               << (overrideNhops.has_value()
+                       ? folly::to<std::string>(*overrideNhops)
+                       : "null");
     route->setResolved(newForwardInfo);
     route->publish();
     fib->updateNode(route);
@@ -328,7 +341,7 @@ void EcmpResourceManager::reclaimBackupGroups(
       continue;
     }
     grpInfo->setIsBackupEcmpGroupType(false);
-    clearRouteOverrides(ridAndPfx, newState);
+    updateRouteOverrides(ridAndPfx, newState);
   }
   newState->publish();
   /*
@@ -382,7 +395,7 @@ void EcmpResourceManager::reclaimMergeGroups(
     auto newState = oldState->clone();
     for (auto mGid : curMergeSet) {
       for (const auto& pfx : gid2Prefix[mGid]) {
-        clearRouteOverrides(pfx, newState);
+        updateRouteOverrides(pfx, newState);
       }
       CHECK(toReclaimOrdered[i]->getMergedGroupInfoItr().has_value());
       toReclaimOrdered[i++]->setMergedGroupInfoItr(std::nullopt);
