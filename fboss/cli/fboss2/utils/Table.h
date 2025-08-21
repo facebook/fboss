@@ -10,7 +10,8 @@
 #pragma once
 
 #include <string>
-#include "fboss/cli/fboss2/tabulate/table.hpp"
+
+#include <tabulate/table.hpp>
 
 namespace facebook::fboss::utils {
 

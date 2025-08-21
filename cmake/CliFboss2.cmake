@@ -473,7 +473,7 @@ add_executable(fboss2
 
 target_link_libraries(fboss2
   CLI11::CLI11
-  tabulate
+  tabulate::tabulate
   fb303_cpp2
   ctrl_cpp2
   hw_ctrl_cpp2
