@@ -376,8 +376,9 @@ void EcmpResourceManager::reclaimBackupGroups(
 
 void EcmpResourceManager::reclaimMergeGroups(
     const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimOrdered,
-    const NextHopGroupIds& groupIdsToReclaim,
+    const NextHopGroupIds& groupIdsToReclaimIn,
     InputOutputState* inOutState) {
+  NextHopGroupIds groupIdsToReclaim = groupIdsToReclaimIn;
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> gid2Prefix;
   std::for_each(
       prefixToGroupInfo_.begin(),
@@ -391,15 +392,65 @@ void EcmpResourceManager::reclaimMergeGroups(
     CHECK(curMergeGrpItr.has_value());
     const auto& curMergeSet = (*curMergeGrpItr)->first;
     CHECK_GT(curMergeSet.size(), 1);
+    /*
+     * To allow for partial reclaims, we compute a newMergeSet.
+     * newMergeSet is the set of groups in curMergeSet which
+     * are not to be reclaimed.
+     */
+    NextHopGroupIds newMergeSet;
+    std::set_difference(
+        curMergeSet.begin(),
+        curMergeSet.end(),
+        groupIdsToReclaim.begin(),
+        groupIdsToReclaim.end(),
+        std::inserter(newMergeSet, newMergeSet.begin()));
     auto oldState = inOutState->out.back().newState();
     auto newState = oldState->clone();
+    /*
+     * For groups to be reclaimed
+     * - Clear mergeInfoItr
+     * - Clear override nhops for prefixes pointing to such groups
+     */
     for (auto mGid : curMergeSet) {
-      for (const auto& pfx : gid2Prefix[mGid]) {
-        updateRouteOverrides(pfx, newState);
+      if (!newMergeSet.contains(mGid)) {
+        for (const auto& pfx : gid2Prefix[mGid]) {
+          updateRouteOverrides(pfx, newState);
+        }
+        CHECK(toReclaimOrdered[i]->getMergedGroupInfoItr().has_value());
+        toReclaimOrdered[i++]->setMergedGroupInfoItr(std::nullopt);
       }
-      CHECK(toReclaimOrdered[i]->getMergedGroupInfoItr().has_value());
-      toReclaimOrdered[i++]->setMergedGroupInfoItr(std::nullopt);
     }
+    /*
+     * If newMergeSet.size() > 1
+     * Create a new merge group and cache its iterator.
+     * If newMergeSet.size() == 1
+     * Reclaim the lone group remaining in merge group.
+     * Update prefix nhops and group's mergeInfo iterators accordingly
+     */
+    std::optional<GroupIds2ConsolidationInfoItr> newMergeItr;
+    if (newMergeSet.size() > 1) {
+      XLOG(DBG2) << " Replacing merge group: " << curMergeSet << std::endl
+                 << " with: " << newMergeSet;
+      std::tie(newMergeItr, std::ignore) = mergedGroups_.insert(
+          {newMergeSet, computeConsolidationInfo(newMergeSet)});
+    } else if (newMergeSet.size() == 1) {
+      XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet << std::endl
+                 << " since it has only one member group remaining: "
+                 << newMergeSet;
+      groupIdsToReclaim.insert(*newMergeSet.begin());
+    } else {
+      XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet;
+    }
+    for (auto mGid : newMergeSet) {
+      for (const auto& pfx : gid2Prefix[mGid]) {
+        updateRouteOverrides(pfx, newState, std::nullopt, newMergeItr);
+      }
+      if (auto grpInfo = nextHopGroupIdToInfo_.ref(mGid)) {
+        CHECK(grpInfo->getMergedGroupInfoItr().has_value());
+        grpInfo->setMergedGroupInfoItr(newMergeItr);
+      }
+    }
+
     newState->publish();
     // We put each unmerge on a new delta, to ensure that all
     // constitutent groups get unmerged and we reclaim the merged
