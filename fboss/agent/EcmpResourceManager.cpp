@@ -968,20 +968,27 @@ EcmpResourceManager::fixAndGetMergeGroupItr(
         mergedGroups_.insert({newMergeSet, std::move(info)});
     CHECK(inserted);
     // Fix up iterators
-    std::for_each(
-        newMergeSet.begin(),
-        newMergeSet.end(),
-        [this, newMemberGroupId, mitr](auto grpId) {
-          if (grpId != newMemberGroupId) {
-            nextHopGroupIdToInfo_.ref(grpId)->setMergedGroupInfoItr(mitr);
-          }
-        });
+    fixMergeItreators(newMergeSet, mitr, {newMemberGroupId});
   }
   CHECK(!nextHopGroupIdToInfo_.ref(newMemberGroupId));
   auto [_, insertedPenalty] =
       mitr->second.groupId2Penalty.insert({newMemberGroupId, 0});
   CHECK(insertedPenalty);
   return mitr;
+}
+
+void EcmpResourceManager::fixMergeItreators(
+    const NextHopGroupIds& newMergeSet,
+    GroupIds2ConsolidationInfoItr mitr,
+    const NextHopGroupIds& toIgnore) {
+  std::for_each(
+      newMergeSet.begin(),
+      newMergeSet.end(),
+      [this, &toIgnore, mitr](auto grpId) {
+        if (!toIgnore.contains(grpId)) {
+          nextHopGroupIdToInfo_.ref(grpId)->setMergedGroupInfoItr(mitr);
+        }
+      });
 }
 
 template <typename AddrT>

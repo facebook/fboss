@@ -92,6 +92,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
       const NextHopGroupId newMemberGroup,
       const RouteNextHopSet& mergedNhops);
+  void fixMergeItreators(
+      const NextHopGroupIds& newMergeSet,
+      GroupIds2ConsolidationInfoItr mitr,
+      const NextHopGroupIds& toIgnore);
   void nextHopGroupDeleted(NextHopGroupId groupId);
   bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
   bool pruneFromMergedGroups(const NextHopGroupIds& groupIds);
