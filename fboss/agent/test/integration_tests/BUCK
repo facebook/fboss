@@ -47,45 +47,6 @@ cpp_library(
     ],
 )
 
-cpp_library(
-    name = "te_agent_integration_test",
-    srcs = [
-        "AgentIntegrationTest.cpp",
-        "TeAgentIntegrationTests.cpp",
-    ],
-    link_whole = True,  # Required for gtest to find tests in other files.
-    undefined_symbols = True,
-    exported_deps = [
-        "//common/thrift/thrift:monitor-cpp2-clients",
-        "//fb303:service_data",
-        "//fboss/agent:asic_utils",
-        "//fboss/agent:core",
-        "//fboss/agent:handler",
-        "//fboss/agent:load_agent_config",
-        "//fboss/agent:main-common",
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/hw/switch_asics:switch_asics",
-        "//fboss/agent/hw/test:config_factory",
-        "//fboss/agent/hw/test:hw_packet_utils",
-        "//fboss/agent/hw/test:teflow_utils",
-        "//fboss/agent/state:state",
-        "//fboss/agent/test:agent_ensemble_integration_test_base",
-        "//fboss/agent/test:ecmp_helper",
-        "//fboss/agent/test:utils",
-        "//fboss/lib:common_utils",
-        "//fboss/lib/config:fboss_config_utils",
-        "//folly:subprocess",
-        "//neteng/ai/te_agent/if:TeAgent-cpp2-services",
-        "//neteng/ai/te_agent/if:TeAgent-cpp2-types",
-        "//neteng/ai/te_agent/tests:test_utils",
-        "//servicerouter/client/cpp2:client_factory",
-        "//servicerouter/client/cpp2:cpp2",
-    ],
-    exported_external_deps = [
-        "gflags",
-    ],
-)
-
 [
     cpp_binary(
         name = "bcm_agent_integration_test{}".format(to_impl_suffix(sdk)),
@@ -103,33 +64,6 @@ cpp_library(
             "//fboss/agent/test:agent_ensemble_integration_test_base",
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/test/integration_tests:agent_integration_test",
-        ],
-        external_deps = [
-            "gflags",
-            "glog",
-        ],
-    )
-    for sdk in BCM_SDKS
-]
-
-[
-    cpp_binary(
-        name = "bcm_te_agent_integration_test{}".format(to_impl_suffix(sdk)),
-        srcs = [
-            "BcmAgentIntegrationTests.cpp",
-        ],
-        versions = to_versions(sdk),
-        deps = [
-            "fbsource//third-party/googletest:gtest",
-            "//fboss/agent:main-bcm",
-            "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
-            "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
-            "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",
-            "//fboss/agent/hw/bcm/tests:bcm_teflow_utils",
-            "//fboss/agent/platforms/wedge:platform",
-            "//fboss/agent/test:agent_ensemble_integration_test_base",
-            "//fboss/agent/test:mono_agent_ensemble",
-            "//fboss/agent/test/integration_tests:te_agent_integration_test",
         ],
         external_deps = [
             "gflags",
