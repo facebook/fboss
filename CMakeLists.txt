@@ -929,6 +929,8 @@ find_library(SYSTEMD systemd)
 find_path(SYSTEMD_INCLUDE_DIR NAMES systemd/sd-daemon.h)
 include_directories(${SYSTEMD_INCLUDE_DIR})
 
+find_package(tabulate CONFIG REQUIRED)
+
 # Unit Testing
 add_definitions (-DIS_OSS=true)
 find_package(Threads REQUIRED)
@@ -995,6 +997,8 @@ add_dependencies(fboss_platform_services
   fw_util
   weutil
   data_corral_service
+  # Utilities
+  sensor_service_client
   # Unit Tests
   platform_config_lib_config_lib_test
   platform_manager_device_path_resolver_test

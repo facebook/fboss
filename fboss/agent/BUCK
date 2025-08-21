@@ -1344,6 +1344,7 @@ cpp_library(
     exported_deps = [
         ":fboss-error",
         ":fboss-types",
+        "//folly/logging:logging",
     ],
 )
 

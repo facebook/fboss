@@ -13,7 +13,6 @@
 
 #include "fboss/platform/bsp_tests/cpp/BspTest.h"
 #include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
-#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
 namespace facebook::fboss::platform::bsp_tests::cpp {

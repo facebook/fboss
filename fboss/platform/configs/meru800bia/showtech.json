@@ -1,0 +1,5 @@
+{
+  "i2cBusIgnore": [
+    "SMBus iSMT adapter at 911c1000"
+  ]
+}

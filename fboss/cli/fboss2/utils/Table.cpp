@@ -82,7 +82,8 @@ Table::Row& Table::addRow(
       });
 
   // transform all items to variant type that tabulate will like
-  std::vector<std::variant<std::string, const char*, tabulate::Table>>
+  std::vector<
+      std::variant<std::string, const char*, std::string_view, tabulate::Table>>
       tabulateCells;
   tabulateCells.reserve(data.size());
   std::transform(

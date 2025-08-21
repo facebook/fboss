@@ -2312,6 +2312,8 @@ void CmisModule::setApplicationCodeLocked(
         " Unsupported speed: ",
         apache::thrift::util::enumNameSafe(speed)));
   }
+  QSFP_LOG(INFO, this) << "Application codes supporting current speed: "
+                       << folly::join(",", appCodes);
 
   // Currently we will have the same application across all the lanes. So here
   // we only take one of them to look at.
@@ -2322,7 +2324,11 @@ void CmisModule::setApplicationCodeLocked(
   currentApplicationSel = currentApplicationSel >> APP_SEL_BITSHIFT;
 
   QSFP_LOG(INFO, this) << folly::sformat(
-      "currentApplicationSel: {:#x}", currentApplicationSel);
+      "currentApplicationSel: {:#x} speed {:s} startHostLane {:d} numHostLanesForPort {:d}",
+      currentApplicationSel,
+      apache::thrift::util::enumNameSafe(speed),
+      startHostLane,
+      numHostLanesForPort);
 
   uint8_t currentApplication;
   int offset;
@@ -2377,7 +2383,9 @@ void CmisModule::setApplicationCodeLocked(
     // If the currently configured application is the same as what we are trying
     // to configure, then skip the configuration
     if (application == currentApplication) {
-      QSFP_LOG(INFO, this) << "Speed matches. Doing nothing";
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Speed matches: currentApplication {:#x}. Doing nothing",
+          currentApplication);
       // Make sure the datapath is initialized, otherwise initialize it before
       // returning
       if (datapathResetPendingMask_ & hostLaneMask) {

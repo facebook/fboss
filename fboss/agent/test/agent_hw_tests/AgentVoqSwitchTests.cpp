@@ -1,5 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
+#include <filesystem>
+#include <string>
+
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
 #include "fboss/agent/AsicUtils.h"
@@ -848,6 +852,51 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, verifyDramBufferQuarantine) {
+  auto generateDramErrorCint = [](int port1, int port2) {
+    // By default, need 10 errors in a memory to trigger quarantine.
+    // With packet inject test, each packet can trigger error in a
+    // different memory. Sending a lot of packets with the CINT to
+    // trigger errors such that some memory will see > 10 errors
+    // and will be quarantined.
+    return fmt::format(
+        R"(
+        cint_reset();
+        print bcm_port_force_forward_set(0, {0}, {1}, 1);
+        int loop=0;
+        for (loop=0; loop<1000; loop++) {{
+          bshell(0, "m DDP_ERR_INITIATE BUFF_CRC_INITIATE_ERR=1");
+          bshell(0, "tx 1 visibility=0 psrc={0}");
+        }})",
+        port1,
+        port2);
+  };
+  auto verify = [&]() {
+    SwitchID switchId =
+        scopeResolver().scope(masterLogicalInterfacePortIds()[0]).switchId();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    auto dramErrorCint = generateDramErrorCint(
+        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]);
+    WITH_RETRIES({
+      std::string out;
+      setupForDramErrorTestFromDiagShell(switchId);
+      getAgentEnsemble()->runCint(dramErrorCint, out, switchId);
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto dramQurantinedBufferCount =
+          switchStats.fb303GlobalStats()->dram_quarantined_buffer_count();
+      ASSERT_EVENTUALLY_TRUE(dramQurantinedBufferCount.has_value());
+      EXPECT_EVENTUALLY_GT(dramQurantinedBufferCount.value(), 0);
+      XLOG(DBG0) << "Dram Quarantined Buffer count: "
+                 << dramQurantinedBufferCount.value();
+    });
+    // Make sure that we remove the deleted buffer file created
+    // so that it wont interfere with the next test run.
+    EXPECT_TRUE(std::filesystem::remove("deleted_buffers_file"));
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(AgentVoqSwitchTest, verifyDramDataPathPacketErrorCounter) {

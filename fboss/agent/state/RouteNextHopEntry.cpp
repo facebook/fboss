@@ -378,9 +378,11 @@ void RouteNextHopEntry::normalize(
   }
 }
 
-RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHops() const {
+RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
+    bool ignoreOverride) const {
   NextHopSet nhopSet;
-  if (auto overrideNhops = getOverrideNextHops()) {
+  auto overrideNhops = getOverrideNextHops();
+  if (!ignoreOverride && overrideNhops) {
     nhopSet = *overrideNhops;
   } else {
     nhopSet = getNextHopSet();

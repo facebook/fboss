@@ -112,3 +112,4 @@ DECLARE_bool(dsf_single_stage_r192_f40_e32);
 DECLARE_bool(enable_high_frequency_stats_polling);
 DECLARE_bool(dsf_headroom_pool_size_multiplication_factor_fix);
 DECLARE_bool(ignore_asic_hard_reset_notification);
+DECLARE_bool(cleanup_probed_kernel_data);

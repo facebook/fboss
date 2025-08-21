@@ -9,9 +9,13 @@ void FwUtilImpl::doUpgrade(const std::string& fpd) {
     return;
   }
   XLOG(INFO) << "Running Upgrade operation for " << fpd;
-  for (const auto& operation :
-       *fwUtilConfig_.newFwConfigs()->at(fpd).upgrade()) {
-    doUpgradeOperation(operation, fpd);
+  if (fwUtilConfig_.fwConfigs()->at(fpd).upgrade().has_value()) {
+    for (const auto& operation :
+         fwUtilConfig_.fwConfigs()->at(fpd).upgrade().value()) {
+      doUpgradeOperation(operation, fpd);
+    }
+  } else {
+    throw std::runtime_error("No upgrade operation found for " + fpd);
   }
 }
 

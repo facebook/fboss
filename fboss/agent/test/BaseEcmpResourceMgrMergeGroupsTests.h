@@ -34,6 +34,9 @@ class BaseEcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
   int numStartRoutes() const override {
     return kNumStartRoutes;
   }
+  // Add next route - next prefix + next nhops. When we just want to
+  // add a prefix, but don't care which one
+  std::vector<StateDelta> addNextRoute();
   std::vector<RouteNextHopSet> defaultNhopSets() const;
   std::vector<RouteNextHopSet> nextNhopSets(
       int numSets = kNumStartRoutes) const;

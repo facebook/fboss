@@ -13,7 +13,6 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
-#include "fboss/agent/test/utils/PortTestUtils.h"
 
 constexpr int kPayloadSize = 4500;
 DEFINE_int32(lossy_queue_test_qmin, 5000, "Queue min guarantee in bytes");

@@ -87,31 +87,6 @@ std::string AgentArsBase::getCounterName(AclType aclType) const {
   return getAclName(aclType) + "-stats";
 }
 
-void AgentArsBase::setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
-  // BCM native does not require this
-  if (!ensemble->isSai()) {
-    return;
-  }
-  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
-  if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
-    return;
-  }
-  // Remove the ecmp ethertype config after BRCM fix
-  constexpr auto kSetEcmpMemberStatus = R"(
-  cint_reset();
-  int ecmp_dlb_ethtypes[2];
-  ecmp_dlb_ethtypes[0] = 0x0800;
-  ecmp_dlb_ethtypes[1] = 0x86DD;
-  bcm_l3_egress_ecmp_ethertype_set(0, 0, 2, ecmp_dlb_ethtypes);
-  bcm_l3_egress_ecmp_member_status_set(0, 100003, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  bcm_l3_egress_ecmp_member_status_set(0, 100004, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  bcm_l3_egress_ecmp_member_status_set(0, 100005, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  bcm_l3_egress_ecmp_member_status_set(0, 100006, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  )";
-  utility::runCintScript(
-      const_cast<TestEnsembleIf*>(ensemble), kSetEcmpMemberStatus);
-}
-
 void AgentArsBase::setup(int ecmpWidth) {
   std::vector<PortID> portIds = masterLogicalInterfacePortIds();
   flat_set<PortDescriptor> portDescs;

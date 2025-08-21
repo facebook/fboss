@@ -286,15 +286,27 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
   auto q2dscpMap = utility::getOlympicQosMaps(config);
   // To account for switches that take longer to update port stats, bump sleep
   // time to 100ms.
-  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
-      q2dscpMap,
-      getSw(),
-      getSw()->getState(),
-      getPortStatsFn,
-      getEcmpPortIds(),
-      100 /* sleep in ms */));
-  XLOG(DBG2) << "Verify DSCP to Queue Mapping Done";
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  if (ecmpPorts_.size() == 0) {
+    EXPECT_TRUE(utility::verifyQueueMappingsInvariantSinglePortHelper(
+        q2dscpMap,
+        getSw(),
+        getSw()->getState(),
+        getPortStatsFn,
+        getDownlinkPort(),
+        100 /* sleep in ms */));
+    XLOG(DBG2) << "Verify DSCP to Queue Mapping Done for single port";
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  } else {
+    EXPECT_TRUE(utility::verifyQueueMappingsInvariantEcmpHelper(
+        q2dscpMap,
+        getSw(),
+        getSw()->getState(),
+        getPortStatsFn,
+        getEcmpPortIds(),
+        100 /* sleep in ms */));
+    XLOG(DBG2) << "Verify DSCP to Queue Mapping Done";
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
 }
 
 void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {

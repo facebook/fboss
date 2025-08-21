@@ -23,7 +23,7 @@ uint16_t DataStore::getI2cBusNum(
   throw std::runtime_error(fmt::format(
       "Could not find bus number for {} at {}",
       pmUnitScopeBusName,
-      slotPath ? *slotPath : "CPU"));
+      slotPath.value_or("CPU Scope")));
 }
 
 void DataStore::updateI2cBusNum(

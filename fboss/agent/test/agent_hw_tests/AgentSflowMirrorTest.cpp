@@ -1,18 +1,30 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <folly/IPAddressV4.h>
+#include <cstdint>
+#include <memory>
+#include <optional>
 #include <type_traits>
-#include "fboss/agent/test/AgentHwTest.h"
+#include <vector>
 
+#include <gtest/gtest.h>
+
+#include <fmt/format.h>
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
+#include <folly/io/IOBuf.h>
+
+#include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/SflowShimUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
-
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/packet/UDPDatagram.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
@@ -26,20 +38,88 @@
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-#include "fboss/agent/SflowShimUtils.h"
-
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
 constexpr uint16_t kTimeoutSecs = 1;
+constexpr uint32_t kUdpSrcPort{6545};
+constexpr uint32_t kUdpDstPort{6343};
 
 const std::string kSflowMirror = "sflow_mirror";
 
 namespace facebook::fboss {
+
+namespace {
+
+std::unique_ptr<folly::IOBuf> maskSflowFields(folly::IOBuf* ioBuf) {
+  std::unique_ptr<folly::IOBuf> maskedIoBuf{ioBuf->clone()};
+  folly::io::RWPrivateCursor cursor{maskedIoBuf.get()};
+  folly::MacAddress zeroMac{};
+  // Preserve the destination MAC address
+  cursor.skip(folly::MacAddress::SIZE);
+  // Preserve the source MAC address
+  cursor.skip(folly::MacAddress::SIZE);
+  // Preserve the ethernet protocol
+  cursor.skip(2);
+  // Preserve the IPv6 Header
+  cursor.skip(IPv6Hdr::size());
+  // Preserve UDP source port, destination port, and length
+  cursor.skip(6);
+  // Zero the checksum
+  // TODO(T235175754): Preserve the checksum once implementation is present
+  cursor.writeBE<uint16_t>(0);
+  // Preserve sFlow datagram version
+  cursor.skip(4);
+  // Preserve sFlow agent address type
+  cursor.skip(4);
+  // Preserve sFlow IPv6 address
+  cursor.skip(folly::IPAddressV6::byteCount());
+  // Zero the sub-agent ID
+  cursor.writeBE<uint32_t>(0);
+  // Zero the sample datagram sequence number
+  cursor.writeBE<uint32_t>(0);
+  // Zero the system uptime
+  cursor.writeBE<uint32_t>(0);
+  // Preserve the number of samples
+  cursor.skip(4);
+  // Preserve the sFlow data format
+  cursor.skip(4);
+  // Preserve the sample data length
+  cursor.skip(4);
+  // Zero the flow sample sequence number
+  cursor.writeBE<uint32_t>(0);
+  // Zero the source ID
+  cursor.writeBE<uint32_t>(0);
+  // Preserve the sample rate
+  cursor.skip(4);
+  // Preserve the sample pool
+  cursor.skip(4);
+  // Preserve the number of dropped packets
+  cursor.skip(4);
+  // Preserve the input interface index number
+  cursor.skip(4);
+  // Preserve the output interface index number
+  cursor.skip(4);
+  // Preserve the flow records count
+  cursor.skip(4);
+  // Preserve the flow record sFlow data format
+  cursor.skip(4);
+  // Preserve flow data length
+  cursor.skip(4);
+  // Preserve sample header protol
+  cursor.skip(4);
+  // Zero the sample header frame length
+  cursor.writeBE<uint32_t>(0);
+  // Preserve all the remaining fields
+  return maskedIoBuf;
+}
+
+} // namespace
 
 template <typename AddrT>
 class AgentSflowMirrorTest : public AgentHwTest {
  public:
   // Index in the sample ports where data traffic is expected!
   const int kDataTrafficPortIndex{0};
+  inline static const folly::MacAddress kMirrorDstMac{"06:00:00:00:00:01"};
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
@@ -79,8 +159,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
   void configureMirror(
       cfg::SwitchConfig& cfg,
       std::optional<bool> isV4Addr = std::nullopt,
-      uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343,
+      uint32_t udpSrcPort = kUdpSrcPort,
+      uint32_t udpDstPort = kUdpDstPort,
       std::optional<int> sampleRate = std::nullopt) const {
     bool v4 = isV4Addr.has_value() ? *isV4Addr
                                    : std::is_same_v<AddrT, folly::IPAddressV4>;
@@ -104,8 +184,8 @@ class AgentSflowMirrorTest : public AgentHwTest {
       cfg::SwitchConfig& cfg,
       int sampleRate,
       std::optional<bool> v4 = std::nullopt,
-      uint32_t udpSrcPort = 6545,
-      uint32_t udpDstPort = 6343) const {
+      uint32_t udpSrcPort = kUdpSrcPort,
+      uint32_t udpDstPort = kUdpDstPort) const {
     std::optional<int> sampleRateCfg;
     auto asic = checkSameAndGetAsic();
     if (asic->isSupported(HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR)) {
@@ -274,7 +354,9 @@ class AgentSflowMirrorTest : public AgentHwTest {
     utility::EcmpSetupTargetedPorts<T> ecmpHelper(
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
+        kMirrorDstMac,
         RouterID(0),
+        false /*forProdConfig*/,
         {getNonSflowSampledInterfacePortType()});
 
     ecmpHelper.programRoutes(
@@ -357,6 +439,53 @@ class AgentSflowMirrorTest : public AgentHwTest {
       sflowShimHeaderLength += 4;
     }
     return sflowShimHeaderLength + getSflowPacketNonSflowHeaderLen(isV4);
+  }
+
+  void verifySflowCapturedPacket(
+      folly::IOBuf* capturedPktBuf,
+      PortID txPort,
+      const std::vector<uint8_t>& sFlowPayload,
+      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
+    folly::MacAddress intfMac{
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+    std::unique_ptr<TxPacket> sFlowPacket{utility::makeSflowV5Packet(
+        getSw() /*switchT*/,
+        getVlanIDForTx() /*vlan*/,
+        intfMac /*srcMac*/,
+        kMirrorDstMac /*dstMac*/,
+        utility::getSflowMirrorSource(isV4) /*srcIp*/,
+        utility::getSflowMirrorDestination(isV4) /*dstIp*/,
+        kUdpSrcPort /*srcPort*/,
+        kUdpDstPort /*dstPort*/,
+        0 /*trafficClass*/,
+        126 /*hopLimit*/,
+        getSystemPortID(
+            txPort,
+            getProgrammedState(),
+            scopeResolver().scope(txPort).switchId()) /*ingressInterface*/,
+        0 /*egressInterface*/,
+        1 /*samplingRate*/,
+        false /*computeChecksum*/,
+        sFlowPayload /*payload*/)};
+    std::unique_ptr<folly::IOBuf> maskedCapturedSflowPktBuf{
+        maskSflowFields(capturedPktBuf)};
+    std::unique_ptr<folly::IOBuf> maskedExpectedSflowPktBuf{
+        maskSflowFields(sFlowPacket->buf())};
+    EXPECT_LE(
+        maskedCapturedSflowPktBuf->length(),
+        maskedExpectedSflowPktBuf->length());
+    for (std::size_t i = 0; i < maskedCapturedSflowPktBuf->length(); i++) {
+      EXPECT_EQ(
+          maskedCapturedSflowPktBuf->data()[i],
+          maskedExpectedSflowPktBuf->data()[i])
+          << fmt::format(
+                 "Captured sFlow packet does not match expected sFlow packet "
+                 "after masking at position {}",
+                 i);
+    }
+    EXPECT_EQ(
+        folly::hexlify(maskedCapturedSflowPktBuf->coalesce()),
+        folly::hexlify(maskedExpectedSflowPktBuf->coalesce()));
   }
 
   void verifySampledPacket(
@@ -466,16 +595,21 @@ class AgentSflowMirrorTest : public AgentHwTest {
 
   void verifySampledPacketWithTruncate(
       bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
-    auto ports = getPortsForSampling();
+    std::vector<PortID> ports = getPortsForSampling();
     getAgentEnsemble()->bringDownPorts(
         std::vector<PortID>(ports.begin() + 2, ports.end()));
-    auto pkt = genPacket(1, 8000);
-    auto length = pkt->buf()->length();
+    std::unique_ptr<TxPacket> pkt = genPacket(1, 8000);
+    std::size_t length = pkt->buf()->length();
+
+    const uint8_t* packetData = pkt->buf()->data();
+    std::vector<uint8_t> sFlowPayload(
+        packetData, packetData + getMirrorTruncateSize());
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
-    XLOG(DBG2) << "Sending packet through port " << ports[1];
+    PortID txPort{ports[1]};
+    XLOG(DBG2) << "Sending packet through port " << txPort;
     getAgentEnsemble()->sendPacketAsync(
-        std::move(pkt), PortDescriptor(ports[1]), std::nullopt);
+        std::move(pkt), PortDescriptor(txPort), std::nullopt);
 
     std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
     WITH_RETRIES({
@@ -499,6 +633,11 @@ class AgentSflowMirrorTest : public AgentHwTest {
     verifySflowExporterIp(udpPayload->payload());
     verifySflowPacketUdpChecksum(
         capturedPktBuf->get(), capturedPkt, udpPayload, isV4);
+
+    if (checkSameAndGetAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      verifySflowCapturedPacket(capturedPktBuf->get(), txPort, sFlowPayload);
+    }
   }
 
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {

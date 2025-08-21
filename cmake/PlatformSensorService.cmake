@@ -95,6 +95,7 @@ add_executable(sensor_service_client
 target_link_libraries(sensor_service_client
   sensor_service_cpp2
   platform_utils
+  tabulate::tabulate
   Folly::folly
   FBThrift::thriftcpp2
 )

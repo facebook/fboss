@@ -268,6 +268,7 @@ RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
        ++offset) {
     auto pfx = makePrefix(offset);
     if (!fib6->exactMatch(pfx)) {
+      XLOG(DBG2) << " Next pfx: " << pfx.str();
       return pfx;
     }
   }
@@ -519,7 +520,7 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   }
 }
 
-void BaseEcmpResourceManagerTest::addOrUpdateRoute(
+std::vector<StateDelta> BaseEcmpResourceManagerTest::addOrUpdateRoute(
     const RoutePrefixV6& prefix6,
     const RouteNextHopSet& nhops) {
   auto newRoute = makeRoute(prefix6, nhops);
@@ -531,15 +532,16 @@ void BaseEcmpResourceManagerTest::addOrUpdateRoute(
     fib6->addNode(prefix6.str(), std::move(newRoute));
   }
   newState->publish();
-  consolidate(newState);
+  return consolidate(newState);
 }
 
-void BaseEcmpResourceManagerTest::rmRoute(const RoutePrefixV6& prefix6) {
+std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoute(
+    const RoutePrefixV6& prefix6) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
   fib6->removeNode(prefix6.str());
   newState->publish();
-  consolidate(newState);
+  return consolidate(newState);
 }
 
 std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
@@ -552,6 +554,21 @@ std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
     }
   }
   return prefixes;
+}
+
+std::set<RouteV6::Prefix>
+BaseEcmpResourceManagerTest::getPrefixesWithoutOverrides() const {
+  std::set<RouteV6::Prefix> prefixes;
+  EcmpResourceManager::NextHopGroupIds nonOverrideGids;
+  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
+  for (const auto& [_, pfxs] : grpId2Prefixes) {
+    auto grpInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+        pfxs.begin()->first, pfxs.begin()->second);
+    if (!grpInfo->hasOverrides()) {
+      nonOverrideGids.insert(grpInfo->getID());
+    }
+  }
+  return getPrefixesForGroups(nonOverrideGids);
 }
 
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {

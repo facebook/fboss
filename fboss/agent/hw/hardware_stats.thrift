@@ -333,6 +333,7 @@ struct HwSwitchWatermarkStats {
   7: optional i64 egressCoreBufferWatermarkBytes;
   8: optional i64 sramMinBufferWatermarkBytes;
   9: optional i64 fdrFifoWatermarkBytes;
+  10: optional i64 fabricInterCellJitterWatermarkUsec;
 }
 
 struct CpuPortStats {

@@ -129,8 +129,8 @@ struct VersionConfig {
   3: optional string getVersionCmd;
 }
 
-// Define a new struct for firmware operation
-struct NewFwConfig {
+// Define a struct for firmware operation
+struct FwConfig {
   // Pre-upgrade configuration
   1: optional list<PreFirmwareOperationConfig> preUpgrade;
   // Upgrade configuration
@@ -151,47 +151,9 @@ struct NewFwConfig {
   9: string desiredVersion;
 }
 
-struct FwConfig {
-  // Some firmware entity (not all) necessitate a pre upgrade command to be run first
-  1: optional string preUpgradeCmd;
-
-  // Command to be used to obtain the version of the firmware entity
-  2: string getVersionCmd;
-
-  // some platforms will (not all) have specific priority order in which firmware must be upgraded.
-  // The lower the number, the higher the priority is
-  3: i32 priority = 0;
-
-  // contains the upgrade command to upgrade the firmware entity.
-  4: string upgradeCmd;
-
-  // Some firmware entity necessitate a post upgrade command to be run once the upgrade is complete
-  5: optional string postUpgradeCmd;
-
-  // command used to verify that the firmware upgrade went through as expected
-  6: string verifyFwCmd;
-
-  // command to read the firmware binary image back into a file
-  7: string readFwCmd;
-
-  // sha1sum of the binary that's expected to be used to be programmed for a specific fpd
-  8: string sha1sum;
-
-  // Desired version of the firmware. used for human-readable local validation via --fw_action audit.
-  9: string desiredVersion;
-}
-
 typedef string DeviceName
 
-// Define a top-level struct for firmware utility configuration
+// Top-level config struct
 struct FwUtilConfig {
-  // Map of device names to firmware operations
   1: map<DeviceName, FwConfig> fwConfigs;
-}
-
-// Define a top-level struct for the optimize config of
-// the firmware utility configuration
-struct NewFwUtilConfig {
-  // Define the new firmware configuration here
-  1: map<DeviceName, NewFwConfig> newFwConfigs;
 }

@@ -687,7 +687,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 }
 
 int16_t ControlLogic::calculateFanPwm(
-    float slope,
+    uint16_t slope,
     int16_t currentFanPwm,
     int16_t zonePwm) {
   int16_t newFanPwm = zonePwm;

@@ -183,7 +183,9 @@ cpp_library(
     ],
     exported_deps = [
         ":cmd-global-options",
-        ":tabulate",
+    ],
+    exported_external_deps = [
+        "tabulatecpp",
     ],
 )
 
@@ -807,34 +809,5 @@ cpp_binary(
     ],
     external_deps = [
         "CLI11",
-    ],
-)
-
-# tabulate v1.4
-# Github: https://github.com/p-ranav/tabulate/releases/tag/v1.4
-cpp_library(
-    # @autodeps-skip
-    name = "tabulate",
-    headers = [
-        "tabulate/asciidoc_exporter.hpp",
-        "tabulate/cell.hpp",
-        "tabulate/color.hpp",
-        "tabulate/column.hpp",
-        "tabulate/column_format.hpp",
-        "tabulate/exporter.hpp",
-        "tabulate/font_align.hpp",
-        "tabulate/font_style.hpp",
-        "tabulate/format.hpp",
-        "tabulate/latex_exporter.hpp",
-        "tabulate/markdown_exporter.hpp",
-        "tabulate/optional_lite.hpp",
-        "tabulate/printer.hpp",
-        "tabulate/row.hpp",
-        "tabulate/table.hpp",
-        "tabulate/table_internal.hpp",
-        "tabulate/tabulate.hpp",
-        "tabulate/termcolor.hpp",
-        "tabulate/utf8.hpp",
-        "tabulate/variant_lite.hpp",
     ],
 )

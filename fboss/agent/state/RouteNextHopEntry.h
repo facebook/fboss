@@ -114,7 +114,13 @@ class RouteNextHopEntry
   const std::optional<NextHopSet> getOverrideNextHops() const;
   void setOverrideNextHops(const std::optional<NextHopSet>& nhops);
   bool hasOverrideSwitchingModeOrNhops() const;
-  NextHopSet normalizedNextHops() const;
+  bool hasOverrideNextHops() const;
+  NextHopSet normalizedNextHops() const {
+    return normalizedNextHopsImpl(false /*ignoreOverride*/);
+  }
+  NextHopSet nonOverrideNormalizedNextHops() const {
+    return normalizedNextHopsImpl(true /*ignoreOverride*/);
+  }
 
   // Get the sum of the weights of all the nexthops in the entry
   NextHopWeight getTotalWeight() const;
@@ -171,6 +177,7 @@ class RouteNextHopEntry
       uint64_t normalizedPathCount);
 
  private:
+  NextHopSet normalizedNextHopsImpl(bool ignoreOverride) const;
   static state::RouteNextHopEntry getRouteNextHopEntryThrift(
       Action action,
       AdminDistance distance,

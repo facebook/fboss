@@ -278,7 +278,6 @@
       "asicConfig": {
         "common": {
           "config": {
-            "AI23_mode": "1",
             "appl_enable_oam.BCM8889X": "0",
             "appl_param_local_system_port_voq_connector_start": "93184",
             "appl_param_rcy_mirror_ports_range.BCM8889X": "100-143",
