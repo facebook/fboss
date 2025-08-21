@@ -839,18 +839,29 @@ void EcmpResourceManager::routeAddedOrUpdated(
                                              : "incremented to: ")
                  << inOutState->nonBackupEcmpGroupsCnt;
     } else {
-      // TODO - get merged group iterator if override nhops are set.
+      std::optional<GroupIds2ConsolidationInfoItr> mergeGrpItr;
+      bool newMergeGrpCreated{false};
+      if (auto overrideNhops =
+              newRoute->getForwardInfo().getOverrideNextHops()) {
+        auto numMergeGroupsBefore = mergedGroups_.size();
+        mergeGrpItr = fixAndGetMergeGroupItr(idItr->second, *overrideNhops);
+        CHECK(
+            mergedGroups_.size() == numMergeGroupsBefore ||
+            mergedGroups_.size() == numMergeGroupsBefore + 1);
+        newMergeGrpCreated = mergedGroups_.size() > numMergeGroupsBefore;
+      }
+
       std::tie(grpInfo, grpInserted) = nextHopGroupIdToInfo_.refOrEmplace(
           idItr->second,
           idItr->second,
           idItr,
-          newRoute->getForwardInfo()
-              .getOverrideEcmpSwitchingMode()
-              .has_value());
+          newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value(),
+          mergeGrpItr);
       CHECK(grpInserted);
       inOutState->addOrUpdateRoute(
           rid, newRoute, false /* ecmpDemandExceeded*/);
-      inOutState->nonBackupEcmpGroupsCnt += hasOverrides ? 0 : 1;
+      inOutState->nonBackupEcmpGroupsCnt +=
+          hasOverrides && !newMergeGrpCreated ? 0 : 1;
       XLOG(DBG2) << " Route: " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
@@ -885,9 +896,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
   CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
   if (compressionPenaltyThresholdPct_) {
-    if (grpInserted) {
+    if (grpInserted && !pitr->second->getMergedGroupInfoItr()) {
       /*
-       * New group added, compute candidate merges
+       * New umerged group added, compute candidate merges
        * for it
        */
       computeCandidateMerges({idItr->second});
@@ -899,6 +910,76 @@ void EcmpResourceManager::routeAddedOrUpdated(
       updateConsolidationPenalty(*pitr->second);
     }
   }
+}
+
+/*
+ * When restoring from switch state (e.g. warm boot). We may
+ * encounter prefixes that already have override nhops. This implies
+ * that they should be referencing a merged group. Incrementally
+ * build this group out. E.g. if we have such prefixes show up
+ *
+ * P1 -> [G1, G2], orig G1
+ * P2 -> [G1, G2], orig G2
+ *
+ * Once P1 is added we will notice that it has override nhops. We will
+ * look for a matching merge nhop group but not find it. So we will
+ * create one. Like so
+ * [G1] -> {overrideNhops, {G1-> penalty}}
+ *
+ * Then when P2 arrives, we will notice that it points to the same
+ * merge group. So we will do 2 things
+ * 1. Update merge group like so
+ * [G1, G2] -> {overrideNhops, {G1-> penalty, G2->penalty}}
+ * 2. Update merge group iterator in G1 to point to new position in
+ * mergeGroups_ map.
+ *
+ * FIXME:
+ * We compare against existing merge group nhops when selecting a merge
+ * group. However we don't do so when deciding to choose a new merge group.
+ * So its possible, that reconstruction ends up with a more optimal (lower)
+ * set of merge groups than in the forward pass. Will fix this.
+ */
+EcmpResourceManager::GroupIds2ConsolidationInfoItr
+EcmpResourceManager::fixAndGetMergeGroupItr(
+    const NextHopGroupId newMemberGroupId,
+    const RouteNextHopSet& mergedNhops) {
+  auto mitr = mergedGroups_.begin();
+  for (; mitr != mergedGroups_.end(); ++mitr) {
+    if (mitr->second.mergedNhops == mergedNhops) {
+      CHECK(!mitr->first.contains(newMemberGroupId));
+      break;
+    }
+  }
+  if (mitr == mergedGroups_.end()) {
+    XLOG(DBG2) << " Group ID : " << newMemberGroupId
+               << " merged nhops not found, creating new merged group entry";
+    ConsolidationInfo info{mergedNhops, {}};
+    std::tie(mitr, std::ignore) =
+        mergedGroups_.insert({{newMemberGroupId}, std::move(info)});
+  } else {
+    NextHopGroupIds newMergeSet = mitr->first;
+    auto info = mitr->second;
+    mergedGroups_.erase(mitr);
+    auto [_, inserted] = newMergeSet.insert(newMemberGroupId);
+    CHECK(inserted);
+    std::tie(mitr, inserted) =
+        mergedGroups_.insert({newMergeSet, std::move(info)});
+    CHECK(inserted);
+    // Fix up iterators
+    std::for_each(
+        newMergeSet.begin(),
+        newMergeSet.end(),
+        [this, newMemberGroupId, mitr](auto grpId) {
+          if (grpId != newMemberGroupId) {
+            nextHopGroupIdToInfo_.ref(grpId)->setMergedGroupInfoItr(mitr);
+          }
+        });
+  }
+  CHECK(!nextHopGroupIdToInfo_.ref(newMemberGroupId));
+  auto [_, insertedPenalty] =
+      mitr->second.groupId2Penalty.insert({newMemberGroupId, 0});
+  CHECK(insertedPenalty);
+  return mitr;
 }
 
 template <typename AddrT>
