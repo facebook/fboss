@@ -815,10 +815,10 @@ void EcmpResourceManager::routeAddedOrUpdated(
   auto [idItr, grpInserted] = nextHopGroup2Id_.insert(
       {nhopSet, findCachedOrNewIdForNhops(nhopSet, *inOutState)});
   std::shared_ptr<NextHopGroupInfo> grpInfo;
-  bool isBackupEcmpGroupType =
-      newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value();
+  bool hasOverrides =
+      newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops();
   if (grpInserted) {
-    if (ecmpLimitReached && !isBackupEcmpGroupType) {
+    if (ecmpLimitReached && !hasOverrides) {
       /*
        * If ECMP limit is reached and route does not point to a backup
        * ecmp type nhop group, then update route forwarding info
@@ -839,12 +839,18 @@ void EcmpResourceManager::routeAddedOrUpdated(
                                              : "incremented to: ")
                  << inOutState->nonBackupEcmpGroupsCnt;
     } else {
+      // TODO - get merged group iterator if override nhops are set.
       std::tie(grpInfo, grpInserted) = nextHopGroupIdToInfo_.refOrEmplace(
-          idItr->second, idItr->second, idItr, isBackupEcmpGroupType);
+          idItr->second,
+          idItr->second,
+          idItr,
+          newRoute->getForwardInfo()
+              .getOverrideEcmpSwitchingMode()
+              .has_value());
       CHECK(grpInserted);
       inOutState->addOrUpdateRoute(
           rid, newRoute, false /* ecmpDemandExceeded*/);
-      inOutState->nonBackupEcmpGroupsCnt += isBackupEcmpGroupType ? 0 : 1;
+      inOutState->nonBackupEcmpGroupsCnt += hasOverrides ? 0 : 1;
       XLOG(DBG2) << " Route: " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
