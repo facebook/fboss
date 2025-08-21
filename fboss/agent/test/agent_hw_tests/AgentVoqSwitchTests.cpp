@@ -892,9 +892,12 @@ TEST_F(AgentVoqSwitchTest, verifyDramBufferQuarantine) {
       XLOG(DBG0) << "Dram Quarantined Buffer count: "
                  << dramQurantinedBufferCount.value();
     });
-    // Make sure that we remove the deleted buffer file created
-    // so that it wont interfere with the next test run.
-    EXPECT_TRUE(std::filesystem::remove("deleted_buffers_file"));
+    WITH_RETRIES({
+      // Make sure that we remove the deleted buffer file created
+      // so that it wont interfere with the next test run.
+      EXPECT_EVENTUALLY_TRUE(
+          std::filesystem::remove("/tmp/dram_quarantine_deleted_buffers_file"));
+    });
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
