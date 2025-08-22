@@ -4104,7 +4104,9 @@
           "initRegSettings": [
             {
               "regOffset": 16,
-              "ioBuf": [-128]
+              "ioBuf": [
+                -128
+              ]
             }
           ]
         }
