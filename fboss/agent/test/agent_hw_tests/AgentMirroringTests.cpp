@@ -433,6 +433,11 @@ class AgentIngressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::INGRESS_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
     return {ProductionFeature::INGRESS_MIRRORING};
   }
 
@@ -456,6 +461,12 @@ class AgentIngressPortErspanMirroringTruncateTest
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::INGRESS_MIRRORING,
+          ProductionFeature::MIRROR_PACKET_TRUNCATION,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
     return {
         ProductionFeature::INGRESS_MIRRORING,
         ProductionFeature::MIRROR_PACKET_TRUNCATION};
@@ -504,6 +515,12 @@ class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::INGRESS_MIRRORING,
+          ProductionFeature::INGRESS_ACL_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
     return {
         ProductionFeature::INGRESS_MIRRORING,
         ProductionFeature::INGRESS_ACL_MIRRORING};
@@ -526,9 +543,13 @@ class AgentIngressAclErspanMirroringTest : public AgentMirroringTest<AddrT> {
 template <typename AddrT>
 class AgentEgressPortSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
- public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::EGRESS_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
     return {ProductionFeature::EGRESS_MIRRORING};
   }
 
@@ -574,6 +595,12 @@ class AgentEgressPortErspanMirroringTruncateTest
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::MIRROR_PACKET_TRUNCATION,
+          ProductionFeature::EGRESS_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
     return {
         ProductionFeature::MIRROR_PACKET_TRUNCATION,
         ProductionFeature::EGRESS_MIRRORING};
@@ -598,6 +625,12 @@ class AgentEgressAclSpanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::EGRESS_MIRRORING,
+          ProductionFeature::EGRESS_ACL_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
     return {
         ProductionFeature::EGRESS_MIRRORING,
         ProductionFeature::EGRESS_ACL_MIRRORING};
