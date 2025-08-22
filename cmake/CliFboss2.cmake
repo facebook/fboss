@@ -382,6 +382,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
+  fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.cpp
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h

@@ -10,11 +10,13 @@
 
 #pragma once
 
-#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
@@ -32,73 +34,15 @@ class CmdShowAggregatePort
  public:
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedPorts) {
-    std::vector<facebook::fboss::AggregatePortThrift> entries;
-    std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo;
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+      const ObjectArgType& queriedPorts);
 
-    client->sync_getAggregatePortTable(entries);
-    client->sync_getAllPortInfo(portInfo);
-    return createModel(entries, portInfo, queriedPorts);
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.aggregatePortEntries().value()) {
-      out << fmt::format("\nPort name: {}\n", entry.name().value());
-      out << fmt::format("Description: {}\n", entry.description().value());
-      out << fmt::format(
-          "Active members/Configured members/Min members: {}/{}/{}\n",
-          folly::copy(entry.activeMembers().value()),
-          folly::copy(entry.configuredMembers().value()),
-          folly::copy(entry.minMembers().value()));
-      for (const auto& member : entry.members().value()) {
-        out << fmt::format(
-            "\t Member: {:>10}, id: {:>3}, Up: {:>5}, Rate: {}\n",
-            member.name().value(),
-            folly::copy(member.id().value()),
-            folly::copy(member.isUp().value()) ? "True" : "False",
-            member.lacpRate().value());
-      }
-    }
-  }
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 
   RetType createModel(
       const std::vector<facebook::fboss::AggregatePortThrift>&
           aggregatePortEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo,
-      const ObjectArgType& queriedPorts) {
-    RetType model;
-    std::unordered_set<std::string> queriedSet(
-        queriedPorts.begin(), queriedPorts.end());
-
-    for (const auto& entry : aggregatePortEntries) {
-      auto portName = *entry.name();
-      if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
-        cli::AggregatePortEntry aggPortDetails;
-        aggPortDetails.name() = portName;
-        aggPortDetails.description() = *entry.description();
-        aggPortDetails.minMembers() = *entry.minimumLinkCount();
-        aggPortDetails.configuredMembers() = entry.memberPorts()->size();
-        int32_t activeMemberCount = 0;
-        for (const auto& subport : *entry.memberPorts()) {
-          cli::AggregateMemberPortEntry memberDetails;
-          memberDetails.id() = *subport.memberPortID();
-          memberDetails.name() = *portInfo[*subport.memberPortID()].name();
-          memberDetails.isUp() = *subport.isForwarding();
-          memberDetails.lacpRate() =
-              *subport.rate() == LacpPortRateThrift::FAST ? "Fast" : "Slow";
-          if (*subport.isForwarding()) {
-            activeMemberCount++;
-          }
-          aggPortDetails.members()->push_back(memberDetails);
-        }
-        aggPortDetails.activeMembers() = activeMemberCount;
-        model.aggregatePortEntries()->push_back(aggPortDetails);
-      }
-    }
-    return model;
-  }
+      const ObjectArgType& queriedPorts);
 };
 
 } // namespace facebook::fboss

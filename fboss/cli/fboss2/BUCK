@@ -275,6 +275,7 @@ cpp_library(
         "commands/show/acl/CmdShowAcl.cpp",
         "commands/show/agent/CmdShowAgentFirmware.cpp",
         "commands/show/agent/CmdShowAgentSsl.cpp",
+        "commands/show/aggregateport/CmdShowAggregatePort.cpp",
         "commands/show/arp/CmdShowArp.cpp",
         "commands/show/cpuport/CmdShowCpuPort.cpp",
         "commands/show/dsfnodes/CmdShowDsfNodes.cpp",
