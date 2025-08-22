@@ -43,9 +43,7 @@ struct SaiRouterInterfaceHandle {
   using SaiRouterInterface = std::variant<
       std::shared_ptr<SaiVlanRouterInterface>,
       std::shared_ptr<SaiPortRouterInterface>>;
-  SaiRouterInterfaceHandle(
-      const std::string& intfName,
-      cfg::InterfaceType type);
+  explicit SaiRouterInterfaceHandle(cfg::InterfaceType type);
 
   RouterInterfaceSaiId adapterKey() const {
     return std::visit(
@@ -69,7 +67,6 @@ struct SaiRouterInterfaceHandle {
   }
 
   cfg::InterfaceType intfType{cfg::InterfaceType::VLAN};
-  HwRouterInterfaceFb303Stats fb303Stats;
   bool isLocalRif{true};
   SaiRouterInterface routerInterface{};
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes{};
@@ -156,6 +153,8 @@ class SaiRouterInterfaceManager {
   const SaiPlatform* platform_;
   folly::F14FastMap<InterfaceID, std::unique_ptr<SaiRouterInterfaceHandle>>
       handles_;
+  folly::F14FastMap<InterfaceID, std::unique_ptr<HwRouterInterfaceFb303Stats>>
+      rifStats_;
 };
 
 } // namespace facebook::fboss

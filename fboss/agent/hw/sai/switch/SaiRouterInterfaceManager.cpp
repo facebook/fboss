@@ -60,10 +60,8 @@ HwRouterInterfaceStats fillHwRouterInterfaceStats(
 }
 } // namespace
 
-SaiRouterInterfaceHandle::SaiRouterInterfaceHandle(
-    const std::string& intfName,
-    cfg::InterfaceType type)
-    : intfType(type), fb303Stats(intfName) {}
+SaiRouterInterfaceHandle::SaiRouterInterfaceHandle(cfg::InterfaceType type)
+    : intfType(type) {}
 
 SaiRouterInterfaceManager::SaiRouterInterfaceManager(
     SaiStore* saiStore,
@@ -127,8 +125,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
   auto& store = saiStore_->get<SaiVlanRouterInterfaceTraits>();
   std::shared_ptr<SaiVlanRouterInterface> vlanRouterInterface =
       store.setObject(k, attributes, swInterface->getID());
-  auto vlanRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>(
-      swInterface->getName(), swInterface->getType());
+  auto vlanRouterInterfaceHandle =
+      std::make_unique<SaiRouterInterfaceHandle>(swInterface->getType());
   vlanRouterInterfaceHandle->routerInterface = vlanRouterInterface;
   vlanRouterInterfaceHandle->setLocal(isLocal);
 
@@ -194,8 +192,8 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
   auto& store = saiStore_->get<SaiPortRouterInterfaceTraits>();
   std::shared_ptr<SaiPortRouterInterface> portRouterInterface =
       store.setObject(k, attributes, swInterface->getID());
-  auto portRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>(
-      swInterface->getName(), swInterface->getType());
+  auto portRouterInterfaceHandle =
+      std::make_unique<SaiRouterInterfaceHandle>(swInterface->getType());
   portRouterInterfaceHandle->routerInterface = portRouterInterface;
   portRouterInterfaceHandle->setLocal(isLocal);
   if (isLocal) {
@@ -206,6 +204,17 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
   }
 
   handles_[swInterface->getID()] = std::move(portRouterInterfaceHandle);
+
+  // Initialize stats if needed.
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ROUTER_INTERFACE_STATISTICS) &&
+      swInterface->getType() == cfg::InterfaceType::PORT &&
+      !rifStats_.contains(swInterface->getID())) {
+    rifStats_.emplace(
+        swInterface->getID(),
+        std::make_unique<HwRouterInterfaceFb303Stats>(swInterface->getName()));
+  }
+
   return portRouterInterface->adapterKey();
 }
 
@@ -354,12 +363,15 @@ void SaiRouterInterfaceManager::updateStats() {
   auto now = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
 
-  for (auto& [_, handle] : handles_) {
+  for (auto& [intfId, handle] : handles_) {
     std::visit(
-        [handle = handle.get(), now](auto& rif) {
+        [intfId = intfId, handle = handle.get(), now, this](auto& rif) {
           rif->updateStats();
-          handle->fb303Stats.updateStats(
-              fillHwRouterInterfaceStats(rif->getStats()), now);
+
+          if (auto it = rifStats_.find(intfId); it != rifStats_.end()) {
+            it->second->updateStats(
+                fillHwRouterInterfaceStats(rif->getStats()), now);
+          }
         },
         handle->routerInterface);
   }
