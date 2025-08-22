@@ -298,7 +298,8 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
-    bool useEncapIndex) {
+    bool useEncapIndex,
+    bool addNeighborToIntf) {
   for (const auto& [remoteSwitchId, remoteDsfNode] : *config.dsfNodes()) {
     if ((*config.switchSettings())
             .switchIdToSwitchInfo()
@@ -369,7 +370,10 @@ void populateRemoteIntfAndSysPorts(
       }
     };
 
-    auto addDualStageSysPort = [&remoteSysPorts, &remoteRifs, useEncapIndex](
+    auto addDualStageSysPort = [&remoteSysPorts,
+                                &remoteRifs,
+                                useEncapIndex,
+                                addNeighborToIntf](
                                    const auto& dsfNode, const auto& switchId) {
       CHECK_EQ(dsfNode.systemPortRanges()->systemPortRanges()->size(), 2);
       // TODO(zecheng): Initialize correct global offset for DsfNode
@@ -439,8 +443,10 @@ void populateRemoteIntfAndSysPorts(
                    24},
               });
 
-          updateRemoteIntfWithNeighbor(
-              remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          if (addNeighborToIntf) {
+            updateRemoteIntfWithNeighbor(
+                remoteRif, remoteIntfId, portDesc, neighborIp, encapEndx);
+          }
           remoteRifs->addNode(remoteRif);
         }
       }

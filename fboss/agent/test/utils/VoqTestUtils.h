@@ -80,7 +80,8 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
-    bool useEncapIndex);
+    bool useEncapIndex,
+    bool addNeighborToIntf = true);
 
 void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
 
