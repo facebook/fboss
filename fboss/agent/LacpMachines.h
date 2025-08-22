@@ -144,6 +144,7 @@ class TransmitMachine : private folly::AsyncTimeout {
 
   void start();
   void stop();
+  bool getLacpLastTransmissionResult() const;
 
  private:
   enum class PeriodicState { NONE, SLOW, FAST, TX };

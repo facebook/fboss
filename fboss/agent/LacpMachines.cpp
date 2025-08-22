@@ -543,6 +543,10 @@ void TransmitMachine::ntt(LACPDU lacpdu) {
   XLOG(DBG4) << transmissionsLeft_ << " transmissions left";
 }
 
+bool TransmitMachine::getLacpLastTransmissionResult() const {
+  return isLastTransmissionSuccessful_;
+}
+
 const std::chrono::seconds MuxMachine::AGGREGATE_WAIT_DURATION(2);
 MuxMachine::MuxMachine(
     LacpController& controller,

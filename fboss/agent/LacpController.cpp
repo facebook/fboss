@@ -228,4 +228,8 @@ void LacpController::standby(
   }
 }
 
+bool LacpController::getLacpLastTransmissionResult() {
+  return tx_.getLacpLastTransmissionResult();
+}
+
 } // namespace facebook::fboss
