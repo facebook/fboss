@@ -484,6 +484,13 @@ PeriodicTransmissionMachine::determineTransmissionRate() {
       (partnerInfo.state & LacpState::LACP_ACTIVE) == 0) {
     return PeriodicState::NONE;
   }
+  // If last LACPDU transmission was unsuccessful, we should not
+  // wait for SLOW interval to transmit again, instead we should
+  // transmit immediately. This will help in faster convergence
+  // durin warmboot
+  if (!controller_.getLacpLastTransmissionResult()) {
+    return PeriodicState::FAST;
+  }
 
   return controller_.partnerInfo().state & LacpState::SHORT_TIMEOUT
       ? PeriodicState::FAST
@@ -535,6 +542,7 @@ void TransmitMachine::ntt(LACPDU lacpdu) {
     isLastTransmissionSuccessful_ = false;
     return;
   }
+  isLastTransmissionSuccessful_ = true;
 
   XLOG(DBG4) << "TransmitMachine[" << controller_.portID() << "]: " << "TX("
              << lacpdu.describe() << ")";

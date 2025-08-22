@@ -351,9 +351,8 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
 
   // TODO(joseph5wu) Actually LACP should be multicast pkt, and using
   // OutOfPacket will actually send the packet to unicast queue.
-  sw_->sendNetworkControlPacketAsync(std::move(pkt), PortDescriptor(portID));
-
-  return true;
+  return sw_->sendNetworkControlPacketAsync(
+      std::move(pkt), PortDescriptor(portID));
 }
 
 void LinkAggregationManager::enableForwardingAndSetPartnerState(
