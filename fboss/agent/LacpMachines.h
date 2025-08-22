@@ -155,6 +155,8 @@ class TransmitMachine : private folly::AsyncTimeout {
   static const std::chrono::seconds TX_REPLENISH_RATE;
 
   int transmissionsLeft_{MAX_TRANSMISSIONS_IN_SHORT_PERIOD};
+  bool isLastTransmissionSuccessful_{false};
+
   LacpController& controller_;
   LacpServicerIf* servicer_{nullptr};
 };

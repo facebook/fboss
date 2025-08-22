@@ -532,6 +532,7 @@ void TransmitMachine::ntt(LACPDU lacpdu) {
 
   auto outPort = controller_.portID();
   if (!servicer_->transmit(lacpdu, outPort)) {
+    isLastTransmissionSuccessful_ = false;
     return;
   }
 
