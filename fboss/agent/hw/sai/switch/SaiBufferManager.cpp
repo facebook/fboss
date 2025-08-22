@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
@@ -88,19 +89,6 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   }
 }
 
-void fixThresholds(
-    std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>&
-        staticThreshold,
-    std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>&
-        dynamicThreshold,
-    const SaiBufferProfileTraits::Attributes::ThresholdMode& mode) {
-  if (mode == SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC) {
-    staticThreshold = std::nullopt;
-  } else {
-    dynamicThreshold = std::nullopt;
-  }
-}
-
 uint64_t roundup(uint64_t value, uint64_t unit) {
   return std::ceil(static_cast<double>(value) / unit) * unit;
 }
@@ -113,7 +101,10 @@ SaiBufferManager::SaiBufferManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
+  // load cpu port buffer pool
+  loadCpuPortEgressBufferPool();
+}
 
 uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
   SaiSwitch* saiSwitch;
@@ -330,10 +321,22 @@ void SaiBufferManager::setupIngressEgressBufferPool(
         platform_->getAsic()->getNumCores();
   }
   std::optional<int32_t> newXoffSize;
-  if (bufferPoolCfg &&
+  if (bufferPoolCfg && bufferPoolCfg->headroomBytes().has_value() &&
       platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    newXoffSize = *(*bufferPoolCfg).headroomBytes() *
-        platform_->getAsic()->getNumMemoryBuffers();
+    if (FLAGS_dsf_headroom_pool_size_multiplication_factor_fix) {
+      // This flag is set as part of disruptive upgrade config. This
+      // flag setting needs a cold boot to take effect. Fixing the
+      // multiplication factor used in the headroom pool size
+      // computation. There are 4 cores in DNX and the headroom size
+      // expected to be passed in from agent config is the per core
+      // headroom pool size. So, multiplying it with the number of
+      // cores to get the headroom pool size at the ASIC level.
+      newXoffSize =
+          *bufferPoolCfg->headroomBytes() * platform_->getAsic()->getNumCores();
+    } else {
+      newXoffSize = *bufferPoolCfg->headroomBytes() *
+          platform_->getAsic()->getNumMemoryBuffers();
+    }
   }
   if (!ingressEgressBufferPoolHandle_) {
     createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
@@ -359,7 +362,8 @@ SaiBufferPoolHandle* SaiBufferManager::getIngressBufferPoolHandle() const {
 }
 
 SaiBufferPoolHandle* SaiBufferManager::getEgressBufferPoolHandle(
-    const PortQueue& queue) const {
+    const PortQueue& queue,
+    cfg::PortType type) const {
   if (ingressEgressBufferPoolHandle_) {
     return ingressEgressBufferPoolHandle_.get();
   } else {
@@ -550,13 +554,42 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
           HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
     hwPortStats.inCongestionDiscards_() = inCongestionDiscards;
   }
+
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)) {
+    std::vector<sai_map_t> pgDiscardStatuses(
+        cfg::switch_config_constants::PORT_PG_VALUE_MAX() + 1);
+    for (int i = 0; i < pgDiscardStatuses.size(); ++i) {
+      pgDiscardStatuses[i].key = i; // pgId to query
+    }
+    pgDiscardStatuses = SaiApiTable::getInstance()->portApi().getAttribute(
+        portHandle->port->adapterKey(),
+        SaiPortTraits::Attributes::PgDropStatus{pgDiscardStatuses});
+    hwPortStats.pgInCongestionDiscardSeen_()->clear();
+    for (const auto& status : pgDiscardStatuses) {
+      (*hwPortStats.pgInCongestionDiscardSeen_())[status.key] =
+          status.value ? 1 : 0;
+    }
+  }
+#endif
 }
 
-SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
-    const PortQueue& queue) const {
-  SaiBufferProfileTraits::Attributes::PoolId pool{
-      getEgressBufferPoolHandle(queue)->bufferPool->adapterKey()};
-  std::optional<SaiBufferProfileTraits::Attributes::ReservedBytes>
+template <typename BufferProfileTraits>
+BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
+    const PortQueue& queue,
+    cfg::PortType type) const {
+  typename BufferProfileTraits::Attributes::PoolId pool{
+      getEgressBufferPoolHandle(queue, type)->bufferPool->adapterKey()};
+  return profileCreateAttrs<BufferProfileTraits>(pool, queue, type);
+}
+
+template <typename BufferProfileTraits>
+BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
+    typename BufferProfileTraits::Attributes::PoolId pool,
+    const PortQueue& queue,
+    cfg::PortType /*type*/) const {
+  std::optional<typename BufferProfileTraits::Attributes::ReservedBytes>
       reservedBytes;
   if (queue.getReservedBytes()) {
     reservedBytes = queue.getReservedBytes().value();
@@ -565,36 +598,18 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     // value during get/warmboot
     reservedBytes = 0;
   }
-  SaiBufferProfileTraits::Attributes::ThresholdMode mode{
-      SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
-      dynThresh{0};
-  std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
-      staticThresh{0};
-  if (queue.getSharedBytes()) {
-    // If staticBytes is explicitly set, then apply the queue limit!
-    staticThresh = queue.getSharedBytes().value();
-    mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC;
-  } else if (
-      platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
-      queue.getScalingFactor()) {
-    dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
-        queue.getScalingFactor().value());
-  }
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    fixThresholds(staticThresh, dynThresh, mode);
-  }
-  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
+
+  std::optional<typename BufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
-  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>
+  std::optional<typename BufferProfileTraits::Attributes::SharedFadtMinTh>
       sharedFadtMinTh{};
-  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMaxTh>
+  std::optional<typename BufferProfileTraits::Attributes::SramFadtMaxTh>
       sramFadtMaxTh{};
-  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMinTh>
+  std::optional<typename BufferProfileTraits::Attributes::SramFadtMinTh>
       sramFadtMinTh{};
-  std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
+  std::optional<typename BufferProfileTraits::Attributes::SramFadtXonOffset>
       sramFadtXonOffset{};
-  std::optional<SaiBufferProfileTraits::Attributes::SramDynamicTh>
+  std::optional<typename BufferProfileTraits::Attributes::SramDynamicTh>
       sramDynamicTh{};
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (queue.getMaxDynamicSharedBytes()) {
@@ -614,30 +629,72 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
   sramDynamicTh = 0;
 #endif
 #endif
-  return SaiBufferProfileTraits::CreateAttributes{
-      pool,
-      reservedBytes,
-      mode,
-      dynThresh,
-#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
-      // TODO(nivinl): Get rid of the check once support is
-      // available in SAI 8.2/11.3 - CS00012374846.
-      staticThresh,
+
+  if constexpr (std::is_same_v<
+                    BufferProfileTraits,
+                    SaiStaticBufferProfileTraits>) {
+    if (!queue.getSharedBytes().has_value()) {
+      throw FbossError("queue.getSharedBytes() is unset");
+    }
+
+    typename BufferProfileTraits::Attributes::ThresholdMode mode{
+        SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC};
+    std::optional<
+        typename BufferProfileTraits::Attributes::SharedStaticThreshold>
+        staticThresh{*queue.getSharedBytes()};
+    return typename BufferProfileTraits::CreateAttributes{
+        pool,
+        reservedBytes,
+        mode,
+#if defined(BRCM_SAI_SDK_GTE_11_0) || not defined(BRCM_SAI_SDK_XGS_AND_DNX)
+        staticThresh,
 #endif
-      0,
-      0,
+        0,
+        0,
 #if defined(CHENAB_SAI_SDK)
-      // Do not set xonOffset for Chenab as it is not supported
-      std::nullopt, // XonOffsetTh
+        // Do not set xonOffset for Chenab as it is not supported
+        std::nullopt, // XonOffsetTh
 #else
-      0, // XonOffsetTh
+        0, // XonOffsetTh
 #endif
-      sharedFadtMaxTh,
-      sharedFadtMinTh,
-      sramFadtMaxTh,
-      sramFadtMinTh,
-      sramFadtXonOffset,
-      sramDynamicTh};
+        sharedFadtMaxTh,
+        sharedFadtMinTh,
+        sramFadtMaxTh,
+        sramFadtMinTh,
+        sramFadtXonOffset,
+        sramDynamicTh};
+  } else {
+    typename BufferProfileTraits::Attributes::ThresholdMode mode{
+        SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
+    std::optional<
+        typename BufferProfileTraits::Attributes::SharedDynamicThreshold>
+        dynThresh{0};
+    if (platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported() &&
+        queue.getScalingFactor()) {
+      dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
+          queue.getScalingFactor().value());
+    }
+
+    return typename BufferProfileTraits::CreateAttributes{
+        pool,
+        reservedBytes,
+        mode,
+        dynThresh,
+        0,
+        0,
+#if defined(CHENAB_SAI_SDK)
+        // Do not set xonOffset for Chenab as it is not supported
+        std::nullopt, // XonOffsetTh
+#else
+        0, // XonOffsetTh
+#endif
+        sharedFadtMaxTh,
+        sharedFadtMinTh,
+        sramFadtMaxTh,
+        sramFadtMinTh,
+        sramFadtXonOffset,
+        sramDynamicTh};
+  }
 }
 
 void SaiBufferManager::setupBufferPool(
@@ -658,49 +715,67 @@ void SaiBufferManager::setupBufferPool(
   }
 }
 
-std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
-    const PortQueue& queue) {
+std::shared_ptr<SaiBufferProfileHandle> SaiBufferManager::getOrCreateProfile(
+    const PortQueue& queue,
+    cfg::PortType type) {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL) &&
+      type == cfg::PortType::CPU_PORT) {
+    CHECK(egressCpuPortBufferPoolHandle_);
+
+    SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+        egressCpuPortBufferPoolHandle_->bufferPool->adapterKey()};
+    auto attributes =
+        profileCreateAttrs<SaiDynamicBufferProfileTraits>(pool, queue, type);
+    SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+        SaiDynamicBufferProfileTraits::CreateAttributes,
+        SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+
+    auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+    return std::make_shared<SaiBufferProfileHandle>(
+        store.setObject(k, attributes));
+  }
   setupBufferPool(queue);
-  // TODO throw error if shared bytes is set. We don't handle that in SAI
-  auto attributes = profileCreateAttrs(queue);
-  auto& store = saiStore_->get<SaiBufferProfileTraits>();
-  SaiBufferProfileTraits::AdapterHostKey k = tupleProjection<
-      SaiBufferProfileTraits::CreateAttributes,
-      SaiBufferProfileTraits::AdapterHostKey>(attributes);
-  return store.setObject(k, attributes);
+
+  if (queue.getSharedBytes()) {
+    auto attributes =
+        profileCreateAttrs<SaiStaticBufferProfileTraits>(queue, type);
+    auto& store = saiStore_->get<SaiStaticBufferProfileTraits>();
+    SaiStaticBufferProfileTraits::AdapterHostKey k = tupleProjection<
+        SaiStaticBufferProfileTraits::CreateAttributes,
+        SaiStaticBufferProfileTraits::AdapterHostKey>(attributes);
+    return std::make_shared<SaiBufferProfileHandle>(
+        store.setObject(k, attributes));
+  } else {
+    auto attributes =
+        profileCreateAttrs<SaiDynamicBufferProfileTraits>(queue, type);
+    auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+    SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+        SaiDynamicBufferProfileTraits::CreateAttributes,
+        SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+    return std::make_shared<SaiBufferProfileHandle>(
+        store.setObject(k, attributes));
+  }
 }
 
-SaiBufferProfileTraits::CreateAttributes
+template <typename BufferProfileTraits>
+BufferProfileTraits::CreateAttributes
 SaiBufferManager::ingressProfileCreateAttrs(
     const state::PortPgFields& config) const {
-  SaiBufferProfileTraits::Attributes::PoolId pool{
+  typename BufferProfileTraits::Attributes::PoolId pool{
       getIngressBufferPoolHandle()->bufferPool->adapterKey()};
-  SaiBufferProfileTraits::Attributes::ReservedBytes reservedBytes =
+  typename BufferProfileTraits::Attributes::ReservedBytes reservedBytes =
       *config.minLimitBytes();
-  SaiBufferProfileTraits::Attributes::ThresholdMode mode{
-      SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
-  std::optional<SaiBufferProfileTraits::Attributes::SharedDynamicThreshold>
-      dynThresh{0};
-  std::optional<SaiBufferProfileTraits::Attributes::SharedStaticThreshold>
-      staticThresh{0};
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    fixThresholds(staticThresh, dynThresh, mode);
-  }
-  if (config.scalingFactor() &&
-      platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
-    // If scalingFactor is specified, configure the same!
-    dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
-        nameToEnum<cfg::MMUScalingFactor>(*config.scalingFactor()));
-  }
-  SaiBufferProfileTraits::Attributes::XoffTh xoffTh{0};
+  typename BufferProfileTraits::Attributes::XoffTh xoffTh{0};
   if (config.headroomLimitBytes()) {
     xoffTh = *config.headroomLimitBytes();
   }
-  SaiBufferProfileTraits::Attributes::XonTh xonTh{0};
+  typename BufferProfileTraits::Attributes::XonTh xonTh{0};
   if (config.resumeBytes()) {
     xonTh = *config.resumeBytes();
   }
-  std::optional<SaiBufferProfileTraits::Attributes::XonOffsetTh> xonOffsetTh{};
+  std::optional<typename BufferProfileTraits::Attributes::XonOffsetTh>
+      xonOffsetTh{};
   if (config.resumeOffsetBytes()) {
     xonOffsetTh = *config.resumeOffsetBytes();
   }
@@ -710,17 +785,17 @@ SaiBufferManager::ingressProfileCreateAttrs(
   }
 #endif
 
-  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMaxTh>
+  std::optional<typename BufferProfileTraits::Attributes::SharedFadtMaxTh>
       sharedFadtMaxTh;
-  std::optional<SaiBufferProfileTraits::Attributes::SharedFadtMinTh>
+  std::optional<typename BufferProfileTraits::Attributes::SharedFadtMinTh>
       sharedFadtMinTh;
-  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMaxTh>
+  std::optional<typename BufferProfileTraits::Attributes::SramFadtMaxTh>
       sramFadtMaxTh;
-  std::optional<SaiBufferProfileTraits::Attributes::SramFadtMinTh>
+  std::optional<typename BufferProfileTraits::Attributes::SramFadtMinTh>
       sramFadtMinTh;
-  std::optional<SaiBufferProfileTraits::Attributes::SramFadtXonOffset>
+  std::optional<typename BufferProfileTraits::Attributes::SramFadtXonOffset>
       sramFadtXonOffset;
-  std::optional<SaiBufferProfileTraits::Attributes::SramDynamicTh>
+  std::optional<typename BufferProfileTraits::Attributes::SramDynamicTh>
       sramDynamicTh;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   sharedFadtMaxTh = config.maxSharedXoffThresholdBytes().value_or(0);
@@ -738,44 +813,97 @@ SaiBufferManager::ingressProfileCreateAttrs(
   }
 #endif
 #endif
-  return SaiBufferProfileTraits::CreateAttributes{
-      pool,
-      reservedBytes,
-      mode,
-      dynThresh,
-#if not defined(BRCM_SAI_SDK_XGS_AND_DNX)
-      // TODO(nivinl): Get rid of the check once support is
-      // available in SAI 8.2/11.3 - CS00012374846.
-      staticThresh,
+
+  if constexpr (std::is_same_v<
+                    BufferProfileTraits,
+                    SaiStaticBufferProfileTraits>) {
+    if (!config.staticLimitBytes().has_value()) {
+      throw FbossError("config.staticLimitBytes() is unset");
+    }
+
+    typename BufferProfileTraits::Attributes::ThresholdMode mode{
+        SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC};
+    std::optional<
+        typename BufferProfileTraits::Attributes::SharedStaticThreshold>
+        staticThresh{*config.staticLimitBytes()};
+
+    return typename BufferProfileTraits::CreateAttributes{
+        pool,
+        reservedBytes,
+        mode,
+#if defined(BRCM_SAI_SDK_GTE_11_0) || not defined(BRCM_SAI_SDK_XGS_AND_DNX)
+        staticThresh,
 #endif
-      xoffTh,
-      xonTh,
-      xonOffsetTh,
-      sharedFadtMaxTh,
-      sharedFadtMinTh,
-      sramFadtMaxTh,
-      sramFadtMinTh,
-      sramFadtXonOffset,
-      sramDynamicTh};
+        xoffTh,
+        xonTh,
+        xonOffsetTh,
+        sharedFadtMaxTh,
+        sharedFadtMinTh,
+        sramFadtMaxTh,
+        sramFadtMinTh,
+        sramFadtXonOffset,
+        sramDynamicTh};
+  } else {
+    typename BufferProfileTraits::Attributes::ThresholdMode mode{
+        SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
+    std::optional<
+        typename BufferProfileTraits::Attributes::SharedDynamicThreshold>
+        dynThresh{0};
+    if (config.scalingFactor() &&
+        platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
+      dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
+          nameToEnum<cfg::MMUScalingFactor>(*config.scalingFactor()));
+    }
+
+    return typename BufferProfileTraits::CreateAttributes{
+        pool,
+        reservedBytes,
+        mode,
+        dynThresh,
+        xoffTh,
+        xonTh,
+        xonOffsetTh,
+        sharedFadtMaxTh,
+        sharedFadtMinTh,
+        sramFadtMaxTh,
+        sramFadtMinTh,
+        sramFadtXonOffset,
+        sramDynamicTh};
+  }
 }
 
-std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(
+std::shared_ptr<SaiBufferProfileHandle>
+SaiBufferManager::getOrCreateIngressProfile(
     const state::PortPgFields& portPgConfig) {
   if (!portPgConfig.bufferPoolConfig()) {
     XLOG(FATAL) << "Empty buffer pool config from portPgConfig.";
   }
   setupBufferPool(portPgConfig);
-  auto attributes = ingressProfileCreateAttrs(portPgConfig);
-  auto& store = saiStore_->get<SaiBufferProfileTraits>();
-  SaiBufferProfileTraits::AdapterHostKey k = tupleProjection<
-      SaiBufferProfileTraits::CreateAttributes,
-      SaiBufferProfileTraits::AdapterHostKey>(attributes);
-  return store.setObject(k, attributes);
+
+  if (portPgConfig.staticLimitBytes()) {
+    auto attributes =
+        ingressProfileCreateAttrs<SaiStaticBufferProfileTraits>(portPgConfig);
+    auto& store = saiStore_->get<SaiStaticBufferProfileTraits>();
+    SaiStaticBufferProfileTraits::AdapterHostKey k = tupleProjection<
+        SaiStaticBufferProfileTraits::CreateAttributes,
+        SaiStaticBufferProfileTraits::AdapterHostKey>(attributes);
+    return std::make_shared<SaiBufferProfileHandle>(
+        store.setObject(k, attributes));
+  } else {
+    auto attributes =
+        ingressProfileCreateAttrs<SaiDynamicBufferProfileTraits>(portPgConfig);
+    auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+    SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+        SaiDynamicBufferProfileTraits::CreateAttributes,
+        SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+    return std::make_shared<SaiBufferProfileHandle>(
+        store.setObject(k, attributes));
+  }
 }
 
 void SaiBufferManager::setIngressPriorityGroupBufferProfile(
     const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
-    std::shared_ptr<SaiBufferProfile> bufferProfile) {
+    std::shared_ptr<SaiBufferProfileHandle> bufferProfile) {
   if (bufferProfile) {
     ingressPriorityGroup->setOptionalAttribute(
         SaiIngressPriorityGroupTraits::Attributes::BufferProfile{
@@ -785,6 +913,15 @@ void SaiBufferManager::setIngressPriorityGroupBufferProfile(
         SaiIngressPriorityGroupTraits::Attributes::BufferProfile{
             SAI_NULL_OBJECT_ID});
   }
+}
+
+void SaiBufferManager::setIngressPriorityGroupLosslessEnable(
+    const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
+    bool isLossless) {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  ingressPriorityGroup->setOptionalAttribute(
+      SaiIngressPriorityGroupTraits::Attributes::LosslessEnable{isLossless});
+#endif
 }
 
 SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(

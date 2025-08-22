@@ -11,19 +11,19 @@ using namespace facebook::fboss::fsdb;
 
 OperPathElem raw(std::string tok) {
   OperPathElem elem;
-  elem.raw_ref() = tok;
+  elem.raw() = tok;
   return elem;
 }
 
 OperPathElem regex(std::string tok) {
   OperPathElem elem;
-  elem.regex_ref() = tok;
+  elem.regex() = tok;
   return elem;
 }
 
 OperPathElem any() {
   OperPathElem elem;
-  elem.any_ref() = true;
+  elem.any() = true;
   return elem;
 }
 

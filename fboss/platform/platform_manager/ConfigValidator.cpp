@@ -155,13 +155,13 @@ bool isDeviceMatch(const std::string& deviceName, Ts&&... deviceConfigs) {
 
 bool ConfigValidator::isValidSlotTypeConfig(
     const SlotTypeConfig& slotTypeConfig) {
-  if (!slotTypeConfig.idpromConfig_ref() && !slotTypeConfig.pmUnitName()) {
+  if (!slotTypeConfig.idpromConfig() && !slotTypeConfig.pmUnitName()) {
     XLOG(ERR) << "SlotTypeConfig must have either IDPROM or PmUnit name";
     return false;
   }
-  if (slotTypeConfig.idpromConfig_ref()) {
+  if (slotTypeConfig.idpromConfig()) {
     try {
-      I2cAddr(*slotTypeConfig.idpromConfig_ref()->address_ref());
+      I2cAddr(*slotTypeConfig.idpromConfig()->address());
     } catch (std::invalid_argument& e) {
       XLOG(ERR) << "IDPROM has invalid address " << e.what();
       return false;
@@ -467,7 +467,7 @@ bool ConfigValidator::isValidDeviceName(
 }
 
 bool ConfigValidator::isValid(const PlatformConfig& config) {
-  XLOG(INFO) << "Validating the config";
+  XLOG(INFO) << "Validating platform_manager config";
 
   // Verify presence of platform name
   if (config.platformName()->empty()) {
@@ -567,14 +567,14 @@ bool ConfigValidator::isValidPmUnitConfig(
   }
 
   // Validate PciDeviceConfigs
-  for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs_ref()) {
+  for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs()) {
     if (!isValidPciDeviceConfig(pciDeviceConfig)) {
       return false;
     }
   }
 
   // Validate I2cDeviceConfigs
-  for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs_ref()) {
+  for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs()) {
     if (!isValidI2cDeviceConfig(i2cDeviceConfig)) {
       return false;
     }

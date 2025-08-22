@@ -17,7 +17,7 @@ namespace facebook::fboss {
 
 class BcmConfig {
  public:
-  typedef std::map<std::string, std::string> ConfigMap;
+  using ConfigMap = std::map<std::string, std::string>;
 
   /*
    * Load the Broadcom configuration.

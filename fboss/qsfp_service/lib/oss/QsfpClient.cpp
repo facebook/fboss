@@ -10,6 +10,7 @@ namespace facebook::fboss {
 
 static constexpr int kQsfpSendTimeoutMs = 5000;
 static constexpr int kQsfpConnTimeoutMs = 2000;
+static constexpr int kQsfpChannelTimeoutMs = 15000;
 
 // static
 folly::Future<std::unique_ptr<apache::thrift::Client<QsfpService>>>
@@ -20,6 +21,7 @@ QsfpClient::createClient(folly::EventBase* eb) {
     socket->setSendTimeout(kQsfpSendTimeoutMs);
     auto channel =
         apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+    channel->setTimeout(kQsfpChannelTimeoutMs);
     return std::make_unique<apache::thrift::Client<QsfpService>>(
         std::move(channel));
   };

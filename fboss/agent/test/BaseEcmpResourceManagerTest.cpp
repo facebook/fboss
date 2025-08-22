@@ -45,7 +45,10 @@ std::shared_ptr<RouteV6> makeRoute(
   return rt;
 }
 
-cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
+cfg::SwitchConfig onePortPerIntfConfig(
+    int numIntfs,
+    std::optional<cfg::SwitchingMode> backupSwitchingMode,
+    int32_t ecmpCompressionThresholdPct) {
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(numIntfs);
   cfg.vlans()->resize(numIntfs);
@@ -71,9 +74,15 @@ cfg::SwitchConfig onePortPerIntfConfig(int numIntfs) {
     cfg.interfaces()[p].ipAddresses()[0] =
         folly::sformat("2400:db00:2110:{}::1/64", p);
   }
-  cfg::FlowletSwitchingConfig flowletConfig;
-  flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
-  cfg.flowletSwitchingConfig() = flowletConfig;
+  if (ecmpCompressionThresholdPct) {
+    cfg.switchSettings()->ecmpCompressionThresholdPct() =
+        ecmpCompressionThresholdPct;
+  }
+  if (backupSwitchingMode.has_value()) {
+    cfg::FlowletSwitchingConfig flowletConfig;
+    flowletConfig.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+    cfg.flowletSwitchingConfig() = flowletConfig;
+  }
   return cfg;
 }
 
@@ -115,6 +124,9 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
         EXPECT_EQ(
             newRoute->getForwardInfo().getOverrideEcmpSwitchingMode(),
             origRoute->getForwardInfo().getOverrideEcmpSwitchingMode());
+        EXPECT_EQ(
+            newRoute->getForwardInfo().getOverrideNextHops(),
+            origRoute->getForwardInfo().getOverrideNextHops());
       }
     }
   }
@@ -259,29 +271,58 @@ RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
        ++offset) {
     auto pfx = makePrefix(offset);
     if (!fib6->exactMatch(pfx)) {
+      XLOG(DBG2) << " Next pfx: " << pfx.str();
       return pfx;
     }
   }
   CHECK(false) << " Should never get here";
 }
 
-void BaseEcmpResourceManagerTest::SetUp() {
-  XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
+void BaseEcmpResourceManagerTest::setupFlags() const {
   FLAGS_enable_ecmp_resource_manager = true;
   FLAGS_ecmp_resource_percentage = 100;
   FLAGS_ars_resource_percentage = 100;
   FLAGS_flowletSwitchingEnable = true;
   FLAGS_dlbResourceCheckEnable = false;
-  auto cfg = onePortPerIntfConfig(kNumIntfs);
+}
+
+void BaseEcmpResourceManagerTest::SetUp() {
+  XLOG(DBG2) << "BaseEcmpResourceMgrTest SetUp";
+  setupFlags();
+  auto cfg = onePortPerIntfConfig(
+      kNumIntfs,
+      getBackupEcmpSwitchingMode(),
+      getEcmpCompressionThresholdPct());
   handle_ = createTestHandle(&cfg);
   sw_ = handle_->getSw();
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
   // Taken from mock asic
-  EXPECT_EQ(sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(), 5);
-  // Backup ecmp group type will com from default flowlet confg
+  auto asic = *sw_->getHwAsicTable()->getL3Asics().begin();
+  int asicMaxEcmpGroups, maxPct;
+  if (getBackupEcmpSwitchingMode()) {
+    asicMaxEcmpGroups = *asic->getMaxDlbEcmpGroups();
+    maxPct = FLAGS_ars_resource_percentage;
+  } else {
+    asicMaxEcmpGroups = *asic->getMaxEcmpGroups();
+    maxPct = FLAGS_ecmp_resource_percentage;
+  }
   EXPECT_EQ(
-      *sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
-      *cfg.flowletSwitchingConfig()->backupSwitchingMode());
+      sw_->getEcmpResourceManager()->getMaxPrimaryEcmpGroups(),
+      std::floor(asicMaxEcmpGroups * maxPct / 100.0) -
+          FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  // Backup ecmp group type will come from default flowlet confg
+  std::optional<cfg::SwitchingMode> expectedBackupSwitchingMode;
+  if (cfg.flowletSwitchingConfig() &&
+      cfg.flowletSwitchingConfig()->backupSwitchingMode().has_value()) {
+    expectedBackupSwitchingMode =
+        *cfg.flowletSwitchingConfig()->backupSwitchingMode();
+  }
+  EXPECT_EQ(
+      sw_->getEcmpResourceManager()->getBackupEcmpSwitchingMode(),
+      expectedBackupSwitchingMode);
+  EXPECT_EQ(
+      sw_->getEcmpResourceManager()->getEcmpCompressionThresholdPct(),
+      cfg.switchSettings()->ecmpCompressionThresholdPct().value_or(0));
   consolidator_ = makeResourceMgr();
   state_ = sw_->getState();
   state_->publish();
@@ -393,6 +434,153 @@ BaseEcmpResourceManagerTest::getNhopId(const RouteNextHopSet& nhops) const {
   return nhopId;
 }
 
+void BaseEcmpResourceManagerTest::assertTargetState(
+    const std::shared_ptr<SwitchState>& targetState,
+    const std::shared_ptr<SwitchState>& endStatePrefixes,
+    const std::set<RouteV6::Prefix>& overflowPrefixes,
+    const EcmpResourceManager* consolidatorToCheck,
+    bool checkStats) {
+  consolidatorToCheck =
+      consolidatorToCheck ? consolidatorToCheck : consolidator_.get();
+  EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
+  std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups;
+  for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
+    auto route = cfib(targetState)->exactMatch(inRoute->prefix());
+    ASSERT_TRUE(route->isResolved());
+    ASSERT_NE(route, nullptr);
+    auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
+        RouterID(0), inRoute->prefix().toCidrNetwork());
+    bool isEcmpRoute = route->isResolved() &&
+        route->getForwardInfo().getNextHopSet().size() > 1;
+    if (isEcmpRoute) {
+      ASSERT_NE(consolidatorGrpInfo, nullptr);
+      if (consolidatorToCheck == consolidator_.get()) {
+        /*
+         * If consolidatorToCheck is the same as test class consolidator
+         * assert that group infos b/w SwSwitch's consolidator_ and
+         * Test class consolidator match
+         */
+
+        auto swSwitchGroupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+            RouterID(0), route->prefix().toCidrNetwork());
+        ASSERT_NE(swSwitchGroupInfo, nullptr);
+        auto swGroupId = swSwitchGroupInfo->getID();
+        auto consolidatorGroupId = swSwitchGroupInfo->getID();
+        auto consolidatorRouteUsageCount =
+            consolidatorGrpInfo->getRouteUsageCount();
+        auto swRouteUsageCount = swSwitchGroupInfo->getRouteUsageCount();
+        auto consolidatorIsBackupEcmpType =
+            consolidatorGrpInfo->isBackupEcmpGroupType();
+        auto swIsBackupEcmpType = swSwitchGroupInfo->isBackupEcmpGroupType();
+        EXPECT_EQ(
+            std::tie(swGroupId, swRouteUsageCount, swIsBackupEcmpType),
+            std::tie(
+                consolidatorGroupId,
+                consolidatorRouteUsageCount,
+                consolidatorIsBackupEcmpType));
+      }
+    }
+    if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
+      EXPECT_TRUE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
+          << " expected route " << route->str()
+          << " to have override ECMP group type or ecmp nhops";
+      if (getBackupEcmpSwitchingMode()) {
+        EXPECT_EQ(
+            route->getForwardInfo().getOverrideEcmpSwitchingMode(),
+            consolidatorToCheck->getBackupEcmpSwitchingMode());
+        EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
+        if (isEcmpRoute) {
+          backupEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+        }
+      }
+      if (getEcmpCompressionThresholdPct()) {
+        EXPECT_TRUE(route->getForwardInfo().getOverrideNextHops().has_value());
+        EXPECT_EQ(
+            route->getForwardInfo().getOverrideNextHops(),
+            consolidatorToCheck
+                ->getGroupInfo(RouterID(0), route->prefix().toCidrNetwork())
+                ->getOverrideNextHops());
+        // Merged groups also take up primary ecmp groups
+        primaryEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+      }
+    } else {
+      EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+      if (isEcmpRoute) {
+        EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
+        EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
+        primaryEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+      }
+    }
+  }
+  if (checkStats) {
+    EXPECT_EQ(
+        sw_->stats()->getPrimaryEcmpGroupsExhausted(),
+        backupEcmpGroups.size() ? 1 : 0);
+    EXPECT_EQ(
+        sw_->stats()->getPrimaryEcmpGroupsCount(), primaryEcmpGroups.size());
+    EXPECT_EQ(
+        sw_->stats()->getBackupEcmpGroupsCount(), backupEcmpGroups.size());
+  }
+}
+
+std::vector<StateDelta> BaseEcmpResourceManagerTest::addOrUpdateRoute(
+    const RoutePrefixV6& prefix6,
+    const RouteNextHopSet& nhops) {
+  auto newRoute = makeRoute(prefix6, nhops);
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  if (fib6->getNodeIf(prefix6.str())) {
+    fib6->updateNode(prefix6.str(), std::move(newRoute));
+  } else {
+    fib6->addNode(prefix6.str(), std::move(newRoute));
+  }
+  newState->publish();
+  return consolidate(newState);
+}
+
+std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoutes(
+    const std::vector<RoutePrefixV6>& prefix6s) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  for (const auto& prefix6 : prefix6s) {
+    fib6->removeNode(prefix6.str());
+  }
+  newState->publish();
+  return consolidate(newState);
+}
+
+std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
+    const EcmpResourceManager::NextHopGroupIds& grpIds) const {
+  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
+  std::set<RouteV6::Prefix> prefixes;
+  for (auto grpId : grpIds) {
+    for (const auto& [_, pfx] : grpId2Prefixes.at(grpId)) {
+      prefixes.insert(RouteV6::Prefix(pfx.first.asV6(), pfx.second));
+    }
+  }
+  return prefixes;
+}
+
+std::set<RouteV6::Prefix>
+BaseEcmpResourceManagerTest::getPrefixesWithoutOverrides() const {
+  std::set<RouteV6::Prefix> prefixes;
+  return getPrefixesForGroups(getGroupsWithoutOverrides());
+}
+
+EcmpResourceManager::NextHopGroupIds
+BaseEcmpResourceManagerTest::getGroupsWithoutOverrides() const {
+  EcmpResourceManager::NextHopGroupIds nonOverrideGids;
+  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
+  for (const auto& [_, pfxs] : grpId2Prefixes) {
+    auto grpInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+        pfxs.begin()->first, pfxs.begin()->second);
+    if (!grpInfo->hasOverrides()) {
+      nonOverrideGids.insert(grpInfo->getID());
+    }
+  }
+  return nonOverrideGids;
+}
+
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
   auto oldState = state_;
   auto newState = oldState->clone();
@@ -465,5 +653,19 @@ TEST_F(BaseEcmpResourceManagerTest, UpdateFailed) {
   // After update failure, the next hop set should not exist
   auto nhopId = getNhopId(nhops);
   EXPECT_FALSE(nhopId.has_value());
+}
+
+TEST_F(BaseEcmpResourceManagerTest, reloadInvalidConfigs) {
+  {
+    // Both compression threshold and backup group type set
+    auto newCfg = onePortPerIntfConfig(42, getBackupEcmpSwitchingMode());
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
+  {
+    // Resetting backup ecmp type is not allowed
+    auto newCfg =
+        onePortPerIntfConfig(getEcmpCompressionThresholdPct(), std::nullopt);
+    EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
+  }
 }
 } // namespace facebook::fboss

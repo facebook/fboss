@@ -166,7 +166,7 @@ class BcmAPI {
   /*
    * SDK6 bcm config map.
    */
-  typedef folly::F14NodeMap<std::string, std::string> HwConfigMap;
+  using HwConfigMap = folly::F14NodeMap<std::string, std::string>;
   static HwConfigMap& getHwConfig();
 
   static bool isHwInSimMode();

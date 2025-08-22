@@ -2,14 +2,25 @@
 
 namespace cpp2 facebook.fboss.platform.bsp_tests
 
-include "fboss/platform/platform_manager/platform_manager_config.thrift"
-include "fboss/platform/bsp_tests/fbiob_device_config.thrift"
-
-// Test configuration structure
-// testData is mapping of pmName to DeviceTestData
+// `BspTestsConfig` contains all extra information for a platform
+//  to test BSP functionality and interfaces.
+//
+// `testData`: mapping of PlatformManager name to DeviceTestData
+//  "PlatformManager" name is <PM_UNIT_NAME>.<PM_UNIT_SCOPED_NAME>
+//
+// `expectedErrors`: Mapping of PlaformManager name to a map of
+//  ExpectedErrorType to reason. The reason must be non-empty.
 struct BspTestsConfig {
-  1: string platform;
-  2: map<string, DeviceTestData> testData;
+  1: map<string, DeviceTestData> testData;
+  2: map<string, map<ExpectedErrorType, string>> expectedErrors; //pmName : {errorType: reason}
+}
+
+// `UNKNOWN_ERROR`: should not be used
+//
+// `I2C_NOT_DETECTABLE`: i2cdetect cannot detect this device for some reason
+enum ExpectedErrorType {
+  UNKNOWN_ERROR = 0,
+  I2C_NOT_DETECTABLE = 1,
 }
 
 struct DeviceTestData {
@@ -17,7 +28,7 @@ struct DeviceTestData {
   2: optional HwmonTestData hwmonTestData;
   3: optional GpioTestData gpioTestData;
   4: optional WatchdogTestData watchdogTestData;
-  5: optional list<LedTestData> ledTestData;
+  5: optional LedTestData ledTestData;
 }
 
 struct I2CTestData {
@@ -48,9 +59,10 @@ struct GpioTestData {
 }
 
 struct GpioLineInfo {
-  1: string name;
-  2: string direction;
-  3: optional i32 getValue;
+  1: i32 index;
+  2: string name;
+  3: string direction;
+  4: optional i32 getValue;
 }
 
 struct HwmonTestData {
@@ -62,39 +74,5 @@ struct WatchdogTestData {
 }
 
 struct LedTestData {
-  1: list<string> expectedColors;
-  2: optional string ledType;
-  3: optional i32 ledId;
-}
-
-// Runtime configuration structure - final configuration used in BspTests
-// built by combining PlatformManager config with BspTestConfig data
-struct RuntimeConfig {
-  1: string platform;
-  2: list<PciDevice> devices;
-  3: platform_manager_config.BspKmodsFile kmods;
-  4: map<string, DeviceTestData> testData;
-}
-
-struct PciDevice {
-  1: string pmName;
-  2: string vendorId;
-  3: string deviceId;
-  4: string subSystemVendorId;
-  5: string subSystemDeviceId;
-  6: list<I2CAdapter> i2cAdapters;
-  7: list<fbiob_device_config.AuxData> auxDevices;
-}
-
-struct I2CAdapter {
-  1: string pmName;
-  2: fbiob_device_config.AuxData auxDevice;
-  3: list<I2CDevice> i2cDevices;
-}
-
-struct I2CDevice {
-  1: string pmName;
-  2: i32 channel;
-  3: string deviceName;
-  4: string address;
+  1: bool createsLeds;
 }

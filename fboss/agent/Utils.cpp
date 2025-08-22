@@ -81,6 +81,7 @@ DEFINE_bool(
     allow_eventor_send_packet,
     false,
     "A test-only flag to allow sending packets directly out of the eventor");
+DEFINE_int32(sflow_egress_port_id, 0, "Force sflow to egress from a port");
 
 namespace facebook::fboss {
 
@@ -948,7 +949,6 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
       break;
     case cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR:
       throw FbossError("Valid desired DRAINED states are {DRAINED, UNDRAINED}");
-      break;
   }
 
   return newSwitchDrainState;
@@ -1018,13 +1018,13 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
       return 0;
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BIAB:
+    case PlatformType::PLATFORM_MERU800BIAC:
     case PlatformType::PLATFORM_JANGA800BIC:
       return 1024;
 
     default:
       return 0;
   }
-  return 0;
 }
 
 std::string runShellCmd(const std::string& cmd) {

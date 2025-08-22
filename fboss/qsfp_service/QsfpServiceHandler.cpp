@@ -412,7 +412,7 @@ void QsfpServiceHandler::phyConfigCheckHw(
 
 void QsfpServiceHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNames);
   for (const auto& portName : *portNames) {
     manager_->publishLinkSnapshots(portName);
   }

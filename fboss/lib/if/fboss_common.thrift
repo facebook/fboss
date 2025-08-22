@@ -45,6 +45,7 @@ enum PlatformType {
   PLATFORM_DARWIN48V = 37,
   PLATFORM_MINIPACK3N = 38,
   PLATFORM_ICECUBE800BC = 39,
+  PLATFORM_MERU800BIAC = 40,
 
   # Placeholder for unknown platform type
   PLATFORM_UNKNOWN = 1000,
@@ -59,6 +60,7 @@ struct PlatformAgentSdkVersion {
   1: SdkVersionRolloutType rolloutType;
   2: optional string asicSdk;
   3: optional string saiSdk;
+  4: optional string saiVersion;
 }
 
 struct PlatformQsfpSdkVersion {

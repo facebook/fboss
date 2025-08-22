@@ -155,7 +155,7 @@ void ExportedCounter::setName(const folly::StringPiece name) {
 }
 
 void ExportedCounter::incrementValue(std::chrono::seconds now, int64_t amount) {
-  stat_.lock()->addValue(now.count(), amount);
+  stat_.lock()->addValue(fb303::ExportedStat::TimePoint(now), amount);
 }
 
 } // namespace facebook::fboss::utility

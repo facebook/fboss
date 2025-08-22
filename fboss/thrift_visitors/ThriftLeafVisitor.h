@@ -114,14 +114,20 @@ struct ThriftLeafVisitor<apache::thrift::type::struct_t<Node>> {
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
     apache::thrift::op::for_each_field_id<Node>([&]<class Id>(Id) {
+      auto val = apache::thrift::op::get<Id, Node>(node);
+      if constexpr (apache::thrift::detail::is_optional_field_ref_v<
+                        decltype(val)>) {
+        // skip optional fields that are not set
+        if (!val.has_value()) {
+          return;
+        }
+      }
       // Look for the expected member name
       path.emplace_back(apache::thrift::op::get_name_v<Node, Id>);
 
       // Recurse further
       ThriftLeafVisitor<apache::thrift::op::get_type_tag<Node, Id>>::visit(
-          path,
-          *apache::thrift::op::get<Id, Node>(node),
-          std::forward<Func>(f));
+          path, *val, std::forward<Func>(f));
 
       path.pop_back();
     });

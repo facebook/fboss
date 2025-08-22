@@ -79,7 +79,8 @@ class ControlLogic {
   void updateTargetPwm(const Sensor& sensorItem);
   void programLed(const Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
-  int16_t calculateFanPwm(float slope, int16_t currentFanPwm, int16_t zonePwm);
+  int16_t
+  calculateFanPwm(uint16_t slope, int16_t currentFanPwm, int16_t zonePwm);
   void updatePwmState(const Zone& zone, int16_t fanPwm);
 
   folly::Synchronized<std::map<std::string /* fanName */, FanStatus>>

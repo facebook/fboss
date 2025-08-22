@@ -1,9 +1,9 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/Rackmon.h"
+#include "Rackmon.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <fstream>
-#include "fboss/platform/rackmon/tests/TempDir.h"
+#include "TempDir.h"
 
 using namespace std;
 using namespace testing;

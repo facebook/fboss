@@ -7,6 +7,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/if/gen-cpp2/AsicTempThriftAsyncClient.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/SensorServiceThriftAsyncClient.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_clients.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
@@ -27,9 +28,10 @@ void getTransceivers(
 sensor_service::SensorReadResponse getSensorValueThroughThrift(
     int sensorServiceThriftPort,
     folly::EventBase& evb) {
+  folly::EventBase evbSensorInternal;
   folly::SocketAddress sockAddr("::1", sensorServiceThriftPort);
-  auto socket =
-      folly::AsyncSocket::newSocket(&evb, sockAddr, kSensorSendTimeoutMs);
+  auto socket = folly::AsyncSocket::newSocket(
+      &evbSensorInternal, sockAddr, kSensorSendTimeoutMs);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
   auto client = std::make_unique<apache::thrift::Client<
@@ -37,29 +39,30 @@ sensor_service::SensorReadResponse getSensorValueThroughThrift(
       std::move(channel));
   sensor_service::SensorReadResponse res;
   try {
-    res = client->future_getSensorValuesByNames({}).get();
+    client->sync_getSensorValuesByNames(res, {});
   } catch (std::exception& ex) {
     XLOG(ERR) << "Exception talking to sensor_service. " << ex.what();
   }
   return res;
 }
 
-sensor_service::SensorReadResponse getAsicTempThroughThrift(
+asic_temp::AsicTempResponse getAsicTempThroughThrift(
     int agentTempThriftPort,
     folly::EventBase& evb) {
+  folly::EventBase evbAsicInternal;
   folly::SocketAddress sockAddr("::1", agentTempThriftPort);
-  auto socket =
-      folly::AsyncSocket::newSocket(&evb, sockAddr, kSensorSendTimeoutMs);
+  auto socket = folly::AsyncSocket::newSocket(
+      &evbAsicInternal, sockAddr, kSensorSendTimeoutMs);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  auto client = std::make_unique<apache::thrift::Client<
-      facebook::fboss::platform::sensor_service::SensorServiceThrift>>(
+  auto client = std::make_unique<
+      apache::thrift::Client<facebook::fboss::asic_temp::AsicTempThrift>>(
       std::move(channel));
-  sensor_service::SensorReadResponse res;
+  asic_temp::AsicTempResponse res;
   try {
-    res = client->future_getSensorValuesByNames({}).get();
+    client->sync_getAsicTemp(res, {});
   } catch (std::exception& ex) {
-    XLOG(ERR) << "Exception talking to sensor_service. " << ex.what();
+    XLOG(ERR) << "Exception talking to wedge_agent. " << ex.what();
   }
   return res;
 }

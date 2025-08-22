@@ -3,18 +3,20 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<f3a4f8f8dd0df4407affb3dc433fda85>>"
+        "@generated SignedSource<<4c0b39ef347d9364da235410708aaf7b>>"
     ],
     "MINIPACK": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
@@ -25,28 +27,38 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.29",
+            "saiSdk": "13.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ],
     "ELBERT": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
@@ -57,12 +69,14 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
@@ -73,31 +87,42 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",
-            "saiSdk": "11.7.0.0_odp"
+            "saiSdk": "11.7.0.0_odp",
+            "saiVersion": "1.14.0"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.29",
+            "saiSdk": "13.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ],
     "MORGAN800CC": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "24.8.3001_yuba",
-            "saiSdk": "24.8.3001_yuba"
+            "saiSdk": "24.8.3001_yuba",
+            "saiVersion": "1.14.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "24.8.3001",
-            "saiSdk": "24.8.3001"
+            "saiSdk": "24.8.3001",
+            "saiVersion": "1.14.0"
         }
     ],
     "WEDGE100": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
@@ -108,12 +133,14 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
@@ -124,28 +151,38 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.29",
+            "saiSdk": "13.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ],
     "DARWIN": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.26",
-            "saiSdk": "8.2.0.0_odp"
+            "saiSdk": "8.2.0.0_odp",
+            "saiVersion": "1.11.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp"
+            "saiSdk": "10.2.0.0_odp",
+            "saiVersion": "1.13.2"
         },
         {
             "rolloutType": "PRODUCTION",
@@ -156,86 +193,106 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "1.42.8",
-            "saiSdk": "1.42.8"
+            "saiSdk": "1.42.8",
+            "saiVersion": "1.7.4"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "24.8.3001",
-            "saiSdk": "24.8.3001"
+            "saiSdk": "24.8.3001",
+            "saiVersion": "1.14.0"
         }
     ],
     "MINIPACK3N": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "4.8.0938",
-            "saiSdk": "116.132.2506.1"
+            "asicSdk": "4.8.1054",
+            "saiSdk": "116.133.2508.1",
+            "saiVersion": "1.16.1"
         }
     ],
     "MERU400BIU": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",
-            "saiSdk": "11.7.0.0_dnx_odp"
+            "saiSdk": "11.7.0.0_dnx_odp",
+            "saiVersion": "1.14.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.31",
-            "saiSdk": "12.2.0.0_dnx_odp"
+            "saiSdk": "12.2.0.0_dnx_odp",
+            "saiVersion": "1.15.0"
         }
     ],
     "MERU800BIA": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",
-            "saiSdk": "11.7.0.0_dnx_odp"
+            "saiSdk": "11.7.0.0_dnx_odp",
+            "saiVersion": "1.14.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.31",
-            "saiSdk": "12.2.0.0_dnx_odp"
+            "saiSdk": "12.2.0.0_dnx_odp",
+            "saiVersion": "1.15.0"
         }
     ],
     "JANGA800BIC": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",
-            "saiSdk": "11.7.0.0_dnx_odp"
+            "saiSdk": "11.7.0.0_dnx_odp",
+            "saiVersion": "1.14.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.31",
-            "saiSdk": "12.2.0.0_dnx_odp"
+            "saiSdk": "12.2.0.0_dnx_odp",
+            "saiVersion": "1.15.0"
         }
     ],
     "MERU400BFU": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",
-            "saiSdk": "11.7.0.0_dnx_odp"
+            "saiSdk": "11.7.0.0_dnx_odp",
+            "saiVersion": "1.14.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.31",
-            "saiSdk": "12.2.0.0_dnx_odp"
+            "saiSdk": "12.2.0.0_dnx_odp",
+            "saiVersion": "1.15.0"
         }
     ],
     "MERU800BFA": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",
-            "saiSdk": "11.7.0.0_dnx_odp"
+            "saiSdk": "11.7.0.0_dnx_odp",
+            "saiVersion": "1.14.0"
         },
         {
             "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "6.5.31",
-            "saiSdk": "12.2.0.0_dnx_odp"
+            "saiSdk": "12.2.0.0_dnx_odp",
+            "saiVersion": "1.15.0"
         }
     ],
     "TAHAN800BC": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.30",
-            "saiSdk": "11.7.0.0_odp"
+            "saiSdk": "11.7.0.0_odp",
+            "saiVersion": "1.14.0"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.29",
+            "saiSdk": "13.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ]
 }

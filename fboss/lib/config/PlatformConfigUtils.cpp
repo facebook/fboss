@@ -48,7 +48,7 @@ void recurseGetPinsByChipType(
     std::vector<Pin>& pins) {
   if (chipsMap.find(*pinConn.a()->chip()) != chipsMap.end()) {
     Pin temp;
-    temp.end_ref() = *pinConn.a();
+    temp.end() = *pinConn.a();
     pins.push_back(temp);
     return;
   }
@@ -61,7 +61,7 @@ void recurseGetPinsByChipType(
   if (zPin.getType() == Pin::Type::end) {
     if (chipsMap.find(*zPin.get_end().chip()) != chipsMap.end()) {
       Pin temp;
-      temp.end_ref() = zPin.get_end();
+      temp.end() = zPin.get_end();
       pins.push_back(temp);
       return;
     }
@@ -69,7 +69,7 @@ void recurseGetPinsByChipType(
     auto zJunction = zPin.get_junction();
     if (chipsMap.find(*zJunction.system()->chip()) != chipsMap.end()) {
       Pin temp;
-      temp.junction_ref() = zJunction;
+      temp.junction() = zJunction;
       pins.push_back(temp);
       return;
     }

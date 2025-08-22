@@ -60,6 +60,14 @@ class HwArsTest : public HwLinkStateDependentTest {
         RouterID(0));
   }
 
+  int kMaxDlbGroups() {
+    return getHwSwitch()
+        ->getPlatform()
+        ->getAsic()
+        ->getMaxDlbEcmpGroups()
+        .value();
+  }
+
   // native BCM has access to BRCM IDs >=200128 cannot be configured as DLB
   // SAI does not have access to BRCM IDs. So SAI implementation cannot check
   // this. So leave the tests to use just under 128 to test upto the limit
@@ -599,12 +607,6 @@ TEST_F(HwArsFlowletTest, ValidateFlowsetExceed) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-
-// This is as close to real case as possible
-// Ensure that when multiple ECMP objects are created and flowset table gets
-// full things snap back in when first ECMP object is removed, enough space is
-// created for the second object to insert itself
-
 // verify if all 16 ECMP groups are in DLB mode
 TEST_F(HwArsFlowletTest, ValidateFlowsetTableFull) {
   if (this->skipTest()) {
@@ -1120,8 +1122,7 @@ TEST_F(HwArsSprayTest, VerifySprayModeScale) {
 #endif
     return;
   }
-  auto numEcmp =
-      getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
+  auto numEcmp = kMaxDlbGroups();
 
   auto setup = [this, numEcmp]() {
     auto cfg = initialConfig();
@@ -1216,9 +1217,9 @@ TEST_F(HwArsSprayTest, VerifyEcmpIdManagement) {
     return;
   }
 
+  auto numEcmp = kMaxDlbGroups();
+
   auto setup = [&]() {
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     setupEcmpGroups(numEcmp);
     // create 1 more ECMP object
     resolveNextHopsAddRoute(
@@ -1226,8 +1227,6 @@ TEST_F(HwArsSprayTest, VerifyEcmpIdManagement) {
   };
 
   auto verify = [&]() {
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     auto cfg = initialConfig();
     verifyEcmpGroups(cfg, numEcmp);
 
@@ -1320,6 +1319,8 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForDynamicEcmp) {
     return;
   }
 
+  auto numEcmp = kMaxDlbGroups();
+
   auto setup = [&]() {
     FLAGS_enable_ecmp_resource_manager = true;
     auto cfg = initialConfig();
@@ -1330,8 +1331,6 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForDynamicEcmp) {
         cfg::SwitchingMode::PER_PACKET_QUALITY);
     updatePortFlowletConfigName(cfg);
     applyNewConfig(cfg);
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     setupEcmpGroups(numEcmp);
   };
 
@@ -1343,8 +1342,6 @@ TEST_F(HwArsTest, VerifyEcmpIdAllocationForDynamicEcmp) {
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         kMinFlowletTableSize,
         cfg::SwitchingMode::PER_PACKET_QUALITY);
-    auto numEcmp =
-        getHwSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups().value();
     verifyEcmpGroups(cfg, numEcmp);
 
     // create 1 more ECMP object, this should throw since no more DLB groups

@@ -457,12 +457,12 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
     const SpiMasterConfig& spiMasterConfig,
     uint32_t instanceId) {
   // PciDevice.SysfsPath
-  // |── fbiob_pci.expectedEnding
-  // |   └── fpgaIpBlockConfig.deviceName
-  // |       ├── spi0
-  // │       |   ├── spi0.0
-  // │       |   ├── spi0.1
-  // │       |   ├── spi0.2
+  // |── fbiob_pci.expectedEnding    (*.{deviceName}.{instanceId})
+  // |   └── fpgaIpBlockConfig.deviceName    (`spiMasterPath`)
+  // |       ├── spi0    (`kSpiBusRe`)
+  // │       |   ├── spi0.0   (`kSpiDevIdRe`)
+  // │       |   ├── spi0.1   (`kSpiDevIdRe`)
+  // │       |   ├── spi0.2   (`kSpiDevIdRe`)
   std::string expectedEnding = fmt::format(
       ".{}.{}", *spiMasterConfig.fpgaIpBlockConfig()->deviceName(), instanceId);
   std::string spiMasterPath;
@@ -484,10 +484,7 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
   }
   if (!fs::exists(spiMasterPath)) {
     throw PciSubDeviceRuntimeError(
-        fmt::format(
-            "Could not find matching SpiController in {}. InstanceId: {}",
-            spiMasterPath,
-            instanceId),
+        fmt::format("SPI Master path not found at: {}", spiMasterPath),
         *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
   std::map<std::string, std::string> spiCharDevPaths;
@@ -560,6 +557,21 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
       }
       spiCharDevPaths[*spiDeviceConfigItr->pmUnitScopedName()] = spiCharDevPath;
     }
+  }
+  auto expectedSpiDeviceCount = spiMasterConfig.spiDeviceConfigs()->size();
+  if (spiCharDevPaths.size() != expectedSpiDeviceCount) {
+    throw PciSubDeviceRuntimeError(
+        fmt::format(
+            "SPI device count mismatch for SPI master {} at {}. "
+            "Expected {} SPI devices but found {}. "
+            "Directories matching pattern '{}' may be missing or "
+            "SpiDeviceConfigs may be misconfigured",
+            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+            spiMasterPath,
+            expectedSpiDeviceCount,
+            spiCharDevPaths.size(),
+            kSpiBusRe.pattern()),
+        *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
   }
   return spiCharDevPaths;
 }

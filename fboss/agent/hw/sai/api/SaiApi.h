@@ -502,6 +502,109 @@ class SaiApi {
   }
 
   template <typename SaiObjectTraits>
+  std::vector<std::enable_if_t<
+      AdapterKeyIsObjectId<SaiObjectTraits>::value,
+      typename SaiObjectTraits::AdapterKey>>
+  bulkCreate(
+      const std::vector<typename SaiObjectTraits::CreateAttributes>&
+          createAttributes,
+      sai_object_id_t switch_id) const {
+    if (UNLIKELY(failHwWrites() || skipHwWrites())) {
+      // Fail hard on both skip and fail Hw write settings. For FAIL, its
+      // obvious why we fail hard. For SKIP, we fail since the expectation here
+      // is to return a key from adapter, which we can't manufacture out of thin
+      // air
+      XLOGF(
+          FATAL,
+          "Attempting create SAI obj with {}, while hw writes are blocked",
+          createAttributes[0]);
+    }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOGF(
+          WARNING,
+          "Attempting create SAI obj with {}, while hw writes are not expected",
+          createAttributes[0]);
+    }
+
+    std::vector<std::vector<sai_attribute_t>> saiAttributeTsVec;
+    std::vector<uint32_t> attrCount;
+    saiAttributeTsVec.reserve(createAttributes.size());
+    attrCount.reserve(createAttributes.size());
+    std::for_each(
+        createAttributes.begin(), createAttributes.end(), [&](auto& attr) {
+          auto saiAttributeTs = saiAttrs(attr);
+          saiAttributeTsVec.emplace_back(saiAttributeTs);
+          attrCount.emplace_back(saiAttributeTs.size());
+        });
+
+    sai_status_t status;
+    sai_status_t retStatus[createAttributes.size()];
+    sai_object_id_t keys[createAttributes.size()];
+    std::vector<const sai_attribute_t*> saiAttributeTsVecPtr;
+    saiAttributeTsVecPtr.reserve(saiAttributeTsVec.size());
+    for (const auto& saiAttributeTs : saiAttributeTsVec) {
+      saiAttributeTsVecPtr.emplace_back(saiAttributeTs.data());
+    }
+    auto g{SaiApiLock::getInstance()->lock()};
+    {
+      TIME_CALL;
+      status = impl()._bulkCreate(
+          keys,
+          retStatus,
+          switch_id,
+          attrCount.data(),
+          saiAttributeTsVecPtr.size(),
+          saiAttributeTsVecPtr.data());
+    }
+
+    saiApiCheckError(status, apiType(), fmt::format("Failed to bulk create"));
+    for (auto idx = 0; idx < createAttributes.size(); idx++) {
+      saiApiCheckError(
+          retStatus[idx],
+          apiType(),
+          fmt::format(
+              "Failed to bulk create SAI obj with {}", createAttributes[idx]));
+      XLOGF(DBG5, "bulk create SAI obj with {}", createAttributes[idx]);
+    }
+    return std::vector<typename SaiObjectTraits::AdapterKey>(
+        keys, keys + createAttributes.size());
+  }
+
+  template <typename AdapterKeyT>
+  void bulkRemove(const std::vector<AdapterKeyT>& keys) const {
+    if (UNLIKELY(skipHwWrites())) {
+      return;
+    }
+    if (UNLIKELY(failHwWrites())) {
+      XLOGF(
+          FATAL,
+          "Attempting to remove SAI obj {} while hw writes are blocked",
+          keys[0]);
+    }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOGF(
+          WARNING,
+          "Attempting to remove SAI obj {} while hw writes are not expected",
+          keys[0]);
+    }
+    auto g{SaiApiLock::getInstance()->lock()};
+    sai_status_t status;
+    sai_status_t retStatus[keys.size()];
+    {
+      TIME_CALL;
+      status = impl()._bulkRemove(keys.size(), keys.data(), retStatus);
+    }
+    saiApiCheckError(status, apiType(), fmt::format("Failed to bulk remove"));
+    for (auto idx = 0; idx < keys.size(); idx++) {
+      saiApiCheckError(
+          retStatus[idx],
+          apiType(),
+          fmt::format("Failed to remove SAI obj {}", keys[idx]));
+      XLOGF(DBG5, "bulk remove SAI obj {}", keys[idx]);
+    }
+  }
+
+  template <typename SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
       const std::vector<sai_stat_id_t>& counterIds,

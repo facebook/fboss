@@ -71,14 +71,7 @@ def generate_platform_mappings(
 ) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
     input_dir = os.path.expanduser(input_dir)
-    vendor_data_map = {platform_name: read_vendor_data(input_dir)}
-
-    # Temporary Workaround for meru800bia variants
-    if "platforms/meru800bia" in input_dir and not input_dir.endswith(
-        "platforms/meru800bia"
-    ):
-        meru800bia_input_dir = input_dir.rsplit("/", 1)[0] + "/meru800bia"
-        vendor_data_map["meru800bia"] = read_vendor_data(meru800bia_input_dir)
+    vendor_data_map = read_all_vendor_data()
 
     if not vendor_data_map:
         print("No vendor data found in the input directory.", file=sys.stderr)
@@ -106,6 +99,22 @@ def generate_platform_mappings(
 
 def generate_mappings_without_args() -> None:
     generate_platform_mappings(*get_command_line_args())
+
+
+def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
+    all_vendor_data = {}
+    data_path = INPUT_DIR
+    print(
+        f"Reading all vendor data in {data_path}...",
+        file=sys.stderr,
+    )
+    for filename in os.listdir(data_path):
+        filepath = os.path.join(data_path, filename)
+        if not os.path.isdir(filepath):
+            continue
+        all_vendor_data[filename] = read_vendor_data(filepath)
+
+    return all_vendor_data
 
 
 if __name__ == "__main__":

@@ -40,9 +40,9 @@ class SchedulerManagerTest : public ManagerTestBase {
     *range.minimum() = min;
     *range.maximum() = max;
     if (queueRateType == cfg::PortQueueRate::Type::pktsPerSec) {
-      portQueueRate.pktsPerSec_ref() = range;
+      portQueueRate.pktsPerSec() = range;
     } else {
-      portQueueRate.kbitsPerSec_ref() = range;
+      portQueueRate.kbitsPerSec() = range;
     }
     portQueue.setWeight(weight);
     portQueue.setScheduling(schedType);

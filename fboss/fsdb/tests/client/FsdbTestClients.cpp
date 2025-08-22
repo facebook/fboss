@@ -146,8 +146,6 @@ Patch makePatch(const cfg::AgentConfig& config) {
 
 Patch makePatch(const folly::F14FastMap<std::string, HwPortStats>& portStats) {
   using AgentStatsMembers = apache::thrift::reflect_struct<AgentStats>::member;
-  using FsdbOperStatsRootMembers =
-      apache::thrift::reflect_struct<FsdbOperStatsRoot>::member;
   folly::IOBufQueue queue;
   apache::thrift::CompactSerializer::serialize(portStats, &queue);
   thrift_cow::PatchNode val;

@@ -31,6 +31,8 @@ const std::map<PlatformType, folly::StringPiece> kHardwareNameMap = {
      kPortMappingMeru800biaCsv},
     {facebook::fboss::PlatformType::PLATFORM_MERU800BIAB,
      kPortMappingMeru800biaCsv},
+    {facebook::fboss::PlatformType::PLATFORM_MERU800BIAC,
+     kPortMappingMeru800biaCsv},
     {facebook::fboss::PlatformType::PLATFORM_MERU800BFA,
      kPortMappingMeru800bfaCsv},
     {facebook::fboss::PlatformType::PLATFORM_JANGA800BIC,
@@ -39,6 +41,8 @@ const std::map<PlatformType, folly::StringPiece> kHardwareNameMap = {
      kPortMappingTahan800bcCsv},
     {facebook::fboss::PlatformType::PLATFORM_MORGAN800CC,
      kPortMappingMorgan800ccCsv},
+    {facebook::fboss::PlatformType::PLATFORM_ICECUBE800BC,
+     kPortMappingIcecube800bcCsv},
 };
 
 int cliMain(int argc, char* argv[]) {

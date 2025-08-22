@@ -12,8 +12,6 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 
-#include <folly/IPAddress.h>
-
 namespace facebook::fboss {
 enum class MirrorType {
   INGRESS_SPAN,

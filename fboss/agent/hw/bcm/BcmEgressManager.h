@@ -132,7 +132,7 @@ class BcmEgressManager {
       bool up,
       bool wideEcmpSupported,
       bool useHsdk);
-  typedef std::pair<BcmEcmpEgress::EgressId, int> EgressIdAndWeight;
+  using EgressIdAndWeight = std::pair<BcmEcmpEgress::EgressId, int>;
   template <typename T>
   static EgressIdAndWeight toEgressIdAndWeight(T egress);
   // Callback for traversal in egressResolutionChangedHwNotLocked

@@ -94,7 +94,6 @@ uint8_t CmisFieldInfo::getTxBiasMultiplier(const uint8_t data) {
     default:
       return 1;
   }
-  return 1;
 }
 } // namespace fboss
 } // namespace facebook

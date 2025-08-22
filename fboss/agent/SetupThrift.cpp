@@ -72,6 +72,19 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   server->setQueueTimeout(kThriftServerQueueTimeout);
   server->setSocketQueueTimeout(kThriftServerQueueTimeout);
 
+  // Furthermore, if a request is already being processed, thrift expects
+  // that to complete within JOIN_TIMEOUT as well or else Thrift server
+  // will crash with FATAL error. Thrift library does not provide any API
+  // to disable this mechanism.
+  // Thus, set JOIN TIMEOUT to a very large value so it never kicks in.
+  // This value is chosen to be > wrapper script timeout.
+  // Note: this API must be invoked during thrift server setup i.e. before the
+  // first serve().
+  //
+  // TODO: refactor BGP => Agent thrift timeout, wrapper script timeout
+  // and JOIN TIMEOUT to a single source of truth in configerator.
+  server->setWorkersJoinTimeout(std::chrono::seconds(140));
+
   if (setupSSL) {
     serverSSLSetup(*server);
   }

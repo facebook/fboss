@@ -599,7 +599,7 @@ std::shared_ptr<PortQueue> ManagerTestBase::makePortQueue(
   cfg::Range range;
   *range.minimum() = minPps;
   *range.maximum() = maxPps;
-  portQueueRate.pktsPerSec_ref() = range;
+  portQueueRate.pktsPerSec() = range;
   portQueue->setPortQueueRate(portQueueRate);
   portQueue->setWeight(weight);
   portQueue->setScheduling(schedType);

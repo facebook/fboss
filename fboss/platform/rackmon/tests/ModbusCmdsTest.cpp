@@ -1,5 +1,5 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/ModbusCmds.h"
+#include "ModbusCmds.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -278,7 +278,6 @@ TEST(ModbusErrorTest, StringConversion) {
   auto errorMsg = [](uint8_t num) {
     try {
       throw ModbusError(num);
-      return std::string();
     } catch (ModbusError& err) {
       return std::string(err.what());
     }

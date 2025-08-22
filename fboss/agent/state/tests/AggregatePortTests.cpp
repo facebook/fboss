@@ -329,8 +329,8 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   // the scope for aggregate port depends on member port, a scope for an
   // aggregate port without any subport can not be determined. throw an
   // exception for such a config and is no longer valid.
-  EXPECT_THROW(
-      publishAndApplyConfig(startState, &config, platform.get()), FbossError);
+  EXPECT_DEATH(
+      publishAndApplyConfig(startState, &config, platform.get()), ".*");
 }
 
 TEST(AggregatePort, noTrunk) {

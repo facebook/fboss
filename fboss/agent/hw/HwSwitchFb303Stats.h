@@ -266,6 +266,9 @@ class HwSwitchFb303Stats {
   void pfcDeadlockRecoveryCount() {
     pfcDeadlockRecoveryCount_.addValue(1);
   }
+  void sramLowBufferLimitHitCount() {
+    sramLowBufferLimitHitCount_.addValue(1);
+  }
   void fabricConnectivityMissingCount(int64_t value);
   void fabricConnectivityMismatchCount(int64_t value);
   void fabricConnectivityBogusCount(int64_t value);
@@ -461,6 +464,7 @@ class HwSwitchFb303Stats {
   TLTimeseries dramEnqueuedBytes_;
   TLTimeseries dramDequeuedBytes_;
   TLTimeseries dramBlockedTimeNsec_;
+  TLTimeseries dramQuarantinedBufferCount_;
   // Credit stats
   TLTimeseries deletedCreditBytes_;
   // RQP errors
@@ -471,6 +475,7 @@ class HwSwitchFb303Stats {
   TLTimeseries tc0RateLimitDrops_;
   // DDP errors
   TLTimeseries dramDataPathPacketError_;
+  TLTimeseries sramLowBufferLimitHitCount_;
   // fabric connectivity errors
   TLCounter fabricConnectivityMissingCount_;
   TLCounter fabricConnectivityMismatchCount_;

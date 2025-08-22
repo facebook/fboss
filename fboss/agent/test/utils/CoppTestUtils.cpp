@@ -182,7 +182,7 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
 
 cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
   if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    // prevent scheduling configuration on chenab for cpu queues
+    // TODO(Chenab): use strict priority scheduling when available
     return cfg::QueueScheduling::INTERNAL;
   }
   return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
@@ -235,7 +235,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   auto portQueueRate = cfg::PortQueueRate();
 
   if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
-    portQueueRate.pktsPerSec_ref() = getRange(0, pps);
+    portQueueRate.pktsPerSec() = getRange(0, pps);
   } else {
     uint32_t kbps;
     if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
@@ -243,7 +243,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
     } else {
       kbps = getCoppQueueKbpsFromPps(hwAsic, pps);
     }
-    portQueueRate.kbitsPerSec_ref() = getRange(0, kbps);
+    portQueueRate.kbitsPerSec() = getRange(0, kbps);
   }
 
   return portQueueRate;
@@ -273,15 +273,20 @@ void addCpuQueueConfig(
   setPortQueueMaxDynamicSharedBytes(queue0, hwAsic);
   cpuQueues.push_back(queue0);
 
+  auto setWeight = [](cfg::PortQueue* queue, uint32_t weight) {
+    if (queue->scheduling().value() == cfg::QueueScheduling::STRICT_PRIORITY ||
+        queue->scheduling().value() == cfg::QueueScheduling::INTERNAL) {
+      return;
+    }
+    queue->weight() = weight;
+  };
   if (!isSai) {
     cfg::PortQueue queue1;
     queue1.id() = kCoppDefaultPriQueueId;
     queue1.name() = "cpuQueue-default";
     queue1.streamType() = getCpuDefaultStreamType(hwAsic);
     queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
-    queue1.weight() = *queue1.scheduling() == cfg::QueueScheduling::INTERNAL
-        ? 0
-        : kCoppDefaultPriWeight;
+    setWeight(&queue1, kCoppDefaultPriWeight);
     if (setQueueRate) {
       queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
@@ -290,14 +295,6 @@ void addCpuQueueConfig(
     }
     setPortQueueSharedBytes(queue1, isSai);
     cpuQueues.push_back(queue1);
-  } else if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-    cfg::PortQueue queue1;
-    queue1.id() = kCoppDefaultPriQueueId;
-    queue1.name() = "cpuQueue-default";
-    queue1.streamType() = getCpuDefaultStreamType(hwAsic);
-    queue1.scheduling() = cfg::QueueScheduling::INTERNAL;
-    queue1.weight() = 0;
-    cpuQueues.push_back(queue1);
   }
 
   cfg::PortQueue queue2;
@@ -305,9 +302,7 @@ void addCpuQueueConfig(
   queue2.name() = "cpuQueue-mid";
   queue2.streamType() = getCpuDefaultStreamType(hwAsic);
   queue2.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
-  queue2.weight() = *queue2.scheduling() == cfg::QueueScheduling::INTERNAL
-      ? 0
-      : kCoppMidPriWeight;
+  setWeight(&queue2, kCoppMidPriWeight);
   setPortQueueMaxDynamicSharedBytes(queue2, hwAsic);
   cpuQueues.push_back(queue2);
 
@@ -316,9 +311,7 @@ void addCpuQueueConfig(
   queue9.name() = "cpuQueue-high";
   queue9.streamType() = getCpuDefaultStreamType(hwAsic);
   queue9.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
-  queue9.weight() = *queue9.scheduling() == cfg::QueueScheduling::INTERNAL
-      ? 0
-      : kCoppHighPriWeight;
+  setWeight(&queue9, kCoppHighPriWeight);
   cpuQueues.push_back(queue9);
 
   *config.cpuQueues() = cpuQueues;
@@ -711,13 +704,19 @@ uint64_t getCpuQueueWatermarkBytes(HwPortStats& hwPortStats, int queueId) {
 }
 
 std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
-    std::shared_ptr<SwitchState> swState) {
+    std::shared_ptr<SwitchState> swState,
+    const PortID& srcPort) {
   VlanID downlinkBaseVlanId(kDownlinkBaseVlanId);
   auto intfMap = swState->getInterfaces()->modify(&swState);
   for (const auto& [_, intfMap] : *intfMap) {
     for (auto iter = intfMap->begin(); iter != intfMap->end(); ++iter) {
       auto intf = iter->second;
-      if (intf->getVlanID() >= downlinkBaseVlanId) {
+      if (intf->getType() == cfg::InterfaceType::VLAN &&
+          intf->getVlanID() >= downlinkBaseVlanId) {
+        return intf->clone();
+      } else if (
+          intf->getType() == cfg::InterfaceType::PORT &&
+          intf->getPortID() == srcPort) {
         return intf->clone();
       }
     }
@@ -1612,7 +1611,7 @@ void verifyCoppInvariantHelper(
     const HwAsic* hwAsic,
     std::shared_ptr<SwitchState> swState,
     PortID srcPort) {
-  auto intf = getEligibleInterface(swState);
+  auto intf = getEligibleInterface(swState, srcPort);
   if (!intf) {
     throw FbossError(
         "No eligible uplink/downlink interfaces in config to verify COPP invariant");

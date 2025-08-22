@@ -121,6 +121,20 @@ TEST_F(AgentHgridDuRouteScaleTest, hgridDuScaleTest) {
   runTest<utility::HgridDuRouteScaleGenerator>();
 }
 
+class AgentHostPrefixRouteScaleTest : public AgentRouteScaleTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::TH_ALPM_ROUTE_SCALE);
+    return features;
+  }
+};
+
+TEST_F(AgentHostPrefixRouteScaleTest, hostPrefixScaleTest) {
+  runTest<utility::HostPrefixRouteScaleGenerator>();
+}
+
 class AgentHgridUuRouteScaleTest : public AgentRouteScaleTest {
  protected:
   std::vector<ProductionFeature> getProductionFeaturesVerified()

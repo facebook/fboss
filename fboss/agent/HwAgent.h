@@ -36,6 +36,13 @@ class HwAgent {
   HwInitResult initAgent(
       bool failHwCallsOnWarmboot,
       HwSwitchCallback* callback);
+  /*
+   * Stop all threads that are running. The function is virtual to allow
+   * derived classes to stop additional threads. Currently, HwAgent stops the
+   * Platform threads, particularly the WedgePlatform BcmSwitch for high
+   * frequency stats collection.
+   */
+  virtual void stopThreads();
 
   void waitForInitDone();
 

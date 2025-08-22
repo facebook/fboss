@@ -99,6 +99,7 @@ struct HwPortStats {
   65: map<i16, i64> pgInCongestionDiscards_ = {};
   66: optional i64 pfcDeadlockDetection_;
   67: optional i64 pfcDeadlockRecovery_;
+  68: map<i16, bool> pgInCongestionDiscardSeen_ = {};
 }
 
 struct HwSysPortStats {
@@ -332,6 +333,7 @@ struct HwSwitchWatermarkStats {
   7: optional i64 egressCoreBufferWatermarkBytes;
   8: optional i64 sramMinBufferWatermarkBytes;
   9: optional i64 fdrFifoWatermarkBytes;
+  10: optional i64 fabricInterCellJitterWatermarkUsec;
 }
 
 struct CpuPortStats {
@@ -368,6 +370,7 @@ struct HwSwitchDramStats {
   1: optional i64 dramEnqueuedBytes;
   2: optional i64 dramDequeuedBytes;
   3: optional i64 dramBlockedTimeNsec;
+  4: optional i64 dramQuarantinedBufferCount;
 }
 
 struct HwSwitchCreditStats {
@@ -440,6 +443,8 @@ struct HwSwitchFb303GlobalStats {
   34: i64 fabric_connectivity_bogus;
   35: optional i64 interrupt_masked_events;
   36: optional i64 asic_revision;
+  37: optional i64 sram_low_buffer_limit_hit_count;
+  38: optional i64 dram_quarantined_buffer_count;
 }
 
 struct HwFlowletStats {
@@ -467,4 +472,15 @@ struct HwHighFrequencyStats {
   @cpp.Type{template = "folly::F14FastMap"}
   2: map<string, HwHighFrequencyPortStats> portStats;
   3: map<i16, i64> itmPoolSharedWatermarkBytes = {};
+}
+
+struct HwRouterInterfaceStats {
+  1: i64 inBytes_;
+  2: i64 inPkts_;
+  3: i64 outBytes_;
+  4: i64 outPkts_;
+  5: i64 inErrorBytes_;
+  6: i64 inErrorPkts_;
+  7: i64 outErrorBytes_;
+  8: i64 outErrorPkts_;
 }

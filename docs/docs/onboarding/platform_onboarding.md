@@ -14,23 +14,37 @@ oncall: fboss_oss
 ## Overview
 
 This document describes the steps involved in onboarding a new platform to FBOSS using OSS.
+For common problems and their solutions, please refer to the [troubleshooting guide](/docs/onboarding/troubleshooting/).
+
+## Preparation Steps
+1. Request access of [FBOSS OSS New Platform Onboarding Tracker Template](https://docs.google.com/spreadsheets/d/1jZiAA9cBWnQml0frf4mC5cnWqsJRL4EK7w3qiYwl5Fo/edit?usp=sharing)
+2. Make a copy of this template for your new platform
+3. Fill in project details in the Tracker copy and share the file to External Vendor/Meta Workplace Group
+4. Regularly update the project tracker to cover new platform development/testing progress
 
 ## Steps
 
-1. **Add Initial Support for Platform Services**
+1. [[Manual](/docs/manuals/add_initial_support_for_platform_services/)] **Add Initial Support for Platform Services**
 
    **Work Items:**
 
-   - [ ] [Add Platform Manager Support](https://facebook.github.io/fboss/docs/platform/platform_manager/)
+   - [ ] Add platform manager support
+   - [ ] Add BSP support
+   - [ ] Build, run, and test platform services
 
    **Outcomes:**
 
-   - [ ] Platform Services can build
-   - [ ] Platform Manager can start
-   - [ ] BSP can be loaded
-   - [ ] Sensor Service HW Tests pass
-   - [ ] Fan Service HW Tests pass
-   - [ ] Platform Manager HW Tests pass
+   - [ ] `platform_manager.json` is committed to the FBOSS repository
+   - [ ] `platform_manager.json` abides by the specification
+   - [ ] the BSP repository is setup and accessible by Meta
+   - [ ] the BSP abides by the API specification and development requirements
+   - [ ] the BSP is compiled as out-of-tree kernel modules and deployed in FBOSS to unblock FBOSS development
+   - [ ] `bsp_tests.json` is modified as needed based on guidance in `bsp_tests_config.thrift`
+   - [ ] 100% of BSP tests pass
+   - [ ] expected errors are defined in the test config if and only if the hardware has a valid reason and this is agreed to by Meta
+   - [ ] platform services can be built successfully
+   - [ ] platform manager can start successfully
+   - [ ] 100% of platform service hardware tests pass
 
 2. **Add Necessary Development Code**
 
@@ -85,7 +99,7 @@ This document describes the steps involved in onboarding a new platform to FBOSS
 
    **Work Items:**
 
-   - [ ] [Build a Ping test setup](https://facebook.github.io/fboss/docs/testing/ping_test/)
+   - [ ] [Build a Ping test setup](/docs/manuals/perform_a_ping_test/)
 
    **Outcomes:**
 

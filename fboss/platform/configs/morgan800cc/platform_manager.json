@@ -157,7 +157,7 @@
           ],
           "watchdogConfigs": [
             {
-              "pmUnitScopedName": "MCB_FAN_WD",
+              "pmUnitScopedName": "MCB_FAN_WATCHDOG",
               "deviceName": "watchdog_fan",
               "iobufOffset": "0x452100",
               "csrOffset": "0x452100"
@@ -3580,7 +3580,7 @@
     "/run/devmap/gpiochips/MCB_FPGA_GPIO2": "/[MCB_MCB_GPIO]",
     "/run/devmap/gpiochips/SMB_FPGA_GPIO1": "/SMB_SLOT@0/[SMB_DOM1_GPIO]",
     "/run/devmap/gpiochips/SMB_FPGA_GPIO2": "/SMB_SLOT@0/[SMB_DOM2_GPIO]",
-    "/run/devmap/watchdogs/MCB_FAN_WD": "/[MCB_FAN_WD]",
+    "/run/devmap/watchdogs/MCB_FAN_WATCHDOG": "/[MCB_FAN_WATCHDOG]",
     "/run/devmap/xcvrs/xcvr_io_1": "/SMB_SLOT@0/[SMB_DOM1_I2C_MASTER_PORT_1]",
     "/run/devmap/xcvrs/xcvr_ctrl_1": "/SMB_SLOT@0/[SMB_XCVR_CTRL_PORT_1]",
     "/run/devmap/xcvrs/xcvr_io_2": "/SMB_SLOT@0/[SMB_DOM1_I2C_MASTER_PORT_2]",

@@ -15,7 +15,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
-#if defined(BRCM_SAI_SDK_DNX)
+#if defined(BRCM_SAI_SDK_DNX) || defined(BRCM_SAI_SDK_XGS)
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
 #else
@@ -290,6 +290,12 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto asicPrbs = swPort->getAsicPrbs();
   if (asicPrbs.enabled().value()) {
     initAsicPrbsStats(swPort);
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+      // linkscan is disabled after enabling PRBS on bcm platforms, thus need to
+      // trigger port link state update from FBOSS
+      platform_->getHwSwitch()->syncPortLinkState(swPort->getID());
+    }
   }
   return portSaiId;
 }
@@ -390,6 +396,12 @@ void SaiPortManager::changePortImpl(
   if (oldAsicPrbsEnabled != newAsicPrbsEnabled) {
     if (newAsicPrbsEnabled) {
       initAsicPrbsStats(newPort);
+      if (platform_->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+        // linkscan is disabled after enabling PRBS on bcm platforms, thus need
+        // to trigger port link state update from FBOSS
+        platform_->getHwSwitch()->syncPortLinkState(newPort->getID());
+      }
     } else {
       auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(newPort->getID());
       if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
@@ -647,6 +659,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadPastWeight = std::nullopt;
   std::optional<SaiPortTraits::Attributes::ArsPortLoadFutureWeight>
       arsPortLoadFutureWeight = std::nullopt;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+  std::optional<SaiPortTraits::Attributes::ArsLinkState> arsLinkState =
+      std::nullopt;
+#endif
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     auto flowletCfg = swPort->getPortFlowletConfig();
@@ -660,6 +676,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
         arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
       }
+      // exclude 14.0 until this attr is ported there by BCM
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
+    defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
+      if (swPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC) {
+        arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
+      }
+#endif
     }
   }
 #endif
@@ -751,6 +774,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // ARS port load past weight
         std::nullopt, // ARS port load future weight
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+        std::nullopt, // ARS link state
+#endif
         std::nullopt, // Reachability Group
         std::nullopt, // CondEntropyRehashEnable
         std::nullopt, // CondEntropyRehashPeriodUS
@@ -833,6 +859,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       arsPortLoadScalingFactor, // ARS scaling factor
       arsPortLoadPastWeight, // ARS port load past weight
       arsPortLoadFutureWeight, // ARS port load future weight
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+      arsLinkState,
 #endif
       reachabilityGroup,
       condEntropyRehashEnable,
@@ -1276,8 +1305,16 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
-    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
-    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+    if (platform_->getAsic()->getAsicType() !=
+        cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // post2 and post3 are unsupported by chenab but fboss thrift model
+      // (phy.thrift) has them non-optional instead of passing them as zero,
+      // ignore them.
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+    }
     if (platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(

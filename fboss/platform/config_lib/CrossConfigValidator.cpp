@@ -22,6 +22,7 @@ CrossConfigValidator::CrossConfigValidator(
 
 bool CrossConfigValidator::isValidSensorConfig(
     const sensor_config::SensorConfig& sensorConfig) {
+  XLOG(INFO) << "Cross validating sensor_service config";
   for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
     if (!platform_manager::ConfigValidator().isValidSlotPath(
             pmConfig_, *pmUnitSensors.slotPath())) {
@@ -50,6 +51,7 @@ bool CrossConfigValidator::isValidSensorConfig(
 bool CrossConfigValidator::isValidFanServiceConfig(
     const fan_service::FanServiceConfig& fanConfig,
     const std::optional<sensor_config::SensorConfig>& sensorConfig) {
+  XLOG(INFO) << "Cross validating fan_service config";
   for (const auto& fan : *fanConfig.fans()) {
     if (!isValidRuntimePath(*fan.rpmSysfsPath()) ||
         !isValidRuntimePath(*fan.pwmSysfsPath())) {
@@ -77,6 +79,15 @@ bool CrossConfigValidator::isValidFanServiceConfig(
       return false;
     }
   }
+  // add the sensor name validation check for shutdownCondition config
+  if (fanConfig.shutdownCondition()) {
+    for (const auto& condition : *fanConfig.shutdownCondition()->conditions()) {
+      if (!sensor_service::ConfigValidator().isValidSensorName(
+              *sensorConfig, *condition.sensorName())) {
+        return false;
+      }
+    }
+  }
   return true;
 }
 
@@ -87,7 +98,7 @@ bool CrossConfigValidator::isValidWeutilConfig(
   if (platformName == "darwin") {
     return true;
   }
-  XLOG(INFO) << fmt::format("Validating WeutilConfig for {}", platformName);
+  XLOG(INFO) << "Cross validating weutil config";
   std::unordered_set<std::string> weutilEepromPaths{};
   for (const auto& [eepromName, eepromConfig] : *weutilConfig.fruEepromList()) {
     // Meru SCM EEPROM is calculated runtime and not present in pm config
@@ -98,19 +109,19 @@ bool CrossConfigValidator::isValidWeutilConfig(
       continue;
     }
     weutilEepromPaths.insert(*eepromConfig.path());
-    XLOG(INFO) << fmt::format(
+    XLOG(DBG1) << fmt::format(
         "Added {} to weutilEepromPaths", *eepromConfig.path());
   }
   // PlatformManager should have all the EEPROMs defined in WeutilConfig
   for (const auto& [link, path] : *pmConfig_.symbolicLinkToDevicePath()) {
     weutilEepromPaths.erase(link);
-    XLOG(INFO) << fmt::format("Found {} in PlatformManager config", path);
+    XLOG(DBG1) << fmt::format("Found {} in PlatformManager config", path);
     // Exit early if the set is empty
     if (weutilEepromPaths.empty()) {
       break;
     }
   }
-  XLOG(INFO) << fmt::format(
+  XLOG(DBG1) << fmt::format(
       "weutilEepromPaths after removing all symbolic links: [{}]",
       // Format it to json array to make it easier to read
       std::accumulate(

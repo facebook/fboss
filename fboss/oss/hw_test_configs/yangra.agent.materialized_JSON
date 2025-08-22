@@ -9,7 +9,9 @@
     "rx_vlan_untagged_packets": "true",
     "sai_user_defined_trap": "true",
     "set_classid_for_my_subnet_and_ip_routes": "true",
-    "skip_transceiver_programming": "true"
+    "skip_transceiver_programming": "true",
+    "thrift_ssl_policy": "permitted",
+    "use_full_dlb_scale": "true"
   },
   "sw": {
     "version": 0,
@@ -202,5 +204,8 @@
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

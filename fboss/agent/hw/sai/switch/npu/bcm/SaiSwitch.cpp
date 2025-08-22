@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 
 extern "C" {
@@ -34,6 +35,8 @@ std::string eventName(uint32_t eventID) {
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT";
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
       return "SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED";
+    case SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET:
+      return "SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET";
 #endif
   }
   return folly::to<std::string>("unknown event type: ", eventID);
@@ -344,7 +347,7 @@ std::string errorType(sai_switch_error_type_t type) {
   return folly::sformat("Unknown error type: {} ", static_cast<int>(type));
 }
 
-#if defined BRCM_SAI_SDK_GTE_11_0
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
 bool isIreErrorType(sai_switch_error_type_t type) {
   switch (type) {
     case SAI_SWITCH_ERROR_TYPE_IRE_ECC:
@@ -962,8 +965,6 @@ void SaiSwitch::switchEventCallback(
           isUp ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
       break;
     }
-#endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
     case SAI_SWITCH_EVENT_TYPE_RX_FIFO_STUCK_DETECTED: {
       XLOG(ERR) << "RX FIFO stuck seen on link: " << eventInfo->index
                 << ", pipe: " << eventInfo->index2;
@@ -972,6 +973,7 @@ void SaiSwitch::switchEventCallback(
     }
     case SAI_SWITCH_EVENT_TYPE_DEVICE_SOFT_RESET:
       XLOG(ERR) << " Got soft reset event";
+      logEventDetails();
       getSwitchStats()->asicSoftResetError();
       break;
 #endif
@@ -985,6 +987,27 @@ void SaiSwitch::tamEventCallback(
     uint32_t /*attr_count*/,
     const sai_attribute_t* /*attr_list*/) {
   // no-op
+}
+
+void SaiSwitch::hardResetSwitchEventNotificationCallback(
+    sai_size_t /*bufferSize*/,
+    const void* buffer) {
+  if (FLAGS_ignore_asic_hard_reset_notification) {
+    XLOG(INFO) << "Got hard reset event, but ignoring as configured!";
+    return;
+  }
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  const sai_switch_hard_reset_event_info_t* eventInfo =
+      static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
+  /*
+   * Flags has the ORed value for all reason codes for hard resets
+   * For exact values, look at saiswitchextensions.h file
+   */
+  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset, with flag: "
+              << eventInfo->flags;
+#else
+  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset event";
+#endif
 }
 
 } // namespace facebook::fboss

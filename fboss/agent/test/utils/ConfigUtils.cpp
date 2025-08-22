@@ -128,10 +128,19 @@ bool isEnabledPortWithSubnet(
     const cfg::SwitchConfig& config) {
   auto ingressVlan = folly::copy(port.ingressVlan().value());
   for (const auto& intf : *config.interfaces()) {
-    if (folly::copy(intf.vlanID().value()) == ingressVlan) {
-      return (
-          !intf.ipAddresses().value().empty() &&
-          folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+    if (cfg::InterfaceType::VLAN == intf.type()) {
+      if (folly::copy(intf.vlanID().value()) == ingressVlan) {
+        return (
+            !intf.ipAddresses().value().empty() &&
+            folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+      }
+    } else if (cfg::InterfaceType::PORT == intf.type()) {
+      if (folly::copy(intf.portID().to_optional().value()) ==
+          port.logicalID().value()) {
+        return (
+            !intf.ipAddresses().value().empty() &&
+            folly::copy(port.state().value()) == cfg::PortState::ENABLED);
+      }
     }
   }
   return false;
@@ -663,6 +672,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           std::optional<int32_t> port = std::nullopt) {
     auto i = config.interfaces()->size();
     config.interfaces()->push_back(cfg::Interface{});
+    config.interfaces()[i].name() = folly::to<std::string>(intfId);
     *config.interfaces()[i].intfID() = intfId;
     *config.interfaces()[i].vlanID() = vlanId;
     *config.interfaces()[i].routerID() = 0;
@@ -1199,7 +1209,6 @@ bool isRswPlatform(PlatformType type) {
   };
   return false;
 }
-
 /*
  * Returns a pair of vectors of the form (uplinks, downlinks). Pertains
  * specifically to default RSW platforms, where all downlink ports are
@@ -1297,23 +1306,33 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   // First populate masterPorts with all ports, analogous to
   // masterLogicalPortIds, then slice uplinks/downlinks according to ecmpWidth.
 
-  // just for brevity, mostly in return statement
-  using PortList = std::vector<PortID>;
-  PortList masterPorts;
+  std::vector<PortID> uplinks, downlinks;
+  std::set<PortID> aggports;
 
-  for (const auto& port : *config.ports()) {
-    if (isEnabledPortWithSubnet(port, config)) {
-      masterPorts.push_back(PortID(folly::copy(port.logicalID().value())));
+  // Get all aggregate ports
+  for (auto aggrPort : *config.aggregatePorts()) {
+    for (auto memberPort : *aggrPort.memberPorts()) {
+      aggports.insert(folly::copy(PortID(memberPort.memberPortID().value())));
     }
   }
 
-  auto begin = masterPorts.begin();
-  CHECK_GE(masterPorts.size(), ecmpWidth)
+  for (const auto& port : *config.ports()) {
+    if (isEnabledPortWithSubnet(port, config)) {
+      if (aggports.find(PortID(port.logicalID().value())) == aggports.end()) {
+        if (uplinks.size() < ecmpWidth) {
+          uplinks.emplace_back(folly::copy(port.logicalID().value()));
+        } else {
+          downlinks.emplace_back(folly::copy(port.logicalID().value()));
+        }
+      } else {
+        downlinks.emplace_back(folly::copy(port.logicalID().value()));
+      }
+    }
+  }
+  CHECK_GE(uplinks.size() + downlinks.size(), ecmpWidth)
       << "Not enough ports with subnet in config. Need  " << ecmpWidth
-      << " ports, but found only " << masterPorts.size();
-  auto mid = masterPorts.begin() + ecmpWidth;
-  auto end = masterPorts.end();
-  return std::pair(PortList(begin, mid), PortList(mid, end));
+      << " ports, but found only " << uplinks.size() + downlinks.size();
+  return std::pair(uplinks, downlinks);
 }
 // Set any ports in this port group to use the specified speed,
 // and disables any ports that don't support this speed.
@@ -1385,10 +1404,22 @@ void removeSubsumedPorts(
 bool checkConfigHasAclEntry(
     const cfg::SwitchConfig& config,
     std::string aclName) {
-  auto acls = *config.acls();
-  for (const auto& acl : acls) {
-    if (acl.name().value() == aclName) {
-      return true;
+  if (isSaiConfig(config)) {
+    for (const auto& aclTableGroup : *config.aclTableGroups()) {
+      for (const auto& aclTable : *aclTableGroup.aclTables()) {
+        for (const auto& acl : *aclTable.aclEntries()) {
+          if (acl.name().value() == aclName) {
+            return true;
+          }
+        }
+      }
+    }
+  } else {
+    auto acls = *config.acls();
+    for (const auto& acl : acls) {
+      if (acl.name().value() == aclName) {
+        return true;
+      }
     }
   }
   return false;

@@ -2,7 +2,6 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 

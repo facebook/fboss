@@ -2,9 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
-#if !defined(CHENAB_SAI_SDK_VERSION_1_15_7_2)
 #include "saiswitchcustom.h"
-#endif
 
 namespace facebook::fboss {
 
@@ -113,6 +111,18 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dtlWatermarkStats() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramBlockTime() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::dramQuarantinedBufferStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
@@ -351,4 +361,25 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeModuleIdToCreditRequestProfileParamList::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccCorrectableError::operator()() {
+  return SAI_SWITCH_ATTR_TRIGGER_SIMULATED_ECC_CORRECTABLE_ERROR;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccUnCorrectableError::operator()() {
+  return SAI_SWITCH_ATTR_TRIGGER_SIMULATED_ECC_UNCORRECTABLE_ERROR;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
+  return SAI_SWITCH_ATTR_DEFAULT_CPU_EGRESS_BUFFER_POOL;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTechSupportType::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -475,3 +475,148 @@ TEST(RouteNextHopEntry, skipPrunedNextHops) {
   // path 3 should be skipped
   EXPECT_EQ(normalizedNextHops.size(), nhops.size() - 1);
 }
+
+TEST(RouteNextHopEntry, setGetOverrideNextHops) {
+  RouteNextHopSet nhops;
+  std::optional<RouteNextHopSet> overrideNhops;
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  overrideNhops = nhops;
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+
+  RouteNextHopEntry nhopEntry(nhops, kDefaultAdminDistance);
+  EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+  EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
+  nhopEntry.setOverrideNextHops(overrideNhops);
+  ASSERT_TRUE(nhopEntry.getOverrideNextHops().has_value());
+  EXPECT_EQ(*nhopEntry.getOverrideNextHops(), overrideNhops);
+  EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+  EXPECT_EQ(nhopEntry.normalizedNextHops(), overrideNhops);
+  // Reset override nhops
+  nhopEntry.setOverrideNextHops(std::nullopt);
+  EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
+  EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+  EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
+}
+
+TEST(RouteNextHopEntry, setGetOverrideSwitchingMode) {
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+
+  RouteNextHopEntry nhopEntry(nhops, kDefaultAdminDistance);
+  EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+  EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
+  nhopEntry.setOverrideEcmpSwitchingMode(cfg::SwitchingMode::PER_PACKET_RANDOM);
+  ASSERT_TRUE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+  EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+  EXPECT_EQ(
+      *nhopEntry.getOverrideEcmpSwitchingMode(),
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
+  // Reset override SwitchingMode
+  nhopEntry.setOverrideEcmpSwitchingMode(std::nullopt);
+  EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+  EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+}
+
+TEST(RouteNextHopEntry, createWithOverrideNhops) {
+  RouteNextHopSet nhops;
+  std::optional<RouteNextHopSet> overrideNhops;
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  overrideNhops = nhops;
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+  std::optional<RouteCounterID> nullCounterId;
+  std::optional<cfg::AclLookupClass> nullLookupClass;
+  std::optional<cfg::SwitchingMode> nullSwitchingMode;
+  std::optional<RouteNextHopEntry::NextHopSet> nullNhopSet;
+  {
+    RouteNextHopEntry nhopEntry(
+        nhops,
+        kDefaultAdminDistance,
+        nullCounterId,
+        nullLookupClass,
+        nullSwitchingMode,
+        nullNhopSet);
+    EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+    EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
+    EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
+    // Set override nhops
+    nhopEntry.setOverrideNextHops(overrideNhops);
+    EXPECT_TRUE(nhopEntry.getOverrideNextHops().has_value());
+    EXPECT_EQ(nhopEntry.getOverrideNextHops(), overrideNhops);
+    EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), overrideNhops);
+    // reset override nhops
+    nhopEntry.setOverrideNextHops(std::nullopt);
+    EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
+    EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
+  }
+  {
+    RouteNextHopEntry nhopEntry(
+        nhops,
+        kDefaultAdminDistance,
+        nullCounterId,
+        nullLookupClass,
+        nullSwitchingMode,
+        overrideNhops);
+    EXPECT_TRUE(nhopEntry.getOverrideNextHops().has_value());
+    EXPECT_EQ(nhopEntry.getOverrideNextHops(), overrideNhops);
+    EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), overrideNhops);
+    // reset override nhops
+    nhopEntry.setOverrideNextHops(std::nullopt);
+    EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
+    EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(nhopEntry.normalizedNextHops(), nhops);
+  }
+}
+
+TEST(RouteNextHopEntry, createWithOverrideSwitchingMode) {
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 1));
+  nhops.emplace(ResolvedNextHop(nextHopAddr2, InterfaceID(2), 1));
+  std::optional<RouteCounterID> nullCounterId;
+  std::optional<cfg::AclLookupClass> nullLookupClass;
+  std::optional<cfg::SwitchingMode> nullSwitchingMode;
+  {
+    RouteNextHopEntry nhopEntry(
+        nhops,
+        kDefaultAdminDistance,
+        nullCounterId,
+        nullLookupClass,
+        nullSwitchingMode);
+    EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+    EXPECT_FALSE(nhopEntry.getOverrideNextHops().has_value());
+    EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+    nhopEntry.setOverrideEcmpSwitchingMode(
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    ASSERT_TRUE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+    EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(
+        *nhopEntry.getOverrideEcmpSwitchingMode(),
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    // Reset override SwitchingMode
+    nhopEntry.setOverrideEcmpSwitchingMode(std::nullopt);
+    EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+  }
+  {
+    std::optional<cfg::SwitchingMode> switchingMode{
+        cfg::SwitchingMode::PER_PACKET_RANDOM};
+    RouteNextHopEntry nhopEntry(
+        nhops,
+        kDefaultAdminDistance,
+        nullCounterId,
+        nullLookupClass,
+        switchingMode);
+    ASSERT_TRUE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+    EXPECT_TRUE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+    EXPECT_EQ(
+        *nhopEntry.getOverrideEcmpSwitchingMode(),
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    // Reset override SwitchingMode
+    nhopEntry.setOverrideEcmpSwitchingMode(std::nullopt);
+    EXPECT_FALSE(nhopEntry.getOverrideEcmpSwitchingMode().has_value());
+    EXPECT_FALSE(nhopEntry.hasOverrideSwitchingModeOrNhops());
+  }
+}

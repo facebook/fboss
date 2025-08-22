@@ -218,11 +218,34 @@ target_link_libraries(ecmp_resource_manager
   Folly::folly
 )
 
+add_library(shel_manager
+  fboss/agent/ShelManager.cpp
+)
+
+target_link_libraries(shel_manager
+  utils
+  fib_helpers
+  state
+  ${GTEST}
+)
+
+add_library(fsdb_adapted_sub_manager
+  fboss/agent/FsdbAdaptedSubManager.cpp
+)
+
+target_link_libraries(fsdb_adapted_sub_manager
+  state
+  fsdb_sub_mgr
+  fsdb_model
+  cow_storage
+)
+
 add_library(core
   fboss/agent/AclNexthopHandler.cpp
   fboss/agent/ApplyThriftConfig.cpp
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp
+  fboss/agent/BufferUtils.cpp
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/DsfSession.cpp
@@ -232,7 +255,6 @@ add_library(core
   fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
-  fboss/agent/FsdbAdaptedSubManager.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
@@ -320,6 +342,7 @@ set(core_libs
   diag_cmd_filter
   hardware_stats_cpp2
   hw_switch_fb303_stats
+  hw_rif_fb303_stats
   hw_cpu_fb303_stats
   switch_asics
   switchid_scope_resolver
@@ -347,10 +370,12 @@ set(core_libs
   alert_logger
   Folly::folly
   bidirectional_packet_stream
+  fsdb_adapted_sub_manager
   fsdb_common_cpp2
   fsdb_model
   fsdb_stream_client
   fsdb_pub_sub
+  fsdb_sub_mgr
   fsdb_flags
   ${IPROUTE2}
   ${NETLINK3}
@@ -369,6 +394,7 @@ set(core_libs
   build_info_wrapper
   ecmp_resource_manager
   thrift_method_rate_limit
+  shel_manager
 )
 
 target_link_libraries(core ${core_libs})

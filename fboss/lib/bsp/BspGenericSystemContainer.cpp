@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
+#include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
@@ -132,6 +133,15 @@ template <>
 std::shared_ptr<Tahan800bcSystemContainer>
 Tahan800bcSystemContainer::getInstance() {
   return _tahan800bcSystemContainer.try_get();
+}
+
+using Icecube800bcSystemContainer =
+    BspGenericSystemContainer<Icecube800bcBspPlatformMapping>;
+folly::Singleton<Icecube800bcSystemContainer> _icecube800bcSystemContainer;
+template <>
+std::shared_ptr<Icecube800bcSystemContainer>
+Icecube800bcSystemContainer::getInstance() {
+  return _icecube800bcSystemContainer.try_get();
 }
 
 } // namespace fboss

@@ -295,6 +295,41 @@ ScaleTestRouteScaleGenerator::ScaleTestRouteScaleGenerator(
           ecmpWidth,
           needL2EntryForNeighbor,
           routerId) {}
+/*
+ * Depending on the ASIC, /128 prefixes may be stored in either a hash table or
+ * a TCAM/SRAM combination. When stored using TCAM (MSB) and SRAM (LSB),
+ * variations in the MSB can impact TCAM utilization. Route distribution with
+ * /128 prefixes should vary in their MSBs to avoid potential TCAM scalability
+ * issues.
+ */
+HostPrefixRouteScaleGenerator::HostPrefixRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth,
+    const RouterID& routerId)
+    : RouteDistributionGenerator(
+          startingState,
+          // v6 distribution
+          {
+              {48, 200},
+              {52, 200},
+              {56, 200},
+              {64, 5000},
+              {80, 200},
+              {96, 200},
+              {112, 200},
+              {120, 200},
+              {128, 200, std::make_pair(uint64_t(1) << 20, 0)},
+              // 200 /128 prefixes with 1 bit change starting 20th bit to
+              // cover MSB variation in TCAM
+              {128, 10000, std::make_pair(0, uint64_t(1) << 57)},
+          },
+          {},
+          chunkSize,
+          ecmpWidth,
+          needL2EntryForNeighbor,
+          routerId) {}
 
 TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
     const std::shared_ptr<SwitchState>& startingState,

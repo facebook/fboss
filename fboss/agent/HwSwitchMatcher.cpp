@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss {
 namespace {
 std::string getMatcherString(const std::unordered_set<SwitchID>& switchIds) {
@@ -45,7 +47,7 @@ HwSwitchMatcher::HwSwitchMatcher(const std::string& matcherString)
 HwSwitchMatcher::HwSwitchMatcher(const std::unordered_set<SwitchID>& switchIds)
     : switchIds_(switchIds) {
   if (switchIds.empty()) {
-    throw FbossError("HwSwitchMatcher: invalid npus");
+    XLOG(FATAL) << "HwSwitchMatcher: invalid npus";
   }
   matcherString_ = getMatcherString(switchIds_);
 }

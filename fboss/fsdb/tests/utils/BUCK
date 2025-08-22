@@ -46,7 +46,6 @@ cpp_benchmark(
         "//folly:benchmark",
         "//folly/init:init",
         "//folly/json:dynamic",
-        "//folly/logging:logging",
     ],
     external_deps = [
         "gflags",

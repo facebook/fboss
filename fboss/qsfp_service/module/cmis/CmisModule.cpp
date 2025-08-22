@@ -582,7 +582,7 @@ GlobalSensors CmisModule::getSensorInfo() {
   return info;
 }
 
-Vendor CmisModule::getVendorInfo() {
+Vendor CmisModule::getVendorInfo() const {
   Vendor vendor = Vendor();
   *vendor.name() = getQsfpString(CmisField::VENDOR_NAME);
   *vendor.oui() = getQsfpString(CmisField::VENDOR_OUI);
@@ -1008,7 +1008,7 @@ bool CmisModule::getMediaInterfaceId(
       auto smfMediaInterface = getSmfMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.smfCode_ref() = smfMediaInterface;
+      media.smfCode() = smfMediaInterface;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
@@ -1028,7 +1028,7 @@ bool CmisModule::getMediaInterfaceId(
     for (int lane = 0; lane < mediaInterface.size(); lane++) {
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.passiveCuCode_ref() = static_cast<PassiveCuMediaInterfaceCode>(
+      media.passiveCuCode() = static_cast<PassiveCuMediaInterfaceCode>(
           firstModuleCapability->moduleMediaInterface);
       // FIXME: Remove CR8_400G hardcoding and derive this from number of
       // lanes/host electrical interface instead
@@ -1040,7 +1040,7 @@ bool CmisModule::getMediaInterfaceId(
       auto activeCuInterfaceCode = getActiveCuMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
-      media.activeCuCode_ref() = activeCuInterfaceCode;
+      media.activeCuCode() = activeCuInterfaceCode;
       mediaInterface[lane].code() =
           CmisHelper::getMediaInterfaceCode<ActiveCuHostInterfaceCode>(
               activeCuInterfaceCode,
@@ -1088,6 +1088,7 @@ void CmisModule::getApplicationCapabilities() {
     } else {
       applicationAdvertisingField.moduleMediaInterface = data[1];
     }
+    applicationAdvertisingField.moduleHostInterface = data[0];
     applicationAdvertisingField.hostLaneCount =
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
     applicationAdvertisingField.mediaLaneCount =
@@ -1357,11 +1358,13 @@ TransmitterTechnology CmisModule::getQsfpTransmitterTechnology() const {
   uint8_t transTech = *data;
   if (transTech == DeviceTechnologyCmis::UNKNOWN_VALUE_CMIS) {
     return TransmitterTechnology::UNKNOWN;
-  } else if (transTech <= DeviceTechnologyCmis::OPTICAL_MAX_VALUE_CMIS) {
+    // TODO(T232092663): Fix this, introduce the TUNABLE_OPTICS
+  } else if (
+      (transTech <= DeviceTechnologyCmis::OPTICAL_MAX_VALUE_CMIS) ||
+      (transTech == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS) ||
+      (transTech == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS)) {
     return TransmitterTechnology::OPTICAL;
   } else {
-    // TODO: Fix this, copper is 0xA to 0xF, and there is also tunable lasers
-    // for C-Band (0x10) and L-Band (0x11).
     return TransmitterTechnology::COPPER;
   }
 }
@@ -2002,7 +2005,7 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
   }
   cmisData.timeCollected() = lastRefreshTime_;
   DOMDataUnion data;
-  data.cmis_ref() = cmisData;
+  data.cmis() = cmisData;
   return data;
 }
 
@@ -2309,6 +2312,8 @@ void CmisModule::setApplicationCodeLocked(
         " Unsupported speed: ",
         apache::thrift::util::enumNameSafe(speed)));
   }
+  QSFP_LOG(INFO, this) << "Application codes supporting current speed: "
+                       << folly::join(",", appCodes);
 
   // Currently we will have the same application across all the lanes. So here
   // we only take one of them to look at.
@@ -2319,7 +2324,11 @@ void CmisModule::setApplicationCodeLocked(
   currentApplicationSel = currentApplicationSel >> APP_SEL_BITSHIFT;
 
   QSFP_LOG(INFO, this) << folly::sformat(
-      "currentApplicationSel: {:#x}", currentApplicationSel);
+      "currentApplicationSel: {:#x} speed {:s} startHostLane {:d} numHostLanesForPort {:d}",
+      currentApplicationSel,
+      apache::thrift::util::enumNameSafe(speed),
+      startHostLane,
+      numHostLanesForPort);
 
   uint8_t currentApplication;
   int offset;
@@ -2374,7 +2383,9 @@ void CmisModule::setApplicationCodeLocked(
     // If the currently configured application is the same as what we are trying
     // to configure, then skip the configuration
     if (application == currentApplication) {
-      QSFP_LOG(INFO, this) << "Speed matches. Doing nothing";
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Speed matches: currentApplication {:#x}. Doing nothing",
+          currentApplication);
       // Make sure the datapath is initialized, otherwise initialize it before
       // returning
       if (datapathResetPendingMask_ & hostLaneMask) {
@@ -2892,9 +2903,13 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     auto firstModuleCapability = moduleCapabilities_.begin();
     auto smfCode = static_cast<SMFMediaInterfaceCode>(
         firstModuleCapability->moduleMediaInterface);
-    if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
+    if (isLpoModule()) {
+      moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       if (getQsfpSMFLength() == kFR4LiteSMFLength) {
+        // Lite Modules are not LPO modules but have a reach of 500m.
         moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
       } else {
         moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;

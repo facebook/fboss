@@ -1,4 +1,4 @@
-#include "fboss/platform/rackmon/RackmonConfig.h"
+#include "RackmonConfig.h"
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 

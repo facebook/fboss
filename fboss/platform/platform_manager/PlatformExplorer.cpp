@@ -2,7 +2,6 @@
 
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 
-#include <algorithm>
 #include <chrono>
 #include <exception>
 #include <filesystem>
@@ -19,6 +18,7 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
+#include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -216,7 +216,7 @@ void PlatformExplorer::explorePmUnit(
       "Exploring Slots for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
       slotPath,
-      pmUnitConfig.outgoingSlotConfigs_ref()->size());
+      pmUnitConfig.outgoingSlotConfigs()->size());
   for (const auto& [slotName, slotConfig] :
        *pmUnitConfig.outgoingSlotConfigs()) {
     exploreSlot(slotPath, slotName, slotConfig);
@@ -293,14 +293,14 @@ void PlatformExplorer::exploreSlot(
 std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     const std::string& slotType,
     const std::string& slotPath) {
-  auto slotTypeConfig = platformConfig_.slotTypeConfigs_ref()->at(slotType);
+  auto slotTypeConfig = platformConfig_.slotTypeConfigs()->at(slotType);
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   std::optional<int> productionStateInEeprom{std::nullopt};
   std::optional<int> productVersionInEeprom{std::nullopt};
   std::optional<int> productSubVersionInEeprom{std::nullopt};
-  if (slotTypeConfig.idpromConfig_ref()) {
-    auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
+  if (slotTypeConfig.idpromConfig()) {
+    auto idpromConfig = *slotTypeConfig.idpromConfig();
     auto eepromI2cBusNum =
         dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
     std::string eepromPath;
@@ -347,19 +347,14 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     try {
       dataStore_.updateEepromContents(
           Utils().createDevicePath(slotPath, "IDPROM"),
-          eepromParser_.getContents(eepromPath, *idpromConfig.offset()));
-      pmUnitNameInEeprom =
-          eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
-      // TODO: Avoid this side effect in this function.
-      // I think we can refactor this simpler once I2CDevicePaths are also
-      // stored in DataStore. 1/ Create IDPROMs 2/ Read contents from eepromPath
-      // stored in DataStore.
-      productionStateInEeprom =
-          eepromParser_.getProductionState(eepromPath, *idpromConfig.offset());
-      productVersionInEeprom = eepromParser_.getProductionSubState(
-          eepromPath, *idpromConfig.offset());
-      productSubVersionInEeprom =
-          eepromParser_.getVariantVersion(eepromPath, *idpromConfig.offset());
+          FbossEepromInterface(eepromPath, *idpromConfig.offset()));
+      const auto& eepromContents = dataStore_.getEepromContents(
+          Utils().createDevicePath(slotPath, "IDPROM"));
+      pmUnitNameInEeprom = eepromContents.getProductName();
+      productionStateInEeprom = std::stoi(eepromContents.getProductionState());
+      productVersionInEeprom =
+          std::stoi(eepromContents.getProductionSubState());
+      productSubVersionInEeprom = std::stoi(eepromContents.getVariantVersion());
       XLOG(INFO) << fmt::format(
           "Found ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
           productionStateInEeprom ? std::to_string(*productionStateInEeprom)
@@ -485,6 +480,28 @@ void PlatformExplorer::exploreI2cDevices(
             Utils().createDevicePath(
                 slotPath, *i2cDeviceConfig.pmUnitScopedName()),
             Utils().resolveWatchdogCharDevPath(i2cDevicePath));
+      }
+      if (*i2cDeviceConfig.isEeprom()) {
+        auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
+        try {
+          auto eepromPath = i2cDevicePath + "/eeprom";
+          dataStore_.updateEepromContents(
+              Utils().createDevicePath(
+                  slotPath, *i2cDeviceConfig.pmUnitScopedName()),
+              FbossEepromInterface(eepromPath, 0));
+        } catch (const std::exception& e) {
+          auto errMsg = fmt::format(
+              "Could not fetch contents of EEPROM device {} in {}. {}",
+              *i2cDeviceConfig.pmUnitScopedName(),
+              slotPath,
+              e.what());
+          XLOG(ERR) << errMsg;
+          explorationSummary_.addError(
+              ExplorationErrorType::IDPROM_READ,
+              slotPath,
+              *i2cDeviceConfig.pmUnitScopedName(),
+              errMsg);
+        }
       }
     } catch (const std::exception& ex) {
       auto errMsg = fmt::format(
@@ -924,9 +941,23 @@ void PlatformExplorer::genHumanReadableEeproms() {
       continue;
     }
     const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-    if (deviceName != "IDPROM") {
+    auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
+    std::optional<I2cDeviceConfig> matchingConfig;
+
+    // Search through i2cDeviceConfigs to find one with matching
+    // pmUnitScopedName
+    for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs()) {
+      if (*i2cDeviceConfig.pmUnitScopedName() == deviceName) {
+        matchingConfig = i2cDeviceConfig;
+        break;
+      }
+    }
+
+    bool isEeprom = matchingConfig && *matchingConfig->isEeprom();
+    if (deviceName != "IDPROM" && !isEeprom) {
       XLOG(WARNING) << fmt::format(
-          "{} is not IDPROM. Skip generating eeprom content.", linkPath);
+          "{} is not IDPROM or EEPROM. Skip generating eeprom content.",
+          linkPath);
       continue;
     }
     writeEepromContent(devicePath, linkPath);

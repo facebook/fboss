@@ -88,6 +88,21 @@ class ManagedSaiNextHopGroupMember
     this->resetObject();
   }
 
+  std::pair<
+      std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+      std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+  getAdapterHostKeyAndCreateAttributes();
+
+  void setObjectOwnership(
+      const std::shared_ptr<SaiNextHopGroupMember>& object) {
+    this->setObject(object);
+  }
+
+  std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>>
+  getNhopGroupMemberObject() {
+    return this->getObject();
+  }
+
   void createObject(PublisherObjects added);
 
   void removeObject(size_t index, PublisherObjects removed);
@@ -103,6 +118,9 @@ class ManagedSaiNextHopGroupMember
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
   NextHopWeight weight_;
   bool fixedWidthMode_;
+  std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKey_;
+  std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>
+      createAttributes_;
 };
 
 class NextHopGroupMember {
@@ -137,6 +155,45 @@ class NextHopGroupMember {
         managedNextHopGroupMember_);
   }
 
+  std::pair<
+      std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+      std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+  getAdapterHostKeyAndCreateAttributes() {
+    return std::visit(
+        [](auto arg) {
+          std::pair<
+              std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+              std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+              ret;
+          if (arg) {
+            ret = arg->getAdapterHostKeyAndCreateAttributes();
+          }
+          return ret;
+        },
+        managedNextHopGroupMember_);
+  }
+
+  void setObject(const std::shared_ptr<SaiNextHopGroupMember>& object) {
+    return std::visit(
+        [&](auto arg) {
+          CHECK(arg);
+          return arg->setObjectOwnership(object);
+        },
+        managedNextHopGroupMember_);
+  }
+
+  std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>> getObject() {
+    return std::visit(
+        [&](auto arg) {
+          std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>> object;
+          if (arg) {
+            object = arg->getNhopGroupMemberObject();
+          }
+          return object;
+        },
+        managedNextHopGroupMember_);
+  }
+
  private:
   std::variant<
       std::shared_ptr<ManagedIpNextHopGroupMember>,
@@ -148,6 +205,7 @@ struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   std::vector<std::shared_ptr<NextHopGroupMember>> members_;
   bool fixedWidthMode{false};
+  bool bulkCreate{false};
   std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
   uint32_t maxVariableWidthEcmpSize;
   std::optional<cfg::SwitchingMode> desiredArsMode_;

@@ -27,11 +27,14 @@ void fillHwSwitchDramStats(
       case SAI_SWITCH_STAT_DEVICE_DRAM_DEQUEUED_BYTES:
         hwSwitchDramStats.dramDequeuedBytes() = value;
         break;
-#if defined(BRCM_SAI_SDK_GTE_11_0)
       case SAI_SWITCH_STAT_DEVICE_DRAM_BLOCK_TOTAL_TIME:
         hwSwitchDramStats.dramBlockedTimeNsec() = value;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_DRAM_QUARANTINE_BUFFER_STATUS:
+        hwSwitchDramStats.dramQuarantinedBufferCount() = value;
+        break;
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
@@ -65,6 +68,22 @@ void fillHwSwitchWatermarkStats(
       case SAI_SWITCH_STAT_FDR_RX_QUEUE_WM_LEVEL:
         hwSwitchWatermarkStats.fdrFifoWatermarkBytes() = value;
         break;
+#endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+      // TODO (nivinl): Stats ID not yet available in 14.x!
+      case SAI_SWITCH_STAT_FABRIC_INTER_CELL_JITTER_MAX_IN_CLOCKS: {
+        // TODO (nivinl): As of now, the stats returned is in CLOCKS,
+        // would like to avoid the conversion from clocks to usec in
+        // FBOSS and waiting for inputs in CS00012409195 if SAI can
+        // provide the watermark in usec.
+        // R3 soc property core_clock_speed_khz is the SOT for the below!
+        constexpr int kCoreClockSpeedKhz = 1350000;
+        constexpr double kClockCycleTimeInUsec =
+            1000000.0 / (kCoreClockSpeedKhz * 1000);
+        hwSwitchWatermarkStats.fabricInterCellJitterWatermarkUsec() =
+            static_cast<uint64_t>(value * kClockCycleTimeInUsec);
+        break;
+      }
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
@@ -112,6 +131,23 @@ void fillHwSwitchErrorStats(
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       case SAI_SWITCH_STAT_DDP_PACKET_ERROR:
         dropStats.dramDataPathPacketError() = value;
+        break;
+#endif
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
+    }
+  }
+}
+
+void fillHwSwitchSaiExtensionDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& dropStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+      case SAI_SWITCH_STAT_EGR_RX_PACKET_ERROR:
+        dropStats.packetIntegrityDrops() = value;
         break;
 #endif
       default:

@@ -20,7 +20,6 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 #include "fboss/agent/TxPacket.h"

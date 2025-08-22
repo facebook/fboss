@@ -58,7 +58,6 @@ cpp_binary(
         ":led_management",
         "//fb303:logging",
         "//fboss/platform/config_lib:config_lib",
-        "//fboss/platform/data_corral_service/if:data_corral_service-cpp2-types",
         "//fboss/platform/helpers:init",
         "//fboss/platform/helpers:platform_name_lib",
         "//folly/executors:function_scheduler",

@@ -31,9 +31,9 @@ using folly::CIDRNetwork;
 using folly::IPAddress;
 using namespace facebook::fboss;
 using namespace facebook::fboss::utility;
-typedef std::pair<bcm_vrf_t, folly::IPAddress> VrfAndIP;
-typedef boost::container::flat_map<VrfAndIP, bcm_l3_host_t> VrfAndIP2Host;
-typedef boost::container::flat_map<VrfAndIP, bcm_l3_route_t> VrfAndIP2Route;
+using VrfAndIP = std::pair<bcm_vrf_t, folly::IPAddress>;
+using VrfAndIP2Host = boost::container::flat_map<VrfAndIP, bcm_l3_host_t>;
+using VrfAndIP2Route = boost::container::flat_map<VrfAndIP, bcm_l3_route_t>;
 
 namespace {
 void initL3HostWithAddr(bcm_l3_host_t* l3Host, const folly::IPAddress& addr) {

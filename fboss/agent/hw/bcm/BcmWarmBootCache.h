@@ -87,11 +87,11 @@ class BcmWarmBootCache {
     bcm_pbmp_t allPorts;
     InterfaceID intfID;
   };
-  typedef bcm_if_t EcmpEgressId;
-  typedef bcm_if_t EgressId;
-  typedef boost::container::flat_map<EgressId, uint64_t> EgressId2Weight;
-  typedef boost::container::flat_map<EcmpEgressId, EgressId2Weight>
-      Ecmp2EgressIds;
+  using EcmpEgressId = bcm_if_t;
+  using EgressId = bcm_if_t;
+  using EgressId2Weight = boost::container::flat_map<EgressId, uint64_t>;
+  using Ecmp2EgressIds =
+      boost::container::flat_map<EcmpEgressId, EgressId2Weight>;
   template <typename T>
   static EgressId2Weight toEgressId2Weight(T* egress, int count);
   static std::string toEgressId2WeightStr(
@@ -116,22 +116,22 @@ class BcmWarmBootCache {
    * VRF, IP, Mask
    * TODO - Convert mask to mask len for efficient storage/lookup
    */
-  typedef std::tuple<bcm_vrf_t, folly::IPAddress, folly::IPAddress>
-      VrfAndPrefix;
-  typedef std::pair<bcm_vrf_t, folly::IPAddress> VrfAndIP;
+  using VrfAndPrefix =
+      std::tuple<bcm_vrf_t, folly::IPAddress, folly::IPAddress>;
+  using VrfAndIP = std::pair<bcm_vrf_t, folly::IPAddress>;
   /*
    * Cache containers
    */
-  typedef boost::container::flat_map<VlanID, VlanInfo> Vlan2VlanInfo;
-  typedef boost::container::flat_map<VlanID, bcm_l2_station_t> Vlan2Station;
-  typedef boost::container::flat_map<VlanAndMac, bcm_l3_intf_t> VlanAndMac2Intf;
-  typedef boost::container::flat_map<VlanID, bcm_if_t>
-      Vlan2BcmIfIdInWarmBootFile;
+  using Vlan2VlanInfo = boost::container::flat_map<VlanID, VlanInfo>;
+  using Vlan2Station = boost::container::flat_map<VlanID, bcm_l2_station_t>;
+  using VlanAndMac2Intf = boost::container::flat_map<VlanAndMac, bcm_l3_intf_t>;
+  using Vlan2BcmIfIdInWarmBootFile =
+      boost::container::flat_map<VlanID, bcm_if_t>;
 
-  typedef folly::F14FastMap<VrfAndIP, bcm_l3_host_t> VrfAndIP2Host;
-  typedef folly::F14FastMap<VrfAndPrefix, bcm_l3_route_t> VrfAndPrefix2Route;
-  typedef boost::container::flat_map<EgressId2Weight, EcmpEgress>
-      EgressIds2Ecmp;
+  using VrfAndIP2Host = folly::F14FastMap<VrfAndIP, bcm_l3_host_t>;
+  using VrfAndPrefix2Route = folly::F14FastMap<VrfAndPrefix, bcm_l3_route_t>;
+  using EgressIds2Ecmp =
+      boost::container::flat_map<EgressId2Weight, EcmpEgress>;
   using VrfAndIP2Route = boost::container::flat_map<VrfAndIP, bcm_l3_route_t>;
   using EgressId2Egress = boost::container::flat_map<EgressId, Egress>;
   using HostTableInWarmBootFile = boost::container::flat_map<HostKey, EgressId>;
@@ -186,8 +186,8 @@ class BcmWarmBootCache {
   using QosMapId2QosMapItr = typename QosMapId2QosMap::iterator;
 
   // Route counter id to hw counter id map
-  typedef boost::container::flat_map<RouteCounterID, BcmRouteCounterID>
-      RouteCounterIDMap;
+  using RouteCounterIDMap =
+      boost::container::flat_map<RouteCounterID, BcmRouteCounterID>;
   using RouteCounterIDMapItr = typename RouteCounterIDMap::const_iterator;
 
   // current h/w TeFlows: key = TeFlowMapKey, value = BcmTeFlowEntryHandle
@@ -315,7 +315,7 @@ class BcmWarmBootCache {
   /*
    * Iterators and find functions for finding VlanInfo
    */
-  typedef Vlan2VlanInfo::const_iterator Vlan2VlanInfoCitr;
+  using Vlan2VlanInfoCitr = Vlan2VlanInfo::const_iterator;
   Vlan2VlanInfoCitr vlan2VlanInfo_beg() const {
     return vlan2VlanInfo_.begin();
   }
@@ -333,7 +333,7 @@ class BcmWarmBootCache {
   /*
    * Iterators and find functions for finding bcm_l2_station_t
    */
-  typedef Vlan2Station::const_iterator Vlan2StationCitr;
+  using Vlan2StationCitr = Vlan2Station::const_iterator;
   Vlan2StationCitr vlan2Station_beg() const {
     return vlan2Station_.begin();
   }
@@ -351,7 +351,7 @@ class BcmWarmBootCache {
   /*
    * Iterators and find functions for finding bcm_l3_intf_t
    */
-  typedef VlanAndMac2Intf::const_iterator VlanAndMac2IntfCitr;
+  using VlanAndMac2IntfCitr = VlanAndMac2Intf::const_iterator;
   VlanAndMac2IntfCitr vlanAndMac2Intf_beg() const {
     return vlanAndMac2Intf_.begin();
   }
@@ -422,7 +422,7 @@ class BcmWarmBootCache {
   /*
    * Iterators and find functions for finding bcm_l3_host_t
    */
-  typedef VrfAndIP2Host::const_iterator VrfAndIP2HostCitr;
+  using VrfAndIP2HostCitr = VrfAndIP2Host::const_iterator;
   VrfAndIP2HostCitr vrfAndIP2Host_beg() const {
     return vrfIp2Host_.begin();
   }
@@ -441,7 +441,7 @@ class BcmWarmBootCache {
   /*
    * Iterators and find functions for finding bcm_l3_route_t
    */
-  typedef VrfAndPrefix2Route::const_iterator VrfAndPfx2RouteCitr;
+  using VrfAndPfx2RouteCitr = VrfAndPrefix2Route::const_iterator;
   VrfAndPfx2RouteCitr vrfAndPrefix2Route_beg() const {
     return vrfPrefix2Route_.begin();
   }
@@ -493,7 +493,7 @@ class BcmWarmBootCache {
   /*
    * Iterators and find functions for bcm_l3_egress_ecmp_t
    */
-  typedef EgressIds2Ecmp::const_iterator EgressIds2EcmpCItr;
+  using EgressIds2EcmpCItr = EgressIds2Ecmp::const_iterator;
   EgressIds2EcmpCItr egressIds2Ecmp_begin() {
     return egressIds2Ecmp_.begin();
   }
@@ -554,7 +554,7 @@ class BcmWarmBootCache {
     teFlow2BcmTeFlowEntryHandle_.erase(itr);
   }
 
-  typedef Index2ReasonToQueue::const_iterator Index2ReasonToQueueCItr;
+  using Index2ReasonToQueueCItr = Index2ReasonToQueue::const_iterator;
   Index2ReasonToQueueCItr index2ReasonToQueue_begin() const {
     return index2ReasonToQueue_.begin();
   }

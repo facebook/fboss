@@ -31,6 +31,7 @@ thrift_library(
     py_base_module = "neteng.fboss",
     py_remote_service_router = True,
     thrift_cpp2_options = "json,reflection",
+    thrift_py_options = "json",
     thrift_rust_options = [
         "deprecated_default_enum_min_i32",
         "serde",
@@ -348,5 +349,31 @@ thrift_library(
         "//fboss/agent:switch_config",
         "//fboss/agent:switch_state",
         "//thrift/annotation:cpp",
+    ],
+)
+
+thrift_library(
+    name = "asic_temp",
+    go_thrift_namespaces = {
+        "asic_temp.thrift": "neteng.fboss.asic_temp",
+    },
+    languages = [
+        "cpp2",
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "go",
+        "rust",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    py_remote_service_router = True,
+    thrift_cpp2_options = "json,reflection",
+    thrift_rust_options = "serde",
+    thrift_srcs = {"asic_temp.thrift": ["AsicTempThrift"]},
+    deps = [
+        ":fboss",
     ],
 )

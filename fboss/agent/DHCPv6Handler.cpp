@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/DHCPv6Handler.h"
-#include <arpa/inet.h>
 #include <folly/IPAddressV6.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -32,7 +31,6 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 using folly::IOBuf;
 using folly::IPAddress;
@@ -44,7 +42,7 @@ using std::string;
 using std::unique_ptr;
 using namespace facebook::fboss;
 
-typedef EthHdr::VlanTags_t VlanTags_t;
+using VlanTags_t = EthHdr::VlanTags_t;
 
 namespace {
 

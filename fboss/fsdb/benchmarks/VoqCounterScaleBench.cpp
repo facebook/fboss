@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <folly/Benchmark.h>
-#include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 
 #include <folly/synchronization/Baton.h>

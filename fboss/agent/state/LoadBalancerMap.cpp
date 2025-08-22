@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/state/LoadBalancerMap.h"
-#include "fboss/agent/Constants.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"

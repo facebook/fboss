@@ -33,13 +33,10 @@ FbDomFpga::LedColor Wedge400LedUtils::getLedExternalState(
     case PortLedExternalState::CABLING_ERROR:
     case PortLedExternalState::CABLING_ERROR_LOOP_DETECTED:
       return FbDomFpga::LedColor::YELLOW;
-      break;
     case PortLedExternalState::EXTERNAL_FORCE_ON:
       return FbDomFpga::LedColor::WHITE;
-      break;
     case PortLedExternalState::EXTERNAL_FORCE_OFF:
       return FbDomFpga::LedColor::OFF;
-      break;
   }
   throw FbossError("Invalid port led external state");
 }

@@ -4,7 +4,6 @@
 
 #include <gflags/gflags.h>
 
-#include "fboss/platform/weutil/FbossEepromParser.h"
 #include "fboss/platform/weutil/WeutilInterface.h"
 
 namespace facebook::fboss::platform {
@@ -17,7 +16,8 @@ class WeutilImpl : public WeutilInterface {
   void printInfoJson() override;
 
  private:
-  FbossEepromParser parser_;
+  const std::string eepromPath_;
+  const uint16_t offset_;
 };
 
 } // namespace facebook::fboss::platform

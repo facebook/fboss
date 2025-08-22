@@ -227,6 +227,8 @@ enum MediaInterfaceCode {
   DR4_800G = 22,
   DR4_2x800G = 23,
   DR1_200G = 24,
+  FR4_LPO_2x400G = 25,
+  ZR_800G = 26,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -287,6 +289,11 @@ enum SMFMediaInterfaceCode {
   DR1_200G = 0x73,
   DR4_800G = 0x77,
   FR8_800G = 0xC1,
+  ZR_OIF_ZRA_800G = 0x6C,
+  ZR_OROADM_FLEXO_8E_DPO_800G = 0x68,
+  ZR_OROADM_FLEXO_6E_DPO_600G = 0x6A,
+  ZR_OROADM_FLEXO_4E_DO_400G = 0x64,
+  ZR_OPENZRP_OFEC_400G = 0x36,
 }
 
 enum Ethernet10GComplianceCode {
@@ -313,9 +320,12 @@ enum ActiveCuMediaInterfaceCode {
   ACTIVE_BER_E_6 = 0x4,
 }
 
-// Active Electrical Cable Host Interface Code.
+// Host Interface Code.
 enum ActiveCuHostInterfaceCode {
   UNKNOWN = 0x0,
+  LPO_100G = 0x20,
+  LPO_400G = 0x22,
+  LPO_800G = 0x23,
   AUI_PAM4_1S_100G = 0x4B,
   AUI_PAM4_2S_200G = 0x4D,
   AUI_PAM4_4S_400G = 0x4F,
@@ -452,6 +462,8 @@ struct VdmPerfMonitorStatsForOds {
   3: i64 statsCollectionTme;
 }
 
+// We plan to deprecate this.
+// Prefer use of VdmPerfMonitorStats instead
 struct VdmDiagsStats {
   1: double preFecBerMediaMin;
   2: double preFecBerMediaMax;
@@ -555,6 +567,7 @@ struct TcvrState {
   25: bool fwUpgradeInProgress;
   26: set<string> interfaces;
   27: string tcvrName;
+  28: bool lpoModule;
 }
 
 struct TcvrStats {

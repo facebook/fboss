@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -74,6 +75,10 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
       std::nullopt};
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<SaiNextHopGroupTraits::Attributes::HashAlgorithm> hashAlgorithm{
+      std::nullopt};
+#endif
 
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
@@ -98,7 +103,18 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       }
 #endif
     } else {
-      // TODO (ravi) update after random spray support becomes available
+      if (nextHopGroupHandle->desiredArsMode_.has_value() &&
+          (nextHopGroupHandle->desiredArsMode_.value() ==
+           cfg::SwitchingMode::PER_PACKET_RANDOM)) {
+        // setting hash algo to RANDOM is specific to TH* asics
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM)) {
+          hashAlgorithm = SaiNextHopGroupTraits::Attributes::HashAlgorithm{
+              SAI_HASH_ALGORITHM_RANDOM};
+        }
+#endif
+      }
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     nextHopGroupAdapterHostKey.mode =
@@ -115,6 +131,10 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       ,
       arsObjectId
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      hashAlgorithm
+#endif
   };
   nextHopGroupHandle->nextHopGroup =
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
@@ -125,6 +145,22 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
+    // TODO(zecheng): Use bulk create for warmboot handle reclaiming as well.
+    // There is a sequencing issue where the delayed bulk create will cause
+    // object removal during warmboot handle reclaiming. To workaround this,
+    // disable bulk create during this process (as it is no-op in SDK).
+    if (platform_->getHwSwitch()->getRunState() >= SwitchRunState::CONFIGURED &&
+        !dynamic_cast<SaiSwitch*>(platform_->getHwSwitch())
+             ->getRollbackInProgress_()) {
+      nextHopGroupHandle->bulkCreate = true;
+    }
+  }
+
+#endif
 
   for (const auto& swNextHop : swNextHops) {
     auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
@@ -144,6 +180,44 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
         nextHopGroupHandle->fixedWidthMode);
     nextHopGroupHandle->members_.push_back(result.first);
   }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
+    nextHopGroupHandle->bulkCreate = false;
+
+    std::vector<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKeys;
+    std::vector<SaiNextHopGroupMemberTraits::CreateAttributes> createAttributes;
+
+    // If next hop is not yet resolved, it will not have adapterHostKey and
+    // create attributes.
+    for (const auto& member : nextHopGroupHandle->members_) {
+      const auto& [adapterHostKey, createAttribute] =
+          member->getAdapterHostKeyAndCreateAttributes();
+      CHECK_EQ(adapterHostKey.has_value(), createAttribute.has_value());
+      if (adapterHostKey.has_value() && createAttribute.has_value()) {
+        adapterHostKeys.push_back(adapterHostKey.value());
+        createAttributes.push_back(createAttribute.value());
+      }
+    }
+    if (!adapterHostKeys.empty()) {
+      auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
+      auto objects = store.bulkCreateObjects(adapterHostKeys, createAttributes);
+      CHECK_EQ(objects.size(), adapterHostKeys.size());
+
+      auto iter = nextHopGroupHandle->members_.begin();
+      for (int i = 0; i < adapterHostKeys.size(); i++) {
+        while ((*iter)->getAdapterHostKeyAndCreateAttributes().first !=
+               adapterHostKeys[i]) {
+          iter++;
+        }
+        (*iter)->setObject(objects[i]);
+        iter++;
+      }
+    }
+  }
+#endif
+
   return nextHopGroupHandle;
 }
 
@@ -304,6 +378,15 @@ NextHopGroupMember::NextHopGroupMember(
 }
 
 template <typename NextHopTraits>
+std::pair<
+    std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+    std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+ManagedSaiNextHopGroupMember<
+    NextHopTraits>::getAdapterHostKeyAndCreateAttributes() {
+  return std::make_pair(adapterHostKey_, createAttributes_);
+}
+
+template <typename NextHopTraits>
 void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
     typename ManagedSaiNextHopGroupMember<NextHopTraits>::PublisherObjects
         added) {
@@ -334,8 +417,19 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
     }
   }
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  if (nhgroup_ && nhgroup_->bulkCreate) {
+    adapterHostKey_ = adapterHostKey;
+    createAttributes_ = createAttributes;
+  } else {
+    auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
+    this->setObject(object);
+  }
+#else
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
+#endif
+
   if (fixedWidthMode_) {
     // notify nhgroup to bulk program correct weight
     nhgroup_->memberAdded({adapterHostKey, weight_}, bulkUpdate);
@@ -356,6 +450,8 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::removeObject(
     // SaiNextHopGroupHandle::bulkProgramMembers for details
     nhgroup_->memberRemoved({this->getObject()->adapterHostKey(), weight_});
   }
+  this->createAttributes_ = std::nullopt;
+  this->adapterHostKey_ = std::nullopt;
   /* remove nexthop group member if next hop is removed */
   this->resetObject();
 }
@@ -461,6 +557,36 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
       auto& store = saiStore_->get<SaiNextHopGroupMemberTraits>();
       store.setObjects(adapterHostKeys, weights);
     }
+  }
+
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // TODO(zecheng): Pass in pointer to platform and check if ASIC supports bulk
+  // add and remove.
+  //  For now it's okay since J3 is the only DNX asic that will program ECMP
+  //  members.
+  std::vector<SaiNextHopGroupMemberTraits::AdapterKey> adapterKeys;
+  for (const auto& member : members_) {
+    auto obj = member->getObject();
+    if (obj) {
+      obj->setSkipRemove(true);
+      adapterKeys.emplace_back(obj->adapterKey());
+    }
+  }
+
+  if (adapterKeys.size()) {
+    SaiApiTable::getInstance()->getApi<NextHopGroupApi>().bulkRemove(
+        adapterKeys);
+  }
+#endif
+
+  // Clean up ECMP members in reverse order. Due to the feature of SHEL and ECMP
+  // member placement in the hardware, removing ECMP members from head become
+  // expensive.
+  // In order to maintain a continuous block of ECMP members, SDK will need to
+  // move the last member to the removed spot. Rather, remove the memebers in
+  // FILO order to optimize the remove performance.
+  while (!members_.empty()) {
+    members_.pop_back();
   }
 }
 

@@ -76,7 +76,7 @@ int HwAsic::getDefaultACLGroupID() const {
 }
 
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
-    std::optional<int64_t> switchId,
+    int64_t switchId,
     const cfg::SwitchInfo& switchInfo,
     std::optional<cfg::SdkVersion> sdkVersion,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
@@ -216,4 +216,7 @@ const std::set<uint16_t>& HwAsic::getL1FabricPortsToConnectToL2() const {
       "Derived class must override getL1FabricPortsToConnectToL2, where applicable");
 }
 
+uint64_t HwAsic::getCpuPortEgressPoolSize() const {
+  throw FbossError("cpu port egress pool size is not available");
+}
 } // namespace facebook::fboss

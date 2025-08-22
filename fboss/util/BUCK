@@ -72,8 +72,10 @@ cpp_library(
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-types",
         "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
+        "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
         "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
@@ -282,6 +284,7 @@ python_library(
         "facebook/process_known_bad_test.py",
     ],
     deps = [
+        "//libfb/py:employee",
         "//libfb/py/asyncio:mysql",
         "//libfb/py/asyncio:tasks",
         "//libfb/py/pyre:pyre",
@@ -317,5 +320,29 @@ python_binary(
     par_style = "xar",
     deps = [
         ":post_weekly_known_bad_test_lib",
+    ],
+)
+
+python_library(
+    name = "known_bad_test_report_lib",
+    srcs = ["known_bad_test_report.py"],
+    deps = [
+        "//analytics/bamboo:lite",
+        "//libfb/py:employee",
+        "//libfb/py:mail",
+        "//libfb/py/asyncio:await_utils",
+        "//libfb/py/asyncio:sandcastle",
+        "//libfb/py/asyncio:tasks",
+        "//libfb/py/thrift_clients:oncall_thrift_client",
+        "//schedulers/chronos/py/scripts/chronos:ji_log_actions",
+    ],
+)
+
+python_binary(
+    name = "known_bad_test_report",
+    main_function = "fboss.util.known_bad_test_report.main",
+    par_style = "xar",
+    deps = [
+        ":known_bad_test_report_lib",
     ],
 )

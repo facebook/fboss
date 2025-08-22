@@ -292,14 +292,14 @@ class WaitForNeighborEntryReachable : public WaitForSwitchState {
   ~WaitForNeighborEntryReachable() {}
 };
 
-typedef WaitForNeighborEntryExpiration<IPAddressV4> WaitForArpEntryExpiration;
-typedef WaitForNeighborEntryCreation<IPAddressV4> WaitForArpEntryCreation;
-typedef WaitForNeighborEntryPending<IPAddressV4> WaitForArpEntryPending;
-typedef WaitForNeighborEntryReachable<IPAddressV4> WaitForArpEntryReachable;
+using WaitForArpEntryExpiration = WaitForNeighborEntryExpiration<IPAddressV4>;
+using WaitForArpEntryCreation = WaitForNeighborEntryCreation<IPAddressV4>;
+using WaitForArpEntryPending = WaitForNeighborEntryPending<IPAddressV4>;
+using WaitForArpEntryReachable = WaitForNeighborEntryReachable<IPAddressV4>;
 
-typedef WaitForNeighborEntryExpiration<IPAddressV6> WaitForNdpEntryExpiration;
-typedef WaitForNeighborEntryCreation<IPAddressV6> WaitForNdpEntryCreation;
-typedef WaitForNeighborEntryPending<IPAddressV6> WaitForNdpEntryPending;
-typedef WaitForNeighborEntryReachable<IPAddressV6> WaitForNdpEntryReachable;
+using WaitForNdpEntryExpiration = WaitForNeighborEntryExpiration<IPAddressV6>;
+using WaitForNdpEntryCreation = WaitForNeighborEntryCreation<IPAddressV6>;
+using WaitForNdpEntryPending = WaitForNeighborEntryPending<IPAddressV6>;
+using WaitForNdpEntryReachable = WaitForNeighborEntryReachable<IPAddressV6>;
 
 } // namespace facebook::fboss

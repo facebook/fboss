@@ -176,7 +176,6 @@ void BcmEgress::program(
         // in h/w intact
         return true;
       }
-      return false;
     };
     const auto& existingEgressId = egressId2EgressCitr->first;
     // Cache existing egress id

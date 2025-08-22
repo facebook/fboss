@@ -138,7 +138,8 @@ uint16_t getCoppHighPriQueueId(const std::vector<const HwAsic*>& hwAsics);
 uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics);
 
 std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
-    std::shared_ptr<SwitchState> swState);
+    std::shared_ptr<SwitchState> swState,
+    const PortID& srcPort);
 
 uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId);
 

@@ -6,68 +6,19 @@
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
-#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
-#include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
+#include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
+#include "fboss/fsdb/oper/tests/SubscribableStorageBenchHelper.h"
 
 namespace {
 constexpr auto kReadsPerTask = 1000;
 constexpr auto kWritesPerTask = 200;
+constexpr auto kNumIncrementalUpdates = 10;
 } // namespace
 
 namespace facebook::fboss::fsdb::test {
-
-class StorageBenchmarkHelper {
- public:
-  using RootType = TestStruct;
-  StorageBenchmarkHelper()
-      : storage_(NaivePeriodicSubscribableCowStorage<RootType>({})) {
-    storage_.setConvertToIDPaths(true);
-    // initialize test data versions
-    for (int version = 0; version < 2; version++) {
-      TestStruct data;
-      data.tx() = (version % 2) ? true : false;
-      for (int i = 1; i <= 1 * 1000; i++) {
-        TestStructSimple newStruct;
-        newStruct.min() = i;
-        newStruct.max() = version + i;
-        data.structMap()[i] = newStruct;
-      }
-      testData_.emplace_back(std::move(data));
-    }
-    storage_.set(root, testData_[0]);
-  }
-
-  void startStorage() {
-    storage_.start();
-  }
-
-  folly::coro::Task<void> getRequest(uint32_t numReads) {
-    for (auto count = 0; count < numReads; count++) {
-      storage_.get(this->root.structMap());
-    }
-    co_return;
-  }
-
-  folly::coro::Task<void> publishData(uint32_t numWrites, bool useLargeData) {
-    for (auto count = 0; count < numWrites; count++) {
-      int version = (count % 2);
-      if (useLargeData) {
-        storage_.set(root, testData_[version]);
-      } else {
-        storage_.set(root.structMap()[42], testData_[version].structMap()[42]);
-      }
-    }
-    co_return;
-  }
-
- private:
-  thriftpath::RootThriftPath<RootType> root;
-  NaivePeriodicSubscribableCowStorage<RootType> storage_;
-  std::vector<RootType> testData_;
-};
 
 void bm_get(
     uint32_t /* unused */,
@@ -75,7 +26,8 @@ void bm_get(
     uint32_t numReadsPerTask) {
   folly::BenchmarkSuspender suspender;
 
-  StorageBenchmarkHelper helper;
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(dataGen);
   helper.startStorage();
 
   // launch get requests from multiple threads
@@ -101,7 +53,12 @@ void bm_set(
     bool useLargeData) {
   folly::BenchmarkSuspender suspender;
 
-  StorageBenchmarkHelper helper;
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen,
+      StorageBenchmarkHelper::Params()
+          .setLargeUpdates(useLargeData)
+          .setNumUpdates(2));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -110,8 +67,8 @@ void bm_set(
   suspender.dismiss();
 
   for (int i = 0; i < numThreads; i++) {
-    asyncScope.add(co_withExecutor(
-        executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
+    asyncScope.add(
+        co_withExecutor(executor.get(), helper.publishData(numWritesPerTask)));
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -124,12 +81,20 @@ void bm_concurrent_get_set(
     uint32_t numThreads,
     uint32_t numReadsPerTask,
     uint32_t numWritesPerTask,
-    bool useLargeData) {
+    bool useLargeData,
+    bool serveGetRequestsWithLastPublishedState = true) {
   CHECK_GT(numThreads, 1);
 
   folly::BenchmarkSuspender suspender;
 
-  StorageBenchmarkHelper helper;
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen,
+      StorageBenchmarkHelper::Params()
+          .setLargeUpdates(useLargeData)
+          .setNumUpdates(2)
+          .setServeGetWithLastPublished(
+              serveGetRequestsWithLastPublishedState));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -137,12 +102,143 @@ void bm_concurrent_get_set(
 
   suspender.dismiss();
 
-  asyncScope.add(co_withExecutor(
-      executor.get(), helper.publishData(numWritesPerTask, useLargeData)));
+  asyncScope.add(
+      co_withExecutor(executor.get(), helper.publishData(numWritesPerTask)));
 
   for (int i = 1; i < numThreads; i++) {
     asyncScope.add(
         co_withExecutor(executor.get(), helper.getRequest(numReadsPerTask)));
+  }
+
+  folly::coro::blockingWait(asyncScope.joinAsync());
+
+  suspender.rehire();
+}
+
+void bm_serve_initialSync(
+    uint32_t /* unused */,
+    uint32_t numPatchSubs,
+    uint32_t numPathSubs,
+    uint32_t numDeltaSubs) {
+  folly::BenchmarkSuspender suspender;
+
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen,
+      StorageBenchmarkHelper::Params().setStartWithInitializedData(false));
+  helper.startStorage();
+
+  folly::coro::AsyncScope asyncScope;
+  auto numThreads = numPatchSubs + numPathSubs + numDeltaSubs;
+  int nExpectedValues = 1;
+  auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(numThreads);
+
+  std::map<int, SubscriptionIdentifier> subIds;
+  int nSubs = 0;
+
+  for (int i = 0; i < numPatchSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("patch_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPatchSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues)));
+    nSubs++;
+  }
+
+  for (int i = 0; i < numPathSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("path_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPathSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues)));
+    nSubs++;
+  }
+
+  for (int i = 0; i < numDeltaSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("delta_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addDeltaSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues)));
+    nSubs++;
+  }
+
+  suspender.dismiss();
+
+  helper.setStorageData();
+
+  folly::coro::blockingWait(asyncScope.joinAsync());
+
+  suspender.rehire();
+}
+
+void bm_serve_update_state(
+    uint32_t /* unused */,
+    uint32_t numPatchSubs,
+    uint32_t numPathSubs,
+    uint32_t numDeltaSubs) {
+  folly::BenchmarkSuspender suspender;
+
+  test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  StorageBenchmarkHelper helper(
+      dataGen,
+      StorageBenchmarkHelper::Params().setNumUpdates(kNumIncrementalUpdates));
+  helper.startStorage();
+
+  folly::coro::AsyncScope asyncScope;
+  auto numThreads = numPatchSubs + numPathSubs + numDeltaSubs;
+  int nExpectedValues = kNumIncrementalUpdates + 1;
+  auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(numThreads);
+
+  folly::Baton<> updateReceived;
+
+  std::optional<std::function<void()>> updateReceivedCb = [&]() {
+    updateReceived.post();
+  };
+
+  std::map<int, SubscriptionIdentifier> subIds;
+  int nSubs = 0;
+
+  for (int i = 0; i < numPatchSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("patch_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPatchSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues, updateReceivedCb)));
+    nSubs++;
+    updateReceivedCb = std::nullopt;
+  }
+
+  for (int i = 0; i < numPathSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("path_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addPathSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues, updateReceivedCb)));
+    nSubs++;
+    updateReceivedCb = std::nullopt;
+  }
+
+  for (int i = 0; i < numDeltaSubs; i++) {
+    subIds.emplace(nSubs, SubscriberId(fmt::format("delta_sub_{}", i)));
+    asyncScope.add(co_withExecutor(
+        executor.get(),
+        helper.addDeltaSubscription(
+            std::move(subIds.at(nSubs)), nExpectedValues, updateReceivedCb)));
+    nSubs++;
+    updateReceivedCb = std::nullopt;
+  }
+
+  // wait for initial sync to complete
+  updateReceived.wait();
+  updateReceived.reset();
+
+  suspender.dismiss();
+
+  for (int version = 1; version <= kNumIncrementalUpdates; version++) {
+    helper.setStorageData(version);
+    updateReceived.wait();
+    updateReceived.reset();
   }
 
   folly::coro::blockingWait(asyncScope.joinAsync());
@@ -207,6 +303,29 @@ BENCHMARK_NAMED_PARAM(
     kReadsPerTask,
     kWritesPerTask,
     true);
+
+BENCHMARK_NAMED_PARAM(
+    bm_concurrent_get_set,
+    threads_16_serveGetWithCurrentState,
+    16,
+    kReadsPerTask,
+    kWritesPerTask,
+    true,
+    false);
+
+BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_path, 0, 1, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_delta, 0, 0, 1);
+
+BENCHMARK_NAMED_PARAM(bm_serve_initialSync, subscribers_1_patch, 1, 0, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_path, 0, 1, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_delta, 0, 0, 1);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch, 1, 0, 0);
+
+BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch_1_delta, 1, 0, 1);
 
 } // namespace facebook::fboss::fsdb::test
 

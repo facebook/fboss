@@ -93,8 +93,7 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
         flowEntry.dstIpPrefixLength() =
             *entry.flow()->dstPrefix()->prefixLength();
         flowEntry.srcPort() = *(entry.flow()->srcPort());
-        flowEntry.srcPortName_ref() =
-            *portInfo[*(entry.flow()->srcPort())].name_ref();
+        flowEntry.srcPortName() = *portInfo[*(entry.flow()->srcPort())].name();
         flowEntry.enabled() = *(entry.enabled());
         if (entry.counterID()) {
           flowEntry.counterID() = *(entry.counterID());

@@ -68,10 +68,13 @@ CLI::App* CmdSubcommands::addCommand(
           CmdLocalOptions::getInstance()->getLocalOptionMap(fullCmd);
       auto& getLocalOptions = *localOptionsHandler;
       for (const auto& localOption : getLocalOptions()) {
-        subCmd->add_option(
+        auto* cliOpt = subCmd->add_option(
             localOption.name,
             localOptionMap[localOption.name],
             localOption.helpMsg);
+        if (localOption.defaultValue.has_value()) {
+          cliOpt->default_val(*localOption.defaultValue);
+        }
       }
     }
     if (auto& argTypeHandler = cmd.argTypeHandler) {

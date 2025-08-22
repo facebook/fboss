@@ -1,22 +1,22 @@
 {
-  "pwmBoostOnNumDeadFan" : 1,
-  "pwmBoostOnNumDeadSensor" : 0,
-  "pwmBoostOnNoQsfpAfterInSec" : 0,
-  "pwmBoostValue" : 60,
-  "pwmTransitionValue" : 50,
-  "pwmLowerThreshold" : 7,
-  "pwmUpperThreshold" : 100,
-  "optics" : [
+  "pwmBoostOnNumDeadFan": 1,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 31,
+  "pwmBoostValue": 60,
+  "pwmTransitionValue": 50,
+  "pwmLowerThreshold": 40,
+  "pwmUpperThreshold": 100,
+  "optics": [
     {
-      "opticName" : "osfp_group_1",
-      "access" : {
-        "accessType" : "ACCESS_TYPE_QSFP"
+      "opticName": "osfp_group_1",
+      "access": {
+        "accessType": "ACCESS_TYPE_QSFP"
       },
-      "portList" : [],
-      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
-      "tempToPwmMaps" : {
-        "OPTIC_TYPE_800_GENERIC" : {
-          "5" : 35,
+      "portList": [],
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps": {
+        "OPTIC_TYPE_800_GENERIC": {
+          "5": 35,
           "67": 41,
           "68": 50,
           "69": 67,
@@ -26,7 +26,7 @@
       }
     }
   ],
-  "sensors" : [
+  "sensors": [
     {
       "sensorName": "SMB_INLET_TEMP",
       "access": {
@@ -271,7 +271,7 @@
         "R3_0_TEMP",
         "R3_1_TEMP"
       ],
-      "fanNames":[
+      "fanNames": [
         "fan_1",
         "fan_2",
         "fan_3",

@@ -135,7 +135,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   lqcd0.minimumLength() = 0;
   lqcd0.maximumLength() = 0;
   lqcd0.probability() = 50;
-  aqm0.detection()->linear_ref() = lqcd0;
+  aqm0.detection()->linear() = lqcd0;
   aqm0.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
   portQueue0->resetAqms({aqm0});
   std::vector<std::shared_ptr<PortQueue>> portQueues = {portQueue0};
@@ -159,7 +159,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   lqcd1.minimumLength() = 0;
   lqcd1.maximumLength() = 0;
   lqcd1.probability() = 50;
-  aqm1.detection()->linear_ref() = lqcd1;
+  aqm1.detection()->linear() = lqcd1;
   aqm1.behavior() = cfg::QueueCongestionBehavior::ECN;
   portQueue1->resetAqms({aqm1});
   portQueues = {portQueue1};
@@ -238,6 +238,7 @@ TEST_F(SwSwitchTest, multiSwitchFb303Stats) {
     globalStats.dram_enqueued_bytes() = val;
     globalStats.dram_dequeued_bytes() = val;
     globalStats.dram_blocked_time_ns() = val;
+    globalStats.dram_quarantined_buffer_count() = val;
     globalStats.fabric_reachability_missing() = val;
     globalStats.fabric_reachability_mismatch() = val;
     globalStats.fabric_connectivity_bogus() = val;
@@ -269,6 +270,7 @@ TEST_F(SwSwitchTest, multiSwitchFb303Stats) {
     EXPECT_EQ(counters.value("dram_enqueued_bytes.sum"), expectedVal);
     EXPECT_EQ(counters.value("dram_dequeued_bytes.sum"), expectedVal);
     EXPECT_EQ(counters.value("dram_blocked_time_ns.sum"), expectedVal);
+    EXPECT_EQ(counters.value("dram_quarantined_buffer_count.sum"), expectedVal);
     EXPECT_EQ(counters.value("fabric_connectivity_missing"), expectedVal);
     EXPECT_EQ(counters.value("fabric_connectivity_mismatch"), expectedVal);
     EXPECT_EQ(counters.value("fabric_connectivity_bogus"), expectedVal);

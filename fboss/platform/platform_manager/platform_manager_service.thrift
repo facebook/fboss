@@ -1,15 +1,26 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.platform_manager
+namespace hack NetengFbossPlatformManager
 namespace py3 fboss.platform.platform_manager
 
 include "thrift/annotation/thrift.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/hack.thrift"
 
 include "fboss/platform/platform_manager/platform_manager_snapshot.thrift"
 include "fboss/platform/platform_manager/platform_manager_config.thrift"
 include "fboss/platform/weutil/if/eeprom_contents.thrift"
 
+@hack.Attributes{
+  attributes = [
+    "\Oncalls('net_ui')",
+    "\JSEnum",
+    "\GraphQLEnum('NetengFbossPlatformManagerExplorationStatus')",
+    "\SelfDescriptive",
+    "\RelayFlowEnum",
+  ],
+}
 enum ExplorationStatus {
   SUCCEEDED = 0,
   IN_PROGRESS = 1,
@@ -18,6 +29,15 @@ enum ExplorationStatus {
   UNSTARTED = 4,
 }
 
+@hack.Attributes{
+  attributes = [
+    "\Oncalls('net_ui')",
+    "\JSEnum",
+    "\GraphQLEnum('NetengFbossPlatformManagerErrorCode')",
+    "\SelfDescriptive",
+    "\RelayFlowEnum",
+  ],
+}
 enum PlatformManagerErrorCode {
   NONE = 0,
   EXPLORATION_NOT_SUCCEEDED = 1,

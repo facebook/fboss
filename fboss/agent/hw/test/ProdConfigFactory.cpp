@@ -119,7 +119,6 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
           "provided PlatformType: ",
           mode,
           " has not been defined for uplinksCountFromSwitch");
-      break;
   }
 }
 

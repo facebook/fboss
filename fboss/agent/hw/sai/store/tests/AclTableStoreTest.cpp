@@ -173,6 +173,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return false;
   }
 
+  sai_int32_t kHashAlgorithm() const {
+    return SAI_HASH_ALGORITHM_RANDOM;
+  }
+
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -312,6 +316,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionSaiObjectIdT(this->kSetUserTrap()),
             AclEntryActionSaiObjectIdT(this->kSetArsObject()),
             AclEntryActionBool(this->kDisableArsForwarding()),
+            AclEntryActionU32(this->kHashAlgorithm()),
         },
         0);
   }
@@ -503,7 +508,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kMacsecFlow(),
       this->kSetUserTrap(),
       this->kSetArsObject(),
-      this->kDisableArsForwarding()};
+      this->kDisableArsForwarding(),
+      this->kHashAlgorithm()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);

@@ -16,6 +16,8 @@
 #include <fboss/fsdb/oper/instantiations/FsdbCowSubscriptionManager.h>
 #include <fboss/fsdb/oper/instantiations/FsdbPathConverter.h>
 #include "fboss/fsdb/if/FsdbModel.h"
+#include "fboss/fsdb/oper/instantiations/templates/FsdbStateSubscriptionManagerInstantiations.h"
+#include "fboss/fsdb/oper/instantiations/templates/FsdbThriftStructStdFunctionsInstantiations.h"
 
 namespace facebook::fboss::fsdb {
 

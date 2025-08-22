@@ -66,6 +66,11 @@ class NaivePeriodicSubscribableStorageBase {
           serveGetRequestsWithLastPublishedState_(
               serveGetRequestsWithLastPublishedState) {}
 
+    StorageParams& setServeGetRequestsWithLastPublishedState(bool val) {
+      serveGetRequestsWithLastPublishedState_ = val;
+      return *this;
+    }
+
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
     const bool trackMetadata_;
@@ -73,7 +78,7 @@ class NaivePeriodicSubscribableStorageBase {
     bool convertSubsToIDPaths_;
     const bool requireResponseOnInitialSync_;
     const bool exportPerSubscriberMetrics_;
-    const bool serveGetRequestsWithLastPublishedState_;
+    bool serveGetRequestsWithLastPublishedState_;
   };
 
   explicit NaivePeriodicSubscribableStorageBase(
@@ -81,6 +86,10 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<OperPathToPublisherRoot> pathToRootHelper = std::nullopt);
 
   virtual ~NaivePeriodicSubscribableStorageBase() {}
+
+  const StorageParams& params() const {
+    return params_;
+  }
 
   FsdbOperTreeMetadataTracker getMetadata() const;
 
@@ -175,6 +184,13 @@ class NaivePeriodicSubscribableStorageBase {
       std::map<SubscriptionKey, ExtendedOperPath> paths,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
+
+  void publisherHeartbeat(
+      PathIter begin,
+      PathIter end,
+      const OperMetadata& metadata) {
+    updateMetadata(begin, end, metadata);
+  }
 
   size_t numSubscriptions() const {
     return subMgr().numSubscriptions();

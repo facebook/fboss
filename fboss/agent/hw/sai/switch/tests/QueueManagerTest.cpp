@@ -37,6 +37,17 @@ class QueueManagerTest : public ManagerTestBase {
     return std::make_pair(queueId, streamType);
   }
 
+  Port* getPort10() {
+    static std::shared_ptr<Port> port{};
+    if (!port) {
+      state::PortFields portFields;
+      portFields.portId() = 10;
+      portFields.portName() = folly::to<std::string>("p10");
+      port = std::make_shared<Port>(std::move(portFields));
+    }
+    return port.get();
+  }
+
   void checkQueue(
       const SaiQueueHandles& queueHandles,
       PortSaiId saiPortId,
@@ -108,7 +119,7 @@ TEST_F(QueueManagerTest, loadQueue) {
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, queueHandles, queueConfig);
+      portSaiId, queueHandles, queueConfig, getPort10());
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
 }
 
@@ -121,11 +132,11 @@ TEST_F(QueueManagerTest, loadDuplicateQueue) {
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   auto queueHandles1 = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, queueHandles1, queueConfig);
+      portSaiId, queueHandles1, queueConfig, getPort10());
   checkQueue(queueHandles1, portSaiId, streamType, {queueIds});
   auto queueHandles2 = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, queueHandles2, queueConfig);
+      portSaiId, queueHandles2, queueConfig, getPort10());
   checkQueue(queueHandles2, portSaiId, streamType, {queueIds});
   compareQueueHandles(queueHandles1, queueHandles2);
 }
@@ -139,7 +150,7 @@ TEST_F(QueueManagerTest, loadMultipleQueues) {
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, queueHandles, queueConfig);
+      portSaiId, queueHandles, queueConfig, getPort10());
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
 }
 
@@ -153,7 +164,7 @@ TEST_F(QueueManagerTest, removeQueues) {
   {
     auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
     saiManagerTable->queueManager().ensurePortQueueConfig(
-        portSaiId, queueHandles, queueConfig);
+        portSaiId, queueHandles, queueConfig, getPort10());
     checkQueue(queueHandles, portSaiId, streamType, {queueIds});
   }
   // Queues will not be unloaded till the ports are deleted.
@@ -175,7 +186,7 @@ TEST_F(QueueManagerTest, checkNonExistentQueues) {
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, queueHandles, queueConfig);
+      portSaiId, queueHandles, queueConfig, getPort10());
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
   for (auto queueId : nonExistentQueueIds) {
     auto saiQueueConfig = makeSaiQueueConfig(cfg::StreamType::UNICAST, queueId);
@@ -195,7 +206,7 @@ TEST_F(QueueManagerTest, getNonExistentQueues) {
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
   auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   saiManagerTable->queueManager().ensurePortQueueConfig(
-      portSaiId, queueHandles, queueConfig);
+      portSaiId, queueHandles, queueConfig, getPort10());
   checkQueue(queueHandles, portSaiId, streamType, {queueIds});
   for (auto queueId : nonExistentQueueIds) {
     auto saiQueueConfig = makeSaiQueueConfig(cfg::StreamType::UNICAST, queueId);

@@ -23,6 +23,7 @@
 #include "fboss/agent/AgentFeatures.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -365,6 +366,7 @@ class ThriftConfigApplier {
   QueueConfig updatePortQueues(
       const std::vector<std::shared_ptr<PortQueue>>& origPortQueues,
       const std::vector<cfg::PortQueue>& cfgPortQueues,
+      uint16_t baseQueueId,
       uint16_t maxQueues,
       cfg::StreamType streamType,
       std::optional<cfg::QosMap> qosMap = std::nullopt,
@@ -951,6 +953,7 @@ std::optional<QueueConfig> ThriftConfigApplier::getDefaultVoqConfigIfChanged(
     std::optional<QueueConfig> defaultVoqConfig = updatePortQueues(
         origPortQueues,
         *cfg_->defaultVoqConfig(),
+        0 /*baseQueueId*/,
         kNumVoqs,
         cfg::StreamType::UNICAST,
         std::nullopt,
@@ -981,6 +984,7 @@ QueueConfig ThriftConfigApplier::getVoqConfig(PortID portId) {
         return updatePortQueues(
             voqs,
             cfgPortVoqs,
+            0 /*baseQueueId*/,
             kNumVoqs,
             cfg::StreamType::UNICAST,
             std::nullopt,
@@ -2053,6 +2057,9 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
   if (const auto sramScalingFactor = cfg->sramScalingFactor()) {
     pgCfg->setSramScalingFactor(*sramScalingFactor);
   }
+  if (const auto staticLimitBytes = cfg->staticLimitBytes()) {
+    pgCfg->setStaticLimitBytes(*staticLimitBytes);
+  }
   return pgCfg;
 }
 
@@ -2146,9 +2153,7 @@ ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
   std::vector<int16_t> tmpPfcPri;
   for (auto& portPgCfg : portPgCfgs) {
     // If we have non-zero value in headroom, then its a lossless PG
-    if ((portPgCfg->getHeadroomLimitBytes().has_value() &&
-         *portPgCfg->getHeadroomLimitBytes() != 0) ||
-        FLAGS_allow_zero_headroom_for_lossless_pg) {
+    if (utility::isLosslessPg(*portPgCfg)) {
       tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
     }
   }
@@ -2183,6 +2188,7 @@ bool ThriftConfigApplier::isPortFlowletConfigUnchanged(
 QueueConfig ThriftConfigApplier::updatePortQueues(
     const QueueConfig& origPortQueues,
     const std::vector<cfg::PortQueue>& cfgPortQueues,
+    uint16_t baseQueueId,
     uint16_t maxQueues,
     cfg::StreamType streamType,
     std::optional<cfg::QosMap> qosMap,
@@ -2213,7 +2219,8 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
   // if there is a config present for any of these queues, we update the
   // PortQueue according to this
   // Otherwise we reset it to the default values for this queue type
-  for (auto queueId = 0; queueId < maxQueues; queueId++) {
+  for (auto queueId = baseQueueId; queueId < baseQueueId + maxQueues;
+       queueId++) {
     auto newQueueIter = newQueues.find(queueId);
     std::shared_ptr<PortQueue> newPortQueue;
     if (newQueueIter != newQueues.end()) {
@@ -2405,11 +2412,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   CHECK(asic != nullptr);
   QueueConfig portQueues;
   for (auto streamType : asic->getQueueStreamTypes(*portConf->portType())) {
+    auto baseQueueId =
+        asic->getBasePortQueueId(streamType, *portConf->portType());
     auto maxQueues =
         asic->getDefaultNumPortQueues(streamType, *portConf->portType());
     auto tmpPortQueues = updatePortQueues(
         orig->getPortQueues()->impl(),
         cfgPortQueues,
+        baseQueueId,
         maxQueues,
         streamType,
         qosMap);
@@ -2480,9 +2490,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         throw FbossError(
             "Port ",
             orig->getID(),
-            " pg name",
+            " pg name ",
             *portPgConfigName,
-            "does not exist in portPgConfig map");
+            " does not exist in portPgConfig map");
       }
       portPgCfgs = updatePortPgConfigs(it->second, orig);
       // validate that the given pg profile points to valid
@@ -2636,7 +2646,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->conditionalEntropyRehash() ==
           orig->getConditionalEntropyRehash() &&
       portConf->selfHealingECMPLagEnable().value_or(false) ==
-          orig->getSelfHealingECMPLagEnable().value_or(false) &&
+          orig->getDesiredSelfHealingECMPLagEnable().value_or(false) &&
       portConf->fecErrorDetectEnable().value_or(false) ==
           orig->getFecErrorDetectEnable().value_or(false)) {
     return nullptr;
@@ -2690,9 +2700,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           newPort->getName(),
           " to have selfHealingEcmpLag enable");
     }
-    newPort->setSelfHealingECMPLagEnable(selfHealingECMPLagEnable.value());
+    newPort->setDesiredSelfHealingECMPLagEnable(
+        selfHealingECMPLagEnable.value());
   } else {
-    newPort->setSelfHealingECMPLagEnable(std::nullopt);
+    newPort->setDesiredSelfHealingECMPLagEnable(std::nullopt);
   }
   if (portConf->fecErrorDetectEnable().has_value()) {
     newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
@@ -4671,8 +4682,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
   std::vector<state::BlockedNeighbor> cfgBlockNeighbors;
   for (const auto& blockNeighbor : *cfg_->switchSettings()->blockNeighbors()) {
     state::BlockedNeighbor neighbor{};
-    neighbor.blockNeighborVlanID_ref() = *blockNeighbor.vlanID();
-    neighbor.blockNeighborIP_ref() =
+    neighbor.blockNeighborVlanID() = *blockNeighbor.vlanID();
+    neighbor.blockNeighborIP() =
         network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
     cfgBlockNeighbors.emplace_back(neighbor);
   }
@@ -5096,6 +5107,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  {
+    std::optional<int32_t> newEcmpCompressionThresholdPct;
+    if (cfg_->switchSettings()->ecmpCompressionThresholdPct()) {
+      newEcmpCompressionThresholdPct =
+          *cfg_->switchSettings()->ecmpCompressionThresholdPct();
+    }
+    if (newEcmpCompressionThresholdPct !=
+        origSwitchSettings->getEcmpCompressionThresholdPct()) {
+      newSwitchSettings->setEcmpCompressionThresholdPct(
+          newEcmpCompressionThresholdPct);
+      switchSettingsChange = true;
+    }
+  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;
@@ -5196,34 +5220,19 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     auto tmpPortQueues = updatePortQueues(
         origCPU->getQueuesConfig(),
         *cfg_->cpuQueues(),
+        asic->getBasePortQueueId(streamType, cfg::PortType::CPU_PORT),
         asic->getDefaultNumPortQueues(streamType, cfg::PortType::CPU_PORT),
         streamType,
         qosMap);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
 
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // TODO-Chenab: ensure queue scheduling is set to internal until cpu
-      // queues can be configured.
-      std::transform(
-          newQueues.cbegin(),
-          newQueues.cend(),
-          newQueues.begin(),
-          [](auto queue) {
-            if (queue->getScheduling() == cfg::QueueScheduling::INTERNAL) {
-              return queue;
-            }
-            auto newQueue = queue->clone();
-            newQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-            return newQueue;
-          });
-    }
-
     if (cfg_->cpuVoqs()) {
       std::vector<cfg::PortQueue> cfgCpuVoqs = *cfg_->cpuVoqs();
       auto tmpPortVoqs = updatePortQueues(
           origCPU->getVoqsConfig(),
           cfgCpuVoqs,
+          0 /*baseQueueId*/,
           getLocalPortNumVoqs(cfg::PortType::CPU_PORT, cfg::Scope::LOCAL),
           streamType,
           qosMap);

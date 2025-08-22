@@ -49,7 +49,7 @@ class SaiArsManager {
   void changeArs(
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitchingConfig,
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig);
-  SaiArsHandle* getArsHandle();
+  SaiArsHandle* getArsHandle() const;
   sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) const;
   bool isFlowsetTableFull(const ArsSaiId& arsSaiId);
 #endif

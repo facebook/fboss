@@ -1,6 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include "fboss/platform/rackmon/ModbusDevice.h"
-#include "fboss/platform/rackmon/Log.h"
+#include "ModbusDevice.h"
+#include "Log.h"
 
 using nlohmann::json;
 

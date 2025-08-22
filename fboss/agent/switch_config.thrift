@@ -1913,6 +1913,7 @@ struct SwitchSettings {
   31: optional map<i32, i32> tcToRateLimitKbps;
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   32: optional i32 pfcWatchdogTimerGranularityMsec;
+  33: optional i32 ecmpCompressionThresholdPct;
 }
 
 // Global buffer pool
@@ -1960,6 +1961,8 @@ struct PortPgConfig {
   13: optional i32 resumeBytes;
   // Scaling factor for SRAM usage
   14: optional MMUScalingFactor sramScalingFactor;
+  // Static shared buffer threshold. If this is set, scalingFactor is ignored.
+  15: optional i64 staticLimitBytes;
 }
 
 // asicSdk: Native SDK version. may or may not support SAI

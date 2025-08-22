@@ -38,6 +38,9 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SDK_REGISTER_DUMP:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
+    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
+    case HwAsic::Feature::TECH_SUPPORT:
+    case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
@@ -47,10 +50,10 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     // Dual stage L1 (FE13) fabric features
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
       return fabricNodeRole_ == FabricNodeRole::DUAL_STAGE_L1;
+    case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     default:
       return false;
   }
-  return false;
 }
 
 std::set<cfg::StreamType> Ramon3Asic::getQueueStreamTypes(

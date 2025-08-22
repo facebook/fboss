@@ -25,6 +25,7 @@
 
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <folly/testing/TestUtil.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/ReconnectingRequestChannel.h>
 #include <thrift/lib/cpp2/async/RetryingRequestChannel.h>
@@ -178,9 +179,10 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
     // config.
     applyNewConfig(initialConfig_);
   } else {
-    if (FLAGS_prod_invariant_config_test)
+    if (FLAGS_prod_invariant_config_test) {
       // During warmboot, the ports are already up.
       applyNewConfig(initialConfig_);
+    }
   }
 }
 
@@ -272,6 +274,10 @@ void AgentEnsemble::unprogramRoutes(
   }
 }
 
+void AgentEnsemble::stopStatsThread() {
+  agentInitializer()->stopStatsThread();
+}
+
 void AgentEnsemble::gracefulExit() {
   auto* initializer = agentInitializer();
   // exit for warm boot
@@ -359,7 +365,7 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
         portIdStatsMap = getSw()->getHwPortStats(ports);
         // Check collect timestamp is valid
         for (const auto& [_, portStats] : portIdStatsMap) {
-          if (*portStats.timestamp__ref() ==
+          if (*portStats.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -370,6 +376,21 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
       std::chrono::milliseconds(1000),
       " fetch port stats");
   return portIdStatsMap;
+}
+
+std::map<InterfaceID, HwRouterInterfaceStats>
+AgentEnsemble::getLatestInterfaceStats(
+    const std::vector<InterfaceID>& interfaces) {
+  std::map<InterfaceID, HwRouterInterfaceStats> intfIdStatsMap;
+  checkWithRetry(
+      [&intfIdStatsMap, &interfaces, this]() {
+        intfIdStatsMap = getSw()->getHwRouterInterfaceStats(interfaces);
+        return !intfIdStatsMap.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch interface stats");
+  return intfIdStatsMap;
 }
 
 std::map<SystemPortID, HwSysPortStats> AgentEnsemble::getLatestSysPortStats(
@@ -425,6 +446,16 @@ void AgentEnsemble::runDiagCommand(
         false /* bypassFilter */);
     output = out;
   }
+}
+
+void AgentEnsemble::runCint(
+    const std::string& cintData,
+    std::string& output,
+    const SwitchID& switchId) {
+  folly::test::TemporaryFile file;
+  folly::writeFull(file.fd(), cintData.c_str(), cintData.size());
+  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  runDiagCommand(cmd, output, switchId);
 }
 
 LinkStateToggler* AgentEnsemble::getLinkToggler() {

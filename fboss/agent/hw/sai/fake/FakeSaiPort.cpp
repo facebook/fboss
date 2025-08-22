@@ -1109,6 +1109,16 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT:
         attr[i].value.u32 = port.ars_port_load_future_weight;
         break;
+      case SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS:
+        if (port.portPgPktDropStatus.size() > attr[i].value.maplist.count) {
+          attr[i].value.maplist.count = port.portPgPktDropStatus.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.portPgPktDropStatus.size(); ++j) {
+          attr[i].value.maplist.list[j] = port.portPgPktDropStatus[j];
+        }
+        attr[i].value.maplist.count = port.portPgPktDropStatus.size();
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

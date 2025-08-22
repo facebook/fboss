@@ -54,7 +54,7 @@ struct TxPacketData {
  */
 class PcapPkt {
  public:
-  typedef std::chrono::system_clock::time_point TimePoint;
+  using TimePoint = std::chrono::system_clock::time_point;
 
   /*
    * Create an uninitialized PcapPkt

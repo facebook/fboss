@@ -150,7 +150,7 @@ void HwProdInvariantHelper::verifyDscpToQueueMapping() {
   };
 
   auto q2dscpMap = utility::getOlympicQosMaps(initialConfig());
-  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
+  EXPECT_TRUE(utility::verifyQueueMappingsInvariantEcmpHelper(
       q2dscpMap,
       ensemble_->getHwSwitch(),
       getProgrammedState(),

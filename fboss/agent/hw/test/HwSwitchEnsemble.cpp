@@ -568,6 +568,26 @@ std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
   return portIdStatsMap;
 }
 
+std::map<InterfaceID, HwRouterInterfaceStats>
+HwSwitchEnsemble::getLatestInterfaceStats(
+    const std::vector<InterfaceID>& interfaces) {
+  std::map<InterfaceID, HwRouterInterfaceStats> interfaceIdStatsMap;
+  getHwSwitch()->updateStats();
+
+  auto swState = getProgrammedState();
+  auto stats = getHwSwitch()->getRouterInterfaceStats();
+  for (auto intfID : interfaces) {
+    auto intfName = swState->getInterfaces()->getNodeIf(intfID)->getName();
+    auto intfStats = stats.find(intfName);
+    if (intfStats == stats.end()) {
+      XLOG(ERR) << "Interface " << intfName << " not found in stats";
+      continue;
+    }
+    interfaceIdStatsMap.emplace(intfID, intfStats->second);
+  }
+  return interfaceIdStatsMap;
+}
+
 std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
     const std::vector<SystemPortID>& ports) {
   std::map<SystemPortID, HwSysPortStats> portIdStatsMap;

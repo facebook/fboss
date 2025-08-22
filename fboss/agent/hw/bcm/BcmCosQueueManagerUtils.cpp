@@ -57,7 +57,7 @@ cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
 
 cfg::PortQueueRate getPortQueueRatePps(uint32_t minimum, uint32_t maximum) {
   cfg::PortQueueRate portQueueRate;
-  portQueueRate.pktsPerSec_ref() = getRange(minimum, maximum);
+  portQueueRate.pktsPerSec() = getRange(minimum, maximum);
 
   return portQueueRate;
 }
@@ -72,7 +72,7 @@ AqmMap makeDefauleAqmMap(int32_t threshold) {
        {QueueCongestionBehavior::EARLY_DROP, QueueCongestionBehavior::ECN}) {
     facebook::fboss::cfg::ActiveQueueManagement aqm;
     aqm.behavior() = behavior;
-    aqm.detection()->linear_ref() = detection;
+    aqm.detection()->linear() = detection;
     aqms.emplace(behavior, aqm);
   }
   return aqms;

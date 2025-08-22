@@ -41,7 +41,7 @@ struct PortAndEgressIdsFields {
 class PortAndEgressIds
     : public NodeBaseT<PortAndEgressIds, PortAndEgressIdsFields> {
  public:
-  typedef PortAndEgressIdsFields::EgressIdSet EgressIdSet;
+  using EgressIdSet = PortAndEgressIdsFields::EgressIdSet;
   PortAndEgressIds(bcm_gport_t gport, EgressIdSet egressIds)
       : NodeBaseT(gport, std::move(egressIds)) {}
 

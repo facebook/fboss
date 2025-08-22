@@ -717,7 +717,7 @@ TYPED_TEST(FsdbPubSubTest, publishToMultipleSubscribersOfDifferentTypes) {
   this->setupConnection(*subscriber2);
   this->checkSubscribed({subscriber2->clientId()});
   this->setupConnection(*subscriber3);
-  this->checkSubscribed({subscriber3->clientId()});
+  this->checkSubscribed({subscriber2->clientId(), subscriber3->clientId()});
   if (this->pubSubStats()) {
     this->publishPortStats(makePortStats(1));
   } else {

@@ -11,7 +11,7 @@ include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/agent/switch_config.thrift"
 include "thrift/annotation/cpp.thrift"
 include "fboss/lib/phy/phy.thrift"
-include "fboss/platform/sensor_service/if/sensor_service.thrift"
+include "fboss/agent/if/asic_temp.thrift"
 
 struct HwAgentEventSyncStatus {
   1: i32 statsEventSyncActive;
@@ -64,6 +64,8 @@ struct AgentStats {
     hardware_stats.FabricReachabilityStats
   > fabricReachabilityStatsMap;
   28: map<i16, hardware_stats.HwSwitchPipelineStats> switchPipelineStatsMap;
-  29: map<string, sensor_service.SensorData> asicTemp;
+  29: map<string, asic_temp.AsicTempData> asicTemp;
   30: map<i16, map<i32, switch_config.PortState>> sysPortShelStateMap;
+  31: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
+  32: i16 ecmpOverShelDisabledPort;
 }

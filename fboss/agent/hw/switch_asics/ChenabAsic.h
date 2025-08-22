@@ -17,12 +17,7 @@ namespace facebook::fboss {
 
 class ChenabAsic : public HwAsic {
  public:
-  ChenabAsic(
-      std::optional<int64_t> switchId,
-      cfg::SwitchInfo switchInfo,
-      std::optional<cfg::SdkVersion> sdkVersion = std::nullopt)
-      : HwAsic(switchId, switchInfo, sdkVersion, {cfg::SwitchType::NPU}) {}
-
+  using HwAsic::HwAsic;
   AsicVendor getAsicVendor() const override;
   std::string getVendor() const override;
   bool isSupported(Feature feature) const override;
@@ -82,6 +77,14 @@ class ChenabAsic : public HwAsic {
     // vendor guidance
     return 64;
   }
+
+  uint64_t getCpuPortEgressPoolSize() const override {
+    // CPU egress buffer pool size is at least 3 MB
+    return 3 * 1024 * 1024;
+  }
+
+  std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()
+      const override;
 
  private:
   bool isSupportedFabric(Feature feature) const;

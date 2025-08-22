@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/DHCPv4Handler.h"
-#include <arpa/inet.h>
 #include <folly/IPAddress.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -33,7 +32,6 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
 
 using folly::IOBuf;
 using folly::IPAddress;
@@ -45,7 +43,7 @@ using std::string;
 using std::unique_ptr;
 using namespace facebook::fboss;
 
-typedef EthHdr::VlanTags_t VlanTags_t;
+using VlanTags_t = EthHdr::VlanTags_t;
 
 namespace {
 IPv4Hdr makeIpv4Header(
@@ -151,9 +149,6 @@ int processOption(
 } // namespace
 
 namespace facebook::fboss {
-
-constexpr uint16_t DHCPv4Handler::kBootPSPort;
-constexpr uint16_t DHCPv4Handler::kBootPCPort;
 
 bool DHCPv4Handler::isDHCPv4Packet(const UDPHeader& udpHdr) {
   auto srcPort = udpHdr.srcPort;

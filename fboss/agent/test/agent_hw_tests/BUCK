@@ -29,6 +29,7 @@ cpp_library(
         "AgentEmptyTests.cpp",
         "AgentFabricSwitchTests.cpp",
         "AgentFlowletSwitchingTests.cpp",
+        "AgentHighFrequencyStatsTests.cpp",
         "AgentHwAclMatchActionsTest.cpp",
         "AgentHwAclQualifierTest.cpp",
         "AgentHwAclStatTests.cpp",
@@ -72,6 +73,7 @@ cpp_library(
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
         "AgentRouteTests.cpp",
+        "AgentRouterInterfaceCounterTest.cpp",
         "AgentRxReasonTests.cpp",
         "AgentSendPacketToQueueTests.cpp",
         "AgentSflowMirrorTest.cpp",
@@ -99,6 +101,7 @@ cpp_library(
     link_whole = True,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
@@ -123,15 +126,17 @@ cpp_library(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
         "//fboss/agent:voq_utils",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw:hw_resource_stats_publisher",
         "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
         "//fboss/agent/hw/test:hw_packet_utils",
-        "//fboss/agent/hw/test:hw_test_acl_utils",
         "//fboss/agent/hw/test:prod_config_factory",
         "//fboss/agent/if:common-cpp2-types",
+        "//fboss/agent/if:highfreq-cpp2-types",
+        "//fboss/agent/if:hw_ctrl-cpp2-clients",
         "//fboss/agent/packet:ether_type",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
@@ -190,12 +195,17 @@ cpp_library(
         "//folly:file_util",
         "//folly:map_util",
         "//folly:network_address",
+        "//folly:scope_guard",
+        "//folly/container:f14_hash",
+        "//folly/executors:function_scheduler",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//folly/memory:mallctl_helper",
         "//folly/testing:test_util",
+        "//thrift/lib/cpp2/test:matcher",
     ],
     exported_external_deps = [
+        "re2",
         ("boost", None, "boost_container"),
         ("boost", None, "boost_range"),
     ],
@@ -330,6 +340,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -364,6 +375,7 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -397,6 +409,7 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nv_sai_sdk" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,
@@ -428,6 +441,7 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         linker_flags = [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
+            "--rpath='$ORIGIN'",
         ] if sai_impl.name == "nvda" else [],
         versions = {
             sai_impl.sdk_name: sai_impl.version,

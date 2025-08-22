@@ -651,11 +651,11 @@ class SwitchStats : public boost::noncopyable {
   void getHwAgentStatus(
       std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const;
 
-  typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
-      ThreadLocalStatsMap;
-  typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
-  typedef fb303::ThreadCachedServiceData::TLHistogram TLHistogram;
-  typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
+  using ThreadLocalStatsMap =
+      fb303::ThreadCachedServiceData::ThreadLocalStatsMap;
+  using TLTimeseries = fb303::ThreadCachedServiceData::TLTimeseries;
+  using TLHistogram = fb303::ThreadCachedServiceData::TLHistogram;
+  using TLCounter = fb303::ThreadCachedServiceData::TLCounter;
 
  private:
   // Forbidden copy constructor and assignment operator

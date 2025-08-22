@@ -13,6 +13,8 @@
 #include <vector>
 #include "fboss/lib/if/gen-cpp2/pim_state_types.h"
 
+#define PIM_LOG(level, pimID) XLOG(level) << "[PimID: " << pimID << "] "
+
 namespace facebook::fboss {
 /*
  * Multi-pim Platform Pim Container base class.

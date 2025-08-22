@@ -354,7 +354,11 @@ class AgentAqmTest : public AgentHwTest {
   // use WRED/ECN config or not. This helps validate functionality in AI
   // network which uses ECN alone, the case with both ECN and WRED as in
   // front end network or with just WRED.
-  void runTest(const uint8_t ecnVal, bool enableWred, bool enableEcn) {
+  void runTest(
+      const uint8_t ecnVal,
+      bool enableWred,
+      bool enableEcn,
+      bool warmbootTest = false) {
     if (!isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
       GTEST_SKIP();
       return;
@@ -410,7 +414,12 @@ class AgentAqmTest : public AgentHwTest {
       });
     };
 
-    verifyAcrossWarmBoots(setup, verify);
+    if (warmbootTest) {
+      // for warmboot test, we invoke the setup and verify post warmboot
+      verifyAcrossWarmBoots([] {}, [] {}, setup, verify);
+    } else {
+      verifyAcrossWarmBoots(setup, verify);
+    }
   }
 
   void queueWredThresholdSetup(
@@ -634,19 +643,9 @@ class AgentAqmTest : public AgentHwTest {
 
       // Setup traffic loop
       setupEcmpTraffic();
-
-      // Send traffic
-      const int kNumPacketsToSend =
-          getAgentEnsemble()->getMinPktsForLineRate(portId);
-      sendPkts(
-          utility::kOlympicQueueToDscp().at(silverQueueId).front(),
-          kECT1,
-          kNumPacketsToSend);
     };
 
     auto verify = [=, this]() {
-      getAgentEnsemble()->waitForLineRateOnPort(portId);
-
       // Get stats to verify if additional packets are getting ECN marked
       HwPortStats beforePortStats =
           getAgentEnsemble()->getLatestPortStats(portId);
@@ -656,6 +655,16 @@ class AgentAqmTest : public AgentHwTest {
           silverQueueId,
           true /*useQueueStatsForAqm*/,
           beforeAqmQueueStats);
+
+      // Send traffic
+      const int kNumPacketsToSend =
+          getAgentEnsemble()->getMinPktsForLineRate(portId);
+      sendPkts(
+          utility::kOlympicQueueToDscp().at(silverQueueId).front(),
+          kECT1,
+          kNumPacketsToSend);
+
+      getAgentEnsemble()->waitForLineRateOnPort(portId);
 
       WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(200), {
         HwPortStats afterPortStats =
@@ -942,6 +951,14 @@ TEST_F(AgentAqmEcnOnlyTest, verifyEcnWithoutWredConfig) {
   runTest(kECT1, false /* enableWred */, true /* enableEcn */);
 }
 
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnWithoutWredPostWarmboot) {
+  runTest(
+      kECT1,
+      false /* enableWred */,
+      true /* enableEcn */,
+      true /* warmbootTest */);
+}
+
 TEST_F(AgentAqmTest, verifyWredWithoutEcnConfig) {
   runTest(kNotECT, true /* enableWred */, false /* enableEcn */);
 }
@@ -966,7 +983,7 @@ TEST_F(AgentAqmEcnOnlyTest, verifyEcnTrafficNoDrop) {
   runEcnTrafficNoDropTest();
 }
 
-TEST_F(AgentAqmTest, verifyEcnThreshold) {
+TEST_F(AgentAqmEcnOnlyTest, verifyEcnThreshold) {
   runEcnThresholdTest();
 }
 

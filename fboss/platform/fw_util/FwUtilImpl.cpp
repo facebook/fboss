@@ -25,14 +25,15 @@ using namespace folly::literals::shell_literals;
 namespace facebook::fboss::platform::fw_util {
 void FwUtilImpl::init() {
   platformName_ = helpers::PlatformNameLib().getPlatformName().value();
-  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig();
+  ConfigLib configLib(configFilePath_);
+  std::string fwUtilConfJson = configLib.getFwUtilConfig();
   try {
-    apache::thrift::SimpleJSONSerializer::deserialize<NewFwUtilConfig>(
+    apache::thrift::SimpleJSONSerializer::deserialize<FwUtilConfig>(
         fwUtilConfJson, fwUtilConfig_);
   } catch (const std::exception& e) {
-    XLOG(ERR) << "Error deserializing NewFwUtilConfig: " << e.what();
+    XLOG(ERR) << "Error deserializing FwUtilConfig: " << e.what();
   }
-  for (const auto& [fpd, fwConfigs] : *fwUtilConfig_.newFwConfigs()) {
+  for (const auto& [fpd, fwConfigs] : *fwUtilConfig_.fwConfigs()) {
     fwDeviceNamesByPrio_.emplace_back(fpd, *fwConfigs.priority());
   }
   // Sort firmware devices by priority
@@ -57,20 +58,29 @@ std::string FwUtilImpl::printFpdList() {
   return fpdList;
 }
 
+std::tuple<std::string, FwConfig> FwUtilImpl::getFpd(
+    const std::string& searchFpdName) {
+  std::string lowerSearchFpdName = toLower(searchFpdName);
+  if (lowerSearchFpdName == "all") {
+    return std::tuple("all", FwConfig());
+  }
+
+  for (const auto& [fpdName, fpd] : *fwUtilConfig_.fwConfigs()) {
+    if (toLower(fpdName) == lowerSearchFpdName) {
+      return std::tuple(fpdName, fpd);
+    }
+  }
+  throw std::runtime_error(fmt::format(
+      "Invalid firmware target name: {}\nUse fw-util --fw_action=list to see available firmware targets",
+      searchFpdName));
+}
+
 void FwUtilImpl::doFirmwareAction(
-    const std::string& fpd,
+    const std::string& fpdArg,
     const std::string& action) {
   XLOG(INFO, " Analyzing the given FW action for execution");
 
-  auto iter = fwUtilConfig_.newFwConfigs()->find(fpd);
-  if (iter == fwUtilConfig_.newFwConfigs()->end()) {
-    XLOG(INFO)
-        << fpd
-        << " is not part of the firmware target_name list Please run ./fw-util --helpon=Flags for the right usage";
-    exit(1);
-  }
-  auto fwConfig = iter->second;
-
+  auto [fpd, fwConfig] = getFpd(fpdArg);
   if (action == "program") {
     // Fw_util is build as part of ramdisk once every 24 hours
     // assuming no test failure. if we force sha1sum check in the fw_util,
@@ -130,7 +140,7 @@ void FwUtilImpl::doFirmwareAction(
     }
   } else {
     XLOG(INFO) << "Invalid action: " << action
-               << ". Please run ./fw-util --helpon=Flags for the right usage";
+               << ". Please run ./fw-util --help Flags for the right usage";
     exit(1);
   }
 }
@@ -138,15 +148,15 @@ void FwUtilImpl::doFirmwareAction(
 void FwUtilImpl::printVersion(const std::string& fpd) {
   // TODO: Remove this check once we have moved all Darwin systems to the latest
   // BSP which provide a single sysfs endpoint for each firmware version
-  auto lowerCasePlatformName = toLower(platformName_);
+  auto [fpdName, _] = getFpd(fpd);
 
-  if (lowerCasePlatformName == "darwin") {
-    fwUtilVersionHandler_->printDarwinVersion(fpd);
+  if (toLower(platformName_) == "darwin") {
+    fwUtilVersionHandler_->printDarwinVersion(fpdName);
   } else {
     if (fpd == "all") {
       fwUtilVersionHandler_->printAllVersions();
     } else {
-      std::string version = fwUtilVersionHandler_->getSingleVersion(fpd);
+      std::string version = fwUtilVersionHandler_->getSingleVersion(fpdName);
       std::cout << fmt::format("{} : {}", fpd, version) << std::endl;
     }
   }
@@ -154,7 +164,7 @@ void FwUtilImpl::printVersion(const std::string& fpd) {
 
 void FwUtilImpl::doVersionAudit() {
   bool mismatch = false;
-  for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.newFwConfigs()) {
+  for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.fwConfigs()) {
     std::string desiredVersion = *fwConfig.desiredVersion();
     if (desiredVersion.empty()) {
       XLOGF(

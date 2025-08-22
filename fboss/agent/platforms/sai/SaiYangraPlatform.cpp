@@ -19,6 +19,8 @@
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 
+#include "fboss/agent/Utils.h"
+
 #include <algorithm>
 
 namespace facebook::fboss {
@@ -69,6 +71,16 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair("SAI_KEY_GET_OBJECT_KEY_EXCLUDE", "7"));
   kv_map.insert(std::make_pair("SAI_KEY_EXTERNAL_SXD_DRIVER_MANAGEMENT", "1"));
   kv_map.insert(std::make_pair("SAI_INTERNAL_LOOPBACK_TOGGLE_ENABLED", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_ENABLE_HEALTH_DATA_TYPE_SER", "1"));
+  utilCreateDir(getDirectoryUtil()->getCrashInfoDir());
+  kv_map.insert(std::make_pair(
+      "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
+  kv_map.insert(std::make_pair("SAI_DUMP_STORE_AMOUNT", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_HOSTIF_V2_ENABLED", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_PRBS_ADMIN_TOGGLE_ENABLED", "1"));
+  kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_BIT_START", "0"));
+  kv_map.insert(
+      std::make_pair("SAI_KEY_ROUTE_METADATA_BIT_END", "4")); // 5 bit metadata
   return kv_map;
 }
 
@@ -112,7 +124,7 @@ std::string SaiYangraPlatform::getHwConfig() {
 }
 
 bool SaiYangraPlatform::isSerdesApiSupported() const {
-  return false;
+  return true;
 }
 std::vector<PortID> SaiYangraPlatform::getAllPortsInGroup(
     PortID /*portID*/) const {

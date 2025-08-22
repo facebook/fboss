@@ -145,6 +145,16 @@ class Cmis2x400GFr4LiteTransceiver : public FakeTransceiverImpl {
   explicit Cmis2x400GFr4LiteTransceiver(int module, TransceiverManager* mgr);
 };
 
+class Cmis2x400GFr4LpoTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis2x400GFr4LpoTransceiver(int module, TransceiverManager* mgr);
+};
+
+class Cmis800GZrTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis800GZrTransceiver(int module, TransceiverManager* mgr);
+};
+
 class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x400GDr4Transceiver(int module, TransceiverManager* mgr);
@@ -174,6 +184,11 @@ class Cmis400GDr4Transceiver : public FakeTransceiverImpl {
 class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
+};
+
+class CmisCredo800AEC : public FakeTransceiverImpl {
+ public:
+  explicit CmisCredo800AEC(int module, TransceiverManager* mgr);
 };
 
 } // namespace fboss

@@ -97,8 +97,9 @@ class HwFlexPortTest : public HwTest {
       if (utility::portsExistsInPortGroup(
               getHwSwitch()->getPlatform(),
               allPortsinGroup,
-              getPortSpeed(flexMode)))
+              getPortSpeed(flexMode))) {
         break;
+      }
     }
 
     if (index == masterLogicalPortIds().size()) {

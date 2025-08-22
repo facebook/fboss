@@ -7,7 +7,7 @@
 namespace facebook::fboss::platform::data_corral_service {
 
 bool ConfigValidator::isValid(const LedManagerConfig& config) {
-  XLOG(INFO) << "Validating the config";
+  XLOG(INFO) << "Validating data_corral_service config";
 
   XLOG(INFO) << "Validating the system LED config";
   if (!isValidLedConfig(*config.systemLedConfig())) {

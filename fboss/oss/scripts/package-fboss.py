@@ -283,6 +283,7 @@ class PackageFboss:
         """
 
         dependencies = set()
+        exclude_patterns = ["libc.so", "libgcc_s.so", "libsystemd.so"]
 
         try:
             output = subprocess.check_output(["file", path_to_binary])
@@ -306,6 +307,9 @@ class PackageFboss:
                 lib_path = parts[1].split("(")[0].strip()
             else:
                 lib_path = parts[0].split("(")[0].strip()
+
+            if any(s in lib_path for s in exclude_patterns):
+                continue
 
             not_present = lib_path not in self.dependencies
             root_and_copy = lib_path.startswith("/lib") and self.copy_root_libs

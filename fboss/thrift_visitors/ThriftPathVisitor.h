@@ -355,7 +355,7 @@ struct ThriftPathVisitor<apache::thrift::type::struct_t<T>, Options> {
 
       // Check for optionality
       auto field = apache::thrift::op::get<Id>(std::forward<Node>(node));
-      if (apache::thrift::op::getValueOrNull(field) == nullptr) {
+      if (apache::thrift::op::get_value_or_null(field) == nullptr) {
         if constexpr (!createNodeIfMissing) {
           result = ThriftTraverseResult::NON_EXISTENT_NODE;
           return;

@@ -30,7 +30,23 @@ class HwAsic;
 class SaiStore;
 
 using SaiBufferPool = SaiObjectWithCounters<SaiBufferPoolTraits>;
-using SaiBufferProfile = SaiObject<SaiBufferProfileTraits>;
+
+using SaiBufferProfile = std::variant<
+    std::shared_ptr<SaiObject<SaiStaticBufferProfileTraits>>,
+    std::shared_ptr<SaiObject<SaiDynamicBufferProfileTraits>>>;
+
+struct SaiBufferProfileHandle {
+  explicit SaiBufferProfileHandle(SaiBufferProfile bufferProfile)
+      : bufferProfile(std::move(bufferProfile)) {}
+
+  BufferProfileSaiId adapterKey() const {
+    return std::visit(
+        [](auto& handle) { return handle->adapterKey(); }, bufferProfile);
+  }
+
+  SaiBufferProfile bufferProfile;
+};
+
 using SaiIngressPriorityGroup =
     SaiObjectWithCounters<SaiIngressPriorityGroupTraits>;
 
@@ -48,7 +64,7 @@ using SaiIngressPriorityGroupHandles =
 
 struct SaiIngressPriorityGroupHandleAndProfile {
   std::unique_ptr<SaiIngressPriorityGroupHandle> pgHandle;
-  std::shared_ptr<SaiBufferProfile> bufferProfile;
+  std::shared_ptr<SaiBufferProfileHandle> bufferProfile;
 };
 
 class SaiBufferManager {
@@ -58,28 +74,17 @@ class SaiBufferManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 
-  std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
-  std::shared_ptr<SaiBufferProfile> getOrCreateIngressProfile(
+  std::shared_ptr<SaiBufferProfileHandle> getOrCreateProfile(
+      const PortQueue& queue,
+      cfg::PortType type);
+  std::shared_ptr<SaiBufferProfileHandle> getOrCreateIngressProfile(
       const state::PortPgFields& portPgConfig);
 
-  void setupBufferPool(const PortQueue& queue);
-  void setupBufferPool(const state::PortPgFields& portPgConfig);
-
   void updateStats();
-  void updateIngressBufferPoolStats();
-  void updateEgressBufferPoolStats();
   void updateIngressPriorityGroupStats(
       const PortID& portId,
       HwPortStats& hwPortStats,
       bool updateWatermarks);
-  void updateIngressPriorityGroupWatermarkStats(
-      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
-      const IngressPriorityGroupID& pgId,
-      const HwPortStats& hwPortStats);
-  void updateIngressPriorityGroupNonWatermarkStats(
-      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
-      const IngressPriorityGroupID& pgId,
-      HwPortStats& hwPortStats);
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
   }
@@ -90,15 +95,34 @@ class SaiBufferManager {
   const std::map<std::string, uint64_t>& getGlobalSharedWatermarkBytes() const {
     return globalSharedWatermarkBytes_;
   }
-  static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
   void setIngressPriorityGroupBufferProfile(
       const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
-      std::shared_ptr<SaiBufferProfile> bufferProfile);
+      std::shared_ptr<SaiBufferProfileHandle> bufferProfile);
+  void setIngressPriorityGroupLosslessEnable(
+      const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
+      bool isLossless);
   SaiIngressPriorityGroupHandles loadIngressPriorityGroups(
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
   SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
+  static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
 
  private:
+  void setupBufferPool(const PortQueue& queue);
+  void setupBufferPool(const state::PortPgFields& portPgConfig);
+  void loadCpuPortEgressBufferPool();
+
+  void updateIngressBufferPoolStats();
+  void updateEgressBufferPoolStats();
+
+  void updateIngressPriorityGroupWatermarkStats(
+      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
+      const IngressPriorityGroupID& pgId,
+      const HwPortStats& hwPortStats);
+  void updateIngressPriorityGroupNonWatermarkStats(
+      const std::shared_ptr<SaiIngressPriorityGroup>& ingressPriorityGroup,
+      const IngressPriorityGroupID& pgId,
+      HwPortStats& hwPortStats);
+
   void publishGlobalWatermarks(
       const uint64_t& globalHeadroomBytes,
       const uint64_t& globalSharedBytes) const;
@@ -107,9 +131,17 @@ class SaiBufferManager {
       const int& pg,
       const uint64_t& pgHeadroomBytes,
       const uint64_t& pgSharedBytes) const;
-  SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
-      const PortQueue& queue) const;
-  SaiBufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
+  template <typename BufferProfileTraits>
+  BufferProfileTraits::CreateAttributes profileCreateAttrs(
+      const PortQueue& queue,
+      cfg::PortType type) const;
+  template <typename BufferProfileTraits>
+  BufferProfileTraits::CreateAttributes profileCreateAttrs(
+      typename BufferProfileTraits::Attributes::PoolId poolId,
+      const PortQueue& queue,
+      cfg::PortType type) const;
+  template <typename BufferProfileTraits>
+  BufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
       const state::PortPgFields& config) const;
   void setBufferPoolXoffSize(
       std::shared_ptr<SaiBufferPoolHandle> bufferPoolHandle,
@@ -126,7 +158,9 @@ class SaiBufferManager {
   void createOrUpdateIngressEgressBufferPool(
       uint64_t poolSize,
       std::optional<int32_t> newXoffSize);
-  SaiBufferPoolHandle* getEgressBufferPoolHandle(const PortQueue& queue) const;
+  SaiBufferPoolHandle* getEgressBufferPoolHandle(
+      const PortQueue& queue,
+      cfg::PortType type) const;
   const std::vector<sai_stat_id_t>&
   supportedIngressPriorityGroupWatermarkStats() const;
   const std::vector<sai_stat_id_t>&
@@ -144,6 +178,7 @@ class SaiBufferManager {
   uint64_t deviceWatermarkBytes_{0};
   std::map<std::string, uint64_t> globalHeadroomWatermarkBytes_{};
   std::map<std::string, uint64_t> globalSharedWatermarkBytes_{};
+  std::unique_ptr<SaiBufferPoolHandle> egressCpuPortBufferPoolHandle_;
 };
 
 } // namespace facebook::fboss

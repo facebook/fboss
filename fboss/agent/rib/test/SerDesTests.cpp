@@ -15,9 +15,6 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
-#include <folly/IPAddressV4.h>
-#include <folly/IPAddressV6.h>
-#include <folly/json/json.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;

@@ -16,7 +16,6 @@
 
 #include "fboss/agent/FbossError.h"
 
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 

@@ -131,17 +131,22 @@ void validateBufferPoolWatermarkCounters(
     uint64_t globalHeadroomWatermark{};
     uint64_t globalSharedWatermark{};
     ensemble->getSw()->updateStats();
-    for (const auto& [switchIdx, stats] :
-         ensemble->getSw()->getHwSwitchStatsExpensive()) {
-      for (const auto& [pool, bytes] :
-           *stats.switchWatermarkStats()->globalHeadroomWatermarkBytes()) {
-        globalHeadroomWatermark += bytes;
+    // Watermarks may be cleared on read by the stats thread, so read the
+    // cached p100 value from fb303 instead.
+    for (auto asic : ensemble->getL3Asics()) {
+      facebook::fboss::SwitchID switchId(*asic->getSwitchId());
+      auto sharedCounters = ensemble->getFb303RegexCounters(
+          "buffer_watermark_global_shared(.itm.*)?.p100.60", switchId);
+      for (const auto& [_, val] : sharedCounters) {
+        globalSharedWatermark += val;
       }
-      for (const auto& [pool, bytes] :
-           *stats.switchWatermarkStats()->globalSharedWatermarkBytes()) {
-        globalSharedWatermark += bytes;
+      auto headroomCounters = ensemble->getFb303RegexCounters(
+          "buffer_watermark_global_headroom(.itm.*)?.p100.60", switchId);
+      for (const auto& [_, val] : headroomCounters) {
+        globalHeadroomWatermark += val;
       }
     }
+
     for (auto portId : portIds) {
       XLOG(INFO) << "validateBufferPoolWatermarkCounters: Port " << portId
                  << ": "
@@ -799,21 +804,18 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       // Disable Tx on the outbound port so that queues will build up.
       utility::setCreditWatchdogAndPortTx(
           getAgentEnsemble(), txOffPortId, false);
-      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
-      validatePfcCounterIncrement(port, kLosslessPriority);
-    }
-  }
 
-  void validatePfcCounterIncrement(const PortID& port, const int pfcPriority) {
-    // CS00012381334 - MAC loopback doesn't work on TH5 and Rx PFC counters
-    // doesn't increase. Tx counters should work for all platforms.
-    int txPfcCtrOld =
-        folly::get_default(*getLatestPortStats(port).outPfc_(), pfcPriority, 0);
-    WITH_RETRIES_N_TIMED(3, std::chrono::milliseconds(1000), {
-      int txPfcCtrNew = folly::get_default(
-          *getLatestPortStats(port).outPfc_(), pfcPriority, 0);
-      EXPECT_EVENTUALLY_GT(txPfcCtrNew, txPfcCtrOld);
-    });
+      // CS00012381334 - MAC loopback doesn't work on TH5 and Rx PFC counters
+      // doesn't increase. Tx counters should work for all platforms.
+      auto txPfcCtrOld = folly::get_default(
+          *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
+      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
+      WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+        auto txPfcCtrNew = folly::get_default(
+            *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
+        EXPECT_EVENTUALLY_GT(txPfcCtrNew, txPfcCtrOld);
+      });
+    }
   }
 
   std::tuple<int, int> getPfcDeadlockCounters(const PortID& portId) {
@@ -932,7 +934,6 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       getAgentEnsemble()->runDiagCommand(
           "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }
-    waitForPfcDeadlocksToSettle(portId);
   }
 };
 
@@ -963,6 +964,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
     validateGlobalPfcWatchdogCountersIncrement(
         globalDeadlockBefore, globalRecoveryBefore);
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
+    waitForPfcDeadlocksToSettle(portId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -995,6 +997,7 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
     // Reset watchdog
     setupWatchdog({portId}, false /* disable */);
+    waitForPfcDeadlocksToSettle(portId);
   };
 
   auto verify = [&]() {

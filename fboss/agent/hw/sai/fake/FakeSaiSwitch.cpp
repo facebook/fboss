@@ -124,6 +124,39 @@ sai_status_t facebook::fboss::FakeSwitch::getLed(sai_attribute_t* attr) const {
   return SAI_STATUS_SUCCESS;
 }
 
+#if 0
+sai_status_t facebook::fboss::FakeSwitch::setPtpMode(
+    const sai_attribute_t* attr) {
+  return SAI_STATUS_SUCCESS;
+}
+sai_status_t facebook::fboss::FakeSwitch::getPtpMode(
+    sai_attribute_t* attr) const {
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t
+facebook::fboss::FakeSwitch::setRegFatalSwitchAsicSdkHealthCategory(
+    const sai_attribute_t* attr) {
+  return SAI_STATUS_SUCCESS;
+}
+sai_status_t
+facebook::fboss::FakeSwitch::getRegFatalSwitchAsicSdkHealthCategory(
+    sai_attribute_t* attr) const {
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t
+facebook::fboss::FakeSwitch::setRegNoticeSwitchAsicSdkHealthCategory(
+    const sai_attribute_t* attr) {
+  return SAI_STATUS_SUCCESS;
+}
+sai_status_t
+facebook::fboss::FakeSwitch::getRegNoticeSwitchAsicSdkHealthCategory(
+    sai_attribute_t* attr) const {
+  return SAI_STATUS_SUCCESS;
+}
+#endif
+
 sai_status_t set_switch_attribute_fn(
     sai_object_id_t switch_id,
     const sai_attribute_t* attr) {
@@ -277,6 +310,15 @@ sai_status_t set_switch_attribute_fn(
       break;
     case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
       sw.setTamObjectId(attr->value.oid);
+      break;
+    case SAI_SWITCH_ATTR_PORT_PTP_MODE:
+      // TODO: implement if required
+      break;
+    case SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
+      // TODO: implement if required
+      break;
+    case SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
+      // TODO: implement if required
       break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
@@ -535,6 +577,13 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_TAM_OBJECT_ID:
         attr[i].value.oid = sw.getTamObjectId();
+        break;
+      case SAI_SWITCH_ATTR_PORT_PTP_MODE:
+        attr[i].value.s32 = 0;
+        break;
+      case SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
+      case SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
+        attr[i].value.s32list.count = 0;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

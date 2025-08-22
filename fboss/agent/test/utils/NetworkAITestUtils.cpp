@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QueueTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -117,7 +118,8 @@ void addNetworkAIQueueConfig(
     bool addWredConfig,
     bool addEcnConfig,
     std::unordered_map<NetworkAIQueueType, cfg::QueueScheduling>
-        schedTypeOverride) {
+        schedTypeOverride,
+    std::optional<std::vector<PortID>> portIds) {
   std::vector<cfg::PortQueue> portQueues;
   cfg::PortQueue queue0;
   queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
@@ -174,7 +176,16 @@ void addNetworkAIQueueConfig(
   }
   portQueues.push_back(queue3);
 
-  config->defaultPortQueues() = portQueues;
+  if (portIds.has_value()) {
+    config->portQueueConfigs()[kNetworkAIQueueConfigName] = portQueues;
+    for (auto& portId : *portIds) {
+      auto port = utility::findCfgPort(*config, portId);
+      port->portQueueConfigName() = kNetworkAIQueueConfigName;
+    }
+  } else {
+    // Apply to all ports via defaultPortQueues
+    config->defaultPortQueues() = portQueues;
+  }
 
   if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
     addVoqAqmConfig(config, streamType, hwAsic, addWredConfig, addEcnConfig);

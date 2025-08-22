@@ -2,6 +2,7 @@
 
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
+#include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
@@ -35,6 +36,10 @@ TEST_F(BspPlatformMapTest, checkNumPimTransceivers) {
   auto m400biuBspPlatformMap = Meru400biuBspPlatformMapping();
   EXPECT_EQ(m400biuBspPlatformMap.numPims(), 1);
   EXPECT_EQ(m400biuBspPlatformMap.numTransceivers(), 76);
+  // Check Icecube800bc
+  auto icecube800bcBspPlatformMap = Icecube800bcBspPlatformMapping();
+  EXPECT_EQ(icecube800bcBspPlatformMap.numPims(), 1);
+  EXPECT_EQ(icecube800bcBspPlatformMap.numTransceivers(), 65);
 }
 
 } // namespace facebook::fboss

@@ -491,7 +491,9 @@ void SaiSwitch::processCreditRequestProfileDelta(
       if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
         expectedScheduling = scheduling;
         paramVal = static_cast<int>(param.value().spPriority().value());
-      } else if (scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+      } else if (
+          scheduling == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN ||
+          scheduling == cfg::QueueScheduling::DEFICIT_ROUND_ROBIN) {
         expectedScheduling = scheduling;
         paramVal = param.value().wrrWeight().value();
       }
@@ -660,6 +662,7 @@ void SaiSwitch::rollback(const StateDelta& delta) noexcept {
     // so set the bootType to warm boot for duration of roll back. We
     // will restore it once we are done with roll back.
     bootType_ = BootType::WARM_BOOT;
+    rollbackInProgress_ = true;
     initStoreAndManagersLocked(
         lockPolicy.lock(),
         // We are being strict here in the sense of not allowing any HW
@@ -678,6 +681,7 @@ void SaiSwitch::rollback(const StateDelta& delta) noexcept {
     saiStore_->printWarmbootHandles();
     saiStore_->removeUnexpectedUnclaimedWarmbootHandles();
     bootType_ = curBootType;
+    rollbackInProgress_ = false;
   } catch (const std::exception& ex) {
     // Rollback failed. Fail hard.
     XLOG(FATAL) << " Roll back failed with : " << ex.what();
@@ -1851,6 +1855,26 @@ std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
   return portStatsMap;
 }
 
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getRouterInterfaceStatsLocked(lock);
+}
+
+folly::F14FastMap<std::string, HwRouterInterfaceStats>
+SaiSwitch::getRouterInterfaceStatsLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) const {
+  folly::F14FastMap<std::string, HwRouterInterfaceStats> rifStatsMap;
+  const auto& statsMap =
+      managerTable_->routerInterfaceManager().getRouterInterfaceStats();
+  auto state = getProgrammedState();
+  for (const auto& entry : statsMap) {
+    auto intf = state->getInterfaces()->getNodeIf(entry.first);
+    rifStatsMap.emplace(intf->getName(), entry.second);
+  }
+  return rifStatsMap;
+}
+
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoImpl() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return updateAllPhyInfoLocked();
@@ -2345,11 +2369,16 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
         saiSwitchId_, restartIssu);
 #endif
   }
-#if defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
   checkAndSetSdkDowngradeVersion();
 #endif
   folly::dynamic follySwitchState = folly::dynamic::object;
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
+  if (getSwitchType() == cfg::SwitchType::VOQ) {
+    // SHEL callback already unregistered, hence safe to store in gracefulExit.
+    follySwitchState[kSysPortShelState] =
+        sysPortShelStateToFollyDynamicLocked(lock);
+  }
   platform_->getWarmBootHelper()->storeHwSwitchWarmBootState(follySwitchState);
   std::chrono::steady_clock::time_point wbSaiSwitchWrite =
       std::chrono::steady_clock::now();
@@ -2554,6 +2583,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // details. So, need to force trigger clearing neighbor cache
           // associated with the agg port here.
           swPortId2DownAggPort[swPortId] = swAggPort;
+          XLOG(DBG2) << "link down for agg port " << swAggPort.value();
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
@@ -2958,6 +2988,15 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
+    // Recover Shel Port State from HW State
+    if (getSwitchType() == cfg::SwitchType::VOQ &&
+        switchStateJson.find(kSysPortShelState) !=
+            switchStateJson.items().end()) {
+      reconstructSysPortShelStateLocked(
+          lock,
+          switchStateJson[kSysPortShelState],
+          concurrentIndices_->sysPortShelState);
+    }
   }
   initStoreAndManagersLocked(
       lock,
@@ -3241,7 +3280,7 @@ void SaiSwitch::initSwitchReachabilityChangeLocked(
   setSwitchReachabilityChangePending();
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
   CHECK(platform_->getAsic()->isSupported(
@@ -3254,6 +3293,19 @@ void SaiSwitch::initSwitchAsicSdkHealthNotificationLocked(
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   switchApi.registerSwitchAsicSdkHealthEventCallback(
       saiSwitchId_, __gSwitchAsicSdkHealthNotificationCallBack);
+
+  // register for categories of asic sdk health events
+  std::vector<sai_int32_t> categories{
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_SW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_FW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_CPU_HW,
+      SAI_SWITCH_ASIC_SDK_HEALTH_CATEGORY_ASIC_HW};
+  SaiSwitchTraits::Attributes::RegFatalSwitchAsicSdkHealthCategory fatalEvents =
+      categories;
+  SaiSwitchTraits::Attributes::RegNoticeSwitchAsicSdkHealthCategory
+      noticeEvents = categories;
+  switchApi.setAttribute(saiSwitchId_, fatalEvents);
+  switchApi.setAttribute(saiSwitchId_, noticeEvents);
 }
 #endif
 
@@ -3599,7 +3651,7 @@ void SaiSwitch::unregisterCallbacksLocked(
 
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     switchApi.unregisterSwitchAsicSdkHealthEventCallback(saiSwitchId_);
 #endif
   }
@@ -3905,6 +3957,19 @@ folly::dynamic SaiSwitch::sysPortShelStateToFollyDynamicLocked(
   return shelState;
 }
 
+void SaiSwitch::reconstructSysPortShelStateLocked(
+    const std::lock_guard<std::mutex>& /* lock */,
+    const folly::dynamic& shelStateJson,
+    folly::ConcurrentHashMap<SystemPortID, cfg::PortState>& sysPortShelState) {
+  for (const auto& [sysPortId, portState] : shelStateJson.items()) {
+    auto sysPortIdInt = sysPortId.asInt();
+    auto portStateInt = portState.asInt();
+    sysPortShelState.insert_or_assign(
+        static_cast<SystemPortID>(sysPortIdInt),
+        static_cast<cfg::PortState>(portStateInt));
+  }
+}
+
 bool SaiSwitch::isFullyInitialized() const {
   auto state = getSwitchRunState();
   return state >= SwitchRunState::INITIALIZED &&
@@ -4007,7 +4072,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       }
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY)) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
         initSwitchAsicSdkHealthNotificationLocked(lock);
 #endif
       }
@@ -4847,12 +4912,6 @@ void SaiSwitch::vendorSwitchEventNotificationCallback(
   // splitting the callback to bottom / top half processing.
   managerTable_->vendorSwitchManager().vendorSwitchEventNotificationCallback(
       bufferSize, buffer, eventType);
-}
-
-void SaiSwitch::hardResetSwitchEventNotificationCallback(
-    sai_size_t /*bufferSize*/,
-    const void* /*buffer*/) {
-  XLOG(FATAL) << " ASIC had a hard reset. Aborting !!!";
 }
 
 TeFlowStats SaiSwitch::getTeFlowStats() const {

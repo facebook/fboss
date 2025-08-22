@@ -10,15 +10,11 @@
 #include "fboss/agent/state/Port.h"
 
 #include <folly/Conv.h>
-#include "fboss/agent/state/BufferPoolConfig.h"
-#include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/logging/xlog.h>
 #include "fboss/agent/state/NodeBase-defs.h"
-#include "thrift/lib/cpp/util/EnumUtils.h"
 
 using apache::thrift::TEnumTraits;
 using folly::to;

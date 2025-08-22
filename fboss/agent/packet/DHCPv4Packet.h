@@ -26,11 +26,11 @@ class SwSwitch;
 struct DHCPv4Packet {
  public:
   DHCPv4Packet() {}
-  typedef std::array<uint8_t, 16> Chaddr;
-  typedef std::array<uint8_t, 64> Sname;
-  typedef std::array<uint8_t, 128> File;
-  typedef std::vector<uint8_t> DhcpCookie;
-  typedef std::vector<uint8_t> Options;
+  using Chaddr = std::array<uint8_t, 16>;
+  using Sname = std::array<uint8_t, 64>;
+  using File = std::array<uint8_t, 128>;
+  using DhcpCookie = std::vector<uint8_t>;
+  using Options = std::vector<uint8_t>;
   enum : uint8_t { kOptionsCookieSize = 4 };
   enum : uint16_t { kFlagBroadcast = 0x8000 };
   enum : size_t { kFixedPartBytes = 236 };

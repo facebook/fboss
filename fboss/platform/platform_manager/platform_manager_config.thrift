@@ -1,6 +1,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.platform_manager
+namespace hack NetengFbossPlatformManager
 namespace py3 fboss.platform.platform_manager
 
 include "fboss/platform/platform_manager/platform_manager_presence.thrift"
@@ -177,6 +178,8 @@ struct I2cRegData {
 //
 // `isWatchdog`: Whether this I2C Device is a Watchdog device
 //
+// `isEeprom`: Whether this I2C Device is an EEPROM device
+//
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
 //
@@ -215,6 +218,7 @@ struct I2cDeviceConfig {
   10: bool hasReservedMac;
   11: optional list<I2cRegData> initRegSettings;
   12: bool isWatchdog;
+  13: bool isEeprom;
 }
 
 // Configs for sensors which are embedded (eg within CPU).

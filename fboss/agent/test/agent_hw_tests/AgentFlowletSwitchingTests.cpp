@@ -27,11 +27,6 @@
 
 DECLARE_bool(flowletSwitchingEnable);
 
-const std::string kSflowMirrorName = "sflow_mirror";
-const std::string sflowDestinationVIP = "2001::101";
-const std::string aclMirror = "acl_mirror";
-const std::string aclDestinationVIP = "2002::101";
-
 namespace facebook::fboss {
 
 class AgentFlowletSwitchingTest : public AgentArsBase {
@@ -44,18 +39,13 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    // TODO(ravi) fixed for SAI until spray support is available
+    auto cfg = AgentArsBase::initialConfig(ensemble);
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY,
-        ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
-                         : cfg::SwitchingMode::PER_PACKET_RANDOM);
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
     return cfg;
   }
 
@@ -118,17 +108,12 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     auto cfg = AgentFlowletSwitchingTest::initialConfig(ensemble);
     std::vector<std::string> udfGroups = getUdfGroupsForAcl(AclType::UDF_NAK);
     addAclTableConfig(cfg, udfGroups);
-    addAclAndStat(&cfg, AclType::UDF_NAK, ensemble.isSai());
-    // overwrite existing traffic policy which only has a counter action
-    // It is added in addAclAndStat above
-    cfg.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
-    std::string counterName = getCounterName(AclType::UDF_NAK);
-    utility::addAclMirrorAction(
-        &cfg, getAclName(AclType::UDF_NAK), counterName, aclMirror);
+    cfg.udfConfig() = utility::addUdfAclConfig(
+        utility::kUdfOffsetBthOpcode | utility::kUdfOffsetAethSyndrome);
 
     // mirror session for acl
     utility::configureSflowMirror(
-        cfg, aclMirror, false /* truncate */, aclDestinationVIP, 6344);
+        cfg, kAclMirror, false /* truncate */, aclDestinationVIP, 6344);
 
     return cfg;
   }
@@ -138,17 +123,17 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     auto mirrorPort = helper_->ecmpPortDescriptorAt(1).phyPortID();
     auto sflowPort = helper_->ecmpPortDescriptorAt(2).phyPortID();
     auto pktsMirrorBefore =
-        *getNextUpdatedPortStats(mirrorPort).outUnicastPkts__ref();
+        *getNextUpdatedPortStats(mirrorPort).outUnicastPkts_();
     auto pktsSflowBefore =
-        *getNextUpdatedPortStats(sflowPort).outUnicastPkts__ref();
+        *getNextUpdatedPortStats(sflowPort).outUnicastPkts_();
 
     verifyAcl(AclType::UDF_NAK);
 
     WITH_RETRIES({
       auto pktsMirrorAfter =
-          *getNextUpdatedPortStats(mirrorPort).outUnicastPkts__ref();
+          *getNextUpdatedPortStats(mirrorPort).outUnicastPkts_();
       auto pktsSflowAfter =
-          *getNextUpdatedPortStats(sflowPort).outUnicastPkts__ref();
+          *getNextUpdatedPortStats(sflowPort).outUnicastPkts_();
       XLOG(DBG2) << "PacketMirrorCounter: " << pktsMirrorBefore << " -> "
                  << pktsMirrorAfter
                  << " PacketSflowCounter: " << pktsSflowBefore << " -> "
@@ -222,6 +207,9 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
     AgentFlowletSwitchingTest::setCmdLineFlagOverrides();
     FLAGS_dlbResourceCheckEnable = false;
     FLAGS_flowletStatsEnable = true;
+    FLAGS_enable_ecmp_resource_manager = true;
+    FLAGS_ars_resource_percentage = 100;
+    FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -236,6 +224,7 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
 
 /* Add route 3001::1 > DLB
  * Add route 4001::1 > Spray
+ * Add route 5001::1 > Spray
  *
  * Test 1:
  * Send 3001::1 AR=1 hit ACL 1, do DLB
@@ -244,6 +233,10 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
  * Test 2:
  * Send 4001::1 AR=1 hit ACL 1, no DLB, random spray
  * Send 4001::1 AR=0 hit ACL 2, cancel spray, static ECMP
+ *
+ * Test 3:
+ * Send 5001::1 AR=1 hit ACL 1, no DLB, random spray
+ * Send 5001::1 AR=0 hit ACL 2, cancel spray, static ECMP
  */
 TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
   auto populatePortsAndDescs = [this](
@@ -269,7 +262,14 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
   flat_set<PortDescriptor> randomSprayPortDescs;
   populatePortsAndDescs(4, 8, sprayPortIDs, randomSprayPortDescs);
 
-  auto setup = [this, dlbPortDescs, randomSprayPortDescs]() {
+  std::vector<PortID> sprayPortIDs2;
+  flat_set<PortDescriptor> randomSprayPortDescs2;
+  populatePortsAndDescs(10, 14, sprayPortIDs2, randomSprayPortDescs2);
+
+  auto setup = [this,
+                dlbPortDescs,
+                randomSprayPortDescs,
+                randomSprayPortDescs2]() {
     generatePrefixes();
 
     auto newCfg{initialConfig(*getAgentEnsemble())};
@@ -295,8 +295,7 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     // 200000 - 2000126 - DLB ECMP groups we don't care
     // 200127 - DLB ECMP group under test
     // 200128 - Random spray ECMP group under test
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics()) - 1;
+    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups() - 1;
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes128 = {
         prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
@@ -313,6 +312,11 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     prefixes128.push_back(randomSprayPrefix);
     nhopSets128.push_back(randomSprayPortDescs);
 
+    // generate route hitting random spray
+    auto randomSprayPrefix2 = RoutePrefixV6{folly::IPAddressV6("5001::1"), 128};
+    prefixes128.push_back(randomSprayPrefix2);
+    nhopSets128.push_back(randomSprayPortDescs2);
+
     // 3. program routes
     helper_->programRoutes(&wrapper, nhopSets128, prefixes128);
 
@@ -327,7 +331,7 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
       return out;
     });
   };
-  auto verify = [this, dlbPortIDs, sprayPortIDs]() {
+  auto verify = [this, dlbPortIDs, sprayPortIDs, sprayPortIDs2]() {
     auto sendTrafficAndVerifyLB = [this](
                                       const folly::IPAddress& dstIp,
                                       int reserved,
@@ -359,7 +363,8 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
       auto reassignmentCounterBefore =
           flowletStats.l3EcmpDlbPortReassignmentCount().value();
 
-      auto egressPort = helper_->ecmpPortDescriptorAt(8).phyPortID();
+      auto egressPort =
+          helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
       int packetCount = 200000;
       auto vlanId = getVlanIDForTx();
       auto intfMac =
@@ -407,26 +412,28 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
           EXPECT_EVENTUALLY_EQ(dlbAclCountAfter, dlbAclCountBefore);
         }
 
-        auto reassignmentCounterAfter =
-            getSw()
-                ->getHwSwitchStatsExpensive(switchId)
-                .flowletStats()
-                ->l3EcmpDlbPortReassignmentCount()
-                .value();
-        XLOG(DBG2) << "reassignmentCounter: " << reassignmentCounterBefore
-                   << " -> " << reassignmentCounterAfter;
-        if (is_dlb) {
-          EXPECT_EVENTUALLY_GT(
-              reassignmentCounterAfter, reassignmentCounterBefore);
-        } else {
-          EXPECT_EVENTUALLY_EQ(
-              reassignmentCounterAfter, reassignmentCounterBefore);
+        if (!getAgentEnsemble()->isSai()) {
+          auto reassignmentCounterAfter =
+              getSw()
+                  ->getHwSwitchStatsExpensive(switchId)
+                  .flowletStats()
+                  ->l3EcmpDlbPortReassignmentCount()
+                  .value();
+          XLOG(DBG2) << "reassignmentCounter: " << reassignmentCounterBefore
+                     << " -> " << reassignmentCounterAfter;
+          if (is_dlb) {
+            EXPECT_EVENTUALLY_GT(
+                reassignmentCounterAfter, reassignmentCounterBefore);
+          } else {
+            EXPECT_EVENTUALLY_EQ(
+                reassignmentCounterAfter, reassignmentCounterBefore);
+          }
         }
 
         auto portStats = getNextUpdatedPortStats(ports);
         for (const auto& [portId, stats] : portStats) {
           XLOG(DBG2) << "Ecmp egress Port: " << portId
-                     << ", Count: " << *stats.outUnicastPkts__ref();
+                     << ", Count: " << *stats.outUnicastPkts_();
         }
         if (loadBalanceExpected) {
           EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(portStats, 25));
@@ -458,6 +465,17 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
         true);
     // Miss DLB ACL and do static hash
     sendTrafficAndVerifyLB(folly::IPAddress("4001::1"), 0, sprayPortIDs, false);
+
+    // Test 3
+    // Hit DLB ACL but do random spray. Verify another group just to be sure
+    sendTrafficAndVerifyLB(
+        folly::IPAddress("5001::1"),
+        utility::kRoceReserved,
+        sprayPortIDs2,
+        true);
+    // Miss DLB ACL and do static hash
+    sendTrafficAndVerifyLB(
+        folly::IPAddress("5001::1"), 0, sprayPortIDs2, false);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -470,8 +488,6 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   };
 
   auto verify = [this]() {
-    setEcmpMemberStatus(getAgentEnsemble());
-
     auto verifyCounts = [this](int destPort, bool bumpOnHit) {
       // gather stats for all ECMP members
       int pktsBefore[kEcmpWidth];
@@ -479,7 +495,7 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
       for (int i = 0; i < kEcmpWidth; i++) {
         auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
         pktsBefore[i] =
-            *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts__ref();
+            *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
         pktsBeforeTotal += pktsBefore[i];
       }
       auto aclPktCountBefore = utility::getAclInOutPackets(
@@ -488,7 +504,8 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
 
       std::vector<uint8_t> rethHdr(16);
       rethHdr[15] = 0xFF; // non-zero sized packet
-      auto egressPort = helper_->ecmpPortDescriptorAt(4).phyPortID();
+      auto egressPort =
+          helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
       sendRoceTraffic(
           egressPort,
           utility::kUdfRoceOpcodeWriteImmediate,
@@ -505,7 +522,7 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
         for (int i = 0; i < kEcmpWidth; i++) {
           auto ecmpEgressPort = helper_->ecmpPortDescriptorAt(i).phyPortID();
           pktsAfter[i] =
-              *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts__ref();
+              *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
           pktsAfterTotal += pktsAfter[i];
           XLOG(DBG2) << "Ecmp egress Port: " << ecmpEgressPort
                      << ", Count: " << pktsBefore[i] << " -> " << pktsAfter[i];
@@ -585,14 +602,14 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfAndSendQueueAction) {
   auto verify = [this]() {
     auto outPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
     auto portStatsBefore = getNextUpdatedPortStats(outPort);
-    auto pktsBefore = *portStatsBefore.outUnicastPkts__ref();
+    auto pktsBefore = *portStatsBefore.outUnicastPkts_();
     auto pktsQueueBefore = portStatsBefore.queueOutPackets_()[kOutQueue];
 
     verifyAcl(AclType::UDF_ACK);
 
     WITH_RETRIES({
       auto portStatsAfter = getNextUpdatedPortStats(outPort);
-      auto pktsAfter = *portStatsAfter.outUnicastPkts__ref();
+      auto pktsAfter = *portStatsAfter.outUnicastPkts_();
       auto pktsQueueAfter = portStatsAfter.queueOutPackets_()[kOutQueue];
       XLOG(DBG2) << "Port Counter: " << pktsBefore << " -> " << pktsAfter
                  << "\nPort Queue " << kOutQueue
@@ -608,7 +625,12 @@ TEST_F(AgentFlowletSwitchingTest, VerifyUdfAndSendQueueAction) {
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
   auto setup = [this]() {
     this->setup();
-    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
+    addAclAndStat(
+        &newCfg, AclType::UDF_NAK, ensemble.isSai(), true /* addMirror */);
+    applyNewConfig(newCfg);
+    resolveMirror(kAclMirror, utility::kMirrorToPortIndex);
   };
 
   auto verify = [this]() { verifyMirror(MirrorScope::MIRROR_ONLY); };
@@ -619,7 +641,10 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorAction) {
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowSameVip) {
   auto setup = [this]() {
     this->setup();
-    auto newCfg{initialConfig(*getAgentEnsemble())};
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
+    addAclAndStat(
+        &newCfg, AclType::UDF_NAK, ensemble.isSai(), true /* addMirror */);
 
     // mirror session for ingress port sflow
     // use same VIP as ACL mirror, only dst port varies
@@ -629,7 +654,7 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowSameVip) {
     addSamplingConfig(newCfg);
 
     applyNewConfig(newCfg);
-    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+    resolveMirror(kAclMirror, utility::kMirrorToPortIndex);
   };
 
   auto verify = [this]() { verifyMirror(MirrorScope::MIRROR_SFLOW_SAME_VIP); };
@@ -640,7 +665,10 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowSameVip) {
 TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowDifferentVip) {
   auto setup = [this]() {
     this->setup();
-    auto newCfg{initialConfig(*getAgentEnsemble())};
+    const auto& ensemble = *getAgentEnsemble();
+    auto newCfg{initialConfig(ensemble)};
+    addAclAndStat(
+        &newCfg, AclType::UDF_NAK, ensemble.isSai(), true /* addMirror */);
 
     // mirror session for ingress port sflow
     utility::configureSflowMirror(
@@ -649,7 +677,7 @@ TEST_F(AgentFlowletMirrorTest, VerifyUdfNakMirrorSflowDifferentVip) {
     addSamplingConfig(newCfg);
 
     applyNewConfig(newCfg);
-    resolveMirror(aclMirror, utility::kMirrorToPortIndex);
+    resolveMirror(kAclMirror, utility::kMirrorToPortIndex);
     resolveMirror(kSflowMirrorName, utility::kSflowToPortIndex);
   };
 
@@ -726,8 +754,7 @@ TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriorityWB) {
 TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
   auto verify = [this] {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
     // install 60% of max DLB ecmp groups
     {
       int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
@@ -798,8 +825,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
   // Start with 60% ECMP groups
   auto setup = [this]() {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
     int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes60 = {
@@ -811,8 +837,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
   // Post warmboot, dlb resource check is enforced since >75%
   auto setupPostWarmboot = [this]() {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup =
-        utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
     {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes128 = {
@@ -870,8 +895,7 @@ class AgentFlowletBcmTest : public AgentFlowletSwitchingTest {
 
 TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
   generatePrefixes();
-  const auto kMaxDlbEcmpGroup =
-      utility::getMaxDlbEcmpGroups(getAgentEnsemble()->getL3Asics());
+  const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
   // Create two test prefix vectors
   std::vector<RoutePrefixV6> testPrefixes1 = {
       prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};

@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <thread>
+
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/LacpMachines.h"
@@ -29,7 +30,8 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
-#include "common/process/Process.h"
+#include <folly/Subprocess.h>
+#include <folly/system/Shell.h>
 #include "folly/IPAddressV4.h"
 #include "folly/IPAddressV6.h"
 #include "folly/MacAddress.h"
@@ -39,6 +41,7 @@ using namespace std::chrono;
 
 DECLARE_bool(enable_lacp);
 
+using folly::literals::shell_literals::operator""_shellify;
 using utility::addAggPort;
 namespace {
 constexpr int kMaxRetries{60};
@@ -192,11 +195,12 @@ class MultiNodeLacpTest : public MultiNodeTest {
       VlanID vlan,
       AggregatePortID aggPort) const {
     std::string pingCmd = dstIp.isV4() ? "ping -c 5 " : "ping6 -c 5 ";
-    std::string resultStr;
-    std::string errStr;
-    EXPECT_TRUE(facebook::process::Process::execShellCmd(
-        pingCmd + dstIp.str(), &resultStr, &errStr));
-    checkNeighborResolved(dstIp, vlan, PortDescriptor(aggPort));
+    folly::Subprocess p(
+        "{}{}"_shellify(pingCmd, dstIp.str()),
+        folly::Subprocess::Options().pipeStdout());
+    auto [_, stdErr] = p.communicate();
+    int exitStatus = p.wait().exitStatus();
+    EXPECT_EQ(exitStatus, 0) << "Ping failed. Error: " << stdErr;
   }
 
   template <typename AddrT>

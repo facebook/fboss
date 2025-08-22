@@ -186,6 +186,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashPeriodUS)
   SAI_EXT_ATTR_MAP(Port, CondEntropyRehashSeed)
   SAI_EXT_ATTR_MAP(Port, ShelEnable)
+  SAI_EXT_ATTR_MAP(Port, PgDropStatus)
 #if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)
@@ -203,6 +204,9 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, TpChn0)
   SAI_EXT_ATTR_MAP(PortSerdes, TpChn1)
   SAI_EXT_ATTR_MAP(PortSerdes, TpChn2)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+  SAI_EXT_ATTR_MAP(Port, ArsLinkState)
 #endif
 }
 

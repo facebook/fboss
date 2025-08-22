@@ -55,7 +55,7 @@ class BcmTxPacket : public TxPacket {
     return bcmPacket_;
   }
 
-  typedef std::chrono::time_point<std::chrono::steady_clock> TimePoint;
+  using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
   const TimePoint& getQueueTime() const {
     return queued_;
   }

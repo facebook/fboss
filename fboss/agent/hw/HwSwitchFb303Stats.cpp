@@ -149,6 +149,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "dram_blocked_time_ns",
           SUM,
           RATE),
+      dramQuarantinedBufferCount_(
+          map,
+          getCounterPrefix() + "dram_quarantined_buffer_count",
+          SUM,
+          RATE),
       deletedCreditBytes_(
           map,
           getCounterPrefix() + "deleted_credit_bytes",
@@ -182,6 +187,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       dramDataPathPacketError_(
           map,
           getCounterPrefix() + "dram_data_path_packet_error",
+          SUM,
+          RATE),
+      sramLowBufferLimitHitCount_(
+          map,
+          getCounterPrefix() + "sram_low_buffer_limit_hit_count",
           SUM,
           RATE),
       fabricConnectivityMissingCount_(
@@ -633,6 +643,12 @@ void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
   }
   if (dramStats.dramBlockedTimeNsec().has_value()) {
     dramBlockedTimeNsec_.addValue(*dramStats.dramBlockedTimeNsec());
+  }
+  if (dramStats.dramQuarantinedBufferCount().has_value()) {
+    // DRAM quarantined buffer stats is read without clearing,
+    // hence cannot use addValue() directly.
+    updateValue(
+        dramQuarantinedBufferCount_, *dramStats.dramQuarantinedBufferCount());
   }
 }
 
@@ -1119,6 +1135,8 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.dram_dequeued_bytes() = getCumulativeValue(dramDequeuedBytes_);
   hwFb303Stats.dram_blocked_time_ns() =
       getCumulativeValue(dramBlockedTimeNsec_);
+  hwFb303Stats.dram_quarantined_buffer_count() =
+      getCumulativeValue(dramQuarantinedBufferCount_);
   hwFb303Stats.fabric_reachability_missing() =
       getFabricConnectivityMismatchCount();
   hwFb303Stats.fabric_reachability_mismatch() =
@@ -1148,6 +1166,8 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   if (auto asicRevision = getAsicRevision()) {
     hwFb303Stats.asic_revision() = *asicRevision;
   }
+  hwFb303Stats.sram_low_buffer_limit_hit_count() =
+      getCumulativeValue(sramLowBufferLimitHitCount_);
   return hwFb303Stats;
 }
 
@@ -1170,11 +1190,18 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
   if (globalStats.dram_blocked_time_ns().has_value()) {
     updateValue(dramBlockedTimeNsec_, *globalStats.dram_blocked_time_ns());
   }
+  if (globalStats.dram_quarantined_buffer_count().has_value()) {
+    updateValue(
+        dramQuarantinedBufferCount_,
+        *globalStats.dram_quarantined_buffer_count());
+  }
   if (globalStats.vsq_resource_exhaustion_drops().has_value()) {
     updateValue(
         vsqResourceExhaustionDrops_,
         *globalStats.vsq_resource_exhaustion_drops());
   }
+  // NOTE: sramLowBufferLimitHitCount_ is a derived counter and hence will
+  // be incremented separately with sramLowBufferLimitHitCount() API.
   updateValue(
       switchReachabilityChangeCount_,
       *globalStats.switch_reachability_change());

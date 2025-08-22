@@ -33,11 +33,6 @@ DEFINE_bool(
     false,
     "Enable qsfp_service to post optics thermal data to BMC");
 
-DEFINE_bool(
-    enable_tcvr_i2c_logging,
-    false,
-    "Enable transceiver I2C logging feature in qsfp_service");
-
 namespace facebook {
 namespace fboss {
 
@@ -156,7 +151,6 @@ bool WedgeManager::platformSupportsI2cLogging() const {
   switch (platform) {
     case PlatformType::PLATFORM_WEDGE100:
       return false;
-      break;
     default:
       return true;
   }
@@ -795,8 +789,9 @@ void WedgeManager::publishI2cTransactionStats() {
   // sub-class having platform specific implementation)
   auto counters = getI2cControllerStats();
 
-  if (counters.size() == 0)
+  if (counters.size() == 0) {
     return;
+  }
 
   // Populate the i2c stats per pim and per controller
 

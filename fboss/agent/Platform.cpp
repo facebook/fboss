@@ -106,7 +106,7 @@ void Platform::init(
   };
 
   std::optional<HwAsic::FabricNodeRole> fabricNodeRole;
-  std::optional<int64_t> switchId;
+  int64_t switchId = 0;
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = cfg::SwitchType::NPU;
   if (switchSettings.switchIdToSwitchInfo()->size()) {
@@ -117,7 +117,7 @@ void Platform::init(
     if (switchType == cfg::SwitchType::FABRIC) {
       fabricNodeRole = HwAsic::FabricNodeRole::SINGLE_STAGE_L1;
       const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
-      const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
+      const auto& dsfNodeConfig = dsfNodesConfig.find(switchId);
       if (dsfNodeConfig != dsfNodesConfig.end() &&
           dsfNodeConfig->second.fabricLevel().has_value()) {
         auto fabricLevel = *dsfNodeConfig->second.fabricLevel();
@@ -143,7 +143,7 @@ void Platform::init(
   }
   switchInfo.switchMac() = localMac_.toString();
 
-  XLOG(DBG2) << "Initializing Platform with switch ID: " << switchId.value_or(0)
+  XLOG(DBG2) << "Initializing Platform with switch ID: " << switchId
              << " switch Index: " << switchIndex;
 
   setupAsic(switchId, switchInfo, fabricNodeRole);

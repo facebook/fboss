@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -27,6 +28,13 @@ DEFINE_bool(
     mod_pp_test_use_pipeline_lookup,
     false,
     "Use pipeline lookup mode in packet processing drop test");
+DEFINE_int32(
+    mod_num_mirrors,
+    4,
+    "Number of mirrors to create in ModWithMultipleMirrors");
+DEFINE_int32(mod_num_sflow, 1, "Number of sFlow traffic sources");
+DEFINE_int32(mod_from_port_id, 5, "MOD port ID to reconfigure from");
+DEFINE_int32(mod_to_port_id, 2, "MOD port ID to reconfigure to");
 
 const std::string kSflowMirror = "sflow_mirror";
 const std::string kModPacketAcl = "mod_packet_acl";
@@ -35,6 +43,8 @@ const std::string kModPacketAclCounter = "mod_packet_acl_counter";
 namespace facebook::fboss {
 
 using namespace ::testing;
+
+enum class DroppedPacketType { NONE, NIF, CPU };
 
 // Flow of the test:
 // 1. Setup mirror on drop, using a Recycle port as the MoD port.
@@ -56,6 +66,8 @@ class AgentMirrorOnDropTest
         true /*interfaceHasSubnet*/);
     // Add a remote DSF node for use in VoqReject test.
     config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes(), 1);
+    // To allow infinite traffic loops.
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     return config;
   }
 
@@ -72,18 +84,6 @@ class AgentMirrorOnDropTest
     FLAGS_allow_nif_port_for_mod = true;
   }
 
-  void TearDown() override {
-    // Log drop counters to facilitate test debugging.
-    if (auto ensemble = getAgentEnsemble(); ensemble != nullptr) {
-      std::string output;
-      for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
-        ensemble->runDiagCommand("quit\n", output, switchIdx);
-      }
-      XLOG(DBG3) << output;
-    }
-    AgentHwTest::TearDown();
-  }
-
  protected:
   // Packet to be dropped
   const folly::IPAddressV6 kDropDestIp{
@@ -97,6 +97,7 @@ class AgentMirrorOnDropTest
   const int16_t kMirrorDstPort = 0x7777;
 
   // MOD settings
+  const int kLargeTruncateSize = 400;
   const int kTruncateSize = 128;
   const int kEventorPayloadSize = 96;
 
@@ -111,6 +112,7 @@ class AgentMirrorOnDropTest
   const int kAclDropEventId = 2;
   const int kVsqDropEventId = 3;
   const int kVoqDropEventId = 4;
+  const int kPrecedenceDropEventId = 5;
 
   PortID findRecirculationPort(cfg::PortType portType, int offset = 0) {
     std::vector<PortID> eligiblePortIds;
@@ -144,7 +146,8 @@ class AgentMirrorOnDropTest
   void setupEcmpTraffic(
       PortID portId,
       const folly::IPAddressV6& addr,
-      const folly::MacAddress& nextHopMac) {
+      const folly::MacAddress& nextHopMac,
+      bool disableTtlDecrement = false) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), nextHopMac};
     const PortDescriptor port{portId};
@@ -154,6 +157,13 @@ class AgentMirrorOnDropTest
     });
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&routeUpdater, {port}, {std::move(route)});
+
+    if (disableTtlDecrement) {
+      for (auto& nhop : ecmpHelper.getNextHops()) {
+        utility::ttlDecrementHandlingForLoopbackTraffic(
+            getAgentEnsemble(), ecmpHelper.getRouterId(), nhop);
+      }
+    }
   }
 
   cfg::MirrorOnDropEventConfig makeEventConfig(
@@ -167,12 +177,66 @@ class AgentMirrorOnDropTest
     return eventCfg;
   }
 
+  std::map<int8_t, cfg::MirrorOnDropEventConfig> prodModConfig() {
+    return {
+        {
+            0,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::GLOBAL,
+                {cfg::MirrorOnDropReasonAggregation::
+                     UNEXPECTED_REASON_DISCARDS}),
+        },
+        {
+            1,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::GLOBAL,
+                {cfg::MirrorOnDropReasonAggregation::INGRESS_MISC_DISCARDS}),
+        },
+        {
+            2,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::PORT,
+                {cfg::MirrorOnDropReasonAggregation::
+                     INGRESS_PACKET_PROCESSING_DISCARDS}),
+        },
+        {
+            3,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::PORT,
+                {cfg::MirrorOnDropReasonAggregation::
+                     INGRESS_QUEUE_RESOLUTION_DISCARDS}),
+        },
+        {
+            4,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::PORT,
+                {cfg::MirrorOnDropReasonAggregation::
+                     INGRESS_SOURCE_CONGESTION_DISCARDS}),
+        },
+        {
+            5,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::VOQ,
+                {cfg::MirrorOnDropReasonAggregation::
+                     INGRESS_DESTINATION_CONGESTION_DISCARDS}),
+        },
+        {
+            6,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::GLOBAL,
+                {cfg::MirrorOnDropReasonAggregation::
+                     INGRESS_GLOBAL_CONGESTION_DISCARDS}),
+        },
+    };
+  }
+
   void setupMirrorOnDrop(
       cfg::SwitchConfig* config,
       PortID portId,
       const folly::IPAddressV6& collectorIp,
-      const std::map<int8_t, cfg::MirrorOnDropEventConfig>&
-          modEventToConfigMap) {
+      const std::map<int8_t, cfg::MirrorOnDropEventConfig>& modEventToConfigMap,
+      const std::map<cfg::MirrorOnDropAgingGroup, int32_t>& agingIntervals = {},
+      int truncateSize = 128) {
     cfg::MirrorOnDropReport report;
     report.name() = "mod-1";
     report.mirrorPortId() = portId;
@@ -180,13 +244,17 @@ class AgentMirrorOnDropTest
     report.collectorIp() = collectorIp.str();
     report.collectorPort() = kMirrorDstPort;
     report.mtu() = 1500;
-    report.truncateSize() = kTruncateSize;
+    report.truncateSize() = truncateSize;
     report.dscp() = 0;
     report.modEventToConfigMap() = modEventToConfigMap;
-    report.agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::GLOBAL] =
-        100;
-    report.agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::PORT] =
-        200;
+    report.agingGroupAgingIntervalUsecs() = agingIntervals;
+    if (report.agingGroupAgingIntervalUsecs()->empty()) {
+      report
+          .agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::GLOBAL] =
+          100;
+      report.agingGroupAgingIntervalUsecs()[cfg::MirrorOnDropAgingGroup::PORT] =
+          200;
+    }
     config->mirrorOnDropReports()->push_back(report);
 
     // Also add an ACL for counting MOD packets
@@ -209,7 +277,23 @@ class AgentMirrorOnDropTest
     acl->srcPort() = portId;
   }
 
-  void configureMirror(cfg::SwitchConfig& cfg) const {
+  void addMirror(
+      cfg::SwitchConfig* config,
+      const PortID& srcPortId,
+      const PortID& destPortId) {
+    cfg::Mirror mirror;
+    mirror.name() = fmt::format("mirror-{}", srcPortId);
+    mirror.destination().ensure().egressPort().ensure().set_logicalID(
+        destPortId);
+    mirror.truncate() = true;
+    mirror.samplingRate() = 1; // mirror all packets
+    config->mirrors()->push_back(mirror);
+
+    auto portConfig = utility::findCfgPort(*config, srcPortId);
+    portConfig->ingressMirror() = *mirror.name();
+  }
+
+  void configureSflowMirror(cfg::SwitchConfig& cfg) const {
     utility::configureSflowMirror(
         cfg,
         kSflowMirror,
@@ -321,7 +405,7 @@ class AgentMirrorOnDropTest
     return (0x10 << 16) | trapId;
   }
 
-  void validateMirrorOnDropPacket(
+  DroppedPacketType validateMirrorOnDropPacket(
       folly::IOBuf* recvBuf,
       folly::IOBuf* sentBuf,
       cfg::PortType portType,
@@ -337,7 +421,7 @@ class AgentMirrorOnDropTest
     // Validate IPv6 header
     EXPECT_TRUE(frame.v6PayLoad().has_value());
     if (!frame.v6PayLoad().has_value()) {
-      return; // avoid causing a segfault which makes the log hard to read
+      return DroppedPacketType::NONE; // can't use ASSERT_TRUE in non-void func
     }
     auto ipHeader = frame.v6PayLoad()->header();
     EXPECT_EQ(ipHeader.dstAddr, kCollectorIp_);
@@ -345,7 +429,7 @@ class AgentMirrorOnDropTest
     // Validate UDP header
     EXPECT_TRUE(frame.v6PayLoad()->udpPayload().has_value());
     if (!frame.v6PayLoad()->udpPayload().has_value()) {
-      return; // avoid causing a segfault which makes the log hard to read
+      return DroppedPacketType::NONE; // can't use ASSERT_TRUE in non-void func
     }
     auto udpHeader = frame.v6PayLoad()->udpPayload()->header();
     EXPECT_EQ(udpHeader.srcPort, kMirrorSrcPort);
@@ -356,27 +440,36 @@ class AgentMirrorOnDropTest
         folly::IOBuf::wrapBufferAsValue(content.data(), content.size());
     folly::io::Cursor cursor(&contentBuf);
 
-    if (portType == cfg::PortType::EVENTOR_PORT &&
-        cursor.totalLength() == 140) {
-      // On 12.x, a 12-byte eventor header is added before MOD header.
+    // Eventor port limits the payload to 128 bytes, including the MOD header,
+    // so original packet payload is truncated to 96 bytes.
+    // Also, on 12.x, a 12-byte eventor header is added before MOD header.
+    int truncateSize = kTruncateSize;
+    if (portType == cfg::PortType::EVENTOR_PORT) {
+      truncateSize = kEventorPayloadSize;
       cursor.skip(12); // eventor sequence number, timestamp, sample
     }
 
     // Validate MoD header
+    DroppedPacketType droppedPacketType;
     EXPECT_EQ(cursor.readBE<int8_t>() >> 4, 0); // higher 4 bits = version
     cursor.skip(2); // reserved fields
     EXPECT_EQ(cursor.readBE<int8_t>(), eventId);
     cursor.skip(4); // sequence number
     cursor.skip(8); // timestamp
-    EXPECT_EQ(cursor.readBE<int32_t>(), sspa);
-    EXPECT_EQ(cursor.readBE<int32_t>(), dspa);
+    int32_t gotSSPA = cursor.readBE<int32_t>();
+    int32_t gotDSPA = cursor.readBE<int32_t>();
+    if (gotSSPA == 0) {
+      // An extra 21-byte system header is added for CPU packets.
+      cursor.skip(21);
+      truncateSize -= 21;
+      droppedPacketType = DroppedPacketType::CPU;
+    } else {
+      EXPECT_EQ(gotSSPA, sspa);
+      droppedPacketType = DroppedPacketType::NIF;
+    }
+    EXPECT_EQ(gotDSPA, dspa);
     cursor.skip(8); // reserved fields
 
-    // Eventor port limits the payload to 128 bytes, including the MOD header,
-    // so original packet payload is truncated to 96 bytes.
-    int truncateSize = portType == cfg::PortType::EVENTOR_PORT
-        ? kEventorPayloadSize
-        : kTruncateSize;
     EXPECT_EQ(cursor.totalLength(), truncateSize);
     auto payload = folly::IOBuf::copyBuffer(cursor.data(), truncateSize);
     // Due to truncation, the original packet is expected to be longer than
@@ -391,6 +484,8 @@ class AgentMirrorOnDropTest
     std::string payloadHex = folly::hexlify(payload->coalesce());
     std::string sentHex = folly::hexlify(sentBuf->coalesce());
     EXPECT_EQ(payloadHex, sentHex);
+
+    return droppedPacketType;
   }
 
   void validateModPacketReceived(
@@ -562,15 +657,18 @@ TEST_F(AgentMirrorOnDropDestMacTest, ModOnInterfacePortCleanup) {
   auto pkt = sendPackets(1, std::nullopt, kDestIp);
 
   // Dump counters and tables first, since assertions may abort the test.
-  std::string out;
-  getAgentEnsemble()->runDiagCommand("\n", out);
-  getAgentEnsemble()->runDiagCommand("show counters full\n", out);
-  XLOG(INFO) << ">>> After sendPacket 2\n" << out;
-  getAgentEnsemble()->runDiagCommand("dbal table dump table=ESEM_ARP\n", out);
-  XLOG(INFO) << out;
-  getAgentEnsemble()->runDiagCommand(
-      "dbal table dump table=MAC_SOURCE_ADDRESS_FULL\n", out);
-  XLOG(INFO) << out;
+  for (const auto& [switchId, _] : getAsics()) {
+    std::string out;
+    getAgentEnsemble()->runDiagCommand("\n", out, switchId);
+    getAgentEnsemble()->runDiagCommand("show counters full\n", out, switchId);
+    XLOG(INFO) << ">>> After sendPacket 2\n" << out;
+    getAgentEnsemble()->runDiagCommand(
+        "dbal table dump table=ESEM_ARP\n", out, switchId);
+    XLOG(INFO) << out;
+    getAgentEnsemble()->runDiagCommand(
+        "dbal table dump table=MAC_SOURCE_ADDRESS_FULL\n", out, switchId);
+    XLOG(INFO) << out;
+  }
 
   WITH_RETRIES_N(3, {
     XLOG(DBG3) << "Waiting for NIF packet...";
@@ -706,7 +804,7 @@ TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
 
   auto setup = [&]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
-    configureMirror(config);
+    configureSflowMirror(config);
     utility::configureSflowSampling(config, kSflowMirror, {sampledPortId}, 1);
     setupMirrorOnDrop(
         &config,
@@ -726,6 +824,137 @@ TEST_P(AgentMirrorOnDropTest, ModWithSflowMirrorPresent) {
   };
 
   verifyAcrossWarmBoots(setup, []() {});
+}
+
+uint64_t updateStats(
+    AgentEnsemble* ensemble,
+    const PortID& portId,
+    HwPortStats& prevPortStats) {
+  HwPortStats newPortStats = ensemble->getLatestPortStats(portId);
+  auto trafficRate = ensemble->getTrafficRate(prevPortStats, newPortStats, 1);
+  prevPortStats = newPortStats;
+  return trafficRate;
+}
+
+TEST_P(AgentMirrorOnDropTest, ModWithMultipleMirrors) {
+  auto mirrorPortId = findRecirculationPort(GetParam());
+  auto collectorPortId = masterLogicalInterfacePortIds()[0];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+
+  struct TrafficLoop {
+    PortID injectionPortId;
+    PortID mirrorDestPortId;
+    folly::IPAddressV6 dstIp;
+  };
+  std::vector<TrafficLoop> trafficLoops;
+  for (int i = 0; i < FLAGS_mod_num_mirrors; ++i) {
+    auto dstIpArray = kDropDestIp.toByteArray();
+    dstIpArray[15] = i;
+    trafficLoops.push_back(
+        {.injectionPortId = masterLogicalInterfacePortIds()[i * 2 + 1],
+         .mirrorDestPortId = masterLogicalInterfacePortIds()[i * 2 + 2],
+         .dstIp = folly::IPAddressV6(dstIpArray)});
+    XLOG(DBG3) << "Injection port " << i << ": "
+               << portDesc(trafficLoops[i].injectionPortId);
+    XLOG(DBG3) << "Mirror destination port " << i << ": "
+               << portDesc(trafficLoops[i].mirrorDestPortId);
+  }
+
+  auto getLineRate = [&](const PortID& portId) {
+    return static_cast<uint64_t>(getProgrammedState()
+                                     ->getPorts()
+                                     ->getNodeIf(portId)
+                                     ->getSpeed()) *
+        1000 * 1000;
+  };
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {{
+            1,
+            makeEventConfig(
+                cfg::MirrorOnDropAgingGroup::PORT,
+                {cfg::MirrorOnDropReasonAggregation::
+                     INGRESS_PACKET_PROCESSING_DISCARDS,
+                 cfg::MirrorOnDropReasonAggregation::
+                     INGRESS_QUEUE_RESOLUTION_DISCARDS}),
+        }},
+        // Make sure aging is per port and aging interval is minimized (1us)
+        {{cfg::MirrorOnDropAgingGroup::PORT, 1 /*agingInterval*/}},
+        kLargeTruncateSize);
+    for (auto& loop : trafficLoops) {
+      addMirror(&config, loop.injectionPortId, loop.mirrorDestPortId);
+      addDropPacketAcl(&config, loop.mirrorDestPortId);
+    }
+    applyNewConfig(config);
+
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    for (auto& loop : trafficLoops) {
+      setupEcmpTraffic(
+          loop.injectionPortId,
+          loop.dstIp,
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          true);
+    }
+  };
+
+  auto verify = [&]() {
+    // Pump traffic to each traffic loop, and get initial stats.
+    for (auto& loop : trafficLoops) {
+      sendPackets(
+          getAgentEnsemble()->getMinPktsForLineRate(loop.injectionPortId),
+          loop.injectionPortId,
+          loop.dstIp);
+    }
+    sendPackets(
+        getAgentEnsemble()->getMinPktsForLineRate(collectorPortId),
+        collectorPortId,
+        kCollectorIp_);
+
+    // Verify that traffic loops, mirrors and MOD are all working. For better
+    // accuracy, we will calculate the rates for each port separately.
+    for (auto& loop : trafficLoops) {
+      auto lineRate = getLineRate(loop.injectionPortId);
+      auto portStats = getLatestPortStats(loop.injectionPortId);
+      WITH_RETRIES_N(10, {
+        uint64_t rate =
+            updateStats(getAgentEnsemble(), loop.injectionPortId, portStats);
+        XLOGF(INFO, "Port {}: {}/{} bps", loop.injectionPortId, rate, lineRate);
+        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+      });
+    }
+
+    for (auto& loop : trafficLoops) {
+      auto lineRate = getLineRate(loop.mirrorDestPortId);
+      auto portStats = getLatestPortStats(loop.mirrorDestPortId);
+      WITH_RETRIES_N(10, {
+        uint64_t rate =
+            updateStats(getAgentEnsemble(), loop.mirrorDestPortId, portStats);
+        XLOGF(
+            INFO, "Port {}: {}/{} bps", loop.mirrorDestPortId, rate, lineRate);
+        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+      });
+    }
+
+    auto portStats = getLatestPortStats(collectorPortId);
+    WITH_RETRIES_N(10, {
+      constexpr uint64_t expectedPPS = 1000000; // 1us aging interval
+      constexpr uint64_t packetSize = 450 * 8; // 400B payload + hdrs, in bits
+      uint64_t targetRate = expectedPPS * packetSize * FLAGS_mod_num_mirrors;
+      uint64_t rate =
+          updateStats(getAgentEnsemble(), collectorPortId, portStats);
+      XLOGF(INFO, "Collector port: {}/{} bps", rate, targetRate);
+      // Allow 80% of the expected rate since Eventor throughput is lower.
+      EXPECT_EVENTUALLY_GE(rate, targetRate * 0.8);
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // 1. Configures MOD with packet processing drops mapped to event ID
@@ -1146,6 +1375,246 @@ TEST_P(AgentMirrorOnDropTest, VsqReject) {
     }
 
     utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, true);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_P(AgentMirrorOnDropTest, PrecedenceDrop) {
+  auto mirrorPortId = findRecirculationPort(GetParam());
+  auto collectorPortId = masterLogicalInterfacePortIds()[0];
+  auto injectionPortId = masterLogicalInterfacePortIds()[1];
+  XLOG(DBG3) << "MoD port: " << portDesc(mirrorPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  int kPriority = 0;
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    setupMirrorOnDrop(
+        &config,
+        mirrorPortId,
+        kCollectorIp_,
+        {
+            {kPrecedenceDropEventId,
+             makeEventConfig(
+                 cfg::MirrorOnDropAgingGroup::GLOBAL,
+                 {cfg::MirrorOnDropReasonAggregation::
+                      UNEXPECTED_REASON_DISCARDS})},
+        });
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    config.switchSettings().ensure().tcToRateLimitKbps().ensure()[kPriority] =
+        1048576; // Use rate limit to trigger drops
+    applyNewConfig(config);
+
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    setupEcmpTraffic(
+        injectionPortId,
+        kDropDestIp,
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        true /* disableTtlDecrement */);
+  };
+
+  auto verify = [&]() {
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    auto pkt = sendPackets(1000, injectionPortId, kDropDestIp, kPriority);
+
+    // This test generates two types of dropped packets -- packets dropped
+    // from the packet loop, or packets dropped during injection from CPU.
+    // We'll verify all packets to make sure both types are accounted for.
+    XLOG(DBG3) << "Waiting for mirror packets...";
+    int numPackets = 0, numNifPackets = 0;
+    while (true) {
+      auto frameRx = snooper.waitForPacket(1);
+      if (!frameRx.has_value()) {
+        break;
+      }
+      ++numPackets;
+      XLOG(DBG3) << "Packet " << numPackets << ":";
+      XLOG(DBG3) << PktUtil::hexDump(frameRx->get());
+      auto sentBufCopy = pkt->buf()->clone(); // sentBuf will be trimmed
+      auto dropType = validateMirrorOnDropPacket(
+          frameRx->get(),
+          sentBufCopy.get(),
+          GetParam(),
+          kPrecedenceDropEventId,
+          makeSSPA(injectionPortId),
+          makePortDSPA(injectionPortId),
+          22 /* ignore inner payload hop limit */);
+      if (dropType == DroppedPacketType::NIF) {
+        numNifPackets++;
+      }
+    }
+    EXPECT_GT(numPackets, 0);
+    EXPECT_GT(numNifPackets, 0);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentMirrorOnDropReconfigTest : public AgentMirrorOnDropTest {
+ public:
+  void setCmdLineFlagOverrides() const override {
+    AgentMirrorOnDropTest::setCmdLineFlagOverrides();
+    FLAGS_sflow_egress_port_id = FLAGS_mod_to_port_id;
+  }
+};
+
+// The test reconfigures MOD from one recycle port to another recycle port
+// while the destination recycle port is congested. The goal is to make sure
+// ASIC reset didn't happen and MOD traffic continues to flow.
+//
+// 1. Create line rate traffic loop on NIF port A and setup a sFlow mirror
+//    with 100% sampling, using RCY port 2 as the egress port. This creates
+//    a large volume of traffic on RCY port 2.
+// 2. Create line rate traffic loop on NIF port B, mirror it to NIF port C,
+//    and set a drop ACL on port C.
+// 3. Setup MOD to mirror ACL (packet processing) drops to RCY port 1.
+// 4. Reconfigure MOD from RCY port 1 to RCY port 2.
+//
+// In the actual test:
+// - NIF port A == masterLogicalInterfacePortIds[1]
+// - NIF port B == masterLogicalInterfacePortIds[2]
+// - NIF port C == masterLogicalInterfacePortIds[3]
+// - MOD collector port == masterLogicalInterfacePortIds[0]
+// - RCY port 1 / 2 == FLAGS_mod_from_port_id / FLAGS_mod_to_port_id
+//
+// Moving MOD to RCY port 2 while it's congested causes some MOD packets to go
+// to DRAM. Before CS00012418671 is fixed, this triggers some DRAM related bugs
+// with high probability, which results in an ASIC hard reset.
+TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
+  auto modFromPortId = PortID(FLAGS_mod_from_port_id);
+  auto modToPortId = PortID(FLAGS_mod_to_port_id);
+  auto collectorPortId = masterLogicalInterfacePortIds()[0];
+  XLOG(DBG3) << "MoD port (from): " << portDesc(modFromPortId);
+  XLOG(DBG3) << "MoD port (to): " << portDesc(modToPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+
+  auto loopIp = [&](int i) {
+    auto dstIpArray = kDropDestIp.toByteArray();
+    dstIpArray[15] = i;
+    return folly::IPAddressV6(dstIpArray);
+  };
+
+  auto getLineRate = [&](const PortID& portId) {
+    return static_cast<uint64_t>(getProgrammedState()
+                                     ->getPorts()
+                                     ->getNodeIf(portId)
+                                     ->getSpeed()) *
+        1000 * 1000;
+  };
+
+  auto getCurrentRate = [&](const PortID& portId) {
+    auto stats1 = getLatestPortStats(portId);
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep)
+    sleep(1);
+    auto stats2 = getLatestPortStats(portId);
+    return getAgentEnsemble()->getTrafficRate(stats1, stats2, 1);
+  };
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+
+    std::vector<int> injectionPortIndices;
+    std::vector<PortID> mirrorDestPorts;
+
+    // Port 0 is used for the MOD collector.
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+
+    // Ports 1..FLAGS_mod_num_sflow are for mirroring to sFlow.
+    std::vector<PortID> sflowSrcPorts;
+    configureSflowMirror(config);
+    for (int i = 1; i <= FLAGS_mod_num_sflow; ++i) {
+      PortID injectionPortId = masterLogicalInterfacePortIds()[i];
+      XLOG(DBG3) << "sFlow source port " << i << ": "
+                 << portDesc(injectionPortId);
+
+      setupEcmpTraffic(
+          injectionPortId,
+          loopIp(i),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          true);
+
+      injectionPortIndices.push_back(i); // for verifing traffic rate below
+      sflowSrcPorts.push_back(injectionPortId); // for sflow setup below
+    }
+    utility::configureSflowSampling(config, kSflowMirror, sflowSrcPorts, 1);
+
+    // The next 2 * numPacketDropLoops ports are used for generating
+    // line-rate traffic loops and mirroring to a port which drops everything.
+    constexpr auto numPacketDropLoops = 1;
+    for (int i = 0; i < numPacketDropLoops; ++i) {
+      int idx = FLAGS_mod_num_sflow + i * 2 + 1;
+      PortID injectionPortId = masterLogicalInterfacePortIds()[idx];
+      PortID mirrorDestPortId = masterLogicalInterfacePortIds()[idx + 1];
+      XLOG(DBG3) << "Injection port " << (i + 1) << ": "
+                 << portDesc(injectionPortId);
+      XLOG(DBG3) << "Mirror destination port " << (i + 1) << ": "
+                 << portDesc(mirrorDestPortId);
+
+      addMirror(&config, injectionPortId, mirrorDestPortId);
+      addDropPacketAcl(&config, mirrorDestPortId);
+      setupEcmpTraffic(
+          injectionPortId,
+          loopIp(idx),
+          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          true);
+
+      injectionPortIndices.push_back(idx); // for verifying traffic rate below
+      mirrorDestPorts.push_back(mirrorDestPortId); // same
+    }
+
+    applyNewConfig(config);
+
+    // Pump traffic into all traffic loops and verify that they are working.
+    for (int i : injectionPortIndices) {
+      PortID portId = masterLogicalInterfacePortIds()[i];
+      sendPackets(
+          getAgentEnsemble()->getMinPktsForLineRate(portId), portId, loopIp(i));
+
+      WITH_RETRIES_N(10, {
+        uint64_t rate = getCurrentRate(portId);
+        uint64_t lineRate = getLineRate(portId);
+        XLOGF(INFO, "Port {}: {}/{} bps", portId, rate, lineRate);
+        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+      });
+    }
+
+    // Also verify that the mirror dest ports are sending mirror traffic.
+    for (const PortID& portId : mirrorDestPorts) {
+      WITH_RETRIES_N(10, {
+        uint64_t rate = getCurrentRate(portId);
+        uint64_t lineRate = getLineRate(portId);
+        XLOGF(INFO, "Port {}: {}/{} bps", portId, rate, lineRate);
+        EXPECT_EVENTUALLY_GE(rate, 0.9 * lineRate);
+      });
+    }
+  };
+
+  auto verify = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+
+    XLOG(INFO) << "Configuring MOD on port " << modFromPortId;
+    config.mirrorOnDropReports()->clear();
+    setupMirrorOnDrop(&config, modFromPortId, kCollectorIp_, prodModConfig());
+    applyNewConfig(config);
+
+    WITH_RETRIES_N(10, {
+      uint64_t rate = getCurrentRate(collectorPortId);
+      XLOGF(INFO, "Collector port: {} bps", rate);
+      EXPECT_EVENTUALLY_GE(rate, 10000000);
+    });
+
+    XLOG(INFO) << "Configuring MOD on port " << modToPortId;
+    config.mirrorOnDropReports()->clear();
+    setupMirrorOnDrop(&config, modToPortId, kCollectorIp_, prodModConfig());
+    applyNewConfig(config);
+
+    WITH_RETRIES_N(10, {
+      uint64_t rate = getCurrentRate(collectorPortId);
+      XLOGF(INFO, "Collector port: {} bps", rate);
+      EXPECT_EVENTUALLY_GE(rate, 10000000);
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);

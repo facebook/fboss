@@ -242,6 +242,53 @@ class SaiObjectStore {
     return object;
   }
 
+  std::vector<std::shared_ptr<ObjectType>> bulkCreateObjects(
+      const std::vector<typename SaiObjectTraits::AdapterHostKey>&
+          adapterHostKeys,
+      const std::vector<typename SaiObjectTraits::CreateAttributes>& attributes,
+      bool notify = true) {
+    auto allNonExisting = [&]() {
+      bool nonExists = true;
+      for (const auto& adapterHostKey : adapterHostKeys) {
+        if (objects_.ref(adapterHostKey)) {
+          nonExists = false;
+          break;
+        }
+      }
+      return nonExists;
+    };
+    CHECK_EQ(adapterHostKeys.size(), attributes.size());
+    if (!allNonExisting()) {
+      throw FbossError("Bulk create called for existing objects");
+    }
+
+    std::vector<std::shared_ptr<ObjectType>> objs;
+    objs.reserve(adapterHostKeys.size());
+
+    auto adapterKeys = SaiApiTable::getInstance()
+                           ->getApi<typename SaiObjectTraits::SaiApiT>()
+                           .template bulkCreate<SaiObjectTraits>(
+                               attributes, saiSwitchId_.value());
+    for (int i = 0; i < adapterHostKeys.size(); i++) {
+      auto ins = objects_.refOrInsert(
+          adapterHostKeys[i],
+          ObjectType(adapterKeys[i], adapterHostKeys[i], attributes[i]),
+          true /*forece*/);
+      objs.emplace_back(ins.first);
+      auto iter = warmBootHandles_.find(adapterHostKeys[i]);
+      if (iter != warmBootHandles_.end()) {
+        warmBootHandles_.erase(iter);
+      }
+      if (notify) {
+        if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
+          ins.first->notifyAfterCreate(ins.first);
+        }
+      }
+    }
+    XLOGF(DBG5, "SaiStore bulk create object");
+    return objs;
+  }
+
   template <typename AttrT>
   void setObjects(
       std::vector<typename SaiObjectTraits::AdapterHostKey>& adapterHostKeys,
@@ -456,13 +503,6 @@ class SaiObjectStore {
           // to allow build
           return ObjectType(key, SaiUdfGroupTraits::AdapterHostKey{"udfGroup"});
         }
-#if defined(BRCM_SAI_SDK_XGS)
-        if constexpr (std::is_same_v<ObjectTraits, SaiWredTraits>) {
-          // Allow warm boot from version which doesn't save ahk
-          // TODO(zecheng): Remove after device warmbooted to 8.2
-          return ObjectType(key);
-        }
-#endif
         throw FbossError(
             "attempting to load an object whose adapter host key is not found.");
       }
@@ -598,7 +638,8 @@ class SaiStore {
       SaiObjectStore<SaiBridgeTraits>,
       SaiObjectStore<SaiBridgePortTraits>,
       SaiObjectStore<SaiBufferPoolTraits>,
-      SaiObjectStore<SaiBufferProfileTraits>,
+      SaiObjectStore<SaiStaticBufferProfileTraits>,
+      SaiObjectStore<SaiDynamicBufferProfileTraits>,
       SaiObjectStore<SaiIngressPriorityGroupTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       SaiObjectStore<SaiCounterTraits>,

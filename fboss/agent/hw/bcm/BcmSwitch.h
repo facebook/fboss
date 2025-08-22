@@ -408,6 +408,10 @@ class BcmSwitch : public BcmSwitchIf {
   folly::dynamic toFollyDynamic() const override;
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
+  folly::F14FastMap<std::string, HwRouterInterfaceStats>
+  getRouterInterfaceStats() const override {
+    return {};
+  }
   std::map<std::string, HwSysPortStats> getSysPortStats() const override {
     return {};
   }
@@ -1241,16 +1245,19 @@ class BcmSwitch : public BcmSwitchIf {
       "HighFrequencyStatsThread"};
   static constexpr std::string_view kHighFreqStatsFunctionName_{
       "collectHighFrequencyStats"};
-  static HwHighFrequencyStats zeroTimestamp(const HwHighFrequencyStats& stats);
-  static bool highFrequencyStatsEquals(
+  static HwHighFrequencyStats zeroHighFrequencyStatsTimestamp(
+      const HwHighFrequencyStats& stats);
+  static bool hasHighFrequencyStatsChanged(
       const HwHighFrequencyStats& a,
       const HwHighFrequencyStats& b);
+  static bool hasNonZeroWatermark(const HwHighFrequencyStats& stats);
   void collectHighFrequencyStats();
   HighFrequencyStatsCollectionConfig highFreqStatsThreadConfig_{};
   static constexpr int64_t kHfMinWaitDurationUs_{20000};
   static constexpr int64_t kHfMaxCollectionDurationUs_{10000000};
   std::unique_ptr<folly::FunctionScheduler> highFreqStatsThread_;
-  constexpr static int kHighFreqStatsDataMaxSize_{1024};
+  constexpr static int kHighFreqStatsDataMaxSize_{4096};
+  constexpr static int kMaxConsecutiveHighFreqStatsCollect_{16};
   folly::Synchronized<std::deque<HwHighFrequencyStats>> highFreqStatsData_{};
   /*
    * Lock to synchronize access to all BCM* data structures

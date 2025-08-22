@@ -37,6 +37,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _MirrorSessionMap{
 };
 
 void handleExtensionAttributes() {
+  SAI_EXT_ATTR_MAP_2(MirrorSession, LocalMirror, TcBufferLimit)
   SAI_EXT_ATTR_MAP_2(MirrorSession, EnhancedRemoteMirror, TcBufferLimit)
   SAI_EXT_ATTR_MAP_2(MirrorSession, SflowMirror, TcBufferLimit)
 }

@@ -301,12 +301,12 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
     for (const auto& extPath : *subExtPaths) {
       std::vector<std::string> pathElements;
       for (const auto& pathElm : *extPath.path()) {
-        if (pathElm.any_ref().has_value()) {
+        if (pathElm.any().has_value()) {
           pathElements.push_back("*");
-        } else if (pathElm.regex_ref().has_value()) {
-          pathElements.push_back(*pathElm.regex_ref());
+        } else if (pathElm.regex().has_value()) {
+          pathElements.push_back(*pathElm.regex());
         } else {
-          pathElements.push_back(*pathElm.raw_ref());
+          pathElements.push_back(*pathElm.raw());
         }
       }
       extPaths.push_back(folly::join("/", pathElements));

@@ -122,8 +122,6 @@ facebook::fboss::utility::BcmAclActionParameters getAclActionParameters(
 namespace facebook::fboss {
 
 using namespace facebook::fboss::utility;
-constexpr int BcmAclEntry::kLocalIp4DstClassL3Id;
-constexpr int BcmAclEntry::kLocalIp6DstClassL3Id;
 
 void BcmAclEntry::createAclQualifiers() {
   int rv;
@@ -485,7 +483,6 @@ void BcmAclEntry::applyFlowletAction(
       break;
     case cfg::FlowletAction::DISABLE:
       throw FbossError("Unsupported flowlet action ", flowletAction);
-      break;
     default:
       throw FbossError("Unrecognized flowlet action ", flowletAction);
   }

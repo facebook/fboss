@@ -4,7 +4,8 @@
     "enable_route_resource_protection": "false",
     "log_variable_name": "true",
     "sai_configure_six_tap": "true",
-    "skip_transceiver_programming": "true"
+    "skip_transceiver_programming": "true",
+    "use_full_dlb_scale": "true"
   },
   "sw": {
     "version": 0,
@@ -191,6 +192,7 @@
             "custom_feature_lane_swap_disable.BCM8892X": "0",
             "custom_feature_ser_event_generate": "1",
             "custom_feature_use_new_access.BCM8892X_ADAPTER": "1",
+            "customer_x_fe2_ss": "1",
             "fabric_connectivity_based_on_integrity.BCM8892X": "0",
             "fabric_distributed_system_enable": "1",
             "fabric_load_balancing_mode": "NORMAL_LOAD_BALANCE",

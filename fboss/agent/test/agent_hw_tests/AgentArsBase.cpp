@@ -16,8 +16,10 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -85,31 +87,6 @@ std::string AgentArsBase::getCounterName(AclType aclType) const {
   return getAclName(aclType) + "-stats";
 }
 
-void AgentArsBase::setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
-  // BCM native does not require this
-  if (!ensemble->isSai()) {
-    return;
-  }
-  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
-  if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
-    return;
-  }
-  // Remove the ecmp ethertype config after BRCM fix
-  constexpr auto kSetEcmpMemberStatus = R"(
-  cint_reset();
-  int ecmp_dlb_ethtypes[2];
-  ecmp_dlb_ethtypes[0] = 0x0800;
-  ecmp_dlb_ethtypes[1] = 0x86DD;
-  bcm_l3_egress_ecmp_ethertype_set(0, 0, 2, ecmp_dlb_ethtypes);
-  bcm_l3_egress_ecmp_member_status_set(0, 100003, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  bcm_l3_egress_ecmp_member_status_set(0, 100004, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  bcm_l3_egress_ecmp_member_status_set(0, 100005, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  bcm_l3_egress_ecmp_member_status_set(0, 100006, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  )";
-  utility::runCintScript(
-      const_cast<TestEnsembleIf*>(ensemble), kSetEcmpMemberStatus);
-}
-
 void AgentArsBase::setup(int ecmpWidth) {
   std::vector<PortID> portIds = masterLogicalInterfacePortIds();
   flat_set<PortDescriptor> portDescs;
@@ -126,6 +103,12 @@ void AgentArsBase::setup(int ecmpWidth) {
   });
   auto wrapper = getSw()->getRouteUpdater();
   helper_->programRoutes(&wrapper, portDescs);
+
+  // make front panel port for test routable
+  portDescs.emplace(portIds[kFrontPanelPortForTest]);
+  applyNewState([&portDescs, this](const std::shared_ptr<SwitchState>& in) {
+    return helper_->resolveNextHops(in, portDescs);
+  });
 
   XLOG(DBG3) << "setting ECMP Member Status: ";
   applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -147,7 +130,7 @@ RoutePrefixV6 AgentArsBase::getMirrorDestRoutePrefix(
 
 void AgentArsBase::addSamplingConfig(cfg::SwitchConfig& config) {
   auto trafficPort = getAgentEnsemble()->masterLogicalPortIds(
-      {cfg::PortType::INTERFACE_PORT})[utility::kTrafficPortIndex];
+      {cfg::PortType::INTERFACE_PORT})[kFrontPanelPortForTest];
   std::vector<PortID> samplePorts = {trafficPort};
   utility::configureSflowSampling(config, kSflowMirrorName, samplePorts, 1);
 }
@@ -187,10 +170,23 @@ void AgentArsBase::resolveMirror(
 }
 
 void AgentArsBase::generateApplyConfig(AclType aclType) {
-  auto newCfg{initialConfig(*getAgentEnsemble())};
+  const auto& ensemble = *getAgentEnsemble();
+  auto newCfg{initialConfig(ensemble)};
+  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto streamType =
+      *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
+  utility::addNetworkAIQueueConfig(
+      &newCfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
+  utility::addNetworkAIQosMaps(newCfg, ensemble.getL3Asics());
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    utility::addCpuQueueConfig(newCfg, ensemble.getL3Asics(), ensemble.isSai());
+  }
+
+  // add ACL entry after above config since addNetworkAIQosMaps overwrites
+  // dataPlaneTrafficPolicy
   std::vector<std::string> udfGroups = getUdfGroupsForAcl(aclType);
   addAclTableConfig(newCfg, udfGroups);
-  addAclAndStat(&newCfg, aclType, getAgentEnsemble()->isSai());
+  addAclAndStat(&newCfg, aclType, ensemble.isSai());
   applyNewConfig(newCfg);
 }
 
@@ -254,8 +250,9 @@ size_t AgentArsBase::sendRoceTraffic(
 }
 
 auto AgentArsBase::verifyAclType(bool bumpOnHit, AclType aclType) {
-  auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
-  auto pktsBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts__ref();
+  auto egressPort =
+      helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
+  auto pktsBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
   auto aclPktCountBefore =
       utility::getAclInOutPackets(getSw(), getCounterName(aclType));
   auto aclBytesCountBefore = utility::getAclInOutPackets(
@@ -297,7 +294,7 @@ auto AgentArsBase::verifyAclType(bool bumpOnHit, AclType aclType) {
     auto aclBytesCountAfter = utility::getAclInOutPackets(
         getSw(), getCounterName(aclType), true /* bytes */);
 
-    auto pktsAfter = *getNextUpdatedPortStats(egressPort).outUnicastPkts__ref();
+    auto pktsAfter = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
     XLOG(DBG2) << "\n"
                << "PacketCounter: " << pktsBefore << " -> " << pktsAfter << "\n"
                << "aclPacketCounter(" << getCounterName(aclType)
@@ -396,13 +393,17 @@ void AgentArsBase::addRoceAcl(
     const std::optional<int>& roceOpcode,
     const std::optional<int>& roceBytes,
     const std::optional<int>& roceMask,
-    const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable) const {
+    const std::optional<std::vector<cfg::AclUdfEntry>>& udfTable,
+    bool addMirror) const {
   cfg::AclEntry aclEntry;
   aclEntry.name() = aclName;
   aclEntry.actionType() = aclActionType_;
   auto acl = utility::addAcl(config, aclEntry, cfg::AclStage::INGRESS);
   std::vector<cfg::CounterType> setCounterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  acl->srcPort() =
+      PortDescriptor(masterLogicalInterfacePortIds()[kFrontPanelPortForTest])
+          .phyPortID();
   if (udfTable.has_value()) {
     acl->udfTable() = udfTable.value();
   }
@@ -465,6 +466,9 @@ void AgentArsBase::addRoceAcl(
         config, aclName, counterName, kDscp, kOutQueue);
   } else if (aclName == getAclName(AclType::ECMP_HASH_CANCEL)) {
     utility::addAclEcmpHashCancelAction(config, aclName, counterName);
+  } else if (aclName == getAclName(AclType::UDF_NAK) && addMirror) {
+    // mirror session only present for mirror related tests
+    utility::addAclMirrorAction(config, aclName, counterName, kAclMirror);
   } else {
     utility::addAclStat(
         config, aclName, counterName, std::move(setCounterTypes));
@@ -516,7 +520,8 @@ std::vector<std::string> AgentArsBase::getUdfGroupsForAcl(
 void AgentArsBase::addAclAndStat(
     cfg::SwitchConfig* config,
     AclType aclType,
-    bool isSai) const {
+    bool isSai,
+    bool addMirror) const {
   auto aclName = getAclName(aclType);
   auto counterName = getCounterName(aclType);
   const signed char bm = 0xFF;
@@ -554,7 +559,8 @@ void AgentArsBase::addAclAndStat(
           std::nullopt,
           std::nullopt,
           std::nullopt,
-          std::move(udfTable));
+          std::move(udfTable),
+          addMirror);
     } break;
     case AclType::UDF_WR_IMM_ZERO: {
       config->udfConfig() = utility::addUdfAclConfig(
@@ -756,6 +762,13 @@ void AgentArsBase::verifyFwdSwitchingMode(
     cfg::SwitchingMode switchingMode) const {
   WITH_RETRIES(
       { EXPECT_EVENTUALLY_EQ(getFwdSwitchingMode(prefix), switchingMode); });
+}
+
+uint32_t AgentArsBase::getMaxDlbEcmpGroups() const {
+  auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+  auto maxDlbGroups = asic->getMaxDlbEcmpGroups();
+  CHECK(maxDlbGroups.has_value());
+  return maxDlbGroups.value();
 }
 
 } // namespace facebook::fboss

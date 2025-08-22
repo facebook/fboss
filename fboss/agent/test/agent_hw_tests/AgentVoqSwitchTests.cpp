@@ -1,5 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
+#include <re2/re2.h>
+#include <filesystem>
+#include <string>
+
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
 #include "fboss/agent/AsicUtils.h"
@@ -31,6 +36,24 @@ constexpr auto kDefaultEgressQueue = 0;
 
 using namespace facebook::fb303;
 namespace facebook::fboss {
+
+std::string AgentVoqSwitchTest::getSdkMajorVersion() {
+  std::string majorVersion;
+
+  static const re2::RE2 bcmSaiPattern("BRCM SAI ver: \\[(\\d+)\\.");
+  std::string output;
+  // Start with a blank command first and then get the BCM SAI version
+  // This is because, sometimes first diag command doesn't work in some SDK
+  // versions
+  getAgentEnsemble()->runDiagCommand("\n", output);
+  getAgentEnsemble()->runDiagCommand("bcmsai ver\n", output);
+  if (RE2::PartialMatch(output, bcmSaiPattern, &majorVersion)) {
+    return majorVersion;
+  }
+
+  // Return 0 by default
+  return "0";
+}
 
 void AgentVoqSwitchTest::rxPacketToCpuHelper(
     uint16_t l4SrcPort,
@@ -246,6 +269,27 @@ void AgentVoqSwitchTest::setForceTrafficOverFabric(bool force) {
     }
     return out;
   });
+}
+
+void AgentVoqSwitchTest::setupForDramErrorTestFromDiagShell(
+    const SwitchID& switchId) {
+  std::string out;
+  getAgentEnsemble()->runDiagCommand(
+      "s CGM_DRAM_BOUND_STATE_TH 0\n", out, switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "m CGM_DRAM_BOUND_STATE_TH  DRAM_BOUND_TOTAL_FREE_SRAM_BUFFERS_TH=0xFFF DRAM_BOUND_TOTAL_FREE_SRAM_PDBS_TH=0xFFF\n",
+      out,
+      switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "mod CGM_VOQ_DRAM_BOUND_PRMS 0 127 SRAM_BUFFERS_BOUND_FREE_MAX_TH=0x0 SRAM_BUFFERS_BOUND_FREE_MIN_TH=0x0 SRAM_BUFFERS_BOUND_MAX_TH=0x0 SRAM_BUFFERS_BOUND_MIN_TH=0x0\n",
+      out,
+      switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "m IPS_DRAM_ONLY_PROFILE  DRAM_ONLY_PROFILE=-1\n", out, switchId);
+  getAgentEnsemble()->runDiagCommand(
+      "mod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\n",
+      out,
+      switchId);
 }
 
 TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
@@ -806,27 +850,12 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
   auto verify = [&]() {
     // The DRAM error will only be for the switchID on which packet
     // is egressing, hence the test is limited to a single switchId.
-    auto switchId = scopeResolver().scope(kPortDesc.phyPortID()).switchId();
+    SwitchID switchId = scopeResolver().scope(kPortDesc.phyPortID()).switchId();
     auto switchIndex =
         getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
-    std::string out;
     WITH_RETRIES({
-      getAgentEnsemble()->runDiagCommand(
-          "s CGM_DRAM_BOUND_STATE_TH 0\n", out, switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "m CGM_DRAM_BOUND_STATE_TH  DRAM_BOUND_TOTAL_FREE_SRAM_BUFFERS_TH=0xFFF DRAM_BOUND_TOTAL_FREE_SRAM_PDBS_TH=0xFFF\n",
-          out,
-          switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "mod CGM_VOQ_DRAM_BOUND_PRMS 0 127 SRAM_BUFFERS_BOUND_FREE_MAX_TH=0x0 SRAM_BUFFERS_BOUND_FREE_MIN_TH=0x0 SRAM_BUFFERS_BOUND_MAX_TH=0x0 SRAM_BUFFERS_BOUND_MIN_TH=0x0\n",
-          out,
-          switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "m IPS_DRAM_ONLY_PROFILE  DRAM_ONLY_PROFILE=-1\n", out, switchId);
-      getAgentEnsemble()->runDiagCommand(
-          "mod CGM_VOQ_SRAM_DRAM_MODE 0 127 VOQ_SRAM_DRAM_MODE_DATA=0x2\n",
-          out,
-          switchId);
+      std::string out;
+      setupForDramErrorTestFromDiagShell(switchId);
       getAgentEnsemble()->runDiagCommand(
           "m DDP_ERR_INITIATE BUFF_CRC_INITIATE_ERR=1\n", out, switchId);
       getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
@@ -837,6 +866,89 @@ TEST_F(AgentVoqSwitchTest, verifyDramErrorDetection) {
       ASSERT_EVENTUALLY_TRUE(
           switchStats.hwAsicErrors()->dramErrors().has_value());
       EXPECT_EVENTUALLY_GT(switchStats.hwAsicErrors()->dramErrors().value(), 0);
+      XLOG(DBG0) << "Dram Error count: "
+                 << switchStats.hwAsicErrors()->dramErrors().value();
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, verifyDramBufferQuarantine) {
+  auto generateDramErrorCint = [](int port1, int port2) {
+    // By default, need 10 errors in a memory to trigger quarantine.
+    // With packet inject test, each packet can trigger error in a
+    // different memory. Sending a lot of packets with the CINT to
+    // trigger errors such that some memory will see > 10 errors
+    // and will be quarantined.
+    return fmt::format(
+        R"(
+        cint_reset();
+        print bcm_port_force_forward_set(0, {0}, {1}, 1);
+        int loop=0;
+        for (loop=0; loop<1000; loop++) {{
+          bshell(0, "m DDP_ERR_INITIATE BUFF_CRC_INITIATE_ERR=1");
+          bshell(0, "tx 1 visibility=0 psrc={0}");
+        }})",
+        port1,
+        port2);
+  };
+  auto verify = [&]() {
+    SwitchID switchId =
+        scopeResolver().scope(masterLogicalInterfacePortIds()[0]).switchId();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    auto dramErrorCint = generateDramErrorCint(
+        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]);
+    WITH_RETRIES({
+      std::string out;
+      setupForDramErrorTestFromDiagShell(switchId);
+      getAgentEnsemble()->runCint(dramErrorCint, out, switchId);
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      auto dramQurantinedBufferCount =
+          switchStats.fb303GlobalStats()->dram_quarantined_buffer_count();
+      ASSERT_EVENTUALLY_TRUE(dramQurantinedBufferCount.has_value());
+      EXPECT_EVENTUALLY_GT(dramQurantinedBufferCount.value(), 0);
+      XLOG(DBG0) << "Dram Quarantined Buffer count: "
+                 << dramQurantinedBufferCount.value();
+    });
+    WITH_RETRIES({
+      // Make sure that we remove the deleted buffer file created
+      // so that it wont interfere with the next test run.
+      EXPECT_EVENTUALLY_TRUE(
+          std::filesystem::remove("/tmp/dram_quarantine_deleted_buffers_file"));
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, verifyDramDataPathPacketErrorCounter) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      getProgrammedState(), getSw()->needL2EntryForNeighbor());
+  const auto kPortDesc = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [&]() { addRemoveNeighbor(kPortDesc, NeighborOp::ADD); };
+  auto verify = [&]() {
+    // The DRAM error will only be for the switchID on which packet
+    // is egressing, hence the test is limited to a single switchId.
+    SwitchID switchId = scopeResolver().scope(kPortDesc.phyPortID()).switchId();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    std::string out;
+    WITH_RETRIES({
+      setupForDramErrorTestFromDiagShell(switchId);
+      getAgentEnsemble()->runDiagCommand(
+          "m DDP_ERR_INITIATE INITIATE_PKT_ERR=1\n", out, switchId);
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+      sendPacket(
+          ecmpHelper.ip(kPortDesc), std::nullopt, std::vector<uint8_t>(4000));
+      getSw()->updateStats();
+      auto switchStats = getSw()->getHwSwitchStatsExpensive()[switchIndex];
+      ASSERT_EVENTUALLY_TRUE(
+          switchStats.switchDropStats()->dramDataPathPacketError().has_value());
+      EXPECT_EVENTUALLY_GT(
+          switchStats.switchDropStats()->dramDataPathPacketError().value(), 0);
+      XLOG(DBG0)
+          << "Dram Data Path Packet Error count: "
+          << switchStats.switchDropStats()->dramDataPathPacketError().value();
     });
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -889,6 +1001,38 @@ TEST_F(AgentVoqSwitchTest, verifySendPacketOutOfEventorBlocked) {
     sleep(5);
     EXPECT_EQ(beforeOutPkts, *getLatestPortStats(portId).outUnicastPkts_());
   }
+}
+
+TEST_F(AgentVoqSwitchTest, verifyAI23ModeConfig) {
+  auto setup = []() {};
+  auto verify = [this]() {
+    // Get the SDK major version
+    auto sdkMajorVersionStr = getSdkMajorVersion();
+    auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
+    // Check if SDK major version is valid
+    EXPECT_GT(sdkMajorVersionNum, 0);
+
+    // If major version is >= 12, check for AI23_mode
+    if (sdkMajorVersionNum >= 12) {
+      std::string configOutput;
+      getAgentEnsemble()->runDiagCommand("config show\n", configOutput);
+
+      // Check if AI23_mode is enabled in the config
+      bool isAI23ModeEnabled =
+          configOutput.find("AI23_mode=1") != std::string::npos;
+      XLOG(DBG2) << "AI23_mode enabled? " << (isAI23ModeEnabled ? "yes" : "no");
+
+      EXPECT_TRUE(isAI23ModeEnabled)
+          << "AI23_mode=1 is not enabled for SAI major version "
+          << sdkMajorVersionNum;
+    } else {
+      XLOG(DBG2)
+          << "Skipping AI23_mode config verification for SAI major version "
+          << sdkMajorVersionNum;
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

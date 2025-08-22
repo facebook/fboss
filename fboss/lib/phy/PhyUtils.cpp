@@ -135,12 +135,12 @@ void updateSignalDetectChangedCount(
     phy::LaneStats& curr,
     phy::PmdStats& prev) {
   auto prevChangedCount = 0;
-  auto it = prev.lanes_ref()->find(lane);
-  if (it != prev.lanes_ref()->end()) {
+  auto it = prev.lanes()->find(lane);
+  if (it != prev.lanes()->end()) {
     prevChangedCount =
-        prev.lanes_ref()[lane].signalDetectChangedCount_ref().value_or(0);
+        prev.lanes()[lane].signalDetectChangedCount().value_or(0);
   }
-  curr.signalDetectChangedCount_ref() = changedCount + prevChangedCount;
+  curr.signalDetectChangedCount() = changedCount + prevChangedCount;
 }
 
 void updateCdrLockChangedCount(
@@ -149,12 +149,11 @@ void updateCdrLockChangedCount(
     phy::LaneStats& curr,
     phy::PmdStats& prev) {
   auto prevChangedCount = 0;
-  auto it = prev.lanes_ref()->find(lane);
-  if (it != prev.lanes_ref()->end()) {
-    prevChangedCount =
-        prev.lanes_ref()[lane].cdrLockChangedCount_ref().value_or(0);
+  auto it = prev.lanes()->find(lane);
+  if (it != prev.lanes()->end()) {
+    prevChangedCount = prev.lanes()[lane].cdrLockChangedCount().value_or(0);
   }
-  curr.cdrLockChangedCount_ref() = changedCount + prevChangedCount;
+  curr.cdrLockChangedCount() = changedCount + prevChangedCount;
 }
 
 } // namespace facebook::fboss::utility

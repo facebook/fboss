@@ -267,6 +267,15 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  return SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return std::nullopt;
 }
@@ -456,6 +465,16 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   return SAI_PORT_ATTR_SHEL_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
+    defined(BRCM_SAI_SDK_XGS)
+  return SAI_PORT_ATTR_ARS_LINK_STATE;
 #else
   return std::nullopt;
 #endif

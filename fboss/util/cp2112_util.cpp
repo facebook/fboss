@@ -71,6 +71,8 @@ DEFINE_int32(
     -1,
     "The SMBus retry limit for the set_smbus_config command");
 
+namespace {
+
 class ArgError : public std::exception {
  public:
   template <typename... Args>
@@ -534,6 +536,8 @@ struct CommandInfo {
   CommandFn fn;
   const char* usage;
 };
+
+} // namespace
 
 std::map<std::string, CommandInfo> kCommands = {
     {"addr_read", {cmdAddrRead, " DEV_ADDRESS ADDRESS LENGTH"}},

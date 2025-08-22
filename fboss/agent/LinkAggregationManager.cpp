@@ -24,7 +24,6 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 
 #include <algorithm>
@@ -90,6 +89,10 @@ std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
   aggPort = aggPort->modify(&nextState);
   aggPort->setForwardingState(portID_, forwardingState_);
   aggPort->setPartnerState(portID_, partnerState_);
+  XLOG(DBG2) << "Updated " << aggPort->getName()
+             << " forwardingSubportCount: " << aggPort->forwardingSubportCount()
+             << ", minLinkCount: " << aggPort->getMinimumLinkCount()
+             << ", up: " << static_cast<int>(aggPort->isUp());
   return nextState;
 }
 
@@ -407,7 +410,6 @@ LinkAggregationManager::getControllersFor(
     controllers[i] = it->second;
   }
 
-  // TODO(samank): does this move?
   return controllers;
 }
 

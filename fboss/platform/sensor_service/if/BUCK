@@ -63,4 +63,7 @@ thrift_library(
     ],
     thrift_rust_options = ["deprecated_default_enum_min_i32"],
     thrift_srcs = {"sensor_config.thrift": []},
+    deps = [
+        "//thrift/annotation:hack",
+    ],
 )

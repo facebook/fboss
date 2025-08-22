@@ -28,6 +28,7 @@ class ResourceCursor {
  public:
   ResourceCursor();
   IdT getNextId();
+  IdT getNextId(IdT offset);
   void resetCursor(IdT current) {
     current_ = current;
   }
@@ -63,6 +64,10 @@ class ResourceGenerator : private ResourceCursor<IdT> {
   /* generate an resource and update cursor */
   ResourceT getNext() {
     return get(BaseT::getNextId());
+  }
+
+  ResourceT getNext(IdT offset) {
+    return get(BaseT::getNextId(offset));
   }
 
   /* generate next n resources, updates cursor */

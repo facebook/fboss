@@ -8,11 +8,6 @@
  *
  */
 #include "fboss/agent/NeighborUpdater.h"
-#include "fboss/agent/ArpCache.h"
-#include "fboss/agent/ArpHandler.h"
-#include "fboss/agent/FbossError.h"
-#include "fboss/agent/IPv6Handler.h"
-#include "fboss/agent/NdpCache.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -27,7 +22,6 @@
 #include <boost/container/flat_map.hpp>
 #include <folly/logging/xlog.h>
 #include <list>
-#include <mutex>
 #include <string>
 #include <vector>
 

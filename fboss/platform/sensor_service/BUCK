@@ -16,7 +16,6 @@ cpp_library(
         "SensorServiceImpl.h",
     ],
     exported_deps = [
-        ":config_validator",
         ":pmunit_info_fetcher",
         ":sensor_service_stats-cpp2-types",
         ":utils",
@@ -26,12 +25,11 @@ cpp_library(
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
-        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
         "//folly:file_util",
         "//folly:synchronized",
-        "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
@@ -174,9 +172,11 @@ cpp_binary(
     deps = [
         "//fboss/platform/helpers:init_cli",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-clients",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
     external_deps = [
         ("glibc", None, "rt"),
+        "tabulatecpp",
     ],
 )

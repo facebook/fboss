@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
   std::string fw_target_name;
   std::string fw_action;
   std::string fw_binary_file;
+  std::string config_file_path;
   bool verify_sha1sum = false;
   bool dry_run = false;
 
@@ -56,6 +57,9 @@ int main(int argc, char* argv[]) {
       "--fw_binary_file",
       fw_binary_file,
       "Firmware binary file path to be programmed");
+
+  fwGroup->add_option(
+      "--config_file", config_file_path, "Path to the fw_util config flie");
 
   // Group: Flags
   auto flagsGroup = app.add_option_group("Flags", "Additional flags");
@@ -120,10 +124,11 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  FwUtilImpl fwUtilImpl(fw_binary_file, verify_sha1sum, dry_run);
+  FwUtilImpl fwUtilImpl(
+      fw_binary_file, config_file_path, verify_sha1sum, dry_run);
 
   if (fw_action == "version" && !fw_target_name.empty()) {
-    fwUtilImpl.printVersion(toLower(fw_target_name));
+    fwUtilImpl.printVersion(fw_target_name);
   } else if (
       fw_action == "program" || fw_action == "verify" || fw_action == "read") {
     // For actions which involve more than just reading versions/config, we want
@@ -131,14 +136,14 @@ int main(int argc, char* argv[]) {
     folly::LoggerDB::get()
         .getCategory("fboss.platform.helpers.PlatformUtils")
         ->setLevel(folly::LogLevel::DBG2);
-    fwUtilImpl.doFirmwareAction(toLower(fw_target_name), toLower(fw_action));
+    fwUtilImpl.doFirmwareAction(fw_target_name, fw_action);
   } else if (fw_action == "list") {
     XLOG(INFO) << "supported Binary names are: " << fwUtilImpl.printFpdList();
   } else if (fw_action == "audit") {
     fwUtilImpl.doVersionAudit();
   } else {
     XLOG(ERR)
-        << "Wrong usage. please run fw_util --helpon=Flags for the flags needed for proper usage";
+        << "Wrong usage. please run fw_util --help for the flags needed for proper usage";
     exit(1);
   }
 

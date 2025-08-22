@@ -23,7 +23,7 @@ CmdShowAgentFirmwareTraits::RetType CmdShowAgentFirmware::queryClient(
               entries.end(), firmwareInfoList.begin(), firmwareInfoList.end());
         };
     utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     // TODO remove when Agent with sync_getAllHwFirmwareInfo is rolled out
     // everywhere.
   }

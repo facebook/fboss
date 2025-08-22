@@ -6,7 +6,6 @@
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -72,6 +71,7 @@ void MultiSwitchThriftHandler::processLinkState(
   }
   if (linkStateEvent.aggPortId()) {
     aggPortId = AggregatePortID(*linkStateEvent.aggPortId());
+    XLOG(DBG2) << "link event change for agg port " << aggPortId.value();
   }
   sw_->linkStateChanged(
       portId, *linkStateEvent.up(), portType, faultStatus, aggPortId);
@@ -138,9 +138,9 @@ void MultiSwitchThriftHandler::processSwitchReachabilityChangeEvent(
   XLOG(DBG3) << "Got switch reachability change event from switch " << switchId;
 
   std::map<SwitchID, std::set<PortID>> switchId2FabricPortIds;
-  for (const auto& [switchId, fabricPortIds] :
+  for (const auto& [currentSwitchId, fabricPortIds] :
        *switchReachabilityChangeEvent.switchId2FabricPorts()) {
-    switchId2FabricPortIds[SwitchID(switchId)] =
+    switchId2FabricPortIds[SwitchID(currentSwitchId)] =
         std::set<PortID>(fabricPortIds.begin(), fabricPortIds.end());
   }
   sw_->switchReachabilityChanged(switchId, switchId2FabricPortIds);

@@ -14,4 +14,7 @@ namespace facebook::fboss::fsdb {
 
 template class CowStorage<FsdbOperStateRoot>;
 
+// Explicit instantiation for CowStorage constructor with const reference
+template CowStorage<FsdbOperStateRoot>::CowStorage(const FsdbOperStateRoot&);
+
 } // namespace facebook::fboss::fsdb

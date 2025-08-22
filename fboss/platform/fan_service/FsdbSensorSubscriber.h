@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include <cstdint>
+#include "fboss/agent/if/gen-cpp2/asic_temp_types.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-
-#include <cstdint>
 
 namespace facebook::fboss {
 namespace fsdb {
@@ -39,8 +39,8 @@ class FsdbSensorSubscriber {
 
   std::map<std::string, fboss::platform::sensor_service::SensorData>
   getSensorData() const;
-  std::map<std::string, fboss::platform::sensor_service::SensorData>
-  getAgentData() const;
+  std::map<std::string, facebook::fboss::asic_temp::AsicTempData> getAgentData()
+      const;
   std::map<int32_t, TcvrState> getTcvrState() const;
   std::map<int32_t, TcvrStats> getTcvrStats() const;
 
@@ -69,7 +69,7 @@ class FsdbSensorSubscriber {
                    where x is ASIC instance and y is ASIC sensor number
                    from SDK */
       ,
-      fboss::platform::sensor_service::SensorData>>
+      facebook::fboss::asic_temp::AsicTempData>>
       agentData;
   folly::Synchronized<std::map<int32_t /* tcvrId */, TcvrState>> tcvrState;
   folly::Synchronized<std::map<int32_t /* tcvrId */, TcvrStats>> tcvrStats;

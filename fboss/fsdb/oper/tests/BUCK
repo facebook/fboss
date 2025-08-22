@@ -1,32 +1,8 @@
 load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_agent_push")
-
-cpp_unittest(
-    name = "hybrid_subscribable_storage_tests",
-    srcs = ["HybridSubscribableStorageTests.cpp"],
-    compiler_flags = ["-ftemplate-backtrace-limit=0"],
-    supports_static_listing = False,
-    deps = [
-        "fbsource//third-party/googletest:gmock",
-        "//fboss/fsdb/oper:extended_path_builder",
-        "//fboss/fsdb/oper:subscribable_storage",
-        "//fboss/fsdb/tests:hybrid_storage_test-cpp2-thriftpath",
-        "//fboss/fsdb/tests:hybrid_storage_test-cpp2-types",
-        "//fboss/lib:common_utils",
-        "//fboss/thrift_cow/visitors:visitors",
-        "//folly:random",
-        "//folly/coro:async_generator",
-        "//folly/coro:blocking_wait",
-        "//folly/coro:collect",
-        "//folly/coro:gtest_helpers",
-        "//folly/coro:task",
-        "//folly/coro:timeout",
-        "//folly/json:dynamic",
-        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
-    ],
-)
 
 cpp_unittest(
     name = "subscription_tests",
@@ -101,6 +77,22 @@ cpp_unittest(
     ],
 )
 
+cpp_library(
+    name = "subscribable_storage_bench_helper",
+    srcs = [
+        "SubscribableStorageBenchHelper.cpp",
+    ],
+    headers = [
+        "SubscribableStorageBenchHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/thrift_cow/storage/tests:data_factory",
+        "//folly/coro:blocking_wait",
+    ],
+)
+
 cpp_benchmark(
     name = "subscribable_storage_bench",
     srcs = [
@@ -108,14 +100,14 @@ cpp_benchmark(
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
+        ":subscribable_storage_bench_helper",
         "//fboss/fsdb/oper:subscribable_storage",
-        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/thrift_cow/storage/tests:data_factory",
         "//folly:benchmark",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
         "//folly/executors:cpu_thread_pool_executor",
         "//folly/init:init",
         "//folly/json:dynamic",
-        "//folly/logging:logging",
     ],
 )

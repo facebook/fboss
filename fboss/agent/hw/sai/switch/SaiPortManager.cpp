@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
@@ -975,6 +976,9 @@ void SaiPortManager::changePfcBuffers(
       managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
           ingressPriorityGroupHandles[pgId]->ingressPriorityGroup,
           bufferProfile);
+      managerTable_->bufferManager().setIngressPriorityGroupLosslessEnable(
+          ingressPriorityGroupHandles[pgId]->ingressPriorityGroup,
+          utility::isLosslessPg(portPgCfgThrift));
       // Keep track of ingressPriorityGroupHandle and bufferProfile per PG ID
       configuredIpgs[static_cast<IngressPriorityGroupID>(pgId)] =
           SaiIngressPriorityGroupHandleAndProfile{
@@ -1268,7 +1272,9 @@ void SaiPortManager::changeQueue(
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
     if (!queueHandle) {
       throw FbossError(
-          "unable to change non-existent queue ",
+          "unable to change non-existent ",
+          apache::thrift::util::enumNameSafe(newPortQueue->getStreamType()),
+          " queue ",
           newPortQueue->getID(),
           " of port ",
           swId);
@@ -1300,7 +1306,7 @@ void SaiPortManager::changeQueue(
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
     managerTable_->queueManager().changeQueue(
-        queueHandle, *portQueue, swPort.get());
+        queueHandle, *portQueue, swPort.get(), swPort->getPortType());
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());
@@ -2823,6 +2829,19 @@ std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
 std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
     PortSaiId saiPortId,
     uint8_t numPmdLanes) const {
+  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(saiPortId);
+  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
+    XLOG(WARNING) << "Unknown PortSaiId: " << saiPortId;
+    return std::vector<sai_port_snr_values_t>();
+  }
+  // TH5 Management port doesn't support RX SNR
+  // If we do end up with management ports supporting rxSNR we may need to
+  // support per-core HwAsic::Feature definitions instead of setting them at the
+  // asic level.
+  auto portID = portItr->second.portID;
+  if (getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+    return std::vector<sai_port_snr_values_t>();
+  }
   if (!rxSNRSupported()) {
     return std::vector<sai_port_snr_values_t>();
   }

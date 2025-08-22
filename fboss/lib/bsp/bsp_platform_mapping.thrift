@@ -1,3 +1,4 @@
+namespace py3 neteng.fboss
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.bsp_platform_mapping
 

@@ -98,7 +98,7 @@ DEFINE_string(
 
 DEFINE_int32(
     default_list_size,
-    1024,
+    4096,
     "Default size of the lists initialzied by SAI replayer");
 
 DEFINE_int32(
@@ -1789,7 +1789,7 @@ uint32_t SaiTracer::checkListCount(
   // FLAGS_default_list_size * 4 bytes.
   if (elem_size * elem_count > FLAGS_default_list_size * sizeof(int)) {
     writeToFile({to<string>(
-        "printf(\"[ERROR] The replayed program is using",
+        "printf(\"[ERROR] The replayed program is using ",
         elem_size * elem_count,
         " bytes, which is more than ",
         FLAGS_default_list_size * sizeof(int),

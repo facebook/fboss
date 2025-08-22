@@ -92,6 +92,8 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
   kOutMacsecPortMonotonicCounterStatKeys() const override;
   const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
       const override;
+  const std::vector<folly::StringPiece>&
+  kPriorityGroupMonotonicCounterStatKeys() const override;
   const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
       const override;
 

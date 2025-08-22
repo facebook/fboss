@@ -113,6 +113,18 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramBlockTime() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::dramQuarantinedBufferStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiSwitchTraits::fabricInterCellJitterWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
@@ -157,6 +169,11 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::egressParityCellError() {
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::ddpPacketError() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::packetIntegrityError() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
@@ -309,6 +326,11 @@ SaiSwitchTraits::Attributes::AttributeTcRateLimitList::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeTechSupportType::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributePfcTcDldTimerGranularityInterval::operator()() {
   return std::nullopt;
@@ -341,6 +363,20 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeModuleIdToCreditRequestProfileParamList::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccCorrectableError::operator()() {
+  return std::nullopt;
+}
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeTriggerSimulatedEccUnCorrectableError::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
   return std::nullopt;
 }
 

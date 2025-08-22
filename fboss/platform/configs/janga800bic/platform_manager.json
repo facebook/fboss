@@ -2066,6 +2066,12 @@
           "isGpioChip": true
         },
         {
+          "busName": "SMB_IOB_I2C_MASTER_3",
+          "address": "0x35",
+          "kernelDeviceName": "mtia_smbcpld",
+          "pmUnitScopedName": "SMB_CPLD_1"
+        },
+        {
           "busName": "SMB_IOB_I2C_MASTER_4",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
@@ -2084,6 +2090,12 @@
           "pmUnitScopedName": "SMB_U25_LM75B_2"
         },
         {
+          "busName": "SMB_IOB_I2C_MASTER_10",
+          "address": "0x33",
+          "kernelDeviceName": "janga_smbcpld",
+          "pmUnitScopedName": "JANGA_SMB_CPLD"
+        },
+        {
           "busName": "SMB_IOB_I2C_MASTER_13",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
@@ -2100,6 +2112,12 @@
           "address": "0x4c",
           "kernelDeviceName": "tps25990",
           "pmUnitScopedName": "SMB_U327_TPS25990_COME"
+        },
+        {
+          "busName": "SMB_IOB_I2C_MASTER_16",
+          "address": "0x60",
+          "kernelDeviceName": "mtia_pwrcpld",
+          "pmUnitScopedName": "PWR_CPLD"
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_19",
@@ -2135,6 +2153,12 @@
           ]
         },
         {
+          "busName": "SMB_IOB_I2C_MASTER_23",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U68_TMP422"
+        },
+        {
           "busName": "SMB_IOB_I2C_MASTER_25",
           "address": "0x37",
           "kernelDeviceName": "adc128d818",
@@ -2163,6 +2187,12 @@
           ]
         },
         {
+          "busName": "SMB_IOB_I2C_MASTER_25",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U351_TMP422"
+        },
+        {
           "busName": "SMB_IOB_I2C_MASTER_26",
           "address": "0x37",
           "kernelDeviceName": "adc128d818",
@@ -2189,6 +2219,12 @@
               ]
             }
           ]
+        },
+        {
+          "busName": "SMB_IOB_I2C_MASTER_26",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U352_TMP422"
         },
         {
           "busName": "SMB_IOB_I2C_MASTER_27",
@@ -2233,22 +2269,16 @@
           ]
         },
         {
-          "busName": "SMB_IOB_I2C_MASTER_10",
-          "address": "0x33",
-          "kernelDeviceName": "janga_smbcpld",
-          "pmUnitScopedName": "JANGA_SMB_CPLD"
+          "busName": "SMB_IOB_I2C_MASTER_28",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U150_TMP422"
         },
         {
-          "busName": "SMB_IOB_I2C_MASTER_3",
-          "address": "0x35",
-          "kernelDeviceName": "mtia_smbcpld",
-          "pmUnitScopedName": "SMB_CPLD_1"
-        },
-        {
-          "busName": "SMB_IOB_I2C_MASTER_16",
-          "address": "0x60",
-          "kernelDeviceName": "mtia_pwrcpld",
-          "pmUnitScopedName": "PWR_CPLD"
+          "busName": "SMB_IOB_I2C_MASTER_29",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp422",
+          "pmUnitScopedName": "SMB_U152_TMP422"
         }
       ],
       "outgoingSlotConfigs": {
@@ -2284,12 +2314,7 @@
             "SMB_IOB_I2C_MASTER_4",
             "SMB_IOB_I2C_MASTER_9",
             "SMB_IOB_I2C_MASTER_11",
-            "SMB_IOB_I2C_MASTER_12",
-            "SMB_IOB_I2C_MASTER_23",
-            "SMB_IOB_I2C_MASTER_25",
-            "SMB_IOB_I2C_MASTER_26",
-            "SMB_IOB_I2C_MASTER_28",
-            "SMB_IOB_I2C_MASTER_29"
+            "SMB_IOB_I2C_MASTER_12"
           ]
         }
       }
@@ -2356,36 +2381,6 @@
           "address": "0x76",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "SMB_U177_PMBUS_2"
-        },
-        {
-          "busName": "INCOMING@4",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U68_TMP422"
-        },
-        {
-          "busName": "INCOMING@5",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U351_TMP422"
-        },
-        {
-          "busName": "INCOMING@6",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U352_TMP422"
-        },
-        {
-          "busName": "INCOMING@7",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U150_TMP422"
-        },
-        {
-          "busName": "INCOMING@8",
-          "address": "0x4c",
-          "kernelDeviceName": "tmp422",
-          "pmUnitScopedName": "SMB_U152_TMP422"
         }
       ]
     },
@@ -2517,18 +2512,18 @@
     "/run/devmap/sensors/SMB_U279_ADM1272_1": "/[SMB_U279_ADM1272_1]",
     "/run/devmap/sensors/SMB_U104_LM75B_2": "/[SMB_U104_LM75B_2]",
     "/run/devmap/sensors/SMB_U355_ADC128D818_1": "/[SMB_U355_ADC128D818_1]",
-    "/run/devmap/sensors/SMB_U68_TMP422": "/SMB_FRU_SLOT@0/[SMB_U68_TMP422]",
+    "/run/devmap/sensors/SMB_U68_TMP422": "/[SMB_U68_TMP422]",
     "/run/devmap/sensors/SMB_U356_ADC128D818_1": "/[SMB_U356_ADC128D818_1]",
     "/run/devmap/sensors/SMB_U360_ADC128D818_2": "/[SMB_U360_ADC128D818_2]",
-    "/run/devmap/sensors/SMB_U351_TMP422": "/SMB_FRU_SLOT@0/[SMB_U351_TMP422]",
+    "/run/devmap/sensors/SMB_U351_TMP422": "/[SMB_U351_TMP422]",
     "/run/devmap/sensors/SMB_U361_ADC128D818_1": "/[SMB_U361_ADC128D818_1]",
     "/run/devmap/sensors/SMB_U357_ADC128D818_2": "/[SMB_U357_ADC128D818_2]",
-    "/run/devmap/sensors/SMB_U352_TMP422": "/SMB_FRU_SLOT@0/[SMB_U352_TMP422]",
+    "/run/devmap/sensors/SMB_U352_TMP422": "/[SMB_U352_TMP422]",
     "/run/devmap/sensors/SMB_U354_ADC128D818_1": "/[SMB_U354_ADC128D818_1]",
     "/run/devmap/sensors/SMB_U288_ADC128D818_2": "/[SMB_U288_ADC128D818_2]",
     "/run/devmap/sensors/SMB_U353_ADC128D818_3": "/[SMB_U353_ADC128D818_3]",
-    "/run/devmap/sensors/SMB_U150_TMP422": "/SMB_FRU_SLOT@0/[SMB_U150_TMP422]",
-    "/run/devmap/sensors/SMB_U152_TMP422": "/SMB_FRU_SLOT@0/[SMB_U152_TMP422]",
+    "/run/devmap/sensors/SMB_U150_TMP422": "/[SMB_U150_TMP422]",
+    "/run/devmap/sensors/SMB_U152_TMP422": "/[SMB_U152_TMP422]",
     "/run/devmap/sensors/PDB_PMBUS_BRICK_1": "/PDB_SLOT@0/[PDB_PMBUS_BRICK_1]",
     "/run/devmap/sensors/PDB_PMBUS_BRICK_2": "/PDB_SLOT@0/[PDB_PMBUS_BRICK_2]",
     "/run/devmap/sensors/PDB_U1_LM75B": "/PDB_SLOT@0/[PDB_U1_LM75B]",

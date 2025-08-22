@@ -44,6 +44,9 @@ cpp_library(
         ":fsdb_cow_root",
         ":fsdb_cow_root_path_visitor",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_patch_applier_oper_state_instantiations",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_path_visitor_oper_state_instantiations",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_thrift_struct_oper_instantiations",
         "//fboss/thrift_cow/storage:cow_storage",
     ],
 )
@@ -89,5 +92,7 @@ cpp_library(
         ":fsdb_path_converter",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_state_sub_mgr_instantiations",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_thrift_struct_std_functions_instantiations",
     ],
 )

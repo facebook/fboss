@@ -35,6 +35,8 @@ constexpr int kNetworkAIMonitoringWeight = 15;
 constexpr int kNetworkAINcWeight = 80;
 constexpr int kNetworkAIDefaultWeight = 5;
 
+constexpr char kNetworkAIQueueConfigName[] = "network_ai_queue_config";
+
 const std::map<int, std::vector<uint8_t>> kNetworkAIQueueToDscp();
 
 void addNetworkAIQueueConfig(
@@ -45,7 +47,8 @@ void addNetworkAIQueueConfig(
     bool addWredConfig = false,
     bool addEcnConfig = true,
     std::unordered_map<NetworkAIQueueType, cfg::QueueScheduling>
-        schedTypeOverride = {});
+        schedTypeOverride = {},
+    std::optional<std::vector<PortID>> portIds = std::nullopt);
 
 void addNetworkAIQosMaps(
     cfg::SwitchConfig& cfg,

@@ -40,7 +40,6 @@
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
-#include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmPrbs.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
@@ -1343,8 +1342,8 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   for (int lane = 0; lane < totalPmdLanes; lane++) {
     phy::LaneInfo laneInfo;
     phy::LaneState laneState;
-    laneInfo.lane_ref() = lane;
-    laneState.lane_ref() = lane;
+    laneInfo.lane() = lane;
+    laneState.lane() = lane;
     if (readRxFreq) {
       uint32_t value;
       auto rv = bcm_port_phy_control_get(
@@ -1353,7 +1352,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       laneInfo.rxFrequencyPPM() = value;
       laneState.rxFrequencyPPM() = value;
     }
-    pmdState.lanes_ref()[lane] = laneState;
+    pmdState.lanes()[lane] = laneState;
   }
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
@@ -1361,14 +1360,14 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     auto rv = bcm_port_pmd_rx_lock_status_get(unit_, port_, &lock_status);
     if (!BCM_FAILURE(rv)) {
       for (int lane = 0; lane < totalPmdLanes; lane++) {
-        pmdState.lanes_ref()[lane].lane_ref() = lane;
-        pmdStats.lanes_ref()[lane].lane_ref() = lane;
-        pmdState.lanes_ref()[lane].cdrLockLive_ref() =
+        pmdState.lanes()[lane].lane() = lane;
+        pmdStats.lanes()[lane].lane() = lane;
+        pmdState.lanes()[lane].cdrLockLive() =
             lock_status.rx_lock_bmp & (1 << lane);
         bool changed = lock_status.rx_lock_change_bmp & (1 << lane);
-        pmdState.lanes_ref()[lane].cdrLockChanged_ref() = changed;
+        pmdState.lanes()[lane].cdrLockChanged() = changed;
         utility::updateCdrLockChangedCount(
-            changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
+            changed, lane, pmdStats.lanes()[lane], lastPmdStats);
       }
     } else {
       XLOG(ERR) << "Failed to read rx_lock_status for port " << port_ << " :"
@@ -1587,7 +1586,7 @@ void BcmPort::updateStats() {
     XLOG(ERR) << "Failed to get queue length for port " << port_ << " :"
               << bcm_errmsg(ret);
   } else {
-    outQueueLen_.addValue(now.count(), qlength);
+    outQueueLen_.addValue(fb303::ExportedStat::TimePoint(now), qlength);
     // TODO: outQueueLen_ only exports the average queue length over the last
     // 60 seconds, 10 minutes, etc.
     // We should also export the current value.  We could use a simple counter
@@ -1617,7 +1616,7 @@ void BcmPort::populateHighFrequencyPortStats(
   std::shared_ptr<Port> settings = getProgrammedSettings();
   if (settings && settings->getPfc().has_value()) {
     populateHighFrequencyPortPfcStats(
-        portStatsConfig, kHighFrequencyPfcPriorities, stats);
+        portStatsConfig, getLastConfiguredPfcPriorities(), stats);
   }
 }
 
@@ -1808,18 +1807,20 @@ void BcmPort::populateHighFrequencyPortPfcStats(
     std::span<const PfcPriority> pfcPriorities,
     HwHighFrequencyPortStats& stats) const {
   for (PfcPriority pfcPriority : pfcPriorities) {
-    if (portStatsConfig.includePfcRx().value() &&
-        portStatsConfig.includePfcTx().value()) {
-      std::vector<uint64_t> pfcStats = getMultiStats(std::array{
-          kInPfcStats.at(pfcPriority), kOutPfcStats.at(pfcPriority)});
-      stats.pfcStats()[pfcPriority].inPfc() = pfcStats.at(0);
-      stats.pfcStats()[pfcPriority].outPfc() = pfcStats.at(1);
-    } else if (portStatsConfig.includePfcTx().value()) {
-      stats.pfcStats()[pfcPriority].inPfc() =
-          getStat(kInPfcStats.at(pfcPriority));
-    } else if (portStatsConfig.includePfcRx().value()) {
-      stats.pfcStats()[pfcPriority].outPfc() =
-          getStat(kOutPfcStats.at(pfcPriority));
+    std::set<bcm_stat_val_t> pfcStatTypes{};
+    if (portStatsConfig.includePfcRx().value()) {
+      pfcStatTypes.insert(kInPfcStats.at(pfcPriority));
+    }
+    if (portStatsConfig.includePfcTx().value()) {
+      pfcStatTypes.insert(kOutPfcStats.at(pfcPriority));
+    }
+    std::map<bcm_stat_val_t, uint64_t> pfcStats{getMultiStats(pfcStatTypes)};
+    for (auto& [stat, value] : pfcStats) {
+      if (stat == kInPfcStats.at(pfcPriority)) {
+        stats.pfcStats()[pfcPriority].inPfc() = value;
+      } else if (stat == kOutPfcStats.at(pfcPriority)) {
+        stats.pfcStats()[pfcPriority].outPfc() = value;
+      }
     }
   }
 }
@@ -1899,21 +1900,26 @@ int64_t BcmPort::getStat(bcm_stat_val_t type) const {
   return stat;
 }
 
-std::vector<uint64_t> BcmPort::getMultiStats(
-    std::span<const bcm_stat_val_t> types) const {
+std::map<bcm_stat_val_t, uint64_t> BcmPort::getMultiStats(
+    const std::set<bcm_stat_val_t>& types) const {
+  std::vector<bcm_stat_val_t> typesVec(types.begin(), types.end());
   std::vector<uint64_t> stats(types.size());
   int ret = bcm_stat_sync_multi_get(
       unit_,
       port_,
-      static_cast<int>(types.size()),
-      const_cast<bcm_stat_val_t*>(types.data()),
+      static_cast<int>(typesVec.size()),
+      const_cast<bcm_stat_val_t*>(typesVec.data()),
       stats.data());
   if (BCM_FAILURE(ret)) {
     XLOG(ERR) << "Failed to get multi stats for port " << port_ << " :"
               << bcm_errmsg(ret);
     return {};
   }
-  return stats;
+  std::map<bcm_stat_val_t, uint64_t> statsMap;
+  for (int i = 0; i < typesVec.size(); ++i) {
+    statsMap[typesVec.at(i)] = stats.at(i);
+  }
+  return statsMap;
 }
 
 void BcmPort::updateInCongestionDiscardStats(
@@ -2673,7 +2679,7 @@ void BcmPort::getProgrammedPfcWatchdogParams(
   pfcWatchdogControls[bcmCosqPFCDeadlockDetectionAndRecoveryEnable] = value;
 }
 
-std::vector<PfcPriority> BcmPort::getLastConfiguredPfcPriorities() {
+std::vector<PfcPriority> BcmPort::getLastConfiguredPfcPriorities() const {
   std::vector<PfcPriority> enabledPfcPriorities;
   auto savedPort = getProgrammedSettings();
   if (savedPort) {

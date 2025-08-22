@@ -38,6 +38,7 @@ struct PortPgFields {
   // Allowing configuring an absolute value at which to send XON in such cases.
   14: optional i64 resumeBytes;
   15: optional string sramScalingFactor;
+  16: optional i64 staticLimitBytes;
 }
 
 struct MKASakKey {
@@ -146,6 +147,7 @@ struct PortFields {
   // DSF option to enable FEC error detection on port to prevent any
   // errored cells from making it to the forwarding pipeline.
   58: optional bool fecErrorDetectEnable;
+  59: optional bool desiredSelfHealingECMPLagEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -450,6 +452,7 @@ struct SwitchSettingsFields {
   57: optional map<i32, i32> tcToRateLimitKbps;
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   58: optional i32 pfcWatchdogTimerGranularityMsec;
+  59: optional i32 ecmpCompressionThresholdPct;
 }
 
 struct RoutePrefix {
@@ -468,6 +471,10 @@ struct RouteNextHopEntry {
   // of default ecmp switching mode, when programming this
   // nhop group
   6: optional switch_config.SwitchingMode overrideEcmpSwitchingMode;
+  // overrideNextHops is only populated if we actually
+  // endup compressing nexthops due ECMP/DLB resources getting
+  // exhausted.
+  7: optional list<common.NextHopThrift> overrideNextHops;
 }
 
 struct RouteNextHopsMulti {

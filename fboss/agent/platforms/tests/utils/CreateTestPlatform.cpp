@@ -60,7 +60,6 @@ std::unique_ptr<Platform> createTestPlatform() {
   } else {
     throw std::runtime_error("invalid mode ");
   }
-  return nullptr;
 }
 
 } // namespace facebook::fboss

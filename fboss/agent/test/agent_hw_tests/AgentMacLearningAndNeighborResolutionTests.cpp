@@ -607,11 +607,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     uint32_t ndpTableSize = 0;
     auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     CHECK(hwAsic->getMaxNdpTableSize().has_value());
-    if (ndpTableSize > 0) {
-      CHECK_EQ(ndpTableSize, hwAsic->getMaxNdpTableSize().value());
-    }
     ndpTableSize = hwAsic->getMaxNdpTableSize().value();
-
     CHECK(ndpTableSize > 0);
     return ndpTableSize;
   }

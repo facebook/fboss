@@ -643,9 +643,9 @@
           "sysfsPath": "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-             "upperCriticalVal": 65,
-             "maxAlarmVal": 60
-           },
+            "upperCriticalVal": 65,
+            "maxAlarmVal": 60
+          },
           "compute": "@/1000"
         }
       ]

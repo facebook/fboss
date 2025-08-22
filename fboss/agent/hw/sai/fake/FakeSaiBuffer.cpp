@@ -279,6 +279,7 @@ sai_status_t create_ingress_priority_group_fn(
   std::optional<sai_object_id_t> port;
   std::optional<sai_uint8_t> index;
   std::optional<sai_object_id_t> bufferProfile;
+  std::optional<bool> losslessEnable;
   auto fs = FakeSai::getInstance();
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -291,6 +292,9 @@ sai_status_t create_ingress_priority_group_fn(
       case SAI_INGRESS_PRIORITY_GROUP_ATTR_INDEX:
         index = attr_list[i].value.u8;
         break;
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_LOSSLESS_ENABLE:
+        losslessEnable = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -299,7 +303,7 @@ sai_status_t create_ingress_priority_group_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *ingress_priority_group_id = fs->ingressPriorityGroupManager.create(
-      port.value(), index.value(), bufferProfile);
+      port.value(), index.value(), bufferProfile, losslessEnable);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -326,6 +330,9 @@ sai_status_t set_ingress_priority_group_attribute_fn(
     case SAI_INGRESS_PRIORITY_GROUP_ATTR_INDEX:
       ingressPriorityGroup.index = attr->value.u8;
       break;
+    case SAI_INGRESS_PRIORITY_GROUP_ATTR_LOSSLESS_ENABLE:
+      ingressPriorityGroup.losslessEnable = attr->value.booldata;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -351,6 +358,11 @@ sai_status_t get_ingress_priority_group_attribute_fn(
         break;
       case SAI_INGRESS_PRIORITY_GROUP_ATTR_INDEX:
         attr[i].value.u8 = ingressPriorityGroup.index;
+        break;
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_LOSSLESS_ENABLE:
+        attr[i].value.booldata = ingressPriorityGroup.losslessEnable
+            ? ingressPriorityGroup.losslessEnable.value()
+            : false;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

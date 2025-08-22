@@ -89,6 +89,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
   void addDscpAclWithCounter();
   void addRemoveNeighbor(PortDescriptor port, NeighborOp operation);
   void setForceTrafficOverFabric(bool force);
+  void setupForDramErrorTestFromDiagShell(const SwitchID& switchId);
 
   std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
     auto ports = getProgrammedState()->getPorts()->getAllNodes();
@@ -120,5 +121,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
     });
     return portDescs;
   }
+
+  std::string getSdkMajorVersion();
 };
 } // namespace facebook::fboss

@@ -46,11 +46,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   using ThriftCallback = apache::thrift::HandlerCallbackPtr<T>;
   using TConnectionContext = apache::thrift::server::TConnectionContext;
 
-  typedef network::thrift::Address Address;
-  typedef network::thrift::BinaryAddress BinaryAddress;
-  typedef FbossEventBase EventBase;
-  typedef std::vector<Address> Addresses;
-  typedef std::vector<BinaryAddress> BinaryAddresses;
+  using Address = network::thrift::Address;
+  using BinaryAddress = network::thrift::BinaryAddress;
+  using EventBase = FbossEventBase;
+  using Addresses = std::vector<Address>;
+  using BinaryAddresses = std::vector<BinaryAddress>;
 
   explicit ThriftHandler(SwSwitch* sw);
 
@@ -297,6 +297,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getCpuPortStats(CpuPortStats& hwCpuPortStats) override;
   void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) override;
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
+  void getHwRouterInterfaceStats(std::map<std::string, HwRouterInterfaceStats>&
+                                     hwRouterInterfaceStats) override;
   void getFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) override;
   void getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) override;

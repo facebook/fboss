@@ -7,9 +7,6 @@
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/lib/CommonFileUtils.h"
-#include "fboss/lib/CommonUtils.h"
-
-#include <folly/io/async/EventBase.h>
 
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
@@ -92,9 +89,11 @@ SwitchFlags SwSwitchInitializer::setupFlags() {
 }
 
 void SwSwitchInitializer::stopFunctionScheduler() {
+  XLOG(DBG2) << "Stopping stats FunctionScheduler";
   if (fs_) {
     fs_->shutdown();
   }
+  XLOG(DBG2) << "Stopped stats FunctionScheduler";
 }
 
 void SwSwitchInitializer::waitForInitDone() {
@@ -171,6 +170,7 @@ void SwAgentInitializer::stopServer() {
   // cause us to go over the JOIN_TIMEOUT.
   // Avoid it by flushing the queue.
   server_->setQueueTimeout(std::chrono::seconds(1));
+
   server_->stopListening();
 
   XLOG(DBG2) << "Stopping thrift server";
@@ -192,8 +192,13 @@ void SwAgentInitializer::stopServices() {
   if (initializer_) {
     initializer_->stopFunctionScheduler();
   }
-  XLOG(DBG2) << "Stopped stats FunctionScheduler";
   fbossFinalize();
+}
+
+void SwAgentInitializer::stopStatsThread() {
+  if (initializer_) {
+    initializer_->stopFunctionScheduler();
+  }
 }
 
 void SwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {

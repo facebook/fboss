@@ -8,14 +8,9 @@
  *
  */
 #include "fboss/agent/state/LoadBalancer.h"
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
-#include <folly/MacAddress.h>
-#include <folly/hash/Hash.h>
-
 #include <algorithm>
-#include <limits>
 #include <type_traits>
 
 namespace facebook::fboss {

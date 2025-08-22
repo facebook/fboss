@@ -122,7 +122,7 @@ std::optional<int> getHwRouteClassID(
     auto metadata = SaiApiTable::getInstance()->routeApi().getAttribute(
         r, SaiRouteTraits::Attributes::Metadata());
     return metadata == 0 ? std::nullopt : std::optional(metadata);
-  } catch (const std::exception& e) {
+  } catch (const std::exception&) {
     return std::nullopt;
   }
 }

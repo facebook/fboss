@@ -62,11 +62,23 @@ std::vector<std::string> getInterfaceDevicesInCluster(
     const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode,
     int clusterID);
 
+std::vector<std::string> getLayer2FabricDevicesInCluster(
+    const std::unordered_map<std::string, cfg::DsfNode>& nameToDsfNode);
+
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
 
 std::unordered_map<std::string, std::vector<std::string>>
 getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo);
+
+std::unordered_map<std::string, std::vector<std::string>>
+filterReachabilityByDst(
+    const std::vector<std::string>& dstSwitchNames,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        reachability,
+    const std::unordered_map<
+        std::string,
+        std::unordered_map<std::string, std::string>>& neighborPortsMap);
 
 std::unordered_map<std::string, int> getPortToVirtualDeviceId(
     const std::map<int32_t, PortInfoThrift>& myPortInfo);
@@ -98,6 +110,22 @@ std::vector<InputBalanceResult> checkInputBalanceDualStage(
     const std::unordered_map<std::string, int>& portToVirtualDevice,
     const std::unordered_map<std::string, cfg::DsfNode>& switchNameToDsfNode,
     bool verbose);
+
+std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
+    const InputBalanceDestType& inputBalanceDestType,
+    const std::string& dstSwitchName,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        inputCapacityForDst,
+    const std::vector<std::string>& outputCapacity,
+    const std::unordered_map<std::string, std::vector<std::string>>&
+        neighborToLinkFailure,
+    const std::unordered_map<std::string, int>& portToVirtualDevice,
+    bool verbose);
+
+std::vector<std::pair<std::string, InputBalanceDestType>>
+getSrcSwitchesToCheckInputBalance(
+    const std::string& switchName,
+    const std::map<int64_t, cfg::DsfNode>& dsfNodeMap);
 
 } // namespace utility
 } // namespace facebook::fboss

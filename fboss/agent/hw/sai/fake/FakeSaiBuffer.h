@@ -79,12 +79,17 @@ class FakeIngressPriorityGroup {
   FakeIngressPriorityGroup(
       sai_object_id_t port,
       sai_uint8_t index,
-      std::optional<sai_object_id_t> bufferProfile)
-      : port(port), index(index), bufferProfile(bufferProfile) {}
+      std::optional<sai_object_id_t> bufferProfile,
+      std::optional<bool> losslessEnable = std::nullopt)
+      : port(port),
+        index(index),
+        bufferProfile(bufferProfile),
+        losslessEnable(losslessEnable) {}
   sai_object_id_t id;
   sai_object_id_t port;
   sai_uint8_t index;
   std::optional<sai_object_id_t> bufferProfile;
+  std::optional<bool> losslessEnable;
 };
 
 using FakeIngressPriorityGroupManager =

@@ -3,7 +3,6 @@
 #include <folly/Benchmark.h>
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
-#include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
 

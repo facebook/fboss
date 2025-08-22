@@ -12,13 +12,9 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
-#include <folly/json/dynamic.h>
-#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/sensor_service/ConfigValidator.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
@@ -55,8 +51,13 @@ void monitorSensorValue(const SensorData& sensorData) {
 }
 } // namespace
 
-SensorServiceImpl::SensorServiceImpl(const SensorConfig& sensorConfig)
-    : sensorConfig_(sensorConfig) {
+SensorServiceImpl::SensorServiceImpl(
+    const SensorConfig& sensorConfig,
+    const std::shared_ptr<Utils>& utils,
+    const std::shared_ptr<PlatformUtils>& platformUtils)
+    : sensorConfig_(sensorConfig),
+      utils_(utils),
+      platformUtils_(platformUtils) {
   fsdbSyncer_ = std::make_unique<FsdbSyncer>();
 }
 
@@ -105,21 +106,23 @@ void SensorServiceImpl::fetchSensorData() {
           sensor.thresholds().to_optional(),
           sensor.compute().to_optional());
       polledData[sensorName] = sensorData;
-      // We log 0 if there is a read failure.  If we dont log 0 on failure,
-      // fb303 will pick up the last reported (on read success) value and
-      // keep reporting that as the value. For 0 values, it is accurate to
-      // read the value along with the kReadFailure counter. Alternative is
-      // to delete this counter if there is a failure.
-      fb303::fbData->setCounter(
-          fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
       if (!sensorData.value()) {
-        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
         readFailures++;
-      } else {
-        fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
       }
+      publishPerSensorStats(sensorName, sensorData.value().to_optional());
     }
   }
+
+  if (sensorConfig_.switchAsicTemp()) {
+    XLOG(INFO) << "Processing Asic Temperature";
+    auto sensorData = getAsicTemp(sensorConfig_.switchAsicTemp().value());
+    polledData[kAsicTemp] = sensorData;
+    if (!sensorData.value()) {
+      readFailures++;
+    }
+    publishPerSensorStats(kAsicTemp, sensorData.value().to_optional());
+  }
+
   fb303::fbData->setCounter(kReadTotal, polledData.size());
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
@@ -146,7 +149,7 @@ void SensorServiceImpl::fetchSensorData() {
 std::vector<PmSensor> SensorServiceImpl::resolveSensors(
     const PmUnitSensors& pmUnitSensors) {
   auto pmSensors = *pmUnitSensors.sensors();
-  if (auto versionedPmSensors = Utils().resolveVersionedSensors(
+  if (auto versionedPmSensors = utils_->resolveVersionedSensors(
           pmUnitInfoFetcher_,
           *pmUnitSensors.slotPath(),
           *pmUnitSensors.versionedSensors())) {
@@ -195,6 +198,53 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
   sensorData.thresholds() = thresholds ? *thresholds : Thresholds();
   sensorData.sensorType() = sensorType;
   monitorSensorValue(sensorData);
+  return sensorData;
+}
+
+void SensorServiceImpl::publishPerSensorStats(
+    const std::string& sensorName,
+    std::optional<float> value) {
+  // We log 0 if there is a read failure.  If we dont log 0 on failure,
+  // fb303 will pick up the last reported (on read success) value and
+  // keep reporting that as the value. For 0 values, it is accurate to
+  // read the value along with the kReadFailure counter. Alternative is
+  // to delete this counter if there is a failure.
+  fb303::fbData->setCounter(
+      fmt::format(kReadValue, sensorName), value.value_or(0));
+  if (!value) {
+    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
+  } else {
+    fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
+  }
+}
+
+SensorData SensorServiceImpl::getAsicTemp(const SwitchAsicTemp& asicTemp) {
+  SensorData sensorData{};
+  sensorData.name() = kAsicTemp;
+  sensorData.sensorType() = SensorType::TEMPERTURE;
+  if (!asicTemp.vendorId() || !asicTemp.deviceId()) {
+    return sensorData;
+  }
+  auto sbdf = utils_->getPciAddress(*asicTemp.vendorId(), *asicTemp.deviceId());
+  if (!sbdf) {
+    XLOG(ERR) << fmt::format(
+        "Could not find asic device with vendorId: {}, deviceId: {}",
+        *asicTemp.vendorId(),
+        *asicTemp.deviceId());
+    return sensorData;
+  }
+  auto [exitStatus, output] =
+      platformUtils_->runCommand({"/usr/bin/mget_temp", "-d", *sbdf});
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Failed to get ASIC temperature for PCI device {} with error: {}",
+        *sbdf,
+        output);
+    return sensorData;
+  }
+
+  sensorData.timeStamp() = Utils::nowInSecs();
+  sensorData.value() = folly::to<uint16_t>(output);
   return sensorData;
 }
 

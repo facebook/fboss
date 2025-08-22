@@ -125,7 +125,9 @@
           "initRegSettings": [
             {
               "regOffset": 3,
-              "ioBuf": [95]
+              "ioBuf": [
+                95
+              ]
             }
           ]
         },
@@ -137,7 +139,9 @@
           "initRegSettings": [
             {
               "regOffset": 3,
-              "ioBuf": [95]
+              "ioBuf": [
+                95
+              ]
             }
           ]
         },
@@ -149,43 +153,63 @@
           "initRegSettings": [
             {
               "regOffset": 32,
-              "ioBuf": [110]
+              "ioBuf": [
+                110
+              ]
             },
             {
               "regOffset": 33,
-              "ioBuf": [-121]
+              "ioBuf": [
+                -121
+              ]
             },
             {
               "regOffset": 34,
-              "ioBuf": [-121]
+              "ioBuf": [
+                -121
+              ]
             },
             {
               "regOffset": 35,
-              "ioBuf": [-121]
+              "ioBuf": [
+                -121
+              ]
             },
             {
               "regOffset": 36,
-              "ioBuf": [-121]
+              "ioBuf": [
+                -121
+              ]
             },
             {
               "regOffset": 37,
-              "ioBuf": [-121]
+              "ioBuf": [
+                -121
+              ]
             },
             {
               "regOffset": 38,
-              "ioBuf": [-121]
+              "ioBuf": [
+                -121
+              ]
             },
             {
               "regOffset": 39,
-              "ioBuf": [-121]
+              "ioBuf": [
+                -121
+              ]
             },
             {
               "regOffset": 75,
-              "ioBuf": [31]
+              "ioBuf": [
+                31
+              ]
             },
             {
               "regOffset": 76,
-              "ioBuf": [127]
+              "ioBuf": [
+                127
+              ]
             }
           ]
         },
@@ -197,7 +221,9 @@
           "initRegSettings": [
             {
               "regOffset": 3,
-              "ioBuf": [95]
+              "ioBuf": [
+                95
+              ]
             }
           ]
         },
@@ -1104,36 +1130,28 @@
                 "pmUnitScopedName": "SYSTEM_STATUS_LED",
                 "deviceName": "sys_led",
                 "csrOffset": "0x6050"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              }
             },
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "FAN_STATUS_LED",
                 "deviceName": "fan_led",
                 "csrOffset": "0x6060"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              }
             },
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "PSU_STATUS_LED",
                 "deviceName": "psu_led",
                 "csrOffset": "0x6070"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              }
             },
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "SMB_STATUS_LED",
                 "deviceName": "smb_led",
                 "csrOffset": "0x6090"
-              },
-              "portNumber": -1,
-              "ledId": 1
+              }
             }
           ],
           "xcvrCtrlConfigs": [

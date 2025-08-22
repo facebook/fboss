@@ -265,6 +265,13 @@ class HwSwitchEnsemble : public TestEnsembleIf {
    */
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
+
+  /*
+   * Get latest router interface stats for given interfaces
+   */
+  virtual std::map<InterfaceID, HwRouterInterfaceStats> getLatestInterfaceStats(
+      const std::vector<InterfaceID>& interfaces) override;
+
   /*
    * Get latest sys port stats for given sys ports
    */

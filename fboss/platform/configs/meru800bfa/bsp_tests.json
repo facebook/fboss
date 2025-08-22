@@ -1,4 +1,139 @@
 {
-    "platform": "meru800bfa",
-    "testData": {}
+  "testData": {
+    "SCM.SCM_MPS_PMBUS": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [
+          {
+            "reg": "0x19",
+            "expected": "0xd0"
+          }
+        ],
+        "i2cSetData": []
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "in1",
+          "in2",
+          "temp1",
+          "power1",
+          "curr1"
+        ]
+      }
+    },
+    "SMB.IDPROM": {
+      "i2cTestData": {
+        "i2cDumpData": [
+          {
+            "start": "0x04",
+            "end": "0x13",
+            "expected": [
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff",
+              "ff"
+            ]
+          }
+        ],
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xff"
+          },
+          {
+            "reg": "0xff",
+            "expected": "0xff"
+          }
+        ],
+        "i2cSetData": []
+      }
+    },
+    "SMB.FAN0_CPLD": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x02",
+            "value": "0x66"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3"
+        ]
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      },
+      "ledTestData": {
+        "createsLeds": true
+      }
+    },
+    "SMB.FAN1_CPLD": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x02",
+            "value": "0x66"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3"
+        ]
+      },
+      "ledTestData": {
+        "createsLeds": true
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      }
+    },
+    "SMB.FAN2_CPLD": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [],
+        "i2cSetData": [
+          {
+            "reg": "0x02",
+            "value": "0x66"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3"
+        ]
+      },
+      "ledTestData": {
+        "createsLeds": true
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      }
+    }
+  }
 }

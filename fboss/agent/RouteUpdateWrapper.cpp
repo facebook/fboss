@@ -13,7 +13,6 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
-#include "fboss/agent/state/NodeBase-defs.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -221,6 +220,14 @@ void RouteUpdateWrapper::programEcmpSwitchingModeAsync(
     const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
         prefixes) {
   getRib()->setOverrideEcmpModeAsync(
+      resolver_, rid, prefixes, *fibUpdateFn_, fibUpdateCookie_);
+}
+
+void RouteUpdateWrapper::programEcmpNhopOverridesAsync(
+    RouterID rid,
+    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
+        prefixes) {
+  getRib()->setOverrideEcmpNhopsAsync(
       resolver_, rid, prefixes, *fibUpdateFn_, fibUpdateCookie_);
 }
 

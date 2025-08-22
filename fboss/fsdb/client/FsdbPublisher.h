@@ -7,11 +7,14 @@
 #include <folly/concurrency/DynamicBoundedQueue.h>
 #include <folly/coro/AsyncGenerator.h>
 #include <folly/coro/AsyncPipe.h>
+#include <folly/executors/FunctionScheduler.h>
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <atomic>
 #include <shared_mutex>
+
+DECLARE_int32(fsdb_publisher_heartbeat_interval_secs);
 
 namespace facebook::fboss::fsdb {
 template <typename PubUnit>
@@ -93,8 +96,16 @@ class FsdbPublisher : public FsdbStreamClient {
   OperPubRequest createRequest() const;
 
   const std::vector<std::string> publishPath_;
+  std::atomic<bool> initialSyncComplete_{false};
+  std::atomic<uint64_t> lastConfirmedAt_{0};
 
  private:
+  void scheduleHeartbeatLoop();
+
+  void cancelHeartbeatLoop();
+
+  void sendHeartbeat();
+
   void handleStateChange(State oldState, State newState);
 // Note unique_ptr is synchronized, not GenT/PipeT. The latter manages its
 // own synchronization
@@ -102,6 +113,7 @@ class FsdbPublisher : public FsdbStreamClient {
   folly::Synchronized<std::unique_ptr<GenPipeT>> asyncPipe_;
 #endif
   std::atomic<ssize_t> queueSize_{0};
+  folly::FunctionScheduler functionScheduler_;
   fb303::ThreadCachedServiceData::TLTimeseries writeErrors_;
 };
 } // namespace facebook::fboss::fsdb

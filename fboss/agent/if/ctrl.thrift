@@ -1124,6 +1124,12 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<string, hardware_stats.HwPortStats> getHwPortStats() throws (
     1: fboss.FbossBaseError error,
   );
+
+  map<
+    string,
+    hardware_stats.HwRouterInterfaceStats
+  > getHwRouterInterfaceStats() throws (1: fboss.FbossBaseError error);
+
   hardware_stats.CpuPortStats getCpuPortStats() throws (
     1: fboss.FbossBaseError error,
   );

@@ -69,7 +69,7 @@ class BcmBstStatsMgr {
 
  private:
   void syncStats() const;
-  void syncHighFrequencyStats() const;
+  void syncHighFrequencyStats(const HfStatsConfig& statsConfig) const;
   void getAndPublishDeviceWatermark();
   void publishDeviceWatermark(uint64_t peakBytes) const;
   void publishCpuQueueWatermark(int queue, uint64_t peakBytes) const;
@@ -115,7 +115,6 @@ class BcmBstStatsMgr {
       bcmBstStatIdPriGroupShared,
       bcmBstStatIdUcast};
   static constexpr std::array<int16_t, 1> kHfQueueIds{2};
-  static constexpr std::array<int, 2> kHfItms{0, 1};
 };
 
 } // namespace facebook::fboss
