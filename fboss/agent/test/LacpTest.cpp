@@ -1301,3 +1301,85 @@ TEST_F(LacpTest, lacpDownCounters) {
   // both members should timeout
   counters.checkDelta(SwitchStats::kCounterPrefix + "lacp.rx_timeout.sum", 2);
 }
+
+/*
+ * Test LACP transmission failure handling - when transmission fails,
+ * the periodic transmission machine should switch to FAST mode for retry
+ */
+TEST_F(LacpTest, lacpTransmissionFailureRetry) {
+  auto rate = cfg::LacpPortRate::SLOW;
+  LacpServiceInterceptor serviceInterceptor(lacpEvb());
+
+  PortID testPort(1);
+  ParticipantInfo testInfo;
+  testInfo.systemPriority = 65535;
+  testInfo.systemID = {{0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x8d}};
+  testInfo.key = 903;
+  testInfo.portPriority = 32768;
+  testInfo.port = testPort;
+
+  auto controllerPtr = std::make_shared<LacpController>(
+      testPort,
+      lacpEvb(),
+      testInfo.portPriority,
+      rate,
+      cfg::LacpPortActivity::ACTIVE,
+      cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+      AggregatePortID(testInfo.key),
+      testInfo.systemPriority,
+      MacAddress::fromBinary(folly::ByteRange(
+          testInfo.systemID.cbegin(), testInfo.systemID.cend())),
+      1 /* minimum-link count */,
+      &serviceInterceptor);
+
+  serviceInterceptor.addController(controllerPtr);
+  controllerPtr->startMachines();
+  controllerPtr->portUp();
+
+  // simulate transmission failure
+  serviceInterceptor.setTransmissionShouldFail(true);
+
+  // Wait for initial transmission, waiting for 10 seconds to allow for
+  // faster
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+
+  // Trigger a transmission by simulating reception of a partner PDU
+  ParticipantInfo partnerInfo;
+  partnerInfo.state = LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE;
+  controllerPtr->received(
+      LACPDU(partnerInfo, ParticipantInfo::defaultParticipantInfo()));
+
+  // Wait for the next transmission attempt which should fail and trigger FAST
+  // mode
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+
+  // Helper to get the current transmission period from the controller
+  auto getCurrentPeriod = [&controllerPtr]() -> std::chrono::seconds {
+    // Access the controller's periodic transmission machine period.
+    return controllerPtr->getCurrentTransmissionPeriod();
+  };
+
+  // After transmission failure, the period should be SHORT_PERIOD (FAST mode)
+  auto periodAfterFailure = getCurrentPeriod();
+  ASSERT_EQ(periodAfterFailure, PeriodicTransmissionMachine::SHORT_PERIOD)
+      << "After transmission failure, should switch to FAST (short timeout) period";
+
+  // Now allow transmission to succeed again
+  serviceInterceptor.setTransmissionShouldFail(false);
+
+  // Wait for FAST period retry
+  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+  // After transmission succeeds, the period should revert to LONG_PERIOD (SLOW
+  // mode) Wait for the controller to revert back to SLOW mode
+  std::this_thread::sleep_for(PeriodicTransmissionMachine::SHORT_PERIOD * 2);
+  auto periodAfterSuccess = getCurrentPeriod();
+  ASSERT_EQ(periodAfterSuccess, PeriodicTransmissionMachine::LONG_PERIOD)
+      << "After transmission success, should revert to SLOW (long timeout) period";
+  // verify that the last transmitted PDU has the correct state
+  ASSERT_EQ(
+      serviceInterceptor.lastLacpduTransmitted(testPort).actorInfo.state,
+      LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE | LacpState::IN_SYNC);
+
+  // The test passes if we don't crash and the controller continues to operate
+  controllerPtr->stopMachines();
+}
