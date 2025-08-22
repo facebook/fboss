@@ -497,6 +497,11 @@ PeriodicTransmissionMachine::determineTransmissionRate() {
       : PeriodicState::SLOW;
 }
 
+std::chrono::seconds PeriodicTransmissionMachine::getCurrentTransmissionPeriod()
+    const {
+  return state_ == PeriodicState::FAST ? SHORT_PERIOD : LONG_PERIOD;
+}
+
 const std::chrono::seconds TransmitMachine::TX_REPLENISH_RATE(1);
 const int TransmitMachine::MAX_TRANSMISSIONS_IN_SHORT_PERIOD = 3;
 

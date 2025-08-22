@@ -232,4 +232,7 @@ bool LacpController::getLacpLastTransmissionResult() {
   return tx_.getLacpLastTransmissionResult();
 }
 
+std::chrono::seconds LacpController::getCurrentTransmissionPeriod() const {
+  return periodicTx_.getCurrentTransmissionPeriod();
+}
 } // namespace facebook::fboss

@@ -107,6 +107,7 @@ class PeriodicTransmissionMachine : private folly::AsyncTimeout {
 
   void portUp();
   void portDown();
+  std::chrono::seconds getCurrentTransmissionPeriod() const;
 
   // thread-safe
   void start();
