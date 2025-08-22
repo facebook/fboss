@@ -9,6 +9,8 @@ enum PimError {
   # SCD counter is explicitly cleared by SW during PIM initialization at service startup.
   # So if the counter is detected as not cleared, it means PIM was reseated without restarting the service
   PIM_SCD_COUNTER_NOT_CLEARED = 0,
+  # Same for Minipack / Fuji PIM, which uses a different scratchpad counter.
+  PIM_MINIPACK_SCRATCHPAD_COUNTER_NOT_CLEARED = 1,
 }
 
 struct PimState {

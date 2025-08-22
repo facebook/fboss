@@ -124,6 +124,9 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
         EXPECT_EQ(
             newRoute->getForwardInfo().getOverrideEcmpSwitchingMode(),
             origRoute->getForwardInfo().getOverrideEcmpSwitchingMode());
+        EXPECT_EQ(
+            newRoute->getForwardInfo().getOverrideNextHops(),
+            origRoute->getForwardInfo().getOverrideNextHops());
       }
     }
   }
@@ -535,11 +538,13 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::addOrUpdateRoute(
   return consolidate(newState);
 }
 
-std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoute(
-    const RoutePrefixV6& prefix6) {
+std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoutes(
+    const std::vector<RoutePrefixV6>& prefix6s) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
-  fib6->removeNode(prefix6.str());
+  for (const auto& prefix6 : prefix6s) {
+    fib6->removeNode(prefix6.str());
+  }
   newState->publish();
   return consolidate(newState);
 }
@@ -559,6 +564,11 @@ std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
 std::set<RouteV6::Prefix>
 BaseEcmpResourceManagerTest::getPrefixesWithoutOverrides() const {
   std::set<RouteV6::Prefix> prefixes;
+  return getPrefixesForGroups(getGroupsWithoutOverrides());
+}
+
+EcmpResourceManager::NextHopGroupIds
+BaseEcmpResourceManagerTest::getGroupsWithoutOverrides() const {
   EcmpResourceManager::NextHopGroupIds nonOverrideGids;
   auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
   for (const auto& [_, pfxs] : grpId2Prefixes) {
@@ -568,7 +578,7 @@ BaseEcmpResourceManagerTest::getPrefixesWithoutOverrides() const {
       nonOverrideGids.insert(grpInfo->getID());
     }
   }
-  return getPrefixesForGroups(nonOverrideGids);
+  return nonOverrideGids;
 }
 
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {

@@ -142,7 +142,7 @@ void validateBufferPoolWatermarkCounters(
       }
       auto headroomCounters = ensemble->getFb303RegexCounters(
           "buffer_watermark_global_headroom(.itm.*)?.p100.60", switchId);
-      for (const auto& [_, val] : sharedCounters) {
+      for (const auto& [_, val] : headroomCounters) {
         globalHeadroomWatermark += val;
       }
     }

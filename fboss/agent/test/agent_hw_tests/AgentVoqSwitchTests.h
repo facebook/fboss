@@ -121,5 +121,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
     });
     return portDescs;
   }
+
+  std::string getSdkMajorVersion();
 };
 } // namespace facebook::fboss

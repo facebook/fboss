@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <fmt/format.h>
+#include <re2/re2.h>
 #include <filesystem>
 #include <string>
 
@@ -35,6 +36,24 @@ constexpr auto kDefaultEgressQueue = 0;
 
 using namespace facebook::fb303;
 namespace facebook::fboss {
+
+std::string AgentVoqSwitchTest::getSdkMajorVersion() {
+  std::string majorVersion;
+
+  static const re2::RE2 bcmSaiPattern("BRCM SAI ver: \\[(\\d+)\\.");
+  std::string output;
+  // Start with a blank command first and then get the BCM SAI version
+  // This is because, sometimes first diag command doesn't work in some SDK
+  // versions
+  getAgentEnsemble()->runDiagCommand("\n", output);
+  getAgentEnsemble()->runDiagCommand("bcmsai ver\n", output);
+  if (RE2::PartialMatch(output, bcmSaiPattern, &majorVersion)) {
+    return majorVersion;
+  }
+
+  // Return 0 by default
+  return "0";
+}
 
 void AgentVoqSwitchTest::rxPacketToCpuHelper(
     uint16_t l4SrcPort,
@@ -892,9 +911,12 @@ TEST_F(AgentVoqSwitchTest, verifyDramBufferQuarantine) {
       XLOG(DBG0) << "Dram Quarantined Buffer count: "
                  << dramQurantinedBufferCount.value();
     });
-    // Make sure that we remove the deleted buffer file created
-    // so that it wont interfere with the next test run.
-    EXPECT_TRUE(std::filesystem::remove("deleted_buffers_file"));
+    WITH_RETRIES({
+      // Make sure that we remove the deleted buffer file created
+      // so that it wont interfere with the next test run.
+      EXPECT_EVENTUALLY_TRUE(
+          std::filesystem::remove("/tmp/dram_quarantine_deleted_buffers_file"));
+    });
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
@@ -979,6 +1001,38 @@ TEST_F(AgentVoqSwitchTest, verifySendPacketOutOfEventorBlocked) {
     sleep(5);
     EXPECT_EQ(beforeOutPkts, *getLatestPortStats(portId).outUnicastPkts_());
   }
+}
+
+TEST_F(AgentVoqSwitchTest, verifyAI23ModeConfig) {
+  auto setup = []() {};
+  auto verify = [this]() {
+    // Get the SDK major version
+    auto sdkMajorVersionStr = getSdkMajorVersion();
+    auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
+    // Check if SDK major version is valid
+    EXPECT_GT(sdkMajorVersionNum, 0);
+
+    // If major version is >= 12, check for AI23_mode
+    if (sdkMajorVersionNum >= 12) {
+      std::string configOutput;
+      getAgentEnsemble()->runDiagCommand("config show\n", configOutput);
+
+      // Check if AI23_mode is enabled in the config
+      bool isAI23ModeEnabled =
+          configOutput.find("AI23_mode=1") != std::string::npos;
+      XLOG(DBG2) << "AI23_mode enabled? " << (isAI23ModeEnabled ? "yes" : "no");
+
+      EXPECT_TRUE(isAI23ModeEnabled)
+          << "AI23_mode=1 is not enabled for SAI major version "
+          << sdkMajorVersionNum;
+    } else {
+      XLOG(DBG2)
+          << "Skipping AI23_mode config verification for SAI major version "
+          << sdkMajorVersionNum;
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

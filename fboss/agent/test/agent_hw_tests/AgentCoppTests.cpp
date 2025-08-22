@@ -62,10 +62,6 @@ const auto kDhcpV6ServerGlobalUnicastAddress =
 const auto kRandomIP = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
 const auto kGlobalRateLimit = 1.5 * 1024 * 1024;
 
-static time_t getCurrentTime() {
-  return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-}
-
 using TestTypes =
     ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
 } // unnamed namespace
