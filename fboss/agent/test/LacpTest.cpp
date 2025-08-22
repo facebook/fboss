@@ -72,15 +72,20 @@ class LacpTest : public ::testing::Test {
 class LacpServiceInterceptor : public LacpServicerIf {
  public:
   explicit LacpServiceInterceptor(FbossEventBase* lacpEvb)
-      : lacpEvb_(lacpEvb), sw_(nullptr) {}
+      : lacpEvb_(lacpEvb), sw_(nullptr), simulateTransmissionFail_(false) {}
   LacpServiceInterceptor(FbossEventBase* lacpEvb, SwSwitch* sw)
-      : lacpEvb_(lacpEvb), sw_(sw) {}
+      : lacpEvb_(lacpEvb), sw_(sw), simulateTransmissionFail_(false) {}
 
   // The following methods implement the LacpServicerIf interface
   bool transmit(LACPDU lacpdu, PortID portID) override {
     auto portToLastTransmissionLocked = portToLastTransmission_.wlock();
 
     (*portToLastTransmissionLocked)[portID] = lacpdu;
+
+    // Simulate transmission failure if configured
+    if (simulateTransmissionFail_) {
+      return false;
+    }
 
     // "Transmit" the frame
     return true;
@@ -183,6 +188,10 @@ class LacpServiceInterceptor : public LacpServicerIf {
     return forwarding;
   }
 
+  void setTransmissionShouldFail(bool shouldFail) {
+    simulateTransmissionFail_ = shouldFail;
+  }
+
   ~LacpServiceInterceptor() override {
     lacpEvb_->runInFbossEventBaseThreadAndWait([this]() {
       for (auto& controller : controllers_) {
@@ -202,6 +211,7 @@ class LacpServiceInterceptor : public LacpServicerIf {
 
   FbossEventBase* lacpEvb_{nullptr};
   SwSwitch* sw_{nullptr};
+  bool simulateTransmissionFail_{false};
 };
 
 class MockLacpServicer : public LacpServicerIf {
