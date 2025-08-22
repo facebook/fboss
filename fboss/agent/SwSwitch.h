@@ -624,7 +624,7 @@ class SwSwitch : public HwSwitchCallback {
   /**
    * All FBOSS Network Control packets should use this API to send out
    */
-  void sendNetworkControlPacketAsync(
+  bool sendNetworkControlPacketAsync(
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor) noexcept;
 
@@ -637,17 +637,17 @@ class SwSwitch : public HwSwitchCallback {
    *
    * Egress queue to send the packet out from can be set for pipeline bypass.
    */
-  void sendPacketAsync(
+  bool sendPacketAsync(
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor = std::nullopt,
       std::optional<uint8_t> queueId = std::nullopt) noexcept;
 
-  void sendPacketOutOfPortAsync(
+  bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept;
 
-  void sendPacketOutOfPortAsync(
+  bool sendPacketOutOfPortAsync(
       std::unique_ptr<TxPacket> pkt,
       AggregatePortID aggPortID,
       std::optional<uint8_t> queue = std::nullopt) noexcept;
@@ -655,7 +655,7 @@ class SwSwitch : public HwSwitchCallback {
   /*
    * Send a packet to HwSwitch using thrift stream
    */
-  void sendPacketOutViaThriftStream(
+  bool sendPacketOutViaThriftStream(
       std::unique_ptr<TxPacket> pkt,
       SwitchID switchId,
       std::optional<PortID> portID,
@@ -664,7 +664,7 @@ class SwSwitch : public HwSwitchCallback {
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.
    */
-  void sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
 
   /**
    * Send out L3 packet through HW

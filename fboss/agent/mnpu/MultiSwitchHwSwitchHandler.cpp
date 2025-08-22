@@ -90,9 +90,8 @@ bool MultiSwitchHwSwitchHandler::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortID> portID,
     std::optional<uint8_t> queue) {
-  sw_->sendPacketOutViaThriftStream(
+  return sw_->sendPacketOutViaThriftStream(
       std::move(pkt), getSwitchId(), portID, queue);
-  return true;
 }
 
 bool MultiSwitchHwSwitchHandler::checkOperSyncStateLocked(

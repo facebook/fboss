@@ -3092,45 +3092,47 @@ std::unique_ptr<TxPacket> SwSwitch::allocateL3TxPacket(
   return pkt;
 }
 
-void SwSwitch::sendNetworkControlPacketAsync(
+bool SwSwitch::sendNetworkControlPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor) noexcept {
   // TODO(joseph5wu): Control this by distinguishing the highest priority
   // queue from the config.
   static const uint8_t kNCStrictPriorityQueue = 7;
 
-  sendPacketAsync(
+  return sendPacketAsync(
       std::move(pkt),
       portDescriptor,
       portDescriptor ? std::make_optional(kNCStrictPriorityQueue)
                      : std::nullopt);
 }
 
-void SwSwitch::sendPacketAsync(
+bool SwSwitch::sendPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor,
     std::optional<uint8_t> queueId) noexcept {
   if (portDescriptor.has_value()) {
     switch (portDescriptor.value().type()) {
       case PortDescriptor::PortType::PHYSICAL:
-        sendPacketOutOfPortAsync(
+        return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().phyPortID(), queueId);
         break;
       case PortDescriptor::PortType::AGGREGATE:
-        sendPacketOutOfPortAsync(
+        return sendPacketOutOfPortAsync(
             std::move(pkt), portDescriptor.value().aggPortID(), queueId);
         break;
       case PortDescriptor::PortType::SYSTEM_PORT:
         XLOG(FATAL) << " Packet send over system ports not handled yet";
+        return false;
         break;
     };
   } else {
     CHECK(!queueId.has_value());
-    this->sendPacketSwitchedAsync(std::move(pkt));
+    return this->sendPacketSwitchedAsync(std::move(pkt));
   }
+  return true;
 }
 
-void SwSwitch::sendPacketOutOfPortAsync(
+bool SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     std::optional<uint8_t> queue) noexcept {
@@ -3139,7 +3141,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
     XLOG(ERR) << "SendPacketOutOfPortAsync: dropping packet to unexpected port "
               << portID;
     stats()->pktDropped();
-    return;
+    return false;
   }
 
   pcapMgr_->packetSent(pkt.get());
@@ -3162,10 +3164,12 @@ void SwSwitch::sendPacketOutOfPortAsync(
     // send may ultimately fail since it occurs asynchronously in the
     // background.
     XLOG(ERR) << "failed to send packet out port " << portID;
+    return false;
   }
+  return true;
 }
 
-void SwSwitch::sendPacketOutOfPortAsync(
+bool SwSwitch::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     AggregatePortID aggPortID,
     std::optional<uint8_t> queue) noexcept {
@@ -3173,14 +3177,14 @@ void SwSwitch::sendPacketOutOfPortAsync(
   if (!aggPort) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
               << ": no aggregate port corresponding to identifier";
-    return;
+    return false;
   }
 
   auto subportAndFwdStates = aggPort->subportAndFwdState();
   if (subportAndFwdStates.begin() == subportAndFwdStates.end()) {
     XLOG(ERR) << "failed to send packet out aggregate port " << aggPortID
               << ": aggregate port has no constituent physical ports";
-    return;
+    return false;
   }
 
   // Ideally, we would select the same (physical) sub-port to send this
@@ -3199,15 +3203,15 @@ void SwSwitch::sendPacketOutOfPortAsync(
   for (auto elem : subportAndFwdStates) {
     std::tie(subport, fwdState) = elem;
     if (fwdState == AggregatePort::Forwarding::ENABLED) {
-      sendPacketOutOfPortAsync(std::move(pkt), subport, queue);
-      return;
+      return sendPacketOutOfPortAsync(std::move(pkt), subport, queue);
     }
   }
   XLOG(DBG2) << "failed to send packet out aggregate port" << aggPortID
              << ": aggregate port has no enabled physical ports";
+  return false;
 }
 
-void SwSwitch::sendPacketOutViaThriftStream(
+bool SwSwitch::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     SwitchID switchId,
     std::optional<PortID> portID,
@@ -3230,10 +3234,12 @@ void SwSwitch::sendPacketOutViaThriftStream(
     stats()->pktDropped();
     XLOG(DBG2) << "Error sending packet via thrift stream to switch "
                << switchId;
+    return false;
   }
+  return true;
 }
 
-void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
+bool SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
   pcapMgr_->packetSent(pkt.get());
   if (!multiHwSwitchHandler_->sendPacketSwitchedAsync(std::move(pkt))) {
     // Just log an error for now.  There's not much the caller can do about
@@ -3241,7 +3247,9 @@ void SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
     // the send may ultimately fail since it occurs asynchronously in the
     // background.
     XLOG(ERR) << "failed to send switched packet";
+    return false;
   }
+  return true;
 }
 
 std::optional<folly::MacAddress> SwSwitch::getSourceMac(

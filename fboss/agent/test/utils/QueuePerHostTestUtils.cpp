@@ -54,7 +54,7 @@ SendPacketFunc getSendPacketFunc(AgentEnsemble* ensemble) {
              std::unique_ptr<TxPacket> pkt,
              std::vector<PortID> portIds,
              GetPortStatsFunc /*portStatsFn*/,
-             bool useFrontPanel) {
+             bool useFrontPanel) -> bool {
     if (useFrontPanel) {
       return ensemble->getSw()->sendPacketOutOfPortAsync(
           std::move(pkt), portIds[1]);
