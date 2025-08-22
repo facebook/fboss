@@ -455,6 +455,17 @@ target_link_libraries(hw_voq_sys_port_programming
   Folly::follybenchmark
 )
 
+add_library(hw_voq_remote_neighbor_programming
+  fboss/agent/hw/benchmarks/HwVoqRemoteNeighborProgrammingBenchmark.cpp
+)
+
+target_link_libraries(hw_voq_remote_neighbor_programming
+  voq_test_utils
+  dsf_config_utils
+  Folly::folly
+  Folly::follybenchmark
+)
+
 add_library(hw_system_scale_memory_benchmark
   fboss/agent/hw/benchmarks/HwSystemScaleMemoryBenchmark.cpp
 )

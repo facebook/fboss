@@ -432,6 +432,12 @@ cpp_library(
 )
 
 agent_benchmark_lib(
+    name = "hw_voq_remote_neighbor_programming",
+    srcs = ["HwVoqRemoteNeighborProgrammingBenchmark.cpp"],
+    extra_deps = [":hw_voq_remote_neighbor_benchmark_helpers"],
+)
+
+agent_benchmark_lib(
     name = "hw_clear_interface_phy_counters",
     srcs = ["HwClearInterfacePhyCountersBenchmark.cpp"],
     extra_deps = [],
