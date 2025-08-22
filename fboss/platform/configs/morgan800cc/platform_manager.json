@@ -17,7 +17,7 @@
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x50",
-        "kernelDeviceName": "24c64"
+        "kernelDeviceName": "24c32"
       },
       "pmUnitName": "MORGAN800CC"
     },
@@ -44,7 +44,7 @@
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x55",
-        "kernelDeviceName": "24c64"
+        "kernelDeviceName": "24c32"
       },
       "pmUnitName": "JUMPER"
     },
@@ -62,7 +62,7 @@
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x50",
-        "kernelDeviceName": "24c64"
+        "kernelDeviceName": "24c32"
       },
       "pmUnitName": "PDB"
     },
@@ -389,7 +389,7 @@
         {
           "busName": "MCB_MUX_A@0",
           "address": "0x50",
-          "kernelDeviceName": "24c64",
+          "kernelDeviceName": "24c32",
           "pmUnitScopedName": "CHASSIS_EEPROM"
         },
         {
