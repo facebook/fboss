@@ -323,4 +323,8 @@ inline folly::StringPiece constexpr kPfcDeadlockDetection() {
 inline folly::StringPiece constexpr kPfcDeadlockRecovery() {
   return "pfc_deadlock_recovery";
 }
+
+inline folly::StringPiece constexpr kMacTransmitQueueStuck() {
+  return "mac_transmit_queue_stuck";
+}
 } // namespace facebook::fboss
