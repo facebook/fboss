@@ -20,7 +20,9 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
-constexpr auto kPciWaitSecs = std::chrono::seconds(5);
+constexpr auto kPciWaitSecs =
+    std::chrono::seconds(10); // T235561085 - Change back to 5 when root cause
+                              // of iob creation delay is fixed
 
 fbiob_aux_data getAuxData(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
