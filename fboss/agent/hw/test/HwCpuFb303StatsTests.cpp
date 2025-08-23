@@ -89,6 +89,7 @@ HwPortStats getInitedStats() {
       {{1, false}}, // pgInCongestionDiscardsSeen_
       0, // macTransmitQueueMinWatermarkCells_
       0, // macTransmitQueueMaxWatermarkCells_
+      false, // macTransmitQueueStuck_
   };
 }
 
