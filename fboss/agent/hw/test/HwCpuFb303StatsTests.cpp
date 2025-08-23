@@ -87,6 +87,8 @@ HwPortStats getInitedStats() {
       30, // pfcDeadlockDetection_
       30, // pfcDeadlockRecovery_
       {{1, false}}, // pgInCongestionDiscardsSeen_
+      0, // macTransmitQueueMinWatermarkCells_
+      0, // macTransmitQueueMaxWatermarkCells_
   };
 }
 
