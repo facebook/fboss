@@ -324,6 +324,14 @@ void fillHwPortStats(
         hwPortStats.linkLayerFlowControlWatermark_() = value;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+      case SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MIN_WM:
+        hwPortStats.macTransmitQueueMinWatermarkCells_() = value;
+        break;
+      case SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MAX_WM:
+        hwPortStats.macTransmitQueueMaxWatermarkCells_() = value;
+        break;
+#endif
       default:
         auto configuredDebugCounters =
             debugCounterManager.getConfiguredDebugStatIds();
@@ -1963,6 +1971,21 @@ void SaiPortManager::updateStats(
       platform_->getAsic()->isSupported(HwAsic::Feature::FAST_LLFC_COUNTER)) {
     handle->port->updateStats(
         {SAI_PORT_STAT_FAST_LLFC_TRIGGER_STATUS},
+        SAI_STATS_MODE_READ_AND_CLEAR);
+  }
+#endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK)) {
+    // RCI stuck scenario in S545783 needs further debugging,
+    // need to have a way to monitor for a stuck scenario. Here,
+    // trying to collect MAC TX queue min/max watermarks and use
+    // that to identify a TX stuck case which can result in RCI
+    // getting stuck. So these watermark counters are read every
+    // polling cycle and not just when updateWatermarks is set.
+    handle->port->updateStats(
+        {SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MIN_WM,
+         SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MAX_WM},
         SAI_STATS_MODE_READ_AND_CLEAR);
   }
 #endif
