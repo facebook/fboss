@@ -768,6 +768,18 @@ SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
   return std::nullopt;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMinWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::macTxDataQueueMaxWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;

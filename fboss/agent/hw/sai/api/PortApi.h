@@ -642,6 +642,8 @@ struct SaiPortTraits {
       SAI_PORT_STAT_PFC_7_ON2OFF_RX_PKTS,
   };
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
+  static const std::vector<sai_stat_id_t>& macTxDataQueueMinWatermarkStats();
+  static const std::vector<sai_stat_id_t>& macTxDataQueueMaxWatermarkStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
