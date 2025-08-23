@@ -223,6 +223,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
+    case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
       /*
