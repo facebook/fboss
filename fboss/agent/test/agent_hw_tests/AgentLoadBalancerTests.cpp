@@ -6,6 +6,7 @@
 
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestRunner.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -168,6 +169,86 @@ class AgentMpls2MplsLoadBalancerTest
   }
 };
 
+template <typename EcmpDataPlateUtils, bool loadAware = true>
+class AgentLoadBalancerTestSpray
+    : public AgentLoadBalancerTest<EcmpDataPlateUtils, false> {
+ private:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(), ensemble.masterLogicalPortIds());
+    cfg.udfConfig() = utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
+    auto switchingMode = loadAware ? cfg::SwitchingMode::PER_PACKET_QUALITY
+                                   : cfg::SwitchingMode::PER_PACKET_RANDOM;
+    utility::addFlowletConfigs(
+        cfg, ensemble.masterLogicalPortIds(), ensemble.isSai(), switchingMode);
+    utility::addFlowletAcl(
+        cfg,
+        ensemble.isSai(),
+        utility::kFlowletAclName,
+        utility::kFlowletAclCounterName,
+        false);
+    return cfg;
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_flowletSwitchingEnable = true;
+  }
+
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentLoadBalancerTest<EcmpDataPlateUtils, false>::
+        getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::ARS_SPRAY);
+    return features;
+  }
+
+  std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
+    if (!this->getEnsemble()) {
+      // run during listing produciton features
+      return nullptr;
+    }
+    return std::make_unique<EcmpDataPlateUtils>(
+        this->getEnsemble(), RouterID(0));
+  }
+};
+
+template <typename EcmpDataPlateUtils, bool kWideEcmp = false>
+class AgentLoadBalancerTestUdf
+    : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
+ private:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(), ensemble.masterLogicalPortIds());
+
+    // Add UDF configuration
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(SwitchID(0));
+    cfg.udfConfig() = utility::addUdfHashConfig(asic->getAsicType());
+    return cfg;
+  }
+
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp>::
+        getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::UDF_HASH);
+    return features;
+  }
+
+  std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
+    if (!this->getEnsemble()) {
+      // run during listing production features
+      return nullptr;
+    }
+    return std::make_unique<EcmpDataPlateUtils>(
+        this->getEnsemble(), RouterID(0));
+  }
+};
+
 class AgentLoadBalancerTestV4
     : public AgentIpLoadBalancerTest<utility::HwIpV4EcmpDataPlaneTestUtil> {};
 
@@ -244,6 +325,28 @@ class AgentLoadBalancerTestV6InMplsPhpWide
           LabelForwardingAction::LabelForwardingType::PHP,
           true> {};
 
+class AgentLoadBalancerTestV4Udf
+    : public AgentLoadBalancerTestUdf<
+          utility::HwIpV4RoCEEcmpDataPlaneTestUtil> {};
+
+class AgentLoadBalancerTestV6Udf
+    : public AgentLoadBalancerTestUdf<
+          utility::HwIpV6RoCEEcmpDataPlaneTestUtil> {};
+
+class AgentLoadBalancerTestV6UdfNegative
+    : public AgentLoadBalancerTestUdf<
+          utility::HwIpV6RoCEEcmpDestPortDataPlaneTestUtil> {};
+
+class AgentLoadBalancerTestV6ArsSpray
+    : public AgentLoadBalancerTestSpray<
+          utility::HwIpV6RoCEEcmpDataPlaneTestUtil,
+          true> {};
+
+class AgentLoadBalancerTestV6EcmpSpray
+    : public AgentLoadBalancerTestSpray<
+          utility::HwIpV6RoCEEcmpDataPlaneTestUtil,
+          false> {};
+
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4ToMpls)
@@ -298,5 +401,22 @@ RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
     AgentLoadBalancerTestV4InMplsPhpWide)
 RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
     AgentLoadBalancerTestV6InMplsPhpWide)
+
+// Verify UDF hashing for v4 and v6
+RUN_HW_LOAD_BALANCER_TEST_CPU(AgentLoadBalancerTestV4Udf, Ecmp, FullUdf)
+RUN_HW_LOAD_BALANCER_TEST_CPU(AgentLoadBalancerTestV6Udf, Ecmp, FullUdf)
+// Verify UDF field is not considered with regular ECMP
+RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV6Udf,
+    Ecmp,
+    Full)
+// Verify UDF is a miss for traffic not matching UDP dst port
+RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV6UdfNegative,
+    Ecmp,
+    FullUdf)
+
+RUN_HW_LOAD_BALANCER_TEST_CPU(AgentLoadBalancerTestV6ArsSpray, Ecmp, Full)
+RUN_HW_LOAD_BALANCER_TEST_CPU(AgentLoadBalancerTestV6EcmpSpray, Ecmp, Full)
 
 } // namespace facebook::fboss

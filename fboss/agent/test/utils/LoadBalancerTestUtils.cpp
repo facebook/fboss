@@ -141,6 +141,9 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   flowletCfg.flowletTableSize() = 2048;
   if (switchingMode == cfg::SwitchingMode::PER_PACKET_QUALITY) {
     flowletCfg.flowletTableSize() = 256;
+  } else if (switchingMode == cfg::SwitchingMode::PER_PACKET_RANDOM) {
+    flowletCfg.inactivityIntervalUsecs() = 256;
+    flowletCfg.flowletTableSize() = 512;
   }
   // set the egress load and queue exponent to zero for DLB engine
   // to do load balancing across all the links better with single stream
