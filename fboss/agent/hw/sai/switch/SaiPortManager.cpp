@@ -1933,6 +1933,38 @@ void SaiPortManager::updatePrbsStats(PortID portId) {
 #endif
 }
 
+void SaiPortManager::updateFabricMacTransmitQueueStuck(
+    const PortID& portId,
+    HwPortStats& currPortStats,
+    const HwPortStats& prevPortStats) {
+  static std::map<PortID, uint64_t> macTxQueueWmStuckCount;
+  constexpr int kMacTransmitStuckMaxIteration{10};
+  // Early return if any required watermark is missing
+  if (!prevPortStats.macTransmitQueueMinWatermarkCells_().has_value() ||
+      !prevPortStats.macTransmitQueueMaxWatermarkCells_().has_value() ||
+      !currPortStats.macTransmitQueueMinWatermarkCells_().has_value() ||
+      !currPortStats.macTransmitQueueMaxWatermarkCells_().has_value()) {
+    return;
+  }
+  const auto currMinWm = *currPortStats.macTransmitQueueMinWatermarkCells_();
+  const auto currMaxWm = *currPortStats.macTransmitQueueMaxWatermarkCells_();
+  const auto prevMinWm = *prevPortStats.macTransmitQueueMinWatermarkCells_();
+  const auto prevMaxWm = *prevPortStats.macTransmitQueueMaxWatermarkCells_();
+  auto& stuckCount = macTxQueueWmStuckCount[portId];
+  if ((currMinWm > 0) && (currMinWm == prevMinWm) && (currMaxWm == prevMaxWm) &&
+      (currMinWm == currMaxWm)) {
+    // MAC transmit queue has not moved, increment the count
+    if (++stuckCount == kMacTransmitStuckMaxIteration) {
+      currPortStats.macTransmitQueueStuck_() = true;
+    }
+  } else {
+    currPortStats.macTransmitQueueStuck_() = false;
+    if (stuckCount != 0) {
+      stuckCount = 0;
+    }
+  }
+}
+
 void SaiPortManager::updateStats(
     PortID portId,
     bool updateWatermarks,
@@ -2062,6 +2094,10 @@ void SaiPortManager::updateStats(
     curPortStats.logicalPortId() = *logicalPortId;
   }
 
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK)) {
+    updateFabricMacTransmitQueueStuck(portId, curPortStats, prevPortStats);
+  }
   const auto& asic = platform_->getAsic();
   if (updateCableLengths && isPortUp(portId) &&
       portType == cfg::PortType::FABRIC_PORT &&

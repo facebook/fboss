@@ -318,6 +318,10 @@ class SaiPortManager {
    * incremented.
    */
   void incrementPfcRecoveryCounter(const PortID& portId);
+  void updateFabricMacTransmitQueueStuck(
+      const PortID& portId,
+      HwPortStats& currPortStats,
+      const HwPortStats& prevPortStats);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
