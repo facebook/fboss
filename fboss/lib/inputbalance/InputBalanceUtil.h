@@ -68,6 +68,11 @@ std::vector<std::string> getLayer2FabricDevicesInCluster(
 std::map<std::string, std::string> getPortToNeighbor(
     const std::shared_ptr<MultiSwitchPortMap>& portMap);
 
+std::vector<std::string> filterPortsByDestination(
+    const std::vector<std::string>& allPorts,
+    const std::string& dstSwitchName,
+    const std::map<std::string, std::string>& portToNeighbor);
+
 std::unordered_map<std::string, std::vector<std::string>>
 getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo);
 

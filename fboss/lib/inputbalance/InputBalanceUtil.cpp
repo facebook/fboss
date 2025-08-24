@@ -299,6 +299,21 @@ std::map<std::string, std::string> getPortToNeighbor(
   return portToNeighbor;
 }
 
+std::vector<std::string> filterPortsByDestination(
+    const std::vector<std::string>& allPorts,
+    const std::string& dstSwitchName,
+    const std::map<std::string, std::string>& portToNeighbor) {
+  std::vector<std::string> filteredPorts;
+  for (const auto& port : allPorts) {
+    auto neighborIter = portToNeighbor.find(port);
+    if (neighborIter != portToNeighbor.end() &&
+        neighborIter->second == dstSwitchName) {
+      filteredPorts.push_back(port);
+    }
+  }
+  return filteredPorts;
+}
+
 std::unordered_map<std::string, std::vector<std::string>>
 getNeighborToLinkFailure(const std::map<int32_t, PortInfoThrift>& myPortInfo) {
   std::unordered_map<std::string, std::vector<std::string>>
