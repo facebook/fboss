@@ -14,6 +14,7 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiArsManager.h"
+// NOLINTNEXTLINE(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
