@@ -8,6 +8,7 @@
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/lib/usb/tests/MockTransceiverI2CApi.h"
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
+#include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
 
 namespace facebook::fboss {
 
@@ -20,14 +21,41 @@ class MockTransceiverPlatformApi : public TransceiverPlatformApi {
 };
 
 class MockWedgeManager : public WedgeManager {
+ private:
+  static std::shared_ptr<const FakeTestPlatformMapping> getPlatformMapping(
+      std::shared_ptr<const FakeTestPlatformMapping> platformMapping,
+      int numModules,
+      int numPortsPerModule) {
+    return platformMapping
+        ? platformMapping
+        : makeFakePlatformMapping(numModules, numPortsPerModule);
+  }
+  static std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+  getSlotThreadHelper(
+      std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          slotThreadHelper,
+      int numModules,
+      int numPortsPerModule) {
+    return slotThreadHelper ? slotThreadHelper
+                            : makeSlotThreadHelper(makeFakePlatformMapping(
+                                  numModules, numPortsPerModule));
+  }
+
  public:
-  MockWedgeManager(int numModules = 16, int numPortsPerModule = 4)
+  MockWedgeManager(
+      int numModules = 16,
+      int numPortsPerModule = 4,
+      std::shared_ptr<const FakeTestPlatformMapping> platformMapping = nullptr,
+      std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+          slotThreadHelper = nullptr)
       : WedgeManager(
             std::make_unique<MockTransceiverPlatformApi>(),
-            makeFakePlatformMapping(numModules, numPortsPerModule),
+            getPlatformMapping(platformMapping, numModules, numPortsPerModule),
             PlatformType::PLATFORM_WEDGE,
-            makeSlotThreadHelper(
-                makeFakePlatformMapping(numModules, numPortsPerModule))),
+            getSlotThreadHelper(
+                slotThreadHelper,
+                numModules,
+                numPortsPerModule)),
         numModules_(numModules) {}
 
   PlatformType getPlatformType() const override {
@@ -94,37 +122,6 @@ class MockWedgeManager : public WedgeManager {
   }
 
  private:
-  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-  makeSlotThreadHelper(
-      const std::shared_ptr<const FakeTestPlatformMapping> platformMapping) {
-    std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        slotThreadHelper = std::make_shared<
-            std::unordered_map<TransceiverID, SlotThreadHelper>>();
-
-    for (const auto& tcvrID :
-         utility::getTransceiverIds(platformMapping->getChips())) {
-      slotThreadHelper->emplace(tcvrID, SlotThreadHelper(tcvrID));
-    }
-
-    return slotThreadHelper;
-  }
-
-  const std::shared_ptr<const FakeTestPlatformMapping> makeFakePlatformMapping(
-      int numModules,
-      int numPortsPerModule) {
-    std::vector<int> controllingPortIDs(numModules);
-    std::generate(
-        begin(controllingPortIDs),
-        end(controllingPortIDs),
-        [n = 1, numPortsPerModule]() mutable {
-          int port = n;
-          n += numPortsPerModule;
-          return port;
-        });
-    return std::make_shared<FakeTestPlatformMapping>(
-        controllingPortIDs, numPortsPerModule);
-  }
-
   int numModules_;
 };
 

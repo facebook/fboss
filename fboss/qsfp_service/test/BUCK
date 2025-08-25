@@ -130,3 +130,13 @@ cpp_unittest(
         "boost",
     ],
 )
+
+cpp_library(
+    name = "mock_manager_constructor_args",
+    headers = ["MockManagerConstructorArgs.h"],
+    exported_deps = [
+        "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/qsfp_service:slot-thread-helper",
+    ],
+)

@@ -28,5 +28,6 @@ cpp_library(
         "//fboss/lib/usb/tests:mock-transceiver-i2capi",
         "//fboss/qsfp_service/module/tests:mock-headers",
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//fboss/qsfp_service/test:mock_manager_constructor_args",
     ],
 )
