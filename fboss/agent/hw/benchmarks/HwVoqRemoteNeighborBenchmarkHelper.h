@@ -98,16 +98,29 @@ inline void remoteNeighborBenchmark(bool add) {
       });
 
   suspender.dismiss();
-  ensemble->getSw()->getRib()->updateStateInRibThread(
-      [&ensemble,
-       updateDsfStateWithNeighborFn,
-       updateDsfStateWithoutNeighborFn,
-       add]() {
-        ensemble->getSw()->updateStateWithHwFailureProtection(
-            folly::sformat("Update state for node: {}", 0),
-            (add ? updateDsfStateWithNeighborFn
-                 : updateDsfStateWithoutNeighborFn));
-      });
+  auto intfMaps =
+      add ? switchId2IntfsWithNeighbor : switchId2IntfsWithoutNeighbor;
+  for (const auto& [switchId, intfMap] : intfMaps) {
+    SwSwitch::StateUpdateFn updateSingleIntfMap =
+        [&ensemble, switchId, &intfMap](
+            const std::shared_ptr<SwitchState>& in) {
+          std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intf;
+          switchId2Intf[switchId] = intfMap;
+          return DsfStateUpdaterUtil::getUpdatedState(
+              in,
+              ensemble->getSw()->getScopeResolver(),
+              ensemble->getSw()->getRib(),
+              {},
+              switchId2Intf);
+        };
+    ensemble->getSw()->getRib()->updateStateInRibThread(
+        [&ensemble, switchId, updateSingleIntfMap]() {
+          ensemble->getSw()->updateStateWithHwFailureProtection(
+              folly::sformat(
+                  "Update state for node: {}", static_cast<int>(switchId)),
+              updateSingleIntfMap);
+        });
+  }
   suspender.rehire();
 }
 } // namespace facebook::fboss
