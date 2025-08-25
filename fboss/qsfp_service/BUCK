@@ -246,6 +246,26 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "port-manager",
+    srcs = [
+        "PortManager.cpp",
+    ],
+    headers = [
+        "PortManager.h",
+    ],
+    exported_deps = [
+        ":transceiver-manager",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_bimap"),
+    ],
+)
+
 custom_unittest(
     name = "test_qsfp_service_version",
     command = [
