@@ -467,6 +467,7 @@
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/flashes/SCD_SPI_MASTER_DEVICE1": "/[SCD_SPI_MASTER_DEVICE1]",
     "/run/devmap/eeproms/RACKMON_EEPROM": "/RACKMON_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PEM_EEPROM": "/PEM_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
     "/run/devmap/gpiochips/RACKMON_PLS": "/RACKMON_SLOT@0/[RACKMON_PLS]",
     "/run/devmap/eeproms/FANSPINNER_EEPROM": "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]",
