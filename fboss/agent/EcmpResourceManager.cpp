@@ -90,6 +90,17 @@ std::ostream& operator<<(
   return os;
 }
 
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::set<EcmpResourceManager::NextHopGroupIds>& gidSets) {
+  std::stringstream ss;
+  std::for_each(gidSets.begin(), gidSets.end(), [&ss](const auto& gids) {
+    ss << gids << " ";
+  });
+  os << ss.str();
+  return os;
+}
+
 bool pruneFromMergeGroupsImpl(
     const EcmpResourceManager::NextHopGroupIds& groupIdsToPrune,
     EcmpResourceManager::GroupIds2ConsolidationInfo& pruneFrom) {
@@ -292,9 +303,9 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
     */
     std::vector<std::shared_ptr<NextHopGroupInfo>> reclaimableMergedGroups;
     std::unordered_set<NextHopGroupId> reclaimedGroups;
+    auto spaceRemaining = canReclaim;
     for (auto oitr = overrideGroupsSorted.begin();
-         oitr != overrideGroupsSorted.end() &&
-         reclaimedGroups.size() < canReclaim;
+         oitr != overrideGroupsSorted.end() && spaceRemaining;
          ++oitr) {
       const auto& overrideGroup = *oitr;
       if (reclaimedGroups.contains(overrideGroup->getID())) {
@@ -305,16 +316,16 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
       CHECK(mergeGrpInfoItr.has_value());
       const auto& [mergeSet, _] = *mergeGrpInfoItr.value();
       CHECK_GT(mergeSet.size(), 0);
-      auto spaceRemaining = canReclaim - reclaimedGroups.size();
       // Merge set will create mergeSet.size() primary groups primary group and
       // delete one merged group
       auto curGroupDemand = mergeSet.size() - 1;
       if (curGroupDemand > spaceRemaining) {
         XLOG(DBG2) << " Cannot unmerge : " << mergeSet
-                   << " demaand: " << curGroupDemand
+                   << " demand: " << curGroupDemand
                    << " space remaining: " << spaceRemaining;
         continue;
       }
+      spaceRemaining -= curGroupDemand;
       std::for_each(
           mergeSet.begin(),
           mergeSet.end(),
@@ -378,6 +389,8 @@ void EcmpResourceManager::updateMergedGroups(
     const std::set<NextHopGroupIds>& mergeSetsToUpdate,
     const NextHopGroupIds& groupIdsToReclaimOrPruneIn,
     InputOutputState* inOutState) {
+  XLOG(DBG2) << " Will reclaim the following merge groups: "
+             << mergeSetsToUpdate;
   NextHopGroupIds groupIdsToReclaimOrPrune = groupIdsToReclaimOrPruneIn;
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> gid2Prefix;
   std::for_each(
