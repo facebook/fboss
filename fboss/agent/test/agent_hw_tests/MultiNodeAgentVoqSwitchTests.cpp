@@ -42,6 +42,26 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     return {ProductionFeature::VOQ};
   }
 
+  bool isTestDriver() const {
+    // Each nodes in a DSF Multi Node Test setup runs this binary. However,
+    // only one node (SwitchID 0) is the primary driver of the test. Test
+    // binaries on all the other switches are triggered by test orchestrator
+    // (e.g. Netcastle) with --run-forever option, so those initialize the ASIC
+    // SDK, FBOSS state and wait for the test driver switch to drive the test
+    // logic.
+    auto constexpr kTestDriverSwitchId = 0;
+
+    bool ret = getSw()->getSwitchInfoTable().getSwitchIDs().contains(
+        SwitchID(kTestDriverSwitchId));
+
+    XLOG(DBG2) << "DSF Multi Node Test Driver node: SwitchID "
+               << kTestDriverSwitchId << " is "
+               << (ret ? " part of " : " not part of") << " local switchIDs : "
+               << folly::join(
+                      ",", getSw()->getSwitchInfoTable().getSwitchIDs());
+    return ret;
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -62,24 +82,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    // Each nodes in a DSF Multi Node Test setup runs this binary. However,
-    // only one node (SwitchID 0) is the primary driver of the test. Test
-    // binaries on all the other switches are triggered by test orchestrator
-    // (e.g. Netcastle) with --run-forever option, so those initialize the ASIC
-    // SDK, FBOSS state and wait for the test driver switch to drive the test
-    // logic.
-    auto constexpr kTestDriverSwitchId = 0;
-    if (getSw()->getSwitchInfoTable().getSwitchIDs().contains(
-            SwitchID(kTestDriverSwitchId))) {
-      XLOG(DBG2) << "DSF Multi Node Test Driver node: SwitchID "
-                 << kTestDriverSwitchId << " is part of local switchIDs: "
-                 << folly::join(
-                        ",", getSw()->getSwitchInfoTable().getSwitchIDs());
-    } else {
-      XLOG(DBG2) << "DSF Multi Node Test Remote node: SwitchID "
-                 << kTestDriverSwitchId << " is not part of local switchIDs: "
-                 << folly::join(
-                        ",", getSw()->getSwitchInfoTable().getSwitchIDs());
+    if (!isTestDriver()) {
       return;
     }
 
