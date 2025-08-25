@@ -6,7 +6,6 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {
 

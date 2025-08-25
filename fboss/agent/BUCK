@@ -1425,7 +1425,6 @@ cpp_library(
         ":packet",
         ":platform_base",
         "//fboss/agent/hw:hw_switch_fb303_stats",
-        "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
 
