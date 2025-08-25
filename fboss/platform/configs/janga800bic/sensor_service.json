@@ -8883,7 +8883,7 @@
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp1_input",
               "type": 3,
               "thresholds": {
-                "maxAlarmVal": 115,
+                "maxAlarmVal": 100,
                 "upperCriticalVal": 115
               },
               "compute": "@/1000.0"
@@ -8893,7 +8893,7 @@
               "sysfsPath": "/run/devmap/sensors/COME_PU4_XDPE15284/temp2_input",
               "type": 3,
               "thresholds": {
-                "maxAlarmVal": 115,
+                "maxAlarmVal": 100,
                 "upperCriticalVal": 115
               },
               "compute": "@/1000.0"
