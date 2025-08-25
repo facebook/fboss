@@ -7337,7 +7337,7 @@
             },
             {
               "name": "SMB_U343_J3A_0V75_TRVDD0_IOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U343_XDPE12284_1/curr5_input",
+              "sysfsPath": "/run/devmap/sensors/SMB_U343_XDPE12284_1/curr4_input",
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 33,
@@ -7994,7 +7994,7 @@
             },
             {
               "name": "SMB_U343_J3A_0V75_TRVDD0_IOUT",
-              "sysfsPath": "/run/devmap/sensors/SMB_U343_XDPE12284_1/curr5_input",
+              "sysfsPath": "/run/devmap/sensors/SMB_U343_XDPE12284_1/curr4_input",
               "type": 2,
               "thresholds": {
                 "maxAlarmVal": 33,
