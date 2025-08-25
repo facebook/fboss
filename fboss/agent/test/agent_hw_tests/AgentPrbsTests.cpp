@@ -29,7 +29,7 @@ class AgentPrbsTest : public AgentHwTest {
   }
 
   uint16_t getPrbsPolynomial() const {
-    if (getAgentEnsemble()->getNumL3Asics() > 1) {
+    if (getAgentEnsemble()->getNumL3Asics() >= 1) {
       auto l3Asics = getAgentEnsemble()->getL3Asics();
       auto asic = checkSameAndGetAsic(l3Asics);
       if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
