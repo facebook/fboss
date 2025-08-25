@@ -1,8 +1,10 @@
+# pyre-strict
 import argparse
 import json
+from typing import Optional
 
 
-def load_yaml_file(file_path):
+def load_yaml_file(file_path: str) -> Optional[str]:
     try:
         with open(file_path, "r") as f:
             content = f.read()
@@ -12,7 +14,7 @@ def load_yaml_file(file_path):
         return None
 
 
-def save_to_json(data, json_file_path, new_file_path):
+def save_to_json(data: str, json_file_path: str, new_file_path: str) -> None:
     try:
         with open(json_file_path, "r+") as f:
             json_data = json.load(f)
@@ -35,7 +37,7 @@ def save_to_json(data, json_file_path, new_file_path):
         print(f"Error parsing JSON: {e}")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         epilog="""
         This python script embeds the asic yaml config file into the agent json config file. Usage Example:

@@ -69,3 +69,11 @@ python_binary(
         "//fboss/agent/hw/config:asic_config_v2-python-types",
     ],
 )
+
+python_binary(
+    name = "generate_agent_config_from_asic_config",
+    srcs = ["generate_agent_config_from_asic_config.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.asic_config_v2.generate_agent_config_from_asic_config",
+    deps = [],
+)
