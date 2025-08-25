@@ -2,8 +2,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
-#include "fboss/agent/hw/sai/api/TamApi.h"
-
 #include "fboss/lib/CommonFileUtils.h"
 
 extern "C" {
