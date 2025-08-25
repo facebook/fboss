@@ -846,6 +846,27 @@ enum TransceiverStateMachineEvent {
   TCVR_EV_UPGRADE_FIRMWARE = 18,
 }
 
+enum PortStateMachineState {
+  UNINITIALIZED = 0,
+  INITIALIZED = 1,
+  IPHY_PORTS_PROGRAMMED = 3,
+  XPHY_PORTS_PROGRAMMED = 4,
+  TRANSCEIVERS_PROGRAMMED = 5,
+  PORT_UP = 6,
+  PORT_DOWN = 7,
+}
+
+enum PortStateMachineEvent {
+  PORT_EV_INITIALIZE_PORT = 0,
+  PORT_EV_PROGRAM_IPHY = 1,
+  PORT_EV_PROGRAM_XPHY = 2,
+  PORT_EV_CHECK_TCVRS_PROGRAMMED = 3,
+  PORT_EV_SET_PORT_UP = 4,
+  PORT_EV_SET_PORT_DOWN = 5,
+  PORT_EV_RESET_TO_UNINITIALIZED = 6,
+  PORT_EV_RESET_TO_INITIALIZED = 7,
+}
+
 struct SwitchDeploymentInfo {
   1: string dataCenter;
   2: string hostnameScheme;
