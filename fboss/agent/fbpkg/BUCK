@@ -139,7 +139,6 @@ fboss_fbpkg_builder(
     name = "neteng.fboss.wedge_agent_nvda",
     buck_opts = fbpkg.buck_opts(
         config = {
-            "fbcode.dwp": "true",
             "fbcode.enable_distributed_thinlto": "true",
             "fbcode.split-dwarf": "true",
         },
