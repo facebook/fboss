@@ -8,11 +8,11 @@
 #include <string>
 #include <vector>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
-#include "fboss/platform/bsp_tests/cpp/utils/I2CUtils.h"
-#include "fboss/platform/bsp_tests/cpp/utils/KmodUtils.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
+#include "fboss/platform/bsp_tests/utils/I2CUtils.h"
+#include "fboss/platform/bsp_tests/utils/KmodUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 void runI2CDumpTest(
     const I2CDevice& device,
@@ -280,4 +280,4 @@ TEST_F(I2CTest, I2CTransactions) {
   }
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

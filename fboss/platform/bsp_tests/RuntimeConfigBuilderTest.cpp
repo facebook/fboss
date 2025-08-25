@@ -5,10 +5,10 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <ranges>
 
-#include "fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.h"
+#include "fboss/platform/bsp_tests/RuntimeConfigBuilder.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Test subclass that exposes protected methods for testing
 class TestableRuntimeConfigBuilder : public RuntimeConfigBuilder {
@@ -288,4 +288,4 @@ TEST_F(RuntimeConfigBuilderTest, BuildConfigsForAllRealPlatforms) {
   }
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

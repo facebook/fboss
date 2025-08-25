@@ -7,13 +7,13 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
-#include "fboss/platform/bsp_tests/cpp/utils/I2CUtils.h"
-#include "fboss/platform/bsp_tests/cpp/utils/KmodUtils.h"
-#include "fboss/platform/bsp_tests/cpp/utils/WatchdogUtils.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/bsp_tests/utils/I2CUtils.h"
+#include "fboss/platform/bsp_tests/utils/KmodUtils.h"
+#include "fboss/platform/bsp_tests/utils/WatchdogUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 class WatchdogTest : public BspTest {
  protected:
@@ -260,4 +260,4 @@ TEST_F(WatchdogTest, WatchdogDriverUnload) {
       << "Expected " << existingWdts.size() << " watchdogs after unload, got "
       << remainingWdts.size();
 }
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

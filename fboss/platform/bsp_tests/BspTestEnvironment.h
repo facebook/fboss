@@ -14,7 +14,7 @@
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 /**
  * Global test environment for BSP tests.
@@ -78,4 +78,4 @@ class BspTestEnvironment : public ::testing::Environment {
   std::vector<RecordedError> recordedErrors_;
 };
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

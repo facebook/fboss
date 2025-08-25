@@ -11,11 +11,11 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
-#include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
+#include "fboss/platform/bsp_tests/utils/CdevUtils.h"
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Test fixture for character device tests
 class CdevTest : public BspTest {
@@ -120,4 +120,4 @@ TEST_F(CdevTest, CdevCreateAndDelete) {
   }
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

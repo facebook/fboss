@@ -4,13 +4,13 @@
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
-#include "fboss/platform/bsp_tests/cpp/utils/GpioUtils.h"
-#include "fboss/platform/bsp_tests/cpp/utils/I2CUtils.h"
-#include "fboss/platform/bsp_tests/cpp/utils/KmodUtils.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/bsp_tests/utils/GpioUtils.h"
+#include "fboss/platform/bsp_tests/utils/I2CUtils.h"
+#include "fboss/platform/bsp_tests/utils/KmodUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Test fixture for GPIO tests
 class GpioTest : public BspTest {
@@ -222,4 +222,4 @@ TEST_F(GpioTest, DriverUnload) {
     FAIL() << "Failed to unload kmods with GPIO devices open: " << e.what();
   }
 }
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

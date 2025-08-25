@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "fboss/platform/bsp_tests/cpp/utils/KmodUtils.h"
+#include "fboss/platform/bsp_tests/utils/KmodUtils.h"
 
 #include <fmt/format.h>
 #include <folly/logging/xlog.h>
@@ -14,7 +14,7 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 void KmodUtils::loadKmods(const BspKmodsFile& kmods) {
   // Load shared kmods first
@@ -102,4 +102,4 @@ std::vector<std::string> KmodUtils::getLoadedKmods(
   return loadedKmods;
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

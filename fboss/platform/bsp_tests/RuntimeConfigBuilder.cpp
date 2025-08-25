@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.h"
+#include "fboss/platform/bsp_tests/RuntimeConfigBuilder.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -8,7 +8,7 @@
 using namespace facebook::fboss::platform::platform_manager;
 using namespace facebook::fboss::platform::bsp_tests;
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 fbiob::AuxData RuntimeConfigBuilder::createBaseAuxData(
     const FpgaIpBlockConfig& auxDev,
@@ -402,4 +402,4 @@ RuntimeConfigBuilder::getActualAdapter(
       busName));
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

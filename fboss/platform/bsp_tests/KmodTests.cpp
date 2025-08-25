@@ -5,11 +5,11 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
-#include "fboss/platform/bsp_tests/cpp/utils/KmodUtils.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
+#include "fboss/platform/bsp_tests/utils/KmodUtils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 using platform_manager::BspKmodsFile;
 
@@ -89,4 +89,4 @@ TEST_F(KmodTest, FbspRemove) {
       << folly::join(", ", loadedKmods);
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

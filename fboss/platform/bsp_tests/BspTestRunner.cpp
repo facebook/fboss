@@ -3,7 +3,7 @@
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include "fboss/platform/bsp_tests/cpp/BspTestEnvironment.h"
+#include "fboss/platform/bsp_tests/BspTestEnvironment.h"
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
@@ -16,7 +16,7 @@ DEFINE_bool(
 using namespace facebook;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::platform_manager;
-using namespace facebook::fboss::platform::bsp_tests::cpp;
+using namespace facebook::fboss::platform::bsp_tests;
 
 // Custom test filter to exclude stress tests unless enabled
 class StressTestFilter : public ::testing::EmptyTestEventListener {

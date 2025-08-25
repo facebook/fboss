@@ -5,11 +5,11 @@
 #include <string>
 #include <vector>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
-#include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
-#include "fboss/platform/bsp_tests/cpp/utils/I2CUtils.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
+#include "fboss/platform/bsp_tests/utils/CdevUtils.h"
+#include "fboss/platform/bsp_tests/utils/I2CUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 re2::RE2 kPortLedName("port(\\d+)_led(\\d*)");
 re2::RE2 kFanLedName("fan(\\d*)_led");
@@ -268,4 +268,4 @@ TEST_F(LedTest, DeviceLedsCreated) {
   cleanupDevices();
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

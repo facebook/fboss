@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 BspTestEnvironment* BspTest::env_ = nullptr;
 
@@ -34,4 +34,4 @@ TEST_F(BspTest, UsingFixture) {
       << "Platform name should not be empty";
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

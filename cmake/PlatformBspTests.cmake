@@ -29,12 +29,12 @@ add_fbthrift_cpp_library(
 
 
 add_library(bsp_test_utils
-  fboss/platform/bsp_tests/cpp/utils/CdevUtils.cpp
-  fboss/platform/bsp_tests/cpp/utils/GpioUtils.cpp
-  fboss/platform/bsp_tests/cpp/utils/HwmonUtils.cpp
-  fboss/platform/bsp_tests/cpp/utils/KmodUtils.cpp
-  fboss/platform/bsp_tests/cpp/utils/I2CUtils.cpp
-  fboss/platform/bsp_tests/cpp/utils/WatchdogUtils.cpp
+  fboss/platform/bsp_tests/utils/CdevUtils.cpp
+  fboss/platform/bsp_tests/utils/GpioUtils.cpp
+  fboss/platform/bsp_tests/utils/HwmonUtils.cpp
+  fboss/platform/bsp_tests/utils/KmodUtils.cpp
+  fboss/platform/bsp_tests/utils/I2CUtils.cpp
+  fboss/platform/bsp_tests/utils/WatchdogUtils.cpp
 )
 
 target_link_libraries(bsp_test_utils
@@ -51,8 +51,8 @@ target_link_libraries(bsp_test_utils
 )
 
 add_library(bsp_test_environment
-  fboss/platform/bsp_tests/cpp/BspTestEnvironment.cpp
-  fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.cpp
+  fboss/platform/bsp_tests/BspTestEnvironment.cpp
+  fboss/platform/bsp_tests/RuntimeConfigBuilder.cpp
 )
 
 target_link_libraries(bsp_test_environment
@@ -68,15 +68,15 @@ target_link_libraries(bsp_test_environment
 )
 
 add_executable(bsp_tests
-  fboss/platform/bsp_tests/cpp/BspTest.cpp
-  fboss/platform/bsp_tests/cpp/BspTestRunner.cpp
-  fboss/platform/bsp_tests/cpp/CdevTests.cpp
-  fboss/platform/bsp_tests/cpp/GpioTests.cpp
-  fboss/platform/bsp_tests/cpp/KmodTests.cpp
-  fboss/platform/bsp_tests/cpp/I2CTests.cpp
-  fboss/platform/bsp_tests/cpp/LedTests.cpp
-  fboss/platform/bsp_tests/cpp/WatchdogTests.cpp
-  fboss/platform/bsp_tests/cpp/XcvrTests.cpp
+  fboss/platform/bsp_tests/BspTest.cpp
+  fboss/platform/bsp_tests/BspTestRunner.cpp
+  fboss/platform/bsp_tests/CdevTests.cpp
+  fboss/platform/bsp_tests/GpioTests.cpp
+  fboss/platform/bsp_tests/KmodTests.cpp
+  fboss/platform/bsp_tests/I2CTests.cpp
+  fboss/platform/bsp_tests/LedTests.cpp
+  fboss/platform/bsp_tests/WatchdogTests.cpp
+  fboss/platform/bsp_tests/XcvrTests.cpp
 )
 
 target_link_libraries(bsp_tests
@@ -91,7 +91,7 @@ target_link_libraries(bsp_tests
 )
 
 add_executable(runtime_config_builder_test
-  fboss/platform/bsp_tests/cpp/RuntimeConfigBuilderTest.cpp
+  fboss/platform/bsp_tests/RuntimeConfigBuilderTest.cpp
 )
 
 target_link_libraries(runtime_config_builder_test

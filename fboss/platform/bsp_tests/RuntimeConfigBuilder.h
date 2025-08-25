@@ -10,7 +10,7 @@
 #include "fboss/platform/bsp_tests/gen-cpp2/fbiob_device_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 using facebook::fboss::platform::platform_manager::BspKmodsFile;
 using facebook::fboss::platform::platform_manager::FanPwmCtrlConfig;
 using facebook::fboss::platform::platform_manager::FpgaIpBlockConfig;
@@ -58,4 +58,4 @@ class RuntimeConfigBuilder {
           adapters);
 };
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

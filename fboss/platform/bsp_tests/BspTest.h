@@ -6,12 +6,12 @@
 #include <gtest/gtest.h>
 #include <optional>
 
-#include "fboss/platform/bsp_tests/cpp/BspTestEnvironment.h"
-#include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
-#include "fboss/platform/bsp_tests/cpp/utils/KmodUtils.h"
+#include "fboss/platform/bsp_tests/BspTestEnvironment.h"
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/bsp_tests/utils/CdevUtils.h"
+#include "fboss/platform/bsp_tests/utils/KmodUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Base test fixture that provides access to the environment
 class BspTest : public ::testing::Test {
@@ -140,4 +140,4 @@ class BspTest : public ::testing::Test {
   static BspTestEnvironment* env_;
 };
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

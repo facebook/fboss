@@ -7,7 +7,7 @@
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 using platform_manager::BspKmodsFile;
 
@@ -21,4 +21,4 @@ class KmodUtils {
       const BspKmodsFile& expectedKmods);
 };
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

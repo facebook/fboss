@@ -1,4 +1,4 @@
-#include "fboss/platform/bsp_tests/cpp/utils/WatchdogUtils.h"
+#include "fboss/platform/bsp_tests/utils/WatchdogUtils.h"
 
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -9,7 +9,7 @@
 
 #include <fmt/format.h>
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Watchdog IOCTL commands defined in:
 // https://github.com/torvalds/linux/blob/master/include/uapi/linux/watchdog.h
@@ -72,4 +72,4 @@ void WatchdogUtils::magicCloseWatchdog(int fd) {
   }
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Represents a sensor feature (e.g., fan1, temp1, etc.)
 struct SensorFeature {
@@ -34,4 +34,4 @@ class HwmonUtils {
   static SensorChip parseSensorsOutput(const std::string& output);
 };
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

@@ -56,4 +56,4 @@ reach out to your Meta contact.
 ## Contributing
 
 Vendors are welcome to contribute to the test suite. The test suite lives
-at [fboss/platform/bsp_tests](https://github.com/facebook/fboss/tree/main/fboss/platform/bsp_tests/cpp)
+at [fboss/platform/bsp_tests](https://github.com/facebook/fboss/tree/main/fboss/platform/bsp_tests)

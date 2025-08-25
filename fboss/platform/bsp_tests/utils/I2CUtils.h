@@ -10,7 +10,7 @@
 
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_runtime_config_types.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Structure to represent an I2C bus, similar to the Python I2CBus NamedTuple
 struct I2CBus {
@@ -90,4 +90,4 @@ class I2CUtils {
 
   static std::string getBusNameFromNum(int busNum);
 };
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

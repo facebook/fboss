@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Represents a GPIO device detected by gpiodetect
 struct GpioDetectResult {
@@ -33,4 +33,4 @@ class GpioUtils {
   static int gpioget(const std::string& name, int line);
 };
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "fboss/platform/bsp_tests/cpp/utils/I2CUtils.h"
+#include "fboss/platform/bsp_tests/utils/I2CUtils.h"
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 
@@ -19,11 +19,11 @@
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
+#include "fboss/platform/bsp_tests/utils/CdevUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 
 namespace fs = std::filesystem;
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 std::string I2CUtils::findPciDirectory(PciDeviceInfo pci) {
   for (const auto& dirEntry : fs::directory_iterator("/sys/bus/pci/devices")) {
@@ -438,4 +438,4 @@ std::string I2CUtils::getI2CDir(int busNum, const std::string& address) {
   return fmt::format("/sys/bus/i2c/devices/{}-{}/", busNum, addrSuffix);
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

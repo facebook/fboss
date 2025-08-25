@@ -1,4 +1,4 @@
-#include "fboss/platform/bsp_tests/cpp/utils/GpioUtils.h"
+#include "fboss/platform/bsp_tests/utils/GpioUtils.h"
 
 #include <re2/re2.h>
 #include <sstream>
@@ -10,7 +10,7 @@
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 std::vector<GpioDetectResult> GpioUtils::gpiodetect(const std::string& label) {
   std::vector<GpioDetectResult> results;
@@ -104,4 +104,4 @@ int GpioUtils::gpioget(const std::string& name, int line) {
   }
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

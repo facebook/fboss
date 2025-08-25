@@ -1,4 +1,4 @@
-#include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
+#include "fboss/platform/bsp_tests/utils/CdevUtils.h"
 
 #include <fcntl.h>
 #include <linux/limits.h>
@@ -21,7 +21,7 @@
 #include "fboss/platform/bsp_tests/gen-cpp2/fbiob_device_config_types.h"
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 using namespace facebook::fboss::platform::bsp_tests::fbiob;
 using PciDevice = facebook::fboss::platform::bsp_tests::PciDevice;
@@ -259,4 +259,4 @@ bool CdevUtils::checkFilesForPci(
   return true;
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

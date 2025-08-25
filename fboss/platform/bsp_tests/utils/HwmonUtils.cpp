@@ -1,4 +1,4 @@
-#include "fboss/platform/bsp_tests/cpp/utils/HwmonUtils.h"
+#include "fboss/platform/bsp_tests/utils/HwmonUtils.h"
 
 #include <re2/re2.h>
 #include <sstream>
@@ -10,7 +10,7 @@
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 SensorChip HwmonUtils::getDetectedChips(const std::string& chipName) {
   try {
@@ -112,4 +112,4 @@ SensorChip HwmonUtils::parseSensorsOutput(const std::string& output) {
   return chip;
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

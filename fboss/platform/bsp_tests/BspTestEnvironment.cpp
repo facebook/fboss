@@ -1,14 +1,14 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "fboss/platform/bsp_tests/cpp/BspTestEnvironment.h"
+#include "fboss/platform/bsp_tests/BspTestEnvironment.h"
 
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/bsp_tests/cpp/RuntimeConfigBuilder.h"
+#include "fboss/platform/bsp_tests/RuntimeConfigBuilder.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Initialize the static instance pointer
 BspTestEnvironment* BspTestEnvironment::instance_ = nullptr;
@@ -103,4 +103,4 @@ void BspTestEnvironment::printAllRecordedErrors() const {
   XLOG(INFO) << "=== END ERRORS SUMMARY ===";
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

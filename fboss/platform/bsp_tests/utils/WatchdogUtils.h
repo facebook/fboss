@@ -3,7 +3,7 @@
 #include <set>
 #include <string>
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 class WatchdogUtils {
  public:
@@ -14,4 +14,4 @@ class WatchdogUtils {
   static void magicCloseWatchdog(int fd);
 };
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests

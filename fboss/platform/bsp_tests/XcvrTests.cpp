@@ -6,10 +6,10 @@
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 
-#include "fboss/platform/bsp_tests/cpp/BspTest.h"
-#include "fboss/platform/bsp_tests/cpp/utils/CdevUtils.h"
+#include "fboss/platform/bsp_tests/BspTest.h"
+#include "fboss/platform/bsp_tests/utils/CdevUtils.h"
 
-namespace facebook::fboss::platform::bsp_tests::cpp {
+namespace facebook::fboss::platform::bsp_tests {
 
 // Helper function to find a subdevice in the filesystem
 std::string findSubdevice(
@@ -146,4 +146,4 @@ TEST_F(XcvrTest, XcvrCreatesSysfsFiles) {
   }
 }
 
-} // namespace facebook::fboss::platform::bsp_tests::cpp
+} // namespace facebook::fboss::platform::bsp_tests
