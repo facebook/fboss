@@ -198,6 +198,7 @@ cpp_library(
         "//folly:scope_guard",
         "//folly/container:f14_hash",
         "//folly/executors:function_scheduler",
+        "//folly/io:iobuf",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//folly/memory:mallctl_helper",
