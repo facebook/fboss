@@ -183,7 +183,7 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
 cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
   if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
     // TODO(Chenab): use strict priority scheduling when available
-    return cfg::QueueScheduling::INTERNAL;
+    return cfg::QueueScheduling::STRICT_PRIORITY;
   }
   return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
 }
