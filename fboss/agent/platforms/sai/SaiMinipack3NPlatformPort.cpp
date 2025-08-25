@@ -26,7 +26,7 @@ void SaiMinipack3NPlatformPort::linkStatusChanged(
     bool /*up*/,
     bool /*adminUp*/) {}
 bool SaiMinipack3NPlatformPort::supportsTransceiver() const {
-  return false;
+  return true;
 }
 
 } // namespace facebook::fboss
