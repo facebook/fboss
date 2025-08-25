@@ -469,4 +469,130 @@ TEST(PlatformConfigUtilsTests, GetPlatformPortsByChip) {
   EXPECT_TRUE(portsWithFakeChip.empty());
 }
 
+cfg::PlatformPortEntry createSingleTcvrPortEntry(
+    int32_t id,
+    const std::string& chipName) {
+  cfg::PlatformPortEntry entry;
+  *entry.mapping()->id() = id;
+  *entry.mapping()->name() = "eth" + std::to_string(id);
+  *entry.mapping()->controllingPort() = id;
+  for (int i = 0; i < 4; i++) {
+    phy::PinConnection pin;
+    phy::PinID iphy;
+    *iphy.chip() = "phy";
+    *iphy.lane() = i;
+    *pin.a() = iphy;
+    phy::Pin tcvrPin;
+    phy::PinID tcvr;
+    *tcvr.chip() = chipName;
+    *tcvr.lane() = i;
+    tcvrPin.end() = tcvr;
+    pin.z() = tcvrPin;
+    entry.mapping()->pins()->push_back(pin);
+  }
+  return entry;
+}
+// TODO(smenta) – Use function in testing once we remove requirement for only
+// one transceiver being associated with a single port.
+cfg::PlatformPortEntry createMultiTcvrPortEntry(
+    int32_t id,
+    const std::string& chipName1,
+    const std::string& chipName2) {
+  cfg::PlatformPortEntry entry;
+  *entry.mapping()->id() = id;
+  *entry.mapping()->name() = "eth" + std::to_string(id);
+  *entry.mapping()->controllingPort() = id;
+  for (int i = 0; i < 2; i++) {
+    phy::PinConnection pin;
+    phy::PinID iphy;
+    *iphy.chip() = "phy";
+    *iphy.lane() = i;
+    *pin.a() = iphy;
+    phy::Pin tcvrPin;
+    phy::PinID tcvr;
+    *tcvr.chip() = chipName1;
+    *tcvr.lane() = i;
+    tcvrPin.end() = tcvr;
+    pin.z() = tcvrPin;
+    entry.mapping()->pins()->push_back(pin);
+  }
+  for (int i = 2; i < 4; i++) {
+    phy::PinConnection pin;
+    phy::PinID iphy;
+    *iphy.chip() = "phy";
+    *iphy.lane() = i;
+    *pin.a() = iphy;
+    phy::Pin tcvrPin;
+    phy::PinID tcvr;
+    *tcvr.chip() = chipName2;
+    *tcvr.lane() = i - 2;
+    tcvrPin.end() = tcvr;
+    pin.z() = tcvrPin;
+    entry.mapping()->pins()->push_back(pin);
+  }
+  return entry;
+}
+std::map<std::string, phy::DataPlanePhyChip> createChipsMap() {
+  std::map<std::string, phy::DataPlanePhyChip> chips;
+  for (int i = 0; i < 4; i++) {
+    phy::DataPlanePhyChip chip;
+    *chip.name() = "tcvr" + std::to_string(i);
+    *chip.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
+    *chip.physicalID() = i;
+    chips[*chip.name()] = chip;
+  }
+  return chips;
+}
+} // namespace facebook::fboss::utility
+namespace facebook::fboss::utility {
+TEST(PlatformConfigUtilsTests, GetTcvrToPortMap) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  platformPorts[1] = createSingleTcvrPortEntry(1, "tcvr0");
+  platformPorts[2] = createSingleTcvrPortEntry(2, "tcvr0");
+  platformPorts[3] = createSingleTcvrPortEntry(3, "tcvr1");
+  // platformPorts[4] = createMultiTcvrPortEntry(4, "tcvr2", "tcvr3");
+  auto chipsMap = createChipsMap();
+  auto tcvrToPortMap = getTcvrToPortMap(platformPorts, chipsMap);
+  EXPECT_EQ(tcvrToPortMap.size(), 2);
+  EXPECT_EQ(tcvrToPortMap[TransceiverID(0)].size(), 2);
+  EXPECT_EQ(tcvrToPortMap[TransceiverID(0)][0], PortID(1));
+  EXPECT_EQ(tcvrToPortMap[TransceiverID(0)][1], PortID(2));
+  EXPECT_EQ(tcvrToPortMap[TransceiverID(1)][0], PortID(3));
+  // EXPECT_EQ(tcvrToPortMap[TransceiverID(2)][0], PortID(4));
+  // EXPECT_EQ(tcvrToPortMap[TransceiverID(3)][0], PortID(4));
+}
+TEST(PlatformConfigUtilsTests, GetTcvrToPortMapNoTransceiver) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  platformPorts[1] = createSingleTcvrPortEntry(1, "nonexistent");
+  auto chipsMap = createChipsMap();
+  auto tcvrToPortMap = getTcvrToPortMap(platformPorts, chipsMap);
+  EXPECT_EQ(tcvrToPortMap.size(), 0);
+}
+TEST(PlatformConfigUtilsTests, GetPortToTcvrMap) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  platformPorts[1] = createSingleTcvrPortEntry(1, "tcvr0");
+  platformPorts[2] = createSingleTcvrPortEntry(2, "tcvr0");
+  platformPorts[3] = createSingleTcvrPortEntry(3, "tcvr1");
+  // platformPorts[4] = createMultiTcvrPortEntry(4, "tcvr2", "tcvr3");
+  auto chipsMap = createChipsMap();
+  auto portToTcvrMap = getPortToTcvrMap(platformPorts, chipsMap);
+  EXPECT_EQ(portToTcvrMap.size(), 3);
+  EXPECT_EQ(portToTcvrMap[PortID(1)].size(), 1);
+  EXPECT_EQ(portToTcvrMap[PortID(1)][0], TransceiverID(0));
+  EXPECT_EQ(portToTcvrMap[PortID(2)].size(), 1);
+  EXPECT_EQ(portToTcvrMap[PortID(2)][0], TransceiverID(0));
+  EXPECT_EQ(portToTcvrMap[PortID(3)].size(), 1);
+  EXPECT_EQ(portToTcvrMap[PortID(3)][0], TransceiverID(1));
+  // EXPECT_EQ(portToTcvrMap[PortID(4)].size(), 2);
+  // EXPECT_EQ(portToTcvrMap[PortID(4)][0], TransceiverID(2));
+  // EXPECT_EQ(portToTcvrMap[PortID(4)][0], TransceiverID(3));
+}
+TEST(PlatformConfigUtilsTests, GetPortToTcvrMapNoTransceiver) {
+  std::map<int32_t, cfg::PlatformPortEntry> platformPorts;
+  platformPorts[1] = createSingleTcvrPortEntry(1, "nonexistent");
+  auto chipsMap = createChipsMap();
+  auto portToTcvrMap = getPortToTcvrMap(platformPorts, chipsMap);
+  EXPECT_EQ(portToTcvrMap.size(), 0);
+}
+
 } // namespace facebook::fboss::utility

@@ -15,7 +15,11 @@
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
-namespace facebook::fboss::utility {
+namespace facebook::fboss {
+using TcvrToPortMap = std::unordered_map<TransceiverID, std::vector<PortID>>;
+using PortToTcvrMap = std::unordered_map<PortID, std::vector<TransceiverID>>;
+
+namespace utility {
 
 std::vector<phy::PinID> getTransceiverLanes(
     const cfg::PlatformPortEntry& port,
@@ -66,4 +70,24 @@ std::vector<uint32_t> getHwPortLanes(
     const std::map<std::string, phy::DataPlanePhyChip>& dataPlanePhyChips,
     std::function<uint32_t(uint32_t, uint32_t)>&& getPhysicalLaneId);
 
-} // namespace facebook::fboss::utility
+/*
+ * Get a mapping of TransceiverID to a list of PortIDs that transfer data
+ * through this transceiver.
+ */
+TcvrToPortMap getTcvrToPortMap(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
+
+/*
+ * Get a mapping of PortID to a list of TransceiverIDs that transfer data
+ * for this port.
+ *
+ * Right now, platform mapping does not support multiple transceivers per port,
+ * so this mapping will always be 1:1.
+ */
+PortToTcvrMap getPortToTcvrMap(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap);
+
+} // namespace utility
+} // namespace facebook::fboss
