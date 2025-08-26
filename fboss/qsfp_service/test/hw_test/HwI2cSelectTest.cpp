@@ -13,8 +13,8 @@ namespace facebook::fboss {
 /*
  * This test reads the serial numbers of all connected transceivers and verify
  * that they are unique. If they are not, the test will fail. Note an exception
- * is connected DACs because the transceivers from both ends will have the same
- * serial number.
+ * is connected DACs/AECs because the transceivers from both ends will have the
+ * same serial number.
  */
 TEST_F(HwTest, i2cUniqueSerialNumbers) {
   // Get the IDs of all connected transceivers
