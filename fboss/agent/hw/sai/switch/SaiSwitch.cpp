@@ -709,8 +709,9 @@ void SaiSwitch::preRollback(const StateDelta& delta) noexcept {
   }
 }
 
-void SaiSwitch::rollback(const StateDelta& delta) noexcept {
-  const auto& knownGoodState = delta.oldState();
+void SaiSwitch::rollback(const std::vector<StateDelta>& deltas) noexcept {
+  CHECK_EQ(deltas.size(), 1);
+  const auto& knownGoodState = deltas.front().oldState();
   auto curBootType = getBootType();
   // Attempt rollback
   // Detailed design is in the sai_switch_transactions wiki, but at a high
@@ -4703,7 +4704,9 @@ phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
 
 void SaiSwitch::rollbackInTest(const StateDelta& delta) {
   preRollback(delta);
-  rollback(delta);
+  std::vector<StateDelta> deltas;
+  deltas.emplace_back(delta.oldState(), delta.newState());
+  rollback(deltas);
   setProgrammedState(delta.oldState());
 }
 

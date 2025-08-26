@@ -280,7 +280,7 @@ void HwSwitch::preRollback(const StateDelta& /*delta*/) noexcept {
       << "Transactions is supported but rollback is implemented on this switch";
 }
 
-void HwSwitch::rollback(const StateDelta& /*delta*/) noexcept {
+void HwSwitch::rollback(const std::vector<StateDelta>& /* deltas */) noexcept {
   XLOG(FATAL)
       << "Transactions is supported but rollback is implemented on this switch";
 }
@@ -337,13 +337,11 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
-    // TODO (ravi) Update rollback to work with a vector of deltas
-    // HwSwitch impl returns last failed delta in the vector. Construct a
-    // reversed vector and feed it to rollback operation
-    CHECK_LE(deltas.size(), 1);
     auto delta = StateDelta(getProgrammedState(), deltas.front());
     this->preRollback(delta);
-    this->rollback(delta);
+    std::vector<StateDelta> goodStateDeltas;
+    goodStateDeltas.emplace_back(getProgrammedState(), deltas.front());
+    this->rollback(goodStateDeltas);
     setProgrammedState(goodKnownState);
     return deltas.front();
   }
