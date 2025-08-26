@@ -671,20 +671,7 @@ std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
   return state;
 }
 
-void SaiSwitch::rollback(const StateDelta& delta) noexcept {
-  const auto& knownGoodState = delta.oldState();
-  auto curBootType = getBootType();
-  // Attempt rollback
-  // Detailed design is in the sai_switch_transactions wiki, but at a high
-  // level the steps of the rollback are 0) Remove any added entries in the new
-  // state (currently routes) 1) Clear out our internal data structures (stores,
-  // managers) in SW, while throttling writes to HW 2) Reinit managers and
-  // SaiStores. SaiStore* will now have all the HW state 3) Replay
-  // StateDelta(emptySwitchState, delta.oldState()) to get us to the pre
-  // transaction state 4) Clear out any remaining handles in SaiStore to flush
-  // state left in HW due to the failed transaction Steps 2-4 are exactly the
-  // same as what we do for warmboot and piggy back heavily on it for both code
-  // reuse and correctness
+void SaiSwitch::preRollback(const StateDelta& delta) noexcept {
   try {
     CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
 
@@ -716,6 +703,28 @@ void SaiSwitch::rollback(const StateDelta& delta) noexcept {
           &SaiRouteManager::removeRouteForRollback<folly::IPAddressV6>,
           routerID);
     }
+  } catch (const std::exception& ex) {
+    // Rollback failed. Fail hard.
+    XLOG(FATAL) << " Pre rollback failed with : " << ex.what();
+  }
+}
+
+void SaiSwitch::rollback(const StateDelta& delta) noexcept {
+  const auto& knownGoodState = delta.oldState();
+  auto curBootType = getBootType();
+  // Attempt rollback
+  // Detailed design is in the sai_switch_transactions wiki, but at a high
+  // level the steps of the rollback are 0) Remove any added entries in the new
+  // state (currently routes) 1) Clear out our internal data structures (stores,
+  // managers) in SW, while throttling writes to HW 2) Reinit managers and
+  // SaiStores. SaiStore* will now have all the HW state 3) Replay
+  // StateDelta(emptySwitchState, delta.oldState()) to get us to the pre
+  // transaction state 4) Clear out any remaining handles in SaiStore to flush
+  // state left in HW due to the failed transaction Steps 2-4 are exactly the
+  // same as what we do for warmboot and piggy back heavily on it for both code
+  // reuse and correctness
+  try {
+    CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
 
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
@@ -4693,6 +4702,7 @@ phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
 }
 
 void SaiSwitch::rollbackInTest(const StateDelta& delta) {
+  preRollback(delta);
   rollback(delta);
   setProgrammedState(delta.oldState());
 }

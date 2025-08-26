@@ -169,6 +169,7 @@ class HwSwitch {
       const std::vector<StateDelta>& deltas,
       const HwWriteBehaviorRAII& behavior =
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
+  virtual void preRollback(const StateDelta& delta) noexcept;
   virtual void rollback(const StateDelta& delta) noexcept;
   virtual std::shared_ptr<SwitchState> constructSwitchStateWithFib() noexcept;
 
