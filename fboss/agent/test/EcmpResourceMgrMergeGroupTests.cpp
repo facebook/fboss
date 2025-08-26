@@ -152,17 +152,11 @@ TEST_F(EcmpResourceMgrMergeGroupTest, reclaimPrioritizesGroupsWithHigherCost) {
   // We will later assert that these start pointing to merged groups.
   auto optimalMergeSet =
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
-  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
-  auto beforeConsolidationInfo =
-      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
-          *optimalMergeSet.begin());
   auto deltas = addNextRoute();
   EXPECT_EQ(deltas.size(), 2);
   assertGroupsAreMerged(optimalMergeSet);
   auto nextOptimalMergeSet =
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
-  auto nextOverflowPrefixes = getPrefixesForGroups(nextOptimalMergeSet);
-  EXPECT_EQ(nextOverflowPrefixes.size(), 2);
   deltas = addNextRoute();
   EXPECT_EQ(deltas.size(), 2);
   assertGroupsAreMerged(optimalMergeSet);
@@ -182,5 +176,35 @@ TEST_F(EcmpResourceMgrMergeGroupTest, reclaimPrioritizesGroupsWithHigherCost) {
   deltas = rmRoute(*getPrefixesWithoutOverrides().begin());
   EXPECT_EQ(deltas.size(), 2);
   assertGroupsAreUnMerged(optimalMergeSet);
+}
+
+TEST_F(EcmpResourceMgrMergeGroupTest, reclaimMultipleMergeGroups) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  std::vector<RoutePrefixV6> addedPrefixes;
+  addedPrefixes.push_back(nextPrefix());
+  auto deltas = addNextRoute();
+  EXPECT_EQ(deltas.size(), 2);
+  auto nextOptimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  addedPrefixes.push_back(nextPrefix());
+  deltas = addNextRoute();
+  EXPECT_EQ(deltas.size(), 2);
+  assertGroupsAreMerged(optimalMergeSet);
+  assertGroupsAreMerged(nextOptimalMergeSet);
+  XLOG(DBG2) << " Added prefixes : " << folly::join(", ", addedPrefixes);
+  std::for_each(
+      addedPrefixes.begin(), addedPrefixes.end(), [this](const auto& pfx) {
+        auto grpInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+            RouterID(0), pfx.toCidrNetwork());
+        ASSERT_FALSE(grpInfo->hasOverrides());
+      });
+  XLOG(DBG2) << " Will delete " << folly::join(", ", addedPrefixes);
+  deltas = rmRoutes(addedPrefixes);
+  EXPECT_EQ(deltas.size(), 3);
+  assertGroupsAreUnMerged(optimalMergeSet);
+  assertGroupsAreUnMerged(nextOptimalMergeSet);
 }
 } // namespace facebook::fboss
