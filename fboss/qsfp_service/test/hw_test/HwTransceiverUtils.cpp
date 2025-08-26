@@ -121,7 +121,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::LR4_2x400G_10KM:
       case MediaInterfaceCode::DR4_2x400G:
       case MediaInterfaceCode::DR4_2x800G:
-      case MediaInterfaceCode::CR8_800G:
         switch (profile) {
           case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
           case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
@@ -144,6 +143,28 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             expectedMediaLanes = {*hostLaneMap[portName].begin()};
             break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
+            expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+            break;
+          default:
+            throw FbossError(
+                "Unhandled profile ",
+                apache::thrift::util::enumNameSafe(profile));
+        }
+        break;
+      case MediaInterfaceCode::CR8_800G:
+        switch (profile) {
+          case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
+            if (std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    0) != hostLaneMap[portName].end()) {
+              // When lane 0 is one of the host lanes, the media lanes are
+              // expected to be 0,1,2,3.
+              expectedMediaLanes = {0, 1, 2, 3};
+            } else {
+              expectedMediaLanes = {4, 5, 6, 7};
+            }
+            break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
             expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
             break;
