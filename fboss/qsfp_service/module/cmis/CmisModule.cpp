@@ -3725,6 +3725,10 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
   return prbsStats;
 }
 
+uint64_t CmisModule::maxRetriesWith500msDelay(bool /*init*/) const {
+  return kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
+}
+
 void CmisModule::resetDataPath() {
   resetDataPathWithFunc();
 }
@@ -3759,16 +3763,17 @@ void CmisModule::resetDataPathWithFunc(
   };
 
   // Wait for all datapath state machines to get Deactivated
-  auto maxRetries = kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
+  const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
+
   auto retries = 0;
-  while (retries++ < maxRetries) {
+  while (retries++ < maxRetriesDeInit) {
     /* sleep override */
     usleep(kUsecDatapathStatePollTime);
     if (isDatapathUpdated(hostLaneMask, {CmisLaneState::DEACTIVATED})) {
       break;
     }
   }
-  if (retries >= maxRetries) {
+  if (retries >= maxRetriesDeInit) {
     QSFP_LOG(ERR, this) << fmt::format(
         "Datapath could not deactivate even after waiting {:d} uSec",
         kUsecDatapathStateUpdateTime);
@@ -3784,9 +3789,9 @@ void CmisModule::resetDataPathWithFunc(
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
 
   // Wait for the datapath to come out of deactivated state
-  maxRetries = kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
+  const auto maxRetriesInit = maxRetriesWith500msDelay(/*init=*/true);
   retries = 0;
-  while (retries++ < maxRetries) {
+  while (retries++ < maxRetriesInit) {
     /* sleep override */
     usleep(kUsecDatapathStatePollTime);
     if (isDatapathUpdated(
@@ -3795,7 +3800,7 @@ void CmisModule::resetDataPathWithFunc(
       break;
     }
   }
-  if (retries >= maxRetries) {
+  if (retries >= maxRetriesInit) {
     QSFP_LOG(ERR, this) << fmt::format(
         "Datapath didn't come out of deactivated state even after waiting {:d} uSec",
         kUsecDatapathStateUpdateTime);
