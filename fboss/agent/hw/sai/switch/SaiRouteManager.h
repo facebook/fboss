@@ -93,6 +93,10 @@ struct SaiRouteHandle {
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle() const;
 };
 
+using SwitchStateRoutesMap = folly::F14FastMap<
+    SaiRouteTraits::RouteEntry,
+    std::variant<std::shared_ptr<RouteV4>, std::shared_ptr<RouteV6>>>;
+
 class SaiRouteManager {
  public:
   SaiRouteManager(
@@ -141,6 +145,10 @@ class SaiRouteManager {
 
   void checkMetadata(SaiRouteTraits::RouteEntry entry);
 
+  const SwitchStateRoutesMap& getSwitchStateRoutesMap() const {
+    return swRoutes_;
+  }
+
  private:
   SaiRouteHandle* getRouteHandleImpl(
       const SaiRouteTraits::RouteEntry& entry) const;
@@ -176,6 +184,7 @@ class SaiRouteManager {
   const SaiPlatform* platform_;
   folly::F14FastMap<SaiRouteTraits::RouteEntry, std::unique_ptr<SaiRouteHandle>>
       handles_;
+  SwitchStateRoutesMap swRoutes_;
 };
 
 } // namespace facebook::fboss

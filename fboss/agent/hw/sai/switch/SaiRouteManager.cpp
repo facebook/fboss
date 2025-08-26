@@ -470,6 +470,8 @@ void SaiRouteManager::changeRoute(
         newSwRoute->prefix().str());
   }
   addOrUpdateRoute(itr->second.get(), routerId, oldSwRoute, newSwRoute);
+  swRoutes_.erase(entry);
+  swRoutes_.emplace(entry, newSwRoute);
 }
 
 template <typename AddrT>
@@ -491,6 +493,7 @@ void SaiRouteManager::addRoute(
   addOrUpdateRoute(
       routeHandle.get(), routerId, std::shared_ptr<Route<AddrT>>{}, swRoute);
   handles_.emplace(entry, std::move(routeHandle));
+  swRoutes_.emplace(entry, swRoute);
 }
 
 template <typename AddrT>
@@ -508,6 +511,7 @@ void SaiRouteManager::removeRoute(
     throw FbossError(
         "Failed to remove non-existent route to ", swRoute->prefix().str());
   }
+  swRoutes_.erase(entry);
 }
 
 template <typename AddrT>
@@ -517,6 +521,7 @@ void SaiRouteManager::removeRouteForRollback(
   XLOG(DBG3) << "Remove route for rollback: " << swRoute->str();
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
   handles_.erase(entry);
+  swRoutes_.erase(entry);
 }
 
 SaiRouteHandle* SaiRouteManager::getRouteHandle(
@@ -543,6 +548,7 @@ SaiRouteHandle* SaiRouteManager::getRouteHandleImpl(
 
 void SaiRouteManager::clear() {
   handles_.clear();
+  swRoutes_.clear();
 }
 
 std::shared_ptr<SaiObject<SaiRouteTraits>> SaiRouteManager::getRouteObject(
