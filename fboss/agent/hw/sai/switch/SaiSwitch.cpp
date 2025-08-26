@@ -593,7 +593,81 @@ bool SaiSwitch::transactionsSupported() const {
 
 std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
   auto state = std::make_shared<SwitchState>();
-  // TODO(ravi) fill in FIB contruction code
+
+  const auto& switchStateRoutesMap =
+      managerTable_->routeManager().getSwitchStateRoutesMap();
+
+  // Create a new MultiSwitchForwardingInformationBaseMap
+  auto fibMap = std::make_shared<MultiSwitchForwardingInformationBaseMap>();
+  auto scopeResolver = platform_->scopeResolver();
+
+  // Group routes by router ID
+  std::map<RouterID, std::vector<std::shared_ptr<RouteV4>>> routesV4;
+  std::map<RouterID, std::vector<std::shared_ptr<RouteV6>>> routesV6;
+
+  // Create a set of routerIds from each routeEntry in switchStateRoutesMap
+  std::set<RouterID> routerIds;
+  std::for_each(
+      switchStateRoutesMap.begin(),
+      switchStateRoutesMap.end(),
+      [&routerIds](const auto& routeEntry) {
+        routerIds.insert(RouterID(routeEntry.first.virtualRouterId()));
+      });
+  for (const auto& routerId : routerIds) {
+    // Create FIB containers
+    auto fibContainer =
+        std::make_shared<ForwardingInformationBaseContainer>(routerId);
+    fibMap->updateForwardingInformationBaseContainer(
+        fibContainer, scopeResolver->scope(fibContainer));
+  }
+
+  // Iterate through the switchStateRoutesMap
+  for (const auto& [routeEntry, routeVariant] : switchStateRoutesMap) {
+    RouterID routerId(routeEntry.virtualRouterId());
+
+    if (std::holds_alternative<std::shared_ptr<RouteV4>>(routeVariant)) {
+      auto route = std::get<std::shared_ptr<RouteV4>>(routeVariant);
+      if (route) {
+        routesV4[routerId].push_back(route);
+      }
+    } else if (std::holds_alternative<std::shared_ptr<RouteV6>>(routeVariant)) {
+      auto route = std::get<std::shared_ptr<RouteV6>>(routeVariant);
+      if (route) {
+        routesV6[routerId].push_back(route);
+      }
+    }
+  }
+
+  // Process each router ID with v4 routes
+  for (const auto& [routerId, v4Routes] : routesV4) {
+    // Create IPv4 FIB
+    typename ForwardingInformationBaseV4::Base::NodeContainer v4Container;
+    for (const auto& route : v4Routes) {
+      RoutePrefix<folly::IPAddressV4> prefix(
+          route->prefix().network(), route->prefix().mask());
+      v4Container.emplace(prefix.str(), route);
+    }
+    auto fibV4 =
+        std::make_shared<ForwardingInformationBaseV4>(std::move(v4Container));
+    fibMap->getNodeIf(routerId)->setFib<folly::IPAddressV4>(fibV4);
+  }
+
+  // Process each router ID with v6 routes
+  for (const auto& [routerId, v6Routes] : routesV6) {
+    // Create IPv6 FIB
+    typename ForwardingInformationBaseV6::Base::NodeContainer v6Container;
+    for (const auto& route : v6Routes) {
+      RoutePrefix<folly::IPAddressV6> prefix(
+          route->prefix().network(), route->prefix().mask());
+      v6Container.emplace(prefix.str(), route);
+    }
+    auto fibV6 =
+        std::make_shared<ForwardingInformationBaseV6>(std::move(v6Container));
+    fibMap->getNodeIf(routerId)->setFib<folly::IPAddressV6>(fibV6);
+  }
+
+  state->resetForwardingInformationBases(fibMap);
+  state->publish();
   return state;
 }
 
