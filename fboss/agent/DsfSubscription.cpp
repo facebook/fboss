@@ -523,6 +523,7 @@ void DsfSubscription::processGRHoldTimerExpired() {
     return std::shared_ptr<SwitchState>{};
   };
 
-  updateDsfState(updateDsfStateFn);
+  hwUpdateEvb_->runInEventBaseThread(
+      [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
 }
 } // namespace facebook::fboss
