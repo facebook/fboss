@@ -373,7 +373,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       verifyOptical800gProfile(mgmtInterface, mediaInterfaces);
       break;
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
-      verifyActiveCopper800gProfile(mgmtInterface, mediaInterfaces);
+      verifyCopper800gProfile(tcvrState, mediaInterfaces);
       break;
     default:
       throw FbossError(
@@ -550,15 +550,25 @@ void HwTransceiverUtils::verifyOptical800gProfile(
   }
 }
 
-void HwTransceiverUtils::verifyActiveCopper800gProfile(
-    const TransceiverManagementInterface mgmtInterface,
+void HwTransceiverUtils::verifyCopper800gProfile(
+    const TcvrState& tcvrState,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
+  const auto& cable = *tcvrState.cable();
+  const auto& transmitterTech = *cable.transmitterTech();
+  const auto& mediaTypeEncoding = *cable.mediaTypeEncoding();
+  auto mgmtInterface =
+      apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
+
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
+
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_TRUE(
-        *mediaId.media()->activeCuCode() ==
-        ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_800G);
+    if (mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
+      EXPECT_TRUE(
+          *mediaId.media()->activeCuCode_ref() ==
+          ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
+    }
   }
 }
 
