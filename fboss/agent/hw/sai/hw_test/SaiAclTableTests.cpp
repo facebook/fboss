@@ -24,7 +24,7 @@ class SaiAclTableRecreateTests : public HwTest {
 };
 
 TEST_F(SaiAclTableRecreateTests, AclEntryCount) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     auto* acl1 = utility::addAcl_DEPRECATED(
         &config, "aclEntry1", cfg::AclActionType::DENY);
@@ -44,7 +44,7 @@ TEST_F(SaiAclTableRecreateTests, AclEntryCount) {
             cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
         2);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // ensure acl table exists with same number of acl entries after force
     // recreate.
     const auto* saiSwitch = static_cast<const SaiSwitch*>(getHwSwitch());
