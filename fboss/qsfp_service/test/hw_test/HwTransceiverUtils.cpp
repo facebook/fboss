@@ -353,6 +353,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       break;
 
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
       verifyCopper400gProfile(tcvrState, mediaInterfaces);
       break;
 
@@ -486,15 +487,25 @@ void HwTransceiverUtils::verify400gProfile(
 void HwTransceiverUtils::verifyCopper400gProfile(
     const TcvrState& tcvrState,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
-  EXPECT_EQ(
-      tcvrState.transceiverManagementInterface().value_or({}),
-      TransceiverManagementInterface::CMIS);
-  EXPECT_EQ(
-      TransmitterTechnology::COPPER,
-      *(tcvrState.cable().value_or({}).transmitterTech()));
+  const auto& cable = *tcvrState.cable();
+  const auto& transmitterTech = *cable.transmitterTech();
+  const auto mediaTypeEncoding =
+      cable.mediaTypeEncoding().value_or(MediaTypeEncodings::UNKNOWN);
+  auto mgmtInterface =
+      apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
+
+  EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
 
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_400G);
+    if (mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
+      EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_400G);
+      EXPECT_TRUE(
+          *mediaId.media()->activeCuCode_ref() ==
+          ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G);
+    } else {
+      EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_400G);
+    }
   }
 }
 
