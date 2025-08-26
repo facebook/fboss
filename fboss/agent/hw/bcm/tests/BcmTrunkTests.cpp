@@ -65,12 +65,12 @@ TEST_F(BcmTrunkTest, findTrunkApiChecks) {
   std::vector<int> subPorts = {
       masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = initialConfig();
     addAggPort(aggID, subPorts, &cfg);
     applyConfigAndEnableTrunks(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto trunkTable = getHwSwitch()->getTrunkTable();
 
     for (auto itr : subPorts) {
