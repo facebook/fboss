@@ -178,13 +178,13 @@ class BcmLabeledEgressTest : public BcmTest {
 };
 
 TEST_F(BcmLabeledEgressTest, labeledEgress) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = applyNewConfig(initialConfig());
     auto egress = makeLabeledEgress(kLabels[0]);
     programEgressToPort(egress, 0 /* index */);
     return state;
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::vector<bcm_l3_egress_t> egresses;
     bcm_l3_egress_traverse(
         getHwSwitch()->getUnit(),
@@ -204,13 +204,13 @@ TEST_F(BcmLabeledEgressTest, labeledEgress) {
 }
 
 TEST_F(BcmLabeledEgressTest, noLabeledEgress) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = applyNewConfig(initialConfig());
     auto egress = makeUnlabeledEgress();
     programEgressToPort(egress, 0 /* index */);
     return state;
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::vector<bcm_l3_egress_t> out;
     bcm_l3_egress_traverse(
         getHwSwitch()->getUnit(),
@@ -232,7 +232,7 @@ TEST_F(BcmLabeledEgressTest, noLabeledEgress) {
 }
 
 TEST_F(BcmLabeledEgressTest, LabeledEgressWithEcmp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = applyNewConfig(initialConfig());
     BcmEcmpEgress::EgressId2Weight egressId2Weight;
     for (auto i = 0; i < 4; i++) {
@@ -243,7 +243,7 @@ TEST_F(BcmLabeledEgressTest, LabeledEgressWithEcmp) {
     makeEcmpEgress(egressId2Weight);
     return state;
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
@@ -264,7 +264,7 @@ TEST_F(BcmLabeledEgressTest, LabeledEgressWithEcmp) {
 }
 
 TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithEcmp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = applyNewConfig(initialConfig());
     std::vector<BcmEgress*> egresses;
     for (auto i = 0; i < 4; i++) {
@@ -281,7 +281,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithEcmp) {
     makeEcmpEgress(egressId2Weight);
     return state;
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
@@ -306,7 +306,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithEcmp) {
 }
 
 TEST_F(BcmLabeledEgressTest, labeledTunnelEgressCommonTunnel) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = applyNewConfig(initialConfig());
     std::vector<BcmEgress*> egresses;
     for (auto i = 0; i < 4; i++) {
@@ -323,7 +323,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressCommonTunnel) {
     makeEcmpEgress(egressId2Weight);
     return state;
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
@@ -345,7 +345,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressCommonTunnel) {
 
 TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithOneLabel) {
   LabelForwardingAction::LabelStack stack{101};
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = applyNewConfig(initialConfig());
     std::vector<BcmEgress*> egresses;
     for (auto i = 0; i < 4; i++) {
@@ -362,7 +362,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithOneLabel) {
     makeEcmpEgress(egressId2Weight);
     return state;
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);
@@ -383,7 +383,7 @@ TEST_F(BcmLabeledEgressTest, labeledTunnelEgressWithOneLabel) {
 }
 
 TEST_F(BcmLabeledEgressTest, LabeledUnlabeledEgressWithEcmp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = applyNewConfig(initialConfig());
     std::vector<BcmEgress*> egresses;
     egresses.push_back(makeLabeledEgress(kLabels[0]));
@@ -398,7 +398,7 @@ TEST_F(BcmLabeledEgressTest, LabeledUnlabeledEgressWithEcmp) {
     makeEcmpEgress(egressId2Weight);
     return state;
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ecmpMembers = utility::getEcmpMembersInHw(getHwSwitch());
 
     EXPECT_EQ(ecmpMembers.size(), 4);

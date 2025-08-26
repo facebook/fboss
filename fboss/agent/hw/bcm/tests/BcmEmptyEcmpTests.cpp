@@ -42,7 +42,7 @@ class BcmEmptyEcmpTest : public BcmTest {
   void runTest(unsigned int ecmpWidth) {
     auto cfg = initialConfig();
     applyNewConfig(cfg);
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       for (auto v6Pfx :
            {RoutePrefixV6{IPAddressV6(), 0},
             RoutePrefixV6{IPAddressV6("1::1"), 128}}) {
@@ -66,7 +66,7 @@ class BcmEmptyEcmpTest : public BcmTest {
             v4Pfx);
       }
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto ecmpCount = utility::getEcmpsInHw(getHwSwitch()).size();
       EXPECT_EQ(2, ecmpCount);
     };

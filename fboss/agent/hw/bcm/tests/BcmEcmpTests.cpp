@@ -98,8 +98,8 @@ const BcmEcmpEgress* BcmEcmpTest::getEcmpEgress() const {
 }
 
 TEST_F(BcmEcmpTest, SearchMissingEgressInECMP) {
-  auto setup = [=]() { programRouteWithUnresolvedNhops(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { programRouteWithUnresolvedNhops(); };
+  auto verify = [=, this]() {
     bcm_l3_egress_ecmp_t ecmpObj;
     bcm_l3_egress_ecmp_t_init(&ecmpObj);
     auto ecmpEgress = getEcmpEgress();

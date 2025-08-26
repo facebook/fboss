@@ -224,8 +224,8 @@ class BcmMmuTests : public BcmTest {
 // this is achieved using the following bcm cfg knobs
 // (1) buf.mqueue.guarantee.0 (2) mmu_config_override
 TEST_F(BcmMmuTests, CpuQueueReservedBytes) {
-  auto setup = [=]() { setupBaseConfig(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { setupBaseConfig(); };
+  auto verify = [=, this]() {
     const int numCpuQueues = NUM_CPU_COSQ(getUnit());
     const int mmuBytesPerCell = getPlatform()->getMMUCellBytes();
     const int defaultCpuReservedBytes =
