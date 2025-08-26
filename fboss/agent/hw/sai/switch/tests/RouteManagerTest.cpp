@@ -7,9 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -40,6 +42,42 @@ class RouteManagerTest : public ManagerTestBase {
   TestRoute tr1;
   TestRoute tr2;
 };
+
+TEST_F(RouteManagerTest, verifySwitchStateConstruction) {
+  auto newState = saiPlatform->getHwSwitch()->getProgrammedState()->clone();
+  auto fib4 = newState->getFibs()
+                  ->getNode(RouterID(0))
+                  ->getFibV4()
+                  ->modify(RouterID(0), &newState);
+  for (int i = 0; i < 10; i++) {
+    TestRoute nhopRouteV4;
+    auto ip4 = folly::IPAddressV4(folly::sformat("1.1.1.{}", i));
+    folly::CIDRNetwork c4{ip4, 32};
+    nhopRouteV4.destination = c4;
+    nhopRouteV4.nextHopInterfaces.push_back(testInterfaces.at(i));
+    auto r1 = makeRoute(nhopRouteV4);
+    RouteV4::Prefix pfx1{ip4, 32};
+    fib4->addNode(pfx1.str(), std::move(r1));
+
+    TestRoute ecmpRouteV4;
+    ip4 = folly::IPAddressV4(folly::sformat("1.{}.0.0", i));
+    folly::CIDRNetwork c42{ip4, 16};
+    ecmpRouteV4.destination = c42;
+    ecmpRouteV4.nextHopInterfaces.push_back(testInterfaces.at(0));
+    ecmpRouteV4.nextHopInterfaces.push_back(testInterfaces.at(1));
+    ecmpRouteV4.nextHopInterfaces.push_back(testInterfaces.at(2));
+    ecmpRouteV4.nextHopInterfaces.push_back(testInterfaces.at(3));
+    auto r2 = makeRoute(ecmpRouteV4);
+    RouteV4::Prefix pfx2{ip4, 16};
+    fib4->addNode(pfx2.str(), std::move(r2));
+  }
+  newState->publish();
+  applyNewState(newState);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  auto hwState = saiSwitch->constructSwitchStateWithFib();
+  auto swState = saiPlatform->getHwSwitch()->getProgrammedState();
+  ASSERT_EQ(hwState->getFibs()->toThrift(), swState->getFibs()->toThrift());
+}
 
 TEST_F(RouteManagerTest, addRoute) {
   auto r = makeRoute(tr1);
