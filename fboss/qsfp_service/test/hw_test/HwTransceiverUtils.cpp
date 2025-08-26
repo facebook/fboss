@@ -226,10 +226,14 @@ void HwTransceiverUtils::verifyTransceiverSettings(
       *tcvrState.transceiver() == TransceiverType::QSFP ||
       *tcvrState.transceiver() == TransceiverType::SFP);
 
-  if (TransmitterTechnology::COPPER ==
-      *(tcvrState.cable().value_or({}).transmitterTech())) {
-    XLOG(INFO) << " Skip verifying optics settings: " << *tcvrState.port()
-               << ", for copper cable";
+  bool isCopper = TransmitterTechnology::COPPER ==
+      *(tcvrState.cable().value_or({}).transmitterTech());
+  bool isActiveCable = MediaTypeEncodings::ACTIVE_CABLES ==
+      tcvrState.cable().value_or({}).mediaTypeEncoding().value_or(
+          MediaTypeEncodings::UNKNOWN);
+  if (isCopper && !isActiveCable) {
+    XLOG(INFO) << " Skip verifying tcvr settings: " << *tcvrState.port()
+               << ", for passive copper cable";
   } else if (
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
