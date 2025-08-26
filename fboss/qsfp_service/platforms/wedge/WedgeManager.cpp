@@ -1187,14 +1187,8 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
       continue;
     }
 
-    // Skip non-optical modules
-    if (tcvrInfo.tcvrState().value().cable().has_value() &&
-        tcvrInfo.tcvrState()
-                .value()
-                .cable()
-                .value()
-                .transmitterTech()
-                .value() != TransmitterTechnology::OPTICAL) {
+    // Skip non-optical modules and non AEC modules.
+    if (!opticalOrActiveCable(*tcvrInfo.tcvrState())) {
       continue;
     }
 
