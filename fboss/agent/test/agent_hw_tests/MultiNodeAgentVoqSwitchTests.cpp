@@ -62,10 +62,15 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     return ret;
   }
 
-  void verifyDsfClusterHelper() const {
+  std::unique_ptr<MultiNodeUtil> createMultiNodeUtil() {
     auto multiNodeUtil =
         std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
 
+    return multiNodeUtil;
+  }
+
+  void verifyDsfClusterHelper(
+      const std::unique_ptr<MultiNodeUtil>& multiNodeUtil) const {
     WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
       EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricReachability());
@@ -100,7 +105,8 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
     if (!isTestDriver()) {
       return;
     }
-    verifyDsfClusterHelper();
+    auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
   };
 
   verifyAcrossWarmBoots(setup, verify);
