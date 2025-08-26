@@ -305,7 +305,8 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
   }
   DeltaFunctions::forEachChanged(
       delta.getMirrorsDelta(),
-      [=](const std::shared_ptr<Mirror>& oldMirror,
+      [=, this](
+          const std::shared_ptr<Mirror>& oldMirror,
           const std::shared_ptr<Mirror>& newMirror) {
         if (oldMirror->isResolved()) {
           decrementBcmMirrorStat(oldMirror, stats);
@@ -314,12 +315,12 @@ void BcmHwTableStatManager::updateBcmStateChangeStats(
           incrementBcmMirrorStat(newMirror, stats);
         }
       },
-      [=](const std::shared_ptr<Mirror>& addedMirror) {
+      [=, this](const std::shared_ptr<Mirror>& addedMirror) {
         if (addedMirror->isResolved()) {
           incrementBcmMirrorStat(addedMirror, stats);
         }
       },
-      [=](const std::shared_ptr<Mirror>& removedMirror) {
+      [=, this](const std::shared_ptr<Mirror>& removedMirror) {
         if (removedMirror->isResolved()) {
           decrementBcmMirrorStat(removedMirror, stats);
         }

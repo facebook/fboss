@@ -73,7 +73,7 @@ void BcmEgress::program(
     bcm_port_t port,
     RouteForwardAction action) {
   bcm_l3_egress_t eObj;
-  auto failedToProgramMsg = [=]() {
+  auto failedToProgramMsg = [=, this]() {
     auto msg = folly::to<std::string>(
         "failed to program L3 egress object ",
         id_,
@@ -90,7 +90,7 @@ void BcmEgress::program(
     }
     return msg;
   };
-  auto succeededToProgramMsg = [=]() {
+  auto succeededToProgramMsg = [=, this]() {
     auto msg = folly::to<std::string>(
         "programmed L3 egress object ",
         id_,
@@ -109,7 +109,7 @@ void BcmEgress::program(
     }
     return msg;
   };
-  auto alreadyExistsMsg = [=]() {
+  auto alreadyExistsMsg = [=, this]() {
     auto msg = folly::to<std::string>(
         "Identical egress object for : ",
         ip,
