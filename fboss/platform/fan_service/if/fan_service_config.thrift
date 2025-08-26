@@ -97,7 +97,9 @@ struct Sensor {
   9: TempToPwmMap normalDownTable;
   10: TempToPwmMap failUpTable;
   11: TempToPwmMap failDownTable;
-  12: PidSetting pidSetting;
+  12: optional TempToPwmMap twoRotorsFailUpTable;
+  13: optional TempToPwmMap twoRotorsFailDownTable;
+  14: PidSetting pidSetting;
 }
 
 struct ControlInterval {
