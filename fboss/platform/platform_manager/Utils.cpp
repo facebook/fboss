@@ -114,6 +114,18 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
   return charDevPath;
 }
 
+std::string Utils::resolveMdioBusCharDevPath(
+    std::string deviceName,
+    uint32_t instanceId) {
+  auto failMsg = "Failed to resolve mdio_bus CharDevPath";
+  auto charDevPath = fmt::format("/dev/ioc_{}.{}", deviceName, instanceId);
+  if (!fs::exists(charDevPath)) {
+    throw std::runtime_error(fmt::format(
+        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+  }
+  return charDevPath;
+}
+
 bool Utils::checkDeviceReadiness(
     std::function<bool()>&& isDeviceReadyFunc,
     const std::string& onWaitMsg,

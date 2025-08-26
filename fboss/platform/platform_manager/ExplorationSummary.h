@@ -26,6 +26,7 @@ enum class ExplorationErrorType {
   PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
   PCI_SUB_DEVICE_CREATE_INFO_ROM,
   PCI_SUB_DEVICE_CREATE_MISC_CTRL,
+  PCI_SUB_DEVICE_CREATE_MDIO_BUS,
   IDPROM_READ,
   SLOT_PM_UNIT_ABSENCE,
   SLOT_PRESENCE_CHECK,
@@ -73,6 +74,8 @@ constexpr const char* toExplorationErrorTypeStr(
       return "pci_sub_device_create_info_rom";
     case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MISC_CTRL:
       return "pci_sub_device_create_misc_ctrl";
+    case ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS:
+      return "pci_sub_device_create_mdio_bus";
     case ExplorationErrorType::IDPROM_READ:
       return "idprom_read";
     case ExplorationErrorType::SLOT_PM_UNIT_ABSENCE:

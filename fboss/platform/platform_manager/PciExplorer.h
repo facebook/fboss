@@ -121,6 +121,13 @@ class PciExplorer {
       const FanPwmCtrlConfig& fanPwmCtrlConfig,
       uint32_t instanceId);
 
+  // Create the mii_bus based on the given FpgaIpBlockConfig residing
+  // at the given PciDevice path. Throw std::runtime_error on failure.
+  std::string createMdioBus(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& mdioBusConfig,
+      uint32_t instanceId);
+
   // Create the generic device block based on the given FpgaIpBlockConfig
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   void createFpgaIpBlock(
@@ -166,6 +173,10 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
   std::string getXcvrCtrlSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getMdioBusSysfsPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);

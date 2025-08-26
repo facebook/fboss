@@ -645,6 +645,18 @@ void PlatformExplorer::explorePciDevices(
         [&](const auto& miscCtrlConfig) {
           pciExplorer_.createFpgaIpBlock(pciDevice, miscCtrlConfig, instId++);
         });
+    createPciSubDevices(
+        slotPath,
+        *pciDeviceConfig.mdioBusConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
+        [&](const auto& mdioBusConfig) {
+          auto mdioBusSysfsPath =
+            pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId++);
+          dataStore_.updateCharDevPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusSysfsPath);
+        });
   }
 }
 
@@ -698,7 +710,8 @@ void PlatformExplorer::createDeviceSymLink(
     } else if (
         linkParentPath.string() == "/run/devmap/gpiochips" ||
         linkParentPath.string() == "/run/devmap/flashes" ||
-        linkParentPath.string() == "/run/devmap/watchdogs") {
+        linkParentPath.string() == "/run/devmap/watchdogs" ||
+        linkParentPath.string() == "/run/devmap/mdio-busses") {
       targetPath = devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
       auto xcvrName = linkPath.substr(linkParentPath.string().length() + 1);
