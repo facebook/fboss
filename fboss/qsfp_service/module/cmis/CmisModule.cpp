@@ -978,8 +978,11 @@ uint8_t CmisModule::getCurrentApplication(uint8_t lane, int byteOffset) const {
   if (currentApplicationSel <= 8) {
     getQsfpFieldAddress(
         CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-    // We use the module Media Interface ID, which is located at the second byte
-    // of the field, as Application ID here.
+    // We use the module Media Interface ID for Optical modules, which is
+    // located at the second byte of the field (byteOffset = 1), as Application
+    // ID here. If we have an AEC cable, we use the module host interface ID
+    // which has a byteOffset of 0. This is in page 00h app sel advertising
+    // (starting at offset 86 for page)
     offset += (currentApplicationSel - 1) * length + byteOffset;
   } else {
     getQsfpFieldAddress(
@@ -2335,24 +2338,31 @@ void CmisModule::setApplicationCodeLocked(
   int length;
   int dataAddress;
 
+  // We use the module Media Interface ID for Optical modules, which is located
+  // at the second byte of the field (byteOffset = 1), as Application ID here.
+  // If we have an AEC cable, we use the module host interface ID which has a
+  // byteOffset of 0. This is in page 00h app sel advertising (starting at
+  // offset 86 for page)
+  int byteOffset = (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES)
+      ? kHostInterfaceCodeOffset
+      : kMediaInterfaceCodeOffset;
+
   // For ApSel value 1 to 8 get the current application from Page 0
   // For ApSel value 9 to 15 get the current application from page 1
   // ApSel value 0 means application not selected yet
   if (currentApplicationSel >= 1 && currentApplicationSel <= 8) {
     getQsfpFieldAddress(
         CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
-    // We use the module Media Interface ID, which is located at the second byte
-    // of the field, as Application ID here.
-    offset += (currentApplicationSel - 1) * length + 1;
+    // Use host or media application offset based on byteOffset
+    offset += (currentApplicationSel - 1) * length + byteOffset;
     getQsfpValue(dataAddress, offset, 1, &currentApplication);
     QSFP_LOG(INFO, this) << folly::sformat(
         "currentApplication: {:#x}", currentApplication);
   } else if (currentApplicationSel >= 9 && currentApplicationSel <= 15) {
     getQsfpFieldAddress(
         CmisField::APPLICATION_ADVERTISING2, dataAddress, offset, length);
-    // We use the module Media Interface ID, which is located at the second byte
-    // of the field, as Application ID here.
-    offset += (currentApplicationSel - 9) * length + 1;
+    // Use host or media application offset based on byteOffset
+    offset += (currentApplicationSel - 9) * length + byteOffset;
     getQsfpValue(dataAddress, offset, 1, &currentApplication);
     QSFP_LOG(INFO, this) << folly::sformat(
         "currentApplication: {:#x}", currentApplication);
