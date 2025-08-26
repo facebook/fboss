@@ -555,6 +555,38 @@ EcmpResourceManager::getOptimalMergeGroupSet() const {
   return citr->first;
 }
 
+EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getMergedGids()
+    const {
+  NextHopGroupIds gids;
+  std::for_each(
+      nextHopGroupIdToInfo_.begin(),
+      nextHopGroupIdToInfo_.end(),
+      [&gids](const auto& gidAndGroup) {
+        auto grpInfo = gidAndGroup.second.lock();
+        CHECK(grpInfo);
+        if (grpInfo->getMergedGroupInfoItr()) {
+          gids.insert(gidAndGroup.first);
+        }
+      });
+  return gids;
+}
+
+EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
+    const {
+  NextHopGroupIds gids;
+  std::for_each(
+      nextHopGroupIdToInfo_.begin(),
+      nextHopGroupIdToInfo_.end(),
+      [&gids](const auto& gidAndGroup) {
+        auto grpInfo = gidAndGroup.second.lock();
+        CHECK(grpInfo);
+        if (!grpInfo->getMergedGroupInfoItr()) {
+          gids.insert(gidAndGroup.first);
+        }
+      });
+  return gids;
+}
+
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _nonBackupEcmpGroupsCnt,
     const StateDelta& _in,
