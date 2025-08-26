@@ -34,7 +34,7 @@ RUN dnf install gcc-toolset-12 -y
 RUN echo "source /opt/rh/gcc-toolset-12/enable" >> ~/.bashrc
 
 # The following libraries are needed for building Broadcom SDK
-RUN dnf install -y doxygen aspell libyaml-devel vim-common
+RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel
 # Perl modules needed for Broadcom SDK build
 RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-Compare \
     perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
