@@ -280,6 +280,10 @@ void HwSwitch::rollback(const StateDelta& /*delta*/) noexcept {
       << "Transactions is supported but rollback is implemented on this switch";
 }
 
+std::shared_ptr<SwitchState> HwSwitch::constructSwitchStateWithFib() noexcept {
+  XLOG(FATAL) << "constructSwitchStateWithFib not implemented on this switch";
+}
+
 std::shared_ptr<SwitchState> HwSwitch::getProgrammedState() const {
   auto programmedState = programmedState_.rlock();
   return *programmedState;

@@ -591,6 +591,12 @@ bool SaiSwitch::transactionsSupported() const {
   return true;
 }
 
+std::shared_ptr<SwitchState> SaiSwitch::constructSwitchStateWithFib() noexcept {
+  auto state = std::make_shared<SwitchState>();
+  // TODO(ravi) fill in FIB contruction code
+  return state;
+}
+
 void SaiSwitch::rollback(const StateDelta& delta) noexcept {
   const auto& knownGoodState = delta.oldState();
   auto curBootType = getBootType();

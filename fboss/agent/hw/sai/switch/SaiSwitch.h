@@ -267,6 +267,8 @@ class SaiSwitch : public HwSwitch {
 
   std::shared_ptr<SwitchState> reconstructSwitchState() const override;
 
+  std::shared_ptr<SwitchState> constructSwitchStateWithFib() noexcept override;
+
   void injectSwitchReachabilityChangeNotification() override;
 
   bool getArsExhaustionStatus() override;

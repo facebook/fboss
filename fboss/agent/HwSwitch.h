@@ -170,6 +170,7 @@ class HwSwitch {
       const HwWriteBehaviorRAII& behavior =
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
   virtual void rollback(const StateDelta& delta) noexcept;
+  virtual std::shared_ptr<SwitchState> constructSwitchStateWithFib() noexcept;
 
   virtual bool transactionsSupported() const {
     return false;
