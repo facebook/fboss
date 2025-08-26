@@ -649,16 +649,19 @@ void HwTransceiverUtils::verifyDiagsCapability(
              << apache::thrift::util::enumNameSafe(*mediaIntfCode);
 
   switch (*mgmtInterface) {
-    case TransceiverManagementInterface::CMIS:
-      if (TransmitterTechnology::COPPER ==
-          *(tcvrState.cable().value_or({}).transmitterTech())) {
+    case TransceiverManagementInterface::CMIS: {
+      const auto& cable = *tcvrState.cable();
+      const auto& transmitterTech = *cable.transmitterTech();
+      const auto& mediaTypeEncoding = *cable.mediaTypeEncoding();
+      if (TransmitterTechnology::COPPER == transmitterTech &&
+          mediaTypeEncoding != MediaTypeEncodings::ACTIVE_CABLES) {
         // FlatMem modules don't support diagsCapability
         return;
       }
       EXPECT_TRUE(diagsCapability.has_value());
       if (!skipCheckingIndividualCapability) {
         EXPECT_TRUE(*diagsCapability->diagnostics());
-        // Only 400G CMIS supports VDM
+        // Only 400G CMIS supports VDM (excluding AEC cables)
         EXPECT_EQ(
             *diagsCapability->vdm(),
             (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
@@ -682,11 +685,13 @@ void HwTransceiverUtils::verifyDiagsCapability(
             *mediaIntfCode == MediaInterfaceCode::LR4_2x400G_10KM ||
             *mediaIntfCode == MediaInterfaceCode::DR4_2x400G ||
             *mediaIntfCode == MediaInterfaceCode::DR4_2x800G ||
-            *mediaIntfCode == MediaInterfaceCode::ZR_800G) {
+            *mediaIntfCode == MediaInterfaceCode::ZR_800G ||
+            *mediaIntfCode == MediaInterfaceCode::CR8_800G) {
           EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }
       }
       return;
+    }
     case TransceiverManagementInterface::SFF:
       // Only FR1_100G has diagsCapability
       if (*mediaIntfCode == MediaInterfaceCode::FR1_100G) {
