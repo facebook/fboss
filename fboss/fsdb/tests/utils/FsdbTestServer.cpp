@@ -31,7 +31,7 @@ FsdbTestServer::FsdbTestServer(
 
   folly::Baton<> serverStartedBaton;
   thriftThread_ =
-      std::make_unique<std::thread>([=, &serverStartedBaton, &config] {
+      std::make_unique<std::thread>([=, this, &serverStartedBaton, &config] {
         ServiceHandler::Options options;
         options.serveIdPathSubs = true;
 
