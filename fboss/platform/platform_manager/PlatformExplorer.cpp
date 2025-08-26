@@ -17,7 +17,6 @@
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/Utils.h"
-#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
@@ -133,8 +132,6 @@ PlatformManagerStatus createPmStatus(
 }
 } // namespace
 
-namespace constants = platform_manager_config_constants;
-
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
     std::shared_ptr<PlatformFsUtils> platformFsUtils)
@@ -164,8 +161,11 @@ void PlatformExplorer::explore() {
        *platformConfig_.symbolicLinkToDevicePath()) {
     createDeviceSymLink(linkPath, devicePath);
   }
+  XLOG(INFO) << "Publishing firmware versions ...";
   publishFirmwareVersions();
+  XLOG(INFO) << "Generating human readable EEPROM contents ...";
   genHumanReadableEeproms();
+  XLOG(INFO) << "Publishing hardware version of the unit ...";
   publishHardwareVersions();
   auto explorationStatus = explorationSummary_.summarize();
   updatePmStatus(createPmStatus(
@@ -669,6 +669,7 @@ void PlatformExplorer::createDeviceSymLink(
         linkPath);
     return;
   }
+
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
   if (!platformFsUtils_->createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
@@ -940,7 +941,17 @@ void PlatformExplorer::genHumanReadableEeproms() {
     if (!linkPath.starts_with("/run/devmap/eeproms")) {
       continue;
     }
+
     const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+
+    if (!dataStore_.hasPmUnit(slotPath)) {
+      XLOG(ERR) << fmt::format(
+          "No device at {}. Skipping creating parsed eeprom content for {}",
+          slotPath,
+          devicePath);
+      continue;
+    }
+
     auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
     std::optional<I2cDeviceConfig> matchingConfig;
 
