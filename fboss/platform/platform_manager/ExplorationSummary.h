@@ -112,7 +112,7 @@ class ExplorationSummary {
   // 2. Publish relevant data to ODS.
   // Return final exploration status.
   ExplorationStatus summarize();
-  virtual bool isDeviceExpectedToFail(const std::string& devicePath);
+  virtual bool isDeviceExpectedToBeAbsent(const std::string& devicePath);
   std::unordered_map<std::string, std::vector<ExplorationError>>
   getFailedDevices();
 

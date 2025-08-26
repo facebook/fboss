@@ -15,7 +15,6 @@ class MockExplorationSummaryTest : public ExplorationSummary {
       const PlatformConfig& config,
       const DataStore& store)
       : ExplorationSummary(config, store) {}
-  MOCK_METHOD(bool, isDeviceExpectedToFail, (const std::string&));
 };
 
 class ExplorationSummaryTest : public testing::Test {
@@ -43,15 +42,18 @@ TEST_F(ExplorationSummaryTest, GoodExploration) {
 }
 
 TEST_F(ExplorationSummaryTest, ExplorationWithExpectedErrors) {
-  EXPECT_CALL(summary_, isDeviceExpectedToFail(_))
-      .Times(3)
-      .WillRepeatedly(Return(true));
   summary_.addError(
-      ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[SCM_EEPROM]", "expect");
+      ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+      "/SMB_SLOT@0/PSU_SLOT@0/[PSU_EEPROM]",
+      "expect");
   summary_.addError(
-      ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[SCM_EEPROM_2]", "expect");
+      ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+      "/SMB_SLOT@1/PSU_SLOT@1/[PSU_EEPROM]",
+      "expect");
   summary_.addError(
-      ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[SCM_EEPROM_3]", "expect");
+      ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+      "/PSU_SLOT@2/[PSU_EEPROM]",
+      "expect");
   EXPECT_EQ(
       summary_.summarize(), ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
   EXPECT_EQ(
@@ -70,9 +72,6 @@ TEST_F(ExplorationSummaryTest, ExplorationWithExpectedErrors) {
 }
 
 TEST_F(ExplorationSummaryTest, ExplorationWithOnlyErrors) {
-  EXPECT_CALL(summary_, isDeviceExpectedToFail(_))
-      .Times(3)
-      .WillRepeatedly(Return(false));
   summary_.addError(
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[MCB_MUX_A]", "fail");
   summary_.addError(
@@ -100,17 +99,16 @@ TEST_F(ExplorationSummaryTest, ExplorationWithOnlyErrors) {
 }
 
 TEST_F(ExplorationSummaryTest, ExplorationWithMixedErrors) {
-  Sequence s;
-  EXPECT_CALL(summary_, isDeviceExpectedToFail(_))
-      .InSequence(s)
-      .WillOnce(Return(true))
-      .WillOnce(Return(true))
-      .WillOnce(Return(false))
-      .WillOnce(Return(false));
+  // Add expected errors (PSU slot devices)
   summary_.addError(
-      ExplorationErrorType::I2C_DEVICE_EXPLORE, "/", "SCM_EEPROM", "expect");
+      ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+      "/SMB_SLOT@0/PSU_SLOT@0/[PSU_EEPROM]",
+      "expect");
   summary_.addError(
-      ExplorationErrorType::I2C_DEVICE_EXPLORE, "/", "SCM_EEPROM", "expect1");
+      ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+      "/PSU_SLOT@1/[PSU_EEPROM]",
+      "expect1");
+  // Add unexpected errors (non-PSU devices)
   summary_.addError(
       ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[MCB_MUX_A]", "fail");
   summary_.addError(
@@ -133,4 +131,37 @@ TEST_F(ExplorationSummaryTest, ExplorationWithMixedErrors) {
       EXPECT_EQ(facebook::fb303::fbData->getCounter(key), 0);
     }
   }
+}
+
+TEST_F(ExplorationSummaryTest, IsDeviceExpectedToBeAbsent) {
+  ExplorationSummary realSummary{platformConfig_, dataStore_};
+
+  // Test PSU slot paths - should return true
+  EXPECT_TRUE(realSummary.isDeviceExpectedToBeAbsent(
+      "/SMB_SLOT@0/PSU_SLOT@0/[PSU_EEPROM]"));
+  EXPECT_TRUE(realSummary.isDeviceExpectedToBeAbsent(
+      "/SMB_SLOT@1/PSU_SLOT@1/[PSU_EEPROM]"));
+  EXPECT_TRUE(realSummary.isDeviceExpectedToBeAbsent(
+      "/CHASSIS/PSU_SLOT@2/[PSU_DEVICE]"));
+  EXPECT_TRUE(
+      realSummary.isDeviceExpectedToBeAbsent("/PSU_SLOT@0/[PSU_EEPROM]"));
+  EXPECT_TRUE(
+      realSummary.isDeviceExpectedToBeAbsent("/PSU_SLOT@99/[PSU_DEVICE]"));
+
+  // Test non-PSU slot paths - should return false
+  EXPECT_FALSE(
+      realSummary.isDeviceExpectedToBeAbsent("/SMB_SLOT@0/[SCM_EEPROM]"));
+  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent("/[MCB_MUX_A]"));
+  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent("/SMB_SLOT@1/[NVME]"));
+  EXPECT_FALSE(
+      realSummary.isDeviceExpectedToBeAbsent("/CHASSIS/[FAN_CONTROLLER]"));
+
+  // Test edge cases - should return false (these paths don't match expected
+  // format)
+  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent(
+      "/PSU_SLOT@/[PSU_EEPROM]")); // Missing number
+  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent(
+      "/PSU_SLOT@abc/[PSU_EEPROM]")); // Non-numeric
+  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent(
+      "/SMB_SLOT@0/PSU_SLOT@0/EXTRA/[PSU_EEPROM]")); // PSU_SLOT not at end
 }

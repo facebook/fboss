@@ -662,18 +662,22 @@ uint32_t PlatformExplorer::getFpgaInstanceId(
 void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
     const std::string& devicePath) {
-  if (explorationSummary_.isDeviceExpectedToFail(devicePath)) {
-    XLOG(WARNING) << fmt::format(
-        "Device at ({}) is not supported in this hardware. Skipping creating symlink {}",
-        devicePath,
-        linkPath);
-    return;
-  }
-
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
   if (!platformFsUtils_->createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
         "Failed to create the parent path ({})", linkParentPath.string());
+    return;
+  }
+
+  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+  if (!dataStore_.hasPmUnit(slotPath)) {
+    // We are not adding a new error to ExplorationSummary, as the error
+    // would have already been captured as
+    // ExplorationErrorType::SLOT_PM_UNIT_ABSENCE
+    XLOG(ERR) << fmt::format(
+        "No device at {}. Skipping creating symbolic link for {}",
+        slotPath,
+        devicePath);
     return;
   }
 

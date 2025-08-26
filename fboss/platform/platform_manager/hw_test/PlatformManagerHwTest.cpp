@@ -35,9 +35,6 @@ class PlatformExplorerWrapper : public PlatformExplorer {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
   }
-  bool isDeviceExpectedToFail(const std::string& devicePath) {
-    return explorationSummary_.isDeviceExpectedToFail(devicePath);
-  }
   std::vector<PlatformManagerStatus> updatedPmStatuses_;
 
  protected:
@@ -141,10 +138,6 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
-    // Skip unsupported device in this hardware.
-    if (platformExplorer_.isDeviceExpectedToFail(devicePath)) {
-      continue;
-    }
     EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
     EXPECT_TRUE(fs::is_symlink(symlink))
