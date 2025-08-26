@@ -747,23 +747,18 @@ void HwTransceiverUtils::verifyDatapathResetTimestamp(
     const TcvrStats& tcvrStats,
     time_t timeReference,
     bool expectedReset) {
-  auto mgmtInterface =
-      apache::thrift::can_throw(tcvrState.transceiverManagementInterface());
-  auto cable = apache::thrift::can_throw(tcvrState.cable());
-  if (mgmtInterface != TransceiverManagementInterface::CMIS ||
-      folly::copy(cable->transmitterTech().value()) ==
-          TransmitterTechnology::COPPER) {
-    // Datapath reset timestamp is only supported for CMIS optical modules
-    return;
-  }
-  auto& datapathResetTimestamp = *tcvrStats.lastDatapathResetTime();
-  if (expectedReset) {
-    ASSERT_TRUE(
-        datapathResetTimestamp.find(portName) != datapathResetTimestamp.end());
-    EXPECT_GT(datapathResetTimestamp.at(portName), timeReference);
-  } else {
-    if (datapathResetTimestamp.find(portName) != datapathResetTimestamp.end()) {
-      EXPECT_LE(datapathResetTimestamp.at(portName), timeReference);
+  if (opticalOrActiveCmisCable(tcvrState)) {
+    auto& datapathResetTimestamp = *tcvrStats.lastDatapathResetTime();
+    if (expectedReset) {
+      ASSERT_TRUE(
+          datapathResetTimestamp.find(portName) !=
+          datapathResetTimestamp.end());
+      EXPECT_GT(datapathResetTimestamp.at(portName), timeReference);
+    } else {
+      if (datapathResetTimestamp.find(portName) !=
+          datapathResetTimestamp.end()) {
+        EXPECT_LE(datapathResetTimestamp.at(portName), timeReference);
+      }
     }
   }
 }
