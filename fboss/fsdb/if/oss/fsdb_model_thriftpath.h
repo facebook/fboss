@@ -1377,12 +1377,15 @@ class ChildThriftPath<::facebook::fboss::cfg::TransceiverConfigOverrideFactor, :
     Self
   >;
   using Children = fatal::tuple<std::pair<strings::transceiverPartNumber, Child<::facebook::fboss::cfg::TransceiverPartNumber, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::TransceiverPartNumber>>>,
-std::pair<strings::applicationCode, Child<::facebook::fboss::SMFMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SMFMediaInterfaceCode>>>>;
+std::pair<strings::applicationCode, Child<::facebook::fboss::SMFMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SMFMediaInterfaceCode>>>,
+std::pair<strings::hostApplicationCode, Child<::facebook::fboss::ActiveCuHostInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ActiveCuHostInterfaceCode>>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::TransceiverPartNumber, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::TransceiverPartNumber>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::SMFMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SMFMediaInterfaceCode>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::SMFMediaInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SMFMediaInterfaceCode>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::facebook::fboss::ActiveCuHostInterfaceCode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ActiveCuHostInterfaceCode>>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::transceiverPartNumber, std::integral_constant<apache::thrift::field_id_t, 1>>,
-std::pair<strings::applicationCode, std::integral_constant<apache::thrift::field_id_t, 2>>>::template type_of<Name>;
+std::pair<strings::applicationCode, std::integral_constant<apache::thrift::field_id_t, 2>>,
+std::pair<strings::hostApplicationCode, std::integral_constant<apache::thrift::field_id_t, 3>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -1390,11 +1393,13 @@ std::pair<strings::applicationCode, std::integral_constant<apache::thrift::field
   
     STRUCT_CHILD_GETTERS(transceiverPartNumber, 1);
     STRUCT_CHILD_GETTERS(applicationCode, 2);
+    STRUCT_CHILD_GETTERS(hostApplicationCode, 3);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return transceiverPartNumber(); }
     else if constexpr (__id == 2) { return applicationCode(); }
+    else if constexpr (__id == 3) { return hostApplicationCode(); }
   }
 
   template <typename T, T... Values>

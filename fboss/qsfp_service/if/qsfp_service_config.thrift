@@ -24,6 +24,7 @@ enum TransceiverPartNumber {
 struct TransceiverConfigOverrideFactor {
   1: optional TransceiverPartNumber transceiverPartNumber;
   2: optional transceiver.SMFMediaInterfaceCode applicationCode;
+  3: optional transceiver.ActiveCuHostInterfaceCode hostApplicationCode;
 }
 
 struct Sff8636Overrides {
