@@ -42,6 +42,7 @@ thrift_library(
         ":platform_manager_snapshot",
         "//fboss/platform/weutil/if:eeprom_contents",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )

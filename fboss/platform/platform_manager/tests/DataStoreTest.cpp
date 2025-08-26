@@ -21,7 +21,7 @@ TEST(DataStoreTest, I2CBusNum) {
   EXPECT_THROW(dataStore.getI2cBusNum("/", "INCOMING@1"), std::runtime_error);
 }
 
-TEST(DataStoreTest, PmUnitAtSlotPath) {
+TEST(DataStoreTest, GetPmUnitInfo) {
   PlatformConfig config;
   DataStore dataStore(config);
 
@@ -32,14 +32,62 @@ TEST(DataStoreTest, PmUnitAtSlotPath) {
 
   dataStore.updatePmUnitName("/", "MCB_FAN_CPLD");
   dataStore.updatePmUnitVersion("/", version);
-  EXPECT_TRUE(dataStore.hasPmUnit("/"));
-  EXPECT_FALSE(dataStore.hasPmUnit("/SMB_SLOT@1"));
   EXPECT_EQ(*dataStore.getPmUnitInfo("/").name(), "MCB_FAN_CPLD");
   EXPECT_EQ(
       *dataStore.getPmUnitInfo("/").version()->productProductionState(), 2);
   EXPECT_EQ(*dataStore.getPmUnitInfo("/").version()->productVersion(), 13);
   EXPECT_EQ(*dataStore.getPmUnitInfo("/").version()->productSubVersion(), 1);
   EXPECT_THROW(dataStore.getPmUnitInfo("/SMB_SLOT@1"), std::runtime_error);
+}
+
+TEST(DataStoreTest, HasPmUnit) {
+  PlatformConfig config;
+  DataStore dataStore(config);
+
+  // Case 1: No PmUnit info exists for the slot path - should return false
+  EXPECT_FALSE(dataStore.hasPmUnit("/NONEXISTENT_SLOT@0"));
+
+  // Case 2: PmUnit info exists but no presence info - should return true
+  dataStore.updatePmUnitName("/SLOT_NO_PRESENCE@0", "TEST_UNIT");
+  EXPECT_TRUE(dataStore.hasPmUnit("/SLOT_NO_PRESENCE@0"));
+
+  // Case 3: PmUnit info exists with presence info indicating present - should
+  // return true
+  dataStore.updatePmUnitName("/SLOT_PRESENT@0", "TEST_UNIT_PRESENT");
+  PresenceInfo presenceInfoPresent;
+  presenceInfoPresent.isPresent() = true;
+  dataStore.updatePmUnitPresenceInfo("/SLOT_PRESENT@0", presenceInfoPresent);
+  EXPECT_TRUE(dataStore.hasPmUnit("/SLOT_PRESENT@0"));
+
+  // Case 4: PmUnit info exists with presence info indicating not present -
+  // should return false
+  dataStore.updatePmUnitName("/SLOT_NOT_PRESENT@0", "TEST_UNIT_NOT_PRESENT");
+  PresenceInfo presenceInfoNotPresent;
+  presenceInfoNotPresent.isPresent() = false;
+  dataStore.updatePmUnitPresenceInfo(
+      "/SLOT_NOT_PRESENT@0", presenceInfoNotPresent);
+  EXPECT_FALSE(dataStore.hasPmUnit("/SLOT_NOT_PRESENT@0"));
+
+  // Case 5: PmUnit info exists with version and presence info indicating
+  // present
+  dataStore.updatePmUnitName("/SLOT_WITH_VERSION_PRESENT", "TEST_UNIT_VERSION");
+  PmUnitVersion version;
+  version.productProductionState() = 2;
+  version.productVersion() = 1;
+  version.productSubVersion() = 1;
+  dataStore.updatePmUnitVersion("/SLOT_WITH_VERSION_PRESENT", version);
+  dataStore.updatePmUnitPresenceInfo(
+      "/SLOT_WITH_VERSION_PRESENT", presenceInfoPresent);
+  EXPECT_TRUE(dataStore.hasPmUnit("/SLOT_WITH_VERSION_PRESENT"));
+
+  // Case 6: PmUnit info exists with version but presence info indicating not
+  // present
+  dataStore.updatePmUnitName(
+      "/SLOT_WITH_VERSION_NOT_PRESENT@0", "TEST_UNIT_VERSION_NOT_PRESENT");
+  dataStore.updatePmUnitVersion("/SLOT_WITH_VERSION_NOT_PRESENT", version);
+  dataStore.updatePmUnitPresenceInfo(
+      "/SLOT_WITH_VERSION_NOT_PRESENT", presenceInfoNotPresent);
+  EXPECT_FALSE(dataStore.hasPmUnit("/SLOT_WITH_VERSION_NOT_PRESENT"));
 }
 
 TEST(DataStoreTest, PmUnitUnavailableVersion) {

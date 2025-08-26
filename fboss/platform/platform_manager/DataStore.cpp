@@ -48,7 +48,18 @@ PmUnitInfo DataStore::getPmUnitInfo(const std::string& slotPath) const {
 }
 
 bool DataStore::hasPmUnit(const std::string& slotPath) const {
-  return slotPathToPmUnitInfo.find(slotPath) != slotPathToPmUnitInfo.end();
+  // If we know nothing about the PmUnit at the slot, return false.
+  if (slotPathToPmUnitInfo.find(slotPath) == slotPathToPmUnitInfo.end()) {
+    return false;
+  }
+  // If the slot had a PresenceDetection logic, check whether we were able
+  // to retrieve presence info.
+  auto presenceInfo = slotPathToPmUnitInfo.at(slotPath).presenceInfo();
+  if (presenceInfo && !*presenceInfo->isPresent()) {
+    return false;
+  }
+  // If both the above conditions are false, then we know a PmUnit exists.
+  return true;
 }
 
 std::string DataStore::getSysfsPath(const std::string& devicePath) const {
