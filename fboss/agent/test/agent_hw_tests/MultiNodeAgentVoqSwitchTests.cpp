@@ -112,4 +112,20 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    if (!isTestDriver()) {
+      return;
+    }
+
+    auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
+    EXPECT_TRUE(multiNodeUtil->verifyGracefulFabricLinkDownUp());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

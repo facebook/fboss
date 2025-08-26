@@ -720,4 +720,8 @@ bool MultiNodeUtil::verifyDsfSessions() {
   return true;
 }
 
+bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
+  return true;
+}
+
 } // namespace facebook::fboss::utility

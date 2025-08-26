@@ -28,6 +28,8 @@ class MultiNodeUtil {
   bool verifyStaticNdpEntries();
   bool verifyDsfSessions();
 
+  bool verifyGracefulFabricLinkDownUp();
+
  private:
   enum class SwitchType : uint8_t {
     RDSW = 0,
