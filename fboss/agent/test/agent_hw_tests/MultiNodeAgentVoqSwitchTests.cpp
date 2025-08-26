@@ -62,6 +62,21 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     return ret;
   }
 
+  void verifyDsfClusterHelper() const {
+    auto multiNodeUtil =
+        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
+
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricReachability());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyPorts());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
+      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyDsfSessions());
+    });
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -85,19 +100,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyDsfCluster) {
     if (!isTestDriver()) {
       return;
     }
-
-    auto multiNodeUtil =
-        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
-
-    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricConnectivity());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyFabricReachability());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyPorts());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifySystemPorts());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyRifs());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyStaticNdpEntries());
-      EXPECT_EVENTUALLY_TRUE(multiNodeUtil->verifyDsfSessions());
-    });
+    verifyDsfClusterHelper();
   };
 
   verifyAcrossWarmBoots(setup, verify);
