@@ -215,7 +215,7 @@ std::vector<int> HwTest::getCabledOpticalAndActiveTransceiverIDs() {
   return folly::gen::from(transceivers) |
       folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
            auto& tcvrInfo = transceiversInfo[tcvrId];
-           return utility::HwTransceiverUtils::opticalOrActiveCable(
+           return TransceiverManager::opticalOrActiveCable(
                *tcvrInfo.tcvrState());
          }) |
       folly::gen::as<std::vector>();

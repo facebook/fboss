@@ -353,7 +353,7 @@ TEST_F(HwTest, transceiverIOStats) {
     EXPECT_GT(
         tcvrStatsAfter.get_numReadAttempted(),
         tcvrStatsBefore[tcvrID].get_numReadAttempted());
-    if (utility::HwTransceiverUtils::opticalOrActiveCmisCable(tcvrState)) {
+    if (TransceiverManager::opticalOrActiveCmisCable(tcvrState)) {
       EXPECT_GT(
           tcvrStatsAfter.get_numWriteAttempted(),
           tcvrStatsBefore[tcvrID].get_numWriteAttempted());

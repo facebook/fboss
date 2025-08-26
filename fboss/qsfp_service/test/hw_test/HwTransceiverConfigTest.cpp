@@ -34,14 +34,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
         apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
     cfg::TransceiverConfigOverrideFactor moduleFactor;
     auto settings = apache::thrift::can_throw(*tcvrState.settings());
-    auto mediaIntefaces = apache::thrift::can_throw(*settings.mediaInterface());
-    bool isCopper =
-        apache::thrift::can_throw(*tcvrState.cable()).transmitterTech() ==
-        TransmitterTechnology::COPPER;
-    bool isActive =
-        apache::thrift::can_throw(*tcvrState.cable()).mediaTypeEncoding() ==
-        MediaTypeEncodings::ACTIVE_CABLES;
-    if (isCopper && !isActive) {
+    if (!TransceiverManager::opticalOrActiveCable(tcvrState)) {
       // No configurations supported on copper modules
       continue;
     }
@@ -49,12 +42,13 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
       // TODO: Nothing to verify for sff8472 modules
       continue;
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-      if (isActive) {
+      auto mediaIntefaces =
+          apache::thrift::can_throw(*settings.mediaInterface());
+      if (TransceiverManager::activeCable(tcvrState)) {
         moduleFactor.hostApplicationCode() =
-            *mediaIntefaces[0].media()->activeCuCode_ref();
+            *mediaIntefaces[0].media()->activeCuCode();
       } else {
-        moduleFactor.applicationCode() =
-            *mediaIntefaces[0].media()->smfCode_ref();
+        moduleFactor.applicationCode() = *mediaIntefaces[0].media()->smfCode();
       }
     } else {
       EXPECT_TRUE(mgmtInterface == TransceiverManagementInterface::SFF);

@@ -663,6 +663,10 @@ class TransceiverManager {
     return tcvrIdToTcvrName_;
   }
 
+  static bool opticalOrActiveCmisCable(const TcvrState& tcvrState);
+  static bool opticalOrActiveCable(const TcvrState& tcvrState);
+  static bool activeCable(const TcvrState& tcvrState);
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.

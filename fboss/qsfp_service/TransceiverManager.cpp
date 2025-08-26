@@ -3284,4 +3284,34 @@ void TransceiverManager::drainAllStateMachineUpdates() {
     }
   } while (!updatesDrained);
 }
+
+bool TransceiverManager::opticalOrActiveCmisCable(const TcvrState& tcvrState) {
+  if (tcvrState.transceiverManagementInterface().has_value() &&
+      tcvrState.transceiverManagementInterface().value() ==
+          TransceiverManagementInterface::CMIS &&
+      opticalOrActiveCable(tcvrState)) {
+    return true;
+  }
+  return false;
+}
+
+bool TransceiverManager::opticalOrActiveCable(const TcvrState& tcvrState) {
+  if (tcvrState.cable().has_value() &&
+      ((tcvrState.cable()->transmitterTech() ==
+        TransmitterTechnology::OPTICAL) ||
+       activeCable(tcvrState))) {
+    return true;
+  }
+  return false;
+}
+
+bool TransceiverManager::activeCable(const TcvrState& tcvrState) {
+  if (tcvrState.cable().has_value() &&
+      (tcvrState.cable()->mediaTypeEncoding().value_or(
+           MediaTypeEncodings::UNKNOWN) == MediaTypeEncodings::ACTIVE_CABLES)) {
+    return true;
+  }
+  return false;
+}
+
 } // namespace facebook::fboss

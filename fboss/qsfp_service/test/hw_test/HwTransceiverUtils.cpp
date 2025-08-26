@@ -9,14 +9,14 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
+#include <folly/logging/xlog.h>
+#include <gtest/gtest.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
-
-#include <folly/logging/xlog.h>
-#include <gtest/gtest.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/qsfp_service/TransceiverManager.h"
 
 namespace facebook::fboss::utility {
 
@@ -226,12 +226,7 @@ void HwTransceiverUtils::verifyTransceiverSettings(
       *tcvrState.transceiver() == TransceiverType::QSFP ||
       *tcvrState.transceiver() == TransceiverType::SFP);
 
-  bool isCopper = TransmitterTechnology::COPPER ==
-      *(tcvrState.cable().value_or({}).transmitterTech());
-  bool isActiveCable = MediaTypeEncodings::ACTIVE_CABLES ==
-      tcvrState.cable().value_or({}).mediaTypeEncoding().value_or(
-          MediaTypeEncodings::UNKNOWN);
-  if (isCopper && !isActiveCable) {
+  if (!TransceiverManager::opticalOrActiveCable(tcvrState)) {
     XLOG(INFO) << " Skip verifying tcvr settings: " << *tcvrState.port()
                << ", for passive copper cable";
   } else if (
@@ -514,8 +509,7 @@ void HwTransceiverUtils::verifyCopper400gProfile(
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   const auto& cable = *tcvrState.cable();
   const auto& transmitterTech = *cable.transmitterTech();
-  const auto mediaTypeEncoding =
-      cable.mediaTypeEncoding().value_or(MediaTypeEncodings::UNKNOWN);
+  const bool isActive = TransceiverManager::activeCable(tcvrState);
   auto mgmtInterface =
       apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
 
@@ -523,10 +517,10 @@ void HwTransceiverUtils::verifyCopper400gProfile(
   EXPECT_EQ(TransmitterTechnology::COPPER, transmitterTech);
 
   for (const auto& mediaId : mediaInterfaces) {
-    if (mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
+    if (isActive) {
       EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_400G);
       EXPECT_TRUE(
-          *mediaId.media()->activeCuCode_ref() ==
+          *mediaId.media()->activeCuCode() ==
           ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G);
     } else {
       EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_400G);
@@ -591,7 +585,7 @@ void HwTransceiverUtils::verifyCopper800gProfile(
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   const auto& cable = *tcvrState.cable();
   const auto& transmitterTech = *cable.transmitterTech();
-  const auto& mediaTypeEncoding = *cable.mediaTypeEncoding();
+  const bool isActive = TransceiverManager::activeCable(tcvrState);
   auto mgmtInterface =
       apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
 
@@ -600,9 +594,9 @@ void HwTransceiverUtils::verifyCopper800gProfile(
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR8_800G);
-    if (mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
+    if (isActive) {
       EXPECT_TRUE(
-          *mediaId.media()->activeCuCode_ref() ==
+          *mediaId.media()->activeCuCode() ==
           ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     }
   }
@@ -675,11 +669,7 @@ void HwTransceiverUtils::verifyDiagsCapability(
 
   switch (*mgmtInterface) {
     case TransceiverManagementInterface::CMIS: {
-      const auto& cable = *tcvrState.cable();
-      const auto& transmitterTech = *cable.transmitterTech();
-      const auto& mediaTypeEncoding = *cable.mediaTypeEncoding();
-      if (TransmitterTechnology::COPPER == transmitterTech &&
-          mediaTypeEncoding != MediaTypeEncodings::ACTIVE_CABLES) {
+      if (!TransceiverManager::opticalOrActiveCable(tcvrState)) {
         // FlatMem modules don't support diagsCapability
         return;
       }
@@ -747,7 +737,7 @@ void HwTransceiverUtils::verifyDatapathResetTimestamp(
     const TcvrStats& tcvrStats,
     time_t timeReference,
     bool expectedReset) {
-  if (opticalOrActiveCmisCable(tcvrState)) {
+  if (TransceiverManager::opticalOrActiveCmisCable(tcvrState)) {
     auto& datapathResetTimestamp = *tcvrStats.lastDatapathResetTime();
     if (expectedReset) {
       ASSERT_TRUE(
@@ -761,27 +751,6 @@ void HwTransceiverUtils::verifyDatapathResetTimestamp(
       }
     }
   }
-}
-
-bool HwTransceiverUtils::opticalOrActiveCmisCable(const TcvrState& tcvrState) {
-  if (tcvrState.transceiverManagementInterface().has_value() &&
-      tcvrState.transceiverManagementInterface().value() ==
-          TransceiverManagementInterface::CMIS &&
-      opticalOrActiveCable(tcvrState)) {
-    return true;
-  }
-  return false;
-}
-
-bool HwTransceiverUtils::opticalOrActiveCable(const TcvrState& tcvrState) {
-  if (tcvrState.cable().has_value() &&
-      ((tcvrState.cable()->transmitterTech() ==
-        TransmitterTechnology::OPTICAL) ||
-       (tcvrState.cable()->mediaTypeEncoding() ==
-        MediaTypeEncodings::ACTIVE_CABLES))) {
-    return true;
-  }
-  return false;
 }
 
 } // namespace facebook::fboss::utility

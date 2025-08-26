@@ -252,7 +252,7 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
         // Non Active copper cables don't set the state changed flag
         EXPECT_TRUE(
             *stateChanged ==
-            utility::HwTransceiverUtils::opticalOrActiveCable(tcvrState))
+            TransceiverManager::opticalOrActiveCable(tcvrState))
             << " Failed comparison for transceiver " << idAndTransceiver.first;
       } else {
         throw FbossError(
