@@ -1111,7 +1111,7 @@ void CmisModule::getApplicationCapabilities() {
     // identifier for the rate of the application. The Media side of active
     // cables, per spec, specifies only the BER for the cable, which might
     // be the same for all the supported rates.
-    if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+    if (isAecModule()) {
       applicationAdvertisingField.moduleMediaInterface = data[0];
     } else {
       applicationAdvertisingField.moduleMediaInterface = data[1];
@@ -2232,7 +2232,7 @@ void CmisModule::setApplicationSelectCodeAllPorts(
     uint8_t numHostLanes,
     uint8_t hostLaneMask) {
   std::vector<uint8_t> laneProgramValues;
-  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+  if (isAecModule()) {
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<ActiveCuHostInterfaceCode>(
             speed,
@@ -2325,7 +2325,7 @@ void CmisModule::setApplicationCodeLocked(
       apache::thrift::util::enumNameSafe(speed),
       startHostLane);
   std::vector<uint8_t> appCodes;
-  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+  if (isAecModule()) {
     appCodes = CmisHelper::getInterfaceCode<ActiveCuHostInterfaceCode>(
         speed, CmisHelper::getActiveSpeedApplication());
   } else {
@@ -2368,9 +2368,8 @@ void CmisModule::setApplicationCodeLocked(
   // If we have an AEC cable, we use the module host interface ID which has a
   // byteOffset of 0. This is in page 00h app sel advertising (starting at
   // offset 86 for page)
-  int byteOffset = (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES)
-      ? kHostInterfaceCodeOffset
-      : kMediaInterfaceCodeOffset;
+  int byteOffset =
+      isAecModule() ? kHostInterfaceCodeOffset : kMediaInterfaceCodeOffset;
 
   // For ApSel value 1 to 8 get the current application from Page 0
   // For ApSel value 9 to 15 get the current application from page 1
@@ -2519,7 +2518,7 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
   uint8_t mask = laneMask(startHostLane, numLanes);
   auto tcvrName = getNameString();
 
-  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+  if (isAecModule()) {
     return CmisHelper::checkSpeedCombo<ActiveCuHostInterfaceCode>(
         speed,
         startHostLane,
@@ -2715,7 +2714,7 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   auto currTransmitterTechnology = getQsfpTransmitterTechnology();
   bool activeElectricalCable = false;
-  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+  if (isAecModule()) {
     activeElectricalCable = true;
   }
   if (currTransmitterTechnology == TransmitterTechnology::OPTICAL &&
@@ -3751,7 +3750,7 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
 }
 
 uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
-  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+  if (isAecModule()) {
     // Read the datapath init/deinit max time from module.
     uint8_t specVal;
     readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);

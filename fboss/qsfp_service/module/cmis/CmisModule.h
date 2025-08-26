@@ -217,7 +217,7 @@ class CmisModule : public QsfpModule {
   virtual bool customizationSupported() const override {
     return present_ &&
         (getQsfpTransmitterTechnology() == TransmitterTechnology::OPTICAL ||
-         getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES);
+         isAecModule());
   }
 
   /*
@@ -659,8 +659,17 @@ class CmisModule : public QsfpModule {
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
 
-  // Returns true if the current module is LPO
+  /*
+   * Returns true if the current module is LPO
+   */
   bool isLpoModule() const override;
+
+  /*
+   * Return if module is AEC cable.
+   */
+  bool isAecModule() const {
+    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
+  }
 
   std::time_t vdmIntervalStartTime_{0};
 };
