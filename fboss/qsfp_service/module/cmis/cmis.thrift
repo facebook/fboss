@@ -225,6 +225,10 @@ enum CmisField {
   PAGE_UPPER2CH = 191,
   PAM4_MPI_ALARMS = 192,
 
+  // Fields Newly added
+  // Datapath Init / Deinit max time
+  MAX_DPINIT_TIME = 193,
+
   // Custom Fields
   // These are fields that are custom to specific transceivers
   //

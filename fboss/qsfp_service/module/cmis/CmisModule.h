@@ -570,7 +570,7 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
-  uint64_t maxRetriesWith500msDelay(bool /*init*/) const;
+  uint64_t maxRetriesWith500msDelay(bool /*init*/);
 
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =

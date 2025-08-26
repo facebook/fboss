@@ -44,6 +44,9 @@ constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWait = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
+// We may need special handling for scenarios where Init time takes
+// more than 120 seconds. we will likely need to refactor code.
+constexpr int kUsecDatapathStateUpdateTimeMaxFboss = 120000000; // 120 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
@@ -56,6 +59,10 @@ constexpr int kCdbSymErrHistAvgOffset = 3;
 constexpr int kCdbSymErrHistCurOffset = 5;
 
 constexpr int kMaxFecTailRs544 = 15;
+
+// Datapath init/deinit variables
+constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
+constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
@@ -81,6 +88,23 @@ enum DiagnosticFeatureEncoding {
   BER = 0x1,
   SNR = 0x6,
   LATCHED_BER = 0x11,
+};
+
+// Datapath init/deinit variables
+static const std::unordered_map<uint8_t, uint64_t> DpInitValToTimeMap = {
+    {0, 1000}, // Tstate < 1 ms
+    {1, 5000}, // 1 ms <= Tstate < 5 ms
+    {2, 10000}, // 5 ms <= Tstate < 10 ms
+    {3, 50000}, // 10 ms <= Tstate < 50 ms
+    {4, 100000}, // 50 ms <= Tstate < 100 ms
+    {5, 500000}, // 100 ms <= Tstate < 500 ms
+    {6, 1000000}, // 500 ms <= Tstate < 1 s
+    {7, 5000000}, // 1 s <= Tstate < 5 s
+    {8, 10000000}, // 5 s <= Tstate < 10 s
+    {9, 60000000}, // 10 s <= Tstate < 1 min
+    {10, 300000000}, // 1 min <= Tstate < 5 min
+    {11, 600000000}, // 5 min <= Tstate < 10 min
+    {12, 3000000000}, // 10 min <= Tstate < 50 min
 };
 
 // As per CMIS4.0
@@ -125,6 +149,7 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::LENGTH_OM3, {CmisPages::PAGE01, 135, 1}},
     {CmisField::LENGTH_OM2, {CmisPages::PAGE01, 136, 1}},
     {CmisField::VDM_DIAG_SUPPORT, {CmisPages::PAGE01, 142, 1}},
+    {CmisField::MAX_DPINIT_TIME, {CmisPages::PAGE01, 144, 1}},
     {CmisField::TX_CONTROL_SUPPORT, {CmisPages::PAGE01, 155, 1}},
     {CmisField::RX_CONTROL_SUPPORT, {CmisPages::PAGE01, 156, 1}},
     {CmisField::TX_BIAS_MULTIPLIER, {CmisPages::PAGE01, 160, 1}},
@@ -3725,7 +3750,39 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
   return prbsStats;
 }
 
-uint64_t CmisModule::maxRetriesWith500msDelay(bool /*init*/) const {
+uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
+  if (getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES) {
+    // Read the datapath init/deinit max time from module.
+    uint8_t specVal;
+    readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);
+
+    uint8_t spec = 0;
+    if (init) {
+      spec = specVal & DP_INIT_MAX_MASK;
+    } else {
+      spec = specVal & DP_DINIT_MAX_MASK;
+    }
+    auto itr = DpInitValToTimeMap.find(spec);
+    if (itr != DpInitValToTimeMap.end()) {
+      uint64_t maxTime = itr->second;
+      QSFP_LOG(INFO, this) << fmt::format(
+          "Datapath max {:s} time from spec is {:d} uSec",
+          init ? "init" : "deinit",
+          maxTime);
+      if (kUsecDatapathStateUpdateTimeMaxFboss > maxTime) {
+        // success.
+        return maxTime / kUsecDatapathStatePollTime;
+      } else {
+        QSFP_LOG(ERR, this) << fmt::format(
+            "Datapath max {:s} time from spec {:d} uSec is greater than max allowed time {:d} uSec",
+            init ? "init" : "deinit",
+            maxTime,
+            kUsecDatapathStateUpdateTimeMaxFboss);
+      }
+    }
+  }
+  QSFP_LOG(INFO, this) << fmt::format(
+      "Default max Init/DeInit time {:d} uSec", kUsecDatapathStateUpdateTime);
   return kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
 }
 
