@@ -145,4 +145,53 @@ TEST_F(TransceiverManagerTest, getInterfacePhyInfo) {
       FbossError);
 }
 
+TEST_F(TransceiverManagerTest, opticalOrActiveCableTest) {
+  TcvrState state;
+  Cable cable;
+
+  // Set up cable with OPTICAL transmitter tech
+  cable.transmitterTech() = TransmitterTechnology::OPTICAL;
+  state.cable() = cable;
+
+  // Test with OPTICAL transmitter - should return true
+  EXPECT_TRUE(TransceiverManager::opticalOrActiveCable(state));
+
+  // Change to COPPER transmitter - should return false
+  state.cable()->transmitterTech() = TransmitterTechnology::COPPER;
+  EXPECT_FALSE(TransceiverManager::opticalOrActiveCable(state));
+}
+
+TEST_F(TransceiverManagerTest, activeCableTest) {
+  TcvrState state;
+  Cable cable;
+
+  // Set up cable with ACTIVE_CABLES media type
+  cable.mediaTypeEncoding() = MediaTypeEncodings::ACTIVE_CABLES;
+  state.cable() = cable;
+
+  // Test with ACTIVE_CABLES media type - should return true
+  EXPECT_TRUE(TransceiverManager::activeCable(state));
+
+  // Change to different media type - should return false
+  state.cable()->mediaTypeEncoding() = MediaTypeEncodings::OPTICAL_SMF;
+  EXPECT_FALSE(TransceiverManager::activeCable(state));
+}
+
+TEST_F(TransceiverManagerTest, opticalOrActiveCmisCableTest) {
+  TcvrState state;
+  Cable cable;
+
+  // Set up cable with OPTICAL transmitter tech
+  cable.transmitterTech() = TransmitterTechnology::OPTICAL;
+  state.cable() = cable;
+  state.transceiverManagementInterface() = TransceiverManagementInterface::CMIS;
+
+  // Test with CMIS interface and optical cable - should return true
+  EXPECT_TRUE(TransceiverManager::opticalOrActiveCmisCable(state));
+
+  // Change interface to non-CMIS - should return false
+  state.transceiverManagementInterface() = TransceiverManagementInterface::SFF;
+  EXPECT_FALSE(TransceiverManager::opticalOrActiveCmisCable(state));
+}
+
 } // namespace facebook::fboss
