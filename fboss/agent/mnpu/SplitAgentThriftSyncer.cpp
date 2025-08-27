@@ -79,7 +79,8 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
       fdbEventSinkClient_->getThriftClientHeartbeat(),
       rxPktEventSinkClient_->getThriftClientHeartbeat(),
       hwSwitchStatsSinkClient_->getThriftClientHeartbeat(),
-      switchReachabilityChangeEventSinkClient_->getThriftClientHeartbeat()};
+      switchReachabilityChangeEventSinkClient_->getThriftClientHeartbeat(),
+      linkChangeEventSinkClient_->getThriftClientHeartbeat()};
 
   thriftClientWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
       std::chrono::milliseconds(FLAGS_hwagent_watchdog_interval_ms), [this]() {
