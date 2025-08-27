@@ -1288,7 +1288,9 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
     std::string intfIPv4;
     std::vector<std::string> intfOldIPv4s;
     std::vector<std::string> intfNewIPv4s;
-    InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    InterfaceID intfID = getInterfaceIDForPort(
+        getAgentEnsemble()->masterLogicalPortIds()[0],
+        getAgentEnsemble()->getSw()->getState());
 
     intfOldIPv4s = getInterfaceIpAddress(config, true);
     checkKernelIpEntriesExist(intfID, intfOldIPv4s[0], true);
@@ -1344,7 +1346,9 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     std::string intfIPv6;
     std::vector<std::string> intfOldIPv6s;
     std::vector<std::string> intfNewIPv6s;
-    InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    InterfaceID intfID = getInterfaceIDForPort(
+        getAgentEnsemble()->masterLogicalPortIds()[0],
+        getAgentEnsemble()->getSw()->getState());
 
     intfOldIPv6s = getInterfaceIpAddress(config, false);
     checkKernelIpEntriesExist(intfID, intfOldIPv6s[0], false);

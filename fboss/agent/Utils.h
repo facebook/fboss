@@ -287,6 +287,10 @@ std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
     const std::shared_ptr<SwitchState>& state);
 
+InterfaceID getInterfaceIDForPort(
+    PortID port,
+    const std::shared_ptr<SwitchState>& state);
+
 /*
  * An NPU switch injects a broadcast message such as neighbor solicitation or
  * advertisement via pipeline lookup. ASIC forwards these messages to all the

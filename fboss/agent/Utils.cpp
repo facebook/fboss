@@ -1225,4 +1225,40 @@ std::optional<VlanID> getDefaultTxVlanId(
   return vlanId;
 }
 
+InterfaceID getInterfaceIDForPort(
+    PortID portID,
+    const std::shared_ptr<SwitchState>& state) {
+  auto port = state->getPorts()->getNodeIf(portID);
+  if (!port) {
+    throw FbossError("Port ", portID, " not found");
+  }
+
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& intfIter : std::as_const(*intfMap)) {
+      const auto& intf = intfIter.second;
+      switch (intf->getType()) {
+        case cfg::InterfaceType::SYSTEM_PORT: {
+          auto sysPortID = intf->getSystemPortID();
+          CHECK(sysPortID.has_value());
+          if (portID == getPortID(sysPortID.value(), state)) {
+            return intf->getID();
+          }
+        } break;
+        case cfg::InterfaceType::VLAN:
+          if (intf->getVlanID() == port->getIngressVlan()) {
+            return intf->getID();
+          }
+          break;
+        case cfg::InterfaceType::PORT:
+          if (intf->getPortID() == portID) {
+            return intf->getID();
+          }
+          break;
+      }
+    }
+  }
+
+  throw FbossError("Interface not found for port ", portID);
+}
+
 } // namespace facebook::fboss

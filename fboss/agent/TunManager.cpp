@@ -713,18 +713,27 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
     std::shared_ptr<SwitchState> state) {
   boost::container::flat_map<InterfaceID, bool> statusMap;
 
+  // Derive interface status from all ports
+  const auto& portMaps = state->getPorts();
+
   // Declare all virtual or state_sync disabled interfaces as up
   for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     for (auto iter : std::as_const(*intfMap)) {
       const auto& intf = iter.second;
       if (intf->isVirtual() || intf->isStateSyncDisabled()) {
         statusMap.emplace(intf->getID(), true);
+      } else if (intf->getType() == cfg::InterfaceType::PORT) {
+        auto port = state->getPorts()->getNodeIf(intf->getPortID());
+        if (!port) {
+          XLOG(ERR) << "Port interface " << intf->getID()
+                    << " does not have port in state.";
+          continue;
+        }
+        statusMap.emplace(intf->getID(), port->isPortUp());
       }
     }
   }
 
-  // Derive interface status from all ports
-  auto portMaps = state->getPorts();
   auto vlanMap = state->getVlans();
   for (const auto& portMap : std::as_const(*portMaps)) {
     for (const auto& port : std::as_const(*portMap.second)) {
