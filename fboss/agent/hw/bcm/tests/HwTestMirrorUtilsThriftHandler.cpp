@@ -37,7 +37,7 @@ bool HwTestThriftHandler::isMirrorProgrammed(
   BcmSwitch* bcmSwitch = static_cast<BcmSwitch*>(hwSwitch_);
   const auto* bcmMirrorTable = bcmSwitch->getBcmMirrorTable();
   auto* bcmMirror = bcmMirrorTable->getNodeIf(mirror->name().value());
-  if (!bcmMirror || bcmMirror->isProgrammed()) {
+  if (!bcmMirror || !bcmMirror->isProgrammed()) {
     return false;
   }
 
@@ -78,6 +78,7 @@ bool HwTestThriftHandler::isMirrorProgrammed(
     if (mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE) {
       return false;
     }
+    return true;
   }
 
   auto dstPort = apache::thrift::get_pointer(tunnel->udpDstPort());
