@@ -651,7 +651,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
           CHECK(
               clientId == kInterfaceRouteClientId ||
               clientId == kRemoteInterfaceRouteClientId ||
-              (addr.isV6() and addr.isLinkLocal()));
+              (addr.isV6() && addr.isLinkLocal()));
           nhToFwds[nh].emplace(nh);
           continue;
         }
