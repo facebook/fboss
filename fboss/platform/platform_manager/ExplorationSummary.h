@@ -112,16 +112,15 @@ class ExplorationSummary {
   // 2. Publish relevant data to ODS.
   // Return final exploration status.
   ExplorationStatus summarize();
-  virtual bool isDeviceExpectedToBeAbsent(const std::string& devicePath);
-  std::unordered_map<std::string, std::vector<ExplorationError>>
-  getFailedDevices();
+  virtual bool isSlotExpectedToBeEmpty(const std::string& devicePath);
+  std::map<std::string, std::vector<ExplorationError>> getFailedDevices();
 
  private:
   const PlatformConfig& platformConfig_;
   const DataStore& dataStore_;
   uint nExpectedErrs_{0}, nErrs_{0};
-  std::unordered_map<std::string, std::vector<ExplorationError>>
-      devicePathToErrors_{}, devicePathToExpectedErrors_{};
+  std::map<std::string, std::vector<ExplorationError>> devicePathToErrors_{},
+      devicePathToExpectedErrors_{};
 
   void print(ExplorationStatus finalStatus);
   void publishCounters(ExplorationStatus finalStatus);

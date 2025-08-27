@@ -669,18 +669,6 @@ void PlatformExplorer::createDeviceSymLink(
     return;
   }
 
-  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-  if (!dataStore_.hasPmUnit(slotPath)) {
-    // We are not adding a new error to ExplorationSummary, as the error
-    // would have already been captured as
-    // ExplorationErrorType::SLOT_PM_UNIT_ABSENCE
-    XLOG(ERR) << fmt::format(
-        "No device at {}. Skipping creating symbolic link for {}",
-        slotPath,
-        devicePath);
-    return;
-  }
-
   std::string targetPath;
   try {
     if (linkParentPath.string() == "/run/devmap/eeproms") {
@@ -724,7 +712,7 @@ void PlatformExplorer::createDeviceSymLink(
     }
   } catch (const std::exception& ex) {
     auto errMsg = fmt::format(
-        "Failed to create a symlink {} for DevicePath {}. Reason: {}",
+        "Failed to create symlink {} for DevicePath {}. Reason: {}",
         linkPath,
         devicePath,
         ex.what());

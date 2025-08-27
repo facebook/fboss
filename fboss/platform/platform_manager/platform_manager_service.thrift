@@ -64,7 +64,6 @@ struct ExplorationError {
 struct PlatformManagerStatus {
   1: ExplorationStatus explorationStatus;
   2: i64 lastExplorationTime;
-  @cpp.Type{template = "std::unordered_map"}
   3: optional map<string, list<ExplorationError>> failedDevices;
 }
 

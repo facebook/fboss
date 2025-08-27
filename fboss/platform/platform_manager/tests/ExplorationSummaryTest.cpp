@@ -133,35 +133,32 @@ TEST_F(ExplorationSummaryTest, ExplorationWithMixedErrors) {
   }
 }
 
-TEST_F(ExplorationSummaryTest, IsDeviceExpectedToBeAbsent) {
+TEST_F(ExplorationSummaryTest, IsSlotExpectedToBeEmpty) {
   ExplorationSummary realSummary{platformConfig_, dataStore_};
 
   // Test PSU slot paths - should return true
-  EXPECT_TRUE(realSummary.isDeviceExpectedToBeAbsent(
+  EXPECT_TRUE(realSummary.isSlotExpectedToBeEmpty(
       "/SMB_SLOT@0/PSU_SLOT@0/[PSU_EEPROM]"));
-  EXPECT_TRUE(realSummary.isDeviceExpectedToBeAbsent(
+  EXPECT_TRUE(realSummary.isSlotExpectedToBeEmpty(
       "/SMB_SLOT@1/PSU_SLOT@1/[PSU_EEPROM]"));
-  EXPECT_TRUE(realSummary.isDeviceExpectedToBeAbsent(
-      "/CHASSIS/PSU_SLOT@2/[PSU_DEVICE]"));
   EXPECT_TRUE(
-      realSummary.isDeviceExpectedToBeAbsent("/PSU_SLOT@0/[PSU_EEPROM]"));
-  EXPECT_TRUE(
-      realSummary.isDeviceExpectedToBeAbsent("/PSU_SLOT@99/[PSU_DEVICE]"));
+      realSummary.isSlotExpectedToBeEmpty("/CHASSIS/PSU_SLOT@2/[PSU_DEVICE]"));
+  EXPECT_TRUE(realSummary.isSlotExpectedToBeEmpty("/PSU_SLOT@0/[PSU_EEPROM]"));
+  EXPECT_TRUE(realSummary.isSlotExpectedToBeEmpty("/PSU_SLOT@99/[PSU_DEVICE]"));
 
   // Test non-PSU slot paths - should return false
+  EXPECT_FALSE(realSummary.isSlotExpectedToBeEmpty("/SMB_SLOT@0/[SCM_EEPROM]"));
+  EXPECT_FALSE(realSummary.isSlotExpectedToBeEmpty("/[MCB_MUX_A]"));
+  EXPECT_FALSE(realSummary.isSlotExpectedToBeEmpty("/SMB_SLOT@1/[NVME]"));
   EXPECT_FALSE(
-      realSummary.isDeviceExpectedToBeAbsent("/SMB_SLOT@0/[SCM_EEPROM]"));
-  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent("/[MCB_MUX_A]"));
-  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent("/SMB_SLOT@1/[NVME]"));
-  EXPECT_FALSE(
-      realSummary.isDeviceExpectedToBeAbsent("/CHASSIS/[FAN_CONTROLLER]"));
+      realSummary.isSlotExpectedToBeEmpty("/CHASSIS/[FAN_CONTROLLER]"));
 
   // Test edge cases - should return false (these paths don't match expected
   // format)
-  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent(
+  EXPECT_FALSE(realSummary.isSlotExpectedToBeEmpty(
       "/PSU_SLOT@/[PSU_EEPROM]")); // Missing number
-  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent(
+  EXPECT_FALSE(realSummary.isSlotExpectedToBeEmpty(
       "/PSU_SLOT@abc/[PSU_EEPROM]")); // Non-numeric
-  EXPECT_FALSE(realSummary.isDeviceExpectedToBeAbsent(
+  EXPECT_FALSE(realSummary.isSlotExpectedToBeEmpty(
       "/SMB_SLOT@0/PSU_SLOT@0/EXTRA/[PSU_EEPROM]")); // PSU_SLOT not at end
 }
