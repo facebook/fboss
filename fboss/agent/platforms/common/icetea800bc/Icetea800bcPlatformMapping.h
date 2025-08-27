@@ -21,6 +21,7 @@ class Icetea800bcPlatformMapping : public PlatformMapping {
  private:
   // Forbidden copy constructor and assignment operator
   Icetea800bcPlatformMapping(Icetea800bcPlatformMapping const&) = delete;
-  Icetea800bcPlatformMapping& operator=(Icetea800bcPlatformMapping const&) = delete;
+  Icetea800bcPlatformMapping& operator=(Icetea800bcPlatformMapping const&) =
+      delete;
 };
 } // namespace facebook::fboss

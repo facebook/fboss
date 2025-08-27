@@ -1257,9 +1257,10 @@ DOMDataUnion getDOMDataUnionI2CBus(
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {
-    throw std::runtime_error(folly::sformat(
-        "Unknown transceiver management interface: {}.",
-        static_cast<int>(mgmtInterface)));
+    throw std::runtime_error(
+        folly::sformat(
+            "Unknown transceiver management interface: {}.",
+            static_cast<int>(mgmtInterface)));
   }
 }
 
@@ -4402,9 +4403,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "icetea800bc") {
-      auto systemContainer =
-          BspGenericSystemContainer<Icetea800bcBspPlatformMapping>::getInstance()
-              .get();
+      auto systemContainer = BspGenericSystemContainer<
+                                 Icetea800bcBspPlatformMapping>::getInstance()
+                                 .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else if (FLAGS_platform == "minipack3n") {

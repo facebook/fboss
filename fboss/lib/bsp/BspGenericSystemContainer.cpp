@@ -149,7 +149,8 @@ using Icetea800bcSystemContainer =
     BspGenericSystemContainer<Icetea800bcBspPlatformMapping>;
 folly::Singleton<Icetea800bcSystemContainer> _icetea800bcSystemContainer;
 template <>
-std::shared_ptr<Icetea800bcSystemContainer> Icetea800bcSystemContainer::getInstance() {
+std::shared_ptr<Icetea800bcSystemContainer>
+Icetea800bcSystemContainer::getInstance() {
   return _icetea800bcSystemContainer.try_get();
 }
 
