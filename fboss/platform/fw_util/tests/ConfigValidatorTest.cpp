@@ -242,3 +242,29 @@ TEST(ConfigValidatorTest, ValidPreUpgradeWriteToPort) {
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, ValidUpgradeFlashrom) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid flashrom upgrade based on real platform configs
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<UpgradeConfig> upgrade;
+  UpgradeConfig upgradeConfig;
+  upgradeConfig.commandType() = "flashrom";
+
+  // Based on real platform flashrom upgrade configurations
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "linux_spi:dev=";
+  flashromConfig.programmer() = "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1";
+  upgradeConfig.flashromArgs() = flashromConfig;
+
+  upgrade.push_back(upgradeConfig);
+  fwConfig.upgrade() = upgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}

@@ -18,6 +18,10 @@ class ConfigValidator {
   bool isValidFlashromConfig(
       const fw_util_config::FlashromConfig& flashromConfig);
 
+  bool isValidJamConfig(const fw_util_config::JamConfig& jamConfig);
+
+  bool isValidXappConfig(const fw_util_config::XappConfig& xappConfig);
+
   bool isValidJtagConfig(const fw_util_config::JtagConfig& jtagConfig);
 
   bool isValidGpiosetConfig(const fw_util_config::GpiosetConfig& gpiosetConfig);
@@ -31,6 +35,8 @@ class ConfigValidator {
 
   bool isValidPreUpgradeConfig(
       const fw_util_config::PreFirmwareOperationConfig& preUpgradeConfig);
+
+  bool isValidUpgradeConfig(const fw_util_config::UpgradeConfig& upgradeConfig);
 
   // Utility validation methods
   bool isValidCommandType(const std::string& commandType);

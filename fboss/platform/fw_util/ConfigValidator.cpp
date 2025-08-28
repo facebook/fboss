@@ -16,7 +16,9 @@ const std::unordered_set<std::string> kValidCommandTypes = {
     "gpioset",
     "writeToPort",
     "createI2cDevice",
-    "i2cBusRead"};
+    "i2cBusRead",
+    "jam",
+    "xapp"};
 
 // Valid version types based on analysis of existing configurations
 const std::unordered_set<std::string> kValidVersionTypes = {
@@ -109,6 +111,17 @@ bool ConfigValidator::isValidFwConfig(
     }
   }
 
+  // Validate upgrade configurations
+  if (fwConfig.upgrade().has_value()) {
+    for (const auto& upgradeConfig : *fwConfig.upgrade()) {
+      if (!isValidUpgradeConfig(upgradeConfig)) {
+        XLOG(ERR) << fmt::format(
+            "Invalid upgrade configuration for device {}", deviceName);
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -165,6 +178,23 @@ bool ConfigValidator::isValidJtagConfig(
   return true;
 }
 
+bool ConfigValidator::isValidJamConfig(
+    const fw_util_config::JamConfig& jamConfig) {
+  if (jamConfig.jamExtraArgs()->empty()) {
+    XLOG(ERR) << "JAM configuration must have at least one extra argument";
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidXappConfig(
+    const fw_util_config::XappConfig& xappConfig) {
+  if (xappConfig.xappExtraArgs()->empty()) {
+    XLOG(ERR) << "XAPP configuration must have at least one extra argument";
+    return false;
+  }
+  return true;
+}
 bool ConfigValidator::isValidGpiosetConfig(
     const fw_util_config::GpiosetConfig& gpiosetConfig) {
   if (gpiosetConfig.gpioChip()->empty()) {
@@ -316,6 +346,45 @@ bool ConfigValidator::isValidPreUpgradeConfig(
 
   // For command types without specific validation (e.g., createI2cDevice,
   // i2cBusRead)
+  return true;
+}
+
+bool ConfigValidator::isValidUpgradeConfig(
+    const fw_util_config::UpgradeConfig& upgradeConfig) {
+  if (!isValidCommandType(*upgradeConfig.commandType())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid upgrade command type: {}", *upgradeConfig.commandType());
+    return false;
+  }
+
+  const std::string& commandType = *upgradeConfig.commandType();
+
+  // Validate specific configurations using early returns
+  if (commandType == "flashrom") {
+    if (!upgradeConfig.flashromArgs().has_value()) {
+      XLOG(ERR) << "Flashrom args required for flashrom command type";
+      return false;
+    }
+    return isValidFlashromConfig(*upgradeConfig.flashromArgs());
+  }
+
+  if (commandType == "jam") {
+    if (!upgradeConfig.jamArgs().has_value()) {
+      XLOG(ERR) << "JAM args required for jam command type";
+      return false;
+    }
+    return isValidJamConfig(*upgradeConfig.jamArgs());
+  }
+
+  if (commandType == "xapp") {
+    if (!upgradeConfig.xappArgs().has_value()) {
+      XLOG(ERR) << "XAPP args required for xapp command type";
+      return false;
+    }
+    return isValidXappConfig(*upgradeConfig.xappArgs());
+  }
+
+  // For command types without specific validation
   return true;
 }
 
