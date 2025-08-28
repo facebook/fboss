@@ -377,4 +377,9 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlRxPacketStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 } // namespace facebook::fboss
