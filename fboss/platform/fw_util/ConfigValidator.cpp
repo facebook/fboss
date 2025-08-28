@@ -134,6 +134,14 @@ bool ConfigValidator::isValidFwConfig(
     }
   }
 
+  // Validate verify configuration
+  if (fwConfig.verify().has_value() &&
+      !isValidVerifyConfig(*fwConfig.verify())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid verify configuration for device {}", deviceName);
+    return false;
+  }
+
   return true;
 }
 
@@ -452,6 +460,25 @@ bool ConfigValidator::isValidPostUpgradeConfig(
   }
 
   // For command types without specific validation
+  return true;
+}
+
+bool ConfigValidator::isValidVerifyConfig(
+    const fw_util_config::VerifyFirmwareOperationConfig& verifyConfig) {
+  if (!isValidCommandType(*verifyConfig.commandType())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid verify command type: {}", *verifyConfig.commandType());
+    return false;
+  }
+
+  if (*verifyConfig.commandType() == "flashrom") {
+    if (!verifyConfig.flashromArgs().has_value()) {
+      XLOG(ERR) << "Flashrom args required for flashrom verify command";
+      return false;
+    }
+    return isValidFlashromConfig(*verifyConfig.flashromArgs());
+  }
+
   return true;
 }
 

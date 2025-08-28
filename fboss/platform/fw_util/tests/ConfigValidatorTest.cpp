@@ -294,3 +294,26 @@ TEST(ConfigValidatorTest, ValidPostUpgradeGpioget) {
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, ValidVerifyFlashrom) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid flashrom verify based on real platform configs
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  VerifyFirmwareOperationConfig verifyConfig;
+  verifyConfig.commandType() = "flashrom";
+
+  // Based on real platform flashrom verify configurations
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "internal";
+  verifyConfig.flashromArgs() = flashromConfig;
+
+  fwConfig.verify() = verifyConfig;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}

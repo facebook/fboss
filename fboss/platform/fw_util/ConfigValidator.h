@@ -43,6 +43,9 @@ class ConfigValidator {
   bool isValidPostUpgradeConfig(
       const fw_util_config::PostFirmwareOperationConfig& postUpgradeConfig);
 
+  bool isValidVerifyConfig(
+      const fw_util_config::VerifyFirmwareOperationConfig& verifyConfig);
+
   // Utility validation methods
   bool isValidCommandType(const std::string& commandType);
   bool isValidVersionType(const std::string& versionType);
