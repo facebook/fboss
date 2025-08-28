@@ -36,7 +36,7 @@ void validateLedName(
     re2::RE2 fanLedRegex("fan(\\d*)_led");
     if (!re2::RE2::FullMatch(ledName, kFanLedName, &firstId)) {
       errorMessages.emplace_back(
-          fmt::format("index in LED name {} is not 1-based", ledName));
+          fmt::format("LED name `{}` does not match expected format", ledName));
     }
   } else {
     if (std::find(validLedNames.begin(), validLedNames.end(), ledName) ==
@@ -258,14 +258,13 @@ TEST_F(LedTest, DeviceLedsCreated) {
         }
       }
     }
+    cleanupDevices();
   }
 
   if (!errorMessages.empty()) {
     FAIL() << "Found " << errorMessages.size() << " errors:\n"
            << folly::join("\n", errorMessages);
   }
-
-  cleanupDevices();
 }
 
 } // namespace facebook::fboss::platform::bsp_tests

@@ -173,6 +173,7 @@ TEST_F(I2CTest, I2CAdapterCreatesBusses) {
     } catch (const std::exception& e) {
       FAIL() << "Exception during I2C adapter creation: " << e.what();
     }
+    cleanupDevices();
   }
 }
 
@@ -203,6 +204,7 @@ TEST_F(I2CTest, I2CAdapterDevicesExist) {
             << "I2C device " << *device.pmName() << " " << *device.address()
             << " not detected on bus " << busNum << " " << *adapter.pmName();
       }
+      cleanupDevices();
     } catch (const std::exception& e) {
       FAIL() << "Exception during I2C adapter device detection: " << e.what();
     }
