@@ -14,6 +14,7 @@ const std::unordered_set<std::string> kValidCommandTypes = {
     "flashrom",
     "jtag",
     "gpioset",
+    "gpioget",
     "writeToPort",
     "createI2cDevice",
     "i2cBusRead",
@@ -122,6 +123,17 @@ bool ConfigValidator::isValidFwConfig(
     }
   }
 
+  // Validate post-upgrade configurations
+  if (fwConfig.postUpgrade().has_value()) {
+    for (const auto& postUpgradeConfig : *fwConfig.postUpgrade()) {
+      if (!isValidPostUpgradeConfig(postUpgradeConfig)) {
+        XLOG(ERR) << fmt::format(
+            "Invalid post-upgrade configuration for device {}", deviceName);
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -209,6 +221,21 @@ bool ConfigValidator::isValidGpiosetConfig(
 
   if (gpiosetConfig.gpioChipValue()->empty()) {
     XLOG(ERR) << "GPIO chip value cannot be empty";
+    return false;
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidGpiogetConfig(
+    const fw_util_config::GpiogetConfig& gpiogetConfig) {
+  if (gpiogetConfig.gpioChip()->empty()) {
+    XLOG(ERR) << "GPIO chip cannot be empty";
+    return false;
+  }
+
+  if (gpiogetConfig.gpioChipPin()->empty()) {
+    XLOG(ERR) << "GPIO chip pin cannot be empty";
     return false;
   }
 
@@ -382,6 +409,46 @@ bool ConfigValidator::isValidUpgradeConfig(
       return false;
     }
     return isValidXappConfig(*upgradeConfig.xappArgs());
+  }
+
+  // For command types without specific validation
+  return true;
+}
+
+bool ConfigValidator::isValidPostUpgradeConfig(
+    const fw_util_config::PostFirmwareOperationConfig& postUpgradeConfig) {
+  if (!isValidCommandType(*postUpgradeConfig.commandType())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid post-upgrade command type: {}",
+        *postUpgradeConfig.commandType());
+    return false;
+  }
+
+  const std::string& commandType = *postUpgradeConfig.commandType();
+
+  // Validate specific configurations using early returns
+  if (commandType == "gpioget") {
+    if (!postUpgradeConfig.gpiogetArgs().has_value()) {
+      XLOG(ERR) << "GPIO get args required for gpioget command type";
+      return false;
+    }
+    return isValidGpiogetConfig(*postUpgradeConfig.gpiogetArgs());
+  }
+
+  if (commandType == "jtag") {
+    if (!postUpgradeConfig.jtagArgs().has_value()) {
+      XLOG(ERR) << "JTAG args required for jtag command type";
+      return false;
+    }
+    return isValidJtagConfig(*postUpgradeConfig.jtagArgs());
+  }
+
+  if (commandType == "writeToPort") {
+    if (!postUpgradeConfig.writeToPortArgs().has_value()) {
+      XLOG(ERR) << "Write to port args required for writeToPort command type";
+      return false;
+    }
+    return isValidWriteToPortConfig(*postUpgradeConfig.writeToPortArgs());
   }
 
   // For command types without specific validation

@@ -26,6 +26,8 @@ class ConfigValidator {
 
   bool isValidGpiosetConfig(const fw_util_config::GpiosetConfig& gpiosetConfig);
 
+  bool isValidGpiogetConfig(const fw_util_config::GpiogetConfig& gpiogetConfig);
+
   bool isValidWriteToPortConfig(
       const fw_util_config::WriteToPortConfig& writeToPortConfig);
 
@@ -37,6 +39,9 @@ class ConfigValidator {
       const fw_util_config::PreFirmwareOperationConfig& preUpgradeConfig);
 
   bool isValidUpgradeConfig(const fw_util_config::UpgradeConfig& upgradeConfig);
+
+  bool isValidPostUpgradeConfig(
+      const fw_util_config::PostFirmwareOperationConfig& postUpgradeConfig);
 
   // Utility validation methods
   bool isValidCommandType(const std::string& commandType);

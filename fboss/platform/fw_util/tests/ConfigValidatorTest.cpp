@@ -268,3 +268,29 @@ TEST(ConfigValidatorTest, ValidUpgradeFlashrom) {
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, ValidPostUpgradeGpioget) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid gpioget postUpgrade
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PostFirmwareOperationConfig> postUpgrade;
+  PostFirmwareOperationConfig postUpgradeConfig;
+  postUpgradeConfig.commandType() = "gpioget";
+
+  // Based on typical GPIO configuration pattern
+  GpiogetConfig gpiogetConfig;
+  gpiogetConfig.gpioChip() = "fboss_iob_pci.gpiochip.*";
+  gpiogetConfig.gpioChipPin() = "66";
+  postUpgradeConfig.gpiogetArgs() = gpiogetConfig;
+
+  postUpgrade.push_back(postUpgradeConfig);
+  fwConfig.postUpgrade() = postUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
