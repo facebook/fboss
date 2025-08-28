@@ -130,6 +130,7 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_FDR_ENABLE,
   SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT,
   SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS,
+  SAI_PORT_ATTR_FABRIC_SYSTEM_PORT,
 } sai_port_extensions_attr_t;
 
 typedef enum _sai_ingress_priority_group_extensions_attr_t {

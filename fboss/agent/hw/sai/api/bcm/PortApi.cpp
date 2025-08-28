@@ -194,6 +194,15 @@ SaiPortSerdesTraits::Attributes::AttributeTpChn0Wrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFabricSystemPort::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_PORT_ATTR_FABRIC_SYSTEM_PORT;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxLutModeIdWrapper::operator()() {
   return std::nullopt;
 }

@@ -361,4 +361,10 @@ SaiPortTraits::macTxDataQueueMaxWatermarkStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFabricSystemPort::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

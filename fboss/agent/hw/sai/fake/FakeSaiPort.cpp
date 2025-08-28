@@ -80,6 +80,7 @@ sai_status_t create_port_fn(
   std::optional<sai_uint32_t> ars_port_load_scaling_factor;
   std::optional<sai_uint32_t> ars_port_load_past_weight;
   std::optional<sai_uint32_t> ars_port_load_future_weight;
+  std::optional<sai_object_id_t> fabricSystemPort;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -276,6 +277,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT:
         ars_port_load_future_weight = attr_list[i].value.u32;
         break;
+      case SAI_PORT_ATTR_FABRIC_SYSTEM_PORT:
+        fabricSystemPort = attr_list[i].value.oid;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -419,6 +423,9 @@ sai_status_t create_port_fn(
   }
   if (ars_port_load_future_weight.has_value()) {
     port.ars_port_load_future_weight = ars_port_load_future_weight.value();
+  }
+  if (fabricSystemPort.has_value()) {
+    port.fabricSystemPort = fabricSystemPort.value();
   }
 
   return SAI_STATUS_SUCCESS;
@@ -1108,6 +1115,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT:
         attr[i].value.u32 = port.ars_port_load_future_weight;
+        break;
+      case SAI_PORT_ATTR_FABRIC_SYSTEM_PORT:
+        attr[i].value.oid = port.fabricSystemPort;
         break;
       case SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS:
         if (port.portPgPktDropStatus.size() > attr[i].value.maplist.count) {

@@ -471,6 +471,13 @@ struct SaiPortTraits {
         bool,
         AttributeFecErrorDetectEnable,
         SaiBoolDefaultFalse>;
+    struct AttributeFabricSystemPort {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FabricSystemPort = SaiExtensionAttribute<
+        sai_object_id_t,
+        AttributeFabricSystemPort,
+        SaiObjectIdDefault>;
     struct AttributePgDropStatus {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -594,7 +601,8 @@ struct SaiPortTraits {
 #if defined(CHENAB_SAI_SDK)
       std::optional<Attributes::AutoNegotiationMode>,
 #endif
-      std::optional<Attributes::FecErrorDetectEnable>>;
+      std::optional<Attributes::FecErrorDetectEnable>,
+      std::optional<Attributes::FabricSystemPort>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -756,6 +764,7 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
+SAI_ATTRIBUTE_NAME(Port, FabricSystemPort)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
 
 #if defined(CHENAB_SAI_SDK)

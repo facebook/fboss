@@ -84,6 +84,7 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // CondEntropyRehashSeed
         std::nullopt, // ShelEnable
         std::nullopt, // FecErrorDetectEnable
+        std::nullopt, // FabricSystemPort
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }

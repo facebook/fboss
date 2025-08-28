@@ -291,6 +291,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // CondEntropyRehashSeed
       std::nullopt, // ShelEnable
       std::nullopt, // FecErrorDetectEnable
+      std::nullopt, // FabricSystemPort
   };
 }
 
