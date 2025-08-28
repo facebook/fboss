@@ -31,10 +31,10 @@ DEFINE_bool(
     true,
     "Log SAI shell commands and output to scribe");
 
-namespace {
-// Commands such as 'port status' on DNX take longer than 1.2 seconds.
-constexpr int kReadOutputTimeoutMs = 2000;
-} // namespace
+DEFINE_int32(
+    diag_shell_read_timeout_ms,
+    2000,
+    "Timeout for reading output of diag shell");
 
 namespace facebook::fboss {
 
@@ -324,7 +324,7 @@ void StreamingDiagShellServer::streamOutput() {
      * If the client is still connected, will continue to wait.
      * If the client has disconnected, will clean up the client states.
      */
-    std::string toPublish = readOutput(kReadOutputTimeoutMs);
+    std::string toPublish = readOutput(FLAGS_diag_shell_read_timeout_ms);
     if (toPublish.length() > 0) {
       // publish string on stream
       auto locked = publisher_.lock();
@@ -414,7 +414,7 @@ std::string DiagCmdServer::diagCmd(
       std::make_unique<std::string>(getDelimiterDiagCmd(uuid_)),
       std::move(client));
   // TODO: Look into requesting results that take a long time
-  std::string output = produceOutput(kReadOutputTimeoutMs);
+  std::string output = produceOutput(FLAGS_diag_shell_read_timeout_ms);
   cleanUpOutput(output, inputStr);
   diagShell_->disconnect();
   return output;
