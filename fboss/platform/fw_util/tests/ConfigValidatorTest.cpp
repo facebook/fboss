@@ -136,3 +136,109 @@ TEST(ConfigValidatorTest, InvalidConfigInvalidSha1Sum) {
 
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, ValidPreUpgradeFlashrom) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid flashrom preUpgrade (using upgrade section example
+  // since flashrom not used in preUpgrade in real configs)
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfig;
+  preUpgradeConfig.commandType() = "flashrom";
+
+  // Based on real config upgrade sections since flashrom not used in preUpgrade
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "linux_spi:dev=";
+  flashromConfig.programmer() = "/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1";
+  preUpgradeConfig.flashromArgs() = flashromConfig;
+
+  preUpgrade.push_back(preUpgradeConfig);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidPreUpgradeJtag) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid jtag preUpgrade based on real darwin config
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfig;
+  preUpgradeConfig.commandType() = "jtag";
+
+  // Based on real darwin/darwin48v config
+  JtagConfig jtagConfig;
+  jtagConfig.path() = "/run/devmap/cplds/BLACKHAWK_CPLD/scd_jtag_sel";
+  jtagConfig.value() = 0;
+  preUpgradeConfig.jtagArgs() = jtagConfig;
+
+  preUpgrade.push_back(preUpgradeConfig);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidPreUpgradeGpioset) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid gpioset preUpgrade based on real icecube config
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfig;
+  preUpgradeConfig.commandType() = "gpioset";
+
+  // Based on real icecube/icetea config
+  GpiosetConfig gpiosetConfig;
+  gpiosetConfig.gpioChip() = "fboss_iob_pci.gpiochip.*";
+  gpiosetConfig.gpioChipPin() = "66";
+  gpiosetConfig.gpioChipValue() = "1";
+  preUpgradeConfig.gpiosetArgs() = gpiosetConfig;
+
+  preUpgrade.push_back(preUpgradeConfig);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidPreUpgradeWriteToPort) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid writeToPort preUpgrade
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfig;
+  preUpgradeConfig.commandType() = "writeToPort";
+
+  WriteToPortConfig writeToPortConfig;
+  writeToPortConfig.portFile() = "/sys/kernel/debug/test_port";
+  writeToPortConfig.hexByteValue() = "0x12";
+  writeToPortConfig.hexOffset() = "0x100";
+  preUpgradeConfig.writeToPortArgs() = writeToPortConfig;
+
+  preUpgrade.push_back(preUpgradeConfig);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}

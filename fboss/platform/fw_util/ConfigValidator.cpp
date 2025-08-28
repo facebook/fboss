@@ -8,13 +8,29 @@
 #include <re2/re2.h>
 
 namespace {
+
+// Valid command types based on analysis of existing configurations
+const std::unordered_set<std::string> kValidCommandTypes = {
+    "flashrom",
+    "jtag",
+    "gpioset",
+    "writeToPort",
+    "createI2cDevice",
+    "i2cBusRead"};
+
 // Valid version types based on analysis of existing configurations
 const std::unordered_set<std::string> kValidVersionTypes = {
     "sysfs",
     "full_command",
     "Not Applicable"};
 
+// Valid programmer types for flashrom
+const std::unordered_set<std::string> kValidProgrammerTypes = {
+    "internal",
+    "linux_spi:dev="};
+
 const re2::RE2 kSha1SumRegex{"^[a-fA-F0-9]{40}$"};
+const re2::RE2 kHexValueRegex{"^(0x)?[a-fA-F0-9]+$"};
 const re2::RE2 kDevmapPathRegex{"^/run/devmap/.+"};
 const re2::RE2 kSysfsPathRegex{"^/sys/.+"};
 
@@ -82,6 +98,122 @@ bool ConfigValidator::isValidFwConfig(
     return false;
   }
 
+  // Validate pre-upgrade configurations
+  if (fwConfig.preUpgrade().has_value()) {
+    for (const auto& preUpgradeConfig : *fwConfig.preUpgrade()) {
+      if (!isValidPreUpgradeConfig(preUpgradeConfig)) {
+        XLOG(ERR) << fmt::format(
+            "Invalid pre-upgrade configuration for device {}", deviceName);
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidFlashromConfig(
+    const fw_util_config::FlashromConfig& flashromConfig) {
+  // Programmer type is required
+  if (!flashromConfig.programmer_type().has_value() ||
+      flashromConfig.programmer_type()->empty()) {
+    XLOG(ERR) << "Flashrom programmer_type is required and cannot be empty";
+    return false;
+  }
+
+  if (!isValidProgrammerType(*flashromConfig.programmer_type())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid flashrom programmer type: {}",
+        *flashromConfig.programmer_type());
+    return false;
+  }
+
+  // Validate programmer path if specified
+  if (flashromConfig.programmer().has_value() &&
+      !flashromConfig.programmer()->empty()) {
+    if (!isValidPath(*flashromConfig.programmer())) {
+      XLOG(ERR) << fmt::format(
+          "Invalid flashrom programmer path: {}", *flashromConfig.programmer());
+      return false;
+    }
+  }
+
+  // Validate custom content offset if custom content is specified
+  if (flashromConfig.custom_content().has_value() &&
+      flashromConfig.custom_content_offset().has_value()) {
+    if (*flashromConfig.custom_content_offset() < 0) {
+      XLOG(ERR) << "Custom content offset must be non-negative";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidJtagConfig(
+    const fw_util_config::JtagConfig& jtagConfig) {
+  if (jtagConfig.path()->empty()) {
+    XLOG(ERR) << "JTAG path cannot be empty";
+    return false;
+  }
+
+  if (!isValidPath(*jtagConfig.path())) {
+    XLOG(ERR) << fmt::format("Invalid JTAG path: {}", *jtagConfig.path());
+    return false;
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidGpiosetConfig(
+    const fw_util_config::GpiosetConfig& gpiosetConfig) {
+  if (gpiosetConfig.gpioChip()->empty()) {
+    XLOG(ERR) << "GPIO chip cannot be empty";
+    return false;
+  }
+
+  if (gpiosetConfig.gpioChipPin()->empty()) {
+    XLOG(ERR) << "GPIO chip pin cannot be empty";
+    return false;
+  }
+
+  if (gpiosetConfig.gpioChipValue()->empty()) {
+    XLOG(ERR) << "GPIO chip value cannot be empty";
+    return false;
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidWriteToPortConfig(
+    const fw_util_config::WriteToPortConfig& writeToPortConfig) {
+  if (writeToPortConfig.portFile()->empty()) {
+    XLOG(ERR) << "Port file cannot be empty";
+    return false;
+  }
+
+  if (writeToPortConfig.hexByteValue()->empty()) {
+    XLOG(ERR) << "Hex byte value cannot be empty";
+    return false;
+  }
+
+  if (!re2::RE2::FullMatch(*writeToPortConfig.hexByteValue(), kHexValueRegex)) {
+    XLOG(ERR) << fmt::format(
+        "Invalid hex byte value: {}", *writeToPortConfig.hexByteValue());
+    return false;
+  }
+
+  if (writeToPortConfig.hexOffset()->empty()) {
+    XLOG(ERR) << "Hex offset cannot be empty";
+    return false;
+  }
+
+  if (!re2::RE2::FullMatch(*writeToPortConfig.hexOffset(), kHexValueRegex)) {
+    XLOG(ERR) << fmt::format(
+        "Invalid hex offset: {}", *writeToPortConfig.hexOffset());
+    return false;
+  }
+
   return true;
 }
 
@@ -97,6 +229,11 @@ bool ConfigValidator::isValidVersionConfig(
     XLOG(ERR) << fmt::format(
         "Invalid version type: {}", *versionConfig.versionType());
     return false;
+  }
+
+  // Skip path validation for "Not Applicable" version type
+  if (*versionConfig.versionType() == "Not Applicable") {
+    return true; // No further validation needed
   }
 
   // For sysfs version types, path is required
@@ -133,8 +270,65 @@ bool ConfigValidator::isValidVersionConfig(
   return true;
 }
 
+bool ConfigValidator::isValidPreUpgradeConfig(
+    const fw_util_config::PreFirmwareOperationConfig& preUpgradeConfig) {
+  if (!isValidCommandType(*preUpgradeConfig.commandType())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid pre-upgrade command type: {}",
+        *preUpgradeConfig.commandType());
+    return false;
+  }
+
+  const std::string& commandType = *preUpgradeConfig.commandType();
+
+  // Validate specific configurations using early returns
+  if (commandType == "flashrom") {
+    if (!preUpgradeConfig.flashromArgs().has_value()) {
+      XLOG(ERR) << "Flashrom args required for flashrom command type";
+      return false;
+    }
+    return isValidFlashromConfig(*preUpgradeConfig.flashromArgs());
+  }
+
+  if (commandType == "jtag") {
+    if (!preUpgradeConfig.jtagArgs().has_value()) {
+      XLOG(ERR) << "JTAG args required for jtag command type";
+      return false;
+    }
+    return isValidJtagConfig(*preUpgradeConfig.jtagArgs());
+  }
+
+  if (commandType == "gpioset") {
+    if (!preUpgradeConfig.gpiosetArgs().has_value()) {
+      XLOG(ERR) << "GPIO set args required for gpioset command type";
+      return false;
+    }
+    return isValidGpiosetConfig(*preUpgradeConfig.gpiosetArgs());
+  }
+
+  if (commandType == "writeToPort") {
+    if (!preUpgradeConfig.writeToPortArgs().has_value()) {
+      XLOG(ERR) << "Write to port args required for writeToPort command type";
+      return false;
+    }
+    return isValidWriteToPortConfig(*preUpgradeConfig.writeToPortArgs());
+  }
+
+  // For command types without specific validation (e.g., createI2cDevice,
+  // i2cBusRead)
+  return true;
+}
+
+bool ConfigValidator::isValidCommandType(const std::string& commandType) {
+  return kValidCommandTypes.count(commandType) > 0;
+}
+
 bool ConfigValidator::isValidVersionType(const std::string& versionType) {
   return kValidVersionTypes.count(versionType) > 0;
+}
+
+bool ConfigValidator::isValidProgrammerType(const std::string& programmerType) {
+  return kValidProgrammerTypes.count(programmerType) > 0;
 }
 
 bool ConfigValidator::isValidPath(const std::string& path) {

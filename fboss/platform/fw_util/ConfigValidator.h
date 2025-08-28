@@ -15,12 +15,27 @@ class ConfigValidator {
       const std::string& deviceName,
       const fw_util_config::FwConfig& fwConfig);
 
+  bool isValidFlashromConfig(
+      const fw_util_config::FlashromConfig& flashromConfig);
+
+  bool isValidJtagConfig(const fw_util_config::JtagConfig& jtagConfig);
+
+  bool isValidGpiosetConfig(const fw_util_config::GpiosetConfig& gpiosetConfig);
+
+  bool isValidWriteToPortConfig(
+      const fw_util_config::WriteToPortConfig& writeToPortConfig);
+
   bool isValidVersionConfig(
       const std::string& deviceName,
       const fw_util_config::VersionConfig& versionConfig);
 
+  bool isValidPreUpgradeConfig(
+      const fw_util_config::PreFirmwareOperationConfig& preUpgradeConfig);
+
   // Utility validation methods
+  bool isValidCommandType(const std::string& commandType);
   bool isValidVersionType(const std::string& versionType);
+  bool isValidProgrammerType(const std::string& programmerType);
   bool isValidPath(const std::string& path);
   bool isValidSha1Sum(const std::string& sha1sum);
 };
