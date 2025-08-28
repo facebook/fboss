@@ -102,6 +102,8 @@ inline std::string toString(PlatformType mode) {
       return "ICECUBE";
     case PlatformType::PLATFORM_WEDGE800BA:
       return "WEDGE800BA";
+    case PlatformType::PLATFORM_ICETEA800BC:
+      return "ICETEA";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

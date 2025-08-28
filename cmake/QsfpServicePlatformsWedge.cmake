@@ -36,6 +36,7 @@ target_link_libraries(qsfp_platforms_wedge
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   icecube800bc_platform_mapping
+  icetea800bc_platform_mapping
   platform_base
   qsfp_config
   wedge400_i2c
