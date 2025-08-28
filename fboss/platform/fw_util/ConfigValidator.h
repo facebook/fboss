@@ -22,5 +22,6 @@ class ConfigValidator {
   // Utility validation methods
   bool isValidVersionType(const std::string& versionType);
   bool isValidPath(const std::string& path);
+  bool isValidSha1Sum(const std::string& sha1sum);
 };
 } // namespace facebook::fboss::platform::fw_util

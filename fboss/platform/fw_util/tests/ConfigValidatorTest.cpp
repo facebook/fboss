@@ -122,3 +122,17 @@ TEST(ConfigValidatorTest, InvalidConfigEmptyDesiredVersion) {
 
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, InvalidConfigInvalidSha1Sum) {
+  auto config = FwUtilConfig();
+
+  // Create config with invalid sha1sum when provided - this should be invalid
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+  fwConfig.sha1sum() = "invalid_sha1_format"; // Invalid SHA1 format
+  fwConfigs["bios"] = fwConfig;
+
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}

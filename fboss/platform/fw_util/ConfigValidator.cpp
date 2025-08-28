@@ -14,6 +14,7 @@ const std::unordered_set<std::string> kValidVersionTypes = {
     "full_command",
     "Not Applicable"};
 
+const re2::RE2 kSha1SumRegex{"^[a-fA-F0-9]{40}$"};
 const re2::RE2 kDevmapPathRegex{"^/run/devmap/.+"};
 const re2::RE2 kSysfsPathRegex{"^/sys/.+"};
 
@@ -71,6 +72,13 @@ bool ConfigValidator::isValidFwConfig(
   if (fwConfig.desiredVersion() && fwConfig.desiredVersion()->empty()) {
     XLOG(ERR) << fmt::format(
         "Desired version is empty string for device {}", deviceName);
+    return false;
+  }
+
+  // Validate SHA1 sum if present
+  if (fwConfig.sha1sum() && !isValidSha1Sum(*fwConfig.sha1sum())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid SHA1 sum for device {}: {}", deviceName, *fwConfig.sha1sum());
     return false;
   }
 
@@ -141,4 +149,9 @@ bool ConfigValidator::isValidPath(const std::string& path) {
 
   return false;
 }
+
+bool ConfigValidator::isValidSha1Sum(const std::string& sha1sum) {
+  return re2::RE2::FullMatch(sha1sum, kSha1SumRegex);
+}
+
 } // namespace facebook::fboss::platform::fw_util
