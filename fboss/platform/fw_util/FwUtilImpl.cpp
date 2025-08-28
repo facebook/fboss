@@ -16,6 +16,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fw_util/ConfigValidator.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
 #include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
@@ -33,6 +34,11 @@ void FwUtilImpl::init() {
   } catch (const std::exception& e) {
     XLOG(ERR) << "Error deserializing FwUtilConfig: " << e.what();
   }
+  if (!ConfigValidator().isValid(fwUtilConfig_)) {
+    XLOG(ERR) << "Invalid fw_util config! Aborting...";
+    throw std::runtime_error("Invalid fw_util Config. Aborting...");
+  }
+
   for (const auto& [fpd, fwConfigs] : *fwUtilConfig_.fwConfigs()) {
     fwDeviceNamesByPrio_.emplace_back(fpd, *fwConfigs.priority());
   }
