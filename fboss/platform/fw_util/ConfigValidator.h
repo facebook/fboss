@@ -9,5 +9,8 @@ namespace facebook::fboss::platform::fw_util {
 class ConfigValidator {
  public:
   bool isValid(const fw_util_config::FwUtilConfig& config);
+
+ private:
+  bool isValidFwConfig(const std::string& deviceName);
 };
 } // namespace facebook::fboss::platform::fw_util

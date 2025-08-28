@@ -47,3 +47,15 @@ TEST(ConfigValidatorTest, EmptyConfig) {
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, InvalidConfigEmptyDeviceName) {
+  auto config = FwUtilConfig();
+
+  // Create config with empty device name - this should be invalid
+  std::map<std::string, FwConfig> fwConfigs;
+  fwConfigs[""] = createValidNewFwConfig(); // Empty device name
+
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
