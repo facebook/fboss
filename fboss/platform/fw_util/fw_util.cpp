@@ -9,7 +9,6 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/fw_util/FwUtilImpl.h"
-#include "fboss/platform/fw_util/fw_util_helpers.h"
 #include "fboss/platform/helpers/InitCli.h"
 
 using namespace facebook::fboss::platform::fw_util;
