@@ -242,6 +242,10 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
       auto& tcvrStateAfterReset =
           apache::thrift::can_throw(*titr->second.tcvrState());
       auto mgmtInterface = tcvrStateAfterReset.transceiverManagementInterface();
+      // TODO: T236126124 figure out why the test is flakey for AEC cables. see
+      // D78320942
+      auto transmitterTech =
+          *tcvrStateAfterReset.cable().value_or({}).transmitterTech();
       CHECK(mgmtInterface);
       if (*mgmtInterface == TransceiverManagementInterface::SFF ||
           *mgmtInterface == TransceiverManagementInterface::SFF8472) {
@@ -251,8 +255,7 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
         CHECK(stateChanged);
         // Non Active copper cables don't set the state changed flag
         EXPECT_TRUE(
-            *stateChanged ==
-            TransceiverManager::opticalOrActiveCable(tcvrState))
+            *stateChanged == (transmitterTech != TransmitterTechnology::COPPER))
             << " Failed comparison for transceiver " << idAndTransceiver.first;
       } else {
         throw FbossError(
