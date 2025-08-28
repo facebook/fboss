@@ -229,7 +229,7 @@ The BSP utility files must be installed in a vendor-specific directory structure
 ```
 
 Where:
-- `<vendor>` is extracted from the RPM name (e.g., "fboss", "arista", "cisco", "nexthop")
+- `<vendor>` is extracted from the RPM name
 - `<kernel-version>` is the target kernel version (e.g., "6.4.3-0_fbk1_755_ga25447393a1d")
 
 The Platform Manager uses this path structure to locate and manage BSP components
