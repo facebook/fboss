@@ -42,6 +42,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
+    case HwAsic::Feature::FABRIC_LINK_MONITORING:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
