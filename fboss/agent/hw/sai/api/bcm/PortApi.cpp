@@ -520,4 +520,15 @@ SaiPortTraits::macTxDataQueueMaxWatermarkStats() {
 #endif
   return stats;
 }
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlRxPacketStats() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_FABRIC_CONTROL_RX_PKTS};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 } // namespace facebook::fboss

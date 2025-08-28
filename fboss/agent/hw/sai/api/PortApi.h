@@ -660,6 +660,7 @@ struct SaiPortTraits {
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
   static const std::vector<sai_stat_id_t>& macTxDataQueueMinWatermarkStats();
   static const std::vector<sai_stat_id_t>& macTxDataQueueMaxWatermarkStats();
+  static const std::vector<sai_stat_id_t>& fabricControlRxPacketStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)

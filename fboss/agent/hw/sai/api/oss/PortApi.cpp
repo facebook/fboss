@@ -180,6 +180,11 @@ SaiPortTraits::Attributes::AttributeStaticModuleId::operator()() {
   return std::nullopt;
 }
 
+const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlRxPacketStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return std::nullopt;
