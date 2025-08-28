@@ -57,6 +57,7 @@ cpp_library(
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_utils",
         "//fboss/agent/platforms/common/wedge400c:wedge400c_platform_mapping",
+        "//fboss/agent/platforms/common/wedge800ba:wedge800ba_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
         "//fboss/agent/platforms/common/yangra:yangra_platform_mapping",
         "//fboss/lib/platforms:platform_mode",
