@@ -23,11 +23,12 @@
  * to access private members of TunManager for testing the routeProcessor
  * functionality.
  */
-#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                       \
-  friend class TunManagerRouteProcessorTest;                          \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);
+#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                            \
+  friend class TunManagerRouteProcessorTest;                               \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);      \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);      \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily); \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -175,6 +176,35 @@ TEST_F(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily) {
 
   rtnl_route_set_family(route, AF_UNIX); // Unsupported family
   rtnl_route_set_table(route, 100);
+
+  // Call the routeProcessor function
+  TunManager::routeProcessor(
+      reinterpret_cast<struct nl_object*>(route), static_cast<void*>(tunMgr_));
+
+  // Verify no routes were stored
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+
+  // Cleanup
+  rtnl_route_put(route);
+}
+
+/**
+ * @brief Test filtering of invalid table IDs
+ *
+ * Verifies that routeProcessor correctly filters out routes with invalid
+ * table IDs. The function should only process routes with table IDs in the
+ * range [1-253], as table IDs 0, 254, and 255 are reserved by the kernel.
+ *
+ * This test uses table ID 254 (outside the valid range) and expects that no
+ * routes are stored in probedRoutes_, demonstrating proper table ID validation.
+ */
+TEST_F(TunManagerRouteProcessorTest, SkipInvalidTableId) {
+  // Create a route with invalid table ID
+  auto route = rtnl_route_alloc();
+  ASSERT_NE(nullptr, route);
+
+  rtnl_route_set_family(route, AF_INET);
+  rtnl_route_set_table(route, 254); // Outside valid range [1-253]
 
   // Call the routeProcessor function
   TunManager::routeProcessor(
