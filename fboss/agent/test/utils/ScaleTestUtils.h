@@ -40,7 +40,8 @@ std::vector<std::vector<PortDescriptor>> generateEcmpGroupAndMemberScale(
 std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(
     const std::vector<std::vector<PortDescriptor>>& inputs,
     std::vector<std::vector<NextHopWeight>>& weightsOutput,
-    const int maxEcmpMembers);
+    const int maxEcmpMembers,
+    const uint32_t maxVariableWidthEcmpSize);
 
 void assignUcmpWeights(
     const std::vector<std::vector<PortDescriptor>>& inputs,
@@ -49,5 +50,6 @@ void assignUcmpWeights(
 uint32_t getMaxEcmpGroups(const std::vector<const HwAsic*>& asics);
 uint32_t getMaxEcmpMembers(const std::vector<const HwAsic*>& asics);
 uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics);
+uint32_t getMaxVariableWidthEcmpSize(const std::vector<const HwAsic*>& asics);
 } // namespace utility
 } // namespace facebook::fboss

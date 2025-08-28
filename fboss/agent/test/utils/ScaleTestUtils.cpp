@@ -27,6 +27,13 @@ uint32_t getMaxEcmpMembers(const std::vector<const HwAsic*>& asics) {
   CHECK(maxEcmpMembers.has_value());
   return maxEcmpMembers.value();
 }
+
+uint32_t getMaxVariableWidthEcmpSize(const std::vector<const HwAsic*>& asics) {
+  auto asic = checkSameAndGetAsic(asics);
+  auto maxVariableWidthEcmpSize = asic->getMaxVariableWidthEcmpSize();
+  return maxVariableWidthEcmpSize;
+}
+
 uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics);
   auto maxUcmpMembers = asic->getMaxEcmpMembers();
@@ -143,29 +150,45 @@ std::vector<std::vector<PortDescriptor>> generateEcmpGroupAndMemberScale(
 std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(
     const std::vector<std::vector<PortDescriptor>>& inputs,
     std::vector<std::vector<NextHopWeight>>& weightsOutput,
-    const int maxEcmpMembers) {
+    const int maxEcmpMembers,
+    const uint32_t maxVariableWidthEcmpSize) {
   int runningWeight = 0;
   std::vector<std::vector<PortDescriptor>> output;
   for (int i = 0; i < inputs.size(); i++) {
     std::vector<NextHopWeight> weightsTemp;
     std::vector<PortDescriptor> outputTemp;
+    int groupWeight = 0;
+
     for (int j = 0; j < inputs[i].size(); j++) {
       // Assign weights 3 and 2 to ECMP members.
       int currWeight = (j % 2) ? oddUcmpWeight : evenUcmpWeight;
-      if (runningWeight + currWeight > maxEcmpMembers) {
+      if (runningWeight + currWeight > maxEcmpMembers ||
+          groupWeight + currWeight > maxVariableWidthEcmpSize) {
         currWeight = 1;
       }
+
+      groupWeight += currWeight;
       runningWeight += currWeight;
       weightsTemp.push_back(currWeight);
       outputTemp.push_back(inputs[i][j]);
+
       if (runningWeight == maxEcmpMembers) {
         weightsOutput.push_back(std::move(weightsTemp));
         output.push_back(std::move(outputTemp));
         return output;
       }
+
+      if (groupWeight == maxVariableWidthEcmpSize) {
+        weightsOutput.push_back(std::move(weightsTemp));
+        output.push_back(std::move(outputTemp));
+        break;
+      }
     }
-    weightsOutput.push_back(std::move(weightsTemp));
-    output.push_back(std::move(outputTemp));
+
+    if (groupWeight < maxVariableWidthEcmpSize) {
+      weightsOutput.push_back(std::move(weightsTemp));
+      output.push_back(std::move(outputTemp));
+    }
   }
   return output;
 }

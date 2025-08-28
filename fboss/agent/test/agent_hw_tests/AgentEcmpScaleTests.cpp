@@ -121,7 +121,8 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpGroupsAndMembers) {
 TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
   const auto kMaxUcmpMembers =
       utility::getMaxUcmpMembers(getAgentEnsemble()->getL3Asics());
-
+  const auto kMaxVariableEcmpWidth =
+      utility::getMaxVariableWidthEcmpSize(getAgentEnsemble()->getL3Asics());
   auto setup = [&]() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
@@ -148,8 +149,9 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
     } else {
       allCombinations =
           utility::generateEcmpMemberScale(portDescriptorIds, kMaxUcmpMembers);
+      CHECK_GE(allCombinations.size() * kMaxVariableEcmpWidth, kMaxUcmpMembers);
       allCombinations = utility::getUcmpMembersAndWeight(
-          allCombinations, swWeights, kMaxUcmpMembers);
+          allCombinations, swWeights, kMaxUcmpMembers, kMaxVariableEcmpWidth);
     }
 
     std::vector<flat_set<PortDescriptor>> nhopSets;
