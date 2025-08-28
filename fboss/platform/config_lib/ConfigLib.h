@@ -25,9 +25,6 @@ class ConfigLib {
   virtual std::string getPlatformManagerConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
 
-  virtual std::string getWeutilConfig(
-      const std::optional<std::string>& platformName = std::nullopt) const;
-
   virtual std::string getFwUtilConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
 

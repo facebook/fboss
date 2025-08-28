@@ -75,20 +75,6 @@ std::string ConfigLib::getFanServiceConfig(
   }
 }
 
-std::string ConfigLib::getWeutilConfig(
-    const std::optional<std::string>& platformName) const {
-  if (auto configJson = getConfigFromFile()) {
-    return *configJson;
-  }
-  try {
-    return configs::weutil.at(getPlatformName(platformName));
-  } catch (const std::out_of_range&) {
-    throw std::runtime_error(
-        "weutil configuration not found for platform: " +
-        getPlatformName(platformName));
-  }
-}
-
 std::string ConfigLib::getFwUtilConfig(
     const std::optional<std::string>& platformName) const {
   if (auto configJson = getConfigFromFile()) {

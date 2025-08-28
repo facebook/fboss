@@ -30,12 +30,6 @@ class MockConfigLib : public ConfigLib {
 
   MOCK_METHOD(
       std::string,
-      getWeutilConfig,
-      (const std::optional<std::string>&),
-      (const));
-
-  MOCK_METHOD(
-      std::string,
       getFwUtilConfig,
       (const std::optional<std::string>&),
       (const));
