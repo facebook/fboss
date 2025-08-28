@@ -107,6 +107,8 @@ struct HwPortStats {
   69: optional i64 macTransmitQueueMinWatermarkCells_;
   70: optional i64 macTransmitQueueMaxWatermarkCells_;
   71: optional bool macTransmitQueueStuck_;
+  72: optional i64 fabricControlRxPackets_;
+  73: optional i64 fabricControlTxPackets_;
 }
 
 struct HwSysPortStats {

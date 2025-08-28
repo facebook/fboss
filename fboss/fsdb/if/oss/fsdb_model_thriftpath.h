@@ -23292,7 +23292,9 @@ std::pair<strings::pfcDeadlockRecovery_, Child<::std::int64_t, ::apache::thrift:
 std::pair<strings::pgInCongestionDiscardSeen_, ChildThriftPath<::std::map<::std::int16_t, bool>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::macTransmitQueueMinWatermarkCells_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::macTransmitQueueMaxWatermarkCells_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::macTransmitQueueStuck_, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::macTransmitQueueStuck_, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::fabricControlRxPackets_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fabricControlTxPackets_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -23354,7 +23356,9 @@ std::pair<strings::macTransmitQueueStuck_, Child<bool, ::apache::thrift::type_cl
    std::pair<std::integral_constant<apache::thrift::field_id_t, 68>, ChildThriftPath<::std::map<::std::int16_t, bool>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 69>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 70>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 71>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 71>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 72>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 73>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::inBytes_, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::inUnicastPkts_, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -23417,7 +23421,9 @@ std::pair<strings::pfcDeadlockRecovery_, std::integral_constant<apache::thrift::
 std::pair<strings::pgInCongestionDiscardSeen_, std::integral_constant<apache::thrift::field_id_t, 68>>,
 std::pair<strings::macTransmitQueueMinWatermarkCells_, std::integral_constant<apache::thrift::field_id_t, 69>>,
 std::pair<strings::macTransmitQueueMaxWatermarkCells_, std::integral_constant<apache::thrift::field_id_t, 70>>,
-std::pair<strings::macTransmitQueueStuck_, std::integral_constant<apache::thrift::field_id_t, 71>>>::template type_of<Name>;
+std::pair<strings::macTransmitQueueStuck_, std::integral_constant<apache::thrift::field_id_t, 71>>,
+std::pair<strings::fabricControlRxPackets_, std::integral_constant<apache::thrift::field_id_t, 72>>,
+std::pair<strings::fabricControlTxPackets_, std::integral_constant<apache::thrift::field_id_t, 73>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -23485,6 +23491,8 @@ std::pair<strings::macTransmitQueueStuck_, std::integral_constant<apache::thrift
     STRUCT_CHILD_GETTERS(macTransmitQueueMinWatermarkCells_, 69);
     STRUCT_CHILD_GETTERS(macTransmitQueueMaxWatermarkCells_, 70);
     STRUCT_CHILD_GETTERS(macTransmitQueueStuck_, 71);
+    STRUCT_CHILD_GETTERS(fabricControlRxPackets_, 72);
+    STRUCT_CHILD_GETTERS(fabricControlTxPackets_, 73);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -23550,6 +23558,8 @@ std::pair<strings::macTransmitQueueStuck_, std::integral_constant<apache::thrift
     else if constexpr (__id == 69) { return macTransmitQueueMinWatermarkCells_(); }
     else if constexpr (__id == 70) { return macTransmitQueueMaxWatermarkCells_(); }
     else if constexpr (__id == 71) { return macTransmitQueueStuck_(); }
+    else if constexpr (__id == 72) { return fabricControlRxPackets_(); }
+    else if constexpr (__id == 73) { return fabricControlTxPackets_(); }
   }
 
   template <typename T, T... Values>
