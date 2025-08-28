@@ -5,11 +5,11 @@
 #include <type_traits>
 #include <utility>
 #include "folly/Conv.h"
-#include "folly/logging/xlog.h"
 
 #include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <fboss/thrift_cow/nodes/Serializer.h>
+#include <fboss/thrift_cow/visitors/Common.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
@@ -146,87 +146,6 @@ struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
  * traverse the object and then run the visitor function against the
  * final type.
  */
-
-// Class that represents the result of traversing a thrift structure
-class ThriftTraverseResult {
- public:
-  // Result codes
-  enum class Code {
-    OK,
-    NON_EXISTENT_NODE,
-    INVALID_ARRAY_INDEX,
-    INVALID_MAP_KEY,
-    INVALID_STRUCT_MEMBER,
-    INVALID_VARIANT_MEMBER,
-    INCORRECT_VARIANT_MEMBER,
-    VISITOR_EXCEPTION,
-    INVALID_SET_MEMBER,
-  };
-
-  // Constructors
-  ThriftTraverseResult() : code_(Code::OK) {}
-  ThriftTraverseResult(Code code, const std::string& message)
-      : code_(code), errorMessage_(message) {}
-
-  // Implicit conversion to bool for conditional checks
-  explicit operator bool() const {
-    return code_ == Code::OK;
-  }
-
-  // Accessors
-  Code code() const {
-    return code_;
-  }
-
-  std::optional<std::string> errorMessage() const {
-    return errorMessage_;
-  }
-
-  std::string toString() const {
-    return folly::to<std::string>(
-        "ThriftTraverseResult::",
-        codeString(),
-        errorMessage_.has_value() ? "(" + errorMessage_.value() + ")" : "");
-  }
-
-  // Comparison operators
-  bool operator==(const ThriftTraverseResult& other) const {
-    return code_ == other.code_;
-  }
-
-  bool operator!=(const ThriftTraverseResult& other) const {
-    return !(*this == other);
-  }
-
- private:
-  std::string codeString() const {
-    switch (code_) {
-      case ThriftTraverseResult::Code::OK:
-        return "OK";
-      case ThriftTraverseResult::Code::NON_EXISTENT_NODE:
-        return "NON_EXISTENT_NODE";
-      case ThriftTraverseResult::Code::INVALID_ARRAY_INDEX:
-        return "INVALID_ARRAY_INDEX";
-      case ThriftTraverseResult::Code::INVALID_MAP_KEY:
-        return "INVALID_MAP_KEY";
-      case ThriftTraverseResult::Code::INVALID_STRUCT_MEMBER:
-        return "INVALID_STRUCT_MEMBER";
-      case ThriftTraverseResult::Code::INVALID_VARIANT_MEMBER:
-        return "INVALID_VARIANT_MEMBER";
-      case ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER:
-        return "INCORRECT_VARIANT_MEMBER";
-      case ThriftTraverseResult::Code::VISITOR_EXCEPTION:
-        return "VISITOR_EXCEPTION";
-      case ThriftTraverseResult::Code::INVALID_SET_MEMBER:
-        return "INVALID_SET_MEMBER";
-      default:
-        return "ThriftTraverseResult::unknown";
-    }
-  }
-
-  Code code_;
-  std::optional<std::string> errorMessage_;
-};
 
 /*
  * invokeVisitorFnHelper allows us to support two different visitor

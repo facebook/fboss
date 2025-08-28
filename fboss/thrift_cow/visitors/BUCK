@@ -26,6 +26,17 @@ thrift_library(
 )
 
 cpp_library(
+    name = "common",
+    srcs = ["Common.cpp"],
+    headers = [
+        "Common.h",
+    ],
+    exported_deps = [
+        "//folly:conv",
+    ],
+)
+
+cpp_library(
     name = "visitors",
     srcs = [
         "PatchApplier.cpp",
@@ -45,6 +56,7 @@ cpp_library(
         "VisitorUtils.h",
     ],
     exported_deps = [
+        ":common",
         ":results-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow:patch-cpp2-types",
