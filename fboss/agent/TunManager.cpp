@@ -365,6 +365,14 @@ cfg::InterfaceType TunManager::getInterfaceType(InterfaceID ifID) const {
 }
 
 void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
+  addRemoveRouteTable(getTableId(ifID), ifIndex, add, ifID);
+}
+
+void TunManager::addRemoveRouteTable(
+    int tableId,
+    int ifIndex,
+    bool add,
+    std::optional<InterfaceID> ifID) {
   // We just store default routes (one for IPv4 and one for IPv6) in each
   // route table.
   const folly::IPAddress addrs[] = {
@@ -381,7 +389,7 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
     auto error = rtnl_route_set_family(route, addr.family());
     nlCheckError(error, "Failed to set family to", addr.family());
 
-    rtnl_route_set_table(route, getTableId(ifID));
+    rtnl_route_set_table(route, tableId);
     rtnl_route_set_scope(route, RT_SCOPE_UNIVERSE);
     rtnl_route_set_protocol(route, RTPROT_FBOSS);
 
@@ -422,7 +430,7 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
      * routing table.
     nlCheckError(error, "Failed to ", add ? "add" : "remove",
                   " default route ", addr, " @ index ", ifIndex,
-                  " in table ", getTableId(ifID), " for interface ", ifID,
+                  " in table ", tableId, " for interface ", ifID,
                   ". ErrorCode: ", error);
       */
     if (error < 0) {
@@ -431,8 +439,9 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
                     << ". ErrorCode: " << error;
     }
     XLOG(DBG2) << (add ? "Added" : "Removed") << " default route " << addr
-               << " @ index " << ifIndex << " in table " << getTableId(ifID)
-               << " for interface " << ifID;
+               << " @ index " << ifIndex << " in table " << tableId
+               << (ifID.has_value() ? " for interface " + std::to_string(*ifID)
+                                    : "");
   }
 }
 
@@ -477,8 +486,8 @@ void TunManager::addRemoveSourceRouteRule(
   } else {
     error = rtnl_rule_delete(sock_, rule, 0);
   }
-  // There are scenarios where the rule has already been deleted and we try to
-  // delete it again. In that case, we can ignore the error.
+  // There are scenarios where the rule has already been deleted and we try
+  // to delete it again. In that case, we can ignore the error.
   if (!add && (error == -NLE_OBJ_NOTFOUND)) {
     XLOG(WARNING) << "Rule not existing for address " << addr
                   << " to lookup table " << getTableId(ifID)
@@ -781,8 +790,8 @@ void TunManager::forceInitialSync() {
   evb_->runInFbossEventBaseThread([this]() {
     if (numSyncs_ == 0) {
       // no syncs occurred yet. Force initial sync. The initial sync is done
-      // with applied state, and subsequent sync's will also be done with the
-      // applied states.
+      // with applied state, and subsequent sync's will also be done with
+      // the applied states.
       sync(sw_->getState());
     }
   });
@@ -938,8 +947,8 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           setIntfStatus(ifName, ifIndex, newStatus);
         }
 
-        // We need to add route-table and tun-addresses if interface is brought
-        // up recently.
+        // We need to add route-table and tun-addresses if interface is
+        // brought up recently.
         if (!oldStatus and newStatus) {
           addRouteTable(ifID, ifIndex);
           // Remove old source route rules to avoid duplicates
@@ -954,8 +963,8 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
         // Update interface addresses only if interface is up currently
         // We would like to process address change whenever current state of
-        // interface is UP. We should not try to add addresses when interface
-        // is down as it can throw exception for v6 address.
+        // interface is UP. We should not try to add addresses when
+        // interface is down as it can throw exception for v6 address.
         if (newStatus) {
           addChangedAddress(ifID, ifName, ifIndex, oldAddrs, newAddrs);
         }
@@ -1059,9 +1068,9 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
   auto* tunManager = static_cast<TunManager*>(data);
   ProbedRoute probedRoute(family, tableId, dstStr);
 
-  // Get nexthop information - only store the first nexthop since we only care
-  // about default routes like those created by addRemoveRouteTable(), which are
-  // single-nexthop routes.
+  // Get nexthop information - only store the first nexthop since we only
+  // care about default routes like those created by addRemoveRouteTable(),
+  // which are single-nexthop routes.
   auto nexthops = rtnl_route_get_nexthops(route);
   if (nexthops && rtnl_route_get_nnexthops(route) > 0) {
     auto nh = rtnl_route_nexthop_n(route, 0);
