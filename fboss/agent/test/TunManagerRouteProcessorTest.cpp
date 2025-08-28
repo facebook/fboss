@@ -26,7 +26,8 @@
 #define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                       \
   friend class TunManagerRouteProcessorTest;                          \
   FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute); \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -158,6 +159,32 @@ TEST_F(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute) {
  */
 TEST_F(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute) {
   testProcessDefaultRoute(AF_INET6, 150, 24, "::/0");
+}
+
+/**
+ * @brief Test filtering of unsupported address families
+ *
+ * Verifies that routeProcessor correctly filters out and ignores routes with
+ * unsupported address families. The function should only process AF_INET and
+ * AF_INET6 routes, ignoring all others.
+ */
+TEST_F(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily) {
+  // Create a route with unsupported address family
+  auto route = rtnl_route_alloc();
+  ASSERT_NE(nullptr, route);
+
+  rtnl_route_set_family(route, AF_UNIX); // Unsupported family
+  rtnl_route_set_table(route, 100);
+
+  // Call the routeProcessor function
+  TunManager::routeProcessor(
+      reinterpret_cast<struct nl_object*>(route), static_cast<void*>(tunMgr_));
+
+  // Verify no routes were stored
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+
+  // Cleanup
+  rtnl_route_put(route);
 }
 
 } // namespace facebook::fboss
