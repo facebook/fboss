@@ -49,10 +49,12 @@ cpp_unittest(
 
 cpp_library(
     name = "data_factory",
+    srcs = ["TestDataFactory.cpp"],
     headers = [
         "TestDataFactory.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/thrift_cow/nodes:serializer",
     ],
