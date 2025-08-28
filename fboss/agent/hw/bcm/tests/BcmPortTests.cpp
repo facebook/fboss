@@ -277,7 +277,7 @@ TEST_F(BcmPortTest, SampleDestination) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     std::vector<cfg::SampleDestination> sampleDestinations = {
         cfg::SampleDestination::CPU, cfg::SampleDestination::MIRROR};
@@ -300,7 +300,7 @@ TEST_F(BcmPortTest, SampleDestination) {
     newCfg.mirrors()[0].destination()->tunnel() = tunnel;
     return applyNewConfig(newCfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::map<PortID, int> port2SampleDestination = {
         {PortID(masterLogicalPortIds()[0]), BCM_PORT_CONTROL_SAMPLE_DEST_CPU},
         {PortID(masterLogicalPortIds()[1]),
@@ -320,8 +320,8 @@ TEST_F(BcmPortTest, NoSampleDestinationSet) {
 #endif
     return;
   }
-  auto setup = [=]() { return applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { return applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     std::map<PortID, int> port2SampleDestination = {
         {PortID(masterLogicalPortIds()[0]), BCM_PORT_CONTROL_SAMPLE_DEST_CPU}};
     utility::assertPortsSampleDestination(
@@ -381,7 +381,7 @@ TEST_F(BcmPortTest, EgressMirror) {
 }
 
 TEST_F(BcmPortTest, SampleDestinationMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     cfg::Mirror mirror;
     cfg::MirrorTunnel tunnel;
@@ -400,7 +400,7 @@ TEST_F(BcmPortTest, SampleDestinationMirror) {
     portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
     return applyNewConfig(newCfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto* bcmPort = getHwSwitch()->getPortTable()->getBcmPort(
         PortID(masterLogicalPortIds()[1]));
     ASSERT_TRUE(bcmPort->getIngressPortMirror().has_value());
@@ -410,7 +410,7 @@ TEST_F(BcmPortTest, SampleDestinationMirror) {
 }
 
 TEST_F(BcmPortTest, SampleDestinationCpu) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     cfg::Mirror mirror;
     cfg::MirrorTunnel tunnel;
@@ -427,7 +427,7 @@ TEST_F(BcmPortTest, SampleDestinationCpu) {
     portCfg->sampleDest() = cfg::SampleDestination::CPU;
     return applyNewConfig(newCfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto* bcmPort = getHwSwitch()->getPortTable()->getBcmPort(
         PortID(masterLogicalPortIds()[1]));
     ASSERT_TRUE(bcmPort->getIngressPortMirror().has_value());

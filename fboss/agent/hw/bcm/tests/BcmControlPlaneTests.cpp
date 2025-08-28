@@ -155,7 +155,7 @@ TEST_F(BcmControlPlaneTest, DefaultCPUQueuesCheckWithoutConfig) {
 }
 
 TEST_F(BcmControlPlaneTest, ConfigCPUQueuesSetup) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = initialConfig();
     *cfg.cpuQueues() =
         getConfigCPUQueues(getPlatform()->getMMUCellBytes(), getAsic());

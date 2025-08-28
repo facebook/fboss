@@ -349,7 +349,7 @@ class BcmRouteHostReferenceTest : public BcmRouteTest {
 } // namespace facebook::fboss
 
 TEST_F(BcmRouteTest, AddRoutesAndCountPrintCheckToCPU) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     std::vector<IPAddress> nexthops = {
         IPAddress("1.1.1.10"),
@@ -371,7 +371,7 @@ TEST_F(BcmRouteTest, AddRoutesAndCountPrintCheckToCPU) {
     }
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     bcm_l3_info_t hwStatus;
     auto rv = bcm_l3_info(getUnit(), &hwStatus);
     bcmCheckError(rv, "failed get L3 hw info");
@@ -427,7 +427,7 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckHostReference) {
       IPAddress("1.1.1.101"),
       IPAddress("1::101"),
   };
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     std::vector<CIDRNetwork> networks = {
         CIDRNetwork(IPAddress("10.1.1.0"), 24),
@@ -442,7 +442,7 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckHostReference) {
     }
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     /* basic test, each next hop should be reachable only from one network, so
      * reference count should be one */
     for (auto nexthop : nexthops) {
@@ -462,7 +462,7 @@ TEST_F(
       IPAddress("1::101"),
       IPAddress("1::102"),
   };
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     std::vector<CIDRNetwork> networks = {
         CIDRNetwork(IPAddress("10.1.1.0"), 24),
@@ -477,7 +477,7 @@ TEST_F(
       addRoute(network, {nexthop});
     }
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     /* each next hop is reached from only one route, so reference count for each
      * next hop should be 1 */
     for (auto nexthop : nexthops) {
@@ -498,7 +498,7 @@ TEST_F(
       IPAddress("1::1"),
       IPAddress("1::1"), /* two V6 networks have same nexthop */
   };
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     std::vector<CIDRNetwork> networks = {
         CIDRNetwork(IPAddress("10.1.1.0"), 24),
@@ -515,7 +515,7 @@ TEST_F(
     }
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     /* Verify reference counts for each nexthop is 2 (as two networks share
      * each) */
     for (auto nexthop : nexthops) {
@@ -528,7 +528,7 @@ TEST_F(
 
 TEST_F(BcmRouteHostReferenceTest, DeleteRoutesAndCheckHostReference) {
   int intf1 = kBaseVlanId; /* config has one interface */
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     std::vector<IPAddress> nexthops = {
         IPAddress("1.1.1.101"),
@@ -564,7 +564,7 @@ TEST_F(BcmRouteHostReferenceTest, DeleteRoutesAndCheckHostReference) {
     }
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::vector<IPAddress> nexthops = {
         IPAddress("1.1.1.101"), IPAddress("1::1")};
     /* as route to one network for each next hop will be removed, verify
@@ -585,7 +585,7 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckInvalidHostReference) {
       IPAddress("1.1.1.101"),
       IPAddress("1::101"),
   };
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     std::vector<CIDRNetwork> networks = {
         CIDRNetwork(IPAddress("10.1.1.0"), 24),
@@ -600,7 +600,7 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckInvalidHostReference) {
     }
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     /* nexthop is not resolved through through intf2, so reference count should
      * be zero */
     for (auto nexthop : nexthops) {
@@ -614,8 +614,8 @@ TEST_F(BcmRouteHostReferenceTest, AddRouteAndCheckInvalidHostReference) {
 }
 
 TEST_F(BcmRouteHostReferenceTest, AddNoRoutesAndCheckDefaultHostReference) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     std::vector<IPAddress> interfaceIps;
     std::vector<int32_t> interfaceIds;
 
@@ -648,12 +648,12 @@ TEST_F(BcmRouteHostReferenceTest, AddNoRoutesAndCheckDefaultHostReference) {
 void BcmRouteTest::routeReferenceCountTest(
     const CIDRNetwork& network,
     const IPAddress& nexthop) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     addRoute(network, {nexthop});
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const IPAddress& networkIP = network.first;
     const uint8_t netmask = network.second;
     EXPECT_TRUE(networkIP.isV4() || networkIP.isV6());
@@ -776,7 +776,7 @@ TEST_F(BcmRouteTest, RemoveHWNonexistentNonHostRoute) {
       std::make_pair<CIDRNetwork, IPAddress>(
           CIDRNetwork(IPAddress("1001::0"), 48), IPAddress("1::10"))};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     for (const auto& route : nonHostRoutes) {
       addRoute(route.first, {route.second});
@@ -907,14 +907,14 @@ TEST_F(BcmRouteTest, BcmHostReference) {
   auto v4Network = CIDRNetwork(IPAddress("10.1.2.0"), 24);
   auto v6Network = CIDRNetwork(IPAddress("1001:2::"), 48);
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // add multi path route
     applyNewConfig(initialConfig());
     /* add routes */
     addRoute(v4Network, {v4Nexthops});
     addRoute(v6Network, {v6Nexthops});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     verifyNextHopReferences(v4Nexthops);
     verifyNextHopReferences(v6Nexthops);
     verifyNextHopReferences({IPAddress("10.1.2.100")});
@@ -937,7 +937,7 @@ TEST_F(BcmRouteTest, EgressUpdateOnHostRouteUpdateOneHopToManyHops) {
       IPAddress("2::101"),
   };
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // add multi path route
     auto config = initialConfig();
     applyNewConfig(config);
@@ -963,7 +963,7 @@ TEST_F(BcmRouteTest, EgressUpdateOnHostRouteUpdateOneHopToManyHops) {
     addRoute(hostRouteV6, v6Nexthops);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto v4SwRoute = findRoute<folly::IPAddressV4>(
         RouterID(0),
         {hostRouteV4.first, hostRouteV4.second},
@@ -1060,7 +1060,7 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
   }
   auto route = RoutePrefixV6{folly::IPAddressV6("2401:dead:beef::"), 112};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // add multi path route
     this->applyNewConfig(config);
     auto helper = utility::EcmpSetupTargetedPorts<IPAddressV6>(
@@ -1124,7 +1124,7 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
     this->applyNewState(state1);
     helper.programRoutes(this->getRouteUpdater(), ports, {route});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     /* route is programmed */
     auto* bcmRoute = this->getHwSwitch()->routeTable()->getBcmRoute(
         0, route.network(), route.mask());

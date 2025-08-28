@@ -801,7 +801,7 @@ void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
         << " Could not find platform port with ID " << port;
     auto sci = makeSci(macGen.getNext().toString(), port);
     wedgeManager->programXphyPort(port, profile);
-    auto installKeys = [=, port = port](auto direction) mutable {
+    auto installKeys = [=, this, port = port](auto direction) mutable {
       std::optional<mka::MKASak> prevSak;
       bool isIngress = direction == SAI_MACSEC_DIRECTION_INGRESS;
       // 5 rotations to overflow 2 bit AN space
