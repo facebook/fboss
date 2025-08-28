@@ -23,9 +23,10 @@
  * to access private members of TunManager for testing the routeProcessor
  * functionality.
  */
-#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS \
-  friend class TunManagerRouteProcessorTest;    \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);
+#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                       \
+  friend class TunManagerRouteProcessorTest;                          \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute); \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -83,59 +84,80 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
   std::unique_ptr<MockPlatform> platform_; ///< Mock platform instance
   std::unique_ptr<SwSwitch> sw_; ///< Mock switch instance
   MockTunManager* tunMgr_{}; ///< Mock TUN manager for testing
+
+  /**
+   * @brief Helper function to test default route processing for both IPv4 and
+   * IPv6
+   *
+   * @param family Address family (AF_INET or AF_INET6)
+   * @param tableId Routing table ID
+   * @param ifIndex Interface index for nexthop
+   * @param expectedDestination Expected destination string representation
+   */
+  void testProcessDefaultRoute(
+      int family,
+      int tableId,
+      int ifIndex,
+      const std::string& expectedDestination) {
+    // Create a real netlink route object for default route
+    auto route = rtnl_route_alloc();
+    ASSERT_NE(nullptr, route);
+
+    // Set up default route with specified parameters
+    rtnl_route_set_family(route, family);
+    rtnl_route_set_table(route, tableId);
+    rtnl_route_set_protocol(route, TunManager::RTPROT_FBOSS);
+
+    // Create destination address (default route)
+    auto dst = nl_addr_build(family, nullptr, 0);
+    ASSERT_NE(nullptr, dst);
+    nl_addr_set_prefixlen(dst, 0);
+    rtnl_route_set_dst(route, dst);
+
+    // Add nexthop with interface index
+    auto nexthop = rtnl_route_nh_alloc();
+    ASSERT_NE(nullptr, nexthop);
+    rtnl_route_nh_set_ifindex(nexthop, ifIndex);
+    rtnl_route_add_nexthop(route, nexthop);
+
+    // Call the actual routeProcessor function
+    TunManager::routeProcessor(
+        reinterpret_cast<struct nl_object*>(route),
+        static_cast<void*>(tunMgr_));
+
+    // Verify the route was stored by routeProcessor
+    ASSERT_EQ(1, tunMgr_->probedRoutes_.size());
+
+    const auto& probedRoute = tunMgr_->probedRoutes_[0];
+    EXPECT_EQ(family, probedRoute.family);
+    EXPECT_EQ(tableId, probedRoute.tableId);
+    EXPECT_EQ(expectedDestination, probedRoute.destination);
+    EXPECT_EQ(ifIndex, probedRoute.ifIndex);
+
+    // Cleanup
+    nl_addr_put(dst);
+    rtnl_route_put(route);
+  }
 };
 
 /**
  * @brief Test processing of IPv4 default route
  *
  * Verifies that routeProcessor correctly processes and stores an IPv4 default
- * route (0.0.0.0/0) with valid parameters. The test creates a real netlink
- * route object with:
- * - IPv4 address family (AF_INET)
- * - Valid table ID (100, within range [1-253])
- * - Default destination (0.0.0.0/0)
- * - Mock interface index (42)
- *
- * Expects the route to be stored in probedRoutes_ with all fields correctly
- * extracted and parsed.
+ * route (0.0.0.0/0) with valid parameters.
  */
 TEST_F(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute) {
-  // Create a real netlink route object for IPv4 default route
-  auto route = rtnl_route_alloc();
-  ASSERT_NE(nullptr, route);
-
-  // Set up IPv4 default route (0.0.0.0/0)
-  rtnl_route_set_family(route, AF_INET);
-  rtnl_route_set_table(route, 100); // Table ID within valid range [1-253]
-  rtnl_route_set_protocol(route, RTPROT_STATIC);
-
-  // Create destination address (0.0.0.0/0 for default route)
-  auto dst = nl_addr_build(AF_INET, nullptr, 0);
-  ASSERT_NE(nullptr, dst);
-  nl_addr_set_prefixlen(dst, 0);
-  rtnl_route_set_dst(route, dst);
-
-  // Add nexthop with interface index
-  auto nexthop = rtnl_route_nh_alloc();
-  ASSERT_NE(nullptr, nexthop);
-  rtnl_route_nh_set_ifindex(nexthop, 42); // Mock interface index
-  rtnl_route_add_nexthop(route, nexthop);
-
-  // Call the actual routeProcessor function
-  TunManager::routeProcessor(
-      reinterpret_cast<struct nl_object*>(route), static_cast<void*>(tunMgr_));
-
-  // Verify the route was stored by routeProcessor
-  ASSERT_EQ(1, tunMgr_->probedRoutes_.size());
-
-  const auto& probedRoute = tunMgr_->probedRoutes_[0];
-  EXPECT_EQ(AF_INET, probedRoute.family);
-  EXPECT_EQ(100, probedRoute.tableId);
-  EXPECT_EQ("0.0.0.0/0", probedRoute.destination);
-  EXPECT_EQ(42, probedRoute.ifIndex);
-
-  // Cleanup
-  nl_addr_put(dst);
-  rtnl_route_put(route);
+  testProcessDefaultRoute(AF_INET, 100, 42, "0.0.0.0/0");
 }
+
+/**
+ * @brief Test processing of IPv6 default route
+ *
+ * Verifies that routeProcessor correctly processes and stores an IPv6 default
+ * route (::/0) with valid parameters.
+ */
+TEST_F(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute) {
+  testProcessDefaultRoute(AF_INET6, 150, 24, "::/0");
+}
+
 } // namespace facebook::fboss
