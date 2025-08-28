@@ -317,3 +317,27 @@ TEST(ConfigValidatorTest, ValidVerifyFlashrom) {
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, ValidReadFlashrom) {
+  auto config = FwUtilConfig();
+
+  // Create config with valid flashrom read based on real platform configs
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  ReadFirmwareOperationConfig readConfig;
+  readConfig.commandType() = "flashrom";
+
+  // Based on real platform flashrom read configurations
+  FlashromConfig flashromConfig;
+  flashromConfig.programmer_type() = "linux_spi:dev=";
+  flashromConfig.programmer() = "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1";
+  readConfig.flashromArgs() = flashromConfig;
+
+  fwConfig.read() = readConfig;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}

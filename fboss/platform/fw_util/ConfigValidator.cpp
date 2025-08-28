@@ -142,6 +142,13 @@ bool ConfigValidator::isValidFwConfig(
     return false;
   }
 
+  // Validate read configuration
+  if (fwConfig.read().has_value() && !isValidReadConfig(*fwConfig.read())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid read configuration for device {}", deviceName);
+    return false;
+  }
+
   return true;
 }
 
@@ -477,6 +484,25 @@ bool ConfigValidator::isValidVerifyConfig(
       return false;
     }
     return isValidFlashromConfig(*verifyConfig.flashromArgs());
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidReadConfig(
+    const fw_util_config::ReadFirmwareOperationConfig& readConfig) {
+  if (!isValidCommandType(*readConfig.commandType())) {
+    XLOG(ERR) << fmt::format(
+        "Invalid read command type: {}", *readConfig.commandType());
+    return false;
+  }
+
+  if (*readConfig.commandType() == "flashrom") {
+    if (!readConfig.flashromArgs().has_value()) {
+      XLOG(ERR) << "Flashrom args required for flashrom read command";
+      return false;
+    }
+    return isValidFlashromConfig(*readConfig.flashromArgs());
   }
 
   return true;

@@ -46,6 +46,9 @@ class ConfigValidator {
   bool isValidVerifyConfig(
       const fw_util_config::VerifyFirmwareOperationConfig& verifyConfig);
 
+  bool isValidReadConfig(
+      const fw_util_config::ReadFirmwareOperationConfig& readConfig);
+
   // Utility validation methods
   bool isValidCommandType(const std::string& commandType);
   bool isValidVersionType(const std::string& versionType);
