@@ -23,6 +23,7 @@ FwConfig createValidNewFwConfig() {
 
   return fwConfig;
 }
+
 } // namespace
 
 TEST(ConfigValidatorTest, ValidConfig) {
@@ -54,6 +55,20 @@ TEST(ConfigValidatorTest, InvalidConfigEmptyDeviceName) {
   // Create config with empty device name - this should be invalid
   std::map<std::string, FwConfig> fwConfigs;
   fwConfigs[""] = createValidNewFwConfig(); // Empty device name
+
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidConfigNegativePriority) {
+  auto config = FwUtilConfig();
+
+  // Create config with invalid priority (-1) - this should be invalid
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+  fwConfig.priority() = -1; // Invalid priority (must be >= 0)
+  fwConfigs["bios"] = fwConfig;
 
   config.fwConfigs() = fwConfigs;
 
