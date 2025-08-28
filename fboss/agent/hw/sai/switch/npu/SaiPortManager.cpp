@@ -112,6 +112,17 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
       }
 #endif
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::FABRIC_LINK_MONITORING)) {
+        counterIds.insert(
+            counterIds.end(),
+            SaiPortTraits::fabricControlRxPacketStats().begin(),
+            SaiPortTraits::fabricControlRxPacketStats().end());
+        counterIds.insert(
+            counterIds.end(),
+            SaiPortTraits::fabricControlTxPacketStats().begin(),
+            SaiPortTraits::fabricControlTxPacketStats().end());
+      }
       return counterIds;
     }
     if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
@@ -208,6 +219,17 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
       counterIds.emplace_back(SAI_PORT_STAT_IN_DROPPED_PKTS);
+    }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::FABRIC_LINK_MONITORING)) {
+      counterIds.insert(
+          counterIds.end(),
+          SaiPortTraits::fabricControlRxPacketStats().begin(),
+          SaiPortTraits::fabricControlRxPacketStats().end());
+      counterIds.insert(
+          counterIds.end(),
+          SaiPortTraits::fabricControlTxPacketStats().begin(),
+          SaiPortTraits::fabricControlTxPacketStats().end());
     }
     return counterIds;
   };

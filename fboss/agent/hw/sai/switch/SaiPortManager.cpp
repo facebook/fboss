@@ -332,6 +332,14 @@ void fillHwPortStats(
         hwPortStats.macTransmitQueueMaxWatermarkCells_() = value;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+      case SAI_PORT_STAT_FABRIC_CONTROL_RX_PKTS:
+        hwPortStats.fabricControlRxPackets_() = value;
+        break;
+      case SAI_PORT_STAT_FABRIC_CONTROL_TX_PKTS:
+        hwPortStats.fabricControlTxPackets_() = value;
+        break;
+#endif
       default:
         auto configuredDebugCounters =
             debugCounterManager.getConfiguredDebugStatIds();
