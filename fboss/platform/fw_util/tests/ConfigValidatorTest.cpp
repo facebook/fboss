@@ -107,3 +107,18 @@ TEST(ConfigValidatorTest, InvalidConfigSysfsWithoutPath) {
 
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, InvalidConfigEmptyDesiredVersion) {
+  auto config = FwUtilConfig();
+
+  // Create config with empty desiredVersion when provided - this should be
+  // invalid
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+  fwConfig.desiredVersion() = ""; // Empty when provided (invalid)
+  fwConfigs["bios"] = fwConfig;
+
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}

@@ -67,6 +67,13 @@ bool ConfigValidator::isValidFwConfig(
     return false;
   }
 
+  // Validate desiredVersion if present
+  if (fwConfig.desiredVersion() && fwConfig.desiredVersion()->empty()) {
+    XLOG(ERR) << fmt::format(
+        "Desired version is empty string for device {}", deviceName);
+    return false;
+  }
+
   return true;
 }
 

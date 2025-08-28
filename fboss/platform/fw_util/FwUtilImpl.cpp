@@ -171,7 +171,7 @@ void FwUtilImpl::printVersion(const std::string& fpd) {
 void FwUtilImpl::doVersionAudit() {
   bool mismatch = false;
   for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.fwConfigs()) {
-    std::string desiredVersion = *fwConfig.desiredVersion();
+    std::string desiredVersion = fwConfig.desiredVersion().value_or("");
     if (desiredVersion.empty()) {
       XLOGF(
           INFO,
