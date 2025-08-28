@@ -787,6 +787,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
         fecErrorDetectEnable,
         std::nullopt, // FabricSystemPort
+        std::nullopt, // StaticModuleId
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -874,6 +875,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
       fecErrorDetectEnable,
       std::nullopt, // FabricSystemPort
+      std::nullopt, // StaticModuleId
   };
 }
 

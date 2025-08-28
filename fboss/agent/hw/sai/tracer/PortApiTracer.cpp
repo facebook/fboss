@@ -188,6 +188,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, ShelEnable)
   SAI_EXT_ATTR_MAP(Port, PgDropStatus)
   SAI_EXT_ATTR_MAP(Port, FabricSystemPort)
+  SAI_EXT_ATTR_MAP(Port, StaticModuleId)
 #if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

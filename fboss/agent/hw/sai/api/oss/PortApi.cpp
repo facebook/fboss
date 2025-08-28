@@ -176,6 +176,11 @@ SaiPortTraits::Attributes::AttributeFabricSystemPort::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeStaticModuleId::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxDiffEncoderEnWrapper::operator()() {
   return std::nullopt;
 }

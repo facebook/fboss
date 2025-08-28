@@ -24,6 +24,7 @@ sai_status_t create_port_fn(
   auto fs = FakeSai::getInstance();
   std::optional<bool> adminState;
   std::vector<uint32_t> lanes;
+  std::optional<sai_uint32_t> staticModuleId;
   std::optional<sai_uint32_t> speed;
   std::optional<sai_port_fec_mode_t> fecMode;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
@@ -92,6 +93,9 @@ sai_status_t create_port_fn(
           lanes.push_back(attr_list[i].value.u32list.list[j]);
         }
       } break;
+      case SAI_PORT_ATTR_STATIC_MODULE_ID:
+        staticModuleId = attr_list[i].value.u32;
+        break;
       case SAI_PORT_ATTR_SPEED:
         speed = attr_list[i].value.u32;
         break;
@@ -326,6 +330,9 @@ sai_status_t create_port_fn(
   if (preemphasis.size()) {
     port.preemphasis = preemphasis;
   }
+  if (staticModuleId.has_value()) {
+    port.staticModuleId = staticModuleId.value();
+  }
   if (ingressMirrorList.size()) {
     port.ingressMirrorList = ingressMirrorList;
   }
@@ -465,6 +472,9 @@ sai_status_t set_port_attribute_fn(
         lanes.push_back(attr->value.u32list.list[j]);
       }
     } break;
+    case SAI_PORT_ATTR_STATIC_MODULE_ID:
+      port.staticModuleId = attr->value.u32;
+      break;
     case SAI_PORT_ATTR_SPEED:
       port.speed = attr->value.u32;
       break;
@@ -804,6 +814,9 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.u32list.list[j] = port.lanes[j];
         }
         attr[i].value.u32list.count = port.lanes.size();
+        break;
+      case SAI_PORT_ATTR_STATIC_MODULE_ID:
+        attr[i].value.u32 = port.staticModuleId;
         break;
       case SAI_PORT_ATTR_SPEED:
         attr[i].value.u32 = port.speed;

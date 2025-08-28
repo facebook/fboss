@@ -22,6 +22,7 @@ SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
   return std::nullopt;
 #endif
 }
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 #if defined(BRCM_SAI_SDK_XGS)
@@ -279,6 +280,15 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
   return SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeStaticModuleId::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_PORT_ATTR_STATIC_MODULE_ID;
 #else
   return std::nullopt;
 #endif

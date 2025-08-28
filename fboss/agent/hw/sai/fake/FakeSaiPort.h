@@ -105,6 +105,7 @@ struct FakePort {
   sai_uint32_t ars_port_load_future_weight{20};
   std::vector<sai_map_t> portPgPktDropStatus{};
   sai_object_id_t fabricSystemPort{};
+  sai_uint32_t staticModuleId{};
 };
 
 struct FakePortSerdes {

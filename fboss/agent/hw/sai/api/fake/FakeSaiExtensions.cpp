@@ -129,6 +129,11 @@ SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeStaticModuleId::operator()() {
+  return SAI_PORT_ATTR_STATIC_MODULE_ID;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
   return SAI_PORT_ATTR_DIAGNOSTICS_MODE_ENABLE;
 }
