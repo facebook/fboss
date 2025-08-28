@@ -61,6 +61,7 @@ cpp_unittest(
         "ThriftServerTest.cpp",
         "ThriftTest.cpp",
         "TunInterfaceTest.cpp",
+        "TunManagerRouteProcessorTest.cpp",
         "TxPacketTest.cpp",
         "UDPTest.cpp",
         "UtilsTest.cpp",

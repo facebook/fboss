@@ -33,6 +33,10 @@ class TunManager : public StateObserver {
   TunManager(SwSwitch* sw, FbossEventBase* evb);
   ~TunManager() override;
 
+#ifdef TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS
+  TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS
+#endif
+
   /**
    * Update the intfs_ map based on the given state update. This
    * overrides the StateObserver stateUpdated api, which is always
