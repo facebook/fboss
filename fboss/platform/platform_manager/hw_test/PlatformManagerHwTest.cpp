@@ -158,9 +158,6 @@ TEST_F(PlatformManagerHwTest, XcvrCtrlFiles) {
     if (*platformConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
       presenceFileName = "xcvr_present";
       resetFileName = "xcvr_reset";
-    } else if (*platformConfig_.bspKmodsRpmName() == "arista_bsp_kmods") {
-      presenceFileName = fmt::format("xcvr{}_present", xcvrId);
-      resetFileName = fmt::format("xcvr{}_reset", xcvrId);
     } else {
       presenceFileName = fmt::format("xcvr_present_{}", xcvrId);
       resetFileName = fmt::format("xcvr_reset_{}", xcvrId);

@@ -176,25 +176,25 @@
         {
           "busName": "INCOMING@1",
           "address": "0x5a",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_OSFP_TL"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x5b",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_OSFP_TR"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x5c",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_OSFP_BL"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x5d",
-          "kernelDeviceName": "isl68226",
+          "kernelDeviceName": "bp4a_isl68226",
           "pmUnitScopedName": "SMB_ISL68226_OSFP_BR"
         },
         {
@@ -4731,7 +4731,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 128,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.9-1",
+  "bspKmodsRpmVersion": "0.7.15-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
