@@ -101,6 +101,24 @@ class TunManager : public StateObserver {
     std::string destination;
     /*< Network interface index */
     int ifIndex{};
+
+    /**
+     * @brief Constructor for initializing family, tableId, and destination.
+     *
+     * @param family Address family (AF_INET for IPv4, AF_INET6 for IPv6)
+     * @param tableId Routing table identifier
+     * @param destination Destination address/network as string
+     */
+    ProbedRoute(int family, int tableId, const std::string& destination)
+        : family(family),
+          tableId(tableId),
+          destination(destination),
+          ifIndex(0) {}
+
+    /**
+     * @brief Default constructor.
+     */
+    ProbedRoute() = default;
   };
 
   // no copy to assign
@@ -205,6 +223,19 @@ class TunManager : public StateObserver {
    * Netlink callback for processing and storing addresses
    */
   static void addressProcessor(struct nl_object* obj, void* data);
+
+  /**
+   * Netlink callback for processing routes read from kernel.
+   *
+   * Process routes discovered during kernel probing and stores
+   * them for later cleanup. It filters routes based on address family
+   * (IPv4/IPv6 only), table ID (1-253 range), and extracts destination,
+   * nexthop, and interface information.
+   *
+   * @param obj Netlink route object to process
+   * @param data Pointer to TunManager instance for storing probed routes
+   */
+  static void routeProcessor(struct nl_object* obj, void* data);
 
   /**
    * Lookup host for existing Tun interfaces and their addresses.

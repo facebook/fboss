@@ -705,6 +705,17 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
   };
   nl_cache_foreach(addressCache, &TunManager::addressProcessor, this);
 
+  if (FLAGS_cleanup_probed_kernel_data) {
+    // Get routes
+    struct nl_cache* routeCache;
+    error = rtnl_route_alloc_cache(sock_, AF_UNSPEC, 0, &routeCache);
+    nlCheckError(error, "Cannot get routes from Kernel");
+    SCOPE_EXIT {
+      nl_cache_free(routeCache);
+    };
+    nl_cache_foreach(routeCache, &TunManager::routeProcessor, this);
+  }
+
   start();
   probeDone_ = true;
 }
@@ -995,6 +1006,81 @@ void TunManager::applyChanges(
   for (; newIter != newMap.end(); newIter++) {
     addFn(newIter);
   }
+}
+
+/**
+ * Netlink callback for processing routes read from kernel.
+ *
+ * Process routes discovered during kernel probing and stores
+ * them for later cleanup. It filters routes based on address family
+ * (IPv4/IPv6 only), table ID (1-253 range), and extracts destination,
+ * nexthop, and interface information.
+ *
+ * @param obj Netlink route object to process
+ * @param data Pointer to TunManager instance for storing probed routes
+ */
+void TunManager::routeProcessor(struct nl_object* obj, void* data) {
+  struct rtnl_route* route = reinterpret_cast<struct rtnl_route*>(obj);
+
+  // Get route family
+  auto family = rtnl_route_get_family(route);
+  if (family != AF_INET && family != AF_INET6) {
+    XLOG(DBG2) << "Skip route because of unsupported address family " << family;
+    return;
+  }
+
+  // Only process routes from table-id 1 through 253
+  auto tableId = rtnl_route_get_table(route);
+  if (tableId < 1 || tableId > 253) {
+    XLOG(DBG2) << "Skip route because table ID " << tableId
+               << " is outside range [1-253]";
+    return;
+  }
+
+  // Get destination address
+  auto dst = rtnl_route_get_dst(route);
+  std::string dstStr;
+
+  if (dst) {
+    char dstBuf[INET6_ADDRSTRLEN];
+    nl_addr2str(dst, dstBuf, sizeof(dstBuf));
+    dstStr = std::string(dstBuf);
+  }
+
+  // Check if this is a default route (no destination, "none", or empty)
+  if (dstStr == "none") {
+    dstStr = (family == AF_INET) ? "0.0.0.0/0" : "::/0";
+  }
+
+  XLOG(DBG2) << "Found route to " << dstStr << " in table " << tableId
+             << " with protocol " << rtnl_route_get_protocol(route);
+
+  // Store route information
+  auto* tunManager = static_cast<TunManager*>(data);
+  ProbedRoute probedRoute(family, tableId, dstStr);
+
+  // Get nexthop information - only store the first nexthop since we only care
+  // about default routes like those created by addRemoveRouteTable(), which are
+  // single-nexthop routes.
+  auto nexthops = rtnl_route_get_nexthops(route);
+  if (nexthops && rtnl_route_get_nnexthops(route) > 0) {
+    auto nh = rtnl_route_nexthop_n(route, 0);
+    if (nh) {
+      auto ifIndex = rtnl_route_nh_get_ifindex(nh);
+      probedRoute.ifIndex = ifIndex;
+      XLOG(DBG2) << "   dev ifindex " << ifIndex;
+    } else {
+      // Interface index 0 is never used for a real interface.
+      probedRoute.ifIndex = 0;
+    }
+  } else {
+    // No nexthops, store route anyway.
+    // Interface index 0 is never used for a real interface.
+    probedRoute.ifIndex = 0;
+  }
+
+  // Store the route
+  tunManager->probedRoutes_.push_back(probedRoute);
 }
 
 } // namespace facebook::fboss
