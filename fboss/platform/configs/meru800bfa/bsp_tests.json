@@ -13,11 +13,11 @@
       },
       "hwmonTestData": {
         "expectedFeatures": [
-          "in1",
-          "in2",
+          "vin",
+          "vout1",
           "temp1",
-          "power1",
-          "curr1"
+          "pin",
+          "iout1"
         ]
       }
     },
