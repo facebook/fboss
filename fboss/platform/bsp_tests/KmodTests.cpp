@@ -3,6 +3,7 @@
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <re2/re2.h>
 #include <vector>
 
 #include "fboss/platform/bsp_tests/BspTest.h"
@@ -36,10 +37,26 @@ TEST_F(KmodTest, LoadKmods) {
   auto loadedKmods = KmodUtils::getLoadedKmods(kmods);
   EXPECT_FALSE(loadedKmods.empty()) << "No kernel modules were loaded";
 
-  // Check that all expected modules are loaded
-  size_t expectedCount = kmods.bspKmods()->size() + kmods.sharedKmods()->size();
-  EXPECT_EQ(loadedKmods.size(), expectedCount)
-      << "Not all expected kernel modules were loaded";
+  std::set<std::string> expectedKmods;
+  for (const auto& kmod : *kmods.bspKmods()) {
+    expectedKmods.insert(kmod);
+  }
+  for (const auto& kmod : *kmods.sharedKmods()) {
+    expectedKmods.insert(kmod);
+  }
+
+  std::set<std::string> loadedKmodsSet(loadedKmods.begin(), loadedKmods.end());
+
+  std::vector<std::string> missingKmods;
+  std::set_difference(
+      expectedKmods.begin(),
+      expectedKmods.end(),
+      loadedKmodsSet.begin(),
+      loadedKmodsSet.end(),
+      std::back_inserter(missingKmods));
+  EXPECT_TRUE(missingKmods.empty())
+      << "Not all expected kernel modules were loaded: "
+      << folly::join(", ", missingKmods);
 }
 
 // Test unloading kernel modules

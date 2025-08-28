@@ -168,9 +168,12 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
 
   auto kmodsToUse = kmods;
   config.platform() = platformName;
+  auto& kmodsList = kmodsToUse.bspKmods().value();
+  for (auto& kmod : kmodsList) {
+    std::replace(kmod.begin(), kmod.end(), '-', '_');
+  }
   if (*config.platform() == "MERU800BFA" ||
       *config.platform() == "MERU800BIA") {
-    auto& kmodsList = kmodsToUse.bspKmods().value();
     auto it = std::find(kmodsList.begin(), kmodsList.end(), "bp4a_lm90");
     if (it != kmodsList.end()) {
       kmodsList.erase(it);
