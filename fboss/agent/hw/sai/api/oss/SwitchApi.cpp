@@ -380,4 +380,8 @@ SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

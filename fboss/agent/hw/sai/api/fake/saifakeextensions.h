@@ -109,6 +109,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_TRIGGER_SIMULATED_ECC_UNCORRECTABLE_ERROR,
   SAI_SWITCH_ATTR_DEFAULT_CPU_EGRESS_BUFFER_POOL,
   SAI_SWITCH_ATTR_TECH_SUPPORT_TYPE,
+  SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

@@ -695,4 +695,13 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
