@@ -44,6 +44,7 @@ enum MultistageRole {
   FAP = 1, // for Jericho3
   FE13 = 2, // for 1st stage Ramon3
   FE2 = 3, // for 2nd stage Ramon3
+  FE13_BEEP = 4, // for beep layer 1st stage Ramon3
 }
 
 struct AsicConfigParameters {
