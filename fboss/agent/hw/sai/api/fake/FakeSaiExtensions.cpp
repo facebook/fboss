@@ -811,6 +811,11 @@ SaiSwitchTraits::Attributes::AttributeArsAvailableFlows::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributePushQueueEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
   return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
 }
