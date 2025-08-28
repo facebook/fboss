@@ -74,3 +74,36 @@ TEST(ConfigValidatorTest, InvalidConfigNegativePriority) {
 
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, InvalidConfigInvalidVersionType) {
+  auto config = FwUtilConfig();
+
+  // Create config with invalid version type - this should be invalid
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+  auto versionConfig = *fwConfig.version();
+  versionConfig.versionType() = "invalid_type"; // Invalid version type
+  fwConfig.version() = versionConfig;
+  fwConfigs["bios"] = fwConfig;
+
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidConfigSysfsWithoutPath) {
+  auto config = FwUtilConfig();
+
+  // Create config with sysfs version type but no path - this should be invalid
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+  auto versionConfig = *fwConfig.version();
+  versionConfig.versionType() = "sysfs";
+  versionConfig.path().reset(); // Remove path (required for sysfs)
+  fwConfig.version() = versionConfig;
+  fwConfigs["bios"] = fwConfig;
+
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}

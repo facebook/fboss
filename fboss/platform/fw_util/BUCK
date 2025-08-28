@@ -48,6 +48,9 @@ cpp_library(
         "//folly/system:shell",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
+    exported_external_deps = [
+        "re2",
+    ],
 )
 
 custom_unittest(

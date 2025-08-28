@@ -14,5 +14,13 @@ class ConfigValidator {
   bool isValidFwConfig(
       const std::string& deviceName,
       const fw_util_config::FwConfig& fwConfig);
+
+  bool isValidVersionConfig(
+      const std::string& deviceName,
+      const fw_util_config::VersionConfig& versionConfig);
+
+  // Utility validation methods
+  bool isValidVersionType(const std::string& versionType);
+  bool isValidPath(const std::string& path);
 };
 } // namespace facebook::fboss::platform::fw_util
