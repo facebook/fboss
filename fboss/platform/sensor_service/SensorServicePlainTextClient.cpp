@@ -1,4 +1,5 @@
 #include <time.h>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -6,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <folly/Conv.h>
+#include <folly/String.h>
 #include <tabulate/table.hpp>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
@@ -70,6 +73,21 @@ std::string formatSensorValue(const T& val) {
   return oss.str();
 }
 
+std::string formatLastUpdatedAt(const auto& timestamp) {
+  if (!timestamp) {
+    return "never";
+  }
+  auto now = std::chrono::system_clock::now();
+  auto sensorTime = std::chrono::system_clock::from_time_t(*timestamp);
+  auto diff = now - sensorTime;
+  if (diff.count() < 0) {
+    return "never";
+  }
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(diff).count();
+  auto timeStr = folly::prettyPrint(seconds, folly::PRETTY_TIME_HMS, false);
+  return folly::rtrimWhitespace(timeStr).str() + " ago";
+}
+
 void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
   tabulate::Table table;
 
@@ -80,7 +98,8 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
        "upperCriticalVal",
        "maxAlarmVal",
        "minAlarmVal",
-       "lowerCriticalVal"});
+       "lowerCriticalVal",
+       "lastUpdatedAt"});
 
   size_t rowIndex = 1;
   for (const auto& sensor : sensors) {
@@ -92,7 +111,8 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
          formatValue(sensor.thresholds()->upperCriticalVal()),
          formatValue(sensor.thresholds()->maxAlarmVal()),
          formatValue(sensor.thresholds()->minAlarmVal()),
-         formatValue(sensor.thresholds()->lowerCriticalVal())});
+         formatValue(sensor.thresholds()->lowerCriticalVal()),
+         formatLastUpdatedAt(sensor.timeStamp())});
     if (status == kStatusFail) {
       table[rowIndex].format().font_color(tabulate::Color::red);
     } else if (status == kStatusWarn) {
