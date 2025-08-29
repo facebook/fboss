@@ -445,6 +445,7 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;
+  EcmpResourceManager::NextHopGroupIds mergedGroupMembers;
   for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
     auto route = cfib(targetState)->exactMatch(inRoute->prefix());
     ASSERT_TRUE(route->isResolved());
@@ -488,6 +489,35 @@ void BaseEcmpResourceManagerTest::assertTargetState(
                 consolidatorRouteUsageCount,
                 consolidatorIsBackupEcmpType,
                 consolidatorIsMergeGroup));
+        // Compare consolidation infos
+        auto swMergedGroupConsolidationInfo =
+            sw_->getEcmpResourceManager()->getMergeGroupConsolidationInfo(
+                swGroupId);
+        auto consolidatorMergedGroupConsolidationInfo =
+            consolidatorToCheck->getMergeGroupConsolidationInfo(
+                consolidatorGroupId);
+        EXPECT_EQ(
+            swMergedGroupConsolidationInfo,
+            consolidatorMergedGroupConsolidationInfo);
+        auto swCandidateMergeConsolidationInfo =
+            sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+                swGroupId);
+        auto consolidatorCandidateMergeConsolidationInfo =
+            consolidatorToCheck->getCandidateMergeConsolidationInfo(
+                consolidatorGroupId);
+        EXPECT_EQ(
+            swCandidateMergeConsolidationInfo,
+            consolidatorCandidateMergeConsolidationInfo);
+        if (swMergedGroupConsolidationInfo) {
+          ASSERT_TRUE(consolidatorGrpInfo->getMergedGroupInfoItr());
+          ASSERT_TRUE(swSwitchGroupInfo->getMergedGroupInfoItr());
+          auto swMergeSet =
+              (*swSwitchGroupInfo->getMergedGroupInfoItr())->first;
+          auto consolidatorMergeSet =
+              (*consolidatorGrpInfo->getMergedGroupInfoItr())->first;
+          EXPECT_EQ(swMergeSet, consolidatorMergeSet);
+          mergedGroupMembers.insert(swMergeSet.begin(), swMergeSet.end());
+        }
       }
     }
     if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
@@ -531,6 +561,9 @@ void BaseEcmpResourceManagerTest::assertTargetState(
         sw_->stats()->getPrimaryEcmpGroupsCount(), primaryEcmpGroups.size());
     EXPECT_EQ(
         sw_->stats()->getBackupEcmpGroupsCount(), backupEcmpGroups.size());
+    EXPECT_EQ(
+        sw_->stats()->getMergedEcmpMemberGroupsCount(),
+        mergedGroupMembers.size());
   }
 }
 

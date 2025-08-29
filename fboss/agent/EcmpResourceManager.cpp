@@ -169,6 +169,8 @@ EcmpResourceManager::EcmpResourceManager(
     switchStats_->setPrimaryEcmpGroupsExhausted(false);
     switchStats_->setPrimaryEcmpGroupsCount(0);
     switchStats_->setBackupEcmpGroupsCount(0);
+    switchStats_->setMergedEcmpGroupsCount(0);
+    switchStats_->setMergedEcmpMemberGroupsCount(0);
   }
 }
 
