@@ -644,10 +644,14 @@ class SwitchStats : public boost::noncopyable {
   void setPrimaryEcmpGroupsExhausted(bool exhausted) const;
   void setPrimaryEcmpGroupsCount(uint32_t count) const;
   void setBackupEcmpGroupsCount(uint32_t count) const;
+  void setMergedEcmpGroupsCount(uint32_t count) const;
+  void setMergedEcmpMemberGroupsCount(uint32_t count) const;
 
   bool getPrimaryEcmpGroupsExhausted() const;
   int64_t getPrimaryEcmpGroupsCount() const;
   int64_t getBackupEcmpGroupsCount() const;
+  int64_t getMergedEcmpGroupsCount() const;
+  int64_t getMergedEcmpMemberGroupsCount() const;
   void getHwAgentStatus(
       std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const;
 

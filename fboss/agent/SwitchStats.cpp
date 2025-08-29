@@ -27,6 +27,9 @@ std::string fabricOverdrainCounter(int16_t switchIndex) {
 const std::string kPrimaryEcmpGroupsExhausted = "primary_ecmp_groups_exhausted";
 const std::string kPrimaryEcmpGroupsCount = "primary_ecmp_groups_count";
 const std::string kBackupEcmpGroupsCount = "backup_ecmp_groups_count";
+const std::string kMergedEcmpGroupsCount = "merged_ecmp_groups_count";
+const std::string kMergedEcmpMemberGroupsCount =
+    "merged_ecmp_member_groups_count";
 } // namespace
 
 namespace facebook::fboss {
@@ -821,6 +824,14 @@ void SwitchStats::setBackupEcmpGroupsCount(uint32_t count) const {
   fb303::fbData->setCounter(kBackupEcmpGroupsCount, count);
 }
 
+void SwitchStats::setMergedEcmpGroupsCount(uint32_t count) const {
+  fb303::fbData->setCounter(kMergedEcmpGroupsCount, count);
+}
+
+void SwitchStats::setMergedEcmpMemberGroupsCount(uint32_t count) const {
+  fb303::fbData->setCounter(kMergedEcmpMemberGroupsCount, count);
+}
+
 bool SwitchStats::getPrimaryEcmpGroupsExhausted() const {
   return fb303::fbData->getCounter(kPrimaryEcmpGroupsExhausted);
 }
@@ -831,5 +842,13 @@ int64_t SwitchStats::getPrimaryEcmpGroupsCount() const {
 
 int64_t SwitchStats::getBackupEcmpGroupsCount() const {
   return fb303::fbData->getCounter(kBackupEcmpGroupsCount);
+}
+
+int64_t SwitchStats::getMergedEcmpGroupsCount() const {
+  return fb303::fbData->getCounter(kMergedEcmpGroupsCount);
+}
+
+int64_t SwitchStats::getMergedEcmpMemberGroupsCount() const {
+  return fb303::fbData->getCounter(kMergedEcmpMemberGroupsCount);
 }
 } // namespace facebook::fboss
