@@ -126,6 +126,19 @@ bool pruneFromMergeGroupsImpl(
   }
   return pruned;
 }
+
+EcmpResourceManager::NextHopGroupIds nhopGroupIdsDifference(
+    const EcmpResourceManager::NextHopGroupIds& subtractFrom,
+    const EcmpResourceManager::NextHopGroupIds& toSubtract) {
+  EcmpResourceManager::NextHopGroupIds diff;
+  std::set_difference(
+      subtractFrom.begin(),
+      subtractFrom.end(),
+      toSubtract.begin(),
+      toSubtract.end(),
+      std::inserter(diff, diff.begin()));
+  return diff;
+}
 } // namespace
 
 const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
@@ -408,6 +421,21 @@ void EcmpResourceManager::updateMergedGroups(
              << mergeSetsToUpdate;
   NextHopGroupIds groupIdsToReclaimOrPrune = groupIdsToReclaimOrPruneIn;
   auto gid2Prefix = getGidToPrefixes();
+  auto updateMergeInfo =
+      [&gid2Prefix, this](
+          const NextHopGroupIds& groups2Update,
+          std::optional<GroupIds2ConsolidationInfoItr> newMergeInfoItr,
+          std::shared_ptr<SwitchState>& newState) {
+        for (auto gid : groups2Update) {
+          for (const auto& pfx : gid2Prefix[gid]) {
+            updateRouteOverrides(pfx, newState, std::nullopt, newMergeInfoItr);
+          }
+          if (auto grpInfo = nextHopGroupIdToInfo_.ref(gid)) {
+            CHECK(grpInfo->getMergedGroupInfoItr().has_value());
+            grpInfo->setMergedGroupInfoItr(newMergeInfoItr);
+          }
+        }
+      };
   for (const auto& curMergeSet : mergeSetsToUpdate) {
     CHECK_GT(curMergeSet.size(), 1);
     /*
@@ -415,31 +443,19 @@ void EcmpResourceManager::updateMergedGroups(
      * newMergeSet is the set of groups in curMergeSet which
      * are not to be reclaimed or pruned
      */
-    NextHopGroupIds newMergeSet;
-    std::set_difference(
-        curMergeSet.begin(),
-        curMergeSet.end(),
-        groupIdsToReclaimOrPrune.begin(),
-        groupIdsToReclaimOrPrune.end(),
-        std::inserter(newMergeSet, newMergeSet.begin()));
+    auto newMergeSet =
+        nhopGroupIdsDifference(curMergeSet, groupIdsToReclaimOrPrune);
     auto oldState = inOutState->out.back().newState();
     auto newState = oldState->clone();
     /*
-     * For groups to be reclaimed
+     * Every thing in curMergeSet but not in newMergeSet is to be reclaimed
+     * For such groups
      * - Clear mergeInfoItr
      * - Clear override nhops for prefixes pointing to such groups
      */
-    for (auto mGid : curMergeSet) {
-      if (!newMergeSet.contains(mGid)) {
-        for (const auto& pfx : gid2Prefix[mGid]) {
-          updateRouteOverrides(pfx, newState);
-        }
-        if (auto grpInfo = nextHopGroupIdToInfo_.ref(mGid)) {
-          CHECK(grpInfo->getMergedGroupInfoItr().has_value());
-          grpInfo->setMergedGroupInfoItr(std::nullopt);
-        }
-      }
-    }
+
+    auto reclaimedGroups = nhopGroupIdsDifference(curMergeSet, newMergeSet);
+    updateMergeInfo(reclaimedGroups, std::nullopt, newState);
     /*
      * If newMergeSet.size() > 1
      * Create a new merge group and cache its iterator.
@@ -461,15 +477,9 @@ void EcmpResourceManager::updateMergedGroups(
     } else {
       XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet;
     }
-    for (auto mGid : newMergeSet) {
-      for (const auto& pfx : gid2Prefix[mGid]) {
-        updateRouteOverrides(pfx, newState, std::nullopt, newMergeItr);
-      }
-      if (auto grpInfo = nextHopGroupIdToInfo_.ref(mGid)) {
-        CHECK(grpInfo->getMergedGroupInfoItr().has_value());
-        grpInfo->setMergedGroupInfoItr(newMergeItr);
-      }
-    }
+    // Now update the groups and prefixes corresponding to the
+    // newMergeSet
+    updateMergeInfo(newMergeSet, newMergeItr, newState);
 
     newState->publish();
     // We put each unmerge on a new delta, to ensure that all
