@@ -73,6 +73,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/lib/bsp:bsp_core",
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
+        "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
         "//fboss/lib/bsp/meru400bia:meru400bia_bsp",

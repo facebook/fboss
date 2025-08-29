@@ -41,6 +41,7 @@ cpp_library(
         "//fboss/agent/platforms/common/fuji:fuji_platform_mapping",
         "//fboss/agent/platforms/common/galaxy:galaxy_platform_mapping",
         "//fboss/agent/platforms/common/icecube800bc:icecube800bc_platform_mapping",
+        "//fboss/agent/platforms/common/icetea800bc:icetea800bc_platform_mapping",
         "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
         "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",
         "//fboss/agent/platforms/common/meru400bia:meru400bia_platform_mapping",

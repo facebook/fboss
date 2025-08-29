@@ -190,6 +190,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (modelName.find("WEDGE800BA") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE800BA;
+    } else if (modelName.find("ICETEA") == 0) {
+      type_ = PlatformType::PLATFORM_ICETEA800BC;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -244,6 +246,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_mode == "icecube800bc") {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
+    } else if (FLAGS_mode == "icetea800bc") {
+      type_ = PlatformType::PLATFORM_ICETEA800BC;
     } else if (FLAGS_mode == "fake_sai") {
       type_ = PlatformType::PLATFORM_FAKE_SAI;
     } else if (FLAGS_mode == "janga800bic") {

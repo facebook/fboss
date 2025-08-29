@@ -66,6 +66,7 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
+        "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
         "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
