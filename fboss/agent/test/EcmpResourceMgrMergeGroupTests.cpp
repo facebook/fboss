@@ -77,6 +77,18 @@ class EcmpResourceMgrMergeGroupTest
                            .has_value());
         });
   }
+  void assertGroupsAreRemoved(
+      const EcmpResourceManager::NextHopGroupIds& removedGroups) const {
+    XLOG(DBG2) << " Asserting for removed groups: " << "["
+               << folly::join(", ", removedGroups) << "]";
+    const auto& nhops2Id = sw_->getEcmpResourceManager()->getNhopsToId();
+    std::for_each(
+        nhops2Id.begin(),
+        nhops2Id.end(),
+        [&removedGroups](const auto& nhopsAndGid) {
+          EXPECT_FALSE(removedGroups.contains(nhopsAndGid.second));
+        });
+  }
   void TearDown() override {
     auto allUnmergedGroups = sw_->getEcmpResourceManager()->getUnMergedGids();
     // All unmerged groups should have candidate merge sets with other unmerged
@@ -226,4 +238,22 @@ TEST_F(EcmpResourceMgrMergeGroupTest, reclaimMultipleMergeGroups) {
   assertGroupsAreUnMerged(optimalMergeSet);
   assertGroupsAreUnMerged(nextOptimalMergeSet);
 }
+
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    addRouteAboveEcmpLimitAndRemoveAllMergeGrpRefrences) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  addNextRoute();
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertGroupsAreMerged(optimalMergeSet);
+  for (auto pfx : overflowPrefixes) {
+    rmRoute(pfx);
+  }
+  assertEndState(sw_->getState(), {});
+  assertGroupsAreRemoved(optimalMergeSet);
+}
+
 } // namespace facebook::fboss
