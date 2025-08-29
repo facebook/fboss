@@ -252,9 +252,12 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   ConsolidationInfo computeConsolidationInfo(
       const NextHopGroupIds& grpIds) const;
   template <std::forward_iterator ForwardIt>
-  void computeCandidateMerges(ForwardIt begin, ForwardIt end);
-  void computeCandidateMerges(const std::vector<NextHopGroupId>& gids) {
-    computeCandidateMerges(gids.begin(), gids.end());
+  void computeCandidateMergesForNewUnmergedGroups(
+      ForwardIt begin,
+      ForwardIt end);
+  void computeCandidateMergesForNewUnmergedGroups(
+      const std::vector<NextHopGroupId>& gids) {
+    computeCandidateMergesForNewUnmergedGroups(gids.begin(), gids.end());
   }
 
   NextHops2GroupId nextHopGroup2Id_;

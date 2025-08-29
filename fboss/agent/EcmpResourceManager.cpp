@@ -550,7 +550,8 @@ void EcmpResourceManager::updateMergedGroups(
    * Filter out pruned gids before computing candidate merges
    * for reclaimed (but not pruned gids)
    */
-  computeCandidateMerges(unmergedGroups.begin(), unmergedGroups.end());
+  computeCandidateMergesForNewUnmergedGroups(
+      unmergedGroups.begin(), unmergedGroups.end());
 }
 
 void EcmpResourceManager::reclaimMergeGroups(
@@ -1108,7 +1109,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
        * New umerged group added, compute candidate merges
        * for it
        */
-      computeCandidateMerges({idItr->second});
+      computeCandidateMergesForNewUnmergedGroups({idItr->second});
     } else if (pfxInserted) {
       /*
        * New prefix points to existing group
@@ -1647,7 +1648,7 @@ void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
         [&grpIds](const auto& grpIdAndInfo) {
           grpIds.emplace_back(grpIdAndInfo.first);
         });
-    computeCandidateMerges(grpIds);
+    computeCandidateMergesForNewUnmergedGroups(grpIds);
   }
 }
 
@@ -1720,7 +1721,7 @@ EcmpResourceManager::getCandidateMergeConsolidationInfo(
 }
 
 template <std::forward_iterator ForwardIt>
-void EcmpResourceManager::computeCandidateMerges(
+void EcmpResourceManager::computeCandidateMergesForNewUnmergedGroups(
     ForwardIt begin,
     ForwardIt end) {
   NextHopGroupIds alreadyMergedGroups;
