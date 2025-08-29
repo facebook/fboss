@@ -131,7 +131,7 @@ TEST_F(I2CTest, I2CAdapterNames) {
 
   // Pattern to match: "i2c_master" optionally followed by underscore and
   // additional characters
-  const re2::RE2 pattern = "i2c_master(_.+)?";
+  const re2::RE2 pattern = "(.+_)?i2c_master(_.+)?";
 
   std::set<std::string> invalidNames;
 
