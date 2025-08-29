@@ -109,16 +109,48 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
   auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 2);
-  // Add a route pointing to new nhops. ECMP limit is breached during
-  // update due to make before break. Then the reclaim step notices
-  // a freed up primary ECMP group and reclaims it back. So in the
-  // end no prefixes have back up ecmp group override set.
   auto deltas = addNextRoute();
-  // Route delta + reclaim delta
+  // Route delta + merge delta
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(sw_->getState(), overflowPrefixes);
   assertGroupsAreMerged(optimalMergeSet);
   assertCost(optimalMergeSet);
+}
+
+// Post spillover convert a route to single nhop. Now no spillover.
+TEST_F(EcmpResourceMgrMergeGroupTest, overflowThenConvertPrefixToSingleNhop) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto deltas = addNextRoute();
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  auto pfxToMakeSingleHop = *getPrefixesWithoutOverrides().begin();
+  deltas =
+      updateRoute(pfxToMakeSingleHop, RouteNextHopSet{*defaultNhops().begin()});
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), {});
+}
+
+// Post spillover convert spilled over route to single nhop. Now no spillover.
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    overflowThenConvertOverflowRouteToSingleNhop) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto deltas = addNextRoute();
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  auto pfxToMakeSingleHop = *overflowPrefixes.begin();
+  deltas =
+      updateRoute(pfxToMakeSingleHop, RouteNextHopSet{*defaultNhops().begin()});
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), {});
 }
 
 TEST_F(EcmpResourceMgrMergeGroupTest, incReferenceToMergedGroup) {
