@@ -210,6 +210,7 @@ void handleExtensionAttributes() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(Port, ArsLinkState)
 #endif
+  SAI_EXT_ATTR_MAP(Port, IsHyperPortMember)
 }
 
 } // namespace
