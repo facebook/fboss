@@ -81,6 +81,7 @@ cpp_unittest(
         "TransceiverStateMachineTest.cpp",
     ],
     deps = [
+        ":mock_transceivers",
         ":transceiver_manager_test_helper",
         "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/module:qsfp-module",
@@ -138,6 +139,19 @@ cpp_library(
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/qsfp_service:slot-thread-helper",
+    ],
+)
+
+cpp_library(
+    name = "mock_transceivers",
+    headers = ["MockTransceivers.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+        "//folly/testing:test_util",
     ],
 )
 
