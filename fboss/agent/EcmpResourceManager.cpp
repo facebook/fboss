@@ -474,10 +474,21 @@ void EcmpResourceManager::updateMergedGroups(
     inOutState->updated = true;
   }
   pruneFromMergeGroupsImpl(groupIdsToReclaimOrPrune, mergedGroups_);
-  // TODO remove pruned groups from groupIdsToReclaimOrPrune before
-  // computingCandidateMerges
+  /*
+   * Filter out pruned gids before computing candidate merges
+   * for reclaimed (but not pruned gids)
+   */
+  NextHopGroupIds reclaimedUnprunedGids;
+  for_each(
+      groupIdsToReclaimOrPrune.begin(),
+      groupIdsToReclaimOrPrune.end(),
+      [&reclaimedUnprunedGids, this](auto gid) {
+        if (nextHopGroupIdToInfo_.ref(gid)) {
+          reclaimedUnprunedGids.insert(gid);
+        }
+      });
   computeCandidateMerges(
-      groupIdsToReclaimOrPrune.begin(), groupIdsToReclaimOrPrune.end());
+      reclaimedUnprunedGids.begin(), reclaimedUnprunedGids.end());
 }
 
 void EcmpResourceManager::reclaimMergeGroups(
