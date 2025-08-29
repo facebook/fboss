@@ -47,9 +47,10 @@ target_link_libraries(weutil_lib
   eeprom_content_validator
   weutil_config_cpp2
   weutil_fboss_eeprom_interface
-  platform_config_lib
+  platform_manager_config_utils
   platform_name_lib
   ioctl_smbus_eeprom_reader
+  ${RE2}
 )
 
 add_library(eeprom_content_validator
