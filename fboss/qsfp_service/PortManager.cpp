@@ -25,17 +25,36 @@ PortToTcvrMap getPortToTcvrMap(
 
 PortManager::PortManager(
     TransceiverManager* transceiverManager,
-    PhyManager* phyManager,
+    std::unique_ptr<PhyManager> phyManager,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
         threads)
     : platformMapping_(platformMapping),
       transceiverManager_(transceiverManager),
-      phyManager_(phyManager),
+      phyManager_(std::move(phyManager)),
+      cachedXphyPorts_(getXphyPortsCache()),
       threads_(threads),
       tcvrToPortMap_(getTcvrToPortMap(platformMapping_)),
       portToTcvrMap_(getPortToTcvrMap(platformMapping_)),
-      stateMachineControllers_(setupPortToStateMachineControllerMap()) {}
+      stateMachineControllers_(setupPortToStateMachineControllerMap()) {
+  // Initialize PhyManager publish callback
+  if (phyManager_) {
+    phyManager_->setPublishPhyCb(
+        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
+          if (newInfo.has_value()) {
+            publishPhyStateToFsdb(
+                std::string(portName), std::move(*newInfo->state()));
+            publishPhyStatToFsdb(
+                std::string(portName), std::move(*newInfo->stats()));
+          } else {
+            publishPhyStateToFsdb(std::string(portName), std::nullopt);
+          }
+          if (portStats.has_value()) {
+            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
+          }
+        });
+  }
+}
 
 PortManager::~PortManager() {}
 
@@ -278,8 +297,6 @@ void PortManager::bulkClearInterfacePrbsStats(
 void PortManager::syncNpuPortStatusUpdate(
     std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {}
 
-void PortManager::setPhyManager(std::unique_ptr<PhyManager> phyManager) {}
-
 void PortManager::publishLinkSnapshots(PortID portId) {}
 
 void PortManager::restoreWarmBootPhyState() {}
@@ -437,5 +454,14 @@ void PortManager::waitForAllBlockingStateUpdateDone(
     result->wait();
   }
 };
+
+const std::unordered_set<PortID> PortManager::getXphyPortsCache() {
+  if (!phyManager_) {
+    return {};
+  }
+
+  std::vector<PortID> portIds = phyManager_->getXphyPorts();
+  return std::unordered_set<PortID>(portIds.begin(), portIds.end());
+}
 
 } // namespace facebook::fboss

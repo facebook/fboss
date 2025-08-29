@@ -161,6 +161,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":mock_manager_constructor_args",
+        "//fboss/lib/phy:phy-management",
         "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
         "//folly/testing:test_util",

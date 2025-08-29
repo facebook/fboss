@@ -53,7 +53,7 @@ class PortManager {
  public:
   explicit PortManager(
       TransceiverManager* transceiverManager,
-      PhyManager* phyManager,
+      std::unique_ptr<PhyManager> phyManager,
       const std::shared_ptr<const PlatformMapping> platformMapping,
       const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
           threads);
@@ -73,7 +73,7 @@ class PortManager {
   }
 
   PhyManager* getPhyManager() {
-    return phyManager_;
+    return phyManager_.get();
   }
 
   void programXphyPort(PortID portId, cfg::PortProfileID portProfileId);
@@ -258,13 +258,17 @@ class PortManager {
 
   void triggerAgentConfigChangeEvent();
 
+  // For testing purposes only.
+  const std::unordered_set<PortID>& getCachedXphyPortsForTest() const {
+    return cachedXphyPorts_;
+  }
+
  protected:
   /*
    * function to initialize all the Phy in the system
    */
   bool initExternalPhyMap(bool forceWarmboot = false);
 
-  void setPhyManager(std::unique_ptr<PhyManager> phyManager);
   void publishLinkSnapshots(PortID portId);
 
   // Restore phy state from the last cached warm boot qsfp_service state
@@ -277,7 +281,7 @@ class PortManager {
   TransceiverManager* transceiverManager_;
 
   // For platforms that needs to program xphy (passed in through constructor).
-  PhyManager* phyManager_;
+  std::unique_ptr<PhyManager> phyManager_;
 
   // Use the following bidirectional map to cache the static mapping so that we
   // don't have to search from PlatformMapping again and again
@@ -288,6 +292,8 @@ class PortManager {
   PortManager& operator=(PortManager const&) = delete;
   PortManager(PortManager&&) = delete;
   PortManager& operator=(PortManager&&) = delete;
+
+  const std::unordered_set<PortID> getXphyPortsCache();
 
   void updateTransceiverPortStatus() noexcept;
 
@@ -343,6 +349,10 @@ class PortManager {
   folly::Synchronized<
       std::map<int /* agent logical port id */, facebook::fboss::NpuPortStatus>>
       npuPortStatusCache_;
+
+  // Cache of XPHY Ports retrieved by phyManager_. This is never updated, since
+  // ports assigned to XPHY are based on static PlatformMapping.
+  const std::unordered_set<PortID> cachedXphyPorts_;
 
   // A global flag to indicate whether the service is exiting.
   // If it is, we should not accept any state update

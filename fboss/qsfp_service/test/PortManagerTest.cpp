@@ -4,6 +4,7 @@
 #include <folly/testing/TestUtil.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include "fboss/lib/phy/facebook/bcm/minipack/MinipackPhyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 #include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
 
@@ -16,15 +17,18 @@ class PortManagerTest : public ::testing::Test {
   }
 
  protected:
-  void initManagers(int numPortsPerModule = 4) {
+  void initManagers(int numPortsPerModule = 4, bool setPhyManager = false) {
     const auto platformMapping =
         makeFakePlatformMapping(numModules, numPortsPerModule);
 
+    // Using MinipackPhyManager as an example
+    std::unique_ptr<MinipackPhyManager> phyManager =
+        std::make_unique<MinipackPhyManager>(platformMapping.get());
     transceiverManager_ = std::make_shared<MockWedgeManager>(
         numModules, 4, platformMapping, nullptr /* threads */);
     portManager_ = std::make_unique<PortManager>(
         transceiverManager_.get(),
-        nullptr /* phyManager */,
+        setPhyManager ? std::move(phyManager) : nullptr,
         platformMapping,
         nullptr /* threads */);
 
@@ -187,6 +191,13 @@ TEST_F(PortManagerTest, clearOverrideAgentPortStatusForTesting) {
 
   validatePortStatusNotInTestingOverride(PortID(1));
   validatePortStatusNotInTestingOverride(PortID(3));
+}
+
+TEST_F(PortManagerTest, getCachedXphyPorts) {
+  initManagers(1, true);
+  ASSERT_THAT(
+      portManager_->getCachedXphyPortsForTest(),
+      ::testing::UnorderedElementsAre(PortID(1)));
 }
 
 } // namespace facebook::fboss
