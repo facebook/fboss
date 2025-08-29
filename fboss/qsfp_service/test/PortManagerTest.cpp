@@ -4,6 +4,7 @@
 #include <folly/testing/TestUtil.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <optional>
 #include "fboss/lib/phy/facebook/bcm/minipack/MinipackPhyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 #include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
@@ -198,6 +199,48 @@ TEST_F(PortManagerTest, getCachedXphyPorts) {
   ASSERT_THAT(
       portManager_->getCachedXphyPortsForTest(),
       ::testing::UnorderedElementsAre(PortID(1)));
+}
+
+TEST_F(PortManagerTest, getPortIDByPortName) {
+  // Test valid port name returns correct PortID
+  auto portId = portManager_->getPortIDByPortName("eth1/1/1");
+  ASSERT_TRUE(portId.has_value());
+  ASSERT_EQ(*portId, PortID(1));
+
+  // Test invalid port name returns nullopt
+  ASSERT_FALSE(portManager_->getPortIDByPortName("invalid_port").has_value());
+}
+
+TEST_F(PortManagerTest, getPortIDByPortNameOrThrow) {
+  // Test valid port name returns correct PortID
+  ASSERT_EQ(portManager_->getPortIDByPortNameOrThrow("eth1/1/1"), PortID(1));
+
+  // Test invalid port name throws FbossError
+  ASSERT_THROW(
+      portManager_->getPortIDByPortNameOrThrow("invalid_port"), FbossError);
+}
+
+TEST_F(PortManagerTest, getPortNameByPortId) {
+  // Test valid port ID returns correct port name
+  ASSERT_EQ(portManager_->getPortNameByPortId(PortID(1)), "eth1/1/1");
+  ASSERT_EQ(portManager_->getPortNameByPortId(PortID(3)), "eth1/1/3");
+
+  // Test invalid port ID returns nullopt
+  ASSERT_EQ(portManager_->getPortNameByPortId(PortID(999)), std::nullopt);
+  ASSERT_THROW(
+      portManager_->getPortNameByPortIdOrThrow(PortID(999)), FbossError);
+}
+
+TEST_F(PortManagerTest, portNameIdMappingConsistency) {
+  // Test round-trip consistency for multiple ports
+  for (const auto& portId : {PortID(1), PortID(3)}) {
+    auto portNameStr = portManager_->getPortNameByPortIdOrThrow(portId);
+    ASSERT_EQ(portManager_->getPortIDByPortNameOrThrow(portNameStr), portId);
+
+    auto optionalPortId = portManager_->getPortIDByPortName(portNameStr);
+    ASSERT_TRUE(optionalPortId.has_value());
+    ASSERT_EQ(*optionalPortId, portId);
+  }
 }
 
 } // namespace facebook::fboss

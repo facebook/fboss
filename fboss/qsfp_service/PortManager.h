@@ -197,9 +197,11 @@ class PortManager {
 
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
+  PortID getPortIDByPortNameOrThrow(const std::string& portName) const;
 
   // Function to convert port id to port name
-  std::string getPortNameByPortId(PortID portId) const;
+  std::optional<std::string> getPortNameByPortId(PortID portId) const;
+  std::string getPortNameByPortIdOrThrow(PortID portId) const;
 
   std::vector<PortID> getAllPlatformPorts(TransceiverID tcvrID) const;
 
@@ -283,10 +285,6 @@ class PortManager {
   // For platforms that needs to program xphy (passed in through constructor).
   std::unique_ptr<PhyManager> phyManager_;
 
-  // Use the following bidirectional map to cache the static mapping so that we
-  // don't have to search from PlatformMapping again and again
-  PortNameIdMap portNameToPortID_;
-
  private:
   PortManager(PortManager const&) = delete;
   PortManager& operator=(PortManager const&) = delete;
@@ -319,6 +317,8 @@ class PortManager {
 
   static void handlePendingUpdatesHelper(PortManager* mgr);
   void handlePendingUpdates();
+
+  PortNameIdMap setupPortNameToPortIDMap();
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
@@ -370,6 +370,10 @@ class PortManager {
 
   const TcvrToPortMap tcvrToPortMap_;
   const PortToTcvrMap portToTcvrMap_;
+
+  // Use the following bidirectional map to cache the static mapping so that we
+  // don't have to search from PlatformMapping again and again
+  const PortNameIdMap portNameToPortID_;
 
   using PortToStateMachineControllerMap =
       std::unordered_map<PortID, std::unique_ptr<PortStateMachineController>>;

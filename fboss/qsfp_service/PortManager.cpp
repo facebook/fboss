@@ -36,6 +36,7 @@ PortManager::PortManager(
       threads_(threads),
       tcvrToPortMap_(getTcvrToPortMap(platformMapping_)),
       portToTcvrMap_(getPortToTcvrMap(platformMapping_)),
+      portNameToPortID_(setupPortNameToPortIDMap()),
       stateMachineControllers_(setupPortToStateMachineControllerMap()) {
   // Initialize PhyManager publish callback
   if (phyManager_) {
@@ -234,12 +235,38 @@ void PortManager::getAllPortSupportedProfiles(
     bool checkOptics) {}
 
 std::optional<PortID> PortManager::getPortIDByPortName(
-    const std::string& portName) const {
+    const std::string& portNameStr) const {
+  auto portMapIt = portNameToPortID_.left.find(portNameStr);
+  if (portMapIt != portNameToPortID_.left.end()) {
+    return portMapIt->second;
+  }
   return std::nullopt;
 }
 
-std::string PortManager::getPortNameByPortId(PortID portId) const {
-  return "";
+PortID PortManager::getPortIDByPortNameOrThrow(
+    const std::string& portNameStr) const {
+  auto portId = getPortIDByPortName(portNameStr);
+  if (!portId) {
+    throw FbossError("No PortID found for port name: ", portNameStr);
+  }
+  return *portId;
+}
+
+std::optional<std::string> PortManager::getPortNameByPortId(
+    PortID portId) const {
+  auto portMapIt = portNameToPortID_.right.find(portId);
+  if (portMapIt != portNameToPortID_.right.end()) {
+    return portMapIt->second;
+  }
+  return std::nullopt;
+}
+
+std::string PortManager::getPortNameByPortIdOrThrow(PortID portId) const {
+  auto portNameStr = getPortNameByPortId(portId);
+  if (!portNameStr) {
+    throw FbossError("No port name found for PortID: ", portId);
+  }
+  return *portNameStr;
 }
 
 std::vector<PortID> PortManager::getAllPlatformPorts(
@@ -380,7 +407,7 @@ bool PortManager::updateState(
 bool PortManager::enqueueStateUpdate(
     const PortID& portId,
     std::unique_ptr<PortStateMachineUpdate> update) {
-  const auto portNameStr = getPortNameByPortId(portId);
+  const auto portNameStr = getPortNameByPortIdOrThrow(portId);
   const std::string eventName =
       apache::thrift::util::enumNameSafe(update->getEvent());
   if (isExiting_) {
@@ -462,6 +489,29 @@ const std::unordered_set<PortID> PortManager::getXphyPortsCache() {
 
   std::vector<PortID> portIds = phyManager_->getXphyPorts();
   return std::unordered_set<PortID>(portIds.begin(), portIds.end());
+}
+
+PortManager::PortNameIdMap PortManager::setupPortNameToPortIDMap() {
+  if (!platformMapping_) {
+    throw FbossError("Platform Mapping must be non-null.");
+  }
+
+  PortNameIdMap portNameToPortID;
+  for (const auto& [portIDInt, platformPort] :
+       platformMapping_->getPlatformPorts()) {
+    PortID portId = PortID(portIDInt);
+    if (auto portToTcvrMapItr = portToTcvrMap_.find(portId);
+        portToTcvrMapItr == portToTcvrMap_.end() ||
+        portToTcvrMapItr->second.empty()) {
+      // Skip ports that are not associated with any transceivers
+      continue;
+    }
+
+    const auto& portNameStr = *platformPort.mapping()->name();
+    portNameToPortID.insert(PortNameIdMap::value_type(portNameStr, portId));
+  }
+
+  return portNameToPortID;
 }
 
 } // namespace facebook::fboss
