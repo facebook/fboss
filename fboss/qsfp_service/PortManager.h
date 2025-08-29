@@ -154,6 +154,8 @@ class PortManager {
   // in the multi-tcvr - single-port use case, otherwise will contain 1.
   std::vector<TransceiverID> getTransceiverIdsForPort(PortID portId) const;
 
+  bool hasPortFinishedIphyProgramming(PortID portId) const;
+
   void programInternalPhyPorts(TransceiverID id);
 
   void programExternalPhyPort(PortID portId, bool xphyNeedResetDataPath);

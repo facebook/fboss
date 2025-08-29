@@ -144,6 +144,21 @@ std::vector<TransceiverID> PortManager::getTransceiverIdsForPort(
   return portToTcvrMapItr->second;
 }
 
+bool PortManager::hasPortFinishedIphyProgramming(PortID portId) const {
+  static const std::array<PortStateMachineState, 5> kPastIphyProgrammedStates{
+      PortStateMachineState::IPHY_PORTS_PROGRAMMED,
+      PortStateMachineState::XPHY_PORTS_PROGRAMMED,
+      PortStateMachineState::TRANSCEIVERS_PROGRAMMED,
+      PortStateMachineState::PORT_DOWN,
+      PortStateMachineState::PORT_UP};
+
+  return std::find(
+             kPastIphyProgrammedStates.begin(),
+             kPastIphyProgrammedStates.end(),
+             getPortState(portId)) != kPastIphyProgrammedStates.end();
+  ;
+}
+
 TransceiverStateMachineState PortManager::getTransceiverState(
     TransceiverID tcvrId) const {
   return TransceiverStateMachineState::NOT_PRESENT;
