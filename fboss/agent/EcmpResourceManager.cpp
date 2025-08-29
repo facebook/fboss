@@ -412,14 +412,47 @@ EcmpResourceManager::getGidToPrefixes() const {
       });
   return gid2Prefix;
 }
-
+/*
+ * Reclaim sub cases
+ * i. Reclaim all
+ * Input - mergeSetsToUpdate : [[1, 2, 3]], groupIdsToReclaim : [1, 2, 3]
+ * newMergeSet: []
+ * Extra ECMP groups: 2 - add 1, 2, 3 and delete [1, 2, 3])
+ * ii. Partial reclaim with creation of new merge set
+ * Input - mergeSetsToUpdate : [[1, 2, 3], groupIdsToReclaim : [1]
+ * newMergeSet: [2, 3]
+ * Extra ECMP groups: 1 - add 1, [2, 3] and delete [1, 2, 3]
+ * iii. Reclaim all but one group in a merge set
+ * Input - mergeSetsToUpdate : [[1, 2, 3]], groupIdsToReclaim : [1, 2]
+ * newMergeSet: [3] - or simply the unmerged group 3
+ * Extra ECMP groups: 2 - add 1, 2, 3 and delete [1, 2, 3].
+ *
+ * Delete subcases
+ * Note delete always happens one group at a time.
+ * i. Group size > 2
+ * Input - mergeSetsToUpdate : [[1, 2, 3]], groupIdsToReclaim : [1]
+ * newMergeSet: [2, 3]
+ * Extra ECMP groups: 0 - add [2, 3] added and delete [1, 2, 3]
+ * i. Group size = 2
+ * Input - mergeSetsToUpdate : [[1, 2]] groupIdsToReclaim : [1]
+ * newMergeSet: [2]
+ * Extra ECMP groups: 0 - add 2 added and [1, 2]
+ */
 void EcmpResourceManager::updateMergedGroups(
     const std::set<NextHopGroupIds>& mergeSetsToUpdate,
-    const NextHopGroupIds& groupIdsToReclaimOrPruneIn,
+    MergeGroupUpdateOp op,
+    const NextHopGroupIds& groupIdsToReclaimOrPrune,
     InputOutputState* inOutState) {
   XLOG(DBG2) << " Will reclaim the following merge groups: "
              << mergeSetsToUpdate;
-  NextHopGroupIds groupIdsToReclaimOrPrune = groupIdsToReclaimOrPruneIn;
+  NextHopGroupIds unmergedGroups;
+  if (op == MergeGroupUpdateOp::RECLAIM_GROUPS) {
+    unmergedGroups = groupIdsToReclaimOrPrune;
+  } else if (op == MergeGroupUpdateOp::DELETE_GROUPS) {
+    // Groups are deleted one by one
+    CHECK_EQ(groupIdsToReclaimOrPrune.size(), 1);
+  }
+
   auto gid2Prefix = getGidToPrefixes();
   auto updateMergeInfo =
       [&gid2Prefix, this](
@@ -441,21 +474,27 @@ void EcmpResourceManager::updateMergedGroups(
     /*
      * To allow for partial reclaims, we compute a newMergeSet.
      * newMergeSet is the set of groups in curMergeSet which
-     * are not to be reclaimed or pruned
+     * are not to be reclaimed or pruned. These remaining
+     * groups will then form a newMergeGroup.
      */
     auto newMergeSet =
         nhopGroupIdsDifference(curMergeSet, groupIdsToReclaimOrPrune);
     auto oldState = inOutState->out.back().newState();
     auto newState = oldState->clone();
-    /*
-     * Every thing in curMergeSet but not in newMergeSet is to be reclaimed
-     * For such groups
-     * - Clear mergeInfoItr
-     * - Clear override nhops for prefixes pointing to such groups
-     */
-
-    auto reclaimedGroups = nhopGroupIdsDifference(curMergeSet, newMergeSet);
-    updateMergeInfo(reclaimedGroups, std::nullopt, newState);
+    if (op == MergeGroupUpdateOp::RECLAIM_GROUPS) {
+      /*
+       * If we are reclaiming (not deleting)
+       * Every thing in curMergeSet but not in newMergeSet is to be reclaimed.
+       * For such groups and corresponding prefixes
+       * - Clear mergeInfoItr
+       * - Clear override nhops for prefixes pointing to such groups
+       */
+      auto reclaimedGroups = nhopGroupIdsDifference(curMergeSet, newMergeSet);
+      updateMergeInfo(reclaimedGroups, std::nullopt, newState);
+      // Each of these unmerged groups will create 1 primary
+      // ECMP group
+      inOutState->nonBackupEcmpGroupsCnt += reclaimedGroups.size();
+    }
     /*
      * If newMergeSet.size() > 1
      * Create a new merge group and cache its iterator.
@@ -469,17 +508,28 @@ void EcmpResourceManager::updateMergedGroups(
                  << " with: " << newMergeSet;
       std::tie(newMergeItr, std::ignore) = mergedGroups_.insert(
           {newMergeSet, computeConsolidationInfo(newMergeSet)});
+      // If newMergeSet.size() > 1 we will create one new merged
+      // group and then delete the curMergeSet. Transiently we
+      // will create one extra ECMP group but at the end of update
+      // we will end up with exactly the same number of ECMP groups
     } else if (newMergeSet.size() == 1) {
       XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet << std::endl
                  << " since it has only one member group remaining: "
                  << newMergeSet;
-      groupIdsToReclaimOrPrune.insert(*newMergeSet.begin());
+      unmergedGroups.insert(*newMergeSet.begin());
+      // If newMergeSet.size() == 1 we will create one new unmerged
+      // group and then delete the curMergeSet. Transiently we
+      // will create one extra ECMP group but at the end of update
+      // we will end up with exactly the same number of ECMP groups
     } else {
       XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet;
+      inOutState->nonBackupEcmpGroupsCnt -= 1;
     }
     // Now update the groups and prefixes corresponding to the
     // newMergeSet
     updateMergeInfo(newMergeSet, newMergeItr, newState);
+    // Prune curMergeSet from mergedGroups_
+    mergedGroups_.erase(curMergeSet);
 
     newState->publish();
     // We put each unmerge on a new delta, to ensure that all
@@ -488,25 +538,13 @@ void EcmpResourceManager::updateMergedGroups(
     inOutState->out.emplace_back(oldState, newState);
     // Reclaimed curMergeSet.size() groups and deleted all references
     // to the merged group.
-    inOutState->nonBackupEcmpGroupsCnt += curMergeSet.size() - 1;
     inOutState->updated = true;
   }
-  pruneFromMergeGroupsImpl(groupIdsToReclaimOrPrune, mergedGroups_);
   /*
    * Filter out pruned gids before computing candidate merges
    * for reclaimed (but not pruned gids)
    */
-  NextHopGroupIds reclaimedUnprunedGids;
-  for_each(
-      groupIdsToReclaimOrPrune.begin(),
-      groupIdsToReclaimOrPrune.end(),
-      [&reclaimedUnprunedGids, this](auto gid) {
-        if (nextHopGroupIdToInfo_.ref(gid)) {
-          reclaimedUnprunedGids.insert(gid);
-        }
-      });
-  computeCandidateMerges(
-      reclaimedUnprunedGids.begin(), reclaimedUnprunedGids.end());
+  computeCandidateMerges(unmergedGroups.begin(), unmergedGroups.end());
 }
 
 void EcmpResourceManager::reclaimMergeGroups(
@@ -523,7 +561,11 @@ void EcmpResourceManager::reclaimMergeGroups(
         const auto& curMergeSet = (*curMergeGrpItr)->first;
         mergeSetsToUpdate.insert(curMergeSet);
       });
-  updateMergedGroups(mergeSetsToUpdate, groupIdsToReclaim, inOutState);
+  updateMergedGroups(
+      mergeSetsToUpdate,
+      MergeGroupUpdateOp::RECLAIM_GROUPS,
+      groupIdsToReclaim,
+      inOutState);
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
@@ -1235,11 +1277,13 @@ void EcmpResourceManager::routeDeleted(
     inOutState->deleteRoute(rid, removed);
   }
   NextHopGroupId groupId{kMinNextHopGroupId - 1};
+  std::optional<GroupIds2ConsolidationInfoItr> mergeInfoItr;
   {
     auto pitr =
         prefixToGroupInfo_.find({rid, removed->prefix().toCidrNetwork()});
     CHECK(pitr != prefixToGroupInfo_.end());
     groupId = pitr->second->getID();
+    mergeInfoItr = pitr->second->getMergedGroupInfoItr();
     prefixToGroupInfo_.erase(pitr);
   }
   auto groupInfo = nextHopGroupIdToInfo_.ref(groupId);
@@ -1254,7 +1298,15 @@ void EcmpResourceManager::routeDeleted(
                  << " Group ID: " << groupId << " removed";
     }
     nextHopGroup2Id_.erase(routeNhops);
-    nextHopGroupDeleted(groupId);
+    if (mergeInfoItr) {
+      updateMergedGroups(
+          {(*mergeInfoItr)->first},
+          MergeGroupUpdateOp::DELETE_GROUPS,
+          {groupId},
+          inOutState);
+    } else {
+      pruneFromCandidateMerges({groupId});
+    }
   } else {
     decRouteUsageCount(*groupInfo);
     XLOG(DBG2) << "Delete route: " << removed->str()

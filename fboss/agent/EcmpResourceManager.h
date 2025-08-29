@@ -187,8 +187,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
+  enum class MergeGroupUpdateOp { RECLAIM_GROUPS, DELETE_GROUPS };
   void updateMergedGroups(
       const std::set<NextHopGroupIds>& mergeSetsToUpdate,
+      MergeGroupUpdateOp op,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> getGidToPrefixes()
