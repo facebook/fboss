@@ -385,13 +385,10 @@ void EcmpResourceManager::reclaimBackupGroups(
              << inOutState->nonBackupEcmpGroupsCnt;
 }
 
-void EcmpResourceManager::updateMergedGroups(
-    const std::set<NextHopGroupIds>& mergeSetsToUpdate,
-    const NextHopGroupIds& groupIdsToReclaimOrPruneIn,
-    InputOutputState* inOutState) {
-  XLOG(DBG2) << " Will reclaim the following merge groups: "
-             << mergeSetsToUpdate;
-  NextHopGroupIds groupIdsToReclaimOrPrune = groupIdsToReclaimOrPruneIn;
+std::unordered_map<
+    EcmpResourceManager::NextHopGroupId,
+    std::vector<EcmpResourceManager::Prefix>>
+EcmpResourceManager::getGidToPrefixes() const {
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> gid2Prefix;
   std::for_each(
       prefixToGroupInfo_.begin(),
@@ -400,6 +397,17 @@ void EcmpResourceManager::updateMergedGroups(
         gid2Prefix[pfxAndGroupInfo.second->getID()].push_back(
             pfxAndGroupInfo.first);
       });
+  return gid2Prefix;
+}
+
+void EcmpResourceManager::updateMergedGroups(
+    const std::set<NextHopGroupIds>& mergeSetsToUpdate,
+    const NextHopGroupIds& groupIdsToReclaimOrPruneIn,
+    InputOutputState* inOutState) {
+  XLOG(DBG2) << " Will reclaim the following merge groups: "
+             << mergeSetsToUpdate;
+  NextHopGroupIds groupIdsToReclaimOrPrune = groupIdsToReclaimOrPruneIn;
+  auto gid2Prefix = getGidToPrefixes();
   for (const auto& curMergeSet : mergeSetsToUpdate) {
     CHECK_GT(curMergeSet.size(), 1);
     /*
