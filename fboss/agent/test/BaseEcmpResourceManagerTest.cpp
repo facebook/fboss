@@ -443,7 +443,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   consolidatorToCheck =
       consolidatorToCheck ? consolidatorToCheck : consolidator_.get();
   EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
-  std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups;
+  std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
+      mergedEcmpGroups;
   for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
     auto route = cfib(targetState)->exactMatch(inRoute->prefix());
     ASSERT_TRUE(route->isResolved());
@@ -472,12 +473,21 @@ void BaseEcmpResourceManagerTest::assertTargetState(
         auto consolidatorIsBackupEcmpType =
             consolidatorGrpInfo->isBackupEcmpGroupType();
         auto swIsBackupEcmpType = swSwitchGroupInfo->isBackupEcmpGroupType();
+        auto consolidatorIsMergeGroup =
+            consolidatorGrpInfo->getMergedGroupInfoItr().has_value();
+        auto swIsMergeGroup =
+            swSwitchGroupInfo->getMergedGroupInfoItr().has_value();
         EXPECT_EQ(
-            std::tie(swGroupId, swRouteUsageCount, swIsBackupEcmpType),
+            std::tie(
+                swGroupId,
+                swRouteUsageCount,
+                swIsBackupEcmpType,
+                swIsMergeGroup),
             std::tie(
                 consolidatorGroupId,
                 consolidatorRouteUsageCount,
-                consolidatorIsBackupEcmpType));
+                consolidatorIsBackupEcmpType,
+                consolidatorIsMergeGroup));
       }
     }
     if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
@@ -502,6 +512,7 @@ void BaseEcmpResourceManagerTest::assertTargetState(
                 ->getOverrideNextHops());
         // Merged groups also take up primary ecmp groups
         primaryEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+        mergedEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
       }
     } else {
       EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
@@ -515,7 +526,7 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   if (checkStats) {
     EXPECT_EQ(
         sw_->stats()->getPrimaryEcmpGroupsExhausted(),
-        backupEcmpGroups.size() ? 1 : 0);
+        backupEcmpGroups.size() || mergedEcmpGroups.size() ? 1 : 0);
     EXPECT_EQ(
         sw_->stats()->getPrimaryEcmpGroupsCount(), primaryEcmpGroups.size());
     EXPECT_EQ(

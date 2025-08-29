@@ -252,7 +252,10 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
         ? nextHopGroup2Id_.size() - inOutState->nonBackupEcmpGroupsCnt
         : 0;
     switchStats_->setBackupEcmpGroupsCount(backupEcmpGroupCount);
-    switchStats_->setPrimaryEcmpGroupsExhausted(backupEcmpGroupCount > 0);
+    switchStats_->setPrimaryEcmpGroupsExhausted(
+        backupEcmpGroupCount > 0 || mergedGroups_.size() > 0);
+    switchStats_->setMergedEcmpGroupsCount(mergedGroups_.size());
+    switchStats_->setMergedEcmpMemberGroupsCount(getMergedGids().size());
   }
   return std::move(inOutState->out);
 }
