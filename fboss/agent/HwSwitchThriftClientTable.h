@@ -44,6 +44,8 @@ class HwSwitchThriftClientTable {
 
   std::vector<FirmwareInfo> getAllFirmwareInfo(SwitchID switchId);
 
+  std::string getHwDebugDump(SwitchID switchId);
+
  private:
   std::map<
       SwitchID,

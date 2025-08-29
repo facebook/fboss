@@ -171,4 +171,16 @@ std::vector<FirmwareInfo> HwSwitchThriftClientTable::getAllFirmwareInfo(
   return firmwareInfoList;
 }
 
+std::string HwSwitchThriftClientTable::getHwDebugDump(SwitchID switchId) {
+  auto client = getClient(switchId);
+  std::string out{};
+  try {
+    client->sync_getHwDebugDump(out);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get hardware debug dump : " << switchId
+              << " error: " << ex.what();
+  }
+  return out;
+}
+
 } // namespace facebook::fboss

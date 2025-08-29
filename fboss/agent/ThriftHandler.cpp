@@ -2720,7 +2720,12 @@ void ThriftHandler::getHwDebugDump(std::string& out) {
   if (sw_->isRunModeMonolithic()) {
     out = sw_->getMonolithicHwSwitchHandler()->getDebugDump();
   } else {
-    throw FbossError("getHwDebugDump is not supported onmulti switch");
+    folly::dynamic json = folly::dynamic::object;
+    for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
+      json[folly::to<std::string>(switchId)] =
+          sw_->getHwSwitchThriftClientTable()->getHwDebugDump(switchId);
+    }
+    out = folly::toPrettyJson(json);
   }
 }
 
