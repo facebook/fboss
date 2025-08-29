@@ -256,4 +256,36 @@ TEST_F(
   assertGroupsAreRemoved(optimalMergeSet);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, removeAllMergeGrpRefrencesInOneUpdate) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  addNextRoute();
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertGroupsAreMerged(optimalMergeSet);
+  rmRoutes({overflowPrefixes.begin(), overflowPrefixes.end()});
+  assertEndState(sw_->getState(), {});
+  assertGroupsAreRemoved(optimalMergeSet);
+}
+
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    removeAllMergeGrpRefrencesInOneUpdateMultipleRoutesToMergeSet) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  // Overflow and force a merge
+  addNextRoute();
+  auto addToMergeSet = nextPrefix();
+  addRoute(addToMergeSet, getNextHops(*optimalMergeSet.begin()));
+  overflowPrefixes.insert(addToMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 3);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertGroupsAreMerged(optimalMergeSet);
+  rmRoutes({overflowPrefixes.begin(), overflowPrefixes.end()});
+  assertEndState(sw_->getState(), {});
+  assertGroupsAreRemoved(optimalMergeSet);
+}
 } // namespace facebook::fboss

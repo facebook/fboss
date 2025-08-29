@@ -567,6 +567,17 @@ BaseEcmpResourceManagerTest::getPrefixesWithoutOverrides() const {
   return getPrefixesForGroups(getGroupsWithoutOverrides());
 }
 
+RouteNextHopSet BaseEcmpResourceManagerTest::getNextHops(
+    EcmpResourceManager::NextHopGroupId gid) const {
+  const auto& nhops2Id = sw_->getEcmpResourceManager()->getNhopsToId();
+  for (const auto& nhopsAndId : nhops2Id) {
+    if (gid == nhopsAndId.second) {
+      return nhopsAndId.first;
+    }
+  }
+  CHECK(false) << " Should never get here";
+}
+
 EcmpResourceManager::NextHopGroupIds
 BaseEcmpResourceManagerTest::getGroupsWithoutOverrides() const {
   EcmpResourceManager::NextHopGroupIds nonOverrideGids;

@@ -94,6 +94,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
     ASSERT_TRUE(nhopId.has_value());
     EXPECT_EQ(consolidator_->getRouteUsageCount(nhopId.value()), expectedCount);
   }
+  RouteNextHopSet getNextHops(EcmpResourceManager::NextHopGroupId gid) const;
   std::vector<StateDelta> addRoute(
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops) {
