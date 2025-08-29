@@ -179,9 +179,6 @@ class PortManager {
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
 
-  std::unordered_map<PortID, TransceiverManager::TransceiverPortInfo>
-  getProgrammedIphyPortToPortInfo(TransceiverID id) const;
-
   // TEST ONLY
   const std::map<int32_t, NpuPortStatus>& getOverrideAgentPortStatusForTesting()
       const;

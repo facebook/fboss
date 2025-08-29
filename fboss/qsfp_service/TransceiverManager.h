@@ -432,11 +432,16 @@ class TransceiverManager {
     cfg::PortProfileID profile;
     std::optional<NpuPortStatus> status;
   };
-  std::unordered_map<PortID, TransceiverPortInfo>
-  getProgrammedIphyPortToPortInfo(TransceiverID id) const;
+
+  using PortToPortInfo = std::unordered_map<PortID, TransceiverPortInfo>;
+  PortToPortInfo getProgrammedIphyPortToPortInfo(TransceiverID id) const;
 
   std::unordered_map<PortID, cfg::PortProfileID>
   getOverrideProgrammedIphyPortAndProfileForTest(TransceiverID id) const;
+
+  // Used for sharing data with PortManager.
+  std::shared_ptr<folly::Synchronized<PortToPortInfo>>
+  getSynchronizedProgrammedIphyPortToPortInfo(TransceiverID id);
 
   // TEST ONLY
   void setOverrideAgentPortStatusForTesting(
@@ -826,8 +831,7 @@ class TransceiverManager {
 
   using TransceiverToPortInfo = std::unordered_map<
       TransceiverID,
-      std::unique_ptr<folly::Synchronized<
-          std::unordered_map<PortID, TransceiverPortInfo>>>>;
+      std::shared_ptr<folly::Synchronized<PortToPortInfo>>>;
   TransceiverToPortInfo setupTransceiverToPortInfo();
 
   void startThreads();

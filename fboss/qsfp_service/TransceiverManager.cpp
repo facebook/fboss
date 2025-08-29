@@ -852,11 +852,11 @@ TransceiverManager::setupTransceiverToStateMachineControllerMap() {
 
 TransceiverManager::TransceiverToPortInfo
 TransceiverManager::setupTransceiverToPortInfo() {
-  TransceiverToPortInfo tcvrToPortInfo;
+  TransceiverManager::TransceiverToPortInfo tcvrToPortInfo;
   for (const auto& tcvrID :
        utility::getTransceiverIds(platformMapping_->getChips())) {
-    auto portToPortInfo = std::make_unique<
-        folly::Synchronized<std::unordered_map<PortID, TransceiverPortInfo>>>();
+    auto portToPortInfo =
+        std::make_shared<folly::Synchronized<PortToPortInfo>>();
     tcvrToPortInfo.emplace(tcvrID, std::move(portToPortInfo));
   }
 
@@ -1189,11 +1189,21 @@ void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
   }
 }
 
-std::unordered_map<PortID, TransceiverManager::TransceiverPortInfo>
+TransceiverManager::PortToPortInfo
 TransceiverManager::getProgrammedIphyPortToPortInfo(TransceiverID id) const {
   if (auto tcvrToPortInfo_It = tcvrToPortInfo_.find(id);
       tcvrToPortInfo_It != tcvrToPortInfo_.end()) {
     return *(tcvrToPortInfo_It->second->rlock());
+  }
+  return {};
+}
+
+std::shared_ptr<folly::Synchronized<TransceiverManager::PortToPortInfo>>
+TransceiverManager::getSynchronizedProgrammedIphyPortToPortInfo(
+    TransceiverID id) {
+  if (auto tcvrToPortInfoIt = tcvrToPortInfo_.find(id);
+      tcvrToPortInfoIt != tcvrToPortInfo_.end()) {
+    return tcvrToPortInfoIt->second;
   }
   return {};
 }
