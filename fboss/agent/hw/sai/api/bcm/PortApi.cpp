@@ -501,7 +501,7 @@ SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
 
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::macTxDataQueueMinWatermarkStats() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MIN_WM};
 #else
@@ -512,7 +512,7 @@ SaiPortTraits::macTxDataQueueMinWatermarkStats() {
 
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::macTxDataQueueMaxWatermarkStats() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MAX_WM};
 #else

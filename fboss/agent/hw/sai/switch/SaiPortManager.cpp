@@ -324,7 +324,7 @@ void fillHwPortStats(
         hwPortStats.linkLayerFlowControlWatermark_() = value;
         break;
 #endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
       case SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MIN_WM:
         hwPortStats.macTransmitQueueMinWatermarkCells_() = value;
         break;
@@ -2014,7 +2014,7 @@ void SaiPortManager::updateStats(
         SAI_STATS_MODE_READ_AND_CLEAR);
   }
 #endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK)) {
     // RCI stuck scenario in S545783 needs further debugging,
