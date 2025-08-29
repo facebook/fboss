@@ -73,6 +73,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
   using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
+  NextHopGroupIds getUnMergedGids() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
    * non test code.
@@ -87,7 +88,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       RouterID rid,
       const folly::CIDRNetwork& nw) const;
   NextHopGroupIds getMergedGids() const;
-  NextHopGroupIds getUnMergedGids() const;
   /* Test helper API end */
 
  private:
@@ -259,6 +259,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::vector<NextHopGroupId>& gids) {
     computeCandidateMergesForNewUnmergedGroups(gids.begin(), gids.end());
   }
+  void computeCandidateMergesForNewMergedGroup(
+      const NextHopGroupIds& newMergeSet);
+  void addCandidateMerge(const NextHopGroupIds& candidateMerge);
 
   NextHops2GroupId nextHopGroup2Id_;
   StdRefMap<NextHopGroupId, NextHopGroupInfo> nextHopGroupIdToInfo_;

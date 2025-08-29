@@ -1724,36 +1724,33 @@ template <std::forward_iterator ForwardIt>
 void EcmpResourceManager::computeCandidateMergesForNewUnmergedGroups(
     ForwardIt begin,
     ForwardIt end) {
-  NextHopGroupIds alreadyMergedGroups;
-  std::for_each(
-      mergedGroups_.begin(),
-      mergedGroups_.end(),
-      [&alreadyMergedGroups](const auto& mergedGroupsAndPenalty) {
-        alreadyMergedGroups.insert(
-            mergedGroupsAndPenalty.first.begin(),
-            mergedGroupsAndPenalty.first.end());
-      });
+  auto unmergedGroups = getUnMergedGids();
+  XLOG(DBG2) << " Will compute candidate merges with unmerged groups : "
+             << unmergedGroups;
   while (begin != end) {
     auto grpId = *begin++;
-    CHECK(!alreadyMergedGroups.contains(grpId))
-        << "Computing candidate merges for : " << grpId
-        << " for already merged group";
-    for (const auto& [grpToMergeWith, _] : nextHopGroupIdToInfo_) {
-      if (alreadyMergedGroups.contains(grpToMergeWith) ||
-          grpToMergeWith == grpId) {
+    for (auto grpToMergeWith : unmergedGroups) {
+      NextHopGroupIds candidateMerge{grpId, grpToMergeWith};
+      if (grpToMergeWith == grpId ||
+          candidateMergeGroups_.contains(candidateMerge)) {
         continue;
       }
-      NextHopGroupIds candidateMerge{grpId, grpToMergeWith};
-      auto consolidationInfo = computeConsolidationInfo(candidateMerge);
-      candidateMergeGroups_.insert(
-          {candidateMerge, std::move(consolidationInfo)});
-      XLOG(DBG3) << " Added candidate merge group:" << candidateMerge;
+      addCandidateMerge(candidateMerge);
     }
     for (const auto& [grpsToMergeWith, _] : mergedGroups_) {
       DCHECK(!grpsToMergeWith.contains(grpId));
       // TODO: compute consolidation penalty
     }
   }
+}
+
+void EcmpResourceManager::addCandidateMerge(
+    const NextHopGroupIds& candidateMerge) {
+  auto consolidationInfo = computeConsolidationInfo(candidateMerge);
+  auto [_, inserted] = candidateMergeGroups_.insert(
+      {candidateMerge, std::move(consolidationInfo)});
+  CHECK(inserted);
+  XLOG(DBG3) << " Added candidate merge group:" << candidateMerge;
 }
 
 std::map<
