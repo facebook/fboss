@@ -4,6 +4,7 @@
 #include <folly/testing/TestUtil.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 #include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
 
 namespace facebook::fboss {
@@ -11,29 +12,77 @@ namespace facebook::fboss {
 class PortManagerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    initPortManager();
+    initManagers();
   }
 
  protected:
-  void initPortManager(int numPortsPerModule = 4) {
+  void initManagers(int numPortsPerModule = 4) {
+    const auto platformMapping =
+        makeFakePlatformMapping(numModules, numPortsPerModule);
+
+    transceiverManager_ = std::make_shared<MockWedgeManager>(
+        numModules, 4, platformMapping, nullptr /* threads */);
     portManager_ = std::make_unique<PortManager>(
-        nullptr /* transceiverManager */,
+        transceiverManager_.get(),
         nullptr /* phyManager */,
-        makeFakePlatformMapping(16, numPortsPerModule),
+        platformMapping,
         nullptr /* threads */);
+
+    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+        overrideMultiPortTcvrToPortAndProfile_);
   }
+  void validatePortStatusNotInTestingOverride(PortID portId) {
+    const auto& overrideStatusMap =
+        portManager_->getOverrideAgentPortStatusForTesting();
+    auto it = overrideStatusMap.find(portId);
+    ASSERT_EQ(it, overrideStatusMap.end())
+        << "Port ID " << portId << " found in override status map";
+  }
+  void validatePortStatusInTestingOverride(
+      PortID portId,
+      bool expectedEnabled,
+      bool expectedUp) {
+    const auto& overrideStatusMap =
+        portManager_->getOverrideAgentPortStatusForTesting();
+    auto it = overrideStatusMap.find(portId);
+    ASSERT_NE(it, overrideStatusMap.end())
+        << "Port ID " << portId << " not found in override status map";
+    const auto& portStatus = it->second;
+
+    ASSERT_EQ(portStatus.portEnabled, expectedEnabled)
+        << "Port enabled status mismatch for port " << portId;
+    ASSERT_EQ(portStatus.operState, expectedUp)
+        << "Port operational state mismatch for port " << portId;
+  }
+
+  const TransceiverID tcvrId_ = TransceiverID(0);
+  const PortID portId1_ = PortID(1);
+  const PortID portId3_ = PortID(3);
+
+  const cfg::PortProfileID multiPortProfile_ =
+      cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL;
+  const TransceiverManager::OverrideTcvrToPortAndProfile
+      overrideMultiPortTcvrToPortAndProfile_ = {
+          {tcvrId_,
+           {
+               {portId1_, multiPortProfile_},
+               {portId3_, multiPortProfile_},
+           }}};
+
+  const int numModules = 1;
+  std::shared_ptr<TransceiverManager> transceiverManager_;
   std::unique_ptr<PortManager> portManager_;
 };
 
 TEST_F(PortManagerTest, getLowestIndexedPortForTransceiverPortGroup) {
   // Single Tcvr - Single Port
-  initPortManager(1);
+  initManagers(1);
   ASSERT_EQ(
       portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
       PortID(1));
 
   // Single Tcvr – Multi Port
-  initPortManager(4);
+  initManagers(4);
   ASSERT_EQ(
       portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
       PortID(1));
@@ -46,13 +95,13 @@ TEST_F(PortManagerTest, getLowestIndexedPortForTransceiverPortGroup) {
 
 TEST_F(PortManagerTest, getLowestIndexedTransceiverForPort) {
   // Single Tcvr – Single Port
-  initPortManager(1);
+  initManagers(1);
   ASSERT_EQ(
       portManager_->getLowestIndexedTransceiverForPort(PortID(1)),
       TransceiverID(0));
 
   // Single Tcvr – Multi Port
-  initPortManager(4);
+  initManagers(4);
   ASSERT_EQ(
       portManager_->getLowestIndexedTransceiverForPort(PortID(1)),
       TransceiverID(0));
@@ -65,12 +114,12 @@ TEST_F(PortManagerTest, getLowestIndexedTransceiverForPort) {
 
 TEST_F(PortManagerTest, isLowestIndexedPortForTransceiverPortGroup) {
   // Single Tcvr - Single Port
-  initPortManager(1);
+  initManagers(1);
   ASSERT_TRUE(
       portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)));
 
   // Single Tcvr – Multi Port
-  initPortManager(4);
+  initManagers(4);
   ASSERT_TRUE(
       portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)));
   ASSERT_FALSE(
@@ -81,12 +130,12 @@ TEST_F(PortManagerTest, isLowestIndexedPortForTransceiverPortGroup) {
 
 TEST_F(PortManagerTest, getTransceiverIdsForPort) {
   // Single Tcvr – Single Port
-  initPortManager(1);
+  initManagers(1);
   ASSERT_THAT(
       portManager_->getTransceiverIdsForPort(PortID(1)),
       ::testing::ElementsAre(TransceiverID(0)));
   // Single Tcvr – Multi Port
-  initPortManager(4);
+  initManagers(4);
   ASSERT_THAT(
       portManager_->getTransceiverIdsForPort(PortID(1)),
       ::testing::ElementsAre(TransceiverID(0)));
@@ -94,6 +143,50 @@ TEST_F(PortManagerTest, getTransceiverIdsForPort) {
       portManager_->getTransceiverIdsForPort(PortID(3)),
       ::testing::ElementsAre(TransceiverID(0)));
   // Multi Tcvr – Single Port (will be added once we validate other use cases)
+}
+
+// need to add more testing for tcvroverride too, any combinations that mihgt
+// be relevant here
+TEST_F(PortManagerTest, setBothPortsEnabledAndUpForTesting) {
+  initManagers(4);
+  portManager_->setOverrideAgentPortStatusForTesting(
+      {PortID(1), PortID(3)}, {PortID(1), PortID(3)});
+
+  validatePortStatusInTestingOverride(PortID(1), true, true);
+  validatePortStatusInTestingOverride(PortID(3), true, true);
+}
+
+TEST_F(PortManagerTest, setBothPortsDisabledAndDownForTesting) {
+  initManagers(4);
+  portManager_->setOverrideAgentPortStatusForTesting({}, {});
+
+  validatePortStatusInTestingOverride(PortID(1), false, false);
+  validatePortStatusInTestingOverride(PortID(3), false, false);
+}
+
+TEST_F(PortManagerTest, setPortsMixedStatusForTesting) {
+  initManagers(4);
+  portManager_->setOverrideAgentPortStatusForTesting({PortID(1)}, {PortID(3)});
+
+  validatePortStatusInTestingOverride(PortID(1), false, true);
+  validatePortStatusInTestingOverride(PortID(3), true, false);
+}
+
+TEST_F(PortManagerTest, clearOverrideAgentPortStatusForTesting) {
+  // needs to be modified to account for clear case
+  initManagers(4);
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      overrideMultiPortTcvrToPortAndProfile_);
+  portManager_->setOverrideAgentPortStatusForTesting(
+      {PortID(1), PortID(3)}, {PortID(1), PortID(3)});
+
+  validatePortStatusInTestingOverride(PortID(1), true, true);
+  validatePortStatusInTestingOverride(PortID(3), true, true);
+
+  portManager_->setOverrideAgentPortStatusForTesting({}, {}, true);
+
+  validatePortStatusNotInTestingOverride(PortID(1));
+  validatePortStatusNotInTestingOverride(PortID(3));
 }
 
 } // namespace facebook::fboss

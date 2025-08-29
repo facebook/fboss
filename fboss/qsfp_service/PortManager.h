@@ -183,10 +183,13 @@ class PortManager {
   getProgrammedIphyPortToPortInfo(TransceiverID id) const;
 
   // TEST ONLY
+  const std::map<int32_t, NpuPortStatus>& getOverrideAgentPortStatusForTesting()
+      const;
   void setOverrideAgentPortStatusForTesting(
-      bool up,
-      bool enabled,
+      const std::unordered_set<PortID>& upPortIds,
+      const std::unordered_set<PortID>& enabledPortIds,
       bool clearOnly = false);
+
   void setOverrideAgentConfigAppliedInfoForTesting(
       std::optional<ConfigAppliedInfo> configAppliedInfo);
 

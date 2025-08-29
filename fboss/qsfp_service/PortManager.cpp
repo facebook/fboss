@@ -184,10 +184,32 @@ PortManager::getProgrammedIphyPortToPortInfo(TransceiverID id) const {
   return {};
 }
 
+const std::map<int32_t, NpuPortStatus>&
+PortManager::getOverrideAgentPortStatusForTesting() const {
+  return overrideAgentPortStatusForTesting_;
+}
+
 void PortManager::setOverrideAgentPortStatusForTesting(
-    bool up,
-    bool enabled,
-    bool clearOnly) {}
+    const std::unordered_set<PortID>& upPortIds,
+    const std::unordered_set<PortID>& enabledPortIds,
+    bool clearOnly) {
+  overrideAgentPortStatusForTesting_.clear();
+  if (clearOnly) {
+    return;
+  }
+  for (const auto& it :
+       transceiverManager_->getOverrideTcvrToPortAndProfileForTesting()) {
+    for (const auto& [portId, profileID] : it.second) {
+      // If portIds is provided, only enable those ports; otherwise, use
+      // 'enabled'
+      NpuPortStatus status;
+      status.portEnabled = enabledPortIds.find(portId) != enabledPortIds.end();
+      status.operState = upPortIds.find(portId) != upPortIds.end();
+      status.profileID = apache::thrift::util::enumNameSafe(profileID);
+      overrideAgentPortStatusForTesting_.emplace(portId, status);
+    }
+  }
+}
 
 void PortManager::setOverrideAgentConfigAppliedInfoForTesting(
     std::optional<ConfigAppliedInfo> configAppliedInfo) {}
