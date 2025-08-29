@@ -301,16 +301,16 @@ MODULE_DEVICE_TABLE(auxiliary, fpga_info_id_table);
 
 #### 5.3.2 I2C Controller (i2c_master)
 
-The FPGA I2C Controller driver must match devices with `i2c_master` or
-`i2c_master_${TYPE}` naming style. For example:
+The FPGA I2C Controller driver must match devices with the following naming style:
+`[<device>_]i2c_master[_<TYPE>]`, where both `<device>_` and `_<TYPE>` are optional.
+For example:
 
 ```c
 static const struct auxiliary_device_id i2c_master_id_table[] = {
 
-        { .name = “fbiob_pci.i2c_master", },
-
-        { .name = “fbiob_pci.i2c_master_ext", },
-
+        { .name = "fbiob_pci.i2c_master", },
+        { .name = "fbiob_pci.i2c_master_ext", },
+        { .name = "fbiob_pci.iob_i2c_master", },
         {},
 };
 
