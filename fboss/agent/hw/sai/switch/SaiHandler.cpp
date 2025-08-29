@@ -420,4 +420,7 @@ void SaiHandler::getAllHwFirmwareInfo(
   firmwareInfoList = hw_->getAllFirmwareInfo();
 }
 
+void SaiHandler::getHwDebugDump(std::string& out) {
+  out = hw_->getDebugDump();
+}
 } // namespace facebook::fboss

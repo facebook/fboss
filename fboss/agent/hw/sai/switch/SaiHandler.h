@@ -112,6 +112,8 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
   void getAllHwFirmwareInfo(
       std::vector<FirmwareInfo>& firmwareInfoList) override;
 
+  void getHwDebugDump(std::string& out) override;
+
  private:
   SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;

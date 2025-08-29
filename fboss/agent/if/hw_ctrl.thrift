@@ -169,4 +169,10 @@ service FbossHwCtrl {
   list<hardware_stats.HwHighFrequencyStats> getHighFrequencyStats(
     1: highfreq.GetHighFrequencyStatsOptions options,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Information about Hw state, often useful for debugging
+   * on a box
+   */
+  string getHwDebugDump();
 }
