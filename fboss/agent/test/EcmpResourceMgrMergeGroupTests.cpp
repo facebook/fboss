@@ -48,22 +48,41 @@ class EcmpResourceMgrMergeGroupTest
     });
   }
   void assertGroupsAreUnMerged(
-      const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const {
+      const EcmpResourceManager::NextHopGroupIds& unmergedGroups,
+      std::optional<int> expectedCandidateMerges = std::nullopt) const {
     XLOG(DBG2) << " Asserting for ununmerged group: " << "["
-               << folly::join(", ", unmergedGroups) << "]";
+               << folly::join(", ", unmergedGroups) << "]"
+               << " Will check for existence of : "
+               << (expectedCandidateMerges
+                       ? folly::to<std::string>(*expectedCandidateMerges)
+                       : "atleast 1")
+               << "candidate merge with each unmerged group";
     std::for_each(
-        unmergedGroups.begin(), unmergedGroups.end(), [this](auto gid) {
-          // Groups from  unmerge set should no longer
-          // be candidates.
-          EXPECT_GT(
+        unmergedGroups.begin(),
+        unmergedGroups.end(),
+        [this, expectedCandidateMerges](auto gid) {
+          auto numCandidateMerges =
               sw_->getEcmpResourceManager()
                   ->getCandidateMergeConsolidationInfo(gid)
-                  .size(),
-              0);
+                  .size();
+          if (expectedCandidateMerges) {
+            EXPECT_EQ(numCandidateMerges, *expectedCandidateMerges);
+          } else {
+            EXPECT_GT(numCandidateMerges, 0);
+          }
+          // Groups from  unmerge set should no longer
+          // be in merge sets.
           EXPECT_FALSE(sw_->getEcmpResourceManager()
                            ->getMergeGroupConsolidationInfo(gid)
                            .has_value());
         });
+  }
+  void TearDown() override {
+    auto allUnmergedGroups = sw_->getEcmpResourceManager()->getUnMergedGids();
+    // All unmerged groups should have candidate merge sets with other unmerged
+    // groups
+    assertGroupsAreUnMerged(allUnmergedGroups, allUnmergedGroups.size() - 1);
+    BaseEcmpResourceMgrMergeGroupsTest::TearDown();
   }
 };
 
