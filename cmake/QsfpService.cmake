@@ -209,7 +209,7 @@ target_link_libraries(transceiver_validator
 add_library(transceiver_manager STATIC
     fboss/qsfp_service/TransceiverManager.cpp
     fboss/qsfp_service/TransceiverStateMachine.cpp
-    fboss/qsfp_service/StateMachineController.cpp
+    fboss/qsfp_service/TransceiverStateMachineController.cpp
     fboss/qsfp_service/SlotThreadHelper.cpp
 )
 

@@ -16,6 +16,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/qsfp_service/PortStateMachine.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -32,6 +34,15 @@ class PortManager {
   using TcvrToPortMap = std::unordered_map<TransceiverID, std::vector<PortID>>;
   using PortToTcvrMap = std::unordered_map<PortID, std::vector<TransceiverID>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
+
+  using PortStateMachineController = StateMachineController<
+      PortID,
+      PortStateMachineEvent,
+      PortStateMachineState,
+      PortStateMachine>;
+  using PortStateMachineUpdate = TypedStateMachineUpdate<PortStateMachineEvent>;
+  using BlockingPortStateMachineUpdate =
+      BlockingStateMachineUpdate<PortStateMachineEvent>;
 
  public:
   explicit PortManager(
@@ -248,7 +259,7 @@ class PortManager {
   bool initExternalPhyMap(bool forceWarmboot = false);
 
   void setPhyManager(std::unique_ptr<PhyManager> phyManager);
-  void publishLinkSnapshots(PortID portID);
+  void publishLinkSnapshots(PortID portId);
 
   // Restore phy state from the last cached warm boot qsfp_service state
   // Called this after initializing all the xphys during warm boot
@@ -322,6 +333,11 @@ class PortManager {
 
   const TcvrToPortMap tcvrToPortMap_;
   const PortToTcvrMap portToTcvrMap_;
+
+  using PortToStateMachineControllerMap =
+      std::unordered_map<PortID, std::unique_ptr<PortStateMachineController>>;
+  PortToStateMachineControllerMap setupPortToStateMachineControllerMap();
+  const PortToStateMachineControllerMap stateMachineControllers_;
 };
 
 } // namespace facebook::fboss

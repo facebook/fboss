@@ -1,8 +1,8 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 
-#include "fboss/qsfp_service/StateMachineController.h"
 #include <fmt/format.h>
 #include "fboss/agent/types.h"
+#include "fboss/qsfp_service/StateMachineController.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 
@@ -12,6 +12,8 @@ using TransceiverStateMachineController = StateMachineController<
     TransceiverStateMachineEvent,
     TransceiverStateMachineState,
     TransceiverStateMachine>;
+
+// Transceiver-Specific Implementations
 
 template <>
 TransceiverStateMachineState TransceiverStateMachineController::getStateByOrder(

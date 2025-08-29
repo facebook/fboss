@@ -34,7 +34,8 @@ PortManager::PortManager(
       phyManager_(phyManager),
       threads_(threads),
       tcvrToPortMap_(getTcvrToPortMap(platformMapping_)),
-      portToTcvrMap_(getPortToTcvrMap(platformMapping_)) {}
+      portToTcvrMap_(getPortToTcvrMap(platformMapping_)),
+      stateMachineControllers_(setupPortToStateMachineControllerMap()) {}
 
 PortManager::~PortManager() {}
 
@@ -102,7 +103,11 @@ const std::string PortManager::getPortName(TransceiverID tcvrId) const {
 }
 
 PortStateMachineState PortManager::getPortState(PortID portId) const {
-  return PortStateMachineState::UNINITIALIZED;
+  auto stateMachineItr = stateMachineControllers_.find(portId);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Port:", portId, " doesn't exist");
+  }
+  return stateMachineItr->second->getCurrentState();
 }
 
 PortID PortManager::getLowestIndexedPortForTransceiverPortGroup(
@@ -258,7 +263,7 @@ void PortManager::syncNpuPortStatusUpdate(
 
 void PortManager::setPhyManager(std::unique_ptr<PhyManager> phyManager) {}
 
-void PortManager::publishLinkSnapshots(PortID portID) {}
+void PortManager::publishLinkSnapshots(PortID portId) {}
 
 void PortManager::restoreWarmBootPhyState() {}
 
@@ -270,4 +275,29 @@ void PortManager::restoreAgentConfigAppliedInfo() {}
 
 void PortManager::updateNpuPortStatusCache(
     std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {}
+
+PortManager::PortToStateMachineControllerMap
+PortManager::setupPortToStateMachineControllerMap() {
+  if (!platformMapping_) {
+    throw FbossError("Platform Mapping must be non-null.");
+  }
+
+  PortManager::PortToStateMachineControllerMap stateMachineMap;
+  for (const auto& [portId, tcvrList] : portToTcvrMap_) {
+    if (tcvrList.empty()) {
+      XLOG(INFO) << "No transceivers found for " << portId
+                 << ", skipping creation of PortStateMachineController.";
+      continue;
+    }
+    auto stateMachineController =
+        std::make_unique<PortManager::PortStateMachineController>(portId);
+    auto& stateMachine = stateMachineController->getStateMachine();
+    stateMachine.withWLock([&](auto& lockedStateMachine) {
+      lockedStateMachine.get_attribute(portMgrPtr) = this;
+    });
+    stateMachineMap.emplace(portId, std::move(stateMachineController));
+  }
+
+  return stateMachineMap;
+}
 } // namespace facebook::fboss

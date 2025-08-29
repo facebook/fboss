@@ -100,9 +100,9 @@ cpp_library(
 cpp_library(
     name = "transceiver-manager",
     srcs = [
-        "StateMachineController.cpp",
         "TransceiverManager.cpp",
         "TransceiverStateMachine.cpp",
+        "TransceiverStateMachineController.cpp",
     ],
     headers = [
         "StateMachineController.h",
@@ -205,28 +205,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "state-machine-controller",
-    srcs = [
-        "StateMachineController.cpp",
-    ],
-    headers = [
-        "StateMachineController.h",
-    ],
-    exported_deps = [
-        "fbsource//third-party/fmt:fmt",
-        ":transceiver-manager",
-        ":typed-state-machine-update",
-        "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
-        "//folly:spin_lock",
-        "//folly:synchronized",
-    ],
-    exported_external_deps = [
-        "boost",
-    ],
-)
-
-cpp_library(
     name = "slot-thread-helper",
     srcs = [
         "SlotThreadHelper.cpp",
@@ -250,19 +228,31 @@ cpp_library(
     name = "port-manager",
     srcs = [
         "PortManager.cpp",
+        "PortStateMachine.cpp",
+        "PortStateMachineController.cpp",
     ],
     headers = [
         "PortManager.h",
+        "PortStateMachine.h",
+        "StateMachineController.h",
+        "TypedStateMachineUpdate.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":transceiver-manager",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly:spin_lock",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
+        "boost",
         ("boost", None, "boost_bimap"),
     ],
 )

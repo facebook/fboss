@@ -96,7 +96,7 @@ cpp_library(
     headers = ["MockStateMachine.h"],
     exported_deps = [
         "//fboss/agent:fboss-error",
-        "//fboss/qsfp_service:state-machine-controller",
+        "//fboss/qsfp_service:port-manager",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
@@ -121,7 +121,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":mock-state-machine",
-        "//fboss/qsfp_service:state-machine-controller",
+        "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service:typed-state-machine-update",
         "//folly:synchronized",
         "//folly/logging:logging",
