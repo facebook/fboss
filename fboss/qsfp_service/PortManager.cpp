@@ -300,4 +300,125 @@ PortManager::setupPortToStateMachineControllerMap() {
 
   return stateMachineMap;
 }
+
+void PortManager::updateStateBlocking(PortID id, PortStateMachineEvent event) {
+  auto result = updateStateBlockingWithoutWait(id, event);
+  if (result) {
+    result->wait();
+  }
+}
+std::shared_ptr<BlockingStateMachineUpdateResult>
+PortManager::updateStateBlockingWithoutWait(
+    PortID id,
+    PortStateMachineEvent event) {
+  auto result = std::make_shared<BlockingStateMachineUpdateResult>();
+  auto update = std::make_unique<PortManager::BlockingPortStateMachineUpdate>(
+      event, result);
+  if (!updateState(id, std::move(update))) {
+    // Only return blocking result if the update has been added in queue
+    result = nullptr;
+  }
+  return result;
+}
+std::shared_ptr<BlockingStateMachineUpdateResult>
+PortManager::enqueueStateUpdateForPortWithoutExecuting(
+    PortID id,
+    PortStateMachineEvent event) {
+  auto result = std::make_shared<BlockingStateMachineUpdateResult>();
+  auto update = std::make_unique<PortManager::BlockingPortStateMachineUpdate>(
+      event, result);
+  if (!enqueueStateUpdate(id, std::move(update))) {
+    // Only return blocking result if the update has been added in queue
+    result = nullptr;
+  }
+  return result;
+}
+bool PortManager::updateState(
+    const PortID& portId,
+    std::unique_ptr<PortStateMachineUpdate> update) {
+  if (!enqueueStateUpdate(portId, std::move(update))) {
+    return false;
+  }
+  // Signal the update thread that updates are pending.
+  executeStateUpdates();
+  return true;
+}
+bool PortManager::enqueueStateUpdate(
+    const PortID& portId,
+    std::unique_ptr<PortStateMachineUpdate> update) {
+  const auto portNameStr = getPortNameByPortId(portId);
+  const std::string eventName =
+      apache::thrift::util::enumNameSafe(update->getEvent());
+  if (isExiting_) {
+    PORT_SM_LOG(WARN, portNameStr, portId)
+        << "Skipped queueing event: " << eventName
+        << ", since exit already started";
+    return false;
+  }
+  if (!updateEventBase_) {
+    PORT_SM_LOG(WARN, portNameStr, portId)
+        << "Skipped queueing event: " << eventName
+        << ", since updateEventBase_ is not created yet";
+    return false;
+  }
+  auto stateMachineItr = stateMachineControllers_.find(portId);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    PORT_SM_LOG(WARN, portNameStr, portId)
+        << "Skipped queueing event: " << eventName
+        << ", since PortStateMachine doesn't exist";
+    return false;
+  }
+  stateMachineItr->second->enqueueUpdate(std::move(update));
+
+  return true;
+}
+void PortManager::executeStateUpdates() {
+  updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
+}
+
+void PortManager::handlePendingUpdatesHelper(PortManager* mgr) {
+  return mgr->handlePendingUpdates();
+};
+
+void PortManager::handlePendingUpdates() {
+  // Pending updates are stored within each PortStateMachineController, so this
+  // function asks each StateMachineController to execute a single pending
+  // update if possible.
+  PORTMGR_SM_LOG(INFO) << "Trying to update all PortStateMachines";
+
+  // To expedite all these different ports state update, use Future
+  std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
+  // In a later diff, will change this to iterate only through enabled ports.
+  for (auto& stateMachinePair : stateMachineControllers_) {
+    const auto& portId = stateMachinePair.first;
+    const auto& stateMachineControllerPtr = stateMachinePair.second;
+    const auto& tcvrID = getLowestIndexedTransceiverForPort(portId);
+    auto threadsItr = threads_->find(tcvrID);
+    if (threadsItr == threads_->end()) {
+      PORTMGR_SM_LOG(WARN) << "Can't find ThreadHelper for threadID " << tcvrID
+                           << ". Skip updating PortStateMachine.";
+      continue;
+    }
+
+    stateUpdateTasks.push_back(
+        folly::via(threadsItr->second.getEventBase())
+            .thenValue([&stateMachineControllerPtr](auto&&) {
+              stateMachineControllerPtr->executeSingleUpdate();
+            }));
+  }
+  folly::collectAll(stateUpdateTasks).wait();
+};
+
+void PortManager::waitForAllBlockingStateUpdateDone(
+    const PortManager::BlockingStateUpdateResultList& results) {
+  for (const auto& result : results) {
+    if (isExiting_) {
+      XLOG(INFO)
+          << "Terminating waitForAllBlockingStateUpdateDone for graceful exit";
+      return;
+    }
+    result->wait();
+  }
+};
+
 } // namespace facebook::fboss

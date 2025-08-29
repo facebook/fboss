@@ -21,6 +21,10 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#define TYPED_LOG(level, logType) XLOG(level) << logType << " "
+
+#define PORTMGR_SM_LOG(level) TYPED_LOG(level, "[SM]")
+
 #define SW_PORT_LOG(level, logType, portName, portId)  \
   XLOG(level) << logType << " [portName: " << portName \
               << ", portId: " << portId << "]: "
@@ -43,6 +47,8 @@ class PortManager {
   using PortStateMachineUpdate = TypedStateMachineUpdate<PortStateMachineEvent>;
   using BlockingPortStateMachineUpdate =
       BlockingStateMachineUpdate<PortStateMachineEvent>;
+  using BlockingStateUpdateResultList =
+      std::vector<std::shared_ptr<BlockingStateMachineUpdateResult>>;
 
  public:
   explicit PortManager(
@@ -286,6 +292,27 @@ class PortManager {
   void updateTransceiverPortStatus() noexcept;
 
   void restoreAgentConfigAppliedInfo();
+
+  // All Functions Required for Updating State Machines
+  void waitForAllBlockingStateUpdateDone(
+      const BlockingStateUpdateResultList& results);
+  void updateStateBlocking(PortID id, PortStateMachineEvent event);
+  std::shared_ptr<BlockingStateMachineUpdateResult>
+  updateStateBlockingWithoutWait(PortID id, PortStateMachineEvent event);
+  std::shared_ptr<BlockingStateMachineUpdateResult>
+  enqueueStateUpdateForPortWithoutExecuting(
+      PortID id,
+      PortStateMachineEvent event);
+  bool updateState(
+      const PortID& portID,
+      std::unique_ptr<PortStateMachineUpdate> update);
+  bool enqueueStateUpdate(
+      const PortID& portID,
+      std::unique_ptr<PortStateMachineUpdate> update);
+  void executeStateUpdates();
+
+  static void handlePendingUpdatesHelper(PortManager* mgr);
+  void handlePendingUpdates();
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
