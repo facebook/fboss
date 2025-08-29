@@ -98,9 +98,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const NextHopGroupIds& newMergeSet,
       GroupIds2ConsolidationInfoItr mitr,
       const NextHopGroupIds& toIgnore);
-  void nextHopGroupDeleted(NextHopGroupId groupId);
   bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
-  bool pruneFromMergedGroups(const NextHopGroupIds& groupIds);
   template <typename AddrT>
   bool routeFwdEqual(
       const std::shared_ptr<Route<AddrT>>& oldRoute,

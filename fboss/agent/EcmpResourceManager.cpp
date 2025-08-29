@@ -1347,25 +1347,10 @@ void EcmpResourceManager::routeDeleted(
   }
 }
 
-void EcmpResourceManager::nextHopGroupDeleted(NextHopGroupId groupId) {
-  if (candidateMergeGroups_.empty() && mergedGroups_.empty()) {
-    return;
-  }
-  if (!pruneFromCandidateMerges({groupId})) {
-    CHECK(pruneFromMergedGroups({groupId}));
-  }
-}
-
 bool EcmpResourceManager::pruneFromCandidateMerges(
     const NextHopGroupIds& groupIds) {
   XLOG(DBG2) << " Pruning from candidate merges: " << groupIds;
   return pruneFromMergeGroupsImpl(groupIds, candidateMergeGroups_);
-}
-
-bool EcmpResourceManager::pruneFromMergedGroups(
-    const NextHopGroupIds& groupIds) {
-  XLOG(DBG2) << " Pruning from  merged groups: " << groupIds;
-  return pruneFromMergeGroupsImpl(groupIds, mergedGroups_);
 }
 
 void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
