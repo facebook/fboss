@@ -27,6 +27,7 @@ std::set<cfg::StreamType> BroadcomXgsAsic::getQueueStreamTypes(
     case cfg::PortType::FABRIC_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
       break;
   }
   throw FbossError(

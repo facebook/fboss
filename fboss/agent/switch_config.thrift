@@ -1092,6 +1092,7 @@ enum PortType {
   RECYCLE_PORT = 3,
   MANAGEMENT_PORT = 4,
   EVENTOR_PORT = 5,
+  HYPER_PORT = 6,
 }
 
 struct PortNeighbor {

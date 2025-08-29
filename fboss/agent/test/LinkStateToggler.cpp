@@ -98,6 +98,7 @@ bool skipTogglingPort(const cfg::Port& port, const std::string& myHostName) {
     case cfg::PortType::CPU_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
       return true;
     case cfg::PortType::MANAGEMENT_PORT:
       return false;

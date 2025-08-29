@@ -257,6 +257,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
         case cfg::PortType::CPU_PORT:
+        case cfg::PortType::HYPER_PORT:
           break;
       }
     } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {

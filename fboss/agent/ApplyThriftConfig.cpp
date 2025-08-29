@@ -1590,6 +1590,7 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
         case cfg::PortType::INTERFACE_PORT:
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
+        case cfg::PortType::HYPER_PORT:
         case cfg::PortType::MANAGEMENT_PORT: {
           auto interfaceID = getSystemPortID(
               portID,

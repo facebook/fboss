@@ -562,6 +562,7 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
       if (isDualStage3Q2QMode()) {
         return QueueConfigAndName{"2VoqConfig", get2VoqCfg()};
       }

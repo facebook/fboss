@@ -66,6 +66,12 @@ sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
 #else
       throw FbossError("RECYCLE_PORT is not supported");
 #endif
+    case cfg::PortType::HYPER_PORT:
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+      return SAI_PORT_TYPE_HYPERPORT;
+#else
+      throw FbossError("HYPER_PORT is not supported");
+#endif
   }
 
   throw FbossError(

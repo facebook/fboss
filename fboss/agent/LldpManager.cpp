@@ -185,6 +185,7 @@ void LldpManager::sendLldpOnAllPorts() {
         case cfg::PortType::CPU_PORT:
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
+        case cfg::PortType::HYPER_PORT:
           break;
       }
       if (sendLldp && port->isPortUp()) {
