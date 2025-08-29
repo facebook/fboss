@@ -1744,6 +1744,16 @@ void EcmpResourceManager::computeCandidateMergesForNewUnmergedGroups(
   }
 }
 
+void EcmpResourceManager::computeCandidateMergesForNewMergedGroup(
+    const NextHopGroupIds& newMergeSet) {
+  for (auto grpToMergeWith : getUnMergedGids()) {
+    NextHopGroupIds candidateMerge{newMergeSet};
+    candidateMerge.insert(grpToMergeWith);
+    DCHECK(!mergedGroups_.contains(candidateMerge));
+    addCandidateMerge(candidateMerge);
+  }
+}
+
 void EcmpResourceManager::addCandidateMerge(
     const NextHopGroupIds& candidateMerge) {
   auto consolidationInfo = computeConsolidationInfo(candidateMerge);
