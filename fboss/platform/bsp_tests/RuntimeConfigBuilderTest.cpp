@@ -288,4 +288,36 @@ TEST_F(RuntimeConfigBuilderTest, BuildConfigsForAllRealPlatforms) {
   }
 }
 
+// Test that hyphens in kmod names are replaced with underscores
+TEST_F(RuntimeConfigBuilderTest, KmodNamesHyphenReplacement) {
+  // Create a minimal BspTestsConfig
+  bsp_tests::BspTestsConfig testConfig;
+  testConfig.testData() = std::map<std::string, DeviceTestData>();
+
+  // Create kmods with hyphenated names
+  BspKmodsFile kmods;
+  std::vector<std::string> kmodNames = {
+      "test-kmod-1", "another-hyphenated-kmod", "no_hyphens_here"};
+  kmods.bspKmods() = kmodNames;
+
+  // Store original kmod names for verification
+  std::vector<std::string> originalKmodNames = kmodNames;
+
+  // Build the runtime config
+  auto runtimeConfig =
+      builder_->buildRuntimeConfig(testConfig, pmConfig_, kmods, "sample");
+
+  // Verify that hyphens in kmod names have been replaced with underscores
+  // We need to check the kmods in the returned RuntimeConfig object
+  const auto& modifiedKmods = *runtimeConfig.kmods()->bspKmods();
+  ASSERT_EQ(modifiedKmods.size(), originalKmodNames.size());
+
+  for (size_t i = 0; i < modifiedKmods.size(); i++) {
+    std::string expected = originalKmodNames[i];
+    std::replace(expected.begin(), expected.end(), '-', '_');
+    EXPECT_EQ(modifiedKmods[i], expected)
+        << "Expected kmod name " << expected << ", got: " << modifiedKmods[i];
+  }
+}
+
 } // namespace facebook::fboss::platform::bsp_tests
