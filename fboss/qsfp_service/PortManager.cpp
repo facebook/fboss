@@ -1,7 +1,27 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "fboss/qsfp_service/PortManager.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
+namespace {
+TcvrToPortMap getTcvrToPortMap(
+    const std::shared_ptr<const PlatformMapping> platformMapping) {
+  if (!platformMapping) {
+    return {};
+  }
+  return utility::getTcvrToPortMap(
+      platformMapping->getPlatformPorts(), platformMapping->getChips());
+}
+
+PortToTcvrMap getPortToTcvrMap(
+    const std::shared_ptr<const PlatformMapping> platformMapping) {
+  if (!platformMapping) {
+    return {};
+  }
+  return utility::getPortToTcvrMap(
+      platformMapping->getPlatformPorts(), platformMapping->getChips());
+}
+} // namespace
 
 PortManager::PortManager(
     TransceiverManager* transceiverManager,
@@ -12,7 +32,9 @@ PortManager::PortManager(
     : platformMapping_(platformMapping),
       transceiverManager_(transceiverManager),
       phyManager_(phyManager),
-      threads_(threads) {}
+      threads_(threads),
+      tcvrToPortMap_(getTcvrToPortMap(platformMapping_)),
+      portToTcvrMap_(getPortToTcvrMap(platformMapping_)) {}
 
 PortManager::~PortManager() {}
 
@@ -81,6 +103,45 @@ const std::string PortManager::getPortName(TransceiverID tcvrId) const {
 
 PortStateMachineState PortManager::getPortState(PortID portId) const {
   return PortStateMachineState::UNINITIALIZED;
+}
+
+PortID PortManager::getLowestIndexedPortForTransceiverPortGroup(
+    PortID portId) const {
+  TransceiverID tcvrId = getLowestIndexedTransceiverForPort(portId);
+
+  // Find lowest indexed port assigned to the above transceiver.
+  auto tcvrToPortMapItr = tcvrToPortMap_.find(tcvrId);
+  if (tcvrToPortMapItr == tcvrToPortMap_.end() ||
+      tcvrToPortMapItr->second.size() == 0) {
+    throw FbossError("No ports found for transceiver ", tcvrId);
+  }
+  return tcvrToPortMapItr->second.at(0);
+}
+
+TransceiverID PortManager::getLowestIndexedTransceiverForPort(
+    PortID portId) const {
+  auto portToTcvrMapItr = portToTcvrMap_.find(portId);
+  if (portToTcvrMapItr == portToTcvrMap_.end() ||
+      portToTcvrMapItr->second.size() == 0) {
+    throw FbossError("No transceiver found for port ", portId);
+  }
+
+  return portToTcvrMapItr->second.at(0);
+}
+
+bool PortManager::isLowestIndexedPortForTransceiverPortGroup(
+    PortID portId) const {
+  return portId == getLowestIndexedPortForTransceiverPortGroup(portId);
+}
+
+std::vector<TransceiverID> PortManager::getTransceiverIdsForPort(
+    PortID portId) const {
+  auto portToTcvrMapItr = portToTcvrMap_.find(portId);
+  if (portToTcvrMapItr == portToTcvrMap_.end() ||
+      portToTcvrMapItr->second.size() == 0) {
+    throw FbossError("No transceiver found for port ", portId);
+  }
+  return portToTcvrMapItr->second;
 }
 
 TransceiverStateMachineState PortManager::getTransceiverState(

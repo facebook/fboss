@@ -17,6 +17,13 @@
 namespace {
 using namespace facebook::fboss;
 static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
+    k1PortProfilesInGroup = {
+        {0,
+         {
+             cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL,
+         }}};
+
+static const std::unordered_map<int, std::vector<cfg::PortProfileID>>
     k4PortProfilesInGroup = {
         {0,
          {
@@ -265,8 +272,18 @@ std::vector<cfg::PlatformPortEntry>
 FakeTestPlatformMapping::getPlatformPortEntriesByGroup(
     int groupID,
     int portsPerSlot) {
-  auto kPortProfilesInGroup =
-      portsPerSlot == 8 ? k8PortProfilesInGroup : k4PortProfilesInGroup;
+  std::unordered_map<int, std::vector<cfg::PortProfileID>> kPortProfilesInGroup;
+  switch (portsPerSlot) {
+    case 8:
+      kPortProfilesInGroup = k8PortProfilesInGroup;
+      break;
+    case 1:
+      kPortProfilesInGroup = k1PortProfilesInGroup;
+      break;
+    default:
+      kPortProfilesInGroup = k4PortProfilesInGroup;
+  }
+
   std::vector<cfg::PlatformPortEntry> platformPortEntries;
   for (auto& portProfiles : kPortProfilesInGroup) {
     int portID = controllingPortIds_.at(groupID) + portProfiles.first;

@@ -259,6 +259,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/lib/config:fboss_config_utils",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
     ],
     exported_external_deps = [

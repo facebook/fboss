@@ -140,3 +140,14 @@ cpp_library(
         "//fboss/qsfp_service:slot-thread-helper",
     ],
 )
+
+cpp_unittest(
+    name = "port_manager_test",
+    srcs = ["PortManagerTest.cpp"],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":mock_manager_constructor_args",
+        "//fboss/qsfp_service:port-manager",
+        "//folly/testing:test_util",
+    ],
+)

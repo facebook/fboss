@@ -126,6 +126,34 @@ class PortManager {
 
   TransceiverStateMachineState getTransceiverState(TransceiverID tcvrId) const;
 
+  /*
+   * This function is used to find the port (and port state machine) responsible
+   * for driving programming functions that require all ports assigned to a
+   * transceiver (e.g. programInternalPhyPorts).
+   *
+   * For 1:1 tcvr:port case, this will simply return the passed in portID.
+   * For 1:X tcvr:port case, this will return the lowest portID assigned to the
+   * transceiver.
+   * For X:1 tcvr:port case, this will simply return the passed in portID.
+   */
+  PortID getLowestIndexedPortForTransceiverPortGroup(PortID portId) const;
+
+  /* Gets lowest-indexed transceiverID associated with a given portID. This is
+   * used for assigning port state machine functions to a thread for execution.
+   *
+   * For 1:1 tcvr:port case, this will return the assigned transceiverID.
+   * For 1:X tcvr:port case, this will return the assigned transceiverID.
+   * For X:1 tcvr:port case, this will return the lowest transceiverID assigned
+   * to the port.
+   */
+  TransceiverID getLowestIndexedTransceiverForPort(PortID portId) const;
+
+  bool isLowestIndexedPortForTransceiverPortGroup(PortID portId) const;
+
+  // Gets all transceiverIDs for a given port. This will contain 2 transceivers
+  // in the multi-tcvr - single-port use case, otherwise will contain 1.
+  std::vector<TransceiverID> getTransceiverIdsForPort(PortID portId) const;
+
   void programInternalPhyPorts(TransceiverID id);
 
   void programExternalPhyPort(PortID portId, bool xphyNeedResetDataPath);
@@ -289,6 +317,9 @@ class PortManager {
 
   const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
       threads_;
+
+  const TcvrToPortMap tcvrToPortMap_;
+  const PortToTcvrMap portToTcvrMap_;
 };
 
 } // namespace facebook::fboss
