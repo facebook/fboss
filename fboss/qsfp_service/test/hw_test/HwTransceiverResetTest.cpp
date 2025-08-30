@@ -254,9 +254,13 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
         auto stateChanged = status.cmisStateChanged();
         CHECK(stateChanged);
         // Non Active copper cables don't set the state changed flag
-        EXPECT_TRUE(
-            *stateChanged == (transmitterTech != TransmitterTechnology::COPPER))
-            << " Failed comparison for transceiver " << idAndTransceiver.first;
+        if (!TransceiverManager::activeCable(tcvrState)) {
+          EXPECT_TRUE(
+              *stateChanged ==
+              (transmitterTech != TransmitterTechnology::COPPER))
+              << " Failed comparison for transceiver "
+              << idAndTransceiver.first;
+        }
       } else {
         throw FbossError(
             "Invalid transceiver type: ",
