@@ -243,4 +243,30 @@ TEST_F(PortManagerTest, portNameIdMappingConsistency) {
   }
 }
 
+TEST_F(PortManagerTest, testSetupPortNameToPortIDMapWithNullPlatformMapping) {
+  // Attempt to create PortManager with null platform mapping
+  ASSERT_THROW(
+      std::make_unique<PortManager>(
+          transceiverManager_.get(),
+          nullptr /* phyManager */,
+          nullptr /* platformMapping */,
+          nullptr /* threads */),
+      FbossError);
+}
+
+TEST_F(PortManagerTest, testGetPortNameByPortIdOrThrowWithInvalidId) {
+  // Initialize with default settings
+  initManagers(4);
+
+  // Try to get port name for an invalid port ID
+  // This should throw since the port ID doesn't exist
+  ASSERT_THROW(
+      portManager_->getPortNameByPortIdOrThrow(PortID(999)), FbossError)
+      << "Should throw FbossError for invalid port ID";
+
+  // Verify valid port IDs still work
+  ASSERT_NO_THROW(portManager_->getPortNameByPortIdOrThrow(PortID(1)));
+  ASSERT_NO_THROW(portManager_->getPortNameByPortIdOrThrow(PortID(3)));
+}
+
 } // namespace facebook::fboss
