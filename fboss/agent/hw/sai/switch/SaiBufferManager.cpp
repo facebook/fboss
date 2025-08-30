@@ -588,7 +588,7 @@ template <typename BufferProfileTraits>
 BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     typename BufferProfileTraits::Attributes::PoolId pool,
     const PortQueue& queue,
-    cfg::PortType /*type*/) const {
+    cfg::PortType portType) const {
   std::optional<typename BufferProfileTraits::Attributes::ReservedBytes>
       reservedBytes;
   if (queue.getReservedBytes()) {
@@ -642,6 +642,14 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     std::optional<
         typename BufferProfileTraits::Attributes::SharedStaticThreshold>
         staticThresh{*queue.getSharedBytes()};
+#if defined(BRCM_SAI_SDK_GTE_11_0) && not defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+    // TODO(maxgg): Temp workaround for CS00012420573
+    if (platform_->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+        portType == cfg::PortType::INTERFACE_PORT) {
+      *staticThresh = staticThresh.value().value() * 2;
+    }
+#endif
     return typename BufferProfileTraits::CreateAttributes{
         pool,
         reservedBytes,
@@ -826,6 +834,13 @@ SaiBufferManager::ingressProfileCreateAttrs(
     std::optional<
         typename BufferProfileTraits::Attributes::SharedStaticThreshold>
         staticThresh{*config.staticLimitBytes()};
+#if defined(BRCM_SAI_SDK_GTE_11_0) && not defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+    // TODO(maxgg): Temp workaround for CS00012420573
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      *staticThresh = staticThresh.value().value() * 2;
+    }
+#endif
 
     return typename BufferProfileTraits::CreateAttributes{
         pool,
