@@ -203,6 +203,38 @@ The "rpmbuild" directory must have a file named `<vendor\>\_bsp_kmods.spec` whic
 an rpm spec file. This spec file should result in an rpm that conforms to the
 rest of the specifications in this document
 
+### 4.2 RPM Package Installation Requirements
+
+The BSP RPM must install files to specific locations for proper integration with
+the FBOSS platform management system.
+
+#### 4.2.1 Kernel Module Installation
+
+Kernel modules must be installed in the standard kernel module path:
+
+```
+/lib/modules/<kernel-version>/extra/
+```
+
+This ensures proper integration with the Linux kernel module loading system and
+allows `depmod` to correctly resolve module dependencies.
+
+#### 4.2.2 BSP Utility Files Installation
+
+The BSP utility files must be installed in a vendor-specific directory structure:
+
+```
+/usr/local/<vendor>_bsp/<kernel-version>/kmods.json
+/usr/local/<vendor>_bsp/<kernel-version>/fbsp-remove.sh
+```
+
+Where:
+- `<vendor>` is extracted from the RPM name
+- `<kernel-version>` is the target kernel version (e.g., "6.4.3-0_fbk1_755_ga25447393a1d")
+
+The Platform Manager uses this path structure to locate and manage BSP components
+during installation, upgrade, and removal operations.
+
 ## 5. The PCIe FPGA Driver
 
 Most I/O (I2C, SPI, etc) Controllers are provided by the PCIe FPGA in the FBOSS
