@@ -328,6 +328,7 @@ TEST(ConfigValidatorTest, Symlink) {
   EXPECT_TRUE(ConfigValidator().isValidSymlink("/run/devmap/eeproms/EEPROM"));
   EXPECT_TRUE(ConfigValidator().isValidSymlink("/run/devmap/sensors/sensor1"));
   EXPECT_TRUE(ConfigValidator().isValidSymlink("/run/devmap/i2c-busses/bus"));
+  EXPECT_TRUE(ConfigValidator().isValidSymlink("/run/devmap/mdio-busses/bus"));
 }
 
 TEST(ConfigValidatorTest, DevicePath) {
