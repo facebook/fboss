@@ -143,6 +143,7 @@ std::string HwSwitch::getDebugDump() const {
       folly::test::TemporaryDirectory::Scope::PERMANENT);
   auto fname = tmpDir.path().string() + "/hw_debug_dump";
   dumpDebugState(fname);
+  XLOG(DBG0) << "Dumped debug state to " << fname;
   std::string out;
   if (!folly::readFile(fname.c_str(), out)) {
     throw FbossError("Unable get debug dump");

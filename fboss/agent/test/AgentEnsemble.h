@@ -377,6 +377,8 @@ class AgentEnsemble : public TestEnsembleIf {
       const PortID& portId,
       const std::string& regex);
 
+  std::string getHwDebugDump();
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

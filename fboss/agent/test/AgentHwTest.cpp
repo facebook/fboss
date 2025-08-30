@@ -20,6 +20,11 @@ DEFINE_bool(
     false,
     "Used by certain tests where we don't want to bring up ports by toggler");
 
+DEFINE_bool(
+    enable_sdk_dump_on_fail,
+    false,
+    "generate sdk debug dump on failure");
+
 namespace {
 int kArgc;
 char** kArgv;
@@ -112,6 +117,10 @@ void AgentHwTest::TearDown() {
   if (FLAGS_run_forever ||
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
+  }
+  if (FLAGS_enable_sdk_dump_on_fail &&
+      (testing::Test::HasFatalFailure() || testing::Test::HasFailure())) {
+    agentEnsemble_->getHwDebugDump();
   }
   tearDownAgentEnsemble();
 }

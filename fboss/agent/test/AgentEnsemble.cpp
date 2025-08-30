@@ -846,4 +846,10 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303RegexCounters(
   return counters;
 }
 
+std::string AgentEnsemble::getHwDebugDump() {
+  std::string out{};
+  ThriftHandler(getSw()).getHwDebugDump(out);
+  return out;
+}
+
 } // namespace facebook::fboss
