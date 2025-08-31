@@ -628,6 +628,17 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::MACSEC) &&
       portProfileConfig.interPacketGapBits().has_value()) {
     interFrameGap = *portProfileConfig.interPacketGapBits();
+    XLOG(DBG2) << "Setting interFrameGap from platformMapping for port "
+               << swPort->getID()
+               << " to value: " << *portProfileConfig.interPacketGapBits();
+  }
+  // If interpacket gaps bits are set in switch state, overwrite interFrameGap
+  // value
+  if (swPort->getInterPacketGapBits().has_value()) {
+    interFrameGap = *swPort->getInterPacketGapBits();
+    XLOG(DBG2) << "Setting interFrameGap from switchState for port "
+               << swPort->getID()
+               << " to value: " << *swPort->getInterPacketGapBits();
   }
 #endif
   std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>
