@@ -1118,3 +1118,68 @@ TEST(Port, portErrors) {
     }
   }
 }
+
+// Test interPacketGapBits configuration: default value, config changes,
+// getter/setter methods, and serialization/deserialization
+TEST(Port, interPacketGapBitsConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto changeAndVerifyInterPacketGapBits =
+      [](std::unique_ptr<MockPlatform>& platform,
+         std::shared_ptr<SwitchState>& state,
+         std::optional<int32_t> newInterPacketGapBits) {
+        auto oldInterPacketGapBits =
+            state->getPorts()->getNodeIf(PortID(1))->getInterPacketGapBits();
+        cfg::SwitchConfig config;
+        config.ports()->resize(1);
+        preparedMockPortConfig(
+            config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+        if (newInterPacketGapBits.has_value()) {
+          config.ports()[0].interPacketGapBits() =
+              newInterPacketGapBits.value();
+        }
+        auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+        if (oldInterPacketGapBits != newInterPacketGapBits) {
+          EXPECT_NE(nullptr, newState);
+          state = newState;
+          auto portInterPacketGapBits =
+              state->getPorts()->getNodeIf(PortID(1))->getInterPacketGapBits();
+          EXPECT_EQ(portInterPacketGapBits, newInterPacketGapBits);
+        } else {
+          EXPECT_EQ(nullptr, newState);
+        }
+      };
+
+  // Verify the default interPacketGapBits is nullopt
+  EXPECT_EQ(
+      std::nullopt,
+      state->getPorts()->getNodeIf(PortID(1))->getInterPacketGapBits());
+
+  // Test setting various values and verify changes are properly configured
+  changeAndVerifyInterPacketGapBits(platform, state, 96);
+  changeAndVerifyInterPacketGapBits(platform, state, 64);
+  changeAndVerifyInterPacketGapBits(platform, state, 128);
+  changeAndVerifyInterPacketGapBits(platform, state, std::nullopt);
+
+  // Test direct getter/setter methods
+  auto port = state->getPorts()->getNodeIf(PortID(1));
+  auto newPort = port->clone();
+
+  // Test setting a value
+  newPort->setInterPacketGapBits(96);
+  EXPECT_TRUE(newPort->getInterPacketGapBits().has_value());
+  EXPECT_EQ(newPort->getInterPacketGapBits().value(), 96);
+
+  // Test setting nullopt
+  newPort->setInterPacketGapBits(std::nullopt);
+  EXPECT_FALSE(newPort->getInterPacketGapBits().has_value());
+
+  // Test serialization/deserialization
+  newPort->setInterPacketGapBits(64);
+  auto serializedPort = std::make_shared<Port>(newPort->toThrift());
+  EXPECT_TRUE(serializedPort->getInterPacketGapBits().has_value());
+  EXPECT_EQ(serializedPort->getInterPacketGapBits().value(), 64);
+}
