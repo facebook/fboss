@@ -148,6 +148,8 @@ struct PortFields {
   // errored cells from making it to the forwarding pipeline.
   58: optional bool fecErrorDetectEnable;
   59: optional bool desiredSelfHealingECMPLagEnable;
+  // Inter-packet gap in bits for this port
+  60: optional i32 interPacketGapBits;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
