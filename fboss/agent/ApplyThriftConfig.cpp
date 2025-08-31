@@ -2649,7 +2649,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->selfHealingECMPLagEnable().value_or(false) ==
           orig->getDesiredSelfHealingECMPLagEnable().value_or(false) &&
       portConf->fecErrorDetectEnable().value_or(false) ==
-          orig->getFecErrorDetectEnable().value_or(false)) {
+          orig->getFecErrorDetectEnable().value_or(false) &&
+      portConf->interPacketGapBits().value_or(0) ==
+          orig->getInterPacketGapBits().value_or(0)) {
     return nullptr;
   }
 
@@ -2710,6 +2712,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setFecErrorDetectEnable(portConf->fecErrorDetectEnable().value());
   } else {
     newPort->setFecErrorDetectEnable(std::nullopt);
+  }
+  if (portConf->interPacketGapBits().has_value()) {
+    newPort->setInterPacketGapBits(portConf->interPacketGapBits().value());
+  } else {
+    newPort->setInterPacketGapBits(std::nullopt);
   }
   return newPort;
 }
