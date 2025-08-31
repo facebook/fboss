@@ -801,6 +801,24 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  /** @brief Get inter-packet gap state bits */
+  std::optional<int32_t> getInterPacketGapBits() const {
+    if (auto interPacketGapBits =
+            cref<switch_state_tags::interPacketGapBits>()) {
+      return interPacketGapBits->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set inter-packet gap state bits */
+  void setInterPacketGapBits(std::optional<int32_t> interPacketGapBits) {
+    if (!interPacketGapBits.has_value()) {
+      ref<switch_state_tags::interPacketGapBits>().reset();
+    } else {
+      set<switch_state_tags::interPacketGapBits>(interPacketGapBits.value());
+    }
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();
