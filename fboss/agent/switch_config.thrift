@@ -1286,6 +1286,11 @@ struct Port {
    * errored cells from making it to the forwarding pipeline.
    */
   35: optional bool fecErrorDetectEnable;
+
+  /*
+   * Inter-packet gap configuration in bits.
+   */
+  36: optional i32 interPacketGapBits;
 }
 
 enum LacpPortRate {
