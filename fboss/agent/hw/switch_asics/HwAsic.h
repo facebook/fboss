@@ -397,6 +397,11 @@ class HwAsic {
     return std::nullopt;
   }
 
+  // Set this if NDP/ARP uses a single unified neighbor table
+  virtual std::optional<uint32_t> getMaxUnifiedNeighborTableSize() const {
+    return std::nullopt;
+  }
+
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(
