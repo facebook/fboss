@@ -224,6 +224,11 @@ DEFINE_int32(
     "Maximum ARP entries supported by Resource Accountant");
 
 DEFINE_bool(
+    enforce_resource_hw_limits,
+    true,
+    "Weather to cap the configured maximum entries to the harwdware limit by Resource Accountant");
+
+DEFINE_bool(
     fw_drained_unrecoverable_error,
     false,
     "Enable or disable whether firmware drained(isolation) can be unrecoverable error");

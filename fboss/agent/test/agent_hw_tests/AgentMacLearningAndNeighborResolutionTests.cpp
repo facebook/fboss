@@ -515,6 +515,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     FLAGS_enable_hw_update_protection = true;
     // set max neighbor resource percentage to 200% to bypass resourceAccountant
     // check
+    FLAGS_enforce_resource_hw_limits = false;
     FLAGS_neighbhor_resource_percentage = 200;
     FLAGS_max_ndp_entries = 9000;
   }
