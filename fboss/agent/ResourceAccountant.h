@@ -59,7 +59,13 @@ class ResourceAccountant {
 
   bool checkAndUpdateRouteResource(bool add);
 
+  bool checkNeighborResource();
+
   bool l2StateChangedImpl(const StateDelta& delta);
+
+  template <typename TableT>
+  void neighborStateChangedImpl(const StateDelta& delta);
+
   template <typename TableT>
   bool checkNeighborResource(
       SwitchID switchId,
@@ -68,19 +74,14 @@ class ResourceAccountant {
   template <typename TableT>
   bool shouldCheckNeighborUpdate(SwitchID switchId);
   template <typename TableT>
-  bool neighborStateChangedImpl(const StateDelta& delta);
-  std::optional<uint32_t> getMaxNdpTableSize(
+  std::optional<uint32_t> getMaxAsicNeighborTableSize(
       SwitchID switchId,
       uint8_t resourcePercentage);
-  std::optional<uint32_t> getMaxArpTableSize(
-      SwitchID switchId,
-      uint8_t resourcePercentage);
-  template <typename TableT>
-  std::optional<uint32_t> getMaxNeighborTableSize(
-      SwitchID switchId,
+  std::optional<uint32_t> getMaxAsicUnifiedNeighborTableSize(
+      const SwitchID& switchId,
       uint8_t resourcePercentage);
   template <typename TableT>
-  uint32_t getMaxNeighborTableSize();
+  uint32_t getMaxConfiguredNeighborTableSize();
   SwitchID getSwitchIdFromNeighborEntry(
       std::shared_ptr<SwitchState> newState,
       const auto& nbrEntry);
@@ -108,6 +109,8 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateGenericEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateArsEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, computeWeightedEcmpMemberCount);
+  FRIEND_TEST(ResourceAccountantTest, checkNeighborResource);
+  FRIEND_TEST(ResourceAccountantTest, getNeighborEntriesMap);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
 };
 } // namespace facebook::fboss

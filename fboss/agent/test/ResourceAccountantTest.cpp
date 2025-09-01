@@ -427,4 +427,49 @@ TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
       totalWeight);
 }
 
+TEST_F(ResourceAccountantTest, checkNeighborResource) {
+  auto asicNdpMax =
+      asicTable_->getHwAsic(SwitchID(0))->getMaxNdpTableSize().value();
+  auto asicArpMax =
+      asicTable_->getHwAsic(SwitchID(0))->getMaxArpTableSize().value();
+  // asicUnifiedNeighborMax is set to <  (asicNdpMax + asicArpMax)  and >
+  // (asicNdpMax or asicArpMax)
+  auto asicUnifiedNeighborMax = asicTable_->getHwAsic(SwitchID(0))
+                                    ->getMaxUnifiedNeighborTableSize()
+                                    .value();
+  auto& ndpEntriesMap =
+      this->resourceAccountant_->getNeighborEntriesMap<NdpTable>();
+  auto& arpEntriesMap =
+      this->resourceAccountant_->getNeighborEntriesMap<ArpTable>();
+
+  // Test with configured max neighbor entries
+  FLAGS_max_ndp_entries = asicNdpMax + 100;
+  FLAGS_max_arp_entries = asicArpMax + 100;
+  FLAGS_enforce_resource_hw_limits = false;
+  ndpEntriesMap.insert_or_assign(SwitchID(0), FLAGS_max_ndp_entries);
+  arpEntriesMap.insert_or_assign(SwitchID(0), FLAGS_max_arp_entries);
+  EXPECT_TRUE(this->resourceAccountant_->checkNeighborResource());
+  ndpEntriesMap.insert_or_assign(SwitchID(0), FLAGS_max_ndp_entries + 1);
+  EXPECT_FALSE(this->resourceAccountant_->checkNeighborResource());
+  ndpEntriesMap.insert_or_assign(SwitchID(0), FLAGS_max_ndp_entries);
+  arpEntriesMap.insert_or_assign(SwitchID(0), FLAGS_max_arp_entries + 1);
+  EXPECT_FALSE(this->resourceAccountant_->checkNeighborResource());
+
+  // check with ASIC limits
+  FLAGS_enforce_resource_hw_limits = true;
+  ndpEntriesMap.insert_or_assign(SwitchID(0), asicNdpMax);
+  arpEntriesMap.insert_or_assign(
+      SwitchID(0), asicUnifiedNeighborMax - asicArpMax);
+  EXPECT_TRUE(this->resourceAccountant_->checkNeighborResource());
+  arpEntriesMap.insert_or_assign(
+      SwitchID(0), asicUnifiedNeighborMax - asicArpMax + 1);
+  EXPECT_FALSE(this->resourceAccountant_->checkNeighborResource());
+  ndpEntriesMap.insert_or_assign(SwitchID(0), asicNdpMax + 1);
+  arpEntriesMap.clear();
+  EXPECT_FALSE(this->resourceAccountant_->checkNeighborResource());
+  arpEntriesMap.insert_or_assign(SwitchID(0), asicArpMax + 1);
+  ndpEntriesMap.clear();
+  EXPECT_FALSE(this->resourceAccountant_->checkNeighborResource());
+}
+
 } // namespace facebook::fboss

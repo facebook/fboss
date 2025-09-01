@@ -406,7 +406,7 @@ bool ResourceAccountant::shouldCheckNeighborUpdate(SwitchID switchId) {
 
 // get total neighbor table size from ASIC
 template <typename TableT>
-std::optional<uint32_t> ResourceAccountant::getMaxNeighborTableSize(
+std::optional<uint32_t> ResourceAccountant::getMaxAsicNeighborTableSize(
     SwitchID switchId,
     uint8_t resourcePercentage) {
   uint32_t size = 0;
@@ -429,9 +429,26 @@ std::optional<uint32_t> ResourceAccountant::getMaxNeighborTableSize(
   return (size * resourcePercentage) / kHundredPercentage;
 }
 
+// get total unified neighbor table size from ASIC
+// unified table is shared by both ARP and NDP tables
+std::optional<uint32_t> ResourceAccountant::getMaxAsicUnifiedNeighborTableSize(
+    const SwitchID& switchId,
+    uint8_t resourcePercentage) {
+  uint32_t size = 0;
+  auto hwAsic = asicTable_->getHwAsicIf(SwitchID(switchId));
+
+  size = hwAsic->getMaxUnifiedNeighborTableSize().has_value()
+      ? hwAsic->getMaxUnifiedNeighborTableSize().value()
+      : 0;
+  if (size == 0) {
+    return std::nullopt;
+  }
+  return (size * resourcePercentage) / kHundredPercentage;
+}
+
 // get max neighbor table size suported by resourceAccountant
 template <typename TableT>
-uint32_t ResourceAccountant::getMaxNeighborTableSize() {
+uint32_t ResourceAccountant::getMaxConfiguredNeighborTableSize() {
   if constexpr (std::is_same_v<TableT, NdpTable>) {
     return FLAGS_max_ndp_entries;
   } else if constexpr (std::is_same_v<TableT, ArpTable>) {
@@ -481,9 +498,7 @@ ResourceAccountant::getNeighborEntriesMap() {
 }
 // calculate new update for neighbor entries from the delta
 template <typename TableT>
-bool ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
-  bool isValidUpdate = true;
-
+void ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
   auto processDelta = [&](const auto& deltaNbr, auto& entriesMap) {
     DeltaFunctions::forEachChanged(
         deltaNbr,
@@ -517,28 +532,80 @@ bool ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
           getNeighborEntriesMap<TableT>());
     }
   }
+}
 
-  // Ensure new state usage does not exceed neighbor_resource_percentage
-  for (const auto& [switchId, count] : getNeighborEntriesMap<TableT>()) {
-    isValidUpdate &= (count <= getMaxNeighborTableSize<TableT>());
-    if (!isValidUpdate) { // log error
-      std::string neighbor;
-      if constexpr (std::is_same_v<TableT, NdpTable>) {
-        neighbor = "Ndp";
-      } else if constexpr (std::is_same_v<TableT, ArpTable>) {
-        neighbor = "Arp";
-      } else { // Invalid resource type
-        throw FbossError("Invalid resource type");
+bool ResourceAccountant::checkNeighborResource() {
+  std::set<SwitchID> allSwitchIds;
+  for (const auto& [switchId, _] : ndpEntriesMap_) {
+    allSwitchIds.insert(switchId);
+  }
+  for (const auto& [switchId, _] : arpEntriesMap_) {
+    allSwitchIds.insert(switchId);
+  }
+
+  // Check each switch ID
+  for (const auto& switchId : allSwitchIds) {
+    auto ndpIt = ndpEntriesMap_.find(switchId);
+    auto arpIt = arpEntriesMap_.find(switchId);
+    uint32_t ndpCount = (ndpIt != ndpEntriesMap_.end()) ? ndpIt->second : 0;
+    uint32_t arpCount = (arpIt != arpEntriesMap_.end()) ? arpIt->second : 0;
+
+    // Check NDP limits
+    if (ndpCount > 0) {
+      auto maxNdpSize = getMaxConfiguredNeighborTableSize<NdpTable>();
+      if (FLAGS_enforce_resource_hw_limits) {
+        auto asicNdpSize =
+            getMaxAsicNeighborTableSize<NdpTable>(switchId, kHundredPercentage);
+        if (asicNdpSize.has_value()) {
+          maxNdpSize = std::min(asicNdpSize.value(), maxNdpSize);
+        }
       }
-      XLOG(ERR) << neighbor
-                << " entries are over the limit for switchId: " << switchId;
-      XLOG(ERR) << neighbor << " entries : " << count
-                << " exceeds the limit: " << getMaxNeighborTableSize<TableT>();
+      if (ndpCount > maxNdpSize) {
+        XLOG(ERR) << "Total NDP entries in new switchState: " << ndpCount
+                  << " exceeds the limit: " << maxNdpSize
+                  << " for switchId: " << switchId;
+        return false;
+      }
+    }
+
+    // Check ARP limits
+    if (arpCount > 0) {
+      auto maxArpSize = getMaxConfiguredNeighborTableSize<ArpTable>();
+      if (FLAGS_enforce_resource_hw_limits) {
+        auto asicArpSize =
+            getMaxAsicNeighborTableSize<ArpTable>(switchId, kHundredPercentage);
+        if (asicArpSize.has_value()) {
+          maxArpSize = std::min(asicArpSize.value(), maxArpSize);
+        }
+      }
+      if (arpCount > maxArpSize) {
+        XLOG(ERR) << "Total ARP entries in new switchState: " << arpCount
+                  << " exceeds the limit: " << maxArpSize
+                  << " for switchId: " << switchId;
+        return false;
+      }
+    }
+
+    // Check unified table limits if enabled and available
+    if (FLAGS_enforce_resource_hw_limits &&
+        getMaxAsicUnifiedNeighborTableSize(switchId, kHundredPercentage)
+            .has_value()) {
+      uint32_t unifiedCount = ndpCount + arpCount;
+      uint32_t maxUnifiedSize =
+          getMaxAsicUnifiedNeighborTableSize(switchId, kHundredPercentage)
+              .value();
+      if (unifiedCount > maxUnifiedSize) {
+        XLOG(ERR) << "Total unified neighbor entries in new switchState: "
+                  << unifiedCount << " exceeds the limit: " << maxUnifiedSize
+                  << " for switchId: " << switchId;
+        return false;
+      }
     }
   }
 
-  return isValidUpdate;
+  return true;
 }
+
 // stateChanged is called when the ResourceAccountant needs to be updated
 void ResourceAccountant::stateChanged(const StateDelta& delta) {
   routeAndEcmpStateChangedImpl(delta);
@@ -556,8 +623,9 @@ bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
 
   if (FLAGS_enable_hw_update_protection) {
     isValidUpdate &= l2StateChangedImpl(delta);
-    isValidUpdate &= neighborStateChangedImpl<NdpTable>(delta);
-    isValidUpdate &= neighborStateChangedImpl<ArpTable>(delta);
+    neighborStateChangedImpl<NdpTable>(delta);
+    neighborStateChangedImpl<ArpTable>(delta);
+    isValidUpdate &= checkNeighborResource();
   }
 
   return isValidUpdate;
