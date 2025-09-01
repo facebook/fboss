@@ -1092,4 +1092,36 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
   tunManager->probedRoutes_.push_back(probedRoute);
 }
 
+/**
+ * Delete probed routes from kernel routing tables.
+ *
+ * Removes default routes (0.0.0.0/0 and ::/0) that were discovered
+ * during kernel probing.
+ */
+void TunManager::deleteProbedRoutes() {
+  XLOG(DBG2) << "Deleting probed routes";
+
+  // First, find all unique table IDs that contain default routes
+  std::unordered_map<int, int> tableToIfIndex;
+
+  for (const auto& probedRoute : probedRoutes_) {
+    // Only process default routes (0.0.0.0/0 and ::/0)
+    if (probedRoute.destination == "0.0.0.0/0" ||
+        probedRoute.destination == "::/0") {
+      tableToIfIndex[probedRoute.tableId] = probedRoute.ifIndex;
+    }
+  }
+
+  // Now call addRemoveRouteTable once per table ID
+  for (const auto& [tableId, ifIndex] : tableToIfIndex) {
+    addRemoveRouteTable(tableId, ifIndex, false, std::nullopt);
+
+    XLOG(DBG2) << "Deleted default routes in table " << tableId
+               << " for ifIndex " << ifIndex;
+  }
+
+  // Clear the probed routes after processing
+  probedRoutes_.clear();
+}
+
 } // namespace facebook::fboss

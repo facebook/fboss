@@ -247,6 +247,14 @@ class TunManager : public StateObserver {
   static void routeProcessor(struct nl_object* obj, void* data);
 
   /**
+   * Delete probed routes from kernel routing tables.
+   *
+   * Removes default routes (0.0.0.0/0 and ::/0) that were discovered
+   * during kernel probing.
+   */
+  void deleteProbedRoutes();
+
+  /**
    * Lookup host for existing Tun interfaces and their addresses.
    */
   virtual void doProbe(std::lock_guard<std::mutex>& mutex);
