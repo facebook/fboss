@@ -164,7 +164,7 @@ class TunManager : public StateObserver {
    * will eventually go out of corresponding switch interface.
    */
   void addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add);
-  void addRemoveRouteTable(
+  virtual void addRemoveRouteTable(
       int tableId,
       int ifIndex,
       bool add,

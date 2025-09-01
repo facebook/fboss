@@ -10,6 +10,7 @@
 #pragma once
 
 #include <gmock/gmock.h>
+#include <optional>
 
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -32,6 +33,13 @@ class MockTunManager : public TunManager {
       bool(std::tuple<InterfaceID, std::shared_ptr<RxPacket>>));
   bool sendPacketToHost(InterfaceID, std::unique_ptr<RxPacket> pkt) override;
   MOCK_METHOD1(doProbe, void(std::lock_guard<std::mutex>&));
+  MOCK_METHOD4(
+      addRemoveRouteTable,
+      void(
+          int tableId,
+          int ifIndex,
+          bool add,
+          std::optional<InterfaceID> ifID));
 };
 
 } // namespace facebook::fboss

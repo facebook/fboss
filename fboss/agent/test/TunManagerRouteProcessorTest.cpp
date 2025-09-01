@@ -28,7 +28,8 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);      \
   FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);      \
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);           \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -80,6 +81,20 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
     // Reset in proper order: sw_ first, then platform_
     sw_.reset();
     platform_.reset();
+  }
+
+  static void addProbedRoute(
+      TunManager* tunMgr,
+      int family,
+      int tableId,
+      const std::string& destination,
+      int ifIndex) {
+    TunManager::ProbedRoute route;
+    route.family = family;
+    route.tableId = tableId;
+    route.destination = destination;
+    route.ifIndex = ifIndex;
+    tunMgr->probedRoutes_.push_back(route);
   }
 
  protected:
@@ -196,7 +211,8 @@ TEST_F(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily) {
  * range [1-253], as table IDs 0, 254, and 255 are reserved by the kernel.
  *
  * This test uses table ID 254 (outside the valid range) and expects that no
- * routes are stored in probedRoutes_, demonstrating proper table ID validation.
+ * routes are stored in probedRoutes_, demonstrating proper table ID
+ * validation.
  */
 TEST_F(TunManagerRouteProcessorTest, SkipInvalidTableId) {
   // Create a route with invalid table ID
@@ -215,6 +231,28 @@ TEST_F(TunManagerRouteProcessorTest, SkipInvalidTableId) {
 
   // Cleanup
   rtnl_route_put(route);
+}
+
+/**
+ * @brief Test deletion of probed IPv4 default routes
+ *
+ * Verifies that deleteProbedRoutes correctly identifies and removes IPv4
+ * default routes (0.0.0.0/0) by calling addRemoveRouteTable with delete flag.
+ */
+TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default) {
+  // Add IPv4 default route to probed routes
+  addProbedRoute(tunMgr_, AF_INET, 100, "0.0.0.0/0", 42);
+
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
+      .Times(1);
+
+  // Call deleteProbedRoutes
+  tunMgr_->deleteProbedRoutes();
+
+  // Verify probed routes are cleared;
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
 }
 
 } // namespace facebook::fboss
