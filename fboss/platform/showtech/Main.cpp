@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
   showtechUtil.printLspciDetails();
   showtechUtil.printPortDetails();
   showtechUtil.printSensorDetails();
+  showtechUtil.printPsuDetails();
   showtechUtil.printI2cDetails();
   return 0;
 }

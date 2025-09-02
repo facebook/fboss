@@ -1,11 +1,13 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/showtech/Utils.h"
+#include "fboss/platform/showtech/PsuHelper.h"
 
 #include <filesystem>
 #include <iostream>
 
 #include <fmt/core.h>
+#include "fboss/lib/i2c/I2cDevIo.h"
 
 using namespace facebook::fboss::platform::showtech_config;
 
@@ -86,7 +88,7 @@ void Utils::printI2cDetails() {
   auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
   std::cout << output << std::endl;
 
-  auto i2cBuses = i2cHelper_.findI2cBuses();
+  auto i2cBuses = i2cHelper_.getI2cBusMap();
   for (const auto& [busNum, busName] : i2cBuses) {
     if (config_.i2cBusIgnore()->contains(busName)) {
       std::cout << fmt::format("Skipping bus `i2c-{} - {}`", busNum, busName)
@@ -94,9 +96,36 @@ void Utils::printI2cDetails() {
       continue;
     }
     auto cmd = fmt::format("time i2cdetect -y {}", busNum);
-    std::cout << fmt::format("##### Running `{}` for {} #####", cmd, busName)
+    std::cout << fmt::format("#### Running `{}` for {} ####", cmd, busName)
               << std::endl;
     std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+  }
+}
+
+void Utils::printPsuDetails() {
+  std::cout << "##### PSU Information #####" << std::endl;
+
+  for (const auto& psuConfig : *config_.psus()) {
+    std::cout << fmt::format(
+                     "#### Power Supply Slot {} Details ####",
+                     *psuConfig.psuSlot())
+              << std::endl;
+
+    auto psuI2cInfo = *psuConfig.scdI2cDeviceConfig();
+    int psuBusNum = i2cHelper_.findI2cBusForScdI2cDevice(
+        *psuI2cInfo.scdPciAddr(), *psuI2cInfo.master(), *psuI2cInfo.bus());
+    if (psuBusNum != -1) {
+      try {
+        PsuHelper psuHelper(psuBusNum, *psuI2cInfo.deviceAddr());
+        psuHelper.dumpRegisters();
+      } catch (const I2cDevIoError& ex) {
+        std::cout << "Error: failed to initialize I2cDevIo for psu: "
+                  << ex.what() << std::endl;
+      }
+    } else {
+      std::cout << "Error: failed to find i2c bus for psu" << std::endl;
+    }
+    std::cout << std::endl;
   }
 }
 
