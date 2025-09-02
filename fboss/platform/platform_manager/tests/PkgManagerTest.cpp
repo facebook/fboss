@@ -393,4 +393,32 @@ TEST_F(PkgManagerTest, ReadKmodsFileFailure) {
 
   EXPECT_THROW(pkgManager_.readKmodsFile(), std::runtime_error);
 }
+
+TEST_F(PkgManagerTest, isValidRpm) {
+  EXPECT_CALL(*mockSystemInterface_, getHostKernelVersion())
+      .WillRepeatedly(Return("6.11.1-0_fbk3_647_gc1af76fcc8cb"));
+
+  // RPM with valide kernel version
+  FLAGS_local_rpm_path =
+      "/path/to/fboss_bsp_kmods-6.11.1-0_fbk3_647_gc1af76fcc8cb-3.3.0-1.x86_64.rpm";
+  EXPECT_TRUE(mockPkgManager_.isValidRpm());
+
+  // RPM with invalid kernel version
+  FLAGS_local_rpm_path =
+      "/path/to/fboss_bsp_kmods-6.11.2-0_fbk3_647_gc1af76fcc8cb-3.3.0-1.x86_64.rpm";
+  EXPECT_FALSE(mockPkgManager_.isValidRpm());
+
+  // Invalid RPM file
+  FLAGS_local_rpm_path =
+      "/path/to/fboss_bsp_kmods-6.11.1-0_fbk3_647_gc1af76fcc8cb-3.3.0-2.x86_64";
+  EXPECT_FALSE(mockPkgManager_.isValidRpm());
+
+  // Invalid file name
+  FLAGS_local_rpm_path = "/path/to/invalid.txt";
+  EXPECT_FALSE(mockPkgManager_.isValidRpm());
+
+  // Empty file name
+  FLAGS_local_rpm_path = "";
+  EXPECT_FALSE(mockPkgManager_.isValidRpm());
+}
 }; // namespace facebook::fboss::platform::platform_manager

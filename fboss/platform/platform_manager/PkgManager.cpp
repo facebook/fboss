@@ -264,8 +264,47 @@ void PkgManager::processRpms() const {
   }
 }
 
+bool PkgManager::isValidRpm() const {
+  // Check kernel version to match BSP rpm's kernel version
+  auto hostKernelVersion = systemInterface_->getHostKernelVersion();
+
+  // Expected format: {bspKmodsRpmName}-{kernelVersion}.rpm
+  // Example: fboss_bsp_kmods-6.11.1-0_fbk3_647_gc1af76fcc8cb.x86_64
+  std::string filename = fs::path(FLAGS_local_rpm_path).filename().string();
+
+  // Check if the file is a RPM file
+  if (filename.ends_with(".rpm")) {
+    filename = filename.substr(0, filename.length() - 4);
+  } else {
+    XLOG(ERR) << fmt::format("Invalid RPM filename: {}", filename);
+    return false;
+  }
+
+  // Does not match the exact kernel version in RPM filename
+  if (filename.find(hostKernelVersion) == std::string::npos) {
+    XLOG(ERR) << fmt::format(
+        "Running kernel version ({}) does not match kernel version in BSP RPM "
+        "filename({})",
+        hostKernelVersion,
+        filename);
+    return false;
+  }
+
+  XLOG(INFO) << fmt::format(
+      "Kernel version verified: Host kernel version ({}) matches "
+      "RPM kernel version ({})",
+      hostKernelVersion,
+      filename);
+  return true;
+}
+
 void PkgManager::processLocalRpms() const {
   uint exitStatus{0};
+
+  if (!isValidRpm()) {
+    throw std::runtime_error(
+        fmt::format("Invalid rpm provided ({})", FLAGS_local_rpm_path));
+  }
   for (auto [success, attempt] = std::pair{false, 0}; attempt < 3 && !success;
        attempt++) {
     XLOG(INFO) << fmt::format(
