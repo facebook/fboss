@@ -381,6 +381,20 @@ std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
 }
 
 std::map<std::string, PortInfoThrift>
+MultiNodeUtil::getActiveFabricPortNameToPortInfo(
+    const std::string& switchName) {
+  std::map<std::string, PortInfoThrift> activeFabricPortNameToPortInfo;
+  for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(switchName)) {
+    if (portInfo.activeState().has_value() &&
+        portInfo.activeState().value() == PortActiveState::ACTIVE) {
+      activeFabricPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
+    }
+  }
+
+  return activeFabricPortNameToPortInfo;
+}
+
+std::map<std::string, PortInfoThrift>
 MultiNodeUtil::getFabricPortNameToPortInfo(const std::string& switchName) {
   std::map<std::string, PortInfoThrift> fabricPortNameToPortInfo;
   for (const auto& [_, portInfo] : getPorts(switchName)) {
