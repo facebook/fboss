@@ -30,7 +30,8 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);  \
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);            \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default);
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default); \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -275,6 +276,30 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default) {
   tunMgr_->deleteProbedRoutes();
 
   // Verify probed routes are cleared;
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+}
+
+/**
+ * @brief Test deletion of probed routes with both IPv4 and IPv6 default routes
+ *
+ * Verifies that deleteProbedRoutes correctly handles multiple routes (both IPv4
+ * and IPv6) but only makes one call to addRemoveRouteTable.
+ */
+TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6) {
+  // Add both IPv4 and IPv6 default routes to probed routes
+  addProbedRoute(tunMgr_, AF_INET, 100, "0.0.0.0/0", 42);
+  addProbedRoute(tunMgr_, AF_INET6, 100, "::/0", 42);
+
+  // Expect only one call to addRemoveRouteTable despite having two routes
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
+      .Times(1);
+
+  // Call deleteProbedRoutes
+  tunMgr_->deleteProbedRoutes();
+
+  // Verify probed routes are cleared
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
 }
 
