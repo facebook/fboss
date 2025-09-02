@@ -759,6 +759,9 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   for (const auto& [_, portInfo] : fabricPortNameToPortInfo) {
     if (portInfo.activeState().has_value() &&
         portInfo.activeState().value() == PortActiveState::ACTIVE) {
+      XLOG(DBG2) << __func__
+                 << " Admin disabling port:: " << portInfo.name().value()
+                 << " portID: " << portInfo.portId().value();
       adminDisablePort(myHostname, portInfo.portId().value());
       // TODO: add validation
     }
@@ -768,6 +771,9 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   for (const auto& [_, portInfo] : fabricPortNameToPortInfo) {
     if (portInfo.activeState().has_value() &&
         portInfo.activeState().value() == PortActiveState::ACTIVE) {
+      XLOG(DBG2) << __func__
+                 << " Admin enabling port:: " << portInfo.name().value()
+                 << " portID: " << portInfo.portId().value();
       adminEnablePort(myHostname, portInfo.portId().value());
       // TODO: add validation
     }
