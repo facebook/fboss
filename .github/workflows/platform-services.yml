@@ -10,10 +10,8 @@ on:
   schedule:
     # Run daily at 1:36AM UTC = 6:36PM PDT
     # Run daily at 1:36PM UTC = 6:36AM PDT
-    # Run daily at 4:36PM UTC = 9:36AM PDT
     # Run daily at 7:36PM UTC = 12:36PM PDT
-    # Run daily at 10:36PM UTC = 3:36PM PDT
-    - cron: '36 1,13,16,19,22 * * *'
+    - cron: '36 1,13,19 * * *'
 jobs:
   Platform-Services-Build:
     runs-on: 32-core-ubuntu
