@@ -1,5 +1,43 @@
 {
   "i2cBusIgnore": [
     "SMBus iSMT adapter at 914c1000"
+  ],
+  "psus": [
+    {
+      "psuSlot": 1,
+      "scdI2cDeviceConfig": {
+        "scdPciAddr": "0000:04:00.0",
+        "deviceAddr": "0x58",
+        "master": 4,
+        "bus": 0
+      }
+    },
+    {
+      "psuSlot": 2,
+      "scdI2cDeviceConfig": {
+        "scdPciAddr": "0000:03:00.0",
+        "deviceAddr": "0x58",
+        "master": 4,
+        "bus": 0
+      }
+    },
+    {
+      "psuSlot": 3,
+      "scdI2cDeviceConfig": {
+        "scdPciAddr": "0000:04:00.0",
+        "deviceAddr": "0x58",
+        "master": 4,
+        "bus": 1
+      }
+    },
+    {
+      "psuSlot": 4,
+      "scdI2cDeviceConfig": {
+        "scdPciAddr": "0000:03:00.0",
+        "deviceAddr": "0x58",
+        "master": 4,
+        "bus": 1
+      }
+    }
   ]
 }
