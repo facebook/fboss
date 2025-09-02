@@ -23,16 +23,17 @@
  * to access private members of TunManager for testing the routeProcessor
  * functionality.
  */
-#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                             \
-  friend class TunManagerRouteProcessorTest;                                \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);       \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);       \
-  FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);  \
-  FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);            \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables);
+#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                                \
+  friend class TunManagerRouteProcessorTest;                                   \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);          \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);          \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);     \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);               \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default);    \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default);    \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6);    \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables); \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -333,6 +334,26 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables) {
   tunMgr_->deleteProbedRoutes();
 
   // Verify probed routes are cleared
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+}
+
+/**
+ * @brief Test deletion of probed routes when no routes exist
+ *
+ * Verifies that deleteProbedRoutes correctly handles the case when there are
+ * no routes in probedRoutes_. Should not make any calls to addRemoveRouteTable.
+ */
+TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList) {
+  // Verify probedRoutes_ starts empty
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+
+  // Expect no calls to addRemoveRouteTable since there are no routes
+  EXPECT_CALL(*tunMgr_, addRemoveRouteTable(_, _, _, _)).Times(0);
+
+  // Call deleteProbedRoutes
+  tunMgr_->deleteProbedRoutes();
+
+  // Verify probedRoutes_ remains empty
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
 }
 
