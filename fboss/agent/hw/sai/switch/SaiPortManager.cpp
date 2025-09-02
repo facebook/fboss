@@ -369,6 +369,18 @@ void fillHwPortStats(
         break;
     }
   }
+#if defined(CHENAB_SAI_SDK)
+  // ingress debug port counter  discards are not natively available
+  // in chenab pipeline this is implemented with internal ACL rule. However
+  // FBOSS assumes inDiscards account for inAclDiscards. Adjusting counter here
+  // accordingly
+  if (auto value = hwPortStats.inAclDiscards_()) {
+    hwPortStats.inDiscardsRaw_() =
+        hwPortStats.inDiscardsRaw_().value() + value.value();
+  }
+  hwPortStats.inDiscardsRaw_() = hwPortStats.inDiscardsRaw_().value() +
+      hwPortStats.inDstNullDiscards_().value();
+#endif
 }
 
 phy::InterfaceType fromSaiInterfaceType(
