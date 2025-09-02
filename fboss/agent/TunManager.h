@@ -196,6 +196,11 @@ class TunManager : public StateObserver {
       InterfaceID ifID,
       const folly::IPAddress& addr,
       bool add);
+  virtual void addRemoveSourceRouteRule(
+      int tableId,
+      const folly::IPAddress& addr,
+      bool add,
+      std::optional<InterfaceID> ifID = std::nullopt);
 
   /**
    * Add/Remove an address to/from a TUN interface on the host

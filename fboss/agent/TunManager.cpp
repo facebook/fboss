@@ -449,6 +449,14 @@ void TunManager::addRemoveSourceRouteRule(
     InterfaceID ifID,
     const folly::IPAddress& addr,
     bool add) {
+  addRemoveSourceRouteRule(getTableId(ifID), addr, add, ifID);
+}
+
+void TunManager::addRemoveSourceRouteRule(
+    int tableId,
+    const folly::IPAddress& addr,
+    bool add,
+    std::optional<InterfaceID> ifID) {
   // We should not add source routing rule for link-local addresses because
   // they can be re-used across interfaces.
   if (addr.isLinkLocal()) {
@@ -463,7 +471,7 @@ void TunManager::addRemoveSourceRouteRule(
   };
 
   rtnl_rule_set_family(rule, addr.family());
-  rtnl_rule_set_table(rule, getTableId(ifID));
+  rtnl_rule_set_table(rule, tableId);
   rtnl_rule_set_action(rule, FR_ACT_TO_TBL);
 
   auto sourceaddr = nl_addr_build(
@@ -490,8 +498,10 @@ void TunManager::addRemoveSourceRouteRule(
   // to delete it again. In that case, we can ignore the error.
   if (!add && (error == -NLE_OBJ_NOTFOUND)) {
     XLOG(WARNING) << "Rule not existing for address " << addr
-                  << " to lookup table " << getTableId(ifID)
-                  << " for interface " << ifID;
+                  << " to lookup table " << tableId
+                  << (ifID.has_value()
+                          ? " for interface " + std::to_string(*ifID)
+                          : "");
   } else {
     nlCheckError(
         error,
@@ -500,12 +510,12 @@ void TunManager::addRemoveSourceRouteRule(
         " rule for address ",
         addr,
         " to lookup table ",
-        getTableId(ifID),
-        " for interface ",
-        ifID);
+        tableId,
+        ifID.has_value() ? " for interface " + std::to_string(*ifID) : "");
     XLOG(DBG2) << (add ? "Added" : "Removed") << " rule for address " << addr
-               << " to lookup table " << getTableId(ifID) << " for interface "
-               << ifID;
+               << " to lookup table " << tableId
+               << (ifID.has_value() ? " for interface " + std::to_string(*ifID)
+                                    : "");
   }
 }
 
