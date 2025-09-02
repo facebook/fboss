@@ -869,15 +869,15 @@ bool MultiNodeUtil::verifyAllSessionsEstablished(
   return checkPassed;
 }
 
-bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
-  auto myHostname = getLocalHostname();
-  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
-  auto activeFabricPortNameToPortInfo =
-      getActiveFabricPortNameToPortInfo(myHostname);
+bool MultiNodeUtil::verifyGracefulFabricLinkDown(
+    const std::string& rdswToVerify,
+    const std::map<std::string, PortInfoThrift>&
+        activeFabricPortNameToPortInfo) {
   CHECK(activeFabricPortNameToPortInfo.size() > 2);
   auto rIter = activeFabricPortNameToPortInfo.rbegin();
   auto lastActivePort = rIter->first;
   auto secondLastActivePort = std::next(rIter)->first;
+  auto baselinePeerToDsfSession = getPeerToDsfSession(rdswToVerify);
 
   // Admin disable all Active fabric ports
   // Verify that all sessions stay established till last port is disabled.
@@ -888,40 +888,68 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
     XLOG(DBG2) << __func__
                << " Admin disabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
-    adminDisablePort(myHostname, portInfo.portId().value());
+    adminDisablePort(rdswToVerify, portInfo.portId().value());
 
     bool checkPassed = true;
     if (portName == lastActivePort) {
-      checkPassed = verifyNoSessionsEstablished(myHostname);
+      checkPassed = verifyNoSessionsEstablished(rdswToVerify);
     } else if (portName == secondLastActivePort) {
       // verify no flaps is expensive.
       // Thus, only verify just before disabling the last port.
       // There is no loss of signal due to this approach as if the sessions
       // flap due to an intermediate port admin disable, it will be detected by
       // this check failure anyway.
-      checkPassed = verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession);
+      checkPassed =
+          verifyNoSessionsFlap(rdswToVerify, baselinePeerToDsfSession);
     }
     if (!checkPassed) {
       return false;
     }
   }
 
+  return true;
+}
+
+bool MultiNodeUtil::verifyGracefulFabricLinkUp(
+    const std::string& rdswToVerify,
+    const std::map<std::string, PortInfoThrift>&
+        activeFabricPortNameToPortInfo) {
+  CHECK(activeFabricPortNameToPortInfo.size() > 2);
   auto firstActivePort = activeFabricPortNameToPortInfo.begin()->first;
+  auto rIter = activeFabricPortNameToPortInfo.rbegin();
+  auto lastActivePort = rIter->first;
   // Admin Re-enable these fabric ports
   for (const auto& [portName, portInfo] : activeFabricPortNameToPortInfo) {
     XLOG(DBG2) << __func__
                << " Admin enabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
-    adminEnablePort(myHostname, portInfo.portId().value());
+    adminEnablePort(rdswToVerify, portInfo.portId().value());
 
     bool checkPassed = true;
     if (portName == firstActivePort || portName == lastActivePort) {
-      checkPassed = verifyAllSessionsEstablished(myHostname);
+      checkPassed = verifyAllSessionsEstablished(rdswToVerify);
     }
 
     if (!checkPassed) {
       return false;
     }
+  }
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
+  auto myHostname = getLocalHostname();
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(myHostname);
+
+  if (!verifyGracefulFabricLinkDown(
+          myHostname, activeFabricPortNameToPortInfo)) {
+    return false;
+  }
+
+  if (!verifyGracefulFabricLinkUp(myHostname, activeFabricPortNameToPortInfo)) {
+    return false;
   }
 
   return true;
