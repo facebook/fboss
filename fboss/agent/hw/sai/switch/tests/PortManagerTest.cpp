@@ -490,6 +490,46 @@ TEST_F(PortManagerTest, swPortFromAttributes) {
   EXPECT_EQ(attrs, portMgr.attributesFromSwPort(newPort));
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+/**
+ * @brief Test that InterFrameGap attribute is set when interpacket gap bits are
+ * configured
+ */
+TEST_F(PortManagerTest, attributesFromSwPortWithInterPacketGap) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto& portMgr = saiManagerTable->portManager();
+
+  // Test with interpacket gap bits set in switch state
+  const uint8_t testInterPacketGapBits = 12;
+  swPort->setInterPacketGapBits(testInterPacketGapBits);
+
+  auto attrs = portMgr.attributesFromSwPort(swPort);
+
+  // Verify that InterFrameGap attribute is set correctly
+  auto interFrameGapAttr =
+      std::get<std::optional<SaiPortTraits::Attributes::InterFrameGap>>(attrs);
+  EXPECT_TRUE(interFrameGapAttr.has_value());
+  EXPECT_EQ(interFrameGapAttr.value().value(), testInterPacketGapBits);
+}
+
+/**
+ * @brief Test that InterFrameGap attribute remains unset when no interpacket
+ * gap bits are configured
+ */
+TEST_F(PortManagerTest, attributesFromSwPortWithoutInterPacketGap) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  auto& portMgr = saiManagerTable->portManager();
+
+  // Test without interpacket gap bits set (should be nullopt)
+  auto attrs = portMgr.attributesFromSwPort(swPort);
+
+  // Verify that InterFrameGap attribute is not set when no interpacket gap bits
+  auto interFrameGapAttr =
+      std::get<std::optional<SaiPortTraits::Attributes::InterFrameGap>>(attrs);
+  EXPECT_FALSE(interFrameGapAttr.has_value());
+}
+#endif
+
 TEST_F(PortManagerTest, togglePtpTcEnable) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
