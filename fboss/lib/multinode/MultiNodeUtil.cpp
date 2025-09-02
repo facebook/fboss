@@ -357,14 +357,9 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> MultiNodeUtil::getPorts(
 
 std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
     const std::string& switchName) {
-  auto ports = getPorts(switchName);
-
   std::set<std::string> activePorts;
-  for (const auto& port : ports) {
-    auto portInfo = port.second;
-
-    if (portInfo.portType().value() == cfg::PortType::FABRIC_PORT &&
-        portInfo.activeState().has_value() &&
+  for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(switchName)) {
+    if (portInfo.activeState().has_value() &&
         portInfo.activeState().value() == PortActiveState::ACTIVE) {
       activePorts.insert(portInfo.name().value());
     }
