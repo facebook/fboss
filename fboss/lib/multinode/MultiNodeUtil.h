@@ -72,6 +72,12 @@ class MultiNodeUtil {
 
   bool verifyFabricReachablityForRdsw(const std::string& rdswToVerify);
 
+  bool verifyNoSessionsFlap(
+      const std::string& rdswToVerify,
+      const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession);
+  bool verifyNoSessionsEstablished(const std::string& rdswToVerify);
+  bool verifyAllSessionsEstablished(const std::string& rdswToVerify);
+
   std::map<int32_t, facebook::fboss::PortInfoThrift> getPorts(
       const std::string& switchName);
   std::set<std::string> getActiveFabricPorts(const std::string& switchName);

@@ -765,109 +765,113 @@ bool MultiNodeUtil::verifyDsfSessions() {
   return true;
 }
 
+bool MultiNodeUtil::verifyNoSessionsFlap(
+    const std::string& rdswToVerify,
+    const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession) {
+  auto checkPassed = true;
+  constexpr auto kMaxRetries = 30;
+
+  auto noSessionFlap =
+      [this, rdswToVerify, baselinePeerToDsfSession]() -> bool {
+    auto currentPeerToDsfSession = getPeerToDsfSession(rdswToVerify);
+    // All entries must be identical i.e.
+    // DSF Session state (ESTABLISHED or not) is the same.
+    // For any session the establishedAt and connnectedAt is the same.
+    return baselinePeerToDsfSession == currentPeerToDsfSession;
+  };
+
+  // TODO define a lib/CommonUtils for EXPECT_EVERY*
+  for (auto retries = 0; retries < kMaxRetries; retries++) {
+    XLOG(DBG2) << "Retry attempt: " << retries;
+
+    if (noSessionFlap()) {
+      // Sleep and retry
+      // It may take several (> 15) seconds for ESTABLISHED => CONNECT.
+      // Thus, keep retrying for several seconds to ensure that the session
+      // stays ESTABLISHED.
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    } else {
+      checkPassed = false;
+      break;
+    }
+  }
+
+  return checkPassed;
+}
+
+bool MultiNodeUtil::verifyNoSessionsEstablished(
+    const std::string& rdswToVerify) {
+  auto checkPassed = false;
+  constexpr auto kMaxRetries = 30;
+
+  auto noSessionsEstablished = [this, rdswToVerify]() -> bool {
+    for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
+      if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // TODO extend lib/CommonUtils checkWithRetry to return bool after retries
+  for (auto retries = 0; retries < kMaxRetries; retries++) {
+    XLOG(DBG2) << "Retry attempt: " << retries;
+
+    if (noSessionsEstablished()) {
+      checkPassed = true;
+      break;
+    } else {
+      // Sleep and retry.
+      // It may take several (> 15) seconds for ESTABLISHED => CONNECT. Thus,
+      // try for several seconds and check if the session transitions to
+      // CONNECT.
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+  }
+
+  return checkPassed;
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyAllSessionsEstablished(
+    const std::string& rdswToVerify) {
+  auto checkPassed = false;
+  constexpr auto kMaxRetries = 30;
+
+  auto allSessionsEstablished = [this, rdswToVerify]() -> bool {
+    for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
+      if (session.state() != facebook::fboss::DsfSessionState::ESTABLISHED) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // TODO extend lib/CommonUtils checkWithRetry to return bool after retries
+  for (auto retries = 0; retries < kMaxRetries; retries++) {
+    XLOG(DBG2) << "Retry attempt: " << retries;
+
+    if (allSessionsEstablished()) {
+      checkPassed = true;
+      break;
+    } else {
+      // Sleep and retry.
+      // It may take several seconds(>15) for ESTABLISHED => CONNECT. Thus,
+      // try for several seconds and check if the session transitions to
+      // ESTABLISHED.
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+  }
+
+  return checkPassed;
+}
+
 bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   auto myHostname = getLocalHostname();
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
-
-  auto verifyNoSessionsFlap =
-      [this, myHostname, baselinePeerToDsfSession]() -> bool {
-    auto checkPassed = true;
-    constexpr auto kMaxRetries = 30;
-
-    auto noSessionFlap =
-        [this, myHostname, baselinePeerToDsfSession]() -> bool {
-      auto currentPeerToDsfSession = getPeerToDsfSession(myHostname);
-      // All entries must be identical i.e.
-      // DSF Session state (ESTABLISHED or not) is the same.
-      // For any session the establishedAt and connnectedAt is the same.
-      return baselinePeerToDsfSession == currentPeerToDsfSession;
-    };
-
-    // TODO define a lib/CommonUtils for EXPECT_EVERY*
-    for (auto retries = 0; retries < kMaxRetries; retries++) {
-      XLOG(DBG2) << "Retry attempt: " << retries;
-
-      if (noSessionFlap()) {
-        // Sleep and retry
-        // It may take several (> 15) seconds for ESTABLISHED => CONNECT.
-        // Thus, keep retrying for several seconds to ensure that the session
-        // stays ESTABLISHED.
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      } else {
-        checkPassed = false;
-        break;
-      }
-    }
-
-    return checkPassed;
-  };
-
-  auto verifyNoSessionsEstablished = [this, myHostname]() -> bool {
-    auto checkPassed = false;
-    constexpr auto kMaxRetries = 30;
-
-    auto noSessionsEstablished = [this, myHostname]() -> bool {
-      for (const auto& [peer, session] : getPeerToDsfSession(myHostname)) {
-        if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
-          return false;
-        }
-      }
-
-      return true;
-    };
-
-    // TODO extend lib/CommonUtils checkWithRetry to return bool after retries
-    for (auto retries = 0; retries < kMaxRetries; retries++) {
-      XLOG(DBG2) << "Retry attempt: " << retries;
-
-      if (noSessionsEstablished()) {
-        checkPassed = true;
-        break;
-      } else {
-        // Sleep and retry.
-        // It may take several (> 15) seconds for ESTABLISHED => CONNECT. Thus,
-        // try for several seconds and check if the session transitions to
-        // CONNECT.
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      }
-    }
-
-    return checkPassed;
-  };
-
-  auto verifyAllSessionsEstablished = [this, myHostname]() -> bool {
-    auto checkPassed = false;
-    constexpr auto kMaxRetries = 30;
-
-    auto allSessionsEstablished = [this, myHostname]() -> bool {
-      for (const auto& [peer, session] : getPeerToDsfSession(myHostname)) {
-        if (session.state() != facebook::fboss::DsfSessionState::ESTABLISHED) {
-          return false;
-        }
-      }
-
-      return true;
-    };
-
-    // TODO extend lib/CommonUtils checkWithRetry to return bool after retries
-    for (auto retries = 0; retries < kMaxRetries; retries++) {
-      XLOG(DBG2) << "Retry attempt: " << retries;
-
-      if (allSessionsEstablished()) {
-        checkPassed = true;
-        break;
-      } else {
-        // Sleep and retry.
-        // It may take several seconds(>15) for ESTABLISHED => CONNECT. Thus,
-        // try for several seconds and check if the session transitions to
-        // ESTABLISHED.
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      }
-    }
-
-    return checkPassed;
-  };
-
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
   CHECK(activeFabricPortNameToPortInfo.size() > 2);
@@ -888,14 +892,14 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
 
     bool checkPassed = true;
     if (portName == lastActivePort) {
-      checkPassed = verifyNoSessionsEstablished();
+      checkPassed = verifyNoSessionsEstablished(myHostname);
     } else if (portName == secondLastActivePort) {
       // verify no flaps is expensive.
       // Thus, only verify just before disabling the last port.
       // There is no loss of signal due to this approach as if the sessions
       // flap due to an intermediate port admin disable, it will be detected by
       // this check failure anyway.
-      checkPassed = verifyNoSessionsFlap();
+      checkPassed = verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession);
     }
     if (!checkPassed) {
       return false;
@@ -912,7 +916,7 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
 
     bool checkPassed = true;
     if (portName == firstActivePort || portName == lastActivePort) {
-      checkPassed = verifyAllSessionsEstablished();
+      checkPassed = verifyAllSessionsEstablished(myHostname);
     }
 
     if (!checkPassed) {
