@@ -9,6 +9,7 @@
 #include "fboss/platform/bsp_tests/BspTestEnvironment.h"
 #include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
 #include "fboss/platform/bsp_tests/utils/CdevUtils.h"
+#include "fboss/platform/bsp_tests/utils/I2CUtils.h"
 #include "fboss/platform/bsp_tests/utils/KmodUtils.h"
 
 namespace facebook::fboss::platform::bsp_tests {
@@ -70,6 +71,13 @@ class BspTest : public ::testing::Test {
           *adapter.pciAdapterInfo()->pciInfo(),
           *adapter.pciAdapterInfo()->auxData(),
           id);
+    }
+  }
+
+  void registerAdaptersForCleanup(
+      const std::vector<CreatedI2CAdapter>& adapters) {
+    for (const auto& createdAdapter : adapters) {
+      registerAdapterForCleanup(createdAdapter.adapter, createdAdapter.id);
     }
   }
 

@@ -157,17 +157,17 @@ TEST_F(I2CTest, I2CAdapterCreatesBusses) {
   int id = 1;
   for (const auto& adapter : adapters) {
     try {
-      auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
-      registerAdapterForCleanup(adapter, id);
+      auto result = I2CUtils::createI2CAdapter(adapter, id);
+      registerAdaptersForCleanup(result.createdAdapters);
       id += 10;
 
       // Check that each bus has a unique name
       std::set<std::string> names;
-      for (const auto& [channel, bus] : newBuses) {
+      for (const auto& [channel, bus] : result.buses) {
         names.insert(bus.name);
       }
 
-      EXPECT_EQ(names.size(), newBuses.size())
+      EXPECT_EQ(names.size(), result.buses.size())
           << "Not all I2C buses on " << *adapter.pmName()
           << "have unique names: " << folly::join(", ", names);
     } catch (const std::exception& e) {
@@ -184,9 +184,10 @@ TEST_F(I2CTest, I2CAdapterDevicesExist) {
   int id = 1;
   for (const auto& adapter : adapters) {
     try {
-      auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
-      registerAdapterForCleanup(adapter, id);
-      id++;
+      auto result = I2CUtils::createI2CAdapter(adapter, id);
+      // Register all created adapters for cleanup
+      registerAdaptersForCleanup(result.createdAdapters);
+      id += result.createdAdapters.size();
 
       // Check each device is detectable
       for (const auto& device : *adapter.i2cDevices()) {
@@ -198,7 +199,7 @@ TEST_F(I2CTest, I2CAdapterDevicesExist) {
           continue;
         }
 
-        int busNum = newBuses.at(*device.channel()).busNum;
+        int busNum = result.buses.at(*device.channel()).busNum;
 
         EXPECT_TRUE(I2CUtils::detectI2CDevice(busNum, *device.address()))
             << "I2C device " << *device.pmName() << " " << *device.address()
@@ -227,10 +228,10 @@ TEST_F(I2CTest, I2CBusWithDevicesCanBeUnloaded) {
     KmodUtils::loadKmods(*runtimeConfig.kmods());
 
     try {
-      auto newBuses = I2CUtils::createI2CAdapter(adapter);
+      auto result = I2CUtils::createI2CAdapter(adapter);
 
       for (const auto& device : *adapter.i2cDevices()) {
-        int busNum = newBuses.at(*device.channel()).busNum;
+        int busNum = result.buses.at(*device.channel()).busNum;
 
         // Check that the device is detectable
         ASSERT_TRUE(I2CUtils::detectI2CDevice(busNum, *device.address()))
@@ -267,13 +268,13 @@ TEST_F(I2CTest, I2CTransactions) {
       continue;
     }
     try {
-      auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
-      registerAdapterForCleanup(adapter, id);
-      id++;
+      auto result = I2CUtils::createI2CAdapter(adapter, id);
+      registerAdaptersForCleanup(result.createdAdapters);
+      id += result.createdAdapters.size();
 
       for (const auto& i2cDevice : *adapter.i2cDevices()) {
         auto testData = getDeviceTestData(i2cDevice);
-        int busNum = newBuses.at(*i2cDevice.channel()).busNum;
+        int busNum = result.buses.at(*i2cDevice.channel()).busNum;
         runI2CTestTransactions(i2cDevice, busNum, 1, testData);
       }
     } catch (const std::exception& e) {

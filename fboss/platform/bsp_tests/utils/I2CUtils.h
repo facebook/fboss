@@ -40,11 +40,24 @@ struct I2CBus {
   }
 };
 
+// Structure to represent a created I2C adapter with its buses and ID
+struct CreatedI2CAdapter {
+  I2CAdapter adapter;
+  int32_t id;
+  std::map<int, I2CBus> buses;
+};
+
+// Structure to represent the result of creating I2C adapters
+struct I2CAdapterCreationResult {
+  std::map<int, I2CBus> buses; // Buses from the requested adapter
+  std::vector<CreatedI2CAdapter>
+      createdAdapters; // All adapters created (including recursive)
+};
+
 class I2CUtils {
  public:
-  // Create an I2C adapter and return the set of new buses and the base bus
-  // number
-  static std::map<int, I2CBus> createI2CAdapter(
+  // Create an I2C adapter and return all created adapters (including recursive)
+  static I2CAdapterCreationResult createI2CAdapter(
       const I2CAdapter& adapter,
       int32_t id = 1);
 

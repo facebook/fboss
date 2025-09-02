@@ -64,19 +64,22 @@ std::string I2CUtils::findPciDirectory(PciDeviceInfo pci) {
       *pci.subSystemDeviceId()));
 }
 
-// Returns map {channel_num -> I2CBus}
 // Creates an adapter AND its parents e.g. a mux adapter that
 // depends on a parent PCI adapter
-std::map<int, I2CBus> I2CUtils::createI2CAdapter(
+I2CAdapterCreationResult I2CUtils::createI2CAdapter(
     const I2CAdapter& adapter,
     int32_t id) {
+  I2CAdapterCreationResult result;
+
   // TODO: Check if it already exists
   if (*adapter.isCpuAdapter()) {
     // No need to create, just return the bus
     auto existingBuses = findI2CBuses();
     for (const auto& bus : existingBuses) {
       if (bus.name == *adapter.busName()) {
-        return {{0, bus}};
+        result.buses = {{0, bus}};
+        // CPU adapters are not created, so don't add to createdAdapters
+        return result;
       }
     }
     throw std::runtime_error(
@@ -107,7 +110,6 @@ std::map<int, I2CBus> I2CUtils::createI2CAdapter(
         bus.name = getBusNameFromNum(bus.busNum);
         newBuses.insert({i, bus});
       }
-      return newBuses;
     } else {
       std::string i2cBusDir;
       for (const auto& dirEntry : fs::directory_iterator(i2cDir)) {
@@ -122,20 +124,30 @@ std::map<int, I2CBus> I2CUtils::createI2CAdapter(
       bus.busNum =
           platform_manager::I2cExplorer().extractBusNumFromPath(i2cBusDir);
       bus.name = getBusNameFromNum(bus.busNum);
-      return {{0, bus}};
+      newBuses.insert({0, bus});
     }
+
+    result.buses = newBuses;
+    result.createdAdapters.push_back({adapter, id, newBuses});
+    return result;
   } else if (adapter.muxAdapterInfo().has_value()) {
-    // create parent adapter
+    // create parent adapter recursively and track all created adapters
     int parentId = id + 1;
-    auto newBuses =
+    auto parentResult =
         createI2CAdapter(*adapter.muxAdapterInfo()->parentAdapter(), parentId);
+
+    // Add all parent adapters to our result
+    result.createdAdapters.insert(
+        result.createdAdapters.end(),
+        parentResult.createdAdapters.begin(),
+        parentResult.createdAdapters.end());
 
     I2CDevice device;
     device.pmName() = *adapter.pmName();
     device.channel() = *adapter.muxAdapterInfo()->parentAdapterChannel();
     device.deviceName() = *adapter.muxAdapterInfo()->deviceName();
     device.address() = *adapter.muxAdapterInfo()->address();
-    int busNum = newBuses.at(*device.channel()).busNum;
+    int busNum = parentResult.buses.at(*device.channel()).busNum;
     createI2CDevice(device, busNum);
 
     std::map<uint16_t, uint16_t> createdBuses =
@@ -148,7 +160,10 @@ std::map<int, I2CBus> I2CUtils::createI2CAdapter(
       newBus.name = getBusNameFromNum(bus);
       newMuxBuses.insert({channel, newBus});
     }
-    return newMuxBuses;
+
+    result.buses = newMuxBuses;
+    result.createdAdapters.push_back({adapter, id, newMuxBuses});
+    return result;
   } else {
     throw std::runtime_error("Unknown adapter type");
   }

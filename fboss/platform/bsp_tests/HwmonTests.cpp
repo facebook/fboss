@@ -62,8 +62,8 @@ TEST_F(HwmonTest, HwmonSensors) {
   int id = 1;
   for (const auto& adapter : getAllAdaptersWithHwmons()) {
     try {
-      auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
-      registerAdapterForCleanup(adapter, id);
+      auto result = I2CUtils::createI2CAdapter(adapter, id);
+      registerAdaptersForCleanup(result.createdAdapters);
       id++;
 
       for (const auto& i2cDevice : *adapter.i2cDevices()) {
@@ -73,7 +73,7 @@ TEST_F(HwmonTest, HwmonSensors) {
         }
         const auto& hwmonTestData = hwmonDataOpt.value();
 
-        int busNum = newBuses.at(*i2cDevice.channel()).busNum;
+        int busNum = result.buses.at(*i2cDevice.channel()).busNum;
         ASSERT_TRUE(I2CUtils::createI2CDevice(i2cDevice, busNum))
             << "Failed to create I2C device " << *i2cDevice.deviceName()
             << " on bus " << busNum;

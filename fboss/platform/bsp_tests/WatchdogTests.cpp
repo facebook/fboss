@@ -125,8 +125,9 @@ class WatchdogTest : public BspTest {
     for (const auto& adapter : adapters) {
       int adapterId = id;
       try {
-        auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
-        int adapterBaseBusNum = newBuses.begin()->second.busNum;
+        auto result = I2CUtils::createI2CAdapter(adapter, id);
+        registerAdaptersForCleanup(result.createdAdapters);
+        int adapterBaseBusNum = result.buses.begin()->second.busNum;
         id++;
 
         for (const auto& device : getDevicesWithWatchdogs(adapter)) {
@@ -220,8 +221,8 @@ TEST_F(WatchdogTest, WatchdogDriverUnload) {
   for (const auto& adapter : adapters) {
     try {
       id++;
-      auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
-      int adapterBaseBusNum = newBuses.begin()->second.busNum;
+      auto result = I2CUtils::createI2CAdapter(adapter, id);
+      int adapterBaseBusNum = result.buses.begin()->second.busNum;
 
       for (const auto& device : getDevicesWithWatchdogs(adapter)) {
         auto watchdogDataOpt = getWatchdogTestData(device);

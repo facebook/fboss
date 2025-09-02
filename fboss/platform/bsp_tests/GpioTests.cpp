@@ -103,17 +103,12 @@ class GpioTest : public BspTest {
     int id = 1;
     for (const auto& adapter : adapters) {
       try {
-        auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
-        if (adapter.pciAdapterInfo().has_value()) {
-          registerDeviceForCleanup(
-              *adapter.pciAdapterInfo()->pciInfo(),
-              *adapter.pciAdapterInfo()->auxData(),
-              id);
-        }
+        auto result = I2CUtils::createI2CAdapter(adapter, id);
+        registerAdaptersForCleanup(result.createdAdapters);
         id++;
 
         auto gpioDevices =
-            setupGpioDevices(adapter, newBuses.begin()->second.busNum);
+            setupGpioDevices(adapter, result.buses.begin()->second.busNum);
 
         // Run the test-specific function for each GPIO device
         for (const auto& gpioDevice : gpioDevices) {
@@ -199,13 +194,13 @@ TEST_F(GpioTest, DriverUnload) {
   int id = 1;
   for (const auto& adapter : getAllAdaptersWithGpios()) {
     try {
-      auto newBuses = I2CUtils::createI2CAdapter(adapter, id);
+      auto result = I2CUtils::createI2CAdapter(adapter, id);
       id++;
 
       for (const auto& i2cDevice : *adapter.i2cDevices()) {
         // Only create devices that are GPIO chips
         if (*i2cDevice.isGpioChip()) {
-          int busNum = newBuses.at(*i2cDevice.channel()).busNum;
+          int busNum = result.buses.at(*i2cDevice.channel()).busNum;
           ASSERT_TRUE(I2CUtils::createI2CDevice(i2cDevice, busNum))
               << "Failed to create I2C device " << *i2cDevice.deviceName();
         }

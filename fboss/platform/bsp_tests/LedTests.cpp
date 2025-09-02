@@ -221,13 +221,13 @@ TEST_F(LedTest, DeviceLedsCreated) {
       errorMessages.emplace_back(
           fmt::format("Could not find I2C Device {}", pmName));
     }
-    const auto busses = I2CUtils::createI2CAdapter(adapter, 0);
-    registerAdapterForCleanup(adapter, 0);
+    const auto result = I2CUtils::createI2CAdapter(adapter, 0);
+    registerAdaptersForCleanup(result.createdAdapters);
     I2CUtils::createI2CDevice(
-        i2cDevice, busses.at(*i2cDevice.channel()).busNum);
-    std::string path =
-        I2CUtils::getI2CDir(
-            busses.at(*i2cDevice.channel()).busNum, *i2cDevice.address()) +
+        i2cDevice, result.buses.at(*i2cDevice.channel()).busNum);
+    std::string path = I2CUtils::getI2CDir(
+                           result.buses.at(*i2cDevice.channel()).busNum,
+                           *i2cDevice.address()) +
         "/leds";
 
     std::vector<std::string> ledFolders;
