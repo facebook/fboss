@@ -33,7 +33,9 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default);    \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6);    \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList);
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList);      \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -355,6 +357,39 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList) {
 
   // Verify probedRoutes_ remains empty
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+}
+
+/**
+ * @brief Test exception handling in deleteProbedRoutes
+ *
+ * Verifies that deleteProbedRoutes propagates exceptions thrown by
+ * addRemoveRouteTable. When an exception occurs, the method should throw
+ * and stop processing, leaving the probedRoutes_ list unchanged.
+ */
+TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling) {
+  // Add multiple default routes in different tables
+  addProbedRoute(tunMgr_, AF_INET, 100, "0.0.0.0/0", 42);
+  addProbedRoute(tunMgr_, AF_INET6, 100, "::/0", 42);
+  addProbedRoute(tunMgr_, AF_INET, 200, "0.0.0.0/0", 24);
+  addProbedRoute(tunMgr_, AF_INET6, 200, "::/0", 24);
+
+  // Set up mock to throw exception for table 100 but succeed for table 200
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
+      .Times(1)
+      .WillOnce(::testing::Throw(std::runtime_error("Netlink error")));
+
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveRouteTable(200, 24, false, ::testing::Eq(std::nullopt)))
+      .Times(1);
+
+  // Call deleteProbedRoutes - should throw when addRemoveRouteTable throws
+  EXPECT_THROW(tunMgr_->deleteProbedRoutes(), std::runtime_error);
+
+  // Verify probed routes are not cleared when exceptions occur
+  EXPECT_EQ(tunMgr_->probedRoutes_.size(), 4);
 }
 
 } // namespace facebook::fboss
