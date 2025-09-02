@@ -508,6 +508,15 @@ SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  return SAI_PORT_ATTR_HYPERPORT_MEMBER_LIST;
+#else
+  return std::nullopt;
+#endif
+}
+
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::macTxDataQueueMinWatermarkStats() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)

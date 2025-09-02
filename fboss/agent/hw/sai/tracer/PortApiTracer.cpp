@@ -211,6 +211,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, ArsLinkState)
 #endif
   SAI_EXT_ATTR_MAP(Port, IsHyperPortMember)
+  SAI_EXT_ATTR_MAP(Port, HyperPortMemberList)
 }
 
 } // namespace

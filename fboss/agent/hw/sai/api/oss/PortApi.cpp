@@ -374,4 +374,9 @@ SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

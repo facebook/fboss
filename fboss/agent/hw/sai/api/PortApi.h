@@ -499,6 +499,13 @@ struct SaiPortTraits {
         bool,
         AttributeIsHyperPortMember,
         SaiBoolDefaultFalse>;
+    struct AttributeHyperPortMemberList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using HyperPortMemberList = SaiExtensionAttribute<
+        std::vector<sai_object_id_t>,
+        AttributeHyperPortMemberList,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = PortSaiId;
 
@@ -785,6 +792,7 @@ SAI_ATTRIBUTE_NAME(Port, FabricSystemPort)
 SAI_ATTRIBUTE_NAME(Port, StaticModuleId)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
 SAI_ATTRIBUTE_NAME(Port, IsHyperPortMember)
+SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
