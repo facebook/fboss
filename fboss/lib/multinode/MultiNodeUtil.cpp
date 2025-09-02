@@ -802,6 +802,39 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
     return checkPassed;
   };
 
+  auto verifyNoSessionsEstablished = [this, myHostname]() -> bool {
+    auto checkPassed = false;
+    constexpr auto kMaxRetries = 30;
+
+    auto noSessionsEstablished = [this, myHostname]() -> bool {
+      for (const auto& [peer, session] : getPeerToDsfSession(myHostname)) {
+        if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
+          return false;
+        }
+      }
+
+      return true;
+    };
+
+    // TODO extend lib/CommonUtils checkWithRetry to return bool after retries
+    for (auto retries = 0; retries < kMaxRetries; retries++) {
+      XLOG(DBG2) << "Retry attempt: " << retries;
+
+      if (noSessionsEstablished()) {
+        checkPassed = true;
+        break;
+      } else {
+        // Sleep and retry.
+        // It may take several (> 15) seconds for ESTABLISHED => CONNECT. Thus,
+        // try for several seconds and check if the session transitions to
+        // CONNECT.
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      }
+    }
+
+    return checkPassed;
+  };
+
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
 
