@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
@@ -23,6 +24,35 @@ const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
 constexpr auto kPciWaitSecs =
     std::chrono::seconds(10); // T235561085 - Change back to 5 when root cause
                               // of iob creation delay is fixed
+constexpr auto kPciDeviceCreationTimeoutThreshold = std::chrono::seconds(1);
+const std::string kPciDeviceCreationTimeoutCounter =
+    "pci_explorer.pci_device_creation_timeout";
+
+// Wrapper function that tracks device readiness timing and increments fb303
+// counter when device creation takes longer than the threshold
+bool checkDeviceReadinessWithTimeout(
+    const std::string& pciSubDeviceName,
+    std::function<bool()>&& isDeviceReadyFunc,
+    const std::string& onWaitMsg,
+    std::chrono::seconds maxWaitSecs) {
+  auto start = std::chrono::steady_clock::now();
+
+  bool result = Utils().checkDeviceReadiness(
+      std::move(isDeviceReadyFunc), onWaitMsg, maxWaitSecs);
+
+  auto elapsed = std::chrono::steady_clock::now() - start;
+  if (elapsed > kPciDeviceCreationTimeoutThreshold) {
+    XLOG(WARNING) << fmt::format(
+        "Device {} creation took {}s, which exceeds threshold of {}s. Incrementing timeout counter.",
+        pciSubDeviceName,
+        std::chrono::duration_cast<std::chrono::seconds>(elapsed).count(),
+        kPciDeviceCreationTimeoutThreshold.count());
+    facebook::fb303::fbData->incrementCounter(
+        kPciDeviceCreationTimeoutCounter, 1);
+  }
+
+  return result;
+}
 
 fbiob_aux_data getAuxData(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
@@ -157,7 +187,8 @@ void PciDevice::checkCharDevReadiness() {
       std::string(subSystemVendorId_, 2, 4),
       std::string(subSystemDeviceId_, 2, 4));
 
-  if (!Utils().checkDeviceReadiness(
+  if (!checkDeviceReadinessWithTimeout(
+          name_,
           [&charDevPath_ = charDevPath_]() -> bool {
             return fs::exists(charDevPath_);
           },
@@ -357,7 +388,8 @@ void PciExplorer::create(
             folly::errnoStr(savedErrno)),
         *fpgaIpBlockConfig.pmUnitScopedName());
   }
-  if (!Utils().checkDeviceReadiness(
+  if (!checkDeviceReadinessWithTimeout(
+          *fpgaIpBlockConfig.pmUnitScopedName(),
           [&]() -> bool {
             return isPciSubDeviceReady(
                 pciDevice, fpgaIpBlockConfig, auxData.id.id);
