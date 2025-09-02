@@ -767,6 +767,41 @@ bool MultiNodeUtil::verifyDsfSessions() {
 
 bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   auto myHostname = getLocalHostname();
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  auto verifyNoSessionsFlap =
+      [this, myHostname, baselinePeerToDsfSession]() -> bool {
+    auto checkPassed = true;
+    constexpr auto kMaxRetries = 30;
+
+    auto noSessionFlap =
+        [this, myHostname, baselinePeerToDsfSession]() -> bool {
+      auto currentPeerToDsfSession = getPeerToDsfSession(myHostname);
+      // All entries must be identical i.e.
+      // DSF Session state (ESTABLISHED or not) is the same.
+      // For any session the establishedAt and connnectedAt is the same.
+      return baselinePeerToDsfSession == currentPeerToDsfSession;
+    };
+
+    // TODO define a lib/CommonUtils for EXPECT_EVERY*
+    for (auto retries = 0; retries < kMaxRetries; retries++) {
+      XLOG(DBG2) << "Retry attempt: " << retries;
+
+      if (noSessionFlap()) {
+        // Sleep and retry
+        // It may take several (> 15) seconds for ESTABLISHED => CONNECT.
+        // Thus, keep retrying for several seconds to ensure that the session
+        // stays ESTABLISHED.
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      } else {
+        checkPassed = false;
+        break;
+      }
+    }
+
+    return checkPassed;
+  };
+
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
 
