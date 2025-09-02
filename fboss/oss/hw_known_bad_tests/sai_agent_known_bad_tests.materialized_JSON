@@ -13330,6 +13330,70 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
+    "chenab/116.133.2508.1/116.133.2508.10/chenab/mono": [
+        {
+          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
+        },
+        {
+          "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySPPreemptionCPUTraffic$"
+        },
+        {
+          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithDefaultCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithMapChanges_0$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithZeroGlobalHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyPfcWithZeroPgHeadRoomCfg$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyWithScaleCfgInCongestionDrops$"
+        },
+        {
+          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
+        },
+        {
+          "test_name_regex": "AgentEcmpSpilloverTest.VerifyEcmpDecompressByPrefixCount$"
+        }
+    ],
+    "chenab/116.133.2508.1/116.133.2508.10/chenab/multi_switch": [
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
+        }
+    ],
     "leaba/1.42.8/1.42.8/gibraltar/mono": [
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
