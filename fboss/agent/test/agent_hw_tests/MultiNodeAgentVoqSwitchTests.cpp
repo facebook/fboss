@@ -121,13 +121,13 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
     }
 
     auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
     if (testing::Test::HasNonfatalFailure()) {
       // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
       FAIL()
           << "Sanity checks in DSF cluster verification failed, can't proceed with test";
     }
 
-    verifyDsfClusterHelper(multiNodeUtil);
     EXPECT_TRUE(multiNodeUtil->verifyGracefulFabricLinkDownUp());
 
     // Verify that the cluster is still healthy after link down/up
