@@ -31,7 +31,8 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);            \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default); \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6);
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6); \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -294,6 +295,38 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6) {
   EXPECT_CALL(
       *tunMgr_,
       addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
+      .Times(1);
+
+  // Call deleteProbedRoutes
+  tunMgr_->deleteProbedRoutes();
+
+  // Verify probed routes are cleared
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+}
+
+/**
+ * @brief Test deletion of probed routes with IPv4 and IPv6 default routes in
+ * two tables
+ *
+ * Verifies that deleteProbedRoutes correctly handles in  different table IDs
+ * and makes separate calls to addRemoveRouteTable for each table.
+ */
+TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables) {
+  // Add IPv4 default route to table 100 and IPv6 default route to table 200
+  addProbedRoute(tunMgr_, AF_INET, 100, "0.0.0.0/0", 42);
+  addProbedRoute(tunMgr_, AF_INET6, 100, "::/0", 42);
+
+  addProbedRoute(tunMgr_, AF_INET, 200, "0.0.0.0/0", 24);
+  addProbedRoute(tunMgr_, AF_INET6, 200, "::/0", 24);
+
+  // Expect two separate calls to addRemoveRouteTable for different tables
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveRouteTable(200, 24, false, ::testing::Eq(std::nullopt)))
       .Times(1);
 
   // Call deleteProbedRoutes
