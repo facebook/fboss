@@ -741,11 +741,22 @@ bool MultiNodeUtil::verifyDsfSessions() {
 
 bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   auto myHostname = getLocalHostname();
+  auto fabricPortNameToPortInfo = getFabricPortNameToPortInfo(myHostname);
+
   // Admin disable all Active fabric ports
-  for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(myHostname)) {
+  for (const auto& [_, portInfo] : fabricPortNameToPortInfo) {
     if (portInfo.activeState().has_value() &&
         portInfo.activeState().value() == PortActiveState::ACTIVE) {
       adminDisablePort(myHostname, portInfo.portId().value());
+      // TODO: add validation
+    }
+  }
+
+  // Admin Re-enable these fabric ports
+  for (const auto& [_, portInfo] : fabricPortNameToPortInfo) {
+    if (portInfo.activeState().has_value() &&
+        portInfo.activeState().value() == PortActiveState::ACTIVE) {
+      adminEnablePort(myHostname, portInfo.portId().value());
       // TODO: add validation
     }
   }
