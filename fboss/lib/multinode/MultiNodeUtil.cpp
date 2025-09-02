@@ -16,6 +16,8 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 
+#include "fboss/agent/Utils.h"
+
 namespace {
 using facebook::fboss::FbossCtrl;
 using facebook::fboss::FbossHwCtrl;
@@ -733,6 +735,16 @@ bool MultiNodeUtil::verifyDsfSessions() {
 }
 
 bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
+  auto myHostname = getLocalHostname();
+  // Admin disable all Active fabric ports
+  for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(myHostname)) {
+    if (portInfo.activeState().has_value() &&
+        portInfo.activeState().value() == PortActiveState::ACTIVE) {
+      adminDisablePort(myHostname, portInfo.portId().value());
+      // TODO: add validation
+    }
+  }
+
   return true;
 }
 
