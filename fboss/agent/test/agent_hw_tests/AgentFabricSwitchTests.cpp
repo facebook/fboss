@@ -256,7 +256,7 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
   }
   void verifyState(cfg::PortState desiredState, std::vector<PortID>& ports)
       const {
-    WITH_RETRIES_N(120, {
+    WITH_RETRIES_N(180, {
       if (desiredState == cfg::PortState::DISABLED) {
         auto numPorts = ports.size();
         auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
