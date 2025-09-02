@@ -767,30 +767,25 @@ bool MultiNodeUtil::verifyDsfSessions() {
 
 bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   auto myHostname = getLocalHostname();
-  auto fabricPortNameToPortInfo = getFabricPortNameToPortInfo(myHostname);
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(myHostname);
 
   // Admin disable all Active fabric ports
-  for (const auto& [_, portInfo] : fabricPortNameToPortInfo) {
-    if (portInfo.activeState().has_value() &&
-        portInfo.activeState().value() == PortActiveState::ACTIVE) {
-      XLOG(DBG2) << __func__
-                 << " Admin disabling port:: " << portInfo.name().value()
-                 << " portID: " << portInfo.portId().value();
-      adminDisablePort(myHostname, portInfo.portId().value());
-      // TODO: add validation
-    }
+  for (const auto& [_, portInfo] : activeFabricPortNameToPortInfo) {
+    XLOG(DBG2) << __func__
+               << " Admin disabling port:: " << portInfo.name().value()
+               << " portID: " << portInfo.portId().value();
+    adminDisablePort(myHostname, portInfo.portId().value());
+    // TODO: add validation
   }
 
   // Admin Re-enable these fabric ports
-  for (const auto& [_, portInfo] : fabricPortNameToPortInfo) {
-    if (portInfo.activeState().has_value() &&
-        portInfo.activeState().value() == PortActiveState::ACTIVE) {
-      XLOG(DBG2) << __func__
-                 << " Admin enabling port:: " << portInfo.name().value()
-                 << " portID: " << portInfo.portId().value();
-      adminEnablePort(myHostname, portInfo.portId().value());
-      // TODO: add validation
-    }
+  for (const auto& [_, portInfo] : activeFabricPortNameToPortInfo) {
+    XLOG(DBG2) << __func__
+               << " Admin enabling port:: " << portInfo.name().value()
+               << " portID: " << portInfo.portId().value();
+    adminEnablePort(myHostname, portInfo.portId().value());
+    // TODO: add validation
   }
 
   return true;
