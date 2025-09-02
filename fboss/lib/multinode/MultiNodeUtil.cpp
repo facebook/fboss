@@ -902,13 +902,22 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
     }
   }
 
+  auto firstActivePort = activeFabricPortNameToPortInfo.begin()->first;
   // Admin Re-enable these fabric ports
-  for (const auto& [_, portInfo] : activeFabricPortNameToPortInfo) {
+  for (const auto& [portName, portInfo] : activeFabricPortNameToPortInfo) {
     XLOG(DBG2) << __func__
                << " Admin enabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
     adminEnablePort(myHostname, portInfo.portId().value());
-    // TODO: add validation
+
+    bool checkPassed = true;
+    if (portName == firstActivePort || portName == lastActivePort) {
+      checkPassed = verifyAllSessionsEstablished();
+    }
+
+    if (!checkPassed) {
+      return false;
+    }
   }
 
   return true;
