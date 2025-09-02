@@ -648,6 +648,7 @@ cpp_library(
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/state:state",
         "//fboss/agent/test/utils:acl_test_utils",
+        "//fboss/agent/test/utils:mirror_test_utils",
         "//fboss/agent/test/utils:udf_test_utils",
     ],
     exported_external_deps = [
