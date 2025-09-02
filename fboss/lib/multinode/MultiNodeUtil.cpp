@@ -837,14 +837,36 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
 
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
+  CHECK(activeFabricPortNameToPortInfo.size() > 2);
+  auto rIter = activeFabricPortNameToPortInfo.rbegin();
+  auto lastActivePort = rIter->first;
+  auto secondLastActivePort = std::next(rIter)->first;
 
   // Admin disable all Active fabric ports
-  for (const auto& [_, portInfo] : activeFabricPortNameToPortInfo) {
+  // Verify that all sessions stay established till last port is disabled.
+  // TODO: modify the config to set minLink threshold, and then extend the
+  // logic to verify that the sessions stay established while the minLink
+  // requirement is met.
+  for (const auto& [portName, portInfo] : activeFabricPortNameToPortInfo) {
     XLOG(DBG2) << __func__
                << " Admin disabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
     adminDisablePort(myHostname, portInfo.portId().value());
-    // TODO: add validation
+
+    bool checkPassed = true;
+    if (portName == lastActivePort) {
+      checkPassed = verifyNoSessionsEstablished();
+    } else if (portName == secondLastActivePort) {
+      // verify no flaps is expensive.
+      // Thus, only verify just before disabling the last port.
+      // There is no loss of signal due to this approach as if the sessions
+      // flap due to an intermediate port admin disable, it will be detected by
+      // this check failure anyway.
+      checkPassed = verifyNoSessionsFlap();
+    }
+    if (!checkPassed) {
+      return false;
+    }
   }
 
   // Admin Re-enable these fabric ports
