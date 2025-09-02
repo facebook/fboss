@@ -102,6 +102,8 @@ class MultiNodeUtil {
       const std::string& rdsw,
       const std::set<std::string>& types);
 
+  std::map<std::string, DsfSessionThrift> getPeerToDsfSession(
+      const std::string& rdsw);
   std::set<std::string> getRdswsWithEstablishedDsfSessions(
       const std::string& rdsw);
 

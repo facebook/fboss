@@ -688,6 +688,37 @@ bool MultiNodeUtil::verifyStaticNdpEntries() {
   return true;
 }
 
+std::map<std::string, DsfSessionThrift> MultiNodeUtil::getPeerToDsfSession(
+    const std::string& rdsw) {
+  auto logDsfSession =
+      [rdsw](const facebook::fboss::DsfSessionThrift& session) {
+        XLOG(DBG2) << "From " << rdsw << " session: " << *session.remoteName()
+                   << " state: "
+                   << apache::thrift::util::enumNameSafe(*session.state())
+                   << " lastEstablishedAt: "
+                   << session.lastEstablishedAt().value_or(0)
+                   << " lastDisconnectedAt: "
+                   << session.lastDisconnectedAt().value_or(0);
+      };
+
+  auto swAgentClient = getSwAgentThriftClient(rdsw);
+  std::vector<facebook::fboss::DsfSessionThrift> sessions;
+  swAgentClient->sync_getDsfSessions(sessions);
+
+  std::map<std::string, DsfSessionThrift> peerToDsfSession;
+  for (const auto& session : sessions) {
+    logDsfSession(session);
+    // remoteName format: peerName::peerIP, extract peerName.
+    size_t pos = (*session.remoteName()).find("::");
+    if (pos != std::string::npos) {
+      auto peer = (*session.remoteName()).substr(0, pos);
+      peerToDsfSession.emplace(peer, session);
+    }
+  }
+
+  return peerToDsfSession;
+}
+
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
     const std::string& rdsw) {
   auto logDsfSession =
