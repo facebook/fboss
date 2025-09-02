@@ -24,18 +24,21 @@ class SensorServiceImplTest : public ::testing::Test {
       bool expectedSensorReadSuccess) {
     auto now = Utils::nowInSecs();
     sensorServiceImpl->fetchSensorData();
-    auto sensorData = sensorServiceImpl->getAllSensorData();
+    auto allSensorData = sensorServiceImpl->getAllSensorData();
     auto expectedSensors = getDefaultMockSensorData();
-    EXPECT_EQ(sensorData.size(), expectedSensors.size());
-    for (const auto& it : expectedSensors) {
-      EXPECT_TRUE(sensorData.find(it.first) != sensorData.end());
-      EXPECT_EQ(*sensorData[it.first].name(), it.first);
+    EXPECT_EQ(allSensorData.size(), expectedSensors.size());
+    for (const auto& [sensorName, sensorValue] : expectedSensors) {
+      auto it = allSensorData.find(sensorName);
+      ASSERT_TRUE(it != allSensorData.end())
+          << fmt::format("Sensor {} not found in results", sensorName);
+      auto sensorData = it->second;
+      EXPECT_EQ(sensorData.name(), sensorName);
       if (expectedSensorReadSuccess) {
-        EXPECT_EQ(*sensorData[it.first].value(), it.second);
-        EXPECT_GE(*sensorData[it.first].timeStamp(), now);
+        EXPECT_EQ(sensorData.value(), sensorValue);
+        EXPECT_GE(sensorData.timeStamp(), now);
       } else {
-        EXPECT_FALSE(sensorData[it.first].value().has_value());
-        EXPECT_FALSE(sensorData[it.first].timeStamp().has_value());
+        EXPECT_FALSE(sensorData.value().has_value());
+        EXPECT_FALSE(sensorData.timeStamp().has_value());
       }
     }
   }
