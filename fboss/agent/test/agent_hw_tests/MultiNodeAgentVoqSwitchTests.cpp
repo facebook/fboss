@@ -129,6 +129,9 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
 
     verifyDsfClusterHelper(multiNodeUtil);
     EXPECT_TRUE(multiNodeUtil->verifyGracefulFabricLinkDownUp());
+
+    // Verify that the cluster is still healthy after link down/up
+    verifyDsfClusterHelper(multiNodeUtil);
   };
 
   verifyAcrossWarmBoots(setup, verify);
