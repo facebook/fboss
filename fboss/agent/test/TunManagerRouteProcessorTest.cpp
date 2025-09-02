@@ -23,13 +23,14 @@
  * to access private members of TunManager for testing the routeProcessor
  * functionality.
  */
-#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                            \
-  friend class TunManagerRouteProcessorTest;                               \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);      \
-  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);      \
-  FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily); \
-  FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);           \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default);
+#define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                             \
+  friend class TunManagerRouteProcessorTest;                                \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);       \
+  FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);       \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);  \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);            \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default); \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -246,6 +247,28 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default) {
   EXPECT_CALL(
       *tunMgr_,
       addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
+      .Times(1);
+
+  // Call deleteProbedRoutes
+  tunMgr_->deleteProbedRoutes();
+
+  // Verify probed routes are cleared;
+  EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+}
+
+/**
+ * @brief Test deletion of probed IPv6 default routes
+ *
+ * Verifies that deleteProbedRoutes correctly identifies and removes IPv6
+ * default routes (::/0) by calling addRemoveRouteTable with delete flag.
+ */
+TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default) {
+  // Add IPv6 default route to probed routes
+  addProbedRoute(tunMgr_, AF_INET6, 150, "::/0", 24);
+
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveRouteTable(150, 24, false, ::testing::Eq(std::nullopt)))
       .Times(1);
 
   // Call deleteProbedRoutes
