@@ -727,6 +727,22 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
 
   start();
   probeDone_ = true;
+  if (FLAGS_cleanup_probed_kernel_data) {
+    // Delete all probed data from kernel.
+    deleteAllProbedData();
+  }
+}
+
+/**
+ * Delete all probed data from kernel including routes, addresses, rules and
+ * tunnel interfaces.
+ */
+void TunManager::deleteAllProbedData() {
+  XLOG(INFO) << "Starting to delete all probed data from kernel";
+
+  deleteProbedRoutes();
+
+  XLOG(INFO) << "Finished deleting all probed data from kernel";
 }
 
 boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(

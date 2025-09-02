@@ -265,6 +265,12 @@ class TunManager : public StateObserver {
   void addProbedAddr(int ifIndex, const folly::IPAddress& addr, uint8_t mask);
 
   /**
+   * Delete all probed data from kernel including routes, addresses, rules and
+   * tunnel interfaces.
+   */
+  void deleteAllProbedData();
+
+  /**
    * Get MTU of switch interface
    */
   int getInterfaceMtu(InterfaceID ifID) const;
