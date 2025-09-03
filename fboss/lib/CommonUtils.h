@@ -83,6 +83,21 @@ void checkAlwaysTrueWithRetry(
   }
 }
 
+template <typename CONDITION_FN>
+bool checkAlwaysTrueWithRetryErrorReturn(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000)) {
+  try {
+    checkAlwaysTrueWithRetry(condition, retries, msBetweenRetry);
+  } catch (const FbossError& e) {
+    return false;
+  }
+
+  return true;
+}
+
 template <typename StatT>
 inline int64_t getCumulativeValue(const StatT& stat, bool hasSumSuffix = true) {
   auto counterVal = fb303::fbData->getCounterIfExists(
