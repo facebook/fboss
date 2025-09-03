@@ -30,11 +30,11 @@ class EcmpResourceMgrMergeGroupTest
       EXPECT_EQ(sw_->getEcmpResourceManager()->getCost(gid), expectedPenalty);
     }
   }
-  void assertGroupsAreMerged(
-      const EcmpResourceManager::NextHopGroupIds& mergedGroups) const {
+  void assertMergedGroup(
+      const EcmpResourceManager::NextHopGroupIds& mergedGroup) const {
     XLOG(DBG2) << " Asserting for merged group: " << "["
-               << folly::join(", ", mergedGroups) << "]";
-    std::for_each(mergedGroups.begin(), mergedGroups.end(), [this](auto gid) {
+               << folly::join(", ", mergedGroup) << "]";
+    std::for_each(mergedGroup.begin(), mergedGroup.end(), [this](auto gid) {
       // Groups from  merge set should no longer
       // be candidates.
       EXPECT_EQ(
@@ -46,6 +46,15 @@ class EcmpResourceMgrMergeGroupTest
                       ->getMergeGroupConsolidationInfo(gid)
                       .has_value());
     });
+    bool found{false};
+    for (auto mgroup : sw_->getEcmpResourceManager()->getMergedGroups()) {
+      if (mgroup == mergedGroup) {
+        found = true;
+        break;
+      }
+    }
+    EXPECT_TRUE(found) << "Merged group : " << folly::join(", ", mergedGroup)
+                       << " not found";
   }
   void assertGroupsAreUnMerged(
       const EcmpResourceManager::NextHopGroupIds& unmergedGroups,
@@ -113,7 +122,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   // Route delta + merge delta
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(sw_->getState(), overflowPrefixes);
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   assertCost(optimalMergeSet);
 }
 
@@ -132,7 +141,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, multiplePrefixesInEachMergeGrpMember) {
   // Route delta + merge delta
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(sw_->getState(), overflowPrefixes);
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   assertCost(optimalMergeSet);
 }
 
@@ -218,7 +227,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
   EXPECT_EQ(overflowPrefixes.size(), 2);
   auto newPrefix = nextPrefix();
   addNextRoute();
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   auto deltas = rmRoute(newPrefix);
   EXPECT_EQ(deltas.size(), 2);
   assertEndState(sw_->getState(), {});
@@ -236,13 +245,13 @@ TEST_F(EcmpResourceMgrMergeGroupTest, reclaimPrioritizesGroupsWithHigherCost) {
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
   auto deltas = addNextRoute();
   EXPECT_EQ(deltas.size(), 2);
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   auto nextOptimalMergeSet =
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
   deltas = addNextRoute();
   EXPECT_EQ(deltas.size(), 2);
-  assertGroupsAreMerged(optimalMergeSet);
-  assertGroupsAreMerged(nextOptimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
+  assertMergedGroup(nextOptimalMergeSet);
   // Remove one route to make space for reclaiming one of the
   // merged groups
   deltas = rmRoute(*getPrefixesWithoutOverrides().begin());
@@ -251,7 +260,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, reclaimPrioritizesGroupsWithHigherCost) {
   // while the optimalMergeSet remains merged. That is, merge
   // is done in order of lowest to highest cost, while reclaim is
   // done in the reverse order.
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   assertGroupsAreUnMerged(nextOptimalMergeSet);
   // Remove one more prefix and assert that all merged groups are
   // reclaimed
@@ -274,8 +283,8 @@ TEST_F(EcmpResourceMgrMergeGroupTest, reclaimMultipleMergeGroups) {
   addedPrefixes.push_back(nextPrefix());
   deltas = addNextRoute();
   EXPECT_EQ(deltas.size(), 2);
-  assertGroupsAreMerged(optimalMergeSet);
-  assertGroupsAreMerged(nextOptimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
+  assertMergedGroup(nextOptimalMergeSet);
   XLOG(DBG2) << " Added prefixes : " << folly::join(", ", addedPrefixes);
   std::for_each(
       addedPrefixes.begin(), addedPrefixes.end(), [this](const auto& pfx) {
@@ -299,7 +308,7 @@ TEST_F(
   EXPECT_EQ(overflowPrefixes.size(), 2);
   addNextRoute();
   assertEndState(sw_->getState(), overflowPrefixes);
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   for (auto pfx : overflowPrefixes) {
     rmRoute(pfx);
   }
@@ -314,7 +323,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, removeAllMergeGrpRefrencesInOneUpdate) {
   EXPECT_EQ(overflowPrefixes.size(), 2);
   addNextRoute();
   assertEndState(sw_->getState(), overflowPrefixes);
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   rmRoutes({overflowPrefixes.begin(), overflowPrefixes.end()});
   assertEndState(sw_->getState(), {});
   assertGroupsAreRemoved(optimalMergeSet);
@@ -334,7 +343,7 @@ TEST_F(
   overflowPrefixes.insert(addToMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 3);
   assertEndState(sw_->getState(), overflowPrefixes);
-  assertGroupsAreMerged(optimalMergeSet);
+  assertMergedGroup(optimalMergeSet);
   rmRoutes({overflowPrefixes.begin(), overflowPrefixes.end()});
   assertEndState(sw_->getState(), {});
   assertGroupsAreRemoved(optimalMergeSet);

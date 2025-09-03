@@ -75,6 +75,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
   NextHopGroupIds getUnMergedGids() const;
   NextHopGroupIds getMergedGids() const;
+  std::vector<NextHopGroupIds> getMergedGroups() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
    * non test code.

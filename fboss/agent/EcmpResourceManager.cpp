@@ -642,16 +642,24 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getMergedGids()
     const {
   NextHopGroupIds gids;
   std::for_each(
-      nextHopGroupIdToInfo_.begin(),
-      nextHopGroupIdToInfo_.end(),
-      [&gids](const auto& gidAndGroup) {
-        auto grpInfo = gidAndGroup.second.lock();
-        CHECK(grpInfo);
-        if (grpInfo->getMergedGroupInfoItr()) {
-          gids.insert(gidAndGroup.first);
-        }
+      mergedGroups_.begin(),
+      mergedGroups_.end(),
+      [&gids](const auto& groupAndInfo) {
+        gids.insert(groupAndInfo.first.begin(), groupAndInfo.first.end());
       });
   return gids;
+}
+
+std::vector<EcmpResourceManager::NextHopGroupIds>
+EcmpResourceManager::getMergedGroups() const {
+  std::vector<NextHopGroupIds> mGroups;
+  std::for_each(
+      mergedGroups_.begin(),
+      mergedGroups_.end(),
+      [&mGroups](const auto& gidsAndInfo) {
+        mGroups.push_back(gidsAndInfo.first);
+      });
+  return mGroups;
 }
 
 EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
