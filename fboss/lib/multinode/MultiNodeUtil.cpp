@@ -820,9 +820,6 @@ bool MultiNodeUtil::verifyNoSessionsEstablished(
 
 bool MultiNodeUtil::verifyAllSessionsEstablished(
     const std::string& rdswToVerify) {
-  auto checkPassed = false;
-  constexpr auto kMaxRetries = 30;
-
   auto allSessionsEstablished = [this, rdswToVerify]() -> bool {
     for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
       if (session.state() != facebook::fboss::DsfSessionState::ESTABLISHED) {
@@ -833,23 +830,11 @@ bool MultiNodeUtil::verifyAllSessionsEstablished(
     return true;
   };
 
-  // TODO extend lib/CommonUtils checkWithRetry to return bool after retries
-  for (auto retries = 0; retries < kMaxRetries; retries++) {
-    XLOG(DBG2) << "Retry attempt: " << retries;
-
-    if (allSessionsEstablished()) {
-      checkPassed = true;
-      break;
-    } else {
-      // Sleep and retry.
-      // It may take several seconds(>15) for ESTABLISHED => CONNECT. Thus,
-      // try for several seconds and check if the session transitions to
-      // ESTABLISHED.
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-  }
-
-  return checkPassed;
+  // It may take several seconds(>15) for ESTABLISHED => CONNECT. Thus,
+  // try for several seconds and check if the session transitions to
+  // ESTABLISHED.
+  return checkWithRetryErrorReturn(
+      allSessionsEstablished, 30 /* num retries */);
 }
 
 bool MultiNodeUtil::verifyGracefulFabricLinkDown(
