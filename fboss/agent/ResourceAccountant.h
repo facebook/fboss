@@ -23,7 +23,7 @@ namespace facebook::fboss {
 
 class ResourceAccountant {
  public:
-  explicit ResourceAccountant(
+  ResourceAccountant(
       const HwAsicTable* asicTable,
       const SwitchIdScopeResolver* scopeResolver);
 
