@@ -16,8 +16,8 @@
 #include <re2/re2.h>
 
 namespace {
-constexpr std::array<int, 4> kSingleStateCpuUcodePorts = {0, 44, 45, 46};
-constexpr std::array<int, 4> kDualStateCpuUcodePorts = {0, 45, 46, 47};
+constexpr std::array<int, 4> kSingleStageCpuUcodePorts = {0, 44, 45, 46};
+constexpr std::array<int, 4> kDualStageCpuUcodePorts = {0, 45, 46, 47};
 constexpr auto kCpuPortSpeed = 10000;
 constexpr auto kSingleStageCpuPortNumVoqs = 8;
 constexpr auto kDualStageCpuPortNumVoqs = 3;
@@ -60,8 +60,8 @@ SaiMeru800biaPlatform::getCpuPortsCoreAndPortIdx() const {
                               ->get_asicConfig()
                               .common()
                               ->get_config();
-  const auto& cpuUcodePorts = isDualStage3Q2QMode() ? kDualStateCpuUcodePorts
-                                                    : kSingleStateCpuUcodePorts;
+  const auto& cpuUcodePorts = isDualStage3Q2QMode() ? kDualStageCpuUcodePorts
+                                                    : kSingleStageCpuUcodePorts;
   for (const auto& [key, value] : std::as_const(bcmConfig)) {
     for (auto cpuPortID = 0; cpuPortID < cpuUcodePorts.size(); cpuPortID++) {
       auto cpuUcodePort = cpuUcodePorts[cpuPortID];
