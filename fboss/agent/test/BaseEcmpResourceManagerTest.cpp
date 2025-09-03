@@ -70,9 +70,10 @@ cfg::SwitchConfig onePortPerIntfConfig(
     cfg.interfaces()[p].name() = folly::to<std::string>("interface", id);
     cfg.interfaces()[p].mac() = "00:02:00:00:00:01";
     cfg.interfaces()[p].mtu() = 9000;
-    cfg.interfaces()[p].ipAddresses()->resize(1);
+    cfg.interfaces()[p].ipAddresses()->resize(2);
     cfg.interfaces()[p].ipAddresses()[0] =
         folly::sformat("2400:db00:2110:{}::1/64", p);
+    cfg.interfaces()[p].ipAddresses()[1] = folly::sformat("200.0.{}.1/24", p);
   }
   if (ecmpCompressionThresholdPct) {
     cfg.switchSettings()->ecmpCompressionThresholdPct() =
@@ -104,7 +105,9 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   XLOG(DBG2) << " SwSwitch update done";
   CHECK(state_->isPublished());
   state_ = sw_->getState();
-  EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
+  EXPECT_EQ(
+      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
+      kNumIntfs + 1);
   /*
    * Assert that EcmpResourceMgr leaves the ports state untouched
    */
@@ -442,7 +445,9 @@ void BaseEcmpResourceManagerTest::assertTargetState(
     bool checkStats) {
   consolidatorToCheck =
       consolidatorToCheck ? consolidatorToCheck : consolidator_.get();
-  EXPECT_EQ(state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(), 1);
+  EXPECT_EQ(
+      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
+      kNumIntfs + 1);
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;
   EcmpResourceManager::NextHopGroupIds mergedGroupMembers;
