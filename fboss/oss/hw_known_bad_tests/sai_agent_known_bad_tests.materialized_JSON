@@ -191,6 +191,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -484,6 +493,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -529,6 +547,15 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentPortLedTest.TestLed$"
         },
         {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.ErspanPortMirror$"
         },
         {
@@ -536,6 +563,15 @@
         },
         {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.UpdateErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/IPv[46].ErspanAclMirror$"
@@ -807,6 +843,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -822,6 +867,15 @@
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
         },
         {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.ErspanPortMirror$"
         },
         {
@@ -829,6 +883,15 @@
         },
         {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.UpdateErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/IPv[46].ErspanAclMirror$"
@@ -1037,6 +1100,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -1134,6 +1206,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -1363,6 +1447,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -1430,6 +1523,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -1519,6 +1624,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -1737,6 +1854,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -1860,6 +1986,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -2085,6 +2223,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -2350,6 +2497,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -2414,6 +2570,18 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -2754,6 +2922,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -2788,6 +2965,18 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -2878,6 +3067,21 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -3099,6 +3303,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -3346,6 +3559,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -3561,6 +3783,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -3790,6 +4021,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -3839,18 +4079,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -4056,6 +4284,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -4075,18 +4312,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -4292,6 +4517,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -4575,6 +4809,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -4639,6 +4882,18 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -4976,6 +5231,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -5010,6 +5274,18 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -5100,6 +5376,21 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -5320,6 +5611,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -5369,18 +5669,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -5571,6 +5859,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -5620,18 +5917,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -5834,6 +6119,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -5853,18 +6147,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -6067,6 +6349,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -6086,18 +6377,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -6312,6 +6591,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -6352,18 +6640,6 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -6564,6 +6840,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -6802,6 +7087,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -7029,6 +7323,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -7078,18 +7381,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -7280,6 +7571,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -7329,18 +7629,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -7543,6 +7831,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -7562,18 +7859,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -7776,6 +8061,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -7795,18 +8089,6 @@
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -8021,6 +8303,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -8061,18 +8352,6 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.configUpdateForExpectedFabricPortConnectivity"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.alignerError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.allReassemblyContextsTakenError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.epniError$"
-        },
-        {
-          "test_name_regex": "AgentVoqSwitchInterruptTest.fqpError$"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -8273,6 +8552,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -8511,6 +8799,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -8738,6 +9035,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -8835,6 +9141,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -9055,6 +9373,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -9122,6 +9449,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -9205,6 +9544,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -9423,6 +9774,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -9537,6 +9897,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -9762,6 +10134,15 @@
         },
         {
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -10018,6 +10399,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -10082,6 +10472,18 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -10416,6 +10818,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -10450,6 +10861,18 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -10540,6 +10963,21 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -10811,6 +11249,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -10856,6 +11303,15 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentPortLedTest.TestLed$"
         },
         {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.ErspanPortMirror$"
         },
         {
@@ -10863,6 +11319,15 @@
         },
         {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.UpdateErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/IPv[46].ErspanAclMirror$"
@@ -11143,6 +11608,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -11158,6 +11632,15 @@
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
         },
         {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/1.ErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressPortErspanMirroringTest/1.UpdateErspanPortMirror$"
+        },
+        {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.ErspanPortMirror$"
         },
         {
@@ -11165,6 +11648,15 @@
         },
         {
           "test_name_regex": "AgentIngressPortErspanMirroringTest/IPv6.UpdateErspanPortMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
         },
         {
           "test_name_regex": "AgentIngressAclErspanMirroringTest/IPv[46].ErspanAclMirror$"
@@ -11382,6 +11874,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -11479,6 +11980,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -11714,6 +12227,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -11781,6 +12303,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -11879,6 +12413,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -12097,6 +12643,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -12178,6 +12733,9 @@
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
         },
         {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentEgressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -12247,6 +12805,18 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -12474,6 +13044,15 @@
           "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -12511,6 +13090,9 @@
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentEgressPortSpanMirroringTest/IPv[46].*$"
@@ -12900,70 +13482,6 @@
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
         }
     ],
-    "chenab/116.133.2508.1/116.133.2508.10/chenab/mono": [
-        {
-          "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentAqmWredDropTest.verifyWredDrop$"
-        },
-        {
-          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifySPPreemptionCPUTraffic$"
-        },
-        {
-          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithDefaultCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithMapChanges_0$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcTest.verifyPfcWithZeroGlobalHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogDetection$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcWatchdogTest.PfcWatchdogReset$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyPfcWithZeroPgHeadRoomCfg$"
-        },
-        {
-          "test_name_regex": "AgentTrafficPfcZeroPgHeadroomTest.verifyWithScaleCfgInCongestionDrops$"
-        },
-        {
-          "test_name_regex": "AgentLoadBalancerTestV6EcmpSpray.*$"
-        },
-        {
-          "test_name_regex": "AgentEcmpSpilloverTest.VerifyEcmpDecompressByPrefixCount$"
-        }
-    ],
-    "chenab/116.133.2508.1/116.133.2508.10/chenab/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        }
-    ],
     "leaba/1.42.8/1.42.8/gibraltar/mono": [
         {
           "test_name_regex": "warm_boot.AgentTrunkTest.TrunkMemberPortDownMinLinksViolated$"
@@ -13111,6 +13629,36 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -13377,6 +13925,36 @@
         },
         {
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentIngressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].SpanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].ErspanAclMirror$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "roundtrip.*.AgentIngressPortSpanMirroringTest/IPv[46].*$"
@@ -13660,6 +14238,9 @@
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/IPv[46].*$"
         },
         {
@@ -13932,6 +14513,9 @@
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/IPv[46].*$"
         },
         {
@@ -14142,6 +14726,18 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -14392,6 +14988,18 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -14640,6 +15248,18 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
         },
         {
@@ -14886,6 +15506,18 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -15208,6 +15840,9 @@
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/IPv[46].*$"
         },
         {
@@ -15480,6 +16115,9 @@
           "test_name_regex": "AgentDiagShellStressTest.stressDiagCmds$"
         },
         {
+          "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/[01].*$"
+        },
+        {
           "test_name_regex": "AgentEgressPortErspanMirroringTruncateTest/IPv[46].*$"
         },
         {
@@ -15690,6 +16328,18 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -15938,6 +16588,18 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentIngressAclErspanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclSpanMirroringTest/[01].*$"
+        },
+        {
+          "test_name_regex": "AgentEgressAclErspanMirroringTest/[01].*$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
