@@ -28,7 +28,6 @@ class ResourceAccountant {
       const SwitchIdScopeResolver* scopeResolver);
 
   bool isValidUpdate(const StateDelta& delta);
-  bool isValidRouteUpdate(const StateDelta& delta);
   void stateChanged(const StateDelta& delta);
 
  private:
@@ -36,6 +35,7 @@ class ResourceAccountant {
   bool checkEcmpResource(bool intermediateState) const;
   bool checkArsResource(bool intermediateState) const;
   bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
+  bool isValidRouteUpdate(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
   int computeWeightedEcmpMemberCount(
