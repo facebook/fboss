@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<cb46340c41502cd42ab41ccc1b437fc4>>"
+        "@generated SignedSource<<819093e7ccfe307b223faee738518bd6>>"
     ],
     "MINIPACK": [
         {
@@ -207,7 +207,7 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "4.8.1054",
-            "saiSdk": "116.133.2508.1",
+            "saiSdk": "116.133.2508.10",
             "saiVersion": "1.16.1"
         }
     ],
