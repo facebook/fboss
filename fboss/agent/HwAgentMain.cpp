@@ -204,9 +204,6 @@ int hwAgentMain(
     // Start the UpdateSwitchStatsThread
     fs.reset(new folly::FunctionScheduler());
     fs->setThreadName("UpdateStatsThread");
-    // steady will help even out the interval which will especially make
-    // aggregated counters more accurate with less spikes and dips
-    fs->setSteady(true);
     std::function<void()> callback(std::bind(
         updateStats,
         hwAgent->getPlatform()->getHwSwitch(),
