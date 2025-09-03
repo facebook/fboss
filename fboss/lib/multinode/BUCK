@@ -12,6 +12,7 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/agent/state:state",
+        "//fboss/lib:common_utils",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )

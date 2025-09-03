@@ -17,6 +17,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 
 #include "fboss/agent/Utils.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace {
 using facebook::fboss::FbossCtrl;
@@ -801,9 +802,6 @@ bool MultiNodeUtil::verifyNoSessionsFlap(
 
 bool MultiNodeUtil::verifyNoSessionsEstablished(
     const std::string& rdswToVerify) {
-  auto checkPassed = false;
-  constexpr auto kMaxRetries = 30;
-
   auto noSessionsEstablished = [this, rdswToVerify]() -> bool {
     for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
       if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
@@ -814,25 +812,10 @@ bool MultiNodeUtil::verifyNoSessionsEstablished(
     return true;
   };
 
-  // TODO extend lib/CommonUtils checkWithRetry to return bool after retries
-  for (auto retries = 0; retries < kMaxRetries; retries++) {
-    XLOG(DBG2) << "Retry attempt: " << retries;
-
-    if (noSessionsEstablished()) {
-      checkPassed = true;
-      break;
-    } else {
-      // Sleep and retry.
-      // It may take several (> 15) seconds for ESTABLISHED => CONNECT. Thus,
-      // try for several seconds and check if the session transitions to
-      // CONNECT.
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-  }
-
-  return checkPassed;
-
-  return true;
+  // It may take several (> 15) seconds for ESTABLISHED => CONNECT. Thus,
+  // try for several seconds and check if the session transitions to
+  // CONNECT.
+  return checkWithRetryErrorReturn(noSessionsEstablished, 30 /* num retries */);
 }
 
 bool MultiNodeUtil::verifyAllSessionsEstablished(
