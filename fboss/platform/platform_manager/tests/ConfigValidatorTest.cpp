@@ -155,6 +155,54 @@ TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, PmUnitNameAllowedListValidation) {
+  auto config = PlatformConfig();
+  config.platformName() = "MERU400BIU";
+  config.rootSlotType() = "PIM_SLOT";
+  config.bspKmodsRpmName() = "sample_bsp_kmods";
+  config.bspKmodsRpmVersion() = "1.0.0-4";
+
+  // Create a basic SlotTypeConfig without pmUnitName to avoid referential
+  // integrity issues
+  auto slotTypeConfig = SlotTypeConfig();
+  slotTypeConfig.idpromConfig() = IdpromConfig();
+  slotTypeConfig.idpromConfig()->address() = "0x14";
+  config.slotTypeConfigs() = {{"PIM_SLOT", slotTypeConfig}};
+
+  auto pmUnitConfig = PmUnitConfig();
+  pmUnitConfig.pluggedInSlotType() = "PIM_SLOT";
+
+  // Test 1: Valid PMUnit name from allowed list (should pass)
+  config.pmUnitConfigs() = {{"PIM_8DD", pmUnitConfig}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 2: Another valid PMUnit name from allowed list (should pass)
+  config.pmUnitConfigs() = {{"PIM_16Q", pmUnitConfig}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 3: Invalid PMUnit name not in allowed list (should fail)
+  config.pmUnitConfigs() = {{"INVALID_PMUNIT_NAME", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Another invalid PMUnit name (should fail)
+  config.pmUnitConfigs() = {{"RANDOM_NAME", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 5: Multiple PMUnits - all valid (should pass)
+  config.pmUnitConfigs() = {
+      {"FAN", pmUnitConfig},
+      {"PIM_16Q", pmUnitConfig},
+      {"PIM_8DD", pmUnitConfig}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 6: Multiple PMUnits - one invalid (should fail)
+  config.pmUnitConfigs() = {
+      {"PIM_8DD", pmUnitConfig},
+      {"INVALID_NAME", pmUnitConfig},
+      {"PIM_8DD", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
 TEST(ConfigValidatorTest, SlotTypeConfig) {
   auto slotTypeConfig = getValidSlotTypeConfig();
   EXPECT_TRUE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));

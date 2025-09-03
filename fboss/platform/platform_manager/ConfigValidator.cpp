@@ -13,6 +13,7 @@
 #include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/I2cAddr.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_validators_constants.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -511,6 +512,20 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
         "Validating PmUnitConfig for PmUnit {} in Slot {}...",
         pmUnitName,
         *pmUnitConfig.pluggedInSlotType());
+
+    // Validate that pmUnitName is in the allowed list
+    if (std::find(
+            platform_manager_validators_constants::ALLOWED_PMUNIT_NAMES()
+                .begin(),
+            platform_manager_validators_constants::ALLOWED_PMUNIT_NAMES().end(),
+            pmUnitName) ==
+        platform_manager_validators_constants::ALLOWED_PMUNIT_NAMES().end()) {
+      XLOG(ERR) << fmt::format(
+          "PMUnit name '{}' is not in the allowed list of PMUnit names",
+          pmUnitName);
+      return false;
+    }
+
     if (!isValidPmUnitConfig(*config.slotTypeConfigs(), pmUnitConfig)) {
       return false;
     }

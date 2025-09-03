@@ -30,6 +30,16 @@ thrift_library(
 )
 
 thrift_library(
+    name = "platform_manager_validators",
+    languages = [
+        "cpp2",
+    ],
+    thrift_srcs = {
+        "platform_manager_validators.thrift": [],
+    },
+)
+
+thrift_library(
     name = "platform_manager_service",
     languages = [
         "cpp2",
@@ -56,6 +66,7 @@ cpp_library(
         "fbsource//third-party/range-v3:range-v3",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
+        ":platform_manager_validators-cpp2-types",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
