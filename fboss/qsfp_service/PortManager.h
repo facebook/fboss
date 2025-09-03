@@ -177,7 +177,7 @@ class PortManager {
   void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
-  void programExternalPhyPort(PortID portId, bool xphyNeedResetDataPath);
+  void programExternalPhyPort(PortID portId, bool xPhyNeedResetDataPath);
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
 

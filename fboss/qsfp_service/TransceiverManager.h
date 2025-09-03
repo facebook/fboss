@@ -469,6 +469,10 @@ class TransceiverManager {
       TransceiverID id,
       std::unique_ptr<Transceiver> overrideTcvr);
 
+  // If the transceiver doesn't exist, this will return std::nullopt.
+  std::optional<TransceiverInfo> getTransceiverInfoOptional(
+      TransceiverID id) const;
+
   // If the transceiver doesn't exit, it will still return a TransceiverInfo
   // with present filed is false.
   TransceiverInfo getTransceiverInfo(TransceiverID id) const;

@@ -5,9 +5,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <optional>
-#include "fboss/lib/phy/facebook/bcm/minipack/MinipackPhyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 #include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
+#include "fboss/qsfp_service/test/MockPhyManager.h"
 #include "fboss/qsfp_service/test/MockPortManager.h"
 
 namespace facebook::fboss {
@@ -26,9 +26,9 @@ class PortManagerTest : public ::testing::Test {
     const auto platformMapping =
         makeFakePlatformMapping(numModules, numPortsPerModule);
 
-    // Using MinipackPhyManager as an example
-    std::unique_ptr<MinipackPhyManager> phyManager =
-        std::make_unique<MinipackPhyManager>(platformMapping.get());
+    std::unique_ptr<MockPhyManager> phyManager =
+        std::make_unique<MockPhyManager>(platformMapping.get());
+    phyManager_ = phyManager.get();
     transceiverManager_ = std::make_shared<MockWedgeManager>(
         numModules, 4, platformMapping, nullptr /* threads */);
     portManager_ = std::make_unique<MockPortManager>(
@@ -64,6 +64,15 @@ class PortManagerTest : public ::testing::Test {
         << "Port operational state mismatch for port " << portId;
   }
 
+  void programInternalPhyPortsForTest() {
+    // Set up transceiver override for testing
+    transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+        overrideMultiPortTcvrToPortAndProfile_);
+
+    // Test that programInternalPhyPorts uses the override for testing
+    EXPECT_NO_THROW(portManager_->programInternalPhyPorts(TransceiverID(0)));
+  }
+
   const TransceiverID tcvrId_ = TransceiverID(0);
   const PortID portId1_ = PortID(1);
   const PortID portId3_ = PortID(3);
@@ -78,6 +87,8 @@ class PortManagerTest : public ::testing::Test {
                {portId3_, multiPortProfile_},
            }}};
 
+  // Keeping as raw pointer only for testing mocks.
+  MockPhyManager* phyManager_{};
   std::shared_ptr<TransceiverManager> transceiverManager_;
   std::unique_ptr<MockPortManager> portManager_;
 };
@@ -297,4 +308,85 @@ TEST_F(PortManagerTest, getInterfacePhyInfo) {
       FbossError);
 }
 
+TEST_F(PortManagerTest, programInternalPhyPorts) {
+  initManagers(1, 4, false /* setPhyManager */);
+  programInternalPhyPortsForTest();
+
+  // Verify that the programmed port info is updated
+  auto portToPortInfoPtr =
+      transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
+          TransceiverID(0));
+  ASSERT_NE(portToPortInfoPtr, nullptr);
+
+  auto lockedPortInfo = portToPortInfoPtr->rlock();
+  EXPECT_EQ(lockedPortInfo->size(), 2); // Two ports in override
+
+  auto port1Info = lockedPortInfo->find(PortID(1));
+  ASSERT_NE(port1Info, lockedPortInfo->end());
+  EXPECT_EQ(
+      port1Info->second.profile,
+      cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL);
+
+  auto port3Info = lockedPortInfo->find(PortID(3));
+  ASSERT_NE(port3Info, lockedPortInfo->end());
+  EXPECT_EQ(
+      port3Info->second.profile,
+      cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL);
+}
+
+TEST_F(PortManagerTest, programXphyPort) {
+  initManagers(1, 4, true /* setPhyManager */);
+
+  // Test successful programming with valid transceiver info
+  EXPECT_CALL(
+      *phyManager_,
+      programOnePort(
+          PortID(1),
+          cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+          ::testing::_,
+          false))
+      .Times(1);
+
+  EXPECT_NO_THROW(portManager_->programXphyPort(
+      PortID(1), cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL));
+  // We don't throw if port is not an XPHY port.
+  EXPECT_NO_THROW(portManager_->programXphyPort(
+      PortID(1000), cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL));
+}
+
+TEST_F(PortManagerTest, programXphyPortNoPhyManager) {
+  initManagers(1, 4, false /* setPhyManager */);
+
+  // Test that FbossError is thrown when PhyManager is not set
+  EXPECT_THROW(
+      portManager_->programXphyPort(
+          PortID(1), cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL),
+      FbossError);
+}
+
+TEST_F(PortManagerTest, programExternalPhyPort) {
+  initManagers(1, 4, true /* setPhyManager */);
+  programInternalPhyPortsForTest();
+
+  EXPECT_CALL(
+      *phyManager_,
+      programOnePort(
+          PortID(1),
+          cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+          ::testing::_,
+          false))
+      .Times(1);
+
+  EXPECT_NO_THROW(portManager_->programExternalPhyPort(PortID(1), false));
+  // We don't throw if the port isn't an XPHY port.
+  EXPECT_NO_THROW(portManager_->programExternalPhyPort(PortID(1000), false));
+}
+
+TEST_F(PortManagerTest, programExternalPhyPortNoPhyManager) {
+  // Test the early return when phyManager_ is null
+  initManagers(1, 4, false /* setPhyManager */);
+
+  // Should return early without throwing when phyManager_ is null
+  EXPECT_NO_THROW(portManager_->programExternalPhyPort(PortID(1), false));
+}
 } // namespace facebook::fboss

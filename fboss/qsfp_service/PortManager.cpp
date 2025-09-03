@@ -2,6 +2,9 @@
 #include "fboss/qsfp_service/PortManager.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include "fboss/agent/Utils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+
 namespace facebook::fboss {
 namespace {
 TcvrToPortMap getTcvrToPortMap(
@@ -73,7 +76,33 @@ bool PortManager::initExternalPhyMap(bool forceWarmboot) {
 
 void PortManager::programXphyPort(
     PortID portId,
-    cfg::PortProfileID portProfileId) {}
+    cfg::PortProfileID portProfileId) {
+  // This is used solely through Thrift API.
+  if (!phyManager_) {
+    throw FbossError("Unable to program xphy port when PhyManager is not set");
+  }
+
+  // Check if port requires XPHY programming.
+  if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
+    XLOG(DBG2) << "Skip programming xphy port for Port=" << portId;
+    return;
+  }
+
+  // TODO(smenta): If Y-Cable will be supported on XPHY ports, we need to
+  // iterate through all transceivers for the given port.
+  auto tcvrID = getLowestIndexedTransceiverForPort(portId);
+  std::optional<TransceiverInfo> tcvrInfo =
+      transceiverManager_->getTransceiverInfoOptional(tcvrID);
+
+  if (!tcvrInfo) {
+    auto portNameStr = getPortNameByPortIdOrThrow(portId);
+    SW_PORT_LOG(WARNING, "", portNameStr, portId)
+        << "Port doesn't have transceiver info for transceiver id:" << tcvrID;
+  }
+
+  phyManager_->programOnePort(
+      portId, portProfileId, tcvrInfo, false /* needResetDataPath */);
+}
 
 phy::PhyInfo PortManager::getXphyInfo(PortID portId) {
   if (!phyManager_) {
@@ -222,11 +251,98 @@ TransceiverStateMachineState PortManager::getTransceiverState(
   return TransceiverStateMachineState::NOT_PRESENT;
 }
 
-void PortManager::programInternalPhyPorts(TransceiverID id) {}
+void PortManager::programInternalPhyPorts(TransceiverID id) {
+  std::map<int32_t, cfg::PortProfileID> programmedIphyPorts;
+
+  const auto& overrideTcvrToPortAndProfileForTest =
+      transceiverManager_->getOverrideTcvrToPortAndProfileForTesting();
+  if (auto overridePortAndProfileIt =
+          overrideTcvrToPortAndProfileForTest.find(id);
+      overridePortAndProfileIt != overrideTcvrToPortAndProfileForTest.end()) {
+    // NOTE: This is only used for testing.
+    for (const auto& [portId, profileID] : overridePortAndProfileIt->second) {
+      programmedIphyPorts.emplace(portId, profileID);
+    }
+  } else {
+    // Then call wedge_agent programInternalPhyPorts
+    auto wedgeAgentClient = utils::createWedgeAgentClient();
+    wedgeAgentClient->sync_programInternalPhyPorts(
+        programmedIphyPorts,
+        transceiverManager_->getTransceiverInfo(id),
+        false);
+  }
+
+  std::string logStr = folly::to<std::string>(
+      "programInternalPhyPorts() for Transceiver=", id, " return [");
+  for (const auto& [portId, profileID] : programmedIphyPorts) {
+    logStr = folly::to<std::string>(
+        logStr,
+        portId,
+        " : ",
+        apache::thrift::util::enumNameSafe(profileID),
+        ", ");
+  }
+  XLOG(INFO) << logStr << "]";
+
+  // Now update the programmed SW port to profile mapping
+  const auto& portToPortInfoIt =
+      transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(id);
+  if (!portToPortInfoIt) {
+    return;
+  }
+
+  auto portToPortInfoWithLock = portToPortInfoIt->wlock();
+  portToPortInfoWithLock->clear();
+  for (auto [portId, profileID] : programmedIphyPorts) {
+    TransceiverManager::TransceiverPortInfo portInfo;
+    portInfo.profile = profileID;
+    portToPortInfoWithLock->emplace(PortID(portId), portInfo);
+  }
+}
 
 void PortManager::programExternalPhyPort(
     PortID portId,
-    bool xphyNeedResetDataPath) {}
+    bool xPhyNeedResetDataPath) {
+  // This is used solely through internal state machine.
+  if (!phyManager_) {
+    return;
+  }
+
+  // Check if port requires XPHY programming.
+  if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
+    XLOG(DBG2) << "Skip programming xphy port for Port=" << portId;
+    return;
+  }
+
+  // TODO(smenta): If Y-Cable will be supported on XPHY ports, we need to
+  // iterate through all transceivers for the given port.
+  auto tcvrId = getLowestIndexedTransceiverForPort(portId);
+  const auto& portToPortInfoIt =
+      transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(tcvrId);
+  if (!portToPortInfoIt) {
+    // This is due to the iphy ports are disabled. So no need to program
+    // xphy
+    XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << tcvrId
+               << ". Can't find programmed iphy port and port info";
+    return;
+  }
+
+  const auto& programmedPortToPortInfo = portToPortInfoIt->rlock();
+  const auto& transceiverInfo = transceiverManager_->getTransceiverInfo(tcvrId);
+
+  auto portToPortInfoItr = programmedPortToPortInfo->find(portId);
+  if (portToPortInfoItr == programmedPortToPortInfo->end(portId)) {
+    return;
+  }
+
+  auto portProfile = portToPortInfoItr->second.profile;
+  phyManager_->programOnePort(
+      portId, portProfile, transceiverInfo, xPhyNeedResetDataPath);
+  XLOG(INFO) << "Programmed XPHY port for Transceiver=" << tcvrId
+             << ", Port=" << portId
+             << ", Profile=" << apache::thrift::util::enumNameSafe(portProfile)
+             << ", needResetDataPath=" << xPhyNeedResetDataPath;
+}
 
 phy::PhyInfo PortManager::getPhyInfo(const std::string& portName) {
   if (!phyManager_) {

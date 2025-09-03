@@ -1260,10 +1260,20 @@ void TransceiverManager::programExternalPhyPorts(
   }
 }
 
-TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
+std::optional<TransceiverInfo> TransceiverManager::getTransceiverInfoOptional(
+    TransceiverID id) const {
   auto lockedTransceivers = transceivers_.rlock();
-  if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
-    return it->second->getTransceiverInfo();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt != lockedTransceivers->end()) {
+    return tcvrIt->second->getTransceiverInfo();
+  }
+  return std::nullopt;
+}
+
+TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
+  const auto& tcvrInfo = getTransceiverInfoOptional(id);
+  if (tcvrInfo) {
+    return *tcvrInfo;
   } else {
     TransceiverInfo absentTcvr;
     absentTcvr.tcvrState()->present() = false;

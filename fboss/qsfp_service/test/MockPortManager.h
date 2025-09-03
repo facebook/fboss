@@ -33,7 +33,6 @@ class MockPortManager : public PortManager {
             threads) {}
 
   MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
-  MOCK_METHOD2(programExternalPhyPort, void(PortID, bool));
 };
 
 } // namespace facebook::fboss

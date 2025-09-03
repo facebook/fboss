@@ -194,4 +194,13 @@ TEST_F(TransceiverManagerTest, opticalOrActiveCmisCableTest) {
   EXPECT_FALSE(TransceiverManager::opticalOrActiveCmisCable(state));
 }
 
+TEST_F(TransceiverManagerTest, getTransceiverInfoOptionalNonExistent) {
+  // Test with a non-existent transceiver ID
+  auto result =
+      transceiverManager_->getTransceiverInfoOptional(TransceiverID(999));
+
+  // Verify that the result is std::nullopt
+  EXPECT_FALSE(result.has_value());
+}
+
 } // namespace facebook::fboss
