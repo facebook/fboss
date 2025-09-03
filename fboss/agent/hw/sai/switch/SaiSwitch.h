@@ -428,9 +428,11 @@ class SaiSwitch : public HwSwitch {
       phy::PhySideState& sideState,
       phy::PhySideStats& sideStats,
       std::shared_ptr<SaiPort> port,
+      std::shared_ptr<SaiPortSerdes> serdes,
       phy::PmdState& lastPmdState,
       phy::PmdStats& lastPmdStats,
-      PortID portID);
+      PortID portID,
+      bool readSerdesParams);
 
   void updatePcsInfo(
       phy::PhySideState& sideState,
@@ -726,6 +728,7 @@ class SaiSwitch : public HwSwitch {
   int64_t watermarkStatsUpdateTime_{0};
   int64_t voqStatsUpdateTime_{0};
   int64_t cableLengthStatsUpdateTime_{0};
+  time_t lastSerdesParamsReadTime_;
   cfg::AsicType asicType_;
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;

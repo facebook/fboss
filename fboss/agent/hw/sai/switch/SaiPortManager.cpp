@@ -2891,6 +2891,99 @@ std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
       saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
 }
 
+std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
+    PortSerdesSaiId serdesSaiPortId,
+    const PortID& swPortID,
+    uint8_t numPmdLanes) const {
+  if (!rxSerdesParametersSupported()) {
+    return std::vector<phy::SerdesParameters>();
+  }
+
+  // Skip reading serdes parameters if port is not INTERFACE_PORT or FABRIC_PORT
+  auto portType = getPortType(swPortID);
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::FABRIC_PORT) {
+    return std::vector<phy::SerdesParameters>();
+  }
+
+  std::vector<phy::SerdesParameters> serdesParams(numPmdLanes);
+  for (int l = 0; l < numPmdLanes; l++) {
+    serdesParams[l].lane() = l;
+  }
+
+  // Helper function to get serdes parameters with error handling
+  auto getSerdesParam =
+      [&](const char* paramName, auto attributeType, auto&& setter) {
+        try {
+          auto values = SaiApiTable::getInstance()->portApi().getAttribute(
+              serdesSaiPortId, attributeType);
+          for (int l = 0; l < numPmdLanes; l++) {
+            setter(serdesParams[l], values[l]);
+          }
+        } catch (const SaiApiError& e) {
+          XLOG(DBG2) << "Failed to get " << paramName
+                     << " serdes parameter: " << e.what();
+        }
+      };
+
+  // Get all serdes parameters using the helper function
+  getSerdesParam(
+      "RVga",
+      SaiPortSerdesTraits::Attributes::RVga{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rvga() = val; });
+
+  getSerdesParam(
+      "FltM",
+      SaiPortSerdesTraits::Attributes::FltM{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxFltM() = val; });
+
+  getSerdesParam(
+      "FltS",
+      SaiPortSerdesTraits::Attributes::FltS{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxFltS() = val; });
+
+  getSerdesParam(
+      "RxPf",
+      SaiPortSerdesTraits::Attributes::RxPf{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxPf() = val; });
+
+  getSerdesParam(
+      "RxTap2",
+      SaiPortSerdesTraits::Attributes::RxTap2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxTap2() = val; });
+
+  getSerdesParam(
+      "RxTap1",
+      SaiPortSerdesTraits::Attributes::RxTap1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxTap1() = val; });
+
+  getSerdesParam(
+      "TpChn2",
+      SaiPortSerdesTraits::Attributes::TpChn2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.tpChn2() = val; });
+
+  getSerdesParam(
+      "TpChn1",
+      SaiPortSerdesTraits::Attributes::TpChn1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.tpChn1() = val; });
+
+  getSerdesParam(
+      "TpChn0",
+      SaiPortSerdesTraits::Attributes::TpChn0{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.tpChn0() = val; });
+
+  return serdesParams;
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
     PortSaiId saiPortId,

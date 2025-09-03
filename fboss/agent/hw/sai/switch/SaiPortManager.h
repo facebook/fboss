@@ -260,6 +260,10 @@ class SaiPortManager {
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
 #endif
+  std::vector<phy::SerdesParameters> getSerdesParameters(
+      PortSerdesSaiId serdesSaiPortId,
+      const PortID& swPortID,
+      uint8_t numPmdLanes) const;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
       PortSaiId saiPortId,

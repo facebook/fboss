@@ -137,6 +137,11 @@ DEFINE_bool(
     false,
     "Fail if untagged packet is transmitted on platform where tagged packet is required");
 
+DEFINE_int32(
+    serdes_params_poll_interval_s,
+    360,
+    "Interval for reading serdes stats");
+
 namespace {
 /*
  * For the devices/SDK we use, the only events we should get (and process)
@@ -1982,6 +1987,13 @@ std::map<int, cfg::PortState> SaiSwitch::getSysPortShelState() const {
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
   std::map<PortID, phy::PhyInfo> returnPhyParams;
   auto& portManager = managerTable_->portManager();
+  bool readSerdesParams = false;
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  if ((now.count() - lastSerdesParamsReadTime_) >=
+      FLAGS_serdes_params_poll_interval_s) {
+    readSerdesParams = true;
+    lastSerdesParamsReadTime_ = now.count();
+  }
 
   for (const auto& portIdAndHandle : managerTable_->portManager()) {
     PortID portID = portIdAndHandle.first;
@@ -2046,9 +2058,11 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
           *phyParams.state()->line(),
           *phyParams.stats()->line(),
           portHandle->port,
+          portHandle->serdes,
           lastLinePmdState,
           lastLinePmdStats,
-          portID);
+          portID,
+          readSerdesParams);
       if (isXphy) {
         CHECK(phyParams.state()->system().has_value());
         CHECK(phyParams.stats()->system().has_value());
@@ -2064,9 +2078,11 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
             *phyParams.state()->system(),
             *phyParams.stats()->system(),
             portHandle->sysPort,
+            portHandle->sysSerdes,
             lastSysPmdState,
             lastSysPmdStats,
-            portID);
+            portID,
+            false /* readSerdesParams */);
       }
 
       // Update PCS Info
@@ -2088,7 +2104,6 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
           *lastPhyInfo.state()->line());
 
       // PhyInfo update timestamp
-      auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
       phyParams.state()->timeCollected() = now.count();
       phyParams.stats()->timeCollected() = now.count();
       returnPhyParams[portID] = phyParams;
@@ -2102,9 +2117,11 @@ void SaiSwitch::updatePmdInfo(
     phy::PhySideState& sideState,
     phy::PhySideStats& sideStats,
     std::shared_ptr<SaiPort> port,
+    std::shared_ptr<SaiPortSerdes> serdes,
     [[maybe_unused]] phy::PmdState& lastPmdState,
     [[maybe_unused]] phy::PmdStats& lastPmdStats,
-    [[maybe_unused]] PortID portID) {
+    [[maybe_unused]] PortID portID,
+    bool readSerdesParams) {
   uint32_t numPmdLanes;
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
@@ -2236,6 +2253,26 @@ void SaiSwitch::updatePmdInfo(
   }
 #endif
 
+  std::vector<phy::SerdesParameters> pmdSerdesParameters;
+  if (readSerdesParams) {
+    pmdSerdesParameters = managerTable_->portManager().getSerdesParameters(
+        serdes->adapterKey(), portID, numPmdLanes);
+  } else {
+    // Use the previous state
+    for (const auto& [_, laneState] : *lastPmdState.lanes()) {
+      pmdSerdesParameters.push_back(*laneState.serdesParameters());
+    }
+  }
+  for (const auto& serdesParams : pmdSerdesParameters) {
+    auto laneId = *serdesParams.lane();
+    phy::LaneState laneState;
+    if (laneStates.find(laneId) != laneStates.end()) {
+      laneState = laneStates[laneId];
+    }
+    laneState.lane() = laneId;
+    laneState.serdesParameters() = serdesParams;
+    laneStates[laneId] = laneState;
+  }
   for (auto laneStat : laneStats) {
     sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
   }
