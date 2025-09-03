@@ -41,6 +41,7 @@ cpp_library(
         "AgentInNullRouteDiscardsTest.cpp",
         "AgentInTrapDiscardsTest.cpp",
         "AgentIngressBufferTests.cpp",
+        "AgentInterPacketGapTests.cpp",
         "AgentIpInIpTunnelTests.cpp",
         "AgentJumboFramesTests.cpp",
         "AgentL3ForwardingTests.cpp",
