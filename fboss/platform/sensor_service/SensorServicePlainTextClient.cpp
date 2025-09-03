@@ -10,7 +10,6 @@
 #include <folly/Conv.h>
 #include <folly/String.h>
 #include <tabulate/table.hpp>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
 #include "fboss/platform/helpers/InitCli.h"
@@ -163,12 +162,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  std::map<sensor_config::SensorType, std::vector<sensor_service::SensorData>>
-      sensorsByType;
+  std::map<std::string, std::vector<sensor_service::SensorData>>
+      sensorsBySlotPath;
   int failureCount = 0;
 
   for (const auto& sensor : *res.sensorData()) {
-    sensorsByType[*sensor.sensorType()].push_back(sensor);
+    sensorsBySlotPath[*sensor.slotPath()].push_back(sensor);
     if (getSensorStatus(sensor) != kStatusPass) {
       failureCount++;
     }
@@ -176,9 +175,8 @@ int main(int argc, char** argv) {
 
   std::cout << "\nSensor Service Output:\n";
 
-  for (const auto& [sensorType, sensors] : sensorsByType) {
-    std::cout << "\nSensor Type "
-              << apache::thrift::util::enumNameSafe(sensorType) << ":\n\n";
+  for (const auto& [slotPath, sensors] : sensorsBySlotPath) {
+    std::cout << "\nSlot Path: " << slotPath << ":\n\n";
     printSensorTable(sensors);
   }
 
