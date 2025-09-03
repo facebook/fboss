@@ -495,6 +495,15 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     if (!isValidSlotTypeConfig(slotTypeConfig)) {
       return false;
     }
+    // Validate that pmUnitName in slotTypeConfig exists in pmUnitConfigs
+    if (slotTypeConfig.pmUnitName() &&
+        !config.pmUnitConfigs()->contains(*slotTypeConfig.pmUnitName())) {
+      XLOG(ERR) << fmt::format(
+          "PMUnit name '{}' in SlotTypeConfig '{}' does not exist in pmUnitConfigs",
+          *slotTypeConfig.pmUnitName(),
+          slotName);
+      return false;
+    }
   }
 
   for (const auto& [pmUnitName, pmUnitConfig] : *config.pmUnitConfigs()) {
@@ -511,6 +520,13 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
        *config.versionedPmUnitConfigs()) {
     XLOG(INFO) << fmt::format(
         "Validating VersionedPmUnitConfigs for PmUnit {}...", pmUnitName);
+    // Validate that PMUnit name exists in pmUnitConfigs
+    if (!config.pmUnitConfigs()->contains(pmUnitName)) {
+      XLOG(ERR) << fmt::format(
+          "PMUnit name '{}' in versionedPmUnitConfigs does not exist in pmUnitConfigs",
+          pmUnitName);
+      return false;
+    }
     if (versionedPmUnitConfigs.empty()) {
       XLOG(ERR) << fmt::format(
           "VersionedPmUnitConfigs for {} must not be empty", pmUnitName);
@@ -802,4 +818,5 @@ bool ConfigValidator::isValidXcvrSymlinks(
   }
   return true;
 }
+
 } // namespace facebook::fboss::platform::platform_manager
