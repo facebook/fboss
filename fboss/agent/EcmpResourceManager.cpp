@@ -800,6 +800,91 @@ template <typename AddrT>
 std::shared_ptr<NextHopGroupInfo>
 EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     RouterID rid,
+    const folly::CIDRNetwork& pfx,
+    std::shared_ptr<NextHopGroupInfo>& pfxGrpInfo,
+    InputOutputState* inOutState,
+    bool addNewDelta) {
+  auto newState = inOutState->out.back().newState();
+  auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>();
+  std::shared_ptr<Route<AddrT>> existingRoute;
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    CHECK(pfx.first.isV6());
+    existingRoute = fib->getRouteIf(
+        RoutePrefix<folly::IPAddressV6>(pfx.first.asV6(), pfx.second));
+  } else {
+    CHECK(pfx.first.isV4());
+    existingRoute =
+        fib->getRouteIf(RoutePrefix<AddrT>(pfx.first.asV4(), pfx.second));
+  }
+  CHECK(existingRoute);
+  return updateForwardingInfoAndInsertDelta(
+      rid,
+      existingRoute,
+      pfxGrpInfo,
+      false /*ecmpDemandExceeded*/,
+      inOutState,
+      addNewDelta);
+}
+
+void EcmpResourceManager::mergeGroupAndMigratePrefixes(
+    InputOutputState* inOutState) {
+  auto mergeSet = getOptimalMergeGroupSet();
+  CHECK(!mergeSet.empty())
+      << "Ecmp overflow, but no candidates available for merge";
+  auto citr = candidateMergeGroups_.find(mergeSet);
+  CHECK(citr != candidateMergeGroups_.end());
+  auto [mitr, mergedGroupsInerted] =
+      mergedGroups_.insert({citr->first, citr->second});
+  CHECK(mergedGroupsInerted);
+  // Added to merged groups, no longer a candidate merge.
+  pruneFromCandidateMerges(mergeSet);
+  /*
+   * Since merged group will create a new ECMP group. We create a
+   * single new delta for migrating all relvant prefixes to merged
+   * group and adding the new group that got us to exceed the ECMP
+   * limit
+   */
+  bool addNewDelta{true};
+  XLOG(DBG2) << "Merging : " << mergeSet << std::endl
+             << "Consolidation info: " << mitr->second;
+
+  for (auto& [ridAndPfx, pfxGrpInfo] : prefixToGroupInfo_) {
+    if (!mergeSet.contains(pfxGrpInfo->getID())) {
+      continue;
+    }
+    XLOG(DBG2) << "Migrating : " << ridAndPfx << " to merged ECMP group";
+    if (!pfxGrpInfo->hasOverrideNextHops()) {
+      // Converting from primary group to merged group
+      // decrement primary group count
+      --inOutState->nonBackupEcmpGroupsCnt;
+      XLOG(DBG2) << "Primary ecmp group decremented to: "
+                 << inOutState->nonBackupEcmpGroupsCnt;
+    }
+    pfxGrpInfo->setMergedGroupInfoItr(mitr);
+    const auto& [rid, pfx] = ridAndPfx;
+    if (pfx.first.isV6()) {
+      updateForwardingInfoAndInsertDelta<folly::IPAddressV6>(
+          rid, pfx, pfxGrpInfo, inOutState, addNewDelta);
+
+    } else {
+      updateForwardingInfoAndInsertDelta<folly::IPAddressV4>(
+          rid, pfx, pfxGrpInfo, inOutState, addNewDelta);
+    }
+    // Only the first prefix update needs to start a new delta.
+    // Rest will just queue updates on that same delta
+    addNewDelta &= false;
+  }
+  // We added one merged group, so increment nonBackupEcmpGroupsCnt
+  ++inOutState->nonBackupEcmpGroupsCnt;
+  XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
+             << ". Incremented primary ecmp group count to : "
+             << inOutState->nonBackupEcmpGroupsCnt;
+}
+
+template <typename AddrT>
+std::shared_ptr<NextHopGroupInfo>
+EcmpResourceManager::updateForwardingInfoAndInsertDelta(
+    RouterID rid,
     const std::shared_ptr<Route<AddrT>>& route,
     NextHops2GroupId::iterator nhops2IdItr,
     bool ecmpDemandExceeded,
@@ -817,16 +902,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
           true /*isBackupEcmpGroupType*/);
     } else {
       CHECK(compressionPenaltyThresholdPct_);
-      auto mergeSet = getOptimalMergeGroupSet();
-      CHECK(!mergeSet.empty())
-          << "Ecmp overflow, but no candidates available for merge";
-      auto citr = candidateMergeGroups_.find(mergeSet);
-      CHECK(citr != candidateMergeGroups_.end());
-      auto [mitr, mergedGroupsInerted] =
-          mergedGroups_.insert({citr->first, citr->second});
-      CHECK(mergedGroupsInerted);
-      // Added to merged groups, no longer a candidate merge.
-      pruneFromCandidateMerges(mergeSet);
+      mergeGroupAndMigratePrefixes(inOutState);
       // Since this is a new group, it cannot be part of the
       // optimal merge groups (since it just being created).
       std::tie(grpInfo, insertedGrp) = nextHopGroupIdToInfo_.refOrEmplace(
@@ -834,55 +910,6 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
           nhops2IdItr->second,
           nhops2IdItr,
           false /*isBackupEcmpGroupType*/);
-      /*
-       * Since merged group will create a new ECMP group. We create a
-       * single new delta for migrating all relvant prefixes to merged
-       * group and adding the new group that got us to exceed the ECMP
-       * limit
-       */
-      bool addNewDelta{true};
-      XLOG(DBG2) << "Merging : " << mergeSet << std::endl
-                 << "Consolidation info: " << mitr->second;
-      for (auto& [ridAndPfx, pfxGrpInfo] : prefixToGroupInfo_) {
-        if (!mergeSet.contains(pfxGrpInfo->getID())) {
-          continue;
-        }
-        XLOG(DBG2) << "Migrating : " << ridAndPfx << " to merged ECMP group";
-        if (!pfxGrpInfo->hasOverrideNextHops()) {
-          // Converting from primary group to merged group
-          // decrement primary group count
-          --inOutState->nonBackupEcmpGroupsCnt;
-          XLOG(DBG2) << "Primary ecmp group decremented to: "
-                     << inOutState->nonBackupEcmpGroupsCnt;
-        }
-        pfxGrpInfo->setMergedGroupInfoItr(mitr);
-        auto newState = inOutState->out.back().newState();
-        auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>();
-        std::shared_ptr<Route<AddrT>> existingRoute;
-        if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-          existingRoute = fib->getRouteIf(RoutePrefix<AddrT>(
-              ridAndPfx.second.first.asV6(), ridAndPfx.second.second));
-        } else {
-          existingRoute = fib->getRouteIf(RoutePrefix<AddrT>(
-              ridAndPfx.second.first.asV4(), ridAndPfx.second.second));
-        }
-        CHECK(existingRoute);
-        updateForwardingInfoAndInsertDelta(
-            rid,
-            existingRoute,
-            pfxGrpInfo,
-            ecmpDemandExceeded,
-            inOutState,
-            addNewDelta);
-        // Only the first prefix update needs to start a new delta.
-        // Rest will just queue updates on that same delta
-        addNewDelta &= false;
-      }
-      // We added one merged group, so increment nonBackupEcmpGroupsCnt
-      ++inOutState->nonBackupEcmpGroupsCnt;
-      XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
-                 << ". Incremented primary ecmp group count to : "
-                 << inOutState->nonBackupEcmpGroupsCnt;
     }
     CHECK(insertedGrp);
   } else if (compressionPenaltyThresholdPct_) {

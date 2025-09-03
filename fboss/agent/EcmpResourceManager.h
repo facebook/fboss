@@ -177,6 +177,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       InputOutputState* inOutState);
   std::vector<std::shared_ptr<NextHopGroupInfo>> getGroupsToReclaimOrdered(
       uint32_t canReclaim) const;
+  void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
   void reclaimBackupGroups(
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const NextHopGroupIds& groupIdsToReclaimIn,
@@ -194,6 +195,13 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> getGidToPrefixes()
       const;
   void reclaimEcmpGroups(InputOutputState* inOutState);
+  template <typename AddrT>
+  std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
+      RouterID rid,
+      const folly::CIDRNetwork& pfx,
+      std::shared_ptr<NextHopGroupInfo>& grpInfo,
+      InputOutputState* inOutState,
+      bool addNewDelta);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
       RouterID rid,
