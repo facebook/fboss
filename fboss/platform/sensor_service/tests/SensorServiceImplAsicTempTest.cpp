@@ -62,6 +62,8 @@ TEST_F(SensorServiceImplAsicTempTest, SuccessfulReading) {
   EXPECT_EQ(*asicTemp.sensorType(), SensorType::TEMPERTURE);
   ASSERT_TRUE(asicTemp.value().has_value());
   EXPECT_EQ(*asicTemp.value(), 42);
+  EXPECT_EQ(*asicTemp.sysfsPath(), "/usr/bin/mget_temp -d 0000:01:00.0");
+  EXPECT_EQ(*asicTemp.slotPath(), "");
 
   EXPECT_EQ(
       fb303::fbData->getCounter(fmt::format(

@@ -105,6 +105,7 @@ void SensorServiceImpl::fetchSensorData() {
           *sensor.type(),
           sensor.thresholds().to_optional(),
           sensor.compute().to_optional());
+      sensorData.slotPath() = *pmUnitSensors.slotPath();
       polledData[sensorName] = sensorData;
       if (!sensorData.value()) {
         readFailures++;
@@ -176,6 +177,7 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
     const std::optional<std::string>& compute) {
   SensorData sensorData{};
   sensorData.name() = sensorName;
+  sensorData.sysfsPath() = sysfsPath;
   std::string sensorValue;
   bool sysfsFileExists =
       std::filesystem::exists(std::filesystem::path(sysfsPath));
@@ -233,6 +235,9 @@ SensorData SensorServiceImpl::getAsicTemp(const SwitchAsicTemp& asicTemp) {
         *asicTemp.deviceId());
     return sensorData;
   }
+
+  sensorData.sysfsPath() = fmt::format("/usr/bin/mget_temp -d {}", *sbdf);
+
   auto [exitStatus, output] =
       platformUtils_->runCommand({"/usr/bin/mget_temp", "-d", *sbdf});
   if (exitStatus != 0) {

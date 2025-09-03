@@ -33,6 +33,17 @@ TEST_F(
   EXPECT_EQ(response.sensorData()->size(), sensorMockData_.size());
   for (auto& sensorDatum : *response.sensorData()) {
     EXPECT_EQ(sensorMockData_.at(*sensorDatum.name()), *sensorDatum.value());
+    EXPECT_EQ(*sensorDatum.slotPath(), "/");
+    if (*sensorDatum.name() == "MOCK_FRU_SENSOR1") {
+      EXPECT_TRUE(
+          sensorDatum.sysfsPath()->ends_with("mock_fru_sensor_1_path:temp1"));
+    } else if (*sensorDatum.name() == "MOCK_FRU_SENSOR2") {
+      EXPECT_TRUE(
+          sensorDatum.sysfsPath()->ends_with("mock_fru_sensor_2_path:fan1"));
+    } else if (*sensorDatum.name() == "MOCK_FRU_SENSOR3") {
+      EXPECT_TRUE(
+          sensorDatum.sysfsPath()->ends_with("mock_fru_sensor_3_path:vin"));
+    }
   }
 }
 

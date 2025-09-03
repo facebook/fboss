@@ -35,6 +35,18 @@ class SensorServiceImplTest : public ::testing::Test {
           << fmt::format("Sensor {} not found in results", sensorName);
       auto sensorData = it->second;
       EXPECT_EQ(sensorData.name(), sensorName);
+      EXPECT_EQ(*sensorData.slotPath(), "/");
+      if (sensorName == "MOCK_FRU_SENSOR1") {
+        EXPECT_TRUE(
+            sensorData.sysfsPath()->ends_with("mock_fru_sensor_1_path:temp1"));
+      } else if (sensorName == "MOCK_FRU_SENSOR2") {
+        EXPECT_TRUE(
+            sensorData.sysfsPath()->ends_with("mock_fru_sensor_2_path:fan1"));
+      } else if (sensorName == "MOCK_FRU_SENSOR3") {
+        EXPECT_TRUE(
+            sensorData.sysfsPath()->ends_with("mock_fru_sensor_3_path:vin"));
+      }
+
       if (expectedSensorReadSuccess) {
         EXPECT_EQ(sensorData.value(), sensorValue);
         EXPECT_GE(sensorData.timeStamp(), now);

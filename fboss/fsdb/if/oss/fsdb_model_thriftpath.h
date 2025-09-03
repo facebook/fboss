@@ -19562,18 +19562,24 @@ class ChildThriftPath<::facebook::fboss::platform::sensor_service::SensorData, :
 std::pair<strings::value, Child<float, ::apache::thrift::type_class::floating_point, ::apache::thrift::type::float_t>>,
 std::pair<strings::timeStamp, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::thresholds, ChildThriftPath<::facebook::fboss::platform::sensor_config::Thresholds, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::sensorType, Child<::facebook::fboss::platform::sensor_config::SensorType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::platform::sensor_config::SensorType>>>>;
+std::pair<strings::sensorType, Child<::facebook::fboss::platform::sensor_config::SensorType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::platform::sensor_config::SensorType>>>,
+std::pair<strings::slotPath, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::sysfsPath, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<float, ::apache::thrift::type_class::floating_point, ::apache::thrift::type::float_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, ChildThriftPath<::facebook::fboss::platform::sensor_config::Thresholds, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::facebook::fboss::platform::sensor_config::SensorType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::platform::sensor_config::SensorType>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::facebook::fboss::platform::sensor_config::SensorType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::platform::sensor_config::SensorType>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::value, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::timeStamp, std::integral_constant<apache::thrift::field_id_t, 3>>,
 std::pair<strings::thresholds, std::integral_constant<apache::thrift::field_id_t, 4>>,
-std::pair<strings::sensorType, std::integral_constant<apache::thrift::field_id_t, 5>>>::template type_of<Name>;
+std::pair<strings::sensorType, std::integral_constant<apache::thrift::field_id_t, 5>>,
+std::pair<strings::slotPath, std::integral_constant<apache::thrift::field_id_t, 6>>,
+std::pair<strings::sysfsPath, std::integral_constant<apache::thrift::field_id_t, 7>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -19584,6 +19590,8 @@ std::pair<strings::sensorType, std::integral_constant<apache::thrift::field_id_t
     STRUCT_CHILD_GETTERS(timeStamp, 3);
     STRUCT_CHILD_GETTERS(thresholds, 4);
     STRUCT_CHILD_GETTERS(sensorType, 5);
+    STRUCT_CHILD_GETTERS(slotPath, 6);
+    STRUCT_CHILD_GETTERS(sysfsPath, 7);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -19592,6 +19600,8 @@ std::pair<strings::sensorType, std::integral_constant<apache::thrift::field_id_t
     else if constexpr (__id == 3) { return timeStamp(); }
     else if constexpr (__id == 4) { return thresholds(); }
     else if constexpr (__id == 5) { return sensorType(); }
+    else if constexpr (__id == 6) { return slotPath(); }
+    else if constexpr (__id == 7) { return sysfsPath(); }
   }
 
   template <typename T, T... Values>
