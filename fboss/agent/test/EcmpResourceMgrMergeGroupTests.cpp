@@ -56,7 +56,7 @@ class EcmpResourceMgrMergeGroupTest
                << (expectedCandidateMerges
                        ? folly::to<std::string>(*expectedCandidateMerges)
                        : "atleast 1")
-               << "candidate merge with each unmerged group";
+               << " candidate merge with each unmerged group";
     std::for_each(
         unmergedGroups.begin(),
         unmergedGroups.end(),
@@ -109,6 +109,25 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
   auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
   EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto deltas = addNextRoute();
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertGroupsAreMerged(optimalMergeSet);
+  assertCost(optimalMergeSet);
+}
+
+TEST_F(EcmpResourceMgrMergeGroupTest, multiplePrefixesInEachMergeGrpMember) {
+  for (const auto& [nhops, _] : sw_->getEcmpResourceManager()->getNhopsToId()) {
+    auto deltas = addRoute(nextPrefix(), nhops);
+    EXPECT_EQ(deltas.size(), 1);
+  }
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 4);
   auto deltas = addNextRoute();
   // Route delta + merge delta
   EXPECT_EQ(deltas.size(), 2);

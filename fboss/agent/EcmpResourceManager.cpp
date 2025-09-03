@@ -855,7 +855,11 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     XLOG(DBG2) << "Migrating : " << ridAndPfx << " to merged ECMP group";
     if (!pfxGrpInfo->hasOverrideNextHops()) {
       // Converting from primary group to merged group
-      // decrement primary group count
+      // decrement primary group count. Note each unmerged
+      // group decrements nonBackupEcmpGroupsCnt only once
+      // Since once we encounter this group, we will next
+      // update its merge info itr. So for the next pfx
+      // pointing to this group, we won't decrement the count
       --inOutState->nonBackupEcmpGroupsCnt;
       XLOG(DBG2) << "Primary ecmp group decremented to: "
                  << inOutState->nonBackupEcmpGroupsCnt;
