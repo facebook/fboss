@@ -69,6 +69,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& failTo);
   RouteV6::Prefix nextPrefix() const;
   void SetUp() override;
+  void TearDown() override;
   std::set<NextHopGroupId> getNhopGroupIds() const;
   std::optional<EcmpResourceManager::NextHopGroupId> getNhopId(
       const RouteNextHopSet& nhops) const;
@@ -79,6 +80,10 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   virtual int numStartRoutes() const {
     return 5;
   }
+  void assertMergedGroup(
+      const EcmpResourceManager::NextHopGroupIds& mergedGroup) const;
+  void assertGroupsAreUnMerged(
+      const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const;
   void assertDeltasForOverflow(const std::vector<StateDelta>& deltas) const;
   void assertRibFibEquivalence() const;
   std::vector<std::shared_ptr<RouteV6>> getPostConfigResolvedRoutes(
