@@ -97,7 +97,8 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
        "status",
        "criticalRange",
        "alarmRange",
-       "lastUpdated"});
+       "lastUpdated",
+       "sysfsPath"});
 
   size_t rowIndex = 1;
   for (const auto& sensor : sensors) {
@@ -114,7 +115,8 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
              "[{}, {}]",
              formatValue(sensor.thresholds()->minAlarmVal()),
              formatValue(sensor.thresholds()->maxAlarmVal())),
-         formatLastUpdatedAt(sensor.timeStamp())});
+         formatLastUpdatedAt(sensor.timeStamp()),
+         *sensor.sysfsPath()});
     if (status == kStatusFail) {
       table[rowIndex].format().font_color(tabulate::Color::red);
     } else if (status == kStatusWarn) {
