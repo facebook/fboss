@@ -506,6 +506,11 @@ void EcmpResourceManager::updateMergedGroups(
       XLOG(DBG2) << " From: " << curMergeSet << " will delete : "
                  << nhopGroupIdsDifference(curMergeSet, newMergeSet);
     }
+    // Prune curMergeSet from mergedGroups_
+    mergedGroups_.erase(curMergeSet);
+    // Prune all candidate merges where we had unmerged groups
+    // merged with curMergeSet
+    pruneFromCandidateMerges(curMergeSet);
     /*
      * If newMergeSet.size() > 1
      * Create a new merge group and cache its iterator.
@@ -519,6 +524,7 @@ void EcmpResourceManager::updateMergedGroups(
                  << " with: " << newMergeSet;
       std::tie(newMergeItr, std::ignore) = mergedGroups_.insert(
           {newMergeSet, computeConsolidationInfo(newMergeSet)});
+      computeCandidateMergesForNewMergedGroup(newMergeSet);
       // If newMergeSet.size() > 1 we will create one new merged
       // group and then delete the curMergeSet. Transiently we
       // will create one extra ECMP group but at the end of update
@@ -539,8 +545,6 @@ void EcmpResourceManager::updateMergedGroups(
     // Now update the groups and prefixes corresponding to the
     // newMergeSet
     updateMergeInfo(newMergeSet, newMergeItr, newState);
-    // Prune curMergeSet from mergedGroups_
-    mergedGroups_.erase(curMergeSet);
 
     newState->publish();
     // We put each unmerge on a new delta, to ensure that all
@@ -888,6 +892,8 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
   }
   // We added one merged group, so increment nonBackupEcmpGroupsCnt
   ++inOutState->nonBackupEcmpGroupsCnt;
+  // Compute new candidate merges of merged group + each unmerged group
+  computeCandidateMergesForNewMergedGroup(mergeSet);
   XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
              << ". Incremented primary ecmp group count to : "
              << inOutState->nonBackupEcmpGroupsCnt;
@@ -1133,7 +1139,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
     }
     XLOG(DBG4) << " Route  " << (oldRoute ? "update " : "add ")
                << " points to existing group: " << grpInfo->getID()
-               << " primray ecmp group count unchanged: "
+               << " primary ecmp group count unchanged: "
                << inOutState->nonBackupEcmpGroupsCnt;
   }
   CHECK(grpInfo);
@@ -1436,16 +1442,12 @@ void EcmpResourceManager::updateConsolidationPenalty(
     }
     return updated;
   };
-  if (!updatePenalty(candidateMergeGroups_)) {
-    XLOG(DBG2)
-        << " Group: " << groupInfo.getID()
-        << " not part of candidate merged groups, updating penalty in merged groups ";
-    CHECK(updatePenalty(mergedGroups_));
-  } else {
-    XLOG(DBG2) << " Group: " << groupInfo.getID()
-               << " penalty updated in candidate merged groups";
-    DCHECK(!updatePenalty(mergedGroups_));
-  }
+  XLOG(DBG2) << " Updating consolidation penalty for : " << groupInfo.getID()
+             << " in candidate merges";
+  updatePenalty(candidateMergeGroups_);
+  XLOG(DBG2) << " Updating consolidation penalty for : " << groupInfo.getID()
+             << " in merged groups";
+  updatePenalty(mergedGroups_);
 }
 
 void EcmpResourceManager::processRouteUpdates(
@@ -1781,9 +1783,10 @@ void EcmpResourceManager::computeCandidateMergesForNewUnmergedGroups(
       }
       addCandidateMerge(candidateMerge);
     }
-    for (const auto& [grpsToMergeWith, _] : mergedGroups_) {
-      DCHECK(!grpsToMergeWith.contains(grpId));
-      // TODO: compute consolidation penalty
+    for (const auto& [mergedGrp, _] : mergedGroups_) {
+      auto candidateMerge{mergedGrp};
+      candidateMerge.insert(grpId);
+      addCandidateMerge(candidateMerge);
     }
   }
 }
@@ -1804,7 +1807,7 @@ void EcmpResourceManager::addCandidateMerge(
   auto [_, inserted] = candidateMergeGroups_.insert(
       {candidateMerge, std::move(consolidationInfo)});
   CHECK(inserted);
-  XLOG(DBG3) << " Added candidate merge group:" << candidateMerge;
+  XLOG(DBG3) << " Added candidate merge group: " << candidateMerge;
 }
 
 std::map<
