@@ -577,7 +577,10 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice,
     bool verbose) {
-  CHECK(inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTRA);
+  CHECK(
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTRA ||
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER ||
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_SDSW_INTER);
 
   std::vector<InputBalanceResult> inputBalanceResult;
 
