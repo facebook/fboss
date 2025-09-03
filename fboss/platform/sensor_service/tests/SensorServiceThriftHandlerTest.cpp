@@ -13,15 +13,15 @@ namespace facebook::fboss::platform::sensor_service {
 class SensorServiceThriftHandlerTest : public testing::Test {
  public:
   void SetUp() override {
-    auto tmpDir = folly::test::TemporaryDirectory();
-    auto sensorServiceImpl =
-        createSensorServiceImplForTest(tmpDir.path().string());
-    sensorServiceImpl->fetchSensorData();
-    sensorServiceHandler_ = std::make_unique<SensorServiceThriftHandler>(
-        std::move(sensorServiceImpl));
+    folly::test::TemporaryDirectory tmpDir;
+    auto config = getMockSensorConfig(tmpDir.path().string());
+    auto impl = std::make_shared<SensorServiceImpl>(config);
+    impl->fetchSensorData();
+    sensorServiceHandler_ =
+        std::make_unique<SensorServiceThriftHandler>(std::move(impl));
   }
   std::unique_ptr<SensorServiceThriftHandler> sensorServiceHandler_;
-  std::map<std::string, float> sensorMockData_{getDefaultMockSensorData()};
+  std::map<std::string, float> sensorMockData_{getMockSensorData()};
 };
 
 TEST_F(
@@ -39,7 +39,7 @@ TEST_F(
 TEST_F(
     SensorServiceThriftHandlerTest,
     getSensorValuesByNameWithNonEmptySensorName) {
-  auto mockSensorData = getDefaultMockSensorData();
+  auto mockSensorData = getMockSensorData();
   auto mockSensorNamesIt = std::views::keys(mockSensorData).begin();
 
   auto sensorNames = std::vector<std::string>{*mockSensorNamesIt};

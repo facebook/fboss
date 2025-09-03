@@ -1,17 +1,30 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/platform/sensor_service/tests/TestUtils.h"
+
 #include <folly/FileUtil.h>
 #include <folly/json/dynamic.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-
-#include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/sensor_service/tests/TestUtils.h"
+#include <folly/testing/TestUtil.h>
 
 using namespace facebook::fboss::platform::sensor_service;
 
 namespace {
+void createSensorSysfsFiles(const SensorConfig& config) {
+  for (const auto& pmUnitSensors : *config.pmUnitSensorsList()) {
+    for (const auto& sensor : *pmUnitSensors.sensors()) {
+      if (sensor.name() == "MOCK_FRU_SENSOR1") {
+        folly::writeFile(std::string{"25"}, sensor.sysfsPath()->c_str());
+      } else if (sensor.name() == "MOCK_FRU_SENSOR2") {
+        folly::writeFile(std::string{"11152"}, sensor.sysfsPath()->c_str());
+      } else if (sensor.name() == "MOCK_FRU_SENSOR3") {
+        folly::writeFile(std::string{"11.875"}, sensor.sysfsPath()->c_str());
+      }
+    }
+  }
+}
+} // namespace
 
-SensorConfig mockSensorConfig(const std::string& tmpPath) {
+SensorConfig getMockSensorConfig(const std::string& tmpDir) {
   SensorConfig config;
   PmUnitSensors pmUnitSensors;
   pmUnitSensors.slotPath() = "/";
@@ -21,17 +34,16 @@ SensorConfig mockSensorConfig(const std::string& tmpPath) {
   mockFruSensor1.name() = "MOCK_FRU_SENSOR1";
   mockFruSensor1.compute() = "@/1000";
   mockFruSensor1.type() = SensorType::TEMPERTURE;
-  mockFruSensor1.sysfsPath() = tmpPath + "/mock_fru_sensor_1_path:temp1";
-  folly::writeFile(std::string{"25"}, mockFruSensor1.sysfsPath()->c_str());
+  mockFruSensor1.sysfsPath() = tmpDir + "/mock_fru_sensor_1_path:temp1";
+
   mockFruSensor2.name() = "MOCK_FRU_SENSOR2";
   mockFruSensor2.type() = SensorType::FAN;
-  mockFruSensor2.sysfsPath() = tmpPath + "/mock_fru_sensor_2_path:fan1";
-  folly::writeFile(std::string{"11152"}, mockFruSensor2.sysfsPath()->c_str());
+  mockFruSensor2.sysfsPath() = tmpDir + "/mock_fru_sensor_2_path:fan1";
+
   mockFruSensor3.name() = "MOCK_FRU_SENSOR3";
   mockFruSensor3.compute() = "@ + 5";
   mockFruSensor3.type() = SensorType::VOLTAGE;
-  mockFruSensor3.sysfsPath() = tmpPath + "/mock_fru_sensor_3_path:vin";
-  folly::writeFile(std::string{"11.875"}, mockFruSensor3.sysfsPath()->c_str());
+  mockFruSensor3.sysfsPath() = tmpDir + "/mock_fru_sensor_3_path:vin";
 
   pmUnitSensors.sensors() = {
       std::move(mockFruSensor1),
@@ -39,23 +51,11 @@ SensorConfig mockSensorConfig(const std::string& tmpPath) {
       std::move(mockFruSensor3),
   };
   config.pmUnitSensorsList() = {std::move(pmUnitSensors)};
-
-  std::string sensorConfigPath = tmpPath + "/sensor_service.json";
-  folly::writeFile(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(config),
-      sensorConfigPath.c_str());
-  FLAGS_config_file = sensorConfigPath;
+  createSensorSysfsFiles(config);
   return config;
 }
 
-} // namespace
-
-std::shared_ptr<SensorServiceImpl> createSensorServiceImplForTest(
-    const std::string& tmpDirPath) {
-  return std::make_shared<SensorServiceImpl>(mockSensorConfig(tmpDirPath));
-}
-
-std::map<std::string, float> getDefaultMockSensorData() {
+std::map<std::string, float> getMockSensorData() {
   return std::map<std::string, float>{
       {"MOCK_FRU_SENSOR1", 0.025 /* 25/10000 */},
       {"MOCK_FRU_SENSOR2", 11152},

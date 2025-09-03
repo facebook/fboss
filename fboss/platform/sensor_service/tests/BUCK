@@ -9,11 +9,10 @@ cpp_library(
         "TestUtils.cpp",
     ],
     exported_deps = [
-        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/sensor_service:service",
         "//folly:file_util",
         "//folly/json:dynamic",
-        "//thrift/lib/cpp2/protocol:protocol",
+        "//folly/testing:test_util",
     ],
 )
 
@@ -25,7 +24,6 @@ cpp_unittest(
     ],
     deps = [
         ":utils",
-        "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/sensor_service:core",
         "//fboss/platform/sensor_service:service",
         "//fboss/platform/sensor_service:utils",
