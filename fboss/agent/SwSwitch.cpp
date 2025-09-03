@@ -1985,11 +1985,19 @@ SwSwitch::applyUpdate(
   }
   newDesiredState = deltas.back().newState();
 
-  StateDelta delta(oldState, newDesiredState);
-  if (!resourceAccountant_->isValidUpdate(delta)) {
+  bool updateRejected{false};
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      updateRejected = true;
+      break;
+    }
+  }
+  if (updateRejected) {
     stats()->resourceAccountantRejectedUpdates();
-    // Notify resource account to revert back to previous state
-    resourceAccountant_->stateChanged(StateDelta(newDesiredState, oldState));
+    resourceAccountant_ = std::make_unique<ResourceAccountant>(
+        getHwAsicTable(), getScopeResolver());
+    resourceAccountant_->stateChanged(
+        StateDelta(std::make_shared<SwitchState>(), oldState));
     return std::make_pair(oldState, newDesiredState);
   }
 
