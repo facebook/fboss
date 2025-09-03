@@ -62,6 +62,27 @@ bool checkWithRetryErrorReturn(
   return true;
 }
 
+template <typename CONDITION_FN>
+void checkAlwaysTrueWithRetry(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000),
+    std::optional<std::string> conditionFailedLog = std::nullopt) {
+  while (retries--) {
+    if (!condition()) {
+      constexpr auto kFailedConditionLog =
+          "Verify always true with retry failed, condition was not satisfied";
+      if (conditionFailedLog) {
+        throw FbossError(kFailedConditionLog, " : ", *conditionFailedLog);
+      } else {
+        throw FbossError(kFailedConditionLog);
+      }
+    }
+    std::this_thread::sleep_for(msBetweenRetry);
+  }
+}
+
 template <typename StatT>
 inline int64_t getCumulativeValue(const StatT& stat, bool hasSumSuffix = true) {
   auto counterVal = fb303::fbData->getCounterIfExists(
