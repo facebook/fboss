@@ -49,9 +49,11 @@ class AgentMirroringTest : public AgentHwTest {
     return config;
   }
 
-  PortID getMirrorToPort(const AgentEnsemble& ensemble) const {
+  PortID getMirrorToPort(
+      const AgentEnsemble& ensemble,
+      uint8_t mirrorToPortIndex = utility::kMirrorToPortIndex) const {
     return ensemble.masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[utility::kMirrorToPortIndex];
+        {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
   }
 
   PortID getTrafficPort(const AgentEnsemble& ensemble) const {
@@ -123,13 +125,19 @@ class AgentMirroringTest : public AgentHwTest {
   }
 
   template <typename T = AddrT>
-  void resolveMirror(const std::string& mirrorName) {
+  void resolveMirror(
+      const std::string& mirrorName,
+      uint8_t mirrorToPortIndex = utility::kMirrorToPortIndex) {
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    auto trafficPort = getTrafficPort(*getAgentEnsemble());
-    auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
-    EXPECT_EQ(trafficPort, ecmpHelper.nhop(0).portDesc.phyPortID());
-    EXPECT_EQ(mirrorToPort, ecmpHelper.nhop(1).portDesc.phyPortID());
+    PortID trafficPort = getTrafficPort(*getAgentEnsemble());
+    PortID mirrorToPort =
+        getMirrorToPort(*getAgentEnsemble(), mirrorToPortIndex);
+    EXPECT_EQ(
+        trafficPort,
+        ecmpHelper.nhop(utility::kTrafficPortIndex).portDesc.phyPortID());
+    EXPECT_EQ(
+        mirrorToPort, ecmpHelper.nhop(mirrorToPortIndex).portDesc.phyPortID());
     resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       boost::container::flat_set<PortDescriptor> nhopPorts{
@@ -253,9 +261,13 @@ class AgentMirroringTest : public AgentHwTest {
     }
   }
 
-  void verify(const std::string& mirrorName, int payloadSize = 500) {
-    auto trafficPort = getTrafficPort(*getAgentEnsemble());
-    auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
+  void verify(
+      const std::string& mirrorName,
+      uint8_t mirrorToPortIndex = utility::kMirrorToPortIndex,
+      int payloadSize = 500) {
+    PortID trafficPort = getTrafficPort(*getAgentEnsemble());
+    PortID mirrorToPort =
+        getMirrorToPort(*getAgentEnsemble(), mirrorToPortIndex);
     WITH_RETRIES({
       auto ingressMirror =
           this->getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
@@ -300,16 +312,22 @@ class AgentMirroringTest : public AgentHwTest {
       this->resolveMirror(mirrorName);
       auto cfg = initialConfig(*getAgentEnsemble());
       cfg.mirrors()->clear();
+      // Test that these port mirror attributes can be changed:
+      // - PortID from which mirrored packets will be sent
+      // - DSCP value
+      // Note that DSCP may be ignored by SPAN tests with local mirroring.
       utility::addMirrorConfig<AddrT>(
           &cfg,
           *getAgentEnsemble(),
           mirrorName,
           false /* truncate */,
-          48 /* dscp */);
+          48 /* dscp */,
+          utility::kUpdatedMirrorToPortIndex /* mirrorToPortIndex */);
       this->applyNewConfig(cfg);
+      this->resolveMirror(mirrorName, utility::kUpdatedMirrorToPortIndex);
     };
     auto verify = [=, this]() {
-      this->verify(mirrorName);
+      this->verify(mirrorName, utility::kUpdatedMirrorToPortIndex);
       this->verifyPortMirrorProgrammed(mirrorName);
     };
     this->verifyAcrossWarmBoots(setup, verify);
@@ -379,7 +397,8 @@ class AgentMirroringTest : public AgentHwTest {
     auto verify = [=, this]() {
       auto mirrorToPort = getMirrorToPort(*getAgentEnsemble());
       auto statsBefore = getLatestPortStats(mirrorToPort);
-      this->verify(mirrorName, 8000);
+      this->verify(
+          mirrorName, utility::kMirrorToPortIndex, 8000 /*payloadSize*/);
       WITH_RETRIES({
         auto statsAfter = getLatestPortStats(mirrorToPort);
 

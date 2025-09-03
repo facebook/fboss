@@ -35,9 +35,10 @@ inline const std::string kEgressSpan("egress_span");
 inline const std::string kEgressErspan("egress_erspan");
 
 // Port 0 is used for traffic and port 1 is used for mirroring.
-inline const uint8_t kTrafficPortIndex = 0;
-inline const uint8_t kMirrorToPortIndex = 1;
-inline const uint8_t kSflowToPortIndex = 2;
+inline constexpr uint8_t kTrafficPortIndex{0};
+inline constexpr uint8_t kMirrorToPortIndex{1};
+inline constexpr uint8_t kSflowToPortIndex{2};
+inline constexpr uint8_t kUpdatedMirrorToPortIndex{3};
 
 constexpr auto kDscpDefault = facebook::fboss::cfg::switch_config_constants::
     DEFAULT_MIRROR_DSCP_; // default dscp value
