@@ -769,9 +769,6 @@ bool MultiNodeUtil::verifyDsfSessions() {
 bool MultiNodeUtil::verifyNoSessionsFlap(
     const std::string& rdswToVerify,
     const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession) {
-  auto checkPassed = true;
-  constexpr auto kMaxRetries = 30;
-
   auto noSessionFlap =
       [this, rdswToVerify, baselinePeerToDsfSession]() -> bool {
     auto currentPeerToDsfSession = getPeerToDsfSession(rdswToVerify);
@@ -781,23 +778,11 @@ bool MultiNodeUtil::verifyNoSessionsFlap(
     return baselinePeerToDsfSession == currentPeerToDsfSession;
   };
 
-  // TODO define a lib/CommonUtils for EXPECT_EVERY*
-  for (auto retries = 0; retries < kMaxRetries; retries++) {
-    XLOG(DBG2) << "Retry attempt: " << retries;
-
-    if (noSessionFlap()) {
-      // Sleep and retry
-      // It may take several (> 15) seconds for ESTABLISHED => CONNECT.
-      // Thus, keep retrying for several seconds to ensure that the session
-      // stays ESTABLISHED.
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    } else {
-      checkPassed = false;
-      break;
-    }
-  }
-
-  return checkPassed;
+  // It may take several (> 15) seconds for ESTABLISHED => CONNECT.
+  // Thus, keep retrying for several seconds to ensure that the session
+  // stays ESTABLISHED.
+  return checkAlwaysTrueWithRetryErrorReturn(
+      noSessionFlap, 30 /* num retries */);
 }
 
 bool MultiNodeUtil::verifyNoSessionsEstablished(
