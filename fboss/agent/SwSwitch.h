@@ -221,7 +221,7 @@ class SwSwitch : public HwSwitchCallback {
     return hwSwitchThriftClientTable_.get();
   }
 
-  ResourceAccountant* getResourceAccountant() const {
+  const ResourceAccountant* getResourceAccountant() const {
     return resourceAccountant_.get();
   }
   /*
