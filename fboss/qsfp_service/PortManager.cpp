@@ -76,27 +76,60 @@ void PortManager::programXphyPort(
     cfg::PortProfileID portProfileId) {}
 
 phy::PhyInfo PortManager::getXphyInfo(PortID portId) {
-  return phy::PhyInfo();
+  if (!phyManager_) {
+    throw FbossError("Unable to get xphy info when PhyManager is not set");
+  }
+
+  if (auto phyInfoOpt = phyManager_->getXphyInfo(portId)) {
+    return *phyInfoOpt;
+  } else {
+    throw FbossError("Unable to get xphy info for port: ", portId);
+  }
 }
 
-void PortManager::updateAllXphyPortsStats() {}
+void PortManager::updateAllXphyPortsStats() {
+  if (!phyManager_) {
+    // If there's no PhyManager for such platform, skip updating xphy stats
+    return;
+  }
+  // Then we need to update all the programmed port xphy stats
+  phyManager_->updateAllXphyPortsStats();
+}
 
 std::vector<PortID> PortManager::getMacsecCapablePorts() const {
-  return {};
+  if (!phyManager_) {
+    return {};
+  }
+  return phyManager_->getPortsSupportingFeature(
+      phy::ExternalPhy::Feature::MACSEC);
 }
 
 std::string PortManager::listHwObjects(
     std::vector<HwObjectType>& hwObjects,
     bool cached) const {
-  return "";
+  if (!phyManager_) {
+    return "";
+  }
+  return phyManager_->listHwObjects(hwObjects, cached);
 }
 
-bool PortManager::getSdkState(std::string filename) const {
-  return true;
+bool PortManager::getSdkState(const std::string& filename) const {
+  if (!phyManager_) {
+    return false;
+  }
+  return phyManager_->getSdkState(filename);
 }
 
 std::string PortManager::getPortInfo(const std::string& portName) {
-  return "";
+  if (!phyManager_) {
+    return "";
+  }
+  auto swPort = getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(folly::sformat("getPortInfo: Invalid port {}", portName));
+  }
+
+  return phyManager_->getPortInfoStr(PortID(swPort.value()));
 }
 
 void PortManager::setPortLoopbackState(
@@ -196,7 +229,14 @@ void PortManager::programExternalPhyPort(
     bool xphyNeedResetDataPath) {}
 
 phy::PhyInfo PortManager::getPhyInfo(const std::string& portName) {
-  return phy::PhyInfo();
+  if (!phyManager_) {
+    return phy::PhyInfo();
+  }
+  auto swPort = getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(folly::sformat("getPhyInfo: Invalid port {}", portName));
+  }
+  return phyManager_->getPhyInfo(PortID(swPort.value()));
 }
 
 const std::map<int32_t, NpuPortStatus>&
@@ -278,10 +318,26 @@ void PortManager::publishLinkSnapshots(const std::string& portName) {}
 
 void PortManager::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
-    const std::string& portName) {}
+    const std::string& portNameStr) {
+  auto portIDOpt = getPortIDByPortName(portNameStr);
+  if (!portIDOpt) {
+    throw FbossError(
+        "Unrecoginized portName:", portNameStr, ", can't find port id");
+  }
+  try {
+    phyInfos[portNameStr] = getXphyInfo(*portIDOpt);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Fetching PhyInfo for " << portNameStr << " failed with "
+              << ex.what();
+  }
+}
 
 void PortManager::getAllInterfacePhyInfo(
-    std::map<std::string, phy::PhyInfo>& phyInfos) {}
+    std::map<std::string, phy::PhyInfo>& phyInfos) {
+  for (const auto& [portNameStr, _] : portNameToPortID_) {
+    getInterfacePhyInfo(phyInfos, portNameStr);
+  }
+}
 
 void PortManager::setPortPrbs(
     PortID portId,

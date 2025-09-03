@@ -8,6 +8,7 @@
 #include "fboss/lib/phy/facebook/bcm/minipack/MinipackPhyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
 #include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
+#include "fboss/qsfp_service/test/MockPortManager.h"
 
 namespace facebook::fboss {
 
@@ -18,7 +19,10 @@ class PortManagerTest : public ::testing::Test {
   }
 
  protected:
-  void initManagers(int numPortsPerModule = 4, bool setPhyManager = false) {
+  void initManagers(
+      int numModules = 1,
+      int numPortsPerModule = 4,
+      bool setPhyManager = false) {
     const auto platformMapping =
         makeFakePlatformMapping(numModules, numPortsPerModule);
 
@@ -27,7 +31,7 @@ class PortManagerTest : public ::testing::Test {
         std::make_unique<MinipackPhyManager>(platformMapping.get());
     transceiverManager_ = std::make_shared<MockWedgeManager>(
         numModules, 4, platformMapping, nullptr /* threads */);
-    portManager_ = std::make_unique<PortManager>(
+    portManager_ = std::make_unique<MockPortManager>(
         transceiverManager_.get(),
         setPhyManager ? std::move(phyManager) : nullptr,
         platformMapping,
@@ -74,20 +78,19 @@ class PortManagerTest : public ::testing::Test {
                {portId3_, multiPortProfile_},
            }}};
 
-  const int numModules = 1;
   std::shared_ptr<TransceiverManager> transceiverManager_;
-  std::unique_ptr<PortManager> portManager_;
+  std::unique_ptr<MockPortManager> portManager_;
 };
 
 TEST_F(PortManagerTest, getLowestIndexedPortForTransceiverPortGroup) {
   // Single Tcvr - Single Port
-  initManagers(1);
+  initManagers(1, 1);
   ASSERT_EQ(
       portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
       PortID(1));
 
   // Single Tcvr – Multi Port
-  initManagers(4);
+  initManagers(1, 4);
   ASSERT_EQ(
       portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
       PortID(1));
@@ -100,13 +103,13 @@ TEST_F(PortManagerTest, getLowestIndexedPortForTransceiverPortGroup) {
 
 TEST_F(PortManagerTest, getLowestIndexedTransceiverForPort) {
   // Single Tcvr – Single Port
-  initManagers(1);
+  initManagers(1, 4);
   ASSERT_EQ(
       portManager_->getLowestIndexedTransceiverForPort(PortID(1)),
       TransceiverID(0));
 
   // Single Tcvr – Multi Port
-  initManagers(4);
+  initManagers(1, 4);
   ASSERT_EQ(
       portManager_->getLowestIndexedTransceiverForPort(PortID(1)),
       TransceiverID(0));
@@ -119,12 +122,12 @@ TEST_F(PortManagerTest, getLowestIndexedTransceiverForPort) {
 
 TEST_F(PortManagerTest, isLowestIndexedPortForTransceiverPortGroup) {
   // Single Tcvr - Single Port
-  initManagers(1);
+  initManagers(1, 1);
   ASSERT_TRUE(
       portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)));
 
   // Single Tcvr – Multi Port
-  initManagers(4);
+  initManagers(1, 4);
   ASSERT_TRUE(
       portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)));
   ASSERT_FALSE(
@@ -135,12 +138,12 @@ TEST_F(PortManagerTest, isLowestIndexedPortForTransceiverPortGroup) {
 
 TEST_F(PortManagerTest, getTransceiverIdsForPort) {
   // Single Tcvr – Single Port
-  initManagers(1);
+  initManagers(1, 1);
   ASSERT_THAT(
       portManager_->getTransceiverIdsForPort(PortID(1)),
       ::testing::ElementsAre(TransceiverID(0)));
   // Single Tcvr – Multi Port
-  initManagers(4);
+  initManagers(1, 4);
   ASSERT_THAT(
       portManager_->getTransceiverIdsForPort(PortID(1)),
       ::testing::ElementsAre(TransceiverID(0)));
@@ -153,7 +156,7 @@ TEST_F(PortManagerTest, getTransceiverIdsForPort) {
 // need to add more testing for tcvroverride too, any combinations that mihgt
 // be relevant here
 TEST_F(PortManagerTest, setBothPortsEnabledAndUpForTesting) {
-  initManagers(4);
+  initManagers(1, 4);
   portManager_->setOverrideAgentPortStatusForTesting(
       {PortID(1), PortID(3)}, {PortID(1), PortID(3)});
 
@@ -162,7 +165,7 @@ TEST_F(PortManagerTest, setBothPortsEnabledAndUpForTesting) {
 }
 
 TEST_F(PortManagerTest, setBothPortsDisabledAndDownForTesting) {
-  initManagers(4);
+  initManagers(1, 4);
   portManager_->setOverrideAgentPortStatusForTesting({}, {});
 
   validatePortStatusInTestingOverride(PortID(1), false, false);
@@ -170,7 +173,7 @@ TEST_F(PortManagerTest, setBothPortsDisabledAndDownForTesting) {
 }
 
 TEST_F(PortManagerTest, setPortsMixedStatusForTesting) {
-  initManagers(4);
+  initManagers(1, 4);
   portManager_->setOverrideAgentPortStatusForTesting({PortID(1)}, {PortID(3)});
 
   validatePortStatusInTestingOverride(PortID(1), false, true);
@@ -179,7 +182,7 @@ TEST_F(PortManagerTest, setPortsMixedStatusForTesting) {
 
 TEST_F(PortManagerTest, clearOverrideAgentPortStatusForTesting) {
   // needs to be modified to account for clear case
-  initManagers(4);
+  initManagers(1, 4);
   transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
       overrideMultiPortTcvrToPortAndProfile_);
   portManager_->setOverrideAgentPortStatusForTesting(
@@ -195,7 +198,7 @@ TEST_F(PortManagerTest, clearOverrideAgentPortStatusForTesting) {
 }
 
 TEST_F(PortManagerTest, getCachedXphyPorts) {
-  initManagers(1, true);
+  initManagers(1, 1, true);
   ASSERT_THAT(
       portManager_->getCachedXphyPortsForTest(),
       ::testing::UnorderedElementsAre(PortID(1)));
@@ -267,6 +270,31 @@ TEST_F(PortManagerTest, testGetPortNameByPortIdOrThrowWithInvalidId) {
   // Verify valid port IDs still work
   ASSERT_NO_THROW(portManager_->getPortNameByPortIdOrThrow(PortID(1)));
   ASSERT_NO_THROW(portManager_->getPortNameByPortIdOrThrow(PortID(3)));
+}
+
+ACTION(ThrowFbossError) {
+  throw FbossError("Mock FbossError");
+}
+TEST_F(PortManagerTest, getInterfacePhyInfo) {
+  initManagers(16, 8);
+  std::map<std::string, phy::PhyInfo> phyInfos;
+  // Test a valid interface
+  portManager_->getInterfacePhyInfo(phyInfos, "eth1/1/1");
+  EXPECT_TRUE(phyInfos.find("eth1/1/1") != phyInfos.end());
+  // Simulate an exception from xphyInfo and confirm that the map doesn't
+  // include that interface's key
+  EXPECT_CALL(*portManager_, getXphyInfo(PortID(9)))
+      .Times(1)
+      .WillRepeatedly(ThrowFbossError());
+  portManager_->getInterfacePhyInfo(phyInfos, "eth1/2/1");
+  EXPECT_EQ(phyInfos.size(), 1);
+  // We still expect the previous interface to exist in the map
+  EXPECT_TRUE(phyInfos.find("eth1/1/1") != phyInfos.end());
+
+  // Test an invalid interface
+  EXPECT_THROW(
+      portManager_->getInterfacePhyInfo(phyInfos, "no_such_interface"),
+      FbossError);
 }
 
 } // namespace facebook::fboss

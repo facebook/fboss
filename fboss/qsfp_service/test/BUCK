@@ -156,12 +156,23 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "mock_port_manager",
+    headers = ["MockPortManager.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/qsfp_service:port-manager",
+    ],
+)
+
 cpp_unittest(
     name = "port_manager_test",
     srcs = ["PortManagerTest.cpp"],
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":mock_manager_constructor_args",
+        ":mock_port_manager",
         "//fboss/lib/phy:phy-management",
         "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",

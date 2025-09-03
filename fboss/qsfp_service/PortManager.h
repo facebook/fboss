@@ -57,7 +57,7 @@ class PortManager {
       const std::shared_ptr<const PlatformMapping> platformMapping,
       const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
           threads);
-  ~PortManager();
+  virtual ~PortManager();
   void gracefulExit();
 
   void init();
@@ -78,7 +78,8 @@ class PortManager {
 
   void programXphyPort(PortID portId, cfg::PortProfileID portProfileId);
 
-  phy::PhyInfo getXphyInfo(PortID portId);
+  // Marked virtual for MockPortManager testing.
+  virtual phy::PhyInfo getXphyInfo(PortID portId);
 
   void updateAllXphyPortsStats();
 
@@ -87,7 +88,7 @@ class PortManager {
   std::string listHwObjects(std::vector<HwObjectType>& hwObjects, bool cached)
       const;
 
-  bool getSdkState(std::string filename) const;
+  bool getSdkState(const std::string& filename) const;
 
   std::string getPortInfo(const std::string& portName);
 
@@ -175,6 +176,7 @@ class PortManager {
 
   void programInternalPhyPorts(TransceiverID id);
 
+  // Marked virtual for MockPortManager testing.
   void programExternalPhyPort(PortID portId, bool xphyNeedResetDataPath);
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
@@ -209,7 +211,7 @@ class PortManager {
 
   void getInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos,
-      const std::string& portName);
+      const std::string& portNameStr);
 
   void getAllInterfacePhyInfo(std::map<std::string, phy::PhyInfo>& phyInfos);
 
