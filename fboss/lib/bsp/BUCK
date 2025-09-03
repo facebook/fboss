@@ -100,6 +100,7 @@ cpp_library(
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/morgan800cc:morgan800cc_bsp",
         "//fboss/lib/bsp/tahan800bc:tahan800bc_bsp",
+        "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
         "//fboss/lib/fpga:fpga_device",
         "//fboss/lib/fpga:multi_pim_container",
         "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",

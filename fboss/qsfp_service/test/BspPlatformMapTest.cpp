@@ -9,6 +9,7 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
+#include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
 
 namespace facebook::fboss {
 
@@ -45,6 +46,10 @@ TEST_F(BspPlatformMapTest, checkNumPimTransceivers) {
   auto icetea800bcBspPlatformMap = Icetea800bcBspPlatformMapping();
   EXPECT_EQ(icetea800bcBspPlatformMap.numPims(), 1);
   EXPECT_EQ(icetea800bcBspPlatformMap.numTransceivers(), 33);
+  // Check Tahansb800bc
+  auto tahansb800bcBspPlatformMap = Tahansb800bcBspPlatformMapping();
+  EXPECT_EQ(tahansb800bcBspPlatformMap.numPims(), 1);
+  EXPECT_EQ(tahansb800bcBspPlatformMap.numTransceivers(), 9);
 }
 
 } // namespace facebook::fboss
