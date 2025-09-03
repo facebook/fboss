@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -290,9 +291,16 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
                  << primaryEcmpTypeGroups2RefCnt.size()
                  << " on pfx: " << newRoute->str();
     }
+    // Transiently we can exceed consolidator maxPrimaryEcmpGroups,
+    // but we should never exceed
+    // maxPrimaryEcmpGroups +
+    // FLAGS_ecmp_resource_manager_make_before_break_buffer We deliberately set
+    // consolidator's maxPrimaryEcmpGroups to be Actual limit -
+    // FLAGS_ecmp_resource_manager_make_before_break_buffer
     EXPECT_LE(
         primaryEcmpTypeGroups2RefCnt.size(),
-        consolidator_->getMaxPrimaryEcmpGroups());
+        consolidator_->getMaxPrimaryEcmpGroups() +
+            FLAGS_ecmp_resource_manager_make_before_break_buffer);
   };
 
   auto idx = 1;
@@ -330,6 +338,9 @@ void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
             routeDeleted(oldRoute);
           }
         });
+    EXPECT_LE(
+        primaryEcmpTypeGroups2RefCnt.size(),
+        consolidator_->getMaxPrimaryEcmpGroups());
   }
 }
 
@@ -631,7 +642,9 @@ void BaseEcmpResourceManagerTest::assertTargetState(
         mergedEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
       }
     } else {
-      EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+      EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
+          << " expected route " << route->str()
+          << " to NOT have override ECMP group type or ecmp nhops";
       if (isEcmpRoute) {
         EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
         EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
