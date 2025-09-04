@@ -108,10 +108,6 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   virtual int numStartRoutes() const {
     return 5;
   }
-  void assertMergedGroup(
-      const EcmpResourceManager::NextHopGroupIds& mergedGroup) const;
-  void assertGroupsAreUnMerged(
-      const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const;
   void assertDeltasForOverflow(const std::vector<StateDelta>& deltas) const;
   void assertRibFibEquivalence() const;
   std::vector<std::shared_ptr<RouteV6>> getPostConfigResolvedRoutes(
@@ -166,12 +162,6 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops);
   virtual void setupFlags() const;
-  void assertAllGidsClaimed(
-      const EcmpResourceManager& resourceMgr,
-      const std::shared_ptr<SwitchState>& state) const;
-  void assertFibAndGroupsMatch(
-      const EcmpResourceManager& resourceMgr,
-      const std::shared_ptr<SwitchState>& state) const;
 
   std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupIds>
   getNhopsToMergedGroups(const EcmpResourceManager& resourceMgr) const;
@@ -180,6 +170,26 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   void assertResourceMgrCorrectness(
       const EcmpResourceManager& resourceMgr,
       const std::shared_ptr<SwitchState>& state) const;
+  void assertAllGidsClaimed(
+      const EcmpResourceManager& resourceMgr,
+      const std::shared_ptr<SwitchState>& state) const;
+  void assertFibAndGroupsMatch(
+      const EcmpResourceManager& resourceMgr,
+      const std::shared_ptr<SwitchState>& state) const;
+  void assertMergedGroup(
+      const EcmpResourceManager::NextHopGroupIds& mergedGroup) const {
+    assertMergedGroup(*sw_->getEcmpResourceManager(), mergedGroup);
+  }
+  void assertMergedGroup(
+      const EcmpResourceManager& resourceMgr,
+      const EcmpResourceManager::NextHopGroupIds& mergedGroup) const;
+  void assertGroupsAreUnMerged(
+      const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const {
+    assertGroupsAreUnMerged(*sw_->getEcmpResourceManager(), unmergedGroups);
+  }
+  void assertGroupsAreUnMerged(
+      const EcmpResourceManager& resourceMgr,
+      const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const;
   int32_t virtual getEcmpCompressionThresholdPct() const {
     return 0;
   }
