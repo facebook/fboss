@@ -352,4 +352,60 @@ TEST_F(EcmpResourceMgrMergeGroupTest, exhaustAllPairwiseMerges) {
   removeRoutesAndCheck();
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndReplay) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  auto replayRoutes =
+      [this, &overflowPrefixes](const std::set<RouteV6::Prefix>& toReplay) {
+        auto newerState = state_->clone();
+        auto fib6 = fib(newerState);
+        for (const auto& origRoute : getPostConfigResolvedRoutes(state_)) {
+          auto route = fib6->getRouteIf(origRoute->prefix())->clone();
+          if (toReplay.size() && !toReplay.contains(route->prefix())) {
+            continue;
+          }
+          route->publish();
+          fib6->updateNode(route);
+        }
+        auto deltas2 = consolidate(newerState);
+        EXPECT_EQ(deltas2.size(), 1);
+        assertEndState(sw_->getState(), overflowPrefixes);
+      };
+  {
+    // On the last route add we would have exhausted
+    // all pairwise merges, and will now do a 3 group
+    // merge
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      auto oldState = state_;
+      auto newState = oldState->clone();
+      auto fib6 = fib(newState);
+      auto optimalMergeSet =
+          sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+      auto prefixesForMergeSet = getPrefixesForGroups(optimalMergeSet);
+      overflowPrefixes.insert(
+          prefixesForMergeSet.begin(), prefixesForMergeSet.end());
+      auto route = makeRoute(nextPrefix(), nhopSets[i]);
+      fib6->addNode(route);
+      auto deltas = consolidate(newState);
+      EXPECT_EQ(deltas.size(), 2);
+    }
+    assertEndState(sw_->getState(), overflowPrefixes);
+  }
+  {
+    // Replay state with new pointers for the overflow routes,
+    // should just return with the same prefixes marked for overflow
+    XLOG(INFO) << " Replaying state with cloned overflow routes, "
+               << "should get identical result";
+    replayRoutes(overflowPrefixes);
+  }
+  {
+    // Replay state with new pointers for all routes
+    // should just return with the same prefixes marked for overflow
+    XLOG(INFO) << " Replaying state with cloned non-overflow routes, "
+               << "should get identical result";
+    replayRoutes({});
+  }
+}
+
 } // namespace facebook::fboss
