@@ -41,6 +41,7 @@ struct ClientAndNextHops {
 struct RouteEntry {
   1: string networkAddress;
   2: list<NextHopInfo> nextHops;
+  3: string overridenEcmpMode;
 }
 
 struct RouteDetailEntry {

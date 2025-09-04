@@ -49,6 +49,10 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
       out << fmt::format(
           "Network Address: {}\n", entry.networkAddress().value());
 
+      if (!entry.overridenEcmpMode()->empty()) {
+        out << fmt::format(
+            "\tOverride ECMP mode: {}\n", entry.overridenEcmpMode().value());
+      }
       for (const auto& nextHop : entry.nextHops().value()) {
         out << fmt::format(
             "\tvia {}\n", show::route::utils::getNextHopInfoStr(nextHop));
@@ -104,6 +108,10 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
           show::route::utils::getNextHopInfoAddr(address, nextHopInfo);
           routeEntry.nextHops()->emplace_back(nextHopInfo);
         }
+      }
+      if (entry.overrideEcmpSwitchingMode()) {
+        routeEntry.overridenEcmpMode() = apache::thrift::util::enumNameSafe(
+            *entry.overrideEcmpSwitchingMode());
       }
       model.routeEntries()->emplace_back(routeEntry);
     }
