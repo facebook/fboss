@@ -200,6 +200,75 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimitAndRemove) {
   EXPECT_EQ(beforeConsolidationInfo, afterConsolidationInfo);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, rmRouteToUnmergeAndOverflowInSameUpdate) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          *optimalMergeSet.begin());
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto newPrefix = nextPrefix();
+  addNextRoute();
+  assertMergedGroup(optimalMergeSet);
+  // Remove one route from overflowPrefixes, that will cause
+  // a unmerge. Now add a new route, which will force another merge.
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  fib6->removeNode(overflowPrefixes.begin()->str());
+  auto newNhopSet = *nextNhopSets(1).begin();
+  auto newRoute = makeRoute(nextPrefix(), newNhopSet)->clone();
+  newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
+  fib6->addNode(newRoute);
+  newState->publish();
+  consolidate(newState);
+  EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 1);
+  // New merge set should be selected, since the old one got unbundled
+  // in this update.
+  EXPECT_NE(
+      optimalMergeSet,
+      *sw_->getEcmpResourceManager()->getMergedGroups().begin());
+}
+
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    updateRouteToUnmergeAndOverflowInSameUpdate) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto beforeConsolidationInfo =
+      sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+          *optimalMergeSet.begin());
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto newPrefix = nextPrefix();
+  addNextRoute();
+  assertMergedGroup(optimalMergeSet);
+  // Update one route from overflowPrefixes, that will cause
+  // a unmerge. Now add a new route, which will force another merge.
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto newNhopSet = *nextNhopSets(1).begin();
+  auto updateRoute = makeRoute(*overflowPrefixes.begin(), newNhopSet)->clone();
+  updateRoute->setResolved(
+      RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
+  fib6->updateNode(overflowPrefixes.begin()->str(), updateRoute);
+  auto newRoute = makeRoute(nextPrefix(), newNhopSet)->clone();
+  newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
+  fib6->addNode(newRoute);
+  newState->publish();
+  consolidate(newState);
+  EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 1);
+  // New merge set should be selected, since the old one got unbundled
+  // in this update.
+  EXPECT_NE(
+      optimalMergeSet,
+      *sw_->getEcmpResourceManager()->getMergedGroups().begin());
+}
+
 TEST_F(EcmpResourceMgrMergeGroupTest, reclaimPrioritizesGroupsWithHigherCost) {
   // Cache prefixes to be affected by optimal merge grp selection.
   // We will later assert that these start pointing to merged groups.
