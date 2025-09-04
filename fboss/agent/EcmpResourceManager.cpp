@@ -1039,12 +1039,16 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   StateDelta delta(std::make_shared<SwitchState>(), curState);
   InputOutputState inOutState(0, delta, *preUpdateState_);
   auto deltas = consolidateImpl(delta, &inOutState);
-  // LE 2, since reclaim always starts with a new delta. Note if
-  // we currently don't have a use case of reclaiming merged
-  // groups over state restore/WB. If in the future we do,
-  // we will need to relax this check. Sine merge group
-  // reclaim creates one delta for each merge set being reclaimed.
-  CHECK_LE(deltas.size(), 2);
+  if (!compressionPenaltyThresholdPct_) {
+    // For backupEcmpGroupType_ reclaim is completed on
+    // one delta. So LE 2, since reclaim always starts
+    // with a new delta. So orig switch state delta +
+    // reclaim.
+    // For merge groups - reclaim creates one delta for
+    // each merge set being reclaimed. So we can't assert
+    // for a precise number.
+    CHECK_LE(deltas.size(), 2);
+  }
   StateDelta toRet(deltas.front().oldState(), deltas.back().newState());
   deltas.clear();
   deltas.emplace_back(std::move(toRet));

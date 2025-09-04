@@ -554,4 +554,37 @@ TEST_F(EcmpResourceMgrMergeGroupTest, overflowRoutesInReverseOrderOfReplay) {
   }
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, reclaimOnReplay) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  auto nhopSets = nextNhopSets();
+  auto routesBefore = getPostConfigResolvedRoutes(sw_->getState()).size();
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto optimalMergeSet =
+        sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+    auto prefixesForMergeSet = getPrefixesForGroups(optimalMergeSet);
+    overflowPrefixes.insert(
+        prefixesForMergeSet.begin(), prefixesForMergeSet.end());
+    auto route = makeRoute(makePrefix(routesBefore + i), nhopSets[i]);
+    fib6->addNode(route);
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 2);
+  }
+  assertEndState(sw_->getState(), overflowPrefixes);
+  auto newConsolidator = makeResourceMgrWithEcmpLimit(
+      cfib(state_)->size() +
+      FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  auto replayDeltas = newConsolidator->reconstructFromSwitchState(state_);
+  ASSERT_EQ(replayDeltas.size(), 1);
+  // No overflow, since we increased the limit to cover all the prefixes
+  assertTargetState(
+      replayDeltas.back().newState(),
+      state_,
+      {},
+      newConsolidator.get(),
+      false /*checkStats*/);
+}
 } // namespace facebook::fboss
