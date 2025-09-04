@@ -124,6 +124,7 @@ target_link_libraries(platform_manager_pci_explorer
   platform_manager_config_cpp2
   platform_manager_utils
   Folly::folly
+  fb303::fb303
 )
 
 add_library(platform_manager_device_path_resolver
