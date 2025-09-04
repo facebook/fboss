@@ -92,7 +92,7 @@ class Jericho3Asic : public BroadcomAsic {
     return 2048;
   }
   uint32_t getMaxEcmpSize() const override {
-    return 4096;
+    return 2048;
   }
   std::optional<uint32_t> getMaxEcmpGroups() const override;
   std::optional<uint32_t> getMaxEcmpMembers() const override {
