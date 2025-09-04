@@ -1826,8 +1826,10 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
     tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
     tempRoute.dest()->prefixLength() = route->prefix().mask();
     tempRoute.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    // If there are no overrides, nonOverrideNormalizedNextHops ==
+    // normalizedNextHops
     tempRoute.nextHops() =
-        util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+        util::fromRouteNextHopSet(fwdInfo.nonOverrideNormalizedNextHops());
     if (fwdInfo.getCounterID().has_value()) {
       tempRoute.counterID() = *fwdInfo.getCounterID();
     }
@@ -1837,6 +1839,10 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
     if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
       tempRoute.overrideEcmpSwitchingMode() =
           *fwdInfo.getOverrideEcmpSwitchingMode();
+    }
+    if (fwdInfo.getOverrideNextHops().has_value()) {
+      tempRoute.overrideNextHops() =
+          util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
     }
     routes.emplace_back(std::move(tempRoute));
   });
