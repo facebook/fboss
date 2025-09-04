@@ -166,6 +166,9 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops);
   virtual void setupFlags() const;
+  void assertAllGidsClaimed(
+      const EcmpResourceManager& resourceMgr,
+      const std::shared_ptr<SwitchState>& state) const;
 
  public:
   int32_t virtual getEcmpCompressionThresholdPct() const {

@@ -227,6 +227,27 @@ void BaseEcmpResourceManagerTest::assertMergedGroup(
   EXPECT_TRUE(found) << "Merged group : " << folly::join(", ", mergedGroup)
                      << " not found";
 }
+
+void BaseEcmpResourceManagerTest::assertAllGidsClaimed(
+    const EcmpResourceManager& resourceMgr,
+    const std::shared_ptr<SwitchState>& state) const {
+  // Assert that union of all merged and unmerged GIDs == all gids
+  auto allUnmergedGids = resourceMgr.getUnMergedGids();
+  auto allMergedAndUnmergedGids = resourceMgr.getMergedGids();
+  allMergedAndUnmergedGids.insert(
+      allUnmergedGids.begin(), allUnmergedGids.end());
+  auto nhops2Id = resourceMgr.getNhopsToId();
+  EcmpResourceManager::NextHopGroupIds allGids;
+  std::for_each(
+      nhops2Id.begin(), nhops2Id.end(), [&allGids](const auto& nhopsAndId) {
+        allGids.insert(nhopsAndId.second);
+      });
+  EXPECT_EQ(allMergedAndUnmergedGids, allGids);
+
+  EcmpResourceManager::NextHopGroupIds allPrefixesUmnergedGids;
+  std::set<EcmpResourceManager::NextHopGroupIds> allPrefixesMnergedGroups;
+}
+
 void BaseEcmpResourceManagerTest::assertGroupsAreUnMerged(
     const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const {
   auto allUnmergedGroups = sw_->getEcmpResourceManager()->getUnMergedGids();
@@ -474,6 +495,8 @@ void BaseEcmpResourceManagerTest::TearDown() {
       allMergedGroups.begin(),
       allMergedGroups.end(),
       [this](const auto& mgroup) { assertMergedGroup(mgroup); });
+  assertAllGidsClaimed(*sw_->getEcmpResourceManager(), sw_->getState());
+  assertAllGidsClaimed(*consolidator_, state_);
 }
 
 std::set<EcmpResourceManager::NextHopGroupId>
