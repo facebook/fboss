@@ -437,10 +437,8 @@ TEST_F(ResourceAccountantTest, checkNeighborResource) {
   auto asicUnifiedNeighborMax = asicTable_->getHwAsic(SwitchID(0))
                                     ->getMaxUnifiedNeighborTableSize()
                                     .value();
-  auto& ndpEntriesMap =
-      this->resourceAccountant_->getNeighborEntriesMap<NdpTable>();
-  auto& arpEntriesMap =
-      this->resourceAccountant_->getNeighborEntriesMap<ArpTable>();
+  auto& ndpEntriesMap = this->resourceAccountant_->ndpEntriesMap_;
+  auto& arpEntriesMap = this->resourceAccountant_->arpEntriesMap_;
 
   // Test with configured max neighbor entries
   FLAGS_max_ndp_entries = asicNdpMax + 100;
