@@ -408,4 +408,66 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndReplay) {
   }
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
+  {
+    // Add routes pointing to existing nhops. ECMP limit is not breached.
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto existingNhopSets = defaultNhopSets();
+    auto routesBefore = getPostConfigResolvedRoutes(oldState).size();
+    for (auto i = 0; i < routesBefore; ++i) {
+      auto newRoute =
+          makeRoute(makePrefix(routesBefore + i), existingNhopSets[i]);
+      fib6->addNode(newRoute);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), 1);
+    assertEndState(newState, {});
+  }
+  {
+    /*
+     * Initial state
+     * R1, R5 -> G1
+     * R2, R6 -> G2
+     * R3, R7 -> G3
+     * R4, R8 -> G4
+     * R0, R9 -> G5
+     * New state
+     * R1 -> G6
+     * R2 -> G7
+     * R3 -> G8
+     * R4 -> G9
+     * R5 -> G10
+     * R6 -> G10
+     * R7 -> G9
+     * R8 -> G8
+     * R9 -> G7
+     * R0 -> G6
+     */
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    auto fib6 = fib(newState);
+    auto nhopSets = nextNhopSets();
+    auto idx = 0;
+    bool idxDirectionFwd = true;
+    for (const auto& route : getPostConfigResolvedRoutes(oldState)) {
+      auto newRoute = fib6->getRouteIf(route->prefix())->clone();
+      newRoute->setResolved(RouteNextHopEntry(
+          nhopSets[idxDirectionFwd ? idx++ : idx--], kDefaultAdminDistance));
+      fib6->updateNode(newRoute);
+      if (idx == nhopSets.size()) {
+        idxDirectionFwd = false;
+        --idx;
+      }
+    }
+    auto deltas = consolidate(newState);
+    /*
+     * Each prefix update triggers a merge or reclaim. Last update triggers
+     * a update and reclaim.
+     */
+    EXPECT_EQ(deltas.size(), getPostConfigResolvedRoutes(oldState).size() + 1);
+    assertEndState(newState, {});
+  }
+}
 } // namespace facebook::fboss
