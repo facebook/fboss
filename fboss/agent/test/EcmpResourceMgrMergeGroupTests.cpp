@@ -285,4 +285,71 @@ TEST_F(
   assertEndState(sw_->getState(), {});
   assertGroupsAreRemoved(optimalMergeSet);
 }
+
+TEST_F(EcmpResourceMgrMergeGroupTest, exhaustAllPairwiseMerges) {
+  auto nhopSets = nextNhopSets();
+  std::set<RouteV6::Prefix> overflowPrefixes;
+  std::vector<RouteV6::Prefix> addedPrefixes;
+  auto removeRoutesAndCheck = [&addedPrefixes, this]() {
+    // Now delete all the newly added prefixes. We should go back to
+    // no overflow
+    rmRoutes(addedPrefixes);
+    assertEndState(sw_->getState(), {});
+    // No merged groups
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 0);
+    EXPECT_EQ(getAllGroups(), getGroupsWithoutOverrides());
+  };
+  {
+    // On the last route add we would have exhausted
+    // all pairwise merges, and will now do a 3 group
+    // merge
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      auto oldState = state_;
+      auto newState = oldState->clone();
+      auto fib6 = fib(newState);
+      auto optimalMergeSet =
+          sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+      auto prefixesForMergeSet = getPrefixesForGroups(optimalMergeSet);
+      overflowPrefixes.insert(
+          prefixesForMergeSet.begin(), prefixesForMergeSet.end());
+      addedPrefixes.push_back(nextPrefix());
+      auto route = makeRoute(addedPrefixes.back(), nhopSets[i]);
+      fib6->addNode(route);
+      auto deltas = consolidate(newState);
+      EXPECT_EQ(deltas.size(), 2);
+    }
+    assertEndState(sw_->getState(), overflowPrefixes);
+    auto allMergedGroups = sw_->getEcmpResourceManager()->getMergedGroups();
+    EXPECT_EQ(
+        std::count_if(
+            allMergedGroups.begin(),
+            allMergedGroups.end(),
+            [](const auto& gids) { return gids.size() > 2; }),
+        1);
+  }
+  removeRoutesAndCheck();
+  {
+    // Now add all the previously added routes in one shot. It should
+    // result in the same end state as before
+    auto oldState = state_;
+    auto newState = oldState->clone();
+    for (auto i = 0; i < numStartRoutes(); ++i) {
+      auto fib6 = fib(newState);
+      auto route = makeRoute(addedPrefixes[i], nhopSets[i]);
+      fib6->addNode(route);
+    }
+    auto deltas = consolidate(newState);
+    EXPECT_EQ(deltas.size(), addedPrefixes.size() + 1);
+    assertEndState(sw_->getState(), overflowPrefixes);
+    auto allMergedGroups = sw_->getEcmpResourceManager()->getMergedGroups();
+    EXPECT_EQ(
+        std::count_if(
+            allMergedGroups.begin(),
+            allMergedGroups.end(),
+            [](const auto& gids) { return gids.size() > 2; }),
+        1);
+  }
+  removeRoutesAndCheck();
+}
+
 } // namespace facebook::fboss

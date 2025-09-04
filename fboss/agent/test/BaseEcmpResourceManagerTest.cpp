@@ -735,6 +735,15 @@ BaseEcmpResourceManagerTest::getGroupsWithoutOverrides() const {
   return nonOverrideGids;
 }
 
+EcmpResourceManager::NextHopGroupIds BaseEcmpResourceManagerTest::getAllGroups()
+    const {
+  EcmpResourceManager::NextHopGroupIds allGroups;
+  for (const auto& nhopsAndId : sw_->getEcmpResourceManager()->getNhopsToId()) {
+    allGroups.insert(nhopsAndId.second);
+  }
+  return allGroups;
+}
+
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {
   auto oldState = state_;
   auto newState = oldState->clone();

@@ -131,6 +131,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
 
   std::set<RouteV6::Prefix> getPrefixesWithoutOverrides() const;
   EcmpResourceManager::NextHopGroupIds getGroupsWithoutOverrides() const;
+  EcmpResourceManager::NextHopGroupIds getAllGroups() const;
 
  private:
   std::vector<StateDelta> addOrUpdateRoute(
