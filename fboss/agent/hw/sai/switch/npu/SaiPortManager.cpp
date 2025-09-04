@@ -226,17 +226,6 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
       counterIds.emplace_back(SAI_PORT_STAT_IN_DROPPED_PKTS);
     }
-    if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::FABRIC_LINK_MONITORING)) {
-      counterIds.insert(
-          counterIds.end(),
-          SaiPortTraits::fabricControlRxPacketStats().begin(),
-          SaiPortTraits::fabricControlRxPacketStats().end());
-      counterIds.insert(
-          counterIds.end(),
-          SaiPortTraits::fabricControlTxPacketStats().begin(),
-          SaiPortTraits::fabricControlTxPacketStats().end());
-    }
     return counterIds;
   };
   port2SupportedStats_.emplace(port, getSupportedStats());
