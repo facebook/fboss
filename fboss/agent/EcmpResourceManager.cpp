@@ -850,6 +850,28 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
   CHECK(mergedGroupsInerted);
   // Added to merged groups, no longer a candidate merge.
   pruneFromCandidateMerges(mergeSet);
+  // Find out if the new merge set has existing merge
+  // sets contained within it.
+  std::set<NextHopGroupIds> preExistingMemberMergeSets;
+  std::for_each(
+      mergeSet.begin(),
+      mergeSet.end(),
+      [this, &preExistingMemberMergeSets](auto mgid) {
+        auto grpInfo = nextHopGroupIdToInfo_.ref(mgid);
+        CHECK(grpInfo);
+        if (auto mgitr = grpInfo->getMergedGroupInfoItr()) {
+          preExistingMemberMergeSets.insert((*mgitr)->first);
+        }
+      });
+  // Prune preExistingMemberMergeSets since we are going to
+  // make these part of a large merge set now
+  std::for_each(
+      preExistingMemberMergeSets.begin(),
+      preExistingMemberMergeSets.end(),
+      [this](const auto& mergeSetToPrune) {
+        auto removed = mergedGroups_.erase(mergeSetToPrune);
+        CHECK(removed);
+      });
   /*
    * Since merged group will create a new ECMP group. We create a
    * single new delta for migrating all relvant prefixes to merged
@@ -892,6 +914,9 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
   }
   // We added one merged group, so increment nonBackupEcmpGroupsCnt
   ++inOutState->nonBackupEcmpGroupsCnt;
+  // We got rid of any existing merge sets that were part of this larger
+  // merge set
+  inOutState->nonBackupEcmpGroupsCnt -= preExistingMemberMergeSets.size();
   // Compute new candidate merges of merged group + each unmerged group
   computeCandidateMergesForNewMergedGroup(mergeSet);
   XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
