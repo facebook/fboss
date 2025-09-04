@@ -28,11 +28,31 @@ RouteNextHopSet makeNextHops(int n) {
   return h;
 }
 
+RouteNextHopSet makeV4NextHops(int n) {
+  CHECK_LT(n, 253);
+  RouteNextHopSet h;
+  for (int i = 0; i < n; i++) {
+    std::stringstream ss;
+    ss << std::hex << i + 1;
+    auto ipStr = folly::sformat("200.0.{}.2", i);
+    h.emplace(ResolvedNextHop(
+        folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
+  }
+  return h;
+}
+
 RouteV6::Prefix makePrefix(int offset) {
   std::stringstream ss;
   ss << std::hex << offset;
   return RouteV6::Prefix(
       folly::IPAddressV6(folly::sformat("2601:db00:2110:{}::", ss.str())), 64);
+}
+
+RouteV4::Prefix makeV4Prefix(int offset) {
+  std::stringstream ss;
+  ss << std::hex << offset;
+  return RouteV4::Prefix(
+      folly::IPAddressV4(folly::sformat("150.0.{}.0", ss.str())), 24);
 }
 
 std::shared_ptr<RouteV6> makeRoute(
@@ -41,6 +61,17 @@ std::shared_ptr<RouteV6> makeRoute(
   RouteNextHopEntry nhopEntry(nextHops, kDefaultAdminDistance);
   auto rt = std::make_shared<RouteV6>(
       RouteV6::makeThrift(pfx, ClientID(0), nhopEntry));
+  rt->setResolved(nhopEntry);
+  rt->publish();
+  return rt;
+}
+
+std::shared_ptr<RouteV4> makeV4Route(
+    const RouteV4::Prefix& pfx,
+    const RouteNextHopSet& nextHops) {
+  RouteNextHopEntry nhopEntry(nextHops, kDefaultAdminDistance);
+  auto rt = std::make_shared<RouteV4>(
+      RouteV4::makeThrift(pfx, ClientID(0), nhopEntry));
   rt->setResolved(nhopEntry);
   rt->publish();
   return rt;
@@ -115,7 +146,10 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   XLOG(DBG2) << " SwSwitch update done";
   CHECK(state_->isPublished());
   state_ = sw_->getState();
-  EXPECT_EQ(
+  /*
+   * GE since some tests add v4 routes
+   */
+  EXPECT_GE(
       state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
       kNumIntfs + 1);
   /*
@@ -546,7 +580,10 @@ void BaseEcmpResourceManagerTest::assertTargetState(
     bool checkStats) {
   consolidatorToCheck =
       consolidatorToCheck ? consolidatorToCheck : consolidator_.get();
-  EXPECT_EQ(
+  /*
+   * GE since some tests add v4 routes
+   */
+  EXPECT_GE(
       state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
       kNumIntfs + 1);
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,

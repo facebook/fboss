@@ -67,6 +67,28 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   assertCost(optimalMergeSet);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, addV4RouteAboveEcmpLimit) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto defaultNhops = defaultV4Nhops();
+  auto newRoute = makeV4Route(makeV4Prefix(1), defaultNhops);
+  auto newState = state_->clone();
+  auto fib = fib4(newState);
+  fib->addNode(newRoute->prefix().str(), std::move(newRoute));
+  newState->publish();
+  auto deltas = consolidate(newState);
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertTargetState(
+      sw_->getState(), newState, overflowPrefixes, nullptr, false);
+  assertMergedGroup(optimalMergeSet);
+  assertCost(optimalMergeSet);
+}
+
 TEST_F(EcmpResourceMgrMergeGroupTest, multiplePrefixesInEachMergeGrpMember) {
   for (const auto& [nhops, _] : sw_->getEcmpResourceManager()->getNhopsToId()) {
     auto deltas = addRoute(nextPrefix(), nhops);

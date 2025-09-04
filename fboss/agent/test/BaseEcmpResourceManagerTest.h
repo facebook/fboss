@@ -26,19 +26,37 @@ namespace facebook::fboss {
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
 
 RouteNextHopSet makeNextHops(int n);
+RouteNextHopSet makeV4NextHops(int n);
 RouteV6::Prefix makePrefix(int offset);
+RouteV4::Prefix makeV4Prefix(int offset);
 
 std::shared_ptr<RouteV6> makeRoute(
     const RouteV6::Prefix& pfx,
     const RouteNextHopSet& nextHops);
 
-inline ForwardingInformationBaseV6* fib(
+std::shared_ptr<RouteV4> makeV4Route(
+    const RouteV4::Prefix& pfx,
+    const RouteNextHopSet& nextHops);
+
+template <typename AddrT>
+inline ForwardingInformationBase<AddrT>* fibImpl(
     std::shared_ptr<SwitchState>& newState) {
   return newState->getFibs()
       ->getNode(RouterID(0))
-      ->getFibV6()
+      ->getFib<AddrT>()
       ->modify(RouterID(0), &newState);
 }
+
+inline ForwardingInformationBaseV6* fib(
+    std::shared_ptr<SwitchState>& newState) {
+  return fibImpl<folly::IPAddressV6>(newState);
+}
+
+inline ForwardingInformationBaseV4* fib4(
+    std::shared_ptr<SwitchState>& newState) {
+  return fibImpl<folly::IPAddressV4>(newState);
+}
+
 inline const std::shared_ptr<ForwardingInformationBaseV6> cfib(
     const std::shared_ptr<SwitchState>& newState) {
   return newState->getFibs()->getNode(RouterID(0))->getFibV6();
@@ -59,6 +77,9 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   static constexpr auto kNumIntfs = 20;
   RouteNextHopSet defaultNhops() const {
     return makeNextHops(kNumIntfs);
+  }
+  RouteNextHopSet defaultV4Nhops() const {
+    return makeV4NextHops(kNumIntfs);
   }
   using NextHopGroupId = EcmpResourceManager::NextHopGroupId;
   std::vector<StateDelta> consolidate(
