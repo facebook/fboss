@@ -589,115 +589,131 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;
   EcmpResourceManager::NextHopGroupIds mergedGroupMembers;
-  for (auto [_, inRoute] : std::as_const(*cfib(endStatePrefixes))) {
-    auto route = cfib(targetState)->exactMatch(inRoute->prefix());
-    ASSERT_TRUE(route->isResolved());
-    ASSERT_NE(route, nullptr);
-    auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
-        RouterID(0), inRoute->prefix().toCidrNetwork());
-    bool isEcmpRoute = route->isResolved() &&
-        route->getForwardInfo().getNextHopSet().size() > 1;
-    if (isEcmpRoute) {
-      ASSERT_NE(consolidatorGrpInfo, nullptr);
-      if (consolidatorToCheck == consolidator_.get()) {
-        /*
-         * If consolidatorToCheck is the same as test class consolidator
-         * assert that group infos b/w SwSwitch's consolidator_ and
-         * Test class consolidator match
-         */
+  auto checkFib = [&](auto fibToCheck, auto targetStateFib) {
+    for (auto [_, inRoute] : std::as_const(*fibToCheck)) {
+      auto route = targetStateFib->exactMatch(inRoute->prefix());
+      ASSERT_TRUE(route->isResolved());
+      ASSERT_NE(route, nullptr);
+      auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
+          RouterID(0), inRoute->prefix().toCidrNetwork());
+      bool isEcmpRoute = route->isResolved() &&
+          route->getForwardInfo().getNextHopSet().size() > 1;
+      if (isEcmpRoute) {
+        ASSERT_NE(consolidatorGrpInfo, nullptr);
+        if (!route->getForwardInfo().getOverrideEcmpSwitchingMode()) {
+          primaryEcmpGroups.insert(
+              route->getForwardInfo().normalizedNextHops());
+        }
+        if (consolidatorToCheck == consolidator_.get()) {
+          /*
+           * If consolidatorToCheck is the same as test class consolidator
+           * assert that group infos b/w SwSwitch's consolidator_ and
+           * Test class consolidator match
+           */
 
-        auto swSwitchGroupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
-            RouterID(0), route->prefix().toCidrNetwork());
-        ASSERT_NE(swSwitchGroupInfo, nullptr);
-        auto swGroupId = swSwitchGroupInfo->getID();
-        auto consolidatorGroupId = swSwitchGroupInfo->getID();
-        auto consolidatorRouteUsageCount =
-            consolidatorGrpInfo->getRouteUsageCount();
-        auto swRouteUsageCount = swSwitchGroupInfo->getRouteUsageCount();
-        auto consolidatorIsBackupEcmpType =
-            consolidatorGrpInfo->isBackupEcmpGroupType();
-        auto swIsBackupEcmpType = swSwitchGroupInfo->isBackupEcmpGroupType();
-        auto consolidatorIsMergeGroup =
-            consolidatorGrpInfo->getMergedGroupInfoItr().has_value();
-        auto swIsMergeGroup =
-            swSwitchGroupInfo->getMergedGroupInfoItr().has_value();
-        EXPECT_EQ(
-            std::tie(
-                swGroupId,
-                swRouteUsageCount,
-                swIsBackupEcmpType,
-                swIsMergeGroup),
-            std::tie(
-                consolidatorGroupId,
-                consolidatorRouteUsageCount,
-                consolidatorIsBackupEcmpType,
-                consolidatorIsMergeGroup));
-        // Compare consolidation infos
-        auto swMergedGroupConsolidationInfo =
-            sw_->getEcmpResourceManager()->getMergeGroupConsolidationInfo(
-                swGroupId);
-        auto consolidatorMergedGroupConsolidationInfo =
-            consolidatorToCheck->getMergeGroupConsolidationInfo(
-                consolidatorGroupId);
-        EXPECT_EQ(
-            swMergedGroupConsolidationInfo,
-            consolidatorMergedGroupConsolidationInfo);
-        auto swCandidateMergeConsolidationInfo =
-            sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
-                swGroupId);
-        auto consolidatorCandidateMergeConsolidationInfo =
-            consolidatorToCheck->getCandidateMergeConsolidationInfo(
-                consolidatorGroupId);
-        EXPECT_EQ(
-            swCandidateMergeConsolidationInfo,
-            consolidatorCandidateMergeConsolidationInfo);
-        if (swMergedGroupConsolidationInfo) {
-          ASSERT_TRUE(consolidatorGrpInfo->getMergedGroupInfoItr());
-          ASSERT_TRUE(swSwitchGroupInfo->getMergedGroupInfoItr());
-          auto swMergeSet =
-              (*swSwitchGroupInfo->getMergedGroupInfoItr())->first;
-          auto consolidatorMergeSet =
-              (*consolidatorGrpInfo->getMergedGroupInfoItr())->first;
-          EXPECT_EQ(swMergeSet, consolidatorMergeSet);
-          mergedGroupMembers.insert(swMergeSet.begin(), swMergeSet.end());
+          auto swSwitchGroupInfo = sw_->getEcmpResourceManager()->getGroupInfo(
+              RouterID(0), route->prefix().toCidrNetwork());
+          ASSERT_NE(swSwitchGroupInfo, nullptr);
+          auto swGroupId = swSwitchGroupInfo->getID();
+          auto consolidatorGroupId = swSwitchGroupInfo->getID();
+          auto consolidatorRouteUsageCount =
+              consolidatorGrpInfo->getRouteUsageCount();
+          auto swRouteUsageCount = swSwitchGroupInfo->getRouteUsageCount();
+          auto consolidatorIsBackupEcmpType =
+              consolidatorGrpInfo->isBackupEcmpGroupType();
+          auto swIsBackupEcmpType = swSwitchGroupInfo->isBackupEcmpGroupType();
+          auto consolidatorIsMergeGroup =
+              consolidatorGrpInfo->getMergedGroupInfoItr().has_value();
+          auto swIsMergeGroup =
+              swSwitchGroupInfo->getMergedGroupInfoItr().has_value();
+          EXPECT_EQ(
+              std::tie(
+                  swGroupId,
+                  swRouteUsageCount,
+                  swIsBackupEcmpType,
+                  swIsMergeGroup),
+              std::tie(
+                  consolidatorGroupId,
+                  consolidatorRouteUsageCount,
+                  consolidatorIsBackupEcmpType,
+                  consolidatorIsMergeGroup));
+          // Compare consolidation infos
+          auto swMergedGroupConsolidationInfo =
+              sw_->getEcmpResourceManager()->getMergeGroupConsolidationInfo(
+                  swGroupId);
+          auto consolidatorMergedGroupConsolidationInfo =
+              consolidatorToCheck->getMergeGroupConsolidationInfo(
+                  consolidatorGroupId);
+          EXPECT_EQ(
+              swMergedGroupConsolidationInfo,
+              consolidatorMergedGroupConsolidationInfo);
+          auto swCandidateMergeConsolidationInfo =
+              sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(
+                  swGroupId);
+          auto consolidatorCandidateMergeConsolidationInfo =
+              consolidatorToCheck->getCandidateMergeConsolidationInfo(
+                  consolidatorGroupId);
+          EXPECT_EQ(
+              swCandidateMergeConsolidationInfo,
+              consolidatorCandidateMergeConsolidationInfo);
+          if (swMergedGroupConsolidationInfo) {
+            ASSERT_TRUE(consolidatorGrpInfo->getMergedGroupInfoItr());
+            ASSERT_TRUE(swSwitchGroupInfo->getMergedGroupInfoItr());
+            auto swMergeSet =
+                (*swSwitchGroupInfo->getMergedGroupInfoItr())->first;
+            auto consolidatorMergeSet =
+                (*consolidatorGrpInfo->getMergedGroupInfoItr())->first;
+            EXPECT_EQ(swMergeSet, consolidatorMergeSet);
+            mergedGroupMembers.insert(swMergeSet.begin(), swMergeSet.end());
+          }
         }
       }
     }
-    if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
-      EXPECT_TRUE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
-          << " expected route " << route->str()
-          << " to have override ECMP group type or ecmp nhops";
-      if (getBackupEcmpSwitchingMode()) {
-        EXPECT_EQ(
-            route->getForwardInfo().getOverrideEcmpSwitchingMode(),
-            consolidatorToCheck->getBackupEcmpSwitchingMode());
-        EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
-        if (isEcmpRoute) {
+  };
+  auto checkOverflow = [&](const auto fibToCheck, const auto targetStateFib) {
+    for (auto [_, inRoute] : std::as_const(*fibToCheck)) {
+      auto route = targetStateFib->exactMatch(inRoute->prefix());
+      auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
+          RouterID(0), inRoute->prefix().toCidrNetwork());
+      if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
+        EXPECT_TRUE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
+            << " expected route " << route->str()
+            << " to have override ECMP group type or ecmp nhops";
+        if (getBackupEcmpSwitchingMode()) {
+          EXPECT_EQ(
+              route->getForwardInfo().getOverrideEcmpSwitchingMode(),
+              consolidatorToCheck->getBackupEcmpSwitchingMode());
+          EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
           backupEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
         }
-      }
-      if (getEcmpCompressionThresholdPct()) {
-        EXPECT_TRUE(route->getForwardInfo().getOverrideNextHops().has_value());
-        EXPECT_EQ(
-            route->getForwardInfo().getOverrideNextHops(),
-            consolidatorToCheck
-                ->getGroupInfo(RouterID(0), route->prefix().toCidrNetwork())
-                ->getOverrideNextHops());
-        // Merged groups also take up primary ecmp groups
-        primaryEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
-        mergedEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
-      }
-    } else {
-      EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
-          << " expected route " << route->str()
-          << " to NOT have override ECMP group type or ecmp nhops";
-      if (isEcmpRoute) {
-        EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
-        EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
-        primaryEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+        if (getEcmpCompressionThresholdPct()) {
+          EXPECT_TRUE(
+              route->getForwardInfo().getOverrideNextHops().has_value());
+          EXPECT_EQ(
+              route->getForwardInfo().getOverrideNextHops(),
+              consolidatorToCheck
+                  ->getGroupInfo(RouterID(0), route->prefix().toCidrNetwork())
+                  ->getOverrideNextHops());
+          // Merged groups also take up primary ecmp groups
+          mergedEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+        }
+      } else {
+        EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
+            << " expected route " << route->str()
+            << " to NOT have override ECMP group type or ecmp nhops";
+        bool isEcmpRoute = route->isResolved() &&
+            route->getForwardInfo().getNextHopSet().size() > 1;
+        if (isEcmpRoute) {
+          EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
+          EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
+        }
       }
     }
-  }
+  };
+  checkFib(cfib(endStatePrefixes), cfib(targetState));
+  checkFib(cfib4(endStatePrefixes), cfib4(targetState));
+  // Overflow prefixes are of v6 type only
+  checkOverflow(cfib(endStatePrefixes), cfib(targetState));
   if (checkStats) {
     EXPECT_EQ(
         sw_->stats()->getPrimaryEcmpGroupsExhausted(),

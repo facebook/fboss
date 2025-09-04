@@ -62,6 +62,11 @@ inline const std::shared_ptr<ForwardingInformationBaseV6> cfib(
   return newState->getFibs()->getNode(RouterID(0))->getFibV6();
 }
 
+inline const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
+    const std::shared_ptr<SwitchState>& newState) {
+  return newState->getFibs()->getNode(RouterID(0))->getFibV4();
+}
+
 inline HwSwitchMatcher hwMatcher() {
   return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
 }
