@@ -60,18 +60,29 @@ cpp_library(
     ],
 )
 
+cpp_library(
+    name = "benchmark_helper",
+    srcs = ["CowStorageBenchHelper.cpp"],
+    headers = [
+        "CowStorageBenchHelper.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":data_factory",
+        "//common/base:proc",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+    ],
+)
+
 cpp_benchmark(
     name = "cowstorage_bench",
     srcs = [
         "CowStorageBench.cpp",
     ],
     deps = [
-        "fbsource//third-party/googletest:gtest",
-        ":data_factory",
-        "//fboss/thrift_cow/storage:cow_storage",
-        "//folly:benchmark",
-        "//folly/init:init",
-        "//folly/json:dynamic",
-        "//folly/logging:logging",
+        ":benchmark_helper",
     ],
 )
