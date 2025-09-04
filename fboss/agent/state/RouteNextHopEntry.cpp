@@ -184,7 +184,12 @@ std::string RouteNextHopEntry::str_DEPRACATED() const {
       overrideEcmpMode.has_value() ? apache::thrift::util::enumNameSafe(
                                          cfg::SwitchingMode(*overrideEcmpMode))
                                    : "none");
-
+  result += ";overrideNextHops=";
+  if (auto overrideNextHops = getOverrideNextHops()) {
+    toAppend(*overrideNextHops, &result);
+  } else {
+    result += "none";
+  }
   return result;
 }
 
@@ -784,8 +789,21 @@ RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
 }
 
 bool RouteNextHopEntry::hasOverrideSwitchingModeOrNhops() const {
-  return safe_cref<switch_state_tags::overrideEcmpSwitchingMode>() ||
-      safe_cref<switch_state_tags::overrideNextHops>();
+  return hasOverrideSwitchingMode() || hasOverrideNextHops();
+}
+
+bool RouteNextHopEntry::hasOverrideSwitchingMode() const {
+  if (safe_cref<switch_state_tags::overrideEcmpSwitchingMode>()) {
+    return true;
+  }
+  return false;
+}
+
+bool RouteNextHopEntry::hasOverrideNextHops() const {
+  if (safe_cref<switch_state_tags::overrideNextHops>()) {
+    return true;
+  }
+  return false;
 }
 
 const std::optional<RouteNextHopSet> RouteNextHopEntry::getOverrideNextHops()

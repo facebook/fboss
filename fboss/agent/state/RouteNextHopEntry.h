@@ -114,6 +114,7 @@ class RouteNextHopEntry
   const std::optional<NextHopSet> getOverrideNextHops() const;
   void setOverrideNextHops(const std::optional<NextHopSet>& nhops);
   bool hasOverrideSwitchingModeOrNhops() const;
+  bool hasOverrideSwitchingMode() const;
   bool hasOverrideNextHops() const;
   NextHopSet normalizedNextHops() const {
     return normalizedNextHopsImpl(false /*ignoreOverride*/);
