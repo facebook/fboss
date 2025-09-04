@@ -13,8 +13,6 @@
 #include "fboss/agent/hw/switch_asics/FakeAsic.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
-
 #include <cstring>
 namespace {
 std::vector<int> getControllingPortIDs() {
