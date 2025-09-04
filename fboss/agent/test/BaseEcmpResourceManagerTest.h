@@ -169,8 +169,17 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   void assertAllGidsClaimed(
       const EcmpResourceManager& resourceMgr,
       const std::shared_ptr<SwitchState>& state) const;
+  void assertFibAndGroupsMatch(
+      const EcmpResourceManager& resourceMgr,
+      const std::shared_ptr<SwitchState>& state) const;
+
+  std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupIds>
+  getNhopsToMergedGroups(const EcmpResourceManager& resourceMgr) const;
 
  public:
+  void assertResourceMgrCorrectness(
+      const EcmpResourceManager& resourceMgr,
+      const std::shared_ptr<SwitchState>& state) const;
   int32_t virtual getEcmpCompressionThresholdPct() const {
     return 0;
   }
