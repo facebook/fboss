@@ -591,6 +591,11 @@ class AgentEgressPortErspanMirroringTest : public AgentMirroringTest<AddrT> {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+      return {
+          ProductionFeature::EGRESS_MIRRORING,
+          ProductionFeature::ERSPANV6_MIRRORING};
+    }
     return {ProductionFeature::EGRESS_MIRRORING};
   }
 
