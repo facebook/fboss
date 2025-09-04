@@ -87,6 +87,16 @@ cpp_library(
 )
 
 cpp_benchmark(
+    name = "cowstorage_fsdb_state_bench",
+    srcs = [
+        "CowStorageFsdbStateBench.cpp",
+    ],
+    deps = [
+        ":benchmark_helper",
+    ],
+)
+
+cpp_benchmark(
     name = "cowstorage_bench",
     srcs = [
         "CowStorageBench.cpp",
