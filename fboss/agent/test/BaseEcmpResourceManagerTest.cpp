@@ -138,11 +138,13 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   if (deltas.size()) {
     XLOG(DBG2) << " Checking deltas, num deltas: " << deltas.size();
     assertDeltasForOverflow(deltas);
+    assertResourceMgrCorrectness(*consolidator_, deltas.back().newState());
   }
   XLOG(DBG2) << " Consolidator update done";
   XLOG(DBG2) << " SwSwitch update start";
   updateFlowletSwitchingConfig(state);
   updateRoutes(state);
+  assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
   XLOG(DBG2) << " SwSwitch update done";
   CHECK(state_->isPublished());
   state_ = sw_->getState();
@@ -272,7 +274,11 @@ void BaseEcmpResourceManagerTest::assertFibAndGroupsMatch(
   std::map<EcmpResourceManager::NextHopGroupIds, int> mergedGroupToRouteRef;
   auto getRouteRef = [&](auto inFib) {
     for (auto [_, route] : std::as_const(*inFib)) {
-      ASSERT_TRUE(route->isResolved());
+      if (!route->isResolved()) {
+        // Some tests deliberately add unresolved routes to
+        // FIB and run them through local consolidator_ state
+        continue;
+      }
       ASSERT_NE(route, nullptr);
       bool isEcmpRoute = route->isResolved() &&
           route->getForwardInfo().getNextHopSet().size() > 1;
