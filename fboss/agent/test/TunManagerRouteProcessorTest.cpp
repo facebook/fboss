@@ -103,6 +103,23 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
     tunMgr->probedRoutes_.push_back(route);
   }
 
+  /**
+   * @brief Build interface index to table ID mapping from probed routes
+   *
+   * @param tunMgr Pointer to TunManager instance containing probed routes
+   * @return std::unordered_map<int, int> Map from interface index to table ID
+   */
+  static std::unordered_map<int, int> buildIfIndexToTableIdMap(
+      TunManager* tunMgr) {
+    std::unordered_map<int, int> ifIndexToTableId;
+    for (const auto& probedRoute : tunMgr->probedRoutes_) {
+      if (probedRoute.ifIndex > 0) {
+        ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
+      }
+    }
+    return ifIndexToTableId;
+  }
+
  protected:
   std::unique_ptr<MockPlatform> platform_; ///< Mock platform instance
   std::unique_ptr<SwSwitch> sw_; ///< Mock switch instance
@@ -254,8 +271,11 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default) {
       addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
       .Times(1);
 
+  // Build ifIndexToTableId map from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMap(tunMgr_);
+
   // Call deleteProbedRoutes
-  tunMgr_->deleteProbedRoutes();
+  tunMgr_->deleteProbedRoutes(ifIndexToTableId);
 
   // Verify probed routes are cleared;
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
@@ -276,8 +296,11 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default) {
       addRemoveRouteTable(150, 24, false, ::testing::Eq(std::nullopt)))
       .Times(1);
 
+  // Build ifIndexToTableId map from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMap(tunMgr_);
+
   // Call deleteProbedRoutes
-  tunMgr_->deleteProbedRoutes();
+  tunMgr_->deleteProbedRoutes(ifIndexToTableId);
 
   // Verify probed routes are cleared;
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
@@ -300,8 +323,11 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6) {
       addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
       .Times(1);
 
+  // Build ifIndexToTableId map from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMap(tunMgr_);
+
   // Call deleteProbedRoutes
-  tunMgr_->deleteProbedRoutes();
+  tunMgr_->deleteProbedRoutes(ifIndexToTableId);
 
   // Verify probed routes are cleared
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
@@ -332,8 +358,11 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables) {
       addRemoveRouteTable(200, 24, false, ::testing::Eq(std::nullopt)))
       .Times(1);
 
+  // Build ifIndexToTableId map from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMap(tunMgr_);
+
   // Call deleteProbedRoutes
-  tunMgr_->deleteProbedRoutes();
+  tunMgr_->deleteProbedRoutes(ifIndexToTableId);
 
   // Verify probed routes are cleared
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
@@ -352,8 +381,11 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList) {
   // Expect no calls to addRemoveRouteTable since there are no routes
   EXPECT_CALL(*tunMgr_, addRemoveRouteTable(_, _, _, _)).Times(0);
 
+  // Build ifIndexToTableId map from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMap(tunMgr_);
+
   // Call deleteProbedRoutes
-  tunMgr_->deleteProbedRoutes();
+  tunMgr_->deleteProbedRoutes(ifIndexToTableId);
 
   // Verify probedRoutes_ remains empty
   EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
@@ -385,8 +417,12 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling) {
       addRemoveRouteTable(200, 24, false, ::testing::Eq(std::nullopt)))
       .Times(1);
 
+  // Build ifIndexToTableId map from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMap(tunMgr_);
+
   // Call deleteProbedRoutes - should throw when addRemoveRouteTable throws
-  EXPECT_THROW(tunMgr_->deleteProbedRoutes(), std::runtime_error);
+  EXPECT_THROW(
+      tunMgr_->deleteProbedRoutes(ifIndexToTableId), std::runtime_error);
 
   // Verify probed routes are not cleared when exceptions occur
   EXPECT_EQ(tunMgr_->probedRoutes_.size(), 4);

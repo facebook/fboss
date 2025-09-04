@@ -21,6 +21,8 @@ extern "C" {
 #include <folly/MapUtil.h>
 #include <folly/lang/CString.h>
 #include <folly/logging/xlog.h>
+
+#include <unordered_map>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/NlError.h"
 #include "fboss/agent/RxPacket.h"
@@ -750,7 +752,15 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
 void TunManager::deleteAllProbedData() {
   XLOG(INFO) << "Starting to delete all probed data from kernel";
 
-  deleteProbedRoutes();
+  // Build a map of interface index to table ID from probed routes
+  std::unordered_map<int, int> ifIndexToTableId;
+  for (const auto& probedRoute : probedRoutes_) {
+    if (probedRoute.ifIndex > 0) {
+      ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
+    }
+  }
+
+  deleteProbedRoutes(ifIndexToTableId);
 
   XLOG(INFO) << "Finished deleting all probed data from kernel";
 }
@@ -1123,23 +1133,15 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
  *
  * Removes default routes (0.0.0.0/0 and ::/0) that were discovered
  * during kernel probing.
+ *
+ * @param ifIndexToTableId Map from interface index to routing table ID
  */
-void TunManager::deleteProbedRoutes() {
+void TunManager::deleteProbedRoutes(
+    const std::unordered_map<int, int>& ifIndexToTableId) {
   XLOG(DBG2) << "Deleting probed routes";
 
-  // First, find all unique table IDs that contain default routes
-  std::unordered_map<int, int> tableToIfIndex;
-
-  for (const auto& probedRoute : probedRoutes_) {
-    // Only process default routes (0.0.0.0/0 and ::/0)
-    if (probedRoute.destination == "0.0.0.0/0" ||
-        probedRoute.destination == "::/0") {
-      tableToIfIndex[probedRoute.tableId] = probedRoute.ifIndex;
-    }
-  }
-
-  // Now call addRemoveRouteTable once per table ID
-  for (const auto& [tableId, ifIndex] : tableToIfIndex) {
+  // Directly iterate over the provided map
+  for (const auto& [ifIndex, tableId] : ifIndexToTableId) {
     addRemoveRouteTable(tableId, ifIndex, false, std::nullopt);
 
     XLOG(DBG2) << "Deleted default routes in table " << tableId

@@ -256,8 +256,10 @@ class TunManager : public StateObserver {
    *
    * Removes default routes (0.0.0.0/0 and ::/0) that were discovered
    * during kernel probing.
+   *
+   * @param ifIndexToTableId Map from interface index to routing table ID
    */
-  void deleteProbedRoutes();
+  void deleteProbedRoutes(const std::unordered_map<int, int>& ifIndexToTableId);
 
   /**
    * Lookup host for existing Tun interfaces and their addresses.
