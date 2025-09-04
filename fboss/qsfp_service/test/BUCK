@@ -181,6 +181,7 @@ cpp_unittest(
     srcs = ["PortManagerTest.cpp"],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":fake-configs-helper",
         ":mock_manager_constructor_args",
         ":mock_phy_manager",
         ":mock_port_manager",

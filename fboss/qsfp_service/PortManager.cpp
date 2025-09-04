@@ -60,11 +60,44 @@ PortManager::PortManager(
   }
 }
 
-PortManager::~PortManager() {}
+PortManager::~PortManager() {
+  if (updateThread_) {
+    updateEventBase_->runInEventBaseThread(
+        [this] { updateEventBase_->terminateLoopSoon(); });
+    updateThread_->join();
+    XLOG(DBG2) << "Terminated PortStateMachineUpdateThread";
+  }
+}
 
-void PortManager::gracefulExit() {}
+void PortManager::gracefulExit() {
+  if (phyManager_) {
+    phyManager_->gracefulExit();
+  }
+}
 
-void PortManager::init() {}
+void PortManager::threadLoop(
+    folly::StringPiece name,
+    folly::EventBase* eventBase) {
+  initThread(name);
+  eventBase->loopForever();
+}
+
+void PortManager::init() {
+  XLOG(DBG2) << "Started PortStateMachineUpdateThread";
+  updateEventBase_ = std::make_unique<folly::EventBase>();
+  updateThread_.reset(new std::thread([=, this] {
+    this->threadLoop("PortStateMachineUpdateThread", updateEventBase_.get());
+  }));
+
+  auto heartbeatStatsFunc = [](int /* delay */, int /* backLog */) {};
+  updateThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
+      updateEventBase_.get(),
+      "updateThreadHeartbeat",
+      FLAGS_state_machine_update_thread_heartbeat_ms,
+      heartbeatStatsFunc);
+
+  initExternalPhyMap();
+}
 
 void PortManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,

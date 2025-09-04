@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <optional>
 #include "fboss/qsfp_service/platforms/wedge/tests/MockWedgeManager.h"
+#include "fboss/qsfp_service/test/FakeConfigsHelper.h"
 #include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
 #include "fboss/qsfp_service/test/MockPhyManager.h"
 #include "fboss/qsfp_service/test/MockPortManager.h"
@@ -14,8 +15,13 @@ namespace facebook::fboss {
 
 class PortManagerTest : public ::testing::Test {
  public:
+  folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+  std::string qsfpSvcVolatileDir = tmpDir.path().string();
+  std::string qsfpCfgPath = qsfpSvcVolatileDir + "/fakeQsfpConfig";
+
   void SetUp() override {
     initManagers();
+    setupFakeQsfpConfig(qsfpCfgPath);
   }
 
  protected:
@@ -25,17 +31,22 @@ class PortManagerTest : public ::testing::Test {
       bool setPhyManager = false) {
     const auto platformMapping =
         makeFakePlatformMapping(numModules, numPortsPerModule);
+    const std::shared_ptr<const PlatformMapping> castedPlatformMapping =
+        platformMapping;
+
+    // Create Threads Object
+    const auto threadsMap = makeSlotThreadHelper(platformMapping);
 
     std::unique_ptr<MockPhyManager> phyManager =
         std::make_unique<MockPhyManager>(platformMapping.get());
     phyManager_ = phyManager.get();
     transceiverManager_ = std::make_shared<MockWedgeManager>(
-        numModules, 4, platformMapping, nullptr /* threads */);
+        numModules, 4, platformMapping, threadsMap);
     portManager_ = std::make_unique<MockPortManager>(
         transceiverManager_.get(),
         setPhyManager ? std::move(phyManager) : nullptr,
         platformMapping,
-        nullptr /* threads */);
+        threadsMap);
 
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
         overrideMultiPortTcvrToPortAndProfile_);
@@ -389,4 +400,13 @@ TEST_F(PortManagerTest, programExternalPhyPortNoPhyManager) {
   // Should return early without throwing when phyManager_ is null
   EXPECT_NO_THROW(portManager_->programExternalPhyPort(PortID(1), false));
 }
+
+TEST_F(PortManagerTest, initAndExit) {
+  initManagers();
+  transceiverManager_->init();
+  portManager_->init();
+
+  portManager_->gracefulExit();
+}
+
 } // namespace facebook::fboss

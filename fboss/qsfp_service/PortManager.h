@@ -297,6 +297,8 @@ class PortManager {
 
   void updateTransceiverPortStatus() noexcept;
 
+  void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
   void restoreAgentConfigAppliedInfo();
 
   // All Functions Required for Updating State Machines
