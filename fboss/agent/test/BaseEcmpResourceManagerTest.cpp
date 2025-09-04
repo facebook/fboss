@@ -88,6 +88,15 @@ cfg::SwitchConfig onePortPerIntfConfig(
   return cfg;
 }
 
+std::shared_ptr<EcmpResourceManager>
+BaseEcmpResourceManagerTest::makeResourceMgrWithEcmpLimit(
+    int ecmpGroupLimit) const {
+  return std::make_shared<EcmpResourceManager>(
+      ecmpGroupLimit,
+      getEcmpCompressionThresholdPct(),
+      getBackupEcmpSwitchingMode());
+}
+
 std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   state->publish();

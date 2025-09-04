@@ -19,6 +19,10 @@ class EcmpResourceMgrMergeGroupTest
     FLAGS_enable_ecmp_resource_manager = true;
     FLAGS_ecmp_resource_percentage = 35;
   }
+  std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode()
+      const override {
+    return std::nullopt;
+  }
   void assertCost(
       const EcmpResourceManager::NextHopGroupIds& mergedGroups) const {
     auto consolidationInfo =

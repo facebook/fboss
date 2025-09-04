@@ -77,6 +77,8 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
     static constexpr auto kEcmpGroupHwLimit = 100;
     return std::make_shared<EcmpResourceManager>(kEcmpGroupHwLimit);
   };
+  std::shared_ptr<EcmpResourceManager> makeResourceMgrWithEcmpLimit(
+      int ecmpGroupLimit) const;
   virtual int numStartRoutes() const {
     return 5;
   }

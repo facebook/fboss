@@ -20,13 +20,6 @@ class EcmpBackupGroupTypeTest : public BaseEcmpResourceManagerTest {
   }
   static constexpr auto kNumStartRoutes = 5;
 
-  std::shared_ptr<EcmpResourceManager> makeResourceMgrWithEcmpLimit(
-      int ecmpGroupLimit) const {
-    return std::make_shared<EcmpResourceManager>(
-        ecmpGroupLimit,
-        0 /*compressionPenaltyThresholdPct*/,
-        cfg::SwitchingMode::PER_PACKET_RANDOM);
-  }
   int numStartRoutes() const override {
     return kNumStartRoutes;
   }
