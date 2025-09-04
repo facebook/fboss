@@ -262,6 +262,17 @@ class TunManager : public StateObserver {
   void deleteProbedRoutes(const std::unordered_map<int, int>& ifIndexToTableId);
 
   /**
+   * Delete probed addresses and source routing rules from kernel.
+   *
+   * Removes IP addresses and their associated source routing rules that were
+   * discovered during kernel probing.
+   *
+   * @param ifIndexToTableId Map from interface index to routing table ID
+   */
+  void deleteProbedAddressesAndRules(
+      const std::unordered_map<int, int>& ifIndexToTableId);
+
+  /**
    * Lookup host for existing Tun interfaces and their addresses.
    */
   virtual void doProbe(std::lock_guard<std::mutex>& mutex);

@@ -761,6 +761,7 @@ void TunManager::deleteAllProbedData() {
   }
 
   deleteProbedRoutes(ifIndexToTableId);
+  deleteProbedAddressesAndRules(ifIndexToTableId);
 
   XLOG(INFO) << "Finished deleting all probed data from kernel";
 }
@@ -1150,6 +1151,46 @@ void TunManager::deleteProbedRoutes(
 
   // Clear the probed routes after processing
   probedRoutes_.clear();
+}
+
+/**
+ * Delete probed addresses and source routing rules from kernel.
+ *
+ * Removes IP addresses and their associated source routing rules that were
+ * discovered during kernel probing.
+ *
+ * @param ifIndexToTableId Map from interface index to routing table ID
+ */
+void TunManager::deleteProbedAddressesAndRules(
+    const std::unordered_map<int, int>& ifIndexToTableId) {
+  XLOG(DBG2) << "Deleting probed addresses and source routing rules";
+
+  for (const auto& intf : intfs_) {
+    const auto& addresses = intf.second->getAddresses();
+    const auto& ifName = intf.second->getName();
+    auto ifIndex = intf.second->getIfIndex();
+
+    // Get table ID from our map instead of calling getTableId
+    auto tableIdIter = ifIndexToTableId.find(ifIndex);
+    int tableId =
+        (tableIdIter != ifIndexToTableId.end()) ? tableIdIter->second : 0;
+
+    for (const auto& addr : addresses) {
+      // Delete source routing rule using existing method with explicit table
+      // ID
+      if (tableId > 0) {
+        addRemoveSourceRouteRule(tableId, addr.first, false);
+        XLOG(DBG2) << "Deleted source rule for address " << addr.first.str()
+                   << " table " << tableId;
+      }
+
+      // Delete address directly
+      addRemoveTunAddress(ifName, ifIndex, addr.first, addr.second, false);
+      XLOG(DBG2) << "Deleted address " << addr.first.str() << "/"
+                 << static_cast<int>(addr.second) << " from interface "
+                 << ifName;
+    }
+  }
 }
 
 } // namespace facebook::fboss
