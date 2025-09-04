@@ -105,3 +105,13 @@ cpp_benchmark(
         ":benchmark_helper",
     ],
 )
+
+cpp_benchmark(
+    name = "cowstorage_fsdb_stats_bench",
+    srcs = [
+        "CowStorageFsdbStatsBench.cpp",
+    ],
+    deps = [
+        ":benchmark_helper",
+    ],
+)
