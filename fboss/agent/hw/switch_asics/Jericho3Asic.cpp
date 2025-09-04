@@ -425,4 +425,11 @@ int Jericho3Asic::getMidPriCpuQueueId() const {
 int Jericho3Asic::getHiPriCpuQueueId() const {
   return kDefaultHiPriCpuQueueId;
 }
+
+std::optional<uint32_t> Jericho3Asic::getMaxEcmpGroups() const {
+  // CS00012342521
+  // For 2-stage DSF we only support 16 wide (upto 2K) ecmp groups
+  // No other use case exists.
+  return isDualStage3Q2QMode() ? 16 : 64;
+}
 } // namespace facebook::fboss
