@@ -1,3 +1,14 @@
 {
-  "i2cBusIgnore": []
+  "i2cBusIgnore": [],
+  "psus": [
+    {
+      "psuSlot": 1,
+      "scdI2cDeviceConfig": {
+        "scdPciAddr": "0000:07:00.0",
+        "deviceAddr": "0x58",
+        "master": 1,
+        "bus": 3
+      }
+    }
+  ]
 }

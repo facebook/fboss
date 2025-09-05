@@ -21,6 +21,7 @@ class Utils {
   void printPortDetails();
   void printSensorDetails();
   void printI2cDetails();
+  void printPsuDetails();
   void runFbossCliCmd(const std::string& cmd);
 
  private:
