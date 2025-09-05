@@ -241,6 +241,17 @@ class CmdShowRouteDetails
           }
         }
 
+        if (entry.overridenNextHops().has_value()) {
+          routeDetails.overridenNextHops() = std::vector<cli::NextHopInfo>();
+          for (const auto& nextHop : *entry.overridenNextHops()) {
+            cli::NextHopInfo nextHopInfo;
+            show::route::utils::getNextHopInfoThrift(nextHop, nextHopInfo);
+            routeDetails.overridenNextHops()->emplace_back(nextHopInfo);
+          }
+          routeDetails.nhopsLostDueToOverride() =
+              nextHops.size() - entry.overridenNextHops()->size();
+        }
+
         auto adminDistancePtr = entry.get_adminDistance();
         routeDetails.adminDistance() = adminDistancePtr == nullptr
             ? "None"

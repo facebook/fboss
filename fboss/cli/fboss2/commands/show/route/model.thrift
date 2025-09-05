@@ -56,4 +56,6 @@ struct RouteDetailEntry {
   8: string counterID;
   9: string classID;
   10: string overridenEcmpMode;
+  11: optional list<NextHopInfo> overridenNextHops;
+  12: i32 nhopsLostDueToOverride = 0;
 }
