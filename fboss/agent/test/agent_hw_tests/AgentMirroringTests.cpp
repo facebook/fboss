@@ -148,13 +148,15 @@ class AgentMirroringTest : public AgentHwTest {
     });
     getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
     auto mirror = getSw()->getState()->getMirrors()->getNodeIf(mirrorName);
-    auto dip = mirror->getDestinationIp();
-    if (dip.has_value()) {
-      auto prefix = getMirrorRoutePrefix(dip.value());
-      boost::container::flat_set<PortDescriptor> nhopPorts{
-          PortDescriptor(mirrorToPort)};
-      auto wrapper = getSw()->getRouteUpdater();
-      ecmpHelper.programRoutes(&wrapper, nhopPorts, {prefix});
+    if (mirror) {
+      auto dip = mirror->getDestinationIp();
+      if (dip.has_value()) {
+        auto prefix = getMirrorRoutePrefix(dip.value());
+        boost::container::flat_set<PortDescriptor> nhopPorts{
+            PortDescriptor(mirrorToPort)};
+        auto wrapper = getSw()->getRouteUpdater();
+        ecmpHelper.programRoutes(&wrapper, nhopPorts, {prefix});
+      }
     }
   }
 
