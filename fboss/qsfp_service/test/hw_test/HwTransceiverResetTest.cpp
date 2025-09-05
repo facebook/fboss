@@ -18,7 +18,6 @@
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverTest.h"
-#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 constexpr static auto kMaxRefreshesForReadyState = 5;

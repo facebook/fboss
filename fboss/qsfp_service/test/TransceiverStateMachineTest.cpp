@@ -13,7 +13,6 @@
 
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
-#include "fboss/qsfp_service/module/sff/Sff8472Module.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/test/MockTransceivers.h"
