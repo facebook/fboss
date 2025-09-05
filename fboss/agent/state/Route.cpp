@@ -47,16 +47,23 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   }
   // Add the action
   rd.action() = forwardActionStr(fwd().getAction());
-  auto nhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
-                                       : fwd().getNextHopSet();
   // Add the forwarding info
-  for (const auto& nh : nhopSet) {
-    IfAndIP ifAndIp;
-    *ifAndIp.interfaceID() = nh.intf();
-    *ifAndIp.ip() = toBinaryAddress(nh.addr());
-    rd.fwdInfo()->push_back(ifAndIp);
-    rd.nextHops()->push_back(nh.toThrift());
-  }
+  auto fillNextHops = [](const auto& nhopSet, auto& rdetails) {
+    rdetails.fwdInfo()->clear();
+    std::vector<NextHopThrift> nhops;
+    for (const auto& nh : nhopSet) {
+      IfAndIP ifAndIp;
+      *ifAndIp.interfaceID() = nh.intf();
+      *ifAndIp.ip() = toBinaryAddress(nh.addr());
+      rdetails.fwdInfo()->push_back(ifAndIp);
+      nhops.push_back(nh.toThrift());
+    }
+    return nhops;
+  };
+  // if no overrideNextHops nonOverrideNormalizedNextHops == normalizedNextHops
+  auto nhopSet = normalizedNhopWeights ? fwd().nonOverrideNormalizedNextHops()
+                                       : fwd().getNextHopSet();
+  rd.nextHops() = fillNextHops(nhopSet, rd);
 
   // Add the multi-nexthops
   rd.nextHopMulti() = nexthopsmulti().toThriftLegacy();
@@ -71,6 +78,11 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   }
   if (isResolved() && fwd().getOverrideEcmpSwitchingMode().has_value()) {
     rd.overridenEcmpMode() = *fwd().getOverrideEcmpSwitchingMode();
+  }
+  if (isResolved() && fwd().getOverrideNextHops().has_value()) {
+    auto nhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
+                                         : *fwd().getOverrideNextHops();
+    rd.overridenNextHops() = fillNextHops(nhopSet, rd);
   }
   return rd;
 }
