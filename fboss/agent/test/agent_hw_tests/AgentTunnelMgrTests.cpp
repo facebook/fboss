@@ -19,6 +19,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_tun_intf = true;
+    FLAGS_cleanup_probed_kernel_data = true;
   }
 
   void SetUp() override {
