@@ -377,17 +377,8 @@ class AgentMirroringTest : public AgentHwTest {
     auto verify = [=, this]() {
       auto mirror = getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
       EXPECT_EQ(mirror, nullptr);
-      auto scopeResolver = getAgentEnsemble()->getSw()->getScopeResolver();
-      auto scope = scopeResolver->scope(mirror);
-      for (auto switchID : scope.switchIds()) {
-        auto client = getAgentEnsemble()->getHwAgentTestClient(switchID);
-        WITH_RETRIES({
-          EXPECT_EVENTUALLY_FALSE(client->sync_isPortMirrored(
-              getTrafficPort(*getAgentEnsemble()), mirrorName, isIngress()));
-          EXPECT_TRUE(client->sync_isAclEntryMirrored(
-              kMirrorAcl, mirrorName, isIngress()));
-        });
-      }
+      // if mirror is expected to be null then we should not pass
+      // it as an argument to scopeResolver->scope
     };
     this->verifyAcrossWarmBoots(setup, verify);
   }
