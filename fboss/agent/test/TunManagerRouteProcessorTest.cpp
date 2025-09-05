@@ -36,7 +36,10 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables); \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList);      \
   FRIEND_TEST(                                                                 \
-      TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling);
+      TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling);      \
+  FRIEND_TEST(                                                                 \
+      TunManagerAddressRuleTest,                                               \
+      DeleteProbedAddressesAndRulesSingleInterface);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -480,6 +483,58 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling) {
 
   // Verify probed routes are not cleared when exceptions occur
   EXPECT_EQ(tunMgr_->probedRoutes_.size(), 4);
+}
+
+/**
+ * @brief Test deletion of source IP rules and TUN addresses for a single
+ * interface
+ *
+ * Verifies cleanup of source IP routing rules and TUN interface addresses
+ * for a single interface with mixed IPv4/IPv6 addresses.
+ */
+TEST_F(
+    TunManagerAddressRuleTest,
+    DeleteProbedAddressesAndRulesSingleInterface) {
+  // Add a mock interface with addresses
+  std::vector<std::pair<folly::IPAddress, uint8_t>> addresses = {
+      {folly::IPAddress("10.1.1.1"), 24},
+      {folly::IPAddress("2001:db8::1"), 64}};
+
+  addMockInterface(InterfaceID(2000), 42, "fboss2000", addresses);
+
+  // Create ifIndexToTableId map
+  auto ifIndexToTableId = createIfIndexToTableIdMap({{42, 100}});
+
+  // Expect calls to delete source rules and addresses
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          100,
+          folly::IPAddress("10.1.1.1"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          100,
+          folly::IPAddress("2001:db8::1"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2000", 42, folly::IPAddress("10.1.1.1"), 24, false))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2000", 42, folly::IPAddress("2001:db8::1"), 64, false))
+      .Times(1);
+
+  // Call deleteProbedAddressesAndRules
+  tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
 }
 
 } // namespace facebook::fboss
