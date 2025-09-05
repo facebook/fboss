@@ -93,4 +93,48 @@ TEST(PlatformExplorerTest, PublishFirmwareVersions) {
   expectVersions("NONE", PlatformExplorer::kFwVerErrorFileNotFound);
 }
 
+// Test that exceptions in createDeviceSymLink are properly handled
+TEST(PlatformExplorerTest, SymlinkExceptionHandling) {
+  auto tmpDir = folly::test::TemporaryDirectory();
+  auto platformFsUtils =
+      std::make_shared<PlatformFsUtils>(tmpDir.path().string());
+
+  // Create a platform config with minimal setup
+  PlatformConfig platformConfig;
+
+  // Set required fields for explore() to work
+  platformConfig.rootPmUnitName() = "TEST_ROOT_PM";
+  platformConfig.rootSlotType() = "TEST_SLOT";
+
+  // Create the slot type config
+  SlotTypeConfig slotTypeConfig;
+  slotTypeConfig.pmUnitName() = "TEST_ROOT_PM";
+  platformConfig.slotTypeConfigs()["TEST_SLOT"] = slotTypeConfig;
+
+  // Create the PM unit config
+  PmUnitConfig pmUnitConfig;
+  platformConfig.pmUnitConfigs()["TEST_ROOT_PM"] = pmUnitConfig;
+
+  // Add a symbolic link with an unsupported path that will trigger the
+  // exception
+  std::string unsupportedLinkPath = "/run/devmap/unsupported/device";
+  std::string devicePath = "/[TEST_DEVICE]";
+  platformConfig.symbolicLinkToDevicePath()[unsupportedLinkPath] = devicePath;
+
+  // Create the explorer
+  PlatformExplorer explorer(platformConfig, platformFsUtils);
+
+  // Make sure the directory exists so we can check it later
+  std::string unsupportedDir = "/run/devmap/unsupported";
+  EXPECT_TRUE(platformFsUtils->createDirectories(unsupportedDir));
+
+  // This should trigger the exception in createDeviceSymLink but it should be
+  // caught and not crash the program
+  EXPECT_NO_THROW(explorer.explore());
+
+  // Verify that the exception was handled gracefully by checking that
+  // the symlink was not created
+  EXPECT_FALSE(platformFsUtils->exists(unsupportedLinkPath));
+}
+
 } // namespace facebook::fboss::platform::platform_manager
