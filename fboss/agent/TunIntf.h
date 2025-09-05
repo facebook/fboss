@@ -11,6 +11,7 @@
 
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventHandler.h>
+#include "fboss/agent/TunIntfInterface.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/types.h"
@@ -20,7 +21,7 @@ namespace facebook::fboss {
 class SwSwitch;
 class RxPacket;
 
-class TunIntf : private folly::EventHandler {
+class TunIntf : public TunIntfInterface, private folly::EventHandler {
  public:
   /**
    * Creates a TunIntf object of already existing linux interface. Initial
@@ -53,14 +54,14 @@ class TunIntf : private folly::EventHandler {
   /**
    * Start/Stop packet forwarding on Tun interface.
    */
-  void start();
-  void stop();
+  void start() override;
+  void stop() override;
 
   /**
    * Mark delete of the interface from the host. The interface on the host
    * will be deleted in destructor after the mark.
    */
-  void setDelete() {
+  void setDelete() override {
     toDelete_ = true;
   }
 
@@ -68,7 +69,7 @@ class TunIntf : private folly::EventHandler {
    * Change status of an interface UP/DOWN.
    * NOTE: This only changes the SW state.
    */
-  void setStatus(bool status) {
+  void setStatus(bool status) override {
     status_ = status;
   }
 
@@ -76,13 +77,13 @@ class TunIntf : private folly::EventHandler {
    * Add a discovered address to the interface.
    * This function just modifies the software object.
    */
-  void addAddress(const folly::IPAddress& addr, uint8_t mask);
+  void addAddress(const folly::IPAddress& addr, uint8_t mask) override;
 
   /**
    * Set the new addresses for the interface.
    * This function just modifies the software object.
    */
-  void setAddresses(const Interface::Addresses& addrs) {
+  void setAddresses(const Interface::Addresses& addrs) override {
     addrs_ = addrs;
   }
 
@@ -94,34 +95,34 @@ class TunIntf : private folly::EventHandler {
    * @return true The packet is sent to host
    *         false The packet is dropped due to errors
    */
-  bool sendPacketToHost(std::unique_ptr<RxPacket> pkt);
+  bool sendPacketToHost(std::unique_ptr<RxPacket> pkt) override;
 
   /**
    * Set the maximum MTU on Tun interface
    */
-  void setMtu(int mtu);
+  void setMtu(int mtu) override;
 
-  int getIfIndex() const {
+  int getIfIndex() const override {
     return ifIndex_;
   }
 
-  std::string getName() const {
+  std::string getName() const override {
     return name_;
   }
 
-  InterfaceID getInterfaceID() const {
+  InterfaceID getInterfaceID() const override {
     return ifID_;
   }
 
-  Interface::Addresses getAddresses() const {
+  Interface::Addresses getAddresses() const override {
     return addrs_;
   }
 
-  int getMtu() const {
+  int getMtu() const override {
     return mtu_;
   }
 
-  bool getStatus() const {
+  bool getStatus() const override {
     return status_;
   }
 
