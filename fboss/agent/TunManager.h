@@ -274,6 +274,11 @@ class TunManager : public StateObserver {
       const std::unordered_map<int, int>& ifIndexToTableId);
 
   /**
+   * Delete probed interfaces from kernel.
+   */
+  void deleteProbedInterfaces();
+
+  /**
    * Lookup host for existing Tun interfaces and their addresses.
    */
   virtual void doProbe(std::lock_guard<std::mutex>& mutex);

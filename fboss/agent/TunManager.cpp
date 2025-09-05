@@ -762,6 +762,7 @@ void TunManager::deleteAllProbedData() {
 
   deleteProbedRoutes(ifIndexToTableId);
   deleteProbedAddressesAndRules(ifIndexToTableId);
+  deleteProbedInterfaces();
 
   XLOG(INFO) << "Finished deleting all probed data from kernel";
 }
@@ -1191,6 +1192,21 @@ void TunManager::deleteProbedAddressesAndRules(
                  << ifName;
     }
   }
+}
+
+/**
+ * Delete probed interfaces from kernel.
+ */
+void TunManager::deleteProbedInterfaces() {
+  XLOG(INFO) << "Deleting probed interfaces";
+
+  for (const auto& intf : intfs_) {
+    intf.second->setDelete();
+    XLOG(INFO) << "Marked interface " << intf.first << " for deletion";
+  }
+
+  // Clear the interfaces map
+  intfs_.clear();
 }
 
 } // namespace facebook::fboss
