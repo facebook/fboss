@@ -130,8 +130,10 @@ To use this command, your input directory, either the default location or the on
 ### Validating Platform Mapping JSON
 The first step in validing your platform mapping source files is to ensure a valid JSON is created in `output-dir` by running the above tool.
 
-The second step is using this platform mapping JSON to ensure `qsfp_service` and `wedge_agent` binaries are brought up correctly. We typically have platfom mapping JSONs embedded into our FBOSS binaries, but to enable faster testing for external users, you can run both binaries with the `--platform_mapping_override_path` flag followed by the filepath to your platform mapping JSON – e.g. `./qsfp_service --platform_mapping_override_path /tmp/generated_platform_mappings/PLATFORM-platform-mapping.json`.
+The second step is using this platform mapping JSON to ensure `qsfp_service` and `wedge_agent` binaries are brought up correctly. We typically have platfom mapping JSONs embedded into our FBOSS binaries, but to enable faster testing for external users, you can run both binaries with the `--platform_mapping_override_path` flag followed by the filepath to your platform mapping JSON – e.g. `./qsfp_service --platform_mapping_override_path /tmp/generated_platform_mappings/PLATFORM-platform-mapping.json`.
 
 
 ### Updating FBOSS Code to Use New Platform Mapping
 Please refer to [New Platform Support](https://facebook.github.io/fboss/docs/developing/new_platform_support/) for instructions on how to incorporate this new Platform Mapping file within the FBOSS codebase.
+
+If you are introducing a new platform, please also add your platform name to [verify_generated_files.py](https://github.com/facebook/fboss/blob/0f1f4840dde66923f294fbabe79492d4a970a0ef/fboss/lib/platform_mapping_v2/test/verify_generated_files.py#L26).
