@@ -186,6 +186,7 @@ cpp_library(
     name = "utils",
     srcs = [
         "CounterCache.cpp",
+        "MockTunIntf.cpp",
         "MockTunManager.cpp",
         "TestUtils.cpp",
     ],
