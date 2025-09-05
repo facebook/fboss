@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/StateObserver.h"
+#include "fboss/agent/TunIntfInterface.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/types.h"
 
@@ -329,7 +330,8 @@ class TunManager : public StateObserver {
    * sync() could manipulate intfs_. Called on the thread that serves evb_.
    * sendPacketToHost() uses intfs_, it can be called from any thread.
    */
-  boost::container::flat_map<InterfaceID, std::unique_ptr<TunIntf>> intfs_;
+  boost::container::flat_map<InterfaceID, std::unique_ptr<TunIntfInterface>>
+      intfs_;
   std::mutex mutex_;
 
   // Whether the manager has registered itself to listen for state updates
