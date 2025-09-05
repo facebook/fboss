@@ -82,8 +82,10 @@ class AgentMirroringTest : public AgentHwTest {
   void sendPackets(int count, size_t payloadSize = 1) {
     auto params = utility::getMirrorTestParams<AddrT>();
     auto vlanId = getVlanIDForTx();
-    auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+        getAgentEnsemble()->getProgrammedState());
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+
     std::vector<uint8_t> payload(payloadSize, 0xff);
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
     auto oldPacketStats = getLatestPortStats(trafficPort);
@@ -93,8 +95,8 @@ class AgentMirroringTest : public AgentHwTest {
       auto pkt = utility::makeUDPTxPacket(
           getSw(),
           vlanId,
-          intfMac,
-          intfMac,
+          srcMac,
+          dstMac,
           params.senderIp,
           params.receiverIp,
           srcL4Port_,
