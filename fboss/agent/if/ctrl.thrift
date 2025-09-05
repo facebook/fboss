@@ -129,6 +129,7 @@ struct RouteDetails {
   9: optional RouteCounterID counterID;
   10: optional switch_config.AclLookupClass classID;
   11: optional switch_config.SwitchingMode overridenEcmpMode;
+  12: optional list<common.NextHopThrift> overridenNextHops;
 }
 
 struct MplsRouteDetails {
