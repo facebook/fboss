@@ -294,8 +294,14 @@ void HwTransceiverUtils::verifyOpticsSettings(
     EXPECT_TRUE(
         *settings.powerControl() == PowerControlState::POWER_OVERRIDE ||
         *settings.powerControl() == PowerControlState::HIGH_POWER_OVERRIDE);
-    EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
-    EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
+
+    // TODO: T236126124 - Disable checking this in Molex AEC cables
+    // until we get EEPROM fix.
+    auto vendor = apache::thrift::can_throw(*tcvrState.vendor());
+    if (!(vendor.name() == "Molex" && vendor.partNumber() == "2253611207")) {
+      EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
+      EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
+    }
 
     for (auto& hostLane :
          apache::thrift::can_throw(*settings.hostLaneSettings())) {
