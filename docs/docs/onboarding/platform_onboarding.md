@@ -30,82 +30,98 @@ For common problems and their solutions, please refer to the [troubleshooting gu
 
    - [ ] Add platform manager support
    - [ ] Add BSP support
-   - [ ] Build, run, and test platform services
+   - [ ] Build FBOSS Platform Stack
+   - [ ] Ensure PlatformManager can start successfully
+   - [ ] Run HW tests for platform services
 
    **Outcomes:**
 
    - [ ] `platform_manager.json` is committed to the FBOSS repository
    - [ ] `platform_manager.json` abides by the specification
-   - [ ] the BSP repository is setup and accessible by Meta
-   - [ ] the BSP abides by the API specification and development requirements
-   - [ ] the BSP is compiled as out-of-tree kernel modules and deployed in FBOSS to unblock FBOSS development
+   - [ ] The BSP repository is setup
+   - [ ] The BSP repository is accessible by Meta and linked in the summary page of the onboarding tracker
+   - [ ] The BSP abides by the API specification and development requirements
+   - [ ] The BSP is compiled as out-of-tree kernel modules and deployed in FBOSS to unblock FBOSS development
    - [ ] `bsp_tests.json` is modified as needed based on guidance in `bsp_tests_config.thrift`
    - [ ] 100% of BSP tests pass
-   - [ ] expected errors are defined in the test config if and only if the hardware has a valid reason and this is agreed to by Meta
-   - [ ] platform services can be built successfully
-   - [ ] platform manager can start successfully
+   - [ ] Expected errors are defined in the test config if and only if the hardware has a valid reason and this is agreed to by Meta
+   - [ ] Platform services can be built successfully
+   - [ ] Platform manager can start successfully
    - [ ] 100% of platform service hardware tests pass
 
 2. **Add Necessary Development Code**
 
    **Work Items:**
 
-   - [ ] [Add Platform Mapping Config](https://facebook.github.io/fboss/docs/developing/platform_mapping/)
-   - [ ] [Add BSP Mapping Config](https://facebook.github.io/fboss/docs/developing/bsp_mapping/)
-   - [ ] [Add All Platform Support Code in Agent and Qsfp Service](https://facebook.github.io/fboss/docs/developing/new_platform_support/)
+   - [ ] [Add Platform Mapping Config](/docs/developing/platform_mapping/)
+   - [ ] [Add BSP Mapping Config](/docs/developing/bsp_mapping/)
+   - [ ] [Add All Platform Support Code in Agent and Qsfp Service](/docs/developing/new_platform_support/)
+   - [ ] [Support and Run LED HW Tests](/docs/testing/led_service_test/)
    - [ ] Onboard NPU [Optional depending on new platform needs]
+   - [ ] Onboard New Transceiver/Phy [Optional depending on new platform needs]
+   - [ ] Build FBOSS Forwarding Stack
 
    **Outcomes:**
 
-   - [ ] Agent HW Test binary can be built linking to the appropriate vendor SDK
-   - [ ] QSFP HW Test binary can be built
-   - [ ] Link Test binary can be built linking to the appropriate vendor SDK
+   - [ ] Provide vendor platform mapping csv files and submit to FBOSS OSS repo
+   - [ ] Generate platform mapping json files and corresponding cpp files
+   - [ ] Generate bsp config json files and corresonding cpp files
+   - [ ] Generate all necessary FBOSS Agent cpp files
+   - [ ] Generate all necessary FBOSS Qsfp cpp files
+   - [ ] 100% Pass LED HW tests
+   - [ ] Agent binary can be built linking to the appropriate vendor SDK
+   - [ ] Agent HW tests binary can be built linking to the appropriate vendor SDK
+   - [ ] SAI tests binary can be built linking to the appropriate vendor SDK
    - [ ] QSFP Service binary can be built
-   - [ ] Wedge Agent binary can be built linking to the appropriate vendor SDK
 
-3. **Validate Agent Change**
+3. **Validate FBOSS Agent Changes**
 
    **Work Items:**
 
-   - [ ] [Build FBOSS agent test binary](https://facebook.github.io/fboss/docs/build/building_fboss_on_docker_containers/)
-   - [ ] [Generate Agent HW Test Config](https://facebook.github.io/fboss/docs/build/packaging_and_running_fboss_hw_tests_on_switch/)
+   - [ ] Generate Agent HW test config
+   - [ ] Pass [T0 Agent tests](/docs/testing/test_categories/#agent-hw-tests) and [T0 SAI tests](/docs/testing/test_categories/#sai-tests)
 
    **Outcomes:**
 
-   - [ ] Agent HW Sanity Tests pass
+   - [ ] Generate Agent config for testing
+   - [ ] 100% Pass T0 Agent HW tests (include multi-switch binary)
+   - [ ] 100% Pass T0 SAI tests
 
-4. **Validate Transceiver Control**
+4. **Validate Transceiver/Phy Changes**
 
    **Work Items:**
 
-   - [ ] [Build a QSFP/Link test setup with 100% port coverage](https://facebook.github.io/fboss/docs/testing/qsfp_and_link_test_topology/)
-   - [ ] [Generate QSFP Test Config](https://facebook.github.io/fboss/docs/developing/qsfp_test_config/)
+   - [ ] Build QSFP HW test binaries
+   - [ ] [Build a QSFP/Link test setup with 100% port coverage](/docs/testing/qsfp_and_link_test_topology/)
+   - [ ] [Generate QSFP HW Tests Config](/docs/developing/qsfp_test_config/)
+   - [ ] Pass [T0 QSFP tests](/docs/testing/test_categories/#qsfp-hw-tests)
 
    **Outcomes:**
 
-   - [ ] QSFP HW Sanity Tests pass
+   - [ ] QSFP HW tests binary can be built
+   - [ ] Vendor should use Meta recommended transceivers to setup 100% port coverage test setup
+   - [ ] Generate QSFP config for testing
+   - [ ] 100% Pass T0 QSFP tests
 
-5. **Validate Link Up**
-
-   **Work Items:**
-
-   - [ ] Generate Link Test Config - (Currently Meta will provide a link test config)
-
-   **Outcomes:**
-
-   - [ ] Link Sanity Tests pass
-
-6. **Validate Ping**
+5. **Validate FBOSS Forwarding Stack**
 
    **Work Items:**
 
+   - [ ] Build FBOSS Link Test binary
+   - [ ] Generate Link Test config - (Currently Meta will provide a link test config)
+   - [ ] Pass [T0 Link tests](/docs/testing/test_categories/#link-tests)
    - [ ] [Build a Ping test setup](/docs/manuals/perform_a_ping_test/)
+   - [ ] Pass ping tests
 
    **Outcomes:**
 
-   - [ ] Ping Test passes
+   - [ ] Link Test binary can be built linking to the appropriate vendor SDK
+   - [ ] Work with Meta to generate the Link Test config based on the 100% port coverage test setup
+   - [ ] 100% Pass T0 Link tests
+   - [ ] Successfully use systemd to bringup FBOSS Agent and QSFP Service on two connected switches
+   - [ ] The two switches are able to ping each other and fboss can learn arp/ndp
 
-7. **Achieve 100% Test Pass Rate**
+6. **Achieve 100% Test Pass Rate**
 
    **Work Items:**
 
@@ -113,11 +129,14 @@ For common problems and their solutions, please refer to the [troubleshooting gu
 
    **Outcomes:**
 
-   - [ ] 100% QSFP HW Tests
-   - [ ] 100% Link Tests
-   - [ ] 100% Agent HW Tests
-   - [ ] 100% Data Corral Service HW Test
-   - [ ] 100% Fan Service HW Test
-   - [ ] 100% Sensor Service HW Test
-   - [ ] 100% Weutil HW Test
-   - [ ] 100% Platform Manager HW Test
+   - [ ] 100% Pass Agent HW tests
+   - [ ] 100% Pass Agent SAI tests
+   - [ ] 100% Pass Agent Benchmark tests
+   - [ ] 100% Pass QSFP HW tests
+   - [ ] 100% Pass Link Tests
+   - [ ] 100% Pass Data Corral Service HW tests
+   - [ ] 100% Pass Fan Service HW tests
+   - [ ] 100% Pass Sensor Service HW tests
+   - [ ] 100% Pass Weutil HW tests
+   - [ ] 100% Pass Platform Manager HW tests
+   - [ ] 100% Pass FW Util HW tests
