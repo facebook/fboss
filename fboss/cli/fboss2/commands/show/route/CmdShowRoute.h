@@ -53,9 +53,20 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
         out << fmt::format(
             "\tOverride ECMP mode: {}\n", entry.overridenEcmpMode().value());
       }
-      for (const auto& nextHop : entry.nextHops().value()) {
+      if (entry.overridenNextHops()) {
+        for (const auto& nextHop : entry.overridenNextHops().value()) {
+          out << fmt::format(
+              "\tvia (override) {}\n",
+              show::route::utils::getNextHopInfoStr(nextHop));
+        }
         out << fmt::format(
-            "\tvia {}\n", show::route::utils::getNextHopInfoStr(nextHop));
+            "\t # next hops lost: {}\n",
+            entry.nextHops()->size() - entry.overridenNextHops()->size());
+      } else {
+        for (const auto& nextHop : entry.nextHops().value()) {
+          out << fmt::format(
+              "\tvia {}\n", show::route::utils::getNextHopInfoStr(nextHop));
+        }
       }
     }
   }
@@ -112,6 +123,14 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
       if (entry.overrideEcmpSwitchingMode()) {
         routeEntry.overridenEcmpMode() = apache::thrift::util::enumNameSafe(
             *entry.overrideEcmpSwitchingMode());
+      }
+      if (entry.overrideNextHops()) {
+        routeEntry.overridenNextHops() = std::vector<cli::NextHopInfo>();
+        for (const auto& nh : *entry.overrideNextHops()) {
+          cli::NextHopInfo nextHopInfo;
+          show::route::utils::getNextHopInfoThrift(nh, nextHopInfo);
+          routeEntry.overridenNextHops()->emplace_back(nextHopInfo);
+        }
       }
       model.routeEntries()->emplace_back(routeEntry);
     }
