@@ -69,6 +69,9 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   if (getClassID().has_value()) {
     rd.classID() = *getClassID();
   }
+  if (isResolved() && fwd().getOverrideEcmpSwitchingMode().has_value()) {
+    rd.overridenEcmpMode() = *fwd().getOverrideEcmpSwitchingMode();
+  }
   return rd;
 }
 
@@ -155,12 +158,7 @@ template struct RouteFields<LabelID>;
 template <typename AddrT>
 RouteDetails Route<AddrT>::toRouteDetails(bool normalizedNhopWeights) const {
   RouteFields<AddrT> fields{this->toThrift()};
-  auto rd = fields.toRouteDetails(normalizedNhopWeights);
-  if (isResolved() &&
-      getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
-    rd.overridenEcmpMode() = *getForwardInfo().getOverrideEcmpSwitchingMode();
-  }
-  return rd;
+  return fields.toRouteDetails(normalizedNhopWeights);
 }
 
 template <typename AddrT>
