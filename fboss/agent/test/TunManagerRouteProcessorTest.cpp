@@ -42,6 +42,9 @@
       DeleteProbedAddressesAndRulesHandleExceptions);                          \
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
+      DeleteProbedAddressesAndRulesAddressException);                          \
+  FRIEND_TEST(                                                                 \
+      TunManagerAddressRuleTest,                                               \
       DeleteProbedAddressesAndRulesSingleInterface);                           \
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
@@ -666,6 +669,47 @@ TEST_F(
 
   // Call deleteProbedAddressesAndRules - should throw exception since no
   // exception handling
+  EXPECT_THROW(
+      tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId),
+      std::runtime_error);
+}
+
+/**
+ * Test that deleteProbedAddressesAndRules handles exceptions gracefully when
+ * addRemoveTunAddress throws during address deletion.
+ */
+TEST_F(
+    TunManagerAddressRuleTest,
+    DeleteProbedAddressesAndRulesAddressException) {
+  // Add a mock interface with addresses
+  std::vector<std::pair<folly::IPAddress, uint8_t>> addresses = {
+      {folly::IPAddress("10.1.1.1"), 24}};
+
+  addMockInterface(InterfaceID(2000), 42, "fboss2000", addresses);
+
+  // Create ifIndexToTableId map
+  auto ifIndexToTableId = createIfIndexToTableIdMap({{42, 100}});
+
+  // Source rule call should succeed
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          100,
+          folly::IPAddress("10.1.1.1"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+
+  // Make addRemoveTunAddress throw an exception
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2000", 42, folly::IPAddress("10.1.1.1"), 24, false))
+      .Times(1)
+      .WillOnce(::testing::Throw(std::runtime_error("Mock address exception")));
+
+  // Call deleteProbedAddressesAndRules - should throw exception since no
+  // exception handling for address deletion
   EXPECT_THROW(
       tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId),
       std::runtime_error);
