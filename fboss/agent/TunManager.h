@@ -206,7 +206,7 @@ class TunManager : public StateObserver {
   /**
    * Add/Remove an address to/from a TUN interface on the host
    */
-  void addRemoveTunAddress(
+  virtual void addRemoveTunAddress(
       const std::string& ifName,
       uint32_t ifIndex,
       const folly::IPAddress& addr,

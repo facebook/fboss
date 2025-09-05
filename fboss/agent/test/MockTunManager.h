@@ -40,6 +40,21 @@ class MockTunManager : public TunManager {
           int ifIndex,
           bool add,
           std::optional<InterfaceID> ifID));
+  MOCK_METHOD4(
+      addRemoveSourceRouteRule,
+      void(
+          int tableId,
+          const folly::IPAddress& addr,
+          bool add,
+          std::optional<InterfaceID> ifID));
+  MOCK_METHOD5(
+      addRemoveTunAddress,
+      void(
+          const std::string& ifName,
+          uint32_t ifIndex,
+          const folly::IPAddress& addr,
+          uint8_t mask,
+          bool add));
 };
 
 } // namespace facebook::fboss

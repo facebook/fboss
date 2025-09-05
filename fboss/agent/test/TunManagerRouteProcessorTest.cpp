@@ -25,6 +25,7 @@
  */
 #define TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS                                \
   friend class TunManagerRouteProcessorTest;                                   \
+  friend class TunManagerAddressRuleTest;                                      \
   FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute);          \
   FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);          \
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);     \
@@ -51,6 +52,7 @@ extern "C" {
 
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/agent/test/MockTunIntf.h"
 #include "fboss/agent/test/MockTunManager.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -177,6 +179,58 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
     // Cleanup
     nl_addr_put(dst);
     rtnl_route_put(route);
+  }
+};
+
+/**
+ * @class TunManagerAddressRuleTest
+ * @brief Test fixture for TunManager address rule functionality=
+ */
+class TunManagerAddressRuleTest : public TunManagerRouteProcessorTest {
+ public:
+  /**
+   * @brief Helper method to add a mock interface with specified addresses
+   *
+   * @param ifID Interface ID
+   * @param ifIndex Interface index
+   * @param ifName Interface name
+   * @param addresses Vector of IP address and prefix length pairs
+   */
+  void addMockInterface(
+      const InterfaceID& ifID,
+      int ifIndex,
+      const std::string& ifName,
+      const std::vector<std::pair<folly::IPAddress, uint8_t>>& addresses) {
+    auto mockIntf = std::make_unique<MockTunIntf>(
+        ifID,
+        ifName,
+        ifIndex,
+        1500 // MTU
+    );
+
+    // Set the interface addresses using the test helper method
+    Interface::Addresses addrs;
+    for (const auto& addr : addresses) {
+      addrs.emplace(addr.first, addr.second);
+    }
+    mockIntf->setTestAddresses(addrs);
+
+    tunMgr_->intfs_[ifID] = std::move(mockIntf);
+  }
+
+  /**
+   * @brief Helper method to create ifIndexToTableId mapping
+   *
+   * @param mappings Vector of (ifIndex, tableId) pairs
+   * @return std::unordered_map<int, int> Map from interface index to table ID
+   */
+  std::unordered_map<int, int> createIfIndexToTableIdMap(
+      const std::vector<std::pair<int, int>>& mappings) {
+    std::unordered_map<int, int> ifIndexToTableId;
+    for (const auto& mapping : mappings) {
+      ifIndexToTableId[mapping.first] = mapping.second;
+    }
+    return ifIndexToTableId;
   }
 };
 
