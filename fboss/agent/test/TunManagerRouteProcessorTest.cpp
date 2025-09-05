@@ -39,7 +39,10 @@
       TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling);      \
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
-      DeleteProbedAddressesAndRulesSingleInterface);
+      DeleteProbedAddressesAndRulesSingleInterface);                           \
+  FRIEND_TEST(                                                                 \
+      TunManagerAddressRuleTest,                                               \
+      DeleteProbedAddressesAndRulesMultipleInterfaces);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -531,6 +534,75 @@ TEST_F(
       *tunMgr_,
       addRemoveTunAddress(
           "fboss2000", 42, folly::IPAddress("2001:db8::1"), 64, false))
+      .Times(1);
+
+  // Call deleteProbedAddressesAndRules
+  tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
+}
+
+/**
+ * @brief Test deletion of source IP rules and TUN addresses across multiple
+ * interfaces
+ *
+ * Verifies cleanup of source IP routing rules (source IP → routing table
+ * mapping) and TUN interface addresses for multiple interfaces with different
+ * routing tables.
+ */
+TEST_F(
+    TunManagerAddressRuleTest,
+    DeleteProbedAddressesAndRulesMultipleInterfaces) {
+  // Add multiple mock interfaces with addresses
+  std::vector<std::pair<folly::IPAddress, uint8_t>> addresses1 = {
+      {folly::IPAddress("10.1.1.1"), 24}};
+  std::vector<std::pair<folly::IPAddress, uint8_t>> addresses2 = {
+      {folly::IPAddress("10.2.2.2"), 24},
+      {folly::IPAddress("2001:db8::2"), 64}};
+
+  addMockInterface(InterfaceID(2000), 42, "fboss2000", addresses1);
+  addMockInterface(InterfaceID(2001), 43, "fboss2001", addresses2);
+
+  // Create ifIndexToTableId map
+  auto ifIndexToTableId = createIfIndexToTableIdMap({{42, 100}, {43, 101}});
+
+  // Expect calls to delete source rules and addresses for both interfaces
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          100,
+          folly::IPAddress("10.1.1.1"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          101,
+          folly::IPAddress("10.2.2.2"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          101,
+          folly::IPAddress("2001:db8::2"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2000", 42, folly::IPAddress("10.1.1.1"), 24, false))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2001", 43, folly::IPAddress("10.2.2.2"), 24, false))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2001", 43, folly::IPAddress("2001:db8::2"), 64, false))
       .Times(1);
 
   // Call deleteProbedAddressesAndRules
