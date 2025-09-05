@@ -51,7 +51,8 @@
       DeleteProbedAddressesAndRulesMultipleInterfaces);                        \
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
-      DeleteProbedAddressesAndRulesEmptyInterfaces);
+      DeleteProbedAddressesAndRulesEmptyInterfaces);                           \
+  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedInterfacesEmpty);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -98,7 +99,8 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
   /**
    * @brief Clean up test environment after each test
    *
-   * Properly destroys mock objects in correct order to avoid memory leaks.
+   * Properly destroys mock objects in correct order to avoid memory
+   * leaks.
    */
   void TearDown() override {
     // Reset in proper order: sw_ first, then platform_
@@ -124,7 +126,8 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
    * @brief Build interface index to table ID mapping from probed routes
    *
    * @param tunMgr Pointer to TunManager instance containing probed routes
-   * @return std::unordered_map<int, int> Map from interface index to table ID
+   * @return std::unordered_map<int, int> Map from interface index to
+   * table ID
    */
   static std::unordered_map<int, int> buildIfIndexToTableIdMap(
       TunManager* tunMgr) {
@@ -143,8 +146,8 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
   MockTunManager* tunMgr_{}; ///< Mock TUN manager for testing
 
   /**
-   * @brief Helper function to test default route processing for both IPv4 and
-   * IPv6
+   * @brief Helper function to test default route processing for both IPv4
+   * and IPv6
    *
    * @param family Address family (AF_INET or AF_INET6)
    * @param tableId Routing table ID
@@ -237,7 +240,8 @@ class TunManagerAddressRuleTest : public TunManagerRouteProcessorTest {
    * @brief Helper method to create ifIndexToTableId mapping
    *
    * @param mappings Vector of (ifIndex, tableId) pairs
-   * @return std::unordered_map<int, int> Map from interface index to table ID
+   * @return std::unordered_map<int, int> Map from interface index to
+   * table ID
    */
   std::unordered_map<int, int> createIfIndexToTableIdMap(
       const std::vector<std::pair<int, int>>& mappings) {
@@ -252,8 +256,8 @@ class TunManagerAddressRuleTest : public TunManagerRouteProcessorTest {
 /**
  * @brief Test processing of IPv4 default route
  *
- * Verifies that routeProcessor correctly processes and stores an IPv4 default
- * route (0.0.0.0/0) with valid parameters.
+ * Verifies that routeProcessor correctly processes and stores an IPv4
+ * default route (0.0.0.0/0) with valid parameters.
  */
 TEST_F(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute) {
   testProcessDefaultRoute(AF_INET, 100, 42, "0.0.0.0/0");
@@ -262,8 +266,8 @@ TEST_F(TunManagerRouteProcessorTest, ProcessIPv4DefaultRoute) {
 /**
  * @brief Test processing of IPv6 default route
  *
- * Verifies that routeProcessor correctly processes and stores an IPv6 default
- * route (::/0) with valid parameters.
+ * Verifies that routeProcessor correctly processes and stores an IPv6
+ * default route (::/0) with valid parameters.
  */
 TEST_F(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute) {
   testProcessDefaultRoute(AF_INET6, 150, 24, "::/0");
@@ -272,9 +276,9 @@ TEST_F(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute) {
 /**
  * @brief Test filtering of unsupported address families
  *
- * Verifies that routeProcessor correctly filters out and ignores routes with
- * unsupported address families. The function should only process AF_INET and
- * AF_INET6 routes, ignoring all others.
+ * Verifies that routeProcessor correctly filters out and ignores routes
+ * with unsupported address families. The function should only process
+ * AF_INET and AF_INET6 routes, ignoring all others.
  */
 TEST_F(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily) {
   // Create a route with unsupported address family
@@ -299,11 +303,12 @@ TEST_F(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily) {
  * @brief Test filtering of invalid table IDs
  *
  * Verifies that routeProcessor correctly filters out routes with invalid
- * table IDs. The function should only process routes with table IDs in the
- * range [1-253], as table IDs 0, 254, and 255 are reserved by the kernel.
+ * table IDs. The function should only process routes with table IDs in
+ * the range [1-253], as table IDs 0, 254, and 255 are reserved by the
+ * kernel.
  *
- * This test uses table ID 254 (outside the valid range) and expects that no
- * routes are stored in probedRoutes_, demonstrating proper table ID
+ * This test uses table ID 254 (outside the valid range) and expects that
+ * no routes are stored in probedRoutes_, demonstrating proper table ID
  * validation.
  */
 TEST_F(TunManagerRouteProcessorTest, SkipInvalidTableId) {
@@ -329,7 +334,8 @@ TEST_F(TunManagerRouteProcessorTest, SkipInvalidTableId) {
  * @brief Test deletion of probed IPv4 default routes
  *
  * Verifies that deleteProbedRoutes correctly identifies and removes IPv4
- * default routes (0.0.0.0/0) by calling addRemoveRouteTable with delete flag.
+ * default routes (0.0.0.0/0) by calling addRemoveRouteTable with delete
+ * flag.
  */
 TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default) {
   // Add IPv4 default route to probed routes
@@ -376,10 +382,11 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default) {
 }
 
 /**
- * @brief Test deletion of probed routes with both IPv4 and IPv6 default routes
+ * @brief Test deletion of probed routes with both IPv4 and IPv6 default
+ * routes
  *
- * Verifies that deleteProbedRoutes correctly handles multiple routes (both IPv4
- * and IPv6) but only makes one call to addRemoveRouteTable.
+ * Verifies that deleteProbedRoutes correctly handles multiple routes
+ * (both IPv4 and IPv6) but only makes one call to addRemoveRouteTable.
  */
 TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6) {
   // Add both IPv4 and IPv6 default routes to probed routes
@@ -403,14 +410,15 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6) {
 }
 
 /**
- * @brief Test deletion of probed routes with IPv4 and IPv6 default routes in
- * two tables
+ * @brief Test deletion of probed routes with IPv4 and IPv6 default routes
+ * in two tables
  *
- * Verifies that deleteProbedRoutes correctly handles in  different table IDs
- * and makes separate calls to addRemoveRouteTable for each table.
+ * Verifies that deleteProbedRoutes correctly handles in  different table
+ * IDs and makes separate calls to addRemoveRouteTable for each table.
  */
 TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables) {
-  // Add IPv4 default route to table 100 and IPv6 default route to table 200
+  // Add IPv4 default route to table 100 and IPv6 default route to table
+  // 200
   addProbedRoute(tunMgr_, AF_INET, 100, "0.0.0.0/0", 42);
   addProbedRoute(tunMgr_, AF_INET6, 100, "::/0", 42);
 
@@ -440,8 +448,9 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesMultipleTables) {
 /**
  * @brief Test deletion of probed routes when no routes exist
  *
- * Verifies that deleteProbedRoutes correctly handles the case when there are
- * no routes in probedRoutes_. Should not make any calls to addRemoveRouteTable.
+ * Verifies that deleteProbedRoutes correctly handles the case when there
+ * are no routes in probedRoutes_. Should not make any calls to
+ * addRemoveRouteTable.
  */
 TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesEmptyList) {
   // Verify probedRoutes_ starts empty
@@ -474,7 +483,8 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling) {
   addProbedRoute(tunMgr_, AF_INET, 200, "0.0.0.0/0", 24);
   addProbedRoute(tunMgr_, AF_INET6, 200, "::/0", 24);
 
-  // Set up mock to throw exception for table 100 but succeed for table 200
+  // Set up mock to throw exception for table 100 but succeed for table
+  // 200
   EXPECT_CALL(
       *tunMgr_,
       addRemoveRouteTable(100, 42, false, ::testing::Eq(std::nullopt)))
@@ -489,7 +499,8 @@ TEST_F(TunManagerRouteProcessorTest, DeleteProbedRoutesExceptionHandling) {
   // Build ifIndexToTableId map from probed routes
   auto ifIndexToTableId = buildIfIndexToTableIdMap(tunMgr_);
 
-  // Call deleteProbedRoutes - should throw when addRemoveRouteTable throws
+  // Call deleteProbedRoutes - should throw when addRemoveRouteTable
+  // throws
   EXPECT_THROW(
       tunMgr_->deleteProbedRoutes(ifIndexToTableId), std::runtime_error);
 
@@ -550,12 +561,12 @@ TEST_F(
 }
 
 /**
- * @brief Test deletion of source IP rules and TUN addresses across multiple
- * interfaces
+ * @brief Test deletion of source IP rules and TUN addresses across
+ * multiple interfaces
  *
  * Verifies cleanup of source IP routing rules (source IP → routing table
- * mapping) and TUN interface addresses for multiple interfaces with different
- * routing tables.
+ * mapping) and TUN interface addresses for multiple interfaces with
+ * different routing tables.
  */
 TEST_F(
     TunManagerAddressRuleTest,
@@ -675,8 +686,8 @@ TEST_F(
 }
 
 /**
- * Test that deleteProbedAddressesAndRules handles exceptions gracefully when
- * addRemoveTunAddress throws during address deletion.
+ * Test that deleteProbedAddressesAndRules handles exceptions gracefully
+ * when addRemoveTunAddress throws during address deletion.
  */
 TEST_F(
     TunManagerAddressRuleTest,
@@ -719,9 +730,9 @@ TEST_F(
  * @brief Test deletion of source IP rules and TUN addresses with empty
  * interfaces
  *
- * Verifies that deleteProbedAddressesAndRules handles empty interface mapping
- * correctly without making any calls to addRemoveSourceRouteRule or
- * addRemoveTunAddress.
+ * Verifies that deleteProbedAddressesAndRules handles empty interface
+ * mapping correctly without making any calls to addRemoveSourceRouteRule
+ * or addRemoveTunAddress.
  */
 TEST_F(
     TunManagerAddressRuleTest,
@@ -737,6 +748,23 @@ TEST_F(
 
   // Call deleteProbedAddressesAndRules with empty interfaces
   tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
+}
+
+/**
+ * @brief Test deleteProbedInterfaces with empty interfaces map
+ *
+ * Verifies that deleteProbedInterfaces handles empty interfaces map
+ * correctly.
+ */
+TEST_F(TunManagerRouteProcessorTest, DeleteProbedInterfacesEmpty) {
+  // Verify interfaces map starts empty
+  EXPECT_EQ(0, tunMgr_->intfs_.size());
+
+  // Call deleteProbedInterfaces with empty map
+  tunMgr_->deleteProbedInterfaces();
+
+  // Verify interfaces map remains empty
+  EXPECT_EQ(0, tunMgr_->intfs_.size());
 }
 
 } // namespace facebook::fboss
