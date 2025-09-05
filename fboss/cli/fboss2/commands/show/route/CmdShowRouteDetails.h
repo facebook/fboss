@@ -149,13 +149,17 @@ class CmdShowRouteDetails
 
       out << fmt::format("  Action: {}\n", entry.get_action());
 
-      std::map<int, int> planeIdToPathCount;
-      auto& nextHops = entry.get_nextHops();
-      if (nextHops.size() > 0) {
-        out << fmt::format("  Forwarding via:\n");
+      auto printNextHops = [this, &out](
+                               const std::string& header,
+                               const auto& nextHops,
+                               bool isOverride) {
+        std::map<int, int> planeIdToPathCount;
+        out << fmt::format("  {}\n", header);
+        std::string overrideStr = (isOverride ? "(override) :" : "");
         for (const auto& nextHop : nextHops) {
           out << fmt::format(
-              "    {}\n",
+              "  {}  {}\n",
+              overrideStr,
               show::route::utils::getNextHopInfoStr(
                   nextHop, vlanAggregatePortMap, vlanPortMap));
           auto topologyInfo =
@@ -171,8 +175,25 @@ class CmdShowRouteDetails
             out << fmt::format("    Plane {}: {}\n", planeId, pathCount);
           }
         }
-      } else {
+      };
+      auto& nextHops = entry.get_nextHops();
+      if (nextHops.size() > 0) {
+        std::string header =
+            (entry.overridenNextHops() ? "Original next hops:"
+                                       : "Forwarding via:");
+        printNextHops(header, nextHops, false /*isOverride*/);
+      } else if (!entry.overridenNextHops().has_value()) {
         out << "  No Forwarding Info\n";
+      }
+      if (entry.overridenNextHops()) {
+        if (entry.overridenNextHops()->size()) {
+          printNextHops("Forwarding via:", nextHops, true /*isOverride*/);
+        } else if (!entry.overridenNextHops().has_value()) {
+          out << "  No Forwarding Info\n";
+        }
+        out << fmt::format(
+            " Num next hops lost: {}\n",
+            nextHops.size() - entry.overridenNextHops()->size());
       }
 
       out << fmt::format("  Admin Distance: {}\n", entry.get_adminDistance());
