@@ -42,7 +42,10 @@
       DeleteProbedAddressesAndRulesSingleInterface);                           \
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
-      DeleteProbedAddressesAndRulesMultipleInterfaces);
+      DeleteProbedAddressesAndRulesMultipleInterfaces);                        \
+  FRIEND_TEST(                                                                 \
+      TunManagerAddressRuleTest,                                               \
+      DeleteProbedAddressesAndRulesEmptyInterfaces);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -606,6 +609,30 @@ TEST_F(
       .Times(1);
 
   // Call deleteProbedAddressesAndRules
+  tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
+}
+
+/**
+ * @brief Test deletion of source IP rules and TUN addresses with empty
+ * interfaces
+ *
+ * Verifies that deleteProbedAddressesAndRules handles empty interface mapping
+ * correctly without making any calls to addRemoveSourceRouteRule or
+ * addRemoveTunAddress.
+ */
+TEST_F(
+    TunManagerAddressRuleTest,
+    DeleteProbedAddressesAndRulesEmptyInterfaces) {
+  // Clear any existing interfaces (handled by test setup/teardown)
+
+  // Create empty ifIndexToTableId map
+  std::unordered_map<int, int> ifIndexToTableId;
+
+  // Expect no calls to addRemoveSourceRouteRule or addRemoveTunAddress
+  EXPECT_CALL(*tunMgr_, addRemoveSourceRouteRule(_, _, _, _)).Times(0);
+  EXPECT_CALL(*tunMgr_, addRemoveTunAddress(_, _, _, _, _)).Times(0);
+
+  // Call deleteProbedAddressesAndRules with empty interfaces
   tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
 }
 
