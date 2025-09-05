@@ -873,6 +873,7 @@ cpp_library(
         "NlError.h",
         "PacketLogger.h",
         "SwitchInfoTable.h",
+        "TunIntfInterface.h",
         "facebook/ScubaRouteLogger.h",
     ],
     exported_deps = [
