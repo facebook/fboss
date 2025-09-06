@@ -464,7 +464,8 @@ class AgentTunnelMgrTest : public AgentHwTest {
     auto output = runShellCmd(cmd);
 
     XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesExist Output: \n" << output;
+    XLOG(DBG2) << "checkKernelEntriesExist Output: " << std::endl
+               << output << std::endl;
 
     // TODO: This is to stabilize the test. Remove this and use EXPECT_TRUE once
     // the tunnelMgr fixes are in.
@@ -476,15 +477,18 @@ class AgentTunnelMgrTest : public AgentHwTest {
 
     if (isIPv4) {
       // Check that the tunnel address entries are present in the kernel
-      cmd = folly::to<std::string>("ip addr list | grep -w ", searchIntfIp);
+      cmd =
+          folly::to<std::string>("ip addr list | grep -B 1 -w ", searchIntfIp);
     } else {
-      cmd = folly::to<std::string>("ip -6 addr list | grep -w ", searchIntfIp);
+      cmd = folly::to<std::string>(
+          "ip -6 addr list | grep -B 1 -w ", searchIntfIp);
     }
 
     output = runShellCmd(cmd);
 
     XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesExist Output: \n" << output;
+    XLOG(DBG2) << "checkKernelEntriesExist Output: " << std::endl
+               << output << std::endl;
 
     EXPECT_TRUE(
         output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
@@ -493,16 +497,21 @@ class AgentTunnelMgrTest : public AgentHwTest {
       // Check that the route entries are present in the kernel
       if (isIPv4) {
         cmd = folly::to<std::string>(
-            "ip route list | grep -w ", searchIntfIp, " | grep fboss");
+            "ip route list table all | grep -w ",
+            searchIntfIp,
+            " | grep fboss");
       } else {
         cmd = folly::to<std::string>(
-            "ip -6 route list | grep -w ", searchIntfIp, " | grep fboss");
+            "ip -6 route list table all | grep -w ",
+            searchIntfIp,
+            " | grep fboss");
       }
 
       output = runShellCmd(cmd);
 
       XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-      XLOG(DBG2) << "checkKernelEntriesExist Output:" << output;
+      XLOG(DBG2) << "checkKernelEntriesExist Output:" << std::endl
+                 << output << std::endl;
 
       EXPECT_TRUE(
           output.find(folly::to<std::string>(searchIntfIp)) !=
