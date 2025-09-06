@@ -27,7 +27,8 @@ void triggerBcmXgsParityError(const HwSwitch* hw) {
       std::make_unique<ClientInformation>(clientInfo));
 
   if (asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
-      asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+      asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
     diagCmdServer->diagCmd(
         std::make_unique<fbstring>("ser inject pt=L2_ENTRY_SINGLEm\n"),
         std::make_unique<ClientInformation>(clientInfo));
