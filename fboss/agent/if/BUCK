@@ -377,3 +377,19 @@ thrift_library(
         ":fboss",
     ],
 )
+
+thrift_library(
+    name = "multinode_test_ctrl",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "multinode_test_ctrl.thrift": [
+            "MultiNodeTestCtrl",
+        ],
+    },
+    deps = [
+        ":ctrl",
+    ],
+)
