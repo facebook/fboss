@@ -52,6 +52,9 @@
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
       DeleteProbedAddressesAndRulesEmptyInterfaces);                           \
+  FRIEND_TEST(                                                                 \
+      TunManagerAddressRuleTest,                                               \
+      DeleteProbedAddressesAndRulesNoTableIdMapping);                          \
   FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);
 
 #include <gmock/gmock.h>
@@ -747,6 +750,40 @@ TEST_F(
   EXPECT_CALL(*tunMgr_, addRemoveTunAddress(_, _, _, _, _)).Times(0);
 
   // Call deleteProbedAddressesAndRules with empty interfaces
+  tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
+}
+
+/**
+ * @brief Test deletion of source IP rules and TUN addresses with no table ID
+ * mapping
+ *
+ * Verifies that deleteProbedAddressesAndRules handles the case where there's no
+ * table ID mapping for an interface index. In this case, tableId becomes 0 and
+ * no source route rules should be called, but TUN addresses should still be
+ * removed.
+ */
+TEST_F(
+    TunManagerAddressRuleTest,
+    DeleteProbedAddressesAndRulesNoTableIdMapping) {
+  // Add a mock interface with addresses
+  std::vector<std::pair<folly::IPAddress, uint8_t>> addresses = {
+      {folly::IPAddress("10.1.1.1"), 24}};
+
+  addMockInterface(InterfaceID(2000), 42, "fboss2000", addresses);
+
+  // Create empty ifIndexToTableId map (no mapping for ifIndex 42)
+  std::unordered_map<int, int> ifIndexToTableId;
+
+  // Expect no calls to addRemoveSourceRouteRule since tableId is 0
+  EXPECT_CALL(*tunMgr_, addRemoveSourceRouteRule(_, _, _, _)).Times(0);
+  // But still expect call to addRemoveTunAddress
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2000", 42, folly::IPAddress("10.1.1.1"), 24, false))
+      .Times(1);
+
+  // Call deleteProbedAddressesAndRules
   tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
 }
 
