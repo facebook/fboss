@@ -1088,6 +1088,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "multinode_test_thrift_handler",
+    srcs = [
+        "MultiNodeTestThriftHandler.cpp",
+    ],
+    headers = [
+        "MultiNodeTestThriftHandler.h",
+    ],
+    exported_deps = [
+        ":handler",
+        "//fboss/agent/if:multinode_test_ctrl-cpp2-services",
+    ],
+)
+
+cpp_library(
     name = "build_info_wrapper",
     srcs = [
         "facebook/BuildInfoWrapper.cpp",
