@@ -25,7 +25,9 @@ TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
         utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
 
     CHECK(sysPortDescs.size() > kEcmpWidth);
-    for (int i = 0; i < getMaxEcmpGroup() / 2; i++) {
+    const auto maxEcmpGroups =
+        utility::getMaxEcmpGroups(getAgentEnsemble()->getL3Asics());
+    for (int i = 0; i < maxEcmpGroups / 2; i++) {
       auto prefix = RoutePrefixV6{
           folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
           static_cast<uint8_t>(i == 0 ? 0 : 128)};

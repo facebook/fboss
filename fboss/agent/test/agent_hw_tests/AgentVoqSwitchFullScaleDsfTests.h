@@ -6,6 +6,7 @@
 
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/ScaleTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -31,10 +32,6 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     // Since the test is also running on 11.x, use 512 that's supported on all
     // SDK versions.
     return 512;
-  }
-
-  int getMaxEcmpGroup() const {
-    return 64;
   }
 
   flat_set<PortDescriptor> getRemoteSysPortDesc() {
