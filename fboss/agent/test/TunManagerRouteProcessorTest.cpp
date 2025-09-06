@@ -52,7 +52,7 @@
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
       DeleteProbedAddressesAndRulesEmptyInterfaces);                           \
-  FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedInterfacesEmpty);
+  FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -751,20 +751,31 @@ TEST_F(
 }
 
 /**
- * @brief Test deleteProbedInterfaces with empty interfaces map
+ * @brief Test deleteProbedInterfaces functionality for both empty and
+ * populated interfaces map
  *
- * Verifies that deleteProbedInterfaces handles empty interfaces map
- * correctly.
+ * Verifies that deleteProbedInterfaces clears the interfaces map in both
+ * scenarios: when interfaces map is empty and when it contains interfaces.
  */
-TEST_F(TunManagerRouteProcessorTest, DeleteProbedInterfacesEmpty) {
-  // Verify interfaces map starts empty
-  EXPECT_EQ(0, tunMgr_->intfs_.size());
+TEST_F(TunManagerAddressRuleTest, DeleteProbedInterfaces) {
+  // Define common verification lambda
+  auto verifyDeletionBehavior = [&](int expectedInitialSize) {
+    // Verify expected initial state
+    EXPECT_EQ(expectedInitialSize, tunMgr_->intfs_.size());
 
-  // Call deleteProbedInterfaces with empty map
-  tunMgr_->deleteProbedInterfaces();
+    // Call deleteProbedInterfaces
+    tunMgr_->deleteProbedInterfaces();
 
-  // Verify interfaces map remains empty
-  EXPECT_EQ(0, tunMgr_->intfs_.size());
+    // Verify interfaces map is cleared
+    EXPECT_EQ(0, tunMgr_->intfs_.size());
+  };
+
+  // Test 1: Empty interfaces map scenario
+  verifyDeletionBehavior(0);
+
+  // Test 2: Populated interfaces map scenario
+  addMockInterface(InterfaceID(2000), 42, "fboss2000", {});
+  verifyDeletionBehavior(1);
 }
 
 } // namespace facebook::fboss
