@@ -114,7 +114,7 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         true /*interfaceHasSubnet*/);
     // QosMap
     auto l3Asics = ensemble.getL3Asics();
-    utility::addOlympicQosMaps(cfg, l3Asics);
+    utility::addOlympicV2QosMaps(cfg, l3Asics);
     auto kAclName = "acl1";
     auto asic = checkSameAndGetAsic(l3Asics);
     utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
@@ -171,6 +171,18 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     };
 
     if (dscpTcChangePostWarmboot) {
+      auto setupPostWarmboot = [this]() {
+        auto newCfg{initialConfig(*getAgentEnsemble())};
+        auto l3Asics = getAgentEnsemble()->getL3Asics();
+        /* update Dscp 46 to gold queue*/
+        utility::addOlympicV2QosMaps(newCfg, l3Asics, true /* newDscpSchema*/);
+        applyNewConfig(newCfg);
+      };
+      auto verifyPostWarmboot = [this, kQueueIdPostWarmboot, kDscp]() {
+        dscpMappingVerifyHelper(kQueueIdPostWarmboot, kDscp);
+      };
+      verifyAcrossWarmBoots(
+          setup, verify, setupPostWarmboot, verifyPostWarmboot);
     } else {
       verifyAcrossWarmBoots(setup, verify);
     }
@@ -353,6 +365,21 @@ TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMapping) {
       kDscp(),
       false /* dscpTcChangePostWarmboot */,
       kQueueId() /* kQueueIdPostWarmboot */);
+}
+
+TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMappingChangePostWarmboot) {
+  /*
+   * Test to verify that changing DSCP TC mapping over warmboot works as
+   * intended. Prewarmboot, dscp 46 is mapped to silver traffic. So set dscptc
+   * map accordingly and send packet and ensure that its received in queue 2
+   * (corresponding to silver). post warmboot, set the dscp mapping to gold and
+   * ensure that the packet is received in gold queue (queue 3)
+   */
+  verifyDscpQueueMappingHelper(
+      utility::kOlympicAllSPSilverQueueId,
+      utility::kDscpToRemap,
+      true /* dscpTcChangePostWarmboot */,
+      utility::kOlympicAllSPGoldQueueId);
 }
 
 // Verify that traffic arriving on front panel/cpu port with non-conflicting
