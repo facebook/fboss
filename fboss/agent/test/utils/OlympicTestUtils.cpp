@@ -447,20 +447,29 @@ const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp() {
   return queueToDscp;
 }
 
-const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp() {
-  const std::map<int, std::vector<uint8_t>> queueToDscp = {
+const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp(
+    bool newDscpSchema) {
+  std::map<int, std::vector<uint8_t>> queueToDscp = {
       {getOlympicV2QueueId(OlympicV2QueueType::NCNF),
        {50, 51, 52, 53, 54, 55, 56, 57, 58, 59}},
       {getOlympicV2QueueId(OlympicV2QueueType::BRONZE),
        {10, 11, 16, 17, 19, 20, 21, 22, 23, 25, 60, 61, 62, 63}},
       {getOlympicV2QueueId(OlympicV2QueueType::SILVER),
-       {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13,
-        14, 15, 40, 41, 42, 43, 44, 45, 46, 47, 49}},
+       {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12,
+        13, 14, 15, 40, 41, 42, 43, 44, 45, 47, 49}},
       {getOlympicV2QueueId(OlympicV2QueueType::GOLD),
        {18, 24, 31, 33, 34, 36, 37, 38, 39}},
       {getOlympicV2QueueId(OlympicV2QueueType::ICP),
        {26, 27, 28, 29, 30, 32, 35}},
       {getOlympicV2QueueId(OlympicV2QueueType::NC), {48}}};
+
+  if (newDscpSchema) {
+    queueToDscp[getOlympicV2QueueId(OlympicV2QueueType::GOLD)].push_back(
+        kDscpToRemap);
+  } else {
+    queueToDscp[getOlympicV2QueueId(OlympicV2QueueType::SILVER)].push_back(
+        kDscpToRemap);
+  }
   return queueToDscp;
 }
 
@@ -642,8 +651,10 @@ void addOlympicQosMaps(
 
 void addOlympicV2QosMaps(
     cfg::SwitchConfig& cfg,
-    const std::vector<const HwAsic*>& asics) {
-  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", asics);
+    const std::vector<const HwAsic*>& asics,
+    bool newDscpSchema) {
+  addQosMapsHelper(
+      cfg, kOlympicV2QueueToDscp(newDscpSchema), "olympic_v2", asics);
 }
 
 void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {

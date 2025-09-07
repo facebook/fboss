@@ -97,6 +97,9 @@ constexpr int kOlympicAllSPNCQueueId2 = 1;
 
 constexpr int kOlympicAllSPHighestSPQueueId = kOlympicAllSPNCQueueId;
 
+// T205554484 DSCP 46 will be migrated to GOLD
+constexpr int kDscpToRemap = 46;
+
 /* Queue config params */
 constexpr int kQueueConfigBurstSizeMinKb = 1;
 constexpr int kQueueConfigBurstSizeMaxKb = 224;
@@ -136,7 +139,8 @@ void addOlympicAllSPQueueConfig(
     cfg::StreamType streamType);
 void addOlympicV2QosMaps(
     cfg::SwitchConfig& cfg,
-    const std::vector<const HwAsic*>& asics);
+    const std::vector<const HwAsic*>& asics,
+    bool newDscpSchema = false);
 void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
@@ -151,7 +155,8 @@ const std::vector<int> kOlympicSPQueueIds();
 const std::vector<int> kOlympicWRRAndICPQueueIds();
 const std::vector<int> kOlympicWRRAndNCQueueIds();
 const std::vector<int> kOlympicAllSPQueueIds();
-const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp();
+const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp(
+    bool newDscpSchema = false);
 
 void addQueueEcnConfig(
     cfg::SwitchConfig& config,
