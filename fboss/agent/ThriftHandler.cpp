@@ -862,6 +862,11 @@ void ThriftHandler::updateUnicastRoutesImpl(
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
   for (const auto& route : *routes) {
+    if (route.overrideEcmpSwitchingMode().has_value() ||
+        route.overrideNextHops().has_value()) {
+      throw FbossError(
+          "Override nhops or switching mode cannot be set by clients");
+    }
     updater.addRoute(routerID, clientID, route);
   }
   RouteUpdateWrapper::SyncFibFor syncFibs;
