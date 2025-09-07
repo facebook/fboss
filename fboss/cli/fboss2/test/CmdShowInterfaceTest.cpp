@@ -63,7 +63,7 @@ class CmdShowInterfaceTestFixture : public CmdHandlerTestBase {
   }
 
   std::map<int32_t, facebook::fboss::InterfaceDetail> createInterfaceDetails() {
-    std::map<int32_t, facebook::fboss::InterfaceDetail> intfDetails;
+    std::map<int32_t, facebook::fboss::InterfaceDetail> interfaceDetailsMap;
 
     facebook::fboss::InterfaceDetail intfDetail1;
     intfDetail1.interfaceName() = "downlink_1";
@@ -83,11 +83,11 @@ class CmdShowInterfaceTestFixture : public CmdHandlerTestBase {
     intfDetail3.mtu() = 9000;
     intfDetail3.address() = createIpPrefixesForIntf3();
 
-    intfDetails[*intfDetail1.vlanId()] = intfDetail1;
-    intfDetails[*intfDetail2.vlanId()] = intfDetail2;
-    intfDetails[*intfDetail3.vlanId()] = intfDetail3;
+    interfaceDetailsMap[*intfDetail1.vlanId()] = intfDetail1;
+    interfaceDetailsMap[*intfDetail2.vlanId()] = intfDetail2;
+    interfaceDetailsMap[*intfDetail3.vlanId()] = intfDetail3;
 
-    return intfDetails;
+    return interfaceDetailsMap;
   }
 
   std::vector<facebook::fboss::IpPrefix> createIpPrefixesForIntf1() {
