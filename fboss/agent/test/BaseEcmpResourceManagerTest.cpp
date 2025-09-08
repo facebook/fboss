@@ -250,9 +250,16 @@ void BaseEcmpResourceManagerTest::assertGroupsAreUnMerged(
       unmergedGroups.begin(),
       unmergedGroups.end(),
       [this, &resourceMgr, expectedCandidateMergeForEachUnmerged](auto gid) {
-        auto numCandidateMerges =
-            resourceMgr.getCandidateMergeConsolidationInfo(gid).size();
-        EXPECT_EQ(numCandidateMerges, expectedCandidateMergeForEachUnmerged);
+        auto candidateMergeToConsolidationInfo =
+            resourceMgr.getCandidateMergeConsolidationInfo(gid);
+        EXPECT_EQ(
+            candidateMergeToConsolidationInfo.size(),
+            expectedCandidateMergeForEachUnmerged);
+        for (const auto& [candidateMerge, consInfo] :
+             candidateMergeToConsolidationInfo) {
+          EXPECT_EQ(
+              consInfo, resourceMgr.computeConsolidationInfo(candidateMerge));
+        }
         // Groups from  unmerge set should no longer
         // be in merge sets.
         EXPECT_FALSE(
@@ -276,15 +283,29 @@ void BaseEcmpResourceManagerTest::assertMergedGroup(
              << folly::join(", ", allUnmergedGroups)
              << " Expect : " << expectedCandidateMergeForEachMerged
              << " candidate merges";
+  auto expectedMergeGroupConsInfo =
+      resourceMgr.computeConsolidationInfo(mergedGroup);
   std::for_each(
       mergedGroup.begin(),
       mergedGroup.end(),
-      [this, &resourceMgr, expectedCandidateMergeForEachMerged](auto gid) {
+      [this,
+       &resourceMgr,
+       expectedCandidateMergeForEachMerged,
+       &expectedMergeGroupConsInfo](auto gid) {
+        auto candidateMergeToConsolidationInfo =
+            resourceMgr.getCandidateMergeConsolidationInfo(gid);
         EXPECT_EQ(
-            resourceMgr.getCandidateMergeConsolidationInfo(gid).size(),
+            candidateMergeToConsolidationInfo.size(),
             expectedCandidateMergeForEachMerged);
-        EXPECT_TRUE(
-            resourceMgr.getMergeGroupConsolidationInfo(gid).has_value());
+        for (const auto& [candidateMerge, consInfo] :
+             candidateMergeToConsolidationInfo) {
+          EXPECT_EQ(
+              consInfo, resourceMgr.computeConsolidationInfo(candidateMerge));
+        }
+        auto mergedGroupConsInfo =
+            resourceMgr.getMergeGroupConsolidationInfo(gid);
+        ASSERT_TRUE(mergedGroupConsInfo.has_value());
+        EXPECT_EQ(*mergedGroupConsInfo, expectedMergeGroupConsInfo);
       });
   bool found{false};
   for (auto mgroup : resourceMgr.getMergedGroups()) {

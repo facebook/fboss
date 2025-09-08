@@ -70,6 +70,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
+  ConsolidationInfo computeConsolidationInfo(
+      const NextHopGroupIds& grpIds) const;
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
   using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
@@ -258,8 +260,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       int32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
   NextHopGroupId findNextAvailableId() const;
-  ConsolidationInfo computeConsolidationInfo(
-      const NextHopGroupIds& grpIds) const;
   template <std::forward_iterator ForwardIt>
   void computeCandidateMergesForNewUnmergedGroups(
       ForwardIt begin,
