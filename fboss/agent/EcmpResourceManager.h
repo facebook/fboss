@@ -93,6 +93,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   NextHopGroupIds getUnMergedGids() const;
   NextHopGroupIds getMergedGids() const;
   std::vector<NextHopGroupIds> getMergedGroups() const;
+  std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
    * non test code.
@@ -109,8 +110,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   /* Test helper API end */
 
  private:
-  friend class BaseEcmpResourceManagerTest;
-  std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
   GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
       const NextHopGroupId newMemberGroup,
       const RouteNextHopSet& mergedNhops);

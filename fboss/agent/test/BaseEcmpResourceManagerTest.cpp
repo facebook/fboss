@@ -12,6 +12,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
 #include <functional>
 
@@ -121,53 +122,6 @@ cfg::SwitchConfig onePortPerIntfConfig(
   return cfg;
 }
 
-std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
-    const std::shared_ptr<SwitchState>& in,
-    const std::function<bool(const RouteNextHopEntry&)>&& filter) {
-  std::map<RouteNextHopSet, uint32_t> ecmpGroups2RefCnt;
-  auto fill = [&ecmpGroups2RefCnt, &filter](const auto& fibIn) {
-    for (const auto& [_, route] : std::as_const(*fibIn)) {
-      if (!route->isResolved() ||
-          route->getForwardInfo().normalizedNextHops().size() <= 1) {
-        continue;
-      }
-      if (!filter(route->getForwardInfo())) {
-        auto pitr = ecmpGroups2RefCnt.find(
-            route->getForwardInfo().normalizedNextHops());
-        if (pitr != ecmpGroups2RefCnt.end()) {
-          ++pitr->second;
-          XLOG(DBG4) << "Processed route: " << route->str()
-                     << " primary ECMP groups count unchanged: "
-                     << ecmpGroups2RefCnt.size();
-        } else {
-          ecmpGroups2RefCnt.insert(
-              {route->getForwardInfo().normalizedNextHops(), 1});
-          XLOG(DBG4) << "Processed route: " << route->str()
-                     << " primary ECMP groups count incremented: "
-                     << ecmpGroups2RefCnt.size();
-        }
-      }
-    }
-  };
-  fill(cfib(in));
-  fill(cfib4(in));
-  return ecmpGroups2RefCnt;
-}
-
-std::map<RouteNextHopSet, uint32_t> getPrimaryEcmpTypeGroups2RefCnt(
-    const std::shared_ptr<SwitchState>& in) {
-  return getEcmpGroups2RefCnt(in, [](const RouteNextHopEntry& info) {
-    return info.hasOverrideSwitchingMode();
-  });
-}
-
-std::map<RouteNextHopSet, uint32_t> getBackupEcmpTypeGroups2RefCnt(
-    const std::shared_ptr<SwitchState>& in) {
-  return getEcmpGroups2RefCnt(in, [](const RouteNextHopEntry& info) {
-    return !info.hasOverrideSwitchingMode();
-  });
-}
-
 std::shared_ptr<EcmpResourceManager>
 BaseEcmpResourceManagerTest::makeResourceMgrWithEcmpLimit(
     int ecmpGroupLimit) const {
@@ -243,221 +197,6 @@ void BaseEcmpResourceManagerTest::failUpdate(
   StateDelta delta(state_, state);
   auto deltas = consolidator_->consolidate(delta);
   consolidator_->updateFailed(failTo);
-}
-
-std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupIds>
-BaseEcmpResourceManagerTest::getNhopsToMergedGroups(
-    const EcmpResourceManager& resourceMgr) const {
-  std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupIds>
-      nhopsToMergedGroups;
-  auto mergedGroups = resourceMgr.getMergedGroups();
-  for (const auto& mgroup : resourceMgr.getMergedGroups()) {
-    for (auto mGid : mgroup) {
-      auto consInfo = resourceMgr.getMergeGroupConsolidationInfo(mGid);
-      nhopsToMergedGroups.insert({consInfo->mergedNhops, mgroup});
-    }
-  }
-  return nhopsToMergedGroups;
-}
-
-void BaseEcmpResourceManagerTest::assertResourceMgrCorrectness(
-    const EcmpResourceManager& resourceMgr,
-    const std::shared_ptr<SwitchState>& state) const {
-  assertAllGidsClaimed(resourceMgr, state);
-  assertFibAndGroupsMatch(resourceMgr, state);
-  // All unmerged groups should have candidate merge sets with other unmerged
-  // groups
-  assertGroupsAreUnMerged(resourceMgr, resourceMgr.getUnMergedGids());
-  auto allMergedGroups = resourceMgr.getMergedGroups();
-  std::for_each(
-      allMergedGroups.begin(),
-      allMergedGroups.end(),
-      [this, &resourceMgr](const auto& mgroup) {
-        assertMergedGroup(resourceMgr, mgroup);
-      });
-  auto primaryEcmpTypeGroups2RefCnt = getPrimaryEcmpTypeGroups2RefCnt(state);
-  auto backupEcmpTypeGroups2RefCnt = getBackupEcmpTypeGroups2RefCnt(state);
-  auto countEcmpMembers = [](const auto& nhops2RefCnt) {
-    auto cnt{0};
-    for (const auto& [nhops, _] : nhops2RefCnt) {
-      cnt += nhops.size();
-    }
-    return cnt;
-  };
-  auto ecmpMembers = countEcmpMembers(primaryEcmpTypeGroups2RefCnt) +
-      countEcmpMembers(backupEcmpTypeGroups2RefCnt);
-  auto [mgrPrimaryEcmpGroups, mgrEcmpMembers] =
-      resourceMgr.getPrimaryEcmpAndMemberCounts();
-  EXPECT_EQ(mgrPrimaryEcmpGroups, primaryEcmpTypeGroups2RefCnt.size());
-  EXPECT_EQ(mgrEcmpMembers, ecmpMembers);
-}
-
-void BaseEcmpResourceManagerTest::assertGroupsAreUnMerged(
-    const EcmpResourceManager& resourceMgr,
-    const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const {
-  if (!resourceMgr.getEcmpCompressionThresholdPct()) {
-    return;
-  }
-  auto allUnmergedGroups = resourceMgr.getUnMergedGids();
-  auto allMergedGroups = resourceMgr.getMergedGroups();
-  // Each unmerged group has a candidate merge group with every other unmerged
-  // group and with every merged group.
-  auto expectedCandidateMergeForEachUnmerged =
-      (allUnmergedGroups.size() - 1) + allMergedGroups.size();
-
-  XLOG(DBG2) << " Asserting for unmerged group: " << "["
-             << folly::join(", ", unmergedGroups) << "]"
-             << " Num existing merged groups: " << allMergedGroups.size()
-             << " Existing unmerged groups: "
-             << folly::join(", ", unmergedGroups)
-             << " Expect : " << expectedCandidateMergeForEachUnmerged
-             << " candidate merges";
-  std::for_each(
-      unmergedGroups.begin(),
-      unmergedGroups.end(),
-      [&resourceMgr, expectedCandidateMergeForEachUnmerged](auto gid) {
-        auto candidateMergeToConsolidationInfo =
-            resourceMgr.getCandidateMergeConsolidationInfo(gid);
-        EXPECT_EQ(
-            candidateMergeToConsolidationInfo.size(),
-            expectedCandidateMergeForEachUnmerged);
-        for (const auto& [candidateMerge, consInfo] :
-             candidateMergeToConsolidationInfo) {
-          EXPECT_EQ(
-              consInfo, resourceMgr.computeConsolidationInfo(candidateMerge));
-        }
-        // Groups from  unmerge set should no longer
-        // be in merge sets.
-        EXPECT_FALSE(
-            resourceMgr.getMergeGroupConsolidationInfo(gid).has_value());
-      });
-}
-
-void BaseEcmpResourceManagerTest::assertMergedGroup(
-    const EcmpResourceManager& resourceMgr,
-    const EcmpResourceManager::NextHopGroupIds& mergedGroup) const {
-  if (!resourceMgr.getEcmpCompressionThresholdPct()) {
-    return;
-  }
-  auto allUnmergedGroups = resourceMgr.getUnMergedGids();
-  // Each merged group has a candidate merge group with every unmerged
-  // group
-  auto expectedCandidateMergeForEachMerged = allUnmergedGroups.size();
-  XLOG(DBG2) << " Asserting for merged group: " << "["
-             << folly::join(", ", mergedGroup) << "]"
-             << " Have unmerged groups: "
-             << folly::join(", ", allUnmergedGroups)
-             << " Expect : " << expectedCandidateMergeForEachMerged
-             << " candidate merges";
-  auto expectedMergeGroupConsInfo =
-      resourceMgr.computeConsolidationInfo(mergedGroup);
-  std::for_each(
-      mergedGroup.begin(),
-      mergedGroup.end(),
-      [&resourceMgr,
-       expectedCandidateMergeForEachMerged,
-       &expectedMergeGroupConsInfo](auto gid) {
-        auto candidateMergeToConsolidationInfo =
-            resourceMgr.getCandidateMergeConsolidationInfo(gid);
-        EXPECT_EQ(
-            candidateMergeToConsolidationInfo.size(),
-            expectedCandidateMergeForEachMerged);
-        for (const auto& [candidateMerge, consInfo] :
-             candidateMergeToConsolidationInfo) {
-          EXPECT_EQ(
-              consInfo, resourceMgr.computeConsolidationInfo(candidateMerge));
-        }
-        auto mergedGroupConsInfo =
-            resourceMgr.getMergeGroupConsolidationInfo(gid);
-        ASSERT_TRUE(mergedGroupConsInfo.has_value());
-        EXPECT_EQ(*mergedGroupConsInfo, expectedMergeGroupConsInfo);
-      });
-  bool found{false};
-  for (auto mgroup : resourceMgr.getMergedGroups()) {
-    if (mgroup == mergedGroup) {
-      found = true;
-      break;
-    }
-  }
-  EXPECT_TRUE(found) << "Merged group : " << folly::join(", ", mergedGroup)
-                     << " not found";
-}
-
-void BaseEcmpResourceManagerTest::assertAllGidsClaimed(
-    const EcmpResourceManager& resourceMgr,
-    const std::shared_ptr<SwitchState>& state) const {
-  // Assert that union of all merged and unmerged GIDs == all gids
-  auto allUnmergedGids = resourceMgr.getUnMergedGids();
-  auto allMergedAndUnmergedGids = resourceMgr.getMergedGids();
-  allMergedAndUnmergedGids.insert(
-      allUnmergedGids.begin(), allUnmergedGids.end());
-  auto nhops2Id = resourceMgr.getNhopsToId();
-  EcmpResourceManager::NextHopGroupIds allGids;
-  std::for_each(
-      nhops2Id.begin(), nhops2Id.end(), [&allGids](const auto& nhopsAndId) {
-        allGids.insert(nhopsAndId.second);
-      });
-  EXPECT_EQ(allMergedAndUnmergedGids, allGids);
-  auto nhopsToMergedGroups = getNhopsToMergedGroups(resourceMgr);
-  // Assert that all distinct merged nhops we see map to mergedGroups
-  EXPECT_EQ(nhopsToMergedGroups.size(), resourceMgr.getMergedGroups().size());
-}
-
-void BaseEcmpResourceManagerTest::assertFibAndGroupsMatch(
-    const EcmpResourceManager& resourceMgr,
-    const std::shared_ptr<SwitchState>& state) const {
-  auto nhops2Id = resourceMgr.getNhopsToId();
-  auto nhopsToMergedGroups = getNhopsToMergedGroups(resourceMgr);
-  std::map<EcmpResourceManager::NextHopGroupId, int> unmergedGroupToRouteRef;
-  std::map<EcmpResourceManager::NextHopGroupIds, int> mergedGroupToRouteRef;
-  auto getRouteRef = [&](auto inFib) {
-    for (auto [_, route] : std::as_const(*inFib)) {
-      if (!route->isResolved()) {
-        // Some tests deliberately add unresolved routes to
-        // FIB and run them through local consolidator_ state
-        continue;
-      }
-      ASSERT_NE(route, nullptr);
-      bool isEcmpRoute = route->isResolved() &&
-          route->getForwardInfo().getNextHopSet().size() > 1;
-      if (!isEcmpRoute) {
-        continue;
-      }
-      const auto& fwdInfo = route->getForwardInfo();
-      auto pfxGrpInfo = resourceMgr.getGroupInfo(
-          RouterID(0), route->prefix().toCidrNetwork());
-      if (fwdInfo.hasOverrideNextHops()) {
-        auto mergeInfoItr = pfxGrpInfo->getMergedGroupInfoItr();
-        EXPECT_TRUE(mergeInfoItr.has_value());
-        auto grpOverrideNhops = pfxGrpInfo->getOverrideNextHops();
-        ASSERT_TRUE(grpOverrideNhops.has_value());
-        EXPECT_EQ(fwdInfo.getOverrideNextHops(), grpOverrideNhops);
-        // Assert that override nhops map to existing merged group
-        auto nmitr = nhopsToMergedGroups.find(fwdInfo.normalizedNextHops());
-        ASSERT_NE(nmitr, nhopsToMergedGroups.end());
-        // Bump up route ref to merged groups
-        auto mGroupRefItr =
-            mergedGroupToRouteRef.insert({(*mergeInfoItr)->first, 0}).first;
-        ++mGroupRefItr->second;
-      }
-      EXPECT_EQ(
-          fwdInfo.hasOverrideSwitchingMode(),
-          pfxGrpInfo->isBackupEcmpGroupType());
-      // Non override nhops must map to a entry in nhops2Id. Confirming
-      // that nhops map to a existing group in resourceMgr
-      auto nonOverrideNormalizedHops =
-          route->getForwardInfo().nonOverrideNormalizedNextHops();
-      auto nitr = nhops2Id.find(nonOverrideNormalizedHops);
-      ASSERT_NE(nitr, nhops2Id.end());
-      auto umGroupRefItr =
-          unmergedGroupToRouteRef.insert({nitr->second, 0}).first;
-      ++umGroupRefItr->second;
-    }
-  };
-  getRouteRef(cfib(state));
-  getRouteRef(cfib4(state));
-  EXPECT_EQ(mergedGroupToRouteRef.size(), resourceMgr.getMergedGroups().size());
-  EXPECT_EQ(unmergedGroupToRouteRef.size(), nhops2Id.size());
 }
 
 void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
@@ -977,6 +716,18 @@ EcmpResourceManager::NextHopGroupIds BaseEcmpResourceManagerTest::getAllGroups()
     allGroups.insert(nhopsAndId.second);
   }
   return allGroups;
+}
+
+void BaseEcmpResourceManagerTest::assertMergedGroup(
+    const EcmpResourceManager::NextHopGroupIds& mergedGroup) const {
+  facebook::fboss::assertMergedGroup(
+      *sw_->getEcmpResourceManager(), mergedGroup);
+}
+
+void BaseEcmpResourceManagerTest::assertGroupsAreUnMerged(
+    const EcmpResourceManager::NextHopGroupIds& unmergedGroups) const {
+  facebook::fboss::assertGroupsAreUnMerged(
+      *sw_->getEcmpResourceManager(), unmergedGroups);
 }
 
 TEST_F(BaseEcmpResourceManagerTest, noFibsDelta) {

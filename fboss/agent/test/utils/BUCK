@@ -617,6 +617,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "ecmp_resource_mgr_test_utils",
+    srcs = [
+        "EcmpResourceManagerTestUtils.cpp",
+    ],
+    headers = [
+        "EcmpResourceManagerTestUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:ecmp_resource_manager",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
     name = "dsf_config_utils",
     srcs = [
         "DsfConfigUtils.cpp",

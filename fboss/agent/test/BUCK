@@ -979,6 +979,7 @@ cpp_unittest(
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:ecmp_resource_mgr_test_utils",
         "//folly:network_address",
     ],
 )
