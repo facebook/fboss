@@ -201,6 +201,7 @@ cpp_library(
         "//fboss/agent:constants",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:monolithic_hw_switch_handler",
         "//fboss/agent:multi_switch_hw_switch_handler",
