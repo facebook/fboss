@@ -1552,6 +1552,9 @@ void EcmpResourceManager::processRouteUpdates(
       delta,
       [this, inOutState](
           RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        SCOPE_EXIT {
+          DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
+        };
         if (!oldRoute->isResolved() && !newRoute->isResolved()) {
           return;
         }
@@ -1576,11 +1579,17 @@ void EcmpResourceManager::processRouteUpdates(
         }
       },
       [this, inOutState](RouterID rid, const auto& newRoute) {
+        SCOPE_EXIT {
+          DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
+        };
         if (newRoute->isResolved()) {
           routeAdded(rid, newRoute, inOutState);
         }
       },
       [this, inOutState](RouterID rid, const auto& oldRoute) {
+        SCOPE_EXIT {
+          DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
+        };
         if (oldRoute->isResolved()) {
           routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);
         }
