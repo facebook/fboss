@@ -50,6 +50,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
       case HwAsic::Feature::NO_RX_REASON_TRAP:
       case HwAsic::Feature::SDK_REGISTER_DUMP:
+      case HwAsic::Feature::DEBUG_COUNTERS_NEED_PORTS:
         return false;
 
       default:
