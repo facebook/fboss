@@ -274,7 +274,14 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     switchStats_->setMergedEcmpGroupsCount(mergedGroups_.size());
     switchStats_->setMergedEcmpMemberGroupsCount(getMergedGids().size());
   }
+  DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
   return std::move(inOutState->out);
+}
+
+bool EcmpResourceManager::checkPrimaryGroupAndMemberCounts(
+    const EcmpResourceManager::InputOutputState& inOutState) const {
+  auto [priEcmpGroups, _] = getPrimaryEcmpAndMemberCounts();
+  return priEcmpGroups == inOutState.primaryEcmpGroupsCnt;
 }
 
 std::vector<std::shared_ptr<NextHopGroupInfo>>

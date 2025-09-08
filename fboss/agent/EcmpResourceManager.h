@@ -176,6 +176,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     PreUpdateState groupIdCache;
     bool updated{false};
   };
+  bool checkPrimaryGroupAndMemberCounts(
+      const InputOutputState& inOutState) const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
       const StateDelta& delta);
   void handleSwitchSettingsDelta(const StateDelta& delta);
