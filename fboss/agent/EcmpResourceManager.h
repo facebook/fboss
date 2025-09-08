@@ -94,6 +94,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   /* Test helper API end */
 
  private:
+  std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
   GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
       const NextHopGroupId newMemberGroup,
       const RouteNextHopSet& mergedNhops);
@@ -333,6 +334,9 @@ class NextHopGroupInfo {
   }
   const RouteNextHopSet& getNhops() const {
     return ngItr_->first;
+  }
+  size_t numNhops() const {
+    return getNhops().size();
   }
   bool hasOverrideNextHops() const {
     return mergedGroupsToInfoItr_.has_value();

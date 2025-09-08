@@ -181,6 +181,31 @@ std::vector<StateDelta> EcmpResourceManager::modifyState(
   return consolidate(*deltas.begin());
 }
 
+std::pair<uint32_t, uint32_t>
+EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
+  uint32_t unmergedGroups{0}, ecmpMemberCnt{0};
+  std::set<const ConsolidationInfo*> mergedGroups;
+  std::for_each(
+      nextHopGroupIdToInfo_.cbegin(),
+      nextHopGroupIdToInfo_.cend(),
+      [&unmergedGroups, &mergedGroups, &ecmpMemberCnt](const auto& idAndInfo) {
+        auto groupInfo = idAndInfo.second.lock();
+        unmergedGroups += groupInfo->hasOverrides() ? 0 : 1;
+        if (auto gitr = groupInfo->getMergedGroupInfoItr()) {
+          auto [_, inserted] = mergedGroups.insert(&(*gitr)->second);
+          // Merged groups nhops only count once towards ecmp members
+          ecmpMemberCnt += inserted ? (*gitr)->second.mergedNhops.size() : 0;
+        } else {
+          ecmpMemberCnt += groupInfo->getNhops().size();
+        }
+      });
+  uint32_t primaryEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
+  XLOG(DBG2) << " Got primary group count: " << primaryEcmpGroupsCnt << " with "
+             << unmergedGroups << " unmerged groups and " << mergedGroups.size()
+             << " merged groups. Ecmp member count is: " << ecmpMemberCnt;
+  return std::make_pair(primaryEcmpGroupsCnt, ecmpMemberCnt);
+}
+
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   CHECK(!preUpdateState_.has_value());
@@ -209,26 +234,10 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     return makeRet(delta);
   }
 
-  uint32_t unmergedGroups{0};
-  std::set<const ConsolidationInfo*> mergedGroups;
   std::optional<InputOutputState> inOutState(
       std::move(switchingModeChangeResult));
 
-  uint32_t ecmpMemberCnt{0};
-  std::for_each(
-      nextHopGroupIdToInfo_.cbegin(),
-      nextHopGroupIdToInfo_.cend(),
-      [&unmergedGroups, &mergedGroups, &ecmpMemberCnt](const auto& idAndInfo) {
-        auto groupInfo = idAndInfo.second.lock();
-        unmergedGroups += groupInfo->hasOverrides() ? 0 : 1;
-        if (auto gitr = groupInfo->getMergedGroupInfoItr()) {
-          auto [_, inserted] = mergedGroups.insert(&(*gitr)->second);
-          ecmpMemberCnt += inserted ? (*gitr)->second.mergedNhops.size() : 0;
-        } else {
-          ecmpMemberCnt += groupInfo->getNhops().size();
-        }
-      });
-  uint32_t primaryEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
+  auto [primaryEcmpGroupsCnt, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
     inOutState = InputOutputState(primaryEcmpGroupsCnt, ecmpMemberCnt, delta);
   } else {
@@ -236,10 +245,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     inOutState->ecmpMemberCnt = ecmpMemberCnt;
   }
   XLOG(DBG2) << " Start delta processing, primary group count: "
-             << inOutState->primaryEcmpGroupsCnt << " with " << unmergedGroups
-             << " unmerged groups and " << mergedGroups.size()
-             << " merged groups. Ecmp member count is: "
-             << inOutState->ecmpMemberCnt;
+             << inOutState->primaryEcmpGroupsCnt << " and "
+             << " Ecmp member count is: " << inOutState->ecmpMemberCnt;
   return consolidateImpl(delta, &(*inOutState));
 }
 
