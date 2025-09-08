@@ -188,17 +188,66 @@ std::optional<uint32_t> EcmpResourceManagerConfig::computeMaxHwEcmpMembers(
   return maxMembers;
 }
 
+void EcmpResourceManagerConfig::validateCfgUpdate(
+    uint32_t compressionPenaltyThresholdPct,
+    const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const {
+  if (compressionPenaltyThresholdPct && backupEcmpGroupType.has_value()) {
+    throw FbossError(
+        "Setting both compression threshold pct and backup ecmp group type is not supported");
+  }
+}
+
+void EcmpResourceManagerConfig::handleSwitchSettingsDelta(
+    const StateDelta& delta) {
+  if (DeltaFunctions::isEmpty(delta.getSwitchSettingsDelta())) {
+    return;
+  }
+  std::optional<int32_t> newEcmpCompressionThresholdPct;
+  std::vector<std::optional<int32_t>> newEcmpCompressionThresholdPcts;
+  for (const auto& [_, switchSettings] :
+       std::as_const(*delta.newState()->getSwitchSettings())) {
+    newEcmpCompressionThresholdPcts.emplace_back(
+        switchSettings->getEcmpCompressionThresholdPct());
+  }
+  if (newEcmpCompressionThresholdPcts.size()) {
+    newEcmpCompressionThresholdPct = *newEcmpCompressionThresholdPcts.begin();
+    std::for_each(
+        newEcmpCompressionThresholdPcts.begin(),
+        newEcmpCompressionThresholdPcts.end(),
+        [&newEcmpCompressionThresholdPct](
+            const auto& ecmpCompressionThresholdPct) {
+          if (ecmpCompressionThresholdPct != newEcmpCompressionThresholdPct) {
+            throw FbossError(
+                "All switches must have same ecmp compression threshold value");
+          }
+        });
+  }
+  if (newEcmpCompressionThresholdPct.value_or(0) ==
+      compressionPenaltyThresholdPct_) {
+    return;
+  }
+  /*
+   * compressionPenaltyThresholdPct_ was already non-zero. Changing
+   * is not allowed. Otherwise we may now get some routes that are out
+   * of compliance
+   */
+  if (compressionPenaltyThresholdPct_ != 0) {
+    throw FbossError(
+        "Changing compression penalty threshold on the fly is not supported");
+  }
+  validateCfgUpdate(
+      newEcmpCompressionThresholdPct.value_or(0), backupEcmpGroupType_);
+  compressionPenaltyThresholdPct_ = newEcmpCompressionThresholdPct.value_or(0);
+}
+
 EcmpResourceManager::EcmpResourceManager(
     const EcmpResourceManagerConfig& config,
     SwitchStats* stats)
     // We keep a buffer of 2 for transient increment in ECMP groups when
     // pushing updates down to HW
-    : compressionPenaltyThresholdPct_(config.getEcmpCompressionThresholdPct()),
-      backupEcmpGroupType_(config.getBackupEcmpSwitchingMode()),
+    : backupEcmpGroupType_(config.getBackupEcmpSwitchingMode()),
       switchStats_(stats),
       config_(config) {
-  validateCfgUpdate(compressionPenaltyThresholdPct_, backupEcmpGroupType_);
-
   if (switchStats_) {
     switchStats_->setPrimaryEcmpGroupsExhausted(false);
     switchStats_->setPrimaryEcmpGroupsCount(0);
@@ -708,7 +757,7 @@ int EcmpResourceManager::ConsolidationInfo::maxPenalty() const {
 
 std::set<EcmpResourceManager::NextHopGroupId>
 EcmpResourceManager::getOptimalMergeGroupSet() const {
-  if (!compressionPenaltyThresholdPct_) {
+  if (!getEcmpCompressionThresholdPct()) {
     return {};
   }
   CHECK(!candidateMergeGroups_.empty());
@@ -1037,7 +1086,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
           nhops2IdItr,
           true /*isBackupEcmpGroupType*/);
     } else {
-      CHECK(compressionPenaltyThresholdPct_);
+      CHECK(getEcmpCompressionThresholdPct());
       mergeGroupAndMigratePrefixes(inOutState);
       // Since this is a new group, it cannot be part of the
       // optimal merge groups (since it just being created).
@@ -1048,7 +1097,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
           false /*isBackupEcmpGroupType*/);
     }
     CHECK(insertedGrp);
-  } else if (compressionPenaltyThresholdPct_) {
+  } else if (getEcmpCompressionThresholdPct()) {
     // Bump up penalty for now referenced group
   }
   return updateForwardingInfoAndInsertDelta(
@@ -1132,7 +1181,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   StateDelta delta(std::make_shared<SwitchState>(), curState);
   InputOutputState inOutState(0, 0, delta, *preUpdateState_);
   auto deltas = consolidateImpl(delta, &inOutState);
-  if (!compressionPenaltyThresholdPct_) {
+  if (!getEcmpCompressionThresholdPct()) {
     // For backupEcmpGroupType_ reclaim is completed on
     // one delta. So LE 2, since reclaim always starts
     // with a new delta. So orig switch state delta +
@@ -1297,7 +1346,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
   }
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
   CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
-  if (compressionPenaltyThresholdPct_) {
+  if (getEcmpCompressionThresholdPct()) {
     if (grpInserted && !pitr->second->getMergedGroupInfoItr()) {
       /*
        * New umerged group added, compute candidate merges
@@ -1739,7 +1788,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
              << " to: " << apache::thrift::util::enumNameSafe(*newMode);
 
   auto oldBackupEcmpMode = backupEcmpGroupType_;
-  validateCfgUpdate(compressionPenaltyThresholdPct_, newMode);
+  config_.validateCfgUpdate(getEcmpCompressionThresholdPct(), newMode);
   backupEcmpGroupType_ = newMode;
   if (!oldBackupEcmpMode.has_value()) {
     // No backup ecmp type value for old group.
@@ -1795,46 +1844,9 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
 }
 
 void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
-  if (DeltaFunctions::isEmpty(delta.getSwitchSettingsDelta())) {
-    return;
-  }
-  std::optional<int32_t> newEcmpCompressionThresholdPct;
-  std::vector<std::optional<int32_t>> newEcmpCompressionThresholdPcts;
-  for (const auto& [_, switchSettings] :
-       std::as_const(*delta.newState()->getSwitchSettings())) {
-    newEcmpCompressionThresholdPcts.emplace_back(
-        switchSettings->getEcmpCompressionThresholdPct());
-  }
-  if (newEcmpCompressionThresholdPcts.size()) {
-    newEcmpCompressionThresholdPct = *newEcmpCompressionThresholdPcts.begin();
-    std::for_each(
-        newEcmpCompressionThresholdPcts.begin(),
-        newEcmpCompressionThresholdPcts.end(),
-        [&newEcmpCompressionThresholdPct](
-            const auto& ecmpCompressionThresholdPct) {
-          if (ecmpCompressionThresholdPct != newEcmpCompressionThresholdPct) {
-            throw FbossError(
-                "All switches must have same ecmp compression threshold value");
-          }
-        });
-  }
-  if (newEcmpCompressionThresholdPct.value_or(0) ==
-      compressionPenaltyThresholdPct_) {
-    return;
-  }
-  /*
-   * compressionPenaltyThresholdPct_ was already non-zero. Changing
-   * is not allowed. Otherwise we may now get some routes that are out
-   * of compliance
-   */
-  if (compressionPenaltyThresholdPct_ != 0) {
-    throw FbossError(
-        "Changing compression penalty threshold on the fly is not supported");
-  }
-  validateCfgUpdate(
-      newEcmpCompressionThresholdPct.value_or(0), backupEcmpGroupType_);
-  compressionPenaltyThresholdPct_ = newEcmpCompressionThresholdPct.value_or(0);
-  if (compressionPenaltyThresholdPct_) {
+  auto compressionPenaltyBefore = getEcmpCompressionThresholdPct();
+  config_.handleSwitchSettingsDelta(delta);
+  if (!compressionPenaltyBefore && getEcmpCompressionThresholdPct()) {
     std::vector<NextHopGroupId> grpIds;
     std::for_each(
         nextHopGroupIdToInfo_.begin(),
@@ -1843,15 +1855,6 @@ void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
           grpIds.emplace_back(grpIdAndInfo.first);
         });
     computeCandidateMergesForNewUnmergedGroups(grpIds);
-  }
-}
-
-void EcmpResourceManager::validateCfgUpdate(
-    int32_t compressionPenaltyThresholdPct,
-    const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const {
-  if (compressionPenaltyThresholdPct && backupEcmpGroupType.has_value()) {
-    throw FbossError(
-        "Setting both compression threshold pct and backup ecmp group type is not supported");
   }
 }
 

@@ -50,6 +50,10 @@ class EcmpResourceManagerConfig {
   uint32_t getMaxPrimaryEcmpGroups() const {
     return maxHwEcmpGroups_;
   }
+  void handleSwitchSettingsDelta(const StateDelta& delta);
+  void validateCfgUpdate(
+      uint32_t compressionPenaltyThresholdPct,
+      const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
 
  private:
   static uint32_t computeMaxHwEcmpGroups(uint32_t maxHwEcmpGroups);
@@ -59,7 +63,7 @@ class EcmpResourceManagerConfig {
 
   const uint32_t maxHwEcmpGroups_;
   const std::optional<uint32_t> maxHwEcmpMembers_;
-  const uint32_t compressionPenaltyThresholdPct_{0};
+  uint32_t compressionPenaltyThresholdPct_{0};
   const std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
 };
 
@@ -112,7 +116,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     return backupEcmpGroupType_;
   }
   int32_t getEcmpCompressionThresholdPct() const {
-    return compressionPenaltyThresholdPct_;
+    return config_.getEcmpCompressionThresholdPct();
   }
   uint32_t getMaxPrimaryEcmpGroups() const {
     return config_.getMaxPrimaryEcmpGroups();
@@ -320,7 +324,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
   void validateCfgUpdate(
-      int32_t compressionPenaltyThresholdPct,
+      uint32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
   NextHopGroupId findNextAvailableId() const;
   template <std::forward_iterator ForwardIt>
@@ -343,7 +347,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;
-  int compressionPenaltyThresholdPct_{0};
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
   SwitchStats* switchStats_;
   EcmpResourceManagerConfig config_;
