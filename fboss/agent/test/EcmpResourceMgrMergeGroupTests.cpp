@@ -518,7 +518,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, exhaustAllPairwiseMerges) {
   removeRoutesAndCheck();
 }
 
-TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndReplay) {
+TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
   std::set<RouteV6::Prefix> overflowPrefixes;
@@ -527,10 +527,15 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndReplay) {
         auto newerState = state_->clone();
         auto fib6 = fib(newerState);
         for (const auto& origRoute : getPostConfigResolvedRoutes(state_)) {
-          auto route = fib6->getRouteIf(origRoute->prefix())->clone();
-          if (toReplay.size() && !toReplay.contains(route->prefix())) {
+          if (toReplay.size() && !toReplay.contains(origRoute->prefix())) {
             continue;
           }
+          auto route = fib6->getRouteIf(origRoute->prefix())->clone();
+          // Clear any overrides. This test mimics routes
+          // coming over thrift (say on FibSync) which would
+          // come w/o any overrides set.
+          route->setResolved(RouteNextHopEntry(
+              route->getForwardInfo().getNextHopSet(), kDefaultAdminDistance));
           route->publish();
           fib6->updateNode(route);
         }
@@ -637,7 +642,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
   }
 }
 
-TEST_F(EcmpResourceMgrMergeGroupTest, overflowRoutesInReverseOrderOfReplay) {
+TEST_F(EcmpResourceMgrMergeGroupTest, overflowRoutesReconstructInReverseOrder) {
   std::set<RouteV6::Prefix> startPrefixes;
   for (const auto& route : getPostConfigResolvedRoutes(state_)) {
     startPrefixes.insert(route->prefix());
@@ -716,7 +721,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, overflowRoutesInReverseOrderOfReplay) {
   }
 }
 
-TEST_F(EcmpResourceMgrMergeGroupTest, reclaimOnReplay) {
+TEST_F(EcmpResourceMgrMergeGroupTest, reclaimOnReconstructionFromSwitchState) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
   auto routesBefore = getPostConfigResolvedRoutes(sw_->getState()).size();

@@ -277,7 +277,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   assertEndState(newState, overflowPrefixes);
 }
 
-TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
+TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
   auto oldState = state_;
@@ -304,6 +304,11 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
     fib6 = fib(newerState);
     for (const auto& pfx : overflowPrefixes) {
       auto route = fib6->getRouteIf(pfx)->clone();
+      // Clear any overrides. This test mimics routes
+      // coming over thrift (say on FibSync) which would
+      // come w/o any overrides set.
+      route->setResolved(RouteNextHopEntry(
+          route->getForwardInfo().getNextHopSet(), kDefaultAdminDistance));
       route->publish();
       fib6->updateNode(route);
     }
