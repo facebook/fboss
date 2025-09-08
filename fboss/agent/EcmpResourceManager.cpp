@@ -1246,8 +1246,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
   CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
-  bool ecmpLimitReached =
-      inOutState->primaryEcmpGroupsCnt == config_.getMaxPrimaryEcmpGroups();
+  bool ecmpLimitReached = config_.ecmpLimitReached(
+      inOutState->primaryEcmpGroupsCnt, inOutState->ecmpMemberCnt);
   if (oldRoute) {
     DCHECK(!routeFwdEqual(oldRoute, newRoute));
     /*
