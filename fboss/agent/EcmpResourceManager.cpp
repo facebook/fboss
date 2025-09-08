@@ -213,25 +213,33 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   std::set<const ConsolidationInfo*> mergedGroups;
   std::optional<InputOutputState> inOutState(
       std::move(switchingModeChangeResult));
-  if (!inOutState.has_value()) {
-    inOutState = InputOutputState(unmergedGroups, delta);
-  }
 
+  uint32_t ecmpMemberCnt{0};
   std::for_each(
       nextHopGroupIdToInfo_.cbegin(),
       nextHopGroupIdToInfo_.cend(),
-      [&unmergedGroups, &mergedGroups](const auto& idAndInfo) {
+      [&unmergedGroups, &mergedGroups, &ecmpMemberCnt](const auto& idAndInfo) {
         auto groupInfo = idAndInfo.second.lock();
         unmergedGroups += groupInfo->hasOverrides() ? 0 : 1;
         if (auto gitr = groupInfo->getMergedGroupInfoItr()) {
-          mergedGroups.insert(&(*gitr)->second);
+          auto [_, inserted] = mergedGroups.insert(&(*gitr)->second);
+          ecmpMemberCnt += inserted ? (*gitr)->second.mergedNhops.size() : 0;
+        } else {
+          ecmpMemberCnt += groupInfo->getNhops().size();
         }
       });
-  inOutState->primaryEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
+  uint32_t primaryEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
+  if (!inOutState.has_value()) {
+    inOutState = InputOutputState(primaryEcmpGroupsCnt, ecmpMemberCnt, delta);
+  } else {
+    inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
+    inOutState->ecmpMemberCnt = ecmpMemberCnt;
+  }
   XLOG(DBG2) << " Start delta processing, primary group count: "
              << inOutState->primaryEcmpGroupsCnt << " with " << unmergedGroups
              << " unmerged groups and " << mergedGroups.size()
-             << " merged groups";
+             << " merged groups. Ecmp member count is: "
+             << inOutState->ecmpMemberCnt;
   return consolidateImpl(delta, &(*inOutState));
 }
 
@@ -684,9 +692,12 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
 
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
+    uint32_t _ecmpMemberCnt,
     const StateDelta& _in,
     const PreUpdateState& _groupIdCache)
-    : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt), groupIdCache(_groupIdCache) {
+    : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
+      ecmpMemberCnt(_ecmpMemberCnt),
+      groupIdCache(_groupIdCache) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
@@ -1036,7 +1047,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
    * will now be able to reclaim some of the backup nhop groups.
    * */
   StateDelta delta(std::make_shared<SwitchState>(), curState);
-  InputOutputState inOutState(0, delta, *preUpdateState_);
+  InputOutputState inOutState(0, 0, delta, *preUpdateState_);
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!compressionPenaltyThresholdPct_) {
     // For backupEcmpGroupType_ reclaim is completed on
@@ -1614,7 +1625,8 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
     // Nothing to do.
     return std::nullopt;
   }
-  InputOutputState inOutState(0 /*primaryEcmpGroupsCnt*/, delta);
+  InputOutputState inOutState(
+      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta);
   CHECK_EQ(inOutState.out.size(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue

@@ -117,6 +117,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   struct InputOutputState {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
+        uint32_t ecmpMemberCnt,
         const StateDelta& _in,
         const PreUpdateState& _groupIdCache = PreUpdateState());
     /*
@@ -167,7 +168,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      * reach the maxEcmpGroups limit, we either compress groups
      * by combining 2 or more groups.
      */
-    uint32_t primaryEcmpGroupsCnt;
+    uint32_t primaryEcmpGroupsCnt{0};
+    uint32_t ecmpMemberCnt{0};
     std::vector<StateDelta> out;
     PreUpdateState groupIdCache;
     bool updated{false};
