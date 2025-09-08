@@ -227,9 +227,9 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
           mergedGroups.insert(&(*gitr)->second);
         }
       });
-  inOutState->nonBackupEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
+  inOutState->primaryEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
   XLOG(DBG2) << " Start delta processing, primary group count: "
-             << inOutState->nonBackupEcmpGroupsCnt << " with " << unmergedGroups
+             << inOutState->primaryEcmpGroupsCnt << " with " << unmergedGroups
              << " unmerged groups and " << mergedGroups.size()
              << " merged groups";
   return consolidateImpl(delta, &(*inOutState));
@@ -249,9 +249,9 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     inOutState->out.emplace_back(delta.oldState(), delta.newState());
   }
   if (switchStats_) {
-    switchStats_->setPrimaryEcmpGroupsCount(inOutState->nonBackupEcmpGroupsCnt);
+    switchStats_->setPrimaryEcmpGroupsCount(inOutState->primaryEcmpGroupsCnt);
     auto backupEcmpGroupCount = backupEcmpGroupType_.has_value()
-        ? nextHopGroup2Id_.size() - inOutState->nonBackupEcmpGroupsCnt
+        ? nextHopGroup2Id_.size() - inOutState->primaryEcmpGroupsCnt
         : 0;
     switchStats_->setBackupEcmpGroupsCount(backupEcmpGroupCount);
     switchStats_->setPrimaryEcmpGroupsExhausted(
@@ -397,10 +397,10 @@ void EcmpResourceManager::reclaimBackupGroups(
    * overflowed the ECMP limit when processing R0
    */
   inOutState->out.emplace_back(oldState, newState);
-  inOutState->nonBackupEcmpGroupsCnt += groupIdsToReclaim.size();
+  inOutState->primaryEcmpGroupsCnt += groupIdsToReclaim.size();
   inOutState->updated = true;
   XLOG(DBG2) << " Primary ECMP Groups after reclaim: "
-             << inOutState->nonBackupEcmpGroupsCnt;
+             << inOutState->primaryEcmpGroupsCnt;
 }
 
 std::unordered_map<
@@ -499,7 +499,7 @@ void EcmpResourceManager::updateMergedGroups(
       updateMergeInfo(reclaimedGroups, std::nullopt, newState);
       // Each of these unmerged groups will create 1 primary
       // ECMP group
-      inOutState->nonBackupEcmpGroupsCnt += reclaimedGroups.size();
+      inOutState->primaryEcmpGroupsCnt += reclaimedGroups.size();
       XLOG(DBG2) << " From: " << curMergeSet
                  << " will reclaim : " << reclaimedGroups;
     } else {
@@ -540,7 +540,7 @@ void EcmpResourceManager::updateMergedGroups(
       // we will end up with exactly the same number of ECMP groups
     } else {
       XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet;
-      inOutState->nonBackupEcmpGroupsCnt -= 1;
+      inOutState->primaryEcmpGroupsCnt -= 1;
     }
     // Now update the groups and prefixes corresponding to the
     // newMergeSet
@@ -585,8 +585,8 @@ void EcmpResourceManager::reclaimMergeGroups(
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
-  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
-  auto canReclaim = maxEcmpGroups_ - inOutState->nonBackupEcmpGroupsCnt;
+  CHECK_LE(inOutState->primaryEcmpGroupsCnt, maxEcmpGroups_);
+  auto canReclaim = maxEcmpGroups_ - inOutState->primaryEcmpGroupsCnt;
   if (!canReclaim) {
     XLOG(DBG2) << " Unable to reclaim any non primary groups";
     return;
@@ -683,11 +683,10 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
 }
 
 EcmpResourceManager::InputOutputState::InputOutputState(
-    uint32_t _nonBackupEcmpGroupsCnt,
+    uint32_t _primaryEcmpGroupsCnt,
     const StateDelta& _in,
     const PreUpdateState& _groupIdCache)
-    : nonBackupEcmpGroupsCnt(_nonBackupEcmpGroupsCnt),
-      groupIdCache(_groupIdCache) {
+    : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt), groupIdCache(_groupIdCache) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
@@ -890,13 +889,13 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     if (!pfxGrpInfo->hasOverrideNextHops()) {
       // Converting from primary group to merged group
       // decrement primary group count. Note each unmerged
-      // group decrements nonBackupEcmpGroupsCnt only once
+      // group decrements primaryEcmpGroupsCnt only once
       // Since once we encounter this group, we will next
       // update its merge info itr. So for the next pfx
       // pointing to this group, we won't decrement the count
-      --inOutState->nonBackupEcmpGroupsCnt;
+      --inOutState->primaryEcmpGroupsCnt;
       XLOG(DBG2) << "Primary ecmp group decremented to: "
-                 << inOutState->nonBackupEcmpGroupsCnt;
+                 << inOutState->primaryEcmpGroupsCnt;
     }
     pfxGrpInfo->setMergedGroupInfoItr(mitr);
     const auto& [rid, pfx] = ridAndPfx;
@@ -912,16 +911,16 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     // Rest will just queue updates on that same delta
     addNewDelta &= false;
   }
-  // We added one merged group, so increment nonBackupEcmpGroupsCnt
-  ++inOutState->nonBackupEcmpGroupsCnt;
+  // We added one merged group, so increment primaryEcmpGroupsCnt
+  ++inOutState->primaryEcmpGroupsCnt;
   // We got rid of any existing merge sets that were part of this larger
   // merge set
-  inOutState->nonBackupEcmpGroupsCnt -= preExistingMemberMergeSets.size();
+  inOutState->primaryEcmpGroupsCnt -= preExistingMemberMergeSets.size();
   // Compute new candidate merges of merged group + each unmerged group
   computeCandidateMergesForNewMergedGroup(mergeSet);
   XLOG(DBG2) << "Done migrating prefixes to merged group: " << mergeSet
              << ". Incremented primary ecmp group count to : "
-             << inOutState->nonBackupEcmpGroupsCnt;
+             << inOutState->primaryEcmpGroupsCnt;
 }
 
 template <typename AddrT>
@@ -1076,8 +1075,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
-  bool ecmpLimitReached = inOutState->nonBackupEcmpGroupsCnt == maxEcmpGroups_;
+  CHECK_LE(inOutState->primaryEcmpGroupsCnt, maxEcmpGroups_);
+  bool ecmpLimitReached = inOutState->primaryEcmpGroupsCnt == maxEcmpGroups_;
   if (oldRoute) {
     DCHECK(!routeFwdEqual(oldRoute, newRoute));
     /*
@@ -1117,14 +1116,14 @@ void EcmpResourceManager::routeAddedOrUpdated(
           rid, newRoute, idItr, ecmpLimitReached, inOutState);
       // If new group does not have override mode or nhops, increment non
       // backup ecmp group count
-      inOutState->nonBackupEcmpGroupsCnt += grpInfo->hasOverrides() ? 0 : 1;
+      inOutState->primaryEcmpGroupsCnt += grpInfo->hasOverrides() ? 0 : 1;
       XLOG(DBG2) << " Route  " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
                  << " primray ecmp group count "
                  << (grpInfo->hasOverrides() ? "unchanged: "
                                              : "incremented to: ")
-                 << inOutState->nonBackupEcmpGroupsCnt;
+                 << inOutState->primaryEcmpGroupsCnt;
     } else {
       std::optional<GroupIds2ConsolidationInfoItr> mergeGrpItr;
       bool newMergeGrpCreated{false};
@@ -1147,13 +1146,13 @@ void EcmpResourceManager::routeAddedOrUpdated(
       CHECK(grpInserted);
       inOutState->addOrUpdateRoute(
           rid, newRoute, false /* ecmpDemandExceeded*/);
-      inOutState->nonBackupEcmpGroupsCnt +=
+      inOutState->primaryEcmpGroupsCnt +=
           hasOverrides && !newMergeGrpCreated ? 0 : 1;
       XLOG(DBG2) << " Route: " << (oldRoute ? "update " : "add ")
                  << newRoute->str()
                  << " points to new group: " << grpInfo->getID()
                  << " primray ecmp group count incremented to: "
-                 << inOutState->nonBackupEcmpGroupsCnt;
+                 << inOutState->primaryEcmpGroupsCnt;
     }
   } else {
     // Route points to a existing group
@@ -1169,7 +1168,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
     XLOG(DBG4) << " Route  " << (oldRoute ? "update " : "add ")
                << " points to existing group: " << grpInfo->getID()
                << " primary ecmp group count unchanged: "
-               << inOutState->nonBackupEcmpGroupsCnt;
+               << inOutState->primaryEcmpGroupsCnt;
   }
   CHECK(grpInfo);
   auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
@@ -1181,7 +1180,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
     pitr->second->incRouteUsageCount();
   }
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
-  CHECK_LE(inOutState->nonBackupEcmpGroupsCnt, maxEcmpGroups_);
+  CHECK_LE(inOutState->primaryEcmpGroupsCnt, maxEcmpGroups_);
   if (compressionPenaltyThresholdPct_) {
     if (grpInserted && !pitr->second->getMergedGroupInfoItr()) {
       /*
@@ -1388,11 +1387,11 @@ void EcmpResourceManager::routeDeleted(
     if (!routeHasOverrides) {
       // Last reference to this ECMP group gone, check if this group was
       // of primary ECMP group type
-      --inOutState->nonBackupEcmpGroupsCnt;
+      --inOutState->primaryEcmpGroupsCnt;
       XLOG(DBG2) << "Delete route: " << removed->str()
                  << " primary ecmp group count decremented to: "
-                 << inOutState->nonBackupEcmpGroupsCnt
-                 << " Group ID: " << groupId << " removed";
+                 << inOutState->primaryEcmpGroupsCnt << " Group ID: " << groupId
+                 << " removed";
     }
     nextHopGroup2Id_.erase(routeNhops);
     if (mergeInfoItr) {
@@ -1408,7 +1407,7 @@ void EcmpResourceManager::routeDeleted(
     decRouteUsageCount(*groupInfo);
     XLOG(DBG2) << "Delete route: " << removed->str()
                << " primray ecmp group count unchanged: "
-               << inOutState->nonBackupEcmpGroupsCnt << " Group ID: " << groupId
+               << inOutState->primaryEcmpGroupsCnt << " Group ID: " << groupId
                << " route usage count decremented to: "
                << groupInfo->getRouteUsageCount();
   }
@@ -1615,7 +1614,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
     // Nothing to do.
     return std::nullopt;
   }
-  InputOutputState inOutState(0 /*nonBackupEcmpGroupsCnt*/, delta);
+  InputOutputState inOutState(0 /*primaryEcmpGroupsCnt*/, delta);
   CHECK_EQ(inOutState.out.size(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue
@@ -1746,7 +1745,7 @@ EcmpResourceManager::computeConsolidationInfo(
     mergedNhops = std::move(tmpMergeNhops);
   }
   ConsolidationInfo consolidationInfo;
-  XLOG(DBG2) << " Computing consolidation penaties for: " << grpIds;
+  XLOG(DBG2) << " Computing consolidation penalties for: " << grpIds;
   for (auto grpId : grpIds) {
     const auto& grpInfo = nextHopGroupIdToInfo_.ref(grpId);
     CHECK_GE(grpInfo->getNhops().size(), mergedNhops.size());
