@@ -29,6 +29,16 @@ performance tuning. Normally, they will not block FBOSS bring up on new
 platforms at early stages, but they will block platform qualification before
 deploying in production networks.
 
+T0/T1/T2 tests are only a subset of all tests. This will help you work through
+and debug issues to eventually achieve a 100% pass rate. We recommend passing
+all T0 test cases first, **especially for New Platform Onboarding EVT exit**,
+then T1, then T2 to make this process more organized. Then, you can run all
+tests to work on achieving a 100% pass rate. This means not specifying
+T0/T1/T2, a filter file, or a gtest filter so that the binary runs all tests.
+
+Even though we recommend following this process to make testing more organized,
+feel free to run all tests and work through them however you please.
+
 ## T0 Tests
 
 ### Platform Services
