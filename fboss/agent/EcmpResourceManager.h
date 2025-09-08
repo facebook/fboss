@@ -51,6 +51,7 @@ class EcmpResourceManagerConfig {
     return maxHwEcmpGroups_;
   }
   void handleSwitchSettingsDelta(const StateDelta& delta);
+  void handleFlowletSwitchConfigDelta(const StateDelta& delta);
   void validateCfgUpdate(
       uint32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
@@ -64,7 +65,7 @@ class EcmpResourceManagerConfig {
   const uint32_t maxHwEcmpGroups_;
   const std::optional<uint32_t> maxHwEcmpMembers_;
   uint32_t compressionPenaltyThresholdPct_{0};
-  const std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
+  std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
 };
 
 class EcmpResourceManager : public PreUpdateStateModifier {
@@ -113,7 +114,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   void updateDone() override;
   void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
-    return backupEcmpGroupType_;
+    return config_.getBackupEcmpSwitchingMode();
   }
   int32_t getEcmpCompressionThresholdPct() const {
     return config_.getEcmpCompressionThresholdPct();
@@ -347,7 +348,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;
-  std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
   SwitchStats* switchStats_;
   EcmpResourceManagerConfig config_;
 };

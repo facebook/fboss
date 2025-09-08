@@ -240,14 +240,41 @@ void EcmpResourceManagerConfig::handleSwitchSettingsDelta(
   compressionPenaltyThresholdPct_ = newEcmpCompressionThresholdPct.value_or(0);
 }
 
+void EcmpResourceManagerConfig::handleFlowletSwitchConfigDelta(
+    const StateDelta& delta) {
+  if (delta.getFlowletSwitchingConfigDelta().getOld() ==
+      delta.getFlowletSwitchingConfigDelta().getNew()) {
+    return;
+  }
+  std::optional<cfg::SwitchingMode> newMode;
+  if (delta.newState()->getFlowletSwitchingConfig()) {
+    newMode =
+        delta.newState()->getFlowletSwitchingConfig()->getBackupSwitchingMode();
+  }
+  if (backupEcmpGroupType_.has_value() && !newMode.has_value()) {
+    throw FbossError(
+        "Cannot change backup ecmp switching mode from non-null to null");
+  }
+  if (backupEcmpGroupType_ == newMode) {
+    return;
+  }
+
+  XLOG(DBG2) << "Updating backup switching mode from: "
+             << (backupEcmpGroupType_.has_value()
+                     ? apache::thrift::util::enumNameSafe(*backupEcmpGroupType_)
+                     : "None")
+             << " to: " << apache::thrift::util::enumNameSafe(*newMode);
+
+  validateCfgUpdate(getEcmpCompressionThresholdPct(), newMode);
+  backupEcmpGroupType_ = newMode;
+}
+
 EcmpResourceManager::EcmpResourceManager(
     const EcmpResourceManagerConfig& config,
     SwitchStats* stats)
     // We keep a buffer of 2 for transient increment in ECMP groups when
     // pushing updates down to HW
-    : backupEcmpGroupType_(config.getBackupEcmpSwitchingMode()),
-      switchStats_(stats),
-      config_(config) {
+    : switchStats_(stats), config_(config) {
   if (switchStats_) {
     switchStats_->setPrimaryEcmpGroupsExhausted(false);
     switchStats_->setPrimaryEcmpGroupsCount(0);
@@ -312,8 +339,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     return makeRet(delta);
   }
 
-  preUpdateState_ =
-      PreUpdateState(mergedGroups_, nextHopGroup2Id_, backupEcmpGroupType_);
+  preUpdateState_ = PreUpdateState(
+      mergedGroups_, nextHopGroup2Id_, getBackupEcmpSwitchingMode());
 
   handleSwitchSettingsDelta(delta);
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
@@ -355,7 +382,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   }
   if (switchStats_) {
     switchStats_->setPrimaryEcmpGroupsCount(inOutState->primaryEcmpGroupsCnt);
-    auto backupEcmpGroupCount = backupEcmpGroupType_.has_value()
+    auto backupEcmpGroupCount = getBackupEcmpSwitchingMode().has_value()
         ? nextHopGroup2Id_.size() - inOutState->primaryEcmpGroupsCnt
         : 0;
     switchStats_->setBackupEcmpGroupsCount(backupEcmpGroupCount);
@@ -408,7 +435,7 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
         CHECK_EQ(lgroup->hasOverrideNextHops(), rgroup->hasOverrideNextHops());
         return lgroup->cost() > rgroup->cost();
       });
-  if (backupEcmpGroupType_) {
+  if (getBackupEcmpSwitchingMode()) {
     // Reclaiming each backup ECMP group just creates one more primary ECMP
     // group so we can reclaim as many backup groups as we have space for
     // (canReclaim)
@@ -737,7 +764,7 @@ void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
       });
   XLOG(DBG2) << " Will reclaim prefixes pointing to groups: "
              << groupIdsToReclaim;
-  if (backupEcmpGroupType_) {
+  if (getBackupEcmpSwitchingMode()) {
     reclaimBackupGroups(overrideGroupsSorted, groupIdsToReclaim, inOutState);
   } else {
     reclaimMergeGroups(overrideGroupsSorted, groupIdsToReclaim, inOutState);
@@ -1079,7 +1106,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
   if (!grpInfo) {
     CHECK(ecmpDemandExceeded);
     bool insertedGrp{false};
-    if (backupEcmpGroupType_.has_value()) {
+    if (getBackupEcmpSwitchingMode().has_value()) {
       std::tie(grpInfo, insertedGrp) = nextHopGroupIdToInfo_.refOrEmplace(
           nhops2IdItr->second,
           nhops2IdItr->second,
@@ -1113,8 +1140,8 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     bool ecmpDemandExceeded,
     InputOutputState* inOutState,
     bool addNewDelta) {
-  if (ecmpDemandExceeded && backupEcmpGroupType_) {
-    // If ecmpDemandExceeded and we have backupEcmpGroupType_ set,
+  if (ecmpDemandExceeded && getBackupEcmpSwitchingMode()) {
+    // If ecmpDemandExceeded and we have getBackupEcmpSwitchingMode() set,
     // then this group should spillover to backup ecmpType config.
     // For merge group mode, we are not guaranteed which groups
     // will be picked for merge, so we can't assert that the
@@ -1127,7 +1154,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
       curForwardInfo.getAdminDistance(),
       curForwardInfo.getCounterID(),
       curForwardInfo.getClassID(),
-      backupEcmpGroupType_,
+      getBackupEcmpSwitchingMode(),
       std::optional<RouteNextHopSet>(grpInfo->getOverrideNextHops()));
   auto newRoute = route->clone();
   newRoute->setResolved(std::move(newForwardInfo));
@@ -1182,7 +1209,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   InputOutputState inOutState(0, 0, delta, *preUpdateState_);
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!getEcmpCompressionThresholdPct()) {
-    // For backupEcmpGroupType_ reclaim is completed on
+    // For getBackupEcmpSwitchingMode() reclaim is completed on
     // one delta. So LE 2, since reclaim always starts
     // with a new delta. So orig switch state delta +
     // reclaim.
@@ -1750,7 +1777,7 @@ void EcmpResourceManager::updateFailed(
   if (getBackupEcmpSwitchingMode() != preUpdateState_->backupEcmpGroupType) {
     // Throw if we get a failed update involving backup switching mode
     // change. We can make this smarter by
-    // - Reverting backupEcmpGroupType_ setting
+    // - Reverting getBackupEcmpSwitchingMode() setting
     // - Asserting that all prefixes in curState with overrideEcmpMode set
     // match the old backupEcmpGroupType
     // However this adds more code for a use case we don't need to support.
@@ -1764,32 +1791,8 @@ void EcmpResourceManager::updateFailed(
 
 std::optional<EcmpResourceManager::InputOutputState>
 EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
-  if (delta.getFlowletSwitchingConfigDelta().getOld() ==
-      delta.getFlowletSwitchingConfigDelta().getNew()) {
-    return std::nullopt;
-  }
-  std::optional<cfg::SwitchingMode> newMode;
-  if (delta.newState()->getFlowletSwitchingConfig()) {
-    newMode =
-        delta.newState()->getFlowletSwitchingConfig()->getBackupSwitchingMode();
-  }
-  if (backupEcmpGroupType_.has_value() && !newMode.has_value()) {
-    throw FbossError(
-        "Cannot change backup ecmp switching mode from non-null to null");
-  }
-  if (backupEcmpGroupType_ == newMode) {
-    return std::nullopt;
-  }
-
-  XLOG(DBG2) << "Updating backup switching mode from: "
-             << (backupEcmpGroupType_.has_value()
-                     ? apache::thrift::util::enumNameSafe(*backupEcmpGroupType_)
-                     : "None")
-             << " to: " << apache::thrift::util::enumNameSafe(*newMode);
-
-  auto oldBackupEcmpMode = backupEcmpGroupType_;
-  config_.validateCfgUpdate(getEcmpCompressionThresholdPct(), newMode);
-  backupEcmpGroupType_ = newMode;
+  auto oldBackupEcmpMode = getBackupEcmpSwitchingMode();
+  config_.handleFlowletSwitchConfigDelta(delta);
   if (!oldBackupEcmpMode.has_value()) {
     // No backup ecmp type value for old group.
     // Nothing to do.
