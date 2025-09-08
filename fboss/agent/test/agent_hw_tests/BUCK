@@ -219,6 +219,7 @@ cpp_library(
         "AgentAclScaleTests.cpp",
         "AgentEcmpScaleTests.cpp",
         "AgentRouteScaleTests.cpp",
+        "AgentVoqSwitchEcmpCompressionTests.cpp",
         "AgentVoqSwitchScaleTests.cpp",
     ],
     headers = [
@@ -229,6 +230,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
+        "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",

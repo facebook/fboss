@@ -7,6 +7,8 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
+DECLARE_bool(list_production_feature);
+
 namespace facebook::fboss {
 
 class AgentVoqSwitchEcmpCompressionTest
@@ -23,7 +25,6 @@ class AgentVoqSwitchEcmpCompressionTest
   void setCmdLineFlagOverrides() const override {
     AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides();
     FLAGS_enable_ecmp_resource_manager = true;
-    FLAGS_ecmp_width = isDualStage3Q2QMode() ? 2048 : 512;
   }
 
   int numStartRoutes() const {
@@ -67,6 +68,10 @@ class AgentVoqSwitchEcmpCompressionTest
 void AgentVoqSwitchEcmpCompressionTest::SetUp() {
   XLOG(DBG2) << " SetUp start";
   AgentVoqSwitchFullScaleDsfNodesTest::SetUp();
+  if (!getAgentEnsemble()) {
+    CHECK(FLAGS_list_production_feature);
+    return;
+  }
   utility::setupRemoteIntfAndSysPorts(
       getSw(),
       isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
