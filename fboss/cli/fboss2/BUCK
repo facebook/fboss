@@ -294,6 +294,7 @@ cpp_library(
         "commands/show/facebook/fsdb/CmdShowFsdbUtils.cpp",
         "commands/show/facebook/state/CmdShowStateDrain.cpp",
         "commands/show/facebook/techsupport/CmdShowTechSupport.cpp",
+        "commands/show/hwagent/CmdShowHwAgentStatus.cpp",
         "commands/show/lldp/CmdShowLldp.cpp",
         "commands/show/mac/CmdShowMacDetails.cpp",
         "commands/show/ndp/CmdShowNdp.cpp",
