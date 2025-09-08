@@ -234,7 +234,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, rmRouteToUnmergeAndOverflowInSameUpdate) {
   newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
   fib6->addNode(newRoute);
   newState->publish();
-  consolidate(newState);
+  auto deltas = consolidate(newState);
+  // Umerge delta, merge delta, route add delta
+  EXPECT_EQ(deltas.size(), 3);
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 1);
   // New merge set should be selected, since the old one got unbundled
   // in this update.
@@ -271,7 +273,9 @@ TEST_F(
   newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
   fib6->addNode(newRoute);
   newState->publish();
-  consolidate(newState);
+  auto deltas = consolidate(newState);
+  // Umerge delta, merge delta, route add delta
+  EXPECT_EQ(deltas.size(), 3);
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 1);
   // New merge set should be selected, since the old one got unbundled
   // in this update.
@@ -304,7 +308,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateUnnmergedRouteInSameUpdate) {
   newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
   fib6->updateNode(newRoute);
   newState->publish();
-  consolidate(newState);
+  auto deltas = consolidate(newState);
+  // Umerge delta, route update delta
+  EXPECT_EQ(deltas.size(), 2);
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 0);
   assertEndState(sw_->getState(), {});
 }
@@ -336,6 +342,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateMergedRouteInSameUpdate) {
   auto mergedRouteUpdated = makeRoute(*overflowPrefixes.begin(), newNhops);
   fib6->updateNode(std::move(mergedRouteUpdated));
   auto deltas = consolidate(newState);
+  // Merge delta, add route + unmerge delta, route update
   EXPECT_EQ(deltas.size(), 3);
   // No routes should have override nhops
   assertEndState(sw_->getState(), {});

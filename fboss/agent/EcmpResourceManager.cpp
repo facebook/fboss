@@ -1352,27 +1352,6 @@ void EcmpResourceManager::routeDeleted(
     inOutState->deleteRoute(rid, removed);
     return;
   }
-  /*
-   * Cache the removed route from previous state. Its possible that
-   * we may have cleared override nhops info in that state as part
-   * of a previous unmerge. If so we would have accounted for that
-   * as a new primary ECMP group and we need to account for its
-   * removal here.
-   * For e.g. consider merge group [1, 2] pointing to prefixes P1 and P2.
-   * Where before the merge we had P1->G1, P2->G2.
-   * Now imagine we get at route delete for both P1 and P2 in the same update.
-   * In this case when we delete P1, we would delete merge group and restore
-   * P2->G2 mapping. Now this is a primary ECMP group. When we get a delete
-   * for P2, which in turn deletes G2, we should decrement the primary ecmp
-   * group count. But if we look at state of P2 from original state, it will
-   * still be pointing to a merged group. Leading us to not decrement this
-   * count.
-   */
-  auto latestState = inOutState->getCurrentStateDelta().newState();
-  auto removedRouteInLatestState =
-      latestState->getFibs()->getNode(rid)->getFib<AddrT>()->getRouteIf(
-          removed->prefix());
-  CHECK(removedRouteInLatestState);
   if (!isUpdate) {
     /*
      * When route is deleted as part of a update we don't need
@@ -1385,20 +1364,28 @@ void EcmpResourceManager::routeDeleted(
   }
   NextHopGroupId groupId{kMinNextHopGroupId - 1};
   std::optional<GroupIds2ConsolidationInfoItr> mergeInfoItr;
+  bool routeHasOverrides;
   {
     auto pitr =
         prefixToGroupInfo_.find({rid, removed->prefix().toCidrNetwork()});
     CHECK(pitr != prefixToGroupInfo_.end());
     groupId = pitr->second->getID();
+    // Cache group override info before we remove reference to
+    // this group. If this is the last reference and removing
+    // it deletes the group, then
+    // - For a group w/o overrides, we will need to decrement primary ECMP
+    // count. Update candidate merges
+    // - If this group was part of a merged set, we will need to prune it
+    // from the merged set.
     mergeInfoItr = pitr->second->getMergedGroupInfoItr();
+    routeHasOverrides = pitr->second->hasOverrides();
     prefixToGroupInfo_.erase(pitr);
   }
   auto groupInfo = nextHopGroupIdToInfo_.ref(groupId);
   if (!groupInfo) {
     XLOG(DBG2) << "Delete route: " << removed->str() << " all references to "
                << groupId << " are now gone";
-    if (!removedRouteInLatestState->getForwardInfo()
-             .hasOverrideSwitchingModeOrNhops()) {
+    if (!routeHasOverrides) {
       // Last reference to this ECMP group gone, check if this group was
       // of primary ECMP group type
       --inOutState->nonBackupEcmpGroupsCnt;
