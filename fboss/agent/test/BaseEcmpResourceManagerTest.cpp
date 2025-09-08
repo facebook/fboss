@@ -315,7 +315,7 @@ void BaseEcmpResourceManagerTest::assertGroupsAreUnMerged(
   std::for_each(
       unmergedGroups.begin(),
       unmergedGroups.end(),
-      [this, &resourceMgr, expectedCandidateMergeForEachUnmerged](auto gid) {
+      [&resourceMgr, expectedCandidateMergeForEachUnmerged](auto gid) {
         auto candidateMergeToConsolidationInfo =
             resourceMgr.getCandidateMergeConsolidationInfo(gid);
         EXPECT_EQ(
@@ -354,8 +354,7 @@ void BaseEcmpResourceManagerTest::assertMergedGroup(
   std::for_each(
       mergedGroup.begin(),
       mergedGroup.end(),
-      [this,
-       &resourceMgr,
+      [&resourceMgr,
        expectedCandidateMergeForEachMerged,
        &expectedMergeGroupConsInfo](auto gid) {
         auto candidateMergeToConsolidationInfo =
