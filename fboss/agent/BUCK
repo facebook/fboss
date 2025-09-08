@@ -759,12 +759,14 @@ cpp_library(
     name = "ecmp_resource_manager",
     srcs = [
         "EcmpResourceManager.cpp",
+        "EcmpResourceManagerConfig.cpp",
     ],
     exported_deps = [
         ":agent_features",
         ":fib_helpers",
         ":pre_update_state_modifier",
         ":stats",
+        ":switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",

@@ -8,65 +8,18 @@
  *
  */
 #pragma once
-#include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/PreUpdateStateModifier.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/lib/RefMap.h"
-
 #include <memory>
 #include <ostream>
+#include "fboss/agent/EcmpResourceManagerConfig.h"
+#include "fboss/agent/PreUpdateStateModifier.h"
+#include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
 class SwitchStats;
 class NextHopGroupInfo;
-
-class EcmpResourceManagerConfig {
- public:
-  EcmpResourceManagerConfig(
-      uint32_t maxHwEcmpGroups,
-      std::optional<cfg::SwitchingMode> backupEcmpGroupType);
-  EcmpResourceManagerConfig(
-      uint32_t maxHwEcmpGroups,
-      std::optional<uint32_t> maxHwEcmpMembers,
-      std::optional<uint32_t> maxEcmpWidth,
-      int compressionPenaltyThresholdPct);
-  explicit EcmpResourceManagerConfig(uint32_t maxHwEcmpGroups)
-      : EcmpResourceManagerConfig(maxHwEcmpGroups, std::nullopt) {}
-
-  bool ecmpLimitReached(uint32_t primaryEcmpGroups, uint32_t ecmpGroupMembers)
-      const;
-
-  std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
-    return backupEcmpGroupType_;
-  }
-  int32_t getEcmpCompressionThresholdPct() const {
-    return compressionPenaltyThresholdPct_;
-  }
-  uint32_t getMaxPrimaryEcmpGroups() const {
-    return maxHwEcmpGroups_;
-  }
-  void handleSwitchSettingsDelta(const StateDelta& delta);
-  void handleFlowletSwitchConfigDelta(const StateDelta& delta);
-  void validateCfgUpdate(
-      uint32_t compressionPenaltyThresholdPct,
-      const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
-
- private:
-  static uint32_t computeMaxHwEcmpGroups(uint32_t maxHwEcmpGroups);
-  static std::optional<uint32_t> computeMaxHwEcmpMembers(
-      std::optional<uint32_t> maxHwEcmpMembers,
-      std::optional<uint32_t> maxEcmpWidth);
-
-  const uint32_t maxHwEcmpGroups_;
-  const std::optional<uint32_t> maxHwEcmpMembers_;
-  uint32_t compressionPenaltyThresholdPct_{0};
-  std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
-};
+class HwAsic;
 
 class EcmpResourceManager : public PreUpdateStateModifier {
  private:

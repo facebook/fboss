@@ -211,6 +211,7 @@ target_link_libraries(fib_helpers
 
 add_library(ecmp_resource_manager
   fboss/agent/EcmpResourceManager.cpp
+  fboss/agent/EcmpResourceManagerConfig.cpp
 )
 
 target_link_libraries(ecmp_resource_manager
