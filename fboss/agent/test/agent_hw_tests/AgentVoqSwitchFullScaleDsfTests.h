@@ -4,6 +4,7 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
@@ -28,10 +29,13 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
 
  protected:
   int getMaxEcmpWidth() const {
-    // J3 starting to support ECMP width of 2K in 12.x.
-    // Since the test is also running on 11.x, use 512 that's supported on all
-    // SDK versions.
-    return 512;
+    return isDualStage3Q2QMode() ? 2048 : 512;
+  }
+
+  int getMaxEcmpGroup() const {
+    auto groups = checkSameAndGetAsic(getL3Asics())->getMaxEcmpGroups();
+    CHECK(groups.has_value());
+    return *groups;
   }
 
   flat_set<PortDescriptor> getRemoteSysPortDesc() {
@@ -57,7 +61,7 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
     FLAGS_update_stats_interval_s = 120;
     // Allow 100% ECMP resource usage
     FLAGS_ecmp_resource_percentage = 100;
-    FLAGS_ecmp_width = 512;
+    FLAGS_ecmp_width = getMaxEcmpWidth();
   }
 };
 } // namespace facebook::fboss
