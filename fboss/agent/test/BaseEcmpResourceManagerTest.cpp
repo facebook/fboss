@@ -13,6 +13,8 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <functional>
+
 namespace facebook::fboss {
 
 RouteNextHopSet makeNextHops(int n) {
@@ -117,6 +119,53 @@ cfg::SwitchConfig onePortPerIntfConfig(
     cfg.flowletSwitchingConfig() = flowletConfig;
   }
   return cfg;
+}
+
+std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
+    const std::shared_ptr<SwitchState>& in,
+    const std::function<bool(const RouteNextHopEntry&)>&& filter) {
+  std::map<RouteNextHopSet, uint32_t> ecmpGroups2RefCnt;
+  auto fill = [&ecmpGroups2RefCnt, &filter](const auto& fibIn) {
+    for (const auto& [_, route] : std::as_const(*fibIn)) {
+      if (!route->isResolved() ||
+          route->getForwardInfo().normalizedNextHops().size() <= 1) {
+        continue;
+      }
+      if (!filter(route->getForwardInfo())) {
+        auto pitr = ecmpGroups2RefCnt.find(
+            route->getForwardInfo().normalizedNextHops());
+        if (pitr != ecmpGroups2RefCnt.end()) {
+          ++pitr->second;
+          XLOG(DBG4) << "Processed route: " << route->str()
+                     << " primary ECMP groups count unchanged: "
+                     << ecmpGroups2RefCnt.size();
+        } else {
+          ecmpGroups2RefCnt.insert(
+              {route->getForwardInfo().normalizedNextHops(), 1});
+          XLOG(DBG4) << "Processed route: " << route->str()
+                     << " primary ECMP groups count incremented: "
+                     << ecmpGroups2RefCnt.size();
+        }
+      }
+    }
+  };
+  fill(cfib(in));
+  fill(cfib4(in));
+  return ecmpGroups2RefCnt;
+}
+
+std::map<RouteNextHopSet, uint32_t> getPrimaryEcmpTypeGroups2RefCnt(
+    const std::shared_ptr<SwitchState>& in) {
+  return getEcmpGroups2RefCnt(in, [](const RouteNextHopEntry& info) {
+    return info.hasOverrideSwitchingMode();
+  });
+}
+
+std::map<RouteNextHopSet, uint32_t> getBackupEcmpTypeGroups2RefCnt(
+    const std::shared_ptr<SwitchState>& in) {
+  return getEcmpGroups2RefCnt(in, [](const RouteNextHopEntry& info) {
+    return !info.hasOverrideSwitchingMode();
+  });
 }
 
 std::shared_ptr<EcmpResourceManager>
@@ -224,6 +273,21 @@ void BaseEcmpResourceManagerTest::assertResourceMgrCorrectness(
       [this, &resourceMgr](const auto& mgroup) {
         assertMergedGroup(resourceMgr, mgroup);
       });
+  auto primaryEcmpTypeGroups2RefCnt = getPrimaryEcmpTypeGroups2RefCnt(state);
+  auto backupEcmpTypeGroups2RefCnt = getBackupEcmpTypeGroups2RefCnt(state);
+  auto countEcmpMembers = [](const auto& nhops2RefCnt) {
+    auto cnt{0};
+    for (const auto& [nhops, _] : nhops2RefCnt) {
+      cnt += nhops.size();
+    }
+    return cnt;
+  };
+  auto ecmpMembers = countEcmpMembers(primaryEcmpTypeGroups2RefCnt) +
+      countEcmpMembers(backupEcmpTypeGroups2RefCnt);
+  auto [mgrPrimaryEcmpGroups, mgrEcmpMembers] =
+      resourceMgr.getPrimaryEcmpAndMemberCounts();
+  EXPECT_EQ(mgrPrimaryEcmpGroups, primaryEcmpTypeGroups2RefCnt.size());
+  EXPECT_EQ(mgrEcmpMembers, ecmpMembers);
 }
 
 void BaseEcmpResourceManagerTest::assertGroupsAreUnMerged(
@@ -397,30 +461,8 @@ void BaseEcmpResourceManagerTest::assertFibAndGroupsMatch(
 
 void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
     const std::vector<StateDelta>& deltas) const {
-  std::map<RouteNextHopSet, uint32_t> primaryEcmpTypeGroups2RefCnt;
-  for (const auto& [_, route] :
-       std::as_const(*cfib(deltas.begin()->oldState()))) {
-    if (!route->isResolved() ||
-        route->getForwardInfo().normalizedNextHops().size() <= 1) {
-      continue;
-    }
-    if (!route->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
-      auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-          route->getForwardInfo().normalizedNextHops());
-      if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
-        ++pitr->second;
-        XLOG(DBG4) << "Processed route: " << route->str()
-                   << " primary ECMP groups count unchanged: "
-                   << primaryEcmpTypeGroups2RefCnt.size();
-      } else {
-        primaryEcmpTypeGroups2RefCnt.insert(
-            {route->getForwardInfo().normalizedNextHops(), 1});
-        XLOG(DBG4) << "Processed route: " << route->str()
-                   << " primary ECMP groups count incremented: "
-                   << primaryEcmpTypeGroups2RefCnt.size();
-      }
-    }
-  }
+  auto primaryEcmpTypeGroups2RefCnt =
+      getPrimaryEcmpTypeGroups2RefCnt(deltas.begin()->oldState());
   XLOG(DBG2) << " Primary ECMP groups : "
              << primaryEcmpTypeGroups2RefCnt.size();
   // ECMP groups should not exceed the limit.
