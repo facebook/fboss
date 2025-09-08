@@ -25,6 +25,33 @@ class SwitchState;
 class SwitchStats;
 class NextHopGroupInfo;
 
+class EcmpResourceManagerConfig {
+  EcmpResourceManagerConfig(
+      uint32_t maxHwEcmpGroups,
+      std::optional<cfg::SwitchingMode> backupEcmpGroupType);
+  EcmpResourceManagerConfig(
+      uint32_t maxHwEcmpGroups,
+      std::optional<uint32_t> maxHwEcmpMembers,
+      std::optional<uint32_t> maxEcmpWidth,
+      int compressionPenaltyThresholdPct);
+  explicit EcmpResourceManagerConfig(uint32_t maxHwEcmpGroups)
+      : EcmpResourceManagerConfig(maxHwEcmpGroups, std::nullopt) {}
+
+  bool ecmpLimitReached(uint32_t primaryEcmpGroups, uint32_t ecmpGroupMembers)
+      const;
+
+ private:
+  static uint32_t computeMaxHwEcmpGroups(uint32_t maxHwEcmpGroups);
+  static std::optional<uint32_t> computeMaxHwEcmpMembers(
+      std::optional<uint32_t> maxHwEcmpMembers,
+      std::optional<uint32_t> maxEcmpWidth);
+
+  const uint32_t maxHwEcmpGroups_;
+  const std::optional<uint32_t> maxHwEcmpMembers_;
+  const uint32_t compressionPenaltyThresholdPct_{0};
+  const std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
+};
+
 class EcmpResourceManager : public PreUpdateStateModifier {
  public:
   explicit EcmpResourceManager(

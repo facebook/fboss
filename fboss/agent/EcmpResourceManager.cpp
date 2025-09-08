@@ -141,11 +141,49 @@ EcmpResourceManager::NextHopGroupIds nhopGroupIdsDifference(
 }
 } // namespace
 
-const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
-    RouterID rid,
-    const folly::CIDRNetwork& nw) const {
-  auto pitr = prefixToGroupInfo_.find({rid, nw});
-  return pitr == prefixToGroupInfo_.end() ? nullptr : pitr->second.get();
+EcmpResourceManagerConfig::EcmpResourceManagerConfig(
+    uint32_t maxHwEcmpGroups,
+    std::optional<cfg::SwitchingMode> backupEcmpGroupType)
+    : maxHwEcmpGroups_(computeMaxHwEcmpGroups(maxHwEcmpGroups)),
+      backupEcmpGroupType_(backupEcmpGroupType) {}
+
+EcmpResourceManagerConfig::EcmpResourceManagerConfig(
+    uint32_t maxHwEcmpGroups,
+    std::optional<uint32_t> maxHwEcmpMembers,
+    std::optional<uint32_t> maxEcmpWidth,
+    int compressionPenaltyThresholdPct)
+    : maxHwEcmpGroups_(computeMaxHwEcmpGroups(maxHwEcmpGroups)),
+      maxHwEcmpMembers_(
+          computeMaxHwEcmpMembers(maxHwEcmpMembers, maxEcmpWidth)),
+      compressionPenaltyThresholdPct_(compressionPenaltyThresholdPct) {
+  CHECK_LE(compressionPenaltyThresholdPct_, 100);
+}
+
+bool EcmpResourceManagerConfig::ecmpLimitReached(
+    uint32_t primaryEcmpGroups,
+    uint32_t ecmpGroupMembers) const {
+  CHECK_LE(primaryEcmpGroups, maxHwEcmpGroups_);
+  CHECK(!maxHwEcmpMembers_ || ecmpGroupMembers <= *maxHwEcmpMembers_);
+  return primaryEcmpGroups == maxHwEcmpGroups_ ||
+      (maxHwEcmpMembers_.has_value() && ecmpGroupMembers == *maxHwEcmpMembers_);
+}
+
+uint32_t EcmpResourceManagerConfig::computeMaxHwEcmpGroups(
+    uint32_t maxHwEcmpGroups) {
+  return maxHwEcmpGroups - FLAGS_ecmp_resource_manager_make_before_break_buffer;
+}
+
+std::optional<uint32_t> EcmpResourceManagerConfig::computeMaxHwEcmpMembers(
+    std::optional<uint32_t> maxHwEcmpMembers,
+    std::optional<uint32_t> maxEcmpWidth) {
+  CHECK_EQ(maxHwEcmpMembers.has_value(), maxEcmpWidth.has_value());
+  if (maxHwEcmpMembers.has_value()) {
+    return std::nullopt;
+  }
+  int maxMembers = *maxHwEcmpMembers -
+      FLAGS_ecmp_resource_manager_make_before_break_buffer * *maxEcmpWidth;
+  CHECK_GT(maxMembers, 0);
+  return maxMembers;
 }
 
 EcmpResourceManager::EcmpResourceManager(
@@ -172,6 +210,13 @@ EcmpResourceManager::EcmpResourceManager(
     switchStats_->setMergedEcmpGroupsCount(0);
     switchStats_->setMergedEcmpMemberGroupsCount(0);
   }
+}
+
+const NextHopGroupInfo* EcmpResourceManager::getGroupInfo(
+    RouterID rid,
+    const folly::CIDRNetwork& nw) const {
+  auto pitr = prefixToGroupInfo_.find({rid, nw});
+  return pitr == prefixToGroupInfo_.end() ? nullptr : pitr->second.get();
 }
 
 std::vector<StateDelta> EcmpResourceManager::modifyState(
