@@ -101,7 +101,8 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const RouteNextHopSet& nhops) const;
   virtual std::shared_ptr<EcmpResourceManager> makeResourceMgr() const {
     static constexpr auto kEcmpGroupHwLimit = 100;
-    return std::make_shared<EcmpResourceManager>(kEcmpGroupHwLimit);
+    return std::make_shared<EcmpResourceManager>(
+        kEcmpGroupHwLimit, std::optional<cfg::SwitchingMode>());
   };
   std::shared_ptr<EcmpResourceManager> makeResourceMgrWithEcmpLimit(
       int ecmpGroupLimit) const;

@@ -26,6 +26,7 @@ class SwitchStats;
 class NextHopGroupInfo;
 
 class EcmpResourceManagerConfig {
+ public:
   EcmpResourceManagerConfig(
       uint32_t maxHwEcmpGroups,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType);
@@ -40,6 +41,16 @@ class EcmpResourceManagerConfig {
   bool ecmpLimitReached(uint32_t primaryEcmpGroups, uint32_t ecmpGroupMembers)
       const;
 
+  std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
+    return backupEcmpGroupType_;
+  }
+  int32_t getEcmpCompressionThresholdPct() const {
+    return compressionPenaltyThresholdPct_;
+  }
+  uint32_t getMaxPrimaryEcmpGroups() const {
+    return maxHwEcmpGroups_;
+  }
+
  private:
   static uint32_t computeMaxHwEcmpGroups(uint32_t maxHwEcmpGroups);
   static std::optional<uint32_t> computeMaxHwEcmpMembers(
@@ -53,12 +64,31 @@ class EcmpResourceManagerConfig {
 };
 
 class EcmpResourceManager : public PreUpdateStateModifier {
+ private:
+  EcmpResourceManager(
+      const EcmpResourceManagerConfig& config,
+      SwitchStats* stats);
+
  public:
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       int compressionPenaltyThresholdPct = 0,
+      SwitchStats* stats = nullptr)
+      : EcmpResourceManager(
+            EcmpResourceManagerConfig(
+                maxHwEcmpGroups,
+                std::nullopt,
+                std::nullopt,
+                compressionPenaltyThresholdPct),
+            stats) {}
+
+  explicit EcmpResourceManager(
+      uint32_t maxHwEcmpGroups,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
-      SwitchStats* stats = nullptr);
+      SwitchStats* stats = nullptr)
+      : EcmpResourceManager(
+            EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
+            stats) {}
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
@@ -85,7 +115,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     return compressionPenaltyThresholdPct_;
   }
   uint32_t getMaxPrimaryEcmpGroups() const {
-    return maxEcmpGroups_;
+    return config_.getMaxPrimaryEcmpGroups();
   }
 
   struct ConsolidationInfo {
@@ -313,11 +343,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;
-  // Knobs to control resource mgt policy
-  uint32_t maxEcmpGroups_{0};
   int compressionPenaltyThresholdPct_{0};
   std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
   SwitchStats* switchStats_;
+  EcmpResourceManagerConfig config_;
 };
 
 class NextHopGroupInfo {

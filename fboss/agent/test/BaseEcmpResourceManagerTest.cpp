@@ -171,10 +171,12 @@ std::map<RouteNextHopSet, uint32_t> getBackupEcmpTypeGroups2RefCnt(
 std::shared_ptr<EcmpResourceManager>
 BaseEcmpResourceManagerTest::makeResourceMgrWithEcmpLimit(
     int ecmpGroupLimit) const {
-  return std::make_shared<EcmpResourceManager>(
-      ecmpGroupLimit,
-      getEcmpCompressionThresholdPct(),
-      getBackupEcmpSwitchingMode());
+  CHECK(!(getEcmpCompressionThresholdPct() && getBackupEcmpSwitchingMode()));
+  return getBackupEcmpSwitchingMode()
+      ? std::make_shared<EcmpResourceManager>(
+            ecmpGroupLimit, getBackupEcmpSwitchingMode())
+      : std::make_shared<EcmpResourceManager>(
+            ecmpGroupLimit, getEcmpCompressionThresholdPct());
 }
 
 std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(

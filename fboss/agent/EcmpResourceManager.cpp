@@ -170,6 +170,8 @@ bool EcmpResourceManagerConfig::ecmpLimitReached(
 
 uint32_t EcmpResourceManagerConfig::computeMaxHwEcmpGroups(
     uint32_t maxHwEcmpGroups) {
+  CHECK_GT(
+      maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
   return maxHwEcmpGroups - FLAGS_ecmp_resource_manager_make_before_break_buffer;
 }
 
@@ -177,7 +179,7 @@ std::optional<uint32_t> EcmpResourceManagerConfig::computeMaxHwEcmpMembers(
     std::optional<uint32_t> maxHwEcmpMembers,
     std::optional<uint32_t> maxEcmpWidth) {
   CHECK_EQ(maxHwEcmpMembers.has_value(), maxEcmpWidth.has_value());
-  if (maxHwEcmpMembers.has_value()) {
+  if (!maxHwEcmpMembers.has_value()) {
     return std::nullopt;
   }
   int maxMembers = *maxHwEcmpMembers -
@@ -187,20 +189,14 @@ std::optional<uint32_t> EcmpResourceManagerConfig::computeMaxHwEcmpMembers(
 }
 
 EcmpResourceManager::EcmpResourceManager(
-    uint32_t maxHwEcmpGroups,
-    int compressionPenaltyThresholdPct,
-    std::optional<cfg::SwitchingMode> backupEcmpGroupType,
+    const EcmpResourceManagerConfig& config,
     SwitchStats* stats)
     // We keep a buffer of 2 for transient increment in ECMP groups when
     // pushing updates down to HW
-    : maxEcmpGroups_(
-          maxHwEcmpGroups -
-          FLAGS_ecmp_resource_manager_make_before_break_buffer),
-      compressionPenaltyThresholdPct_(compressionPenaltyThresholdPct),
-      backupEcmpGroupType_(backupEcmpGroupType),
-      switchStats_(stats) {
-  CHECK_GT(
-      maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
+    : compressionPenaltyThresholdPct_(config.getEcmpCompressionThresholdPct()),
+      backupEcmpGroupType_(config.getBackupEcmpSwitchingMode()),
+      switchStats_(stats),
+      config_(config) {
   validateCfgUpdate(compressionPenaltyThresholdPct_, backupEcmpGroupType_);
 
   if (switchStats_) {
@@ -669,8 +665,9 @@ void EcmpResourceManager::reclaimMergeGroups(
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, maxEcmpGroups_);
-  auto canReclaim = maxEcmpGroups_ - inOutState->primaryEcmpGroupsCnt;
+  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  auto canReclaim =
+      config_.getMaxPrimaryEcmpGroups() - inOutState->primaryEcmpGroupsCnt;
   if (!canReclaim) {
     XLOG(DBG2) << " Unable to reclaim any non primary groups";
     return;
@@ -1120,17 +1117,17 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
    * This is simple, consolidate will simply run through the routes and
    * populate internal data structures
    * ii. Have both primary and backup ECMP route nhop groups. And primary
-   * ECMP groups == maxEcmpGroups_. As we run through the routes, we will
-   * see a mix of nhop groups, some that are of type primary and others
-   * that are of type backupEcmpGroupType. We record them as such in our
+   * ECMP groups == config_.getMaxPrimaryEcmpGroups(). As we run through the
+   * routes, we will see a mix of nhop groups, some that are of type primary and
+   * others that are of type backupEcmpGroupType. We record them as such in our
    * data structures.  Note that in this replay routes may come in a
    * different order than when we originally got them. However since
    * we are not creating any new backup nhop groups (since
    * num nhop groups of primary type <= maxEcmpGroups) our data structures
    * should simply reflect the state in input state.
    * iii. Have both primary and backup ECMP route nhop groups. And primary
-   * ECMP groups < maxEcmpGroups_. This is similar to ii. except that we
-   * will now be able to reclaim some of the backup nhop groups.
+   * ECMP groups < config_.getMaxPrimaryEcmpGroups(). This is similar to ii.
+   * except that we will now be able to reclaim some of the backup nhop groups.
    * */
   StateDelta delta(std::make_shared<SwitchState>(), curState);
   InputOutputState inOutState(0, 0, delta, *preUpdateState_);
@@ -1172,8 +1169,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, maxEcmpGroups_);
-  bool ecmpLimitReached = inOutState->primaryEcmpGroupsCnt == maxEcmpGroups_;
+  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  bool ecmpLimitReached =
+      inOutState->primaryEcmpGroupsCnt == config_.getMaxPrimaryEcmpGroups();
   if (oldRoute) {
     DCHECK(!routeFwdEqual(oldRoute, newRoute));
     /*
@@ -1298,7 +1296,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
     pitr->second->incRouteUsageCount();
   }
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, maxEcmpGroups_);
+  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   if (compressionPenaltyThresholdPct_) {
     if (grpInserted && !pitr->second->getMergedGroupInfoItr()) {
       /*
@@ -1995,6 +1993,9 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
           switchSettings->getEcmpCompressionThresholdPct();
     }
   }
+  CHECK(
+      !(switchingMode.has_value() &&
+        ecmpCompressionPenaltyThresholPct.value_or(0)));
   if (maxEcmpGroups.has_value()) {
     auto percentage = FLAGS_flowletSwitchingEnable
         ? FLAGS_ars_resource_percentage
@@ -2007,11 +2008,10 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
                        ? apache::thrift::util::enumNameSafe(*switchingMode)
                        : "None");
 
-    ecmpResourceManager = std::make_unique<EcmpResourceManager>(
-        maxEcmps,
-        ecmpCompressionPenaltyThresholPct.value_or(0),
-        switchingMode,
-        stats);
+    ecmpResourceManager = switchingMode
+        ? std::make_unique<EcmpResourceManager>(maxEcmps, switchingMode, stats)
+        : std::make_unique<EcmpResourceManager>(
+              maxEcmps, ecmpCompressionPenaltyThresholPct.value_or(0), stats);
   }
   return ecmpResourceManager;
 }
