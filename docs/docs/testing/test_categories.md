@@ -139,6 +139,18 @@ feel free to run all tests and work through them however you please.
 ```bash file=../fboss/oss/hw_sanity_tests/t1_agent_hw_tests.conf
 ```
 
+### Agent Benchmark Tests
+
+- `sai_tx_slow_path_rate-sai_impl` binary
+- `sai_rx_slow_path_rate-sai_impl` binary
+- `sai_ecmp_shrink_speed-sai_impl` binary
+- `sai_rib_resolution_speed-sai_impl` binary
+- `sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl` binary
+- `sai_fsw_scale_route_add_speed-sai_impl` binary
+- `sai_stats_collection_speed-sai_impl` binary
+- `sai_init_and_exit_100Gx100G-sai_impl` binary
+- `sai_switch_reachability_change_speed-sai_impl` binary
+
 ### SAI Tests
 
 `run_test.py`:
@@ -176,6 +188,22 @@ feel free to run all tests and work through them however you please.
 
 ```bash file=../fboss/oss/hw_sanity_tests/t2_agent_hw_tests.conf
 ```
+
+### Agent Benchmark Tests
+
+- `sai_fsw_scale_route_add_speed-sai_impl` binary
+- `sai_hgrid_du_scale_route_add_speed-sai_impl` binary
+- `sai_th_alpm_scale_route_add_speed-sai_impl` binary
+- `sai_fsw_scale_route_del_speed-sai_impl` binary
+- `sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl` binary
+- `sai_th_alpm_scale_route_del_speed-sai_impl` binary
+- `sai_hgrid_du_scale_route_del_speed-sai_impl` binary
+- `sai_init_and_exit_40Gx10G-sai_impl` binary
+- `sai_init_and_exit_100Gx10G-sai_impl` binary
+- `sai_init_and_exit_100Gx25G-sai_impl` binary
+- `sai_init_and_exit_100Gx50G-sai_impl` binary
+- `sai_init_and_exit_100Gx100G-sai_impl` binary
+- `sai_switch_reachability_change_speed-sai_impl` binary
 
 ### SAI Tests
 
