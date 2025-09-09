@@ -344,3 +344,7 @@ DEFINE_bool(
     cleanup_probed_kernel_data,
     false,
     "Remove probed routes, addresses, rules, and interfaces from the kernel");
+DEFINE_bool(
+    ndp_static_neighbor,
+    false,
+    "Initiate neighbor solicitation for static neighbors");
