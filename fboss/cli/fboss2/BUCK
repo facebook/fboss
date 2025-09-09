@@ -230,6 +230,7 @@ cpp_library(
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCte.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyGoldenPrefixes.h",
         "commands/show/facebook/bgp/ribpolicy/criteria/CmdShowBgpRibPolicyCriteria.h",
+        "commands/show/facebook/bgp/shadowrib/CmdShowBgpShadowRib.h",
         "commands/show/facebook/bgp/stats/CmdShowBgpStatsAttrs.h",
         "commands/show/facebook/bgp/stats/CmdShowBgpStatsEntries.h",
         "commands/show/facebook/bgp/stats/CmdShowBgpStatsPolicy.h",
