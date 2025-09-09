@@ -341,3 +341,35 @@ TEST(ConfigValidatorTest, ValidReadFlashrom) {
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
+
+TEST(ConfigValidatorTest, OobEepromSkipped) {
+  auto config = FwUtilConfig();
+
+  // Create an oob_eeprom config that would normally fail validation
+  // but should be skipped
+  FwConfig oobEepromConfig;
+
+  VersionConfig versionConfig;
+  versionConfig.versionType() = "sysfs";
+  versionConfig.path() = "/sys/bus/i2c/devices/some_bus/eeprom";
+  oobEepromConfig.version() = versionConfig;
+
+  oobEepromConfig.priority() = 1;
+
+  // Add an upgrade config with unsupported ddDynamicBus command
+  // This would normally fail validation, but should be skipped for oob_eeprom
+  std::vector<UpgradeConfig> upgradeConfigs;
+  UpgradeConfig upgradeConfig;
+  upgradeConfig.commandType() =
+      "ddDynamicBus"; // This is not in kValidCommandTypes
+  upgradeConfigs.push_back(upgradeConfig);
+  oobEepromConfig.upgrade() = upgradeConfigs;
+
+  std::map<std::string, FwConfig> fwConfigs;
+  fwConfigs["oob_eeprom"] = oobEepromConfig;
+  config.fwConfigs() = fwConfigs;
+
+  // This should pass despite the invalid ddDynamicBus command type
+  // because oob_eeprom validation is skipped
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
