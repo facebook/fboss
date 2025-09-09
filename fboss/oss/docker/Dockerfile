@@ -33,6 +33,8 @@ RUN dnf install gperf libcap-devel libmount-devel -y
 RUN dnf install gcc-toolset-12 -y
 RUN echo "source /opt/rh/gcc-toolset-12/enable" >> ~/.bashrc
 
+RUN rm -rf /var/FBOSS/fboss/*
+
 # The following libraries are needed for building Broadcom SDK
 RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel
 # Perl modules needed for Broadcom SDK build
