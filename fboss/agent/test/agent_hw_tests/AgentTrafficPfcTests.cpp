@@ -952,21 +952,24 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
   auto setup = [&]() {
     setupConfigAndEcmpTraffic(portId, txOffPortId, ip);
     setupWatchdog({portId}, true /* enable watchdog */);
+    triggerPfcDeadlockDetection(portId, txOffPortId, ip);
   };
   auto verify = [&]() {
     auto [deadlockCtrBefore, recoveryCtrBefore] =
         getPfcDeadlockCounters(portId);
     auto [globalDeadlockBefore, globalRecoveryBefore] =
         getSwitchPfcDeadlockCounters();
-    triggerPfcDeadlockDetection(portId, txOffPortId, ip);
     validatePfcWatchdogCountersIncrement(
         portId, deadlockCtrBefore, recoveryCtrBefore);
     validateGlobalPfcWatchdogCountersIncrement(
         globalDeadlockBefore, globalRecoveryBefore);
+    // Don't turn off traffic -- we want to keep the deadlock going during WB.
+  };
+  auto verifyPostWb = [&]() {
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
     waitForPfcDeadlocksToSettle(portId);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWb);
 }
 
 // intent of this test is to setup watchdog for PFC
