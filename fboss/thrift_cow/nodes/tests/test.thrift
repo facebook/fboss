@@ -39,6 +39,7 @@ struct ChildStruct {
   5: i32 leafI32;
   6: optional TestEnum optionalEnum;
   7: set<string> childSet;
+  8: optional TestUnion optionalUnion;
 }
 
 struct TestStruct {
