@@ -182,13 +182,14 @@ bool PortManager::getSdkState(const std::string& filename) const {
   return phyManager_->getSdkState(filename);
 }
 
-std::string PortManager::getPortInfo(const std::string& portName) {
+std::string PortManager::getPortInfo(const std::string& portNameStr) {
   if (!phyManager_) {
     return "";
   }
-  auto swPort = getPortIDByPortName(portName);
+  auto swPort = getPortIDByPortName(portNameStr);
   if (!swPort.has_value()) {
-    throw FbossError(folly::sformat("getPortInfo: Invalid port {}", portName));
+    throw FbossError(
+        folly::sformat("getPortInfo: Invalid port {}", portNameStr));
   }
 
   return phyManager_->getPortInfoStr(PortID(swPort.value()));
@@ -206,7 +207,7 @@ void PortManager::setPortAdminState(
 
 void PortManager::getSymbolErrorHistogram(
     CdbDatapathSymErrHistogram& symErr,
-    const std::string& portName) {}
+    const std::string& portNameStr) {}
 
 const std::set<std::string> PortManager::getPortNames(
     TransceiverID tcvrId) const {
@@ -377,13 +378,14 @@ void PortManager::programExternalPhyPort(
              << ", needResetDataPath=" << xPhyNeedResetDataPath;
 }
 
-phy::PhyInfo PortManager::getPhyInfo(const std::string& portName) {
+phy::PhyInfo PortManager::getPhyInfo(const std::string& portNameStr) {
   if (!phyManager_) {
     return phy::PhyInfo();
   }
-  auto swPort = getPortIDByPortName(portName);
+  auto swPort = getPortIDByPortName(portNameStr);
   if (!swPort.has_value()) {
-    throw FbossError(folly::sformat("getPhyInfo: Invalid port {}", portName));
+    throw FbossError(
+        folly::sformat("getPhyInfo: Invalid port {}", portNameStr));
   }
   return phyManager_->getPhyInfo(PortID(swPort.value()));
 }
@@ -463,7 +465,7 @@ std::vector<PortID> PortManager::getAllPlatformPorts(
   return {};
 }
 
-void PortManager::publishLinkSnapshots(const std::string& portName) {}
+void PortManager::publishLinkSnapshots(const std::string& portNameStr) {}
 
 void PortManager::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
@@ -504,12 +506,12 @@ void PortManager::clearPortPrbsStats(
     phy::PortComponent component) {}
 
 void PortManager::setInterfacePrbs(
-    const std::string& portName,
+    const std::string& portNameStr,
     phy::PortComponent component,
     const prbs::InterfacePrbsState& state) {}
 
 phy::PrbsStats PortManager::getInterfacePrbsStats(
-    const std::string& portName,
+    const std::string& portNameStr,
     phy::PortComponent component) const {
   return phy::PrbsStats();
 }
@@ -519,7 +521,7 @@ void PortManager::getAllInterfacePrbsStats(
     phy::PortComponent component) const {}
 
 void PortManager::clearInterfacePrbsStats(
-    const std::string& portName,
+    const std::string& portNameStr,
     phy::PortComponent component) {}
 
 void PortManager::bulkClearInterfacePrbsStats(
