@@ -63,14 +63,14 @@ class CmdShowHwAgentStatus
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 
   int64_t getCounterValue(
-      std::map<std::string, int64_t> counters,
+      const std::map<std::string, int64_t>& counters,
       int switchIndex,
       const std::string& counterName);
 
   RetType createModel(
       std::map<int16_t, facebook::fboss::HwAgentEventSyncStatus>& hwAgentStatus,
       MultiSwitchRunState& runStates,
-      struct SwHwAgentCounters FBSwHwCounters);
+      const struct SwHwAgentCounters& FBSwHwCounters);
 
   std::string getRunStateStr(facebook::fboss::SwitchRunState runState);
 };

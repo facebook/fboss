@@ -62,7 +62,7 @@ RetType CmdShowHwAgentStatus::queryClient(const HostInfo& hostInfo) {
   client->sync_getHwAgentConnectionStatus(hwAgentStatus);
   MultiSwitchRunState runState;
   client->sync_getMultiSwitchRunState(runState);
-  auto numSwitches = runState.hwIndexToRunState()->size();
+  auto numSwitches = static_cast<int>(runState.hwIndexToRunState()->size());
   struct SwHwAgentCounters swHwAgentCounters;
   counters_->getAgentCounters(hostInfo, numSwitches, swHwAgentCounters);
   return createModel(hwAgentStatus, runState, swHwAgentCounters);
@@ -137,7 +137,7 @@ void CmdShowHwAgentStatus::printOutput(
 }
 
 int64_t CmdShowHwAgentStatus::getCounterValue(
-    std::map<std::string, int64_t> counters,
+    const std::map<std::string, int64_t>& counters,
     int switchIndex,
     const std::string& counterName) {
   /* Test if the counter names have ".". If it still has ".." fallback to old
@@ -147,14 +147,14 @@ int64_t CmdShowHwAgentStatus::getCounterValue(
    */
   if (counters.contains(
           folly::to<std::string>("switch.", switchIndex, ".", counterName))) {
-    return counters[folly::to<std::string>(
-        "switch.", switchIndex, ".", counterName)];
+    return counters.at(
+        folly::to<std::string>("switch.", switchIndex, ".", counterName));
   } else if (counters.contains(folly::to<std::string>(
                  "switch.", switchIndex, "..", counterName))) {
-    return counters[folly::to<std::string>(
-        "switch.", switchIndex, "..", counterName)];
+    return counters.at(
+        folly::to<std::string>("switch.", switchIndex, "..", counterName));
   } else if (counters.contains(counterName)) {
-    return counters[counterName];
+    return counters.at(counterName);
   } else {
     return 0;
   }
@@ -163,7 +163,7 @@ int64_t CmdShowHwAgentStatus::getCounterValue(
 RetType CmdShowHwAgentStatus::createModel(
     std::map<int16_t, facebook::fboss::HwAgentEventSyncStatus>& hwAgentStatus,
     MultiSwitchRunState& runStates,
-    struct SwHwAgentCounters FBSwHwCounters) {
+    const struct SwHwAgentCounters& FBSwHwCounters) {
   RetType model;
 
   int switchIndex = 0;
@@ -188,42 +188,60 @@ RetType CmdShowHwAgentStatus::createModel(
                         .value());
     hwStatusEntry.linkEventsReceived() = getCounterValue(
         FBSwHwCounters.FBSwCounters, switchIndex, "link_event_received.sum");
-    hwStatusEntry.linkEventsSent() = getCounterValue(
-        FBSwHwCounters.FBHwCountersVec[switchIndex],
-        switchIndex,
-        "LinkChangeEventThriftSyncer.events_sent.sum");
+    hwStatusEntry.linkEventsSent() =
+        (switchIndex < static_cast<int>(FBSwHwCounters.FBHwCountersVec.size()))
+        ? getCounterValue(
+              FBSwHwCounters.FBHwCountersVec[switchIndex],
+              switchIndex,
+              "LinkChangeEventThriftSyncer.events_sent.sum")
+        : 0;
     hwStatusEntry.txPktEventsSent() = getCounterValue(
         FBSwHwCounters.FBSwCounters, switchIndex, "tx_pkt_event_sent.sum");
-    hwStatusEntry.txPktEventsReceived() = getCounterValue(
-        FBSwHwCounters.FBHwCountersVec[switchIndex],
-        switchIndex,
-        "TxPktEventThriftSyncer.events_received.sum");
+    hwStatusEntry.txPktEventsReceived() =
+        (switchIndex < static_cast<int>(FBSwHwCounters.FBHwCountersVec.size()))
+        ? getCounterValue(
+              FBSwHwCounters.FBHwCountersVec[switchIndex],
+              switchIndex,
+              "TxPktEventThriftSyncer.events_received.sum")
+        : 0;
     hwStatusEntry.rxPktEventsReceived() = getCounterValue(
         FBSwHwCounters.FBSwCounters, switchIndex, "rx_pkt_event_received.sum");
-    hwStatusEntry.rxPktEventsSent() = getCounterValue(
-        FBSwHwCounters.FBHwCountersVec[switchIndex],
-        switchIndex,
-        "RxPktEventThriftSyncer.events_sent.sum");
+    hwStatusEntry.rxPktEventsSent() =
+        (switchIndex < static_cast<int>(FBSwHwCounters.FBHwCountersVec.size()))
+        ? getCounterValue(
+              FBSwHwCounters.FBHwCountersVec[switchIndex],
+              switchIndex,
+              "RxPktEventThriftSyncer.events_sent.sum")
+        : 0;
     hwStatusEntry.fdbEventsReceived() = getCounterValue(
         FBSwHwCounters.FBSwCounters, switchIndex, "fdb_event_received.sum");
-    hwStatusEntry.fdbEventsSent() = getCounterValue(
-        FBSwHwCounters.FBHwCountersVec[switchIndex],
-        switchIndex,
-        "FdbEventThriftSyncer.events_sent.sum");
+    hwStatusEntry.fdbEventsSent() =
+        (switchIndex < static_cast<int>(FBSwHwCounters.FBHwCountersVec.size()))
+        ? getCounterValue(
+              FBSwHwCounters.FBHwCountersVec[switchIndex],
+              switchIndex,
+              "FdbEventThriftSyncer.events_sent.sum")
+        : 0;
     hwStatusEntry.HwSwitchStatsEventsReceived() = getCounterValue(
         FBSwHwCounters.FBSwCounters, switchIndex, "stats_event_received.sum");
-    hwStatusEntry.HwSwitchStatsEventsSent() = getCounterValue(
-        FBSwHwCounters.FBHwCountersVec[switchIndex],
-        switchIndex,
-        "HwSwitchStatsSinkClient.events_sent.sum");
+    hwStatusEntry.HwSwitchStatsEventsSent() =
+        (switchIndex < static_cast<int>(FBSwHwCounters.FBHwCountersVec.size()))
+        ? getCounterValue(
+              FBSwHwCounters.FBHwCountersVec[switchIndex],
+              switchIndex,
+              "HwSwitchStatsSinkClient.events_sent.sum")
+        : 0;
     hwStatusEntry.switchReachabilityChangeEventsReceived() = getCounterValue(
         FBSwHwCounters.FBSwCounters,
         switchIndex,
         "switch_reachability_change_event_received.sum");
-    hwStatusEntry.switchReachabilityChangeEventsSent() = getCounterValue(
-        FBSwHwCounters.FBHwCountersVec[switchIndex],
-        switchIndex,
-        "SwitchReachabilityChangeEventThriftSyncer.events_sent.sum");
+    hwStatusEntry.switchReachabilityChangeEventsSent() =
+        (switchIndex < static_cast<int>(FBSwHwCounters.FBHwCountersVec.size()))
+        ? getCounterValue(
+              FBSwHwCounters.FBHwCountersVec[switchIndex],
+              switchIndex,
+              "SwitchReachabilityChangeEventThriftSyncer.events_sent.sum")
+        : 0;
     model.hwAgentStatusEntries()->push_back(hwStatusEntry);
     switchIndex++;
   }
