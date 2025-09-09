@@ -48,6 +48,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/thrift_cow/nodes:nodes",

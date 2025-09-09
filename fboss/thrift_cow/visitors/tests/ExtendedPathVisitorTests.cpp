@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -502,6 +503,68 @@ TYPED_TEST(ExtendedPathVisitorTests, HybridStructAccess) {
 
     ExtPathVisitorOptions options;
     visited.clear();
+    RootExtendedPathVisitor::visit(
+        *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+    EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+  }
+}
+
+TYPED_TEST(ExtendedPathVisitorTests, HybridMapAccess) {
+  auto structA = createTestStruct();
+  auto nodeA = this->initNode(structA);
+
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
+  auto processPath = [&visited](auto&& path, auto&& node) {
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+  };
+  // hybridStruct
+  {
+    folly::dynamic expectedFollyDynamicValue;
+    facebook::thrift::to_dynamic(
+        expectedFollyDynamicValue,
+        structA.hybridStruct().value(),
+        facebook::thrift::dynamic_format::JSON_1);
+    auto path = ext_path_builder::raw("hybridStruct").get();
+    std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+        {{"hybridStruct"}, expectedFollyDynamicValue}};
+
+    ExtPathVisitorOptions options;
+    RootExtendedPathVisitor::visit(
+        *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
+    EXPECT_THAT(visited, ::testing::ContainerEq(expected));
+  }
+}
+
+TYPED_TEST(ExtendedPathVisitorTests, HybridMapRegexAccess) {
+  TestStruct structA = createSimpleTestStruct();
+  auto expectedValue = *structA.hybridMapOfI32ToStruct();
+
+  ParentTestStruct root;
+  root.mapOfI32ToMapOfStruct() = {{1, {{"key1", std::move(structA)}}}};
+  auto nodeA = this->initNode(root);
+
+  std::set<std::pair<std::vector<std::string>, folly::dynamic>> visited;
+  auto processPath = [&visited](auto&& path, auto&& node) {
+    visited.emplace(std::make_pair(path, node.toFollyDynamic()));
+  };
+  // regex path ending in hybrid map
+  {
+    EXPECT_TRUE(expectedValue.contains(20));
+    folly::dynamic expectedFollyDynamicValue;
+    facebook::thrift::to_dynamic(
+        expectedFollyDynamicValue,
+        expectedValue,
+        facebook::thrift::dynamic_format::JSON_1);
+    auto path = ext_path_builder::raw("mapOfI32ToMapOfStruct")
+                    .raw("1")
+                    .any()
+                    .raw("hybridMapOfI32ToStruct")
+                    .get();
+    std::set<std::pair<std::vector<std::string>, folly::dynamic>> expected = {
+        {{"mapOfI32ToMapOfStruct", "1", "key1", "hybridMapOfI32ToStruct"},
+         expectedFollyDynamicValue}};
+
+    ExtPathVisitorOptions options;
     RootExtendedPathVisitor::visit(
         *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
     EXPECT_THAT(visited, ::testing::ContainerEq(expected));

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <folly/logging/xlog.h>
 #include <type_traits>
 #include "folly/Conv.h"
 
@@ -349,6 +350,23 @@ struct ExtendedPathVisitor<
       epv_detail::ExtPathIter cursor)
     requires(!is_cow_type_v<Node> && !is_field_type_v<Node>)
   {
+    if (cursor == params.end) {
+      SerializableWrapper<TC, std::remove_const_t<Node>> wrapper(
+          *const_cast<std::remove_const_t<Node>*>(&node));
+      try {
+        params.visitorFn(params.path, wrapper);
+      } catch (const std::exception& ex) {
+        std::string message = folly::to<std::string>(
+            "ExtendedPathVisitor exception: ",
+            epv_detail::makeVisitedPathString(
+                params.begin, params.end, cursor, params.path),
+            ", visitorFn exception: ",
+            ex.what());
+        throw std::runtime_error(message);
+      }
+      return;
+    }
+
     const auto& elem = *cursor++;
     if (elem.raw()) {
       using KeyT = typename folly::remove_cvref_t<decltype(node)>::key_type;
@@ -381,6 +399,11 @@ struct ExtendedPathVisitor<
       epv_detail::ExtPathIter cursor)
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
+    if (cursor == params.end) {
+      ExtendedPathVisitor<TC>::visit(node.ref(), params, cursor);
+      return;
+    }
+
     const auto& elem = *cursor++;
     if (elem.raw()) {
       using KeyT =
@@ -636,6 +659,11 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       epv_detail::ExtPathIter cursor)
     requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
   {
+    if (cursor == params.end) {
+      ExtendedPathVisitor<TC>::visit(node.ref(), params, cursor);
+      return;
+    }
+
     auto& tObj = node.ref();
     using T = typename Node::ThriftType;
     using Members = typename apache::thrift::reflect_struct<T>::members;
