@@ -1548,6 +1548,10 @@ struct Interface {
 
   /* valid only for port type of interface */
   17: optional i32 portID;
+  /* valid only for port type of interface
+   * These fields contains information of remote GPU */
+  18: optional string desiredPeerName;
+  19: optional string desiredPeerAddressIPv6;
 }
 
 struct StaticRouteWithNextHops {

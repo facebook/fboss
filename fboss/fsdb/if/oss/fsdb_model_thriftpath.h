@@ -16080,7 +16080,9 @@ std::pair<strings::dhcpRelayAddressV6, Child<::std::string, ::apache::thrift::ty
 std::pair<strings::dhcpRelayOverridesV4, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::dhcpRelayOverridesV6, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
-std::pair<strings::portID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::portID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::desiredPeerName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::desiredPeerAddressIPv6, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -16097,7 +16099,9 @@ std::pair<strings::portID, Child<::std::int32_t, ::apache::thrift::type_class::i
    std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::intfID, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::routerID, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -16115,7 +16119,9 @@ std::pair<strings::dhcpRelayAddressV6, std::integral_constant<apache::thrift::fi
 std::pair<strings::dhcpRelayOverridesV4, std::integral_constant<apache::thrift::field_id_t, 14>>,
 std::pair<strings::dhcpRelayOverridesV6, std::integral_constant<apache::thrift::field_id_t, 15>>,
 std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 16>>,
-std::pair<strings::portID, std::integral_constant<apache::thrift::field_id_t, 17>>>::template type_of<Name>;
+std::pair<strings::portID, std::integral_constant<apache::thrift::field_id_t, 17>>,
+std::pair<strings::desiredPeerName, std::integral_constant<apache::thrift::field_id_t, 18>>,
+std::pair<strings::desiredPeerAddressIPv6, std::integral_constant<apache::thrift::field_id_t, 19>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -16138,6 +16144,8 @@ std::pair<strings::portID, std::integral_constant<apache::thrift::field_id_t, 17
     STRUCT_CHILD_GETTERS(dhcpRelayOverridesV6, 15);
     STRUCT_CHILD_GETTERS(scope, 16);
     STRUCT_CHILD_GETTERS(portID, 17);
+    STRUCT_CHILD_GETTERS(desiredPeerName, 18);
+    STRUCT_CHILD_GETTERS(desiredPeerAddressIPv6, 19);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -16158,6 +16166,8 @@ std::pair<strings::portID, std::integral_constant<apache::thrift::field_id_t, 17
     else if constexpr (__id == 15) { return dhcpRelayOverridesV6(); }
     else if constexpr (__id == 16) { return scope(); }
     else if constexpr (__id == 17) { return portID(); }
+    else if constexpr (__id == 18) { return desiredPeerName(); }
+    else if constexpr (__id == 19) { return desiredPeerAddressIPv6(); }
   }
 
   template <typename T, T... Values>
