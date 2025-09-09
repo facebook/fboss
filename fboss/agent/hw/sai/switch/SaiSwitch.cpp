@@ -3248,10 +3248,7 @@ void SaiSwitch::initStoreAndManagersLocked(
       }
     }
 
-    if (!getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::DEBUG_COUNTERS_NEED_PORTS)) {
-      managerTable_->debugCounterManager().setupDebugCounters();
-    }
+    managerTable_->debugCounterManager().setupDebugCounters();
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::COUNTER_REFRESH_INTERVAL)) {
       managerTable_->switchManager().setupCounterRefreshInterval();
@@ -4136,13 +4133,6 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 
     } break;
     case SwitchRunState::CONFIGURED: {
-      if (getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::DEBUG_COUNTERS_NEED_PORTS) &&
-          getBootType() == BootType::COLD_BOOT) {
-        /* SDK implements debug counters as ACL entries, this needs ports must
-         * be created before setting up debug counters */
-        managerTable_->debugCounterManager().setupDebugCounters();
-      }
       /*
        * SDK can notify FBOSS of an error condition via callback. For some
        * scenarios e.g. RX FIFO stuck, Firmware isolation etc., to further
@@ -4800,12 +4790,6 @@ void SaiSwitch::processAclTableGroupDelta(
 }
 
 void SaiSwitch::initialStateApplied() {
-  if (getBootType() == BootType::WARM_BOOT &&
-      getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::DEBUG_COUNTERS_NEED_PORTS)) {
-    // claim debug counters
-    managerTable_->debugCounterManager().setupDebugCounters();
-  }
   managerTable_->fdbManager().removeUnclaimedDynanicEntries();
   managerTable_->hashManager().removeUnclaimedDefaultHash();
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
