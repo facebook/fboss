@@ -516,6 +516,22 @@ class AgentTunnelMgrTest : public AgentHwTest {
       EXPECT_TRUE(
           output.find(folly::to<std::string>(searchIntfIp)) !=
           std::string::npos);
+
+      // Additional check for fboss routes in all tables
+      if (isIPv4) {
+        cmd = folly::to<std::string>("ip route list table all | grep fboss");
+      } else {
+        cmd = folly::to<std::string>("ip -6 route list table all | grep fboss");
+      }
+
+      output = runShellCmd(cmd);
+
+      XLOG(DBG2) << "checkKernelEntriesExist Additional Cmd: " << cmd;
+      XLOG(DBG2) << "checkKernelEntriesExist Additional Output: \n"
+                 << output << "\n";
+
+      EXPECT_TRUE(
+          output.find(folly::to<std::string>("fboss")) != std::string::npos);
     }
   }
 
