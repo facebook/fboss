@@ -416,7 +416,7 @@ RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
     Ecmp,
     FullUdf)
 
-RUN_HW_LOAD_BALANCER_TEST_CPU(AgentLoadBalancerTestV6ArsSpray, Ecmp, Full)
-RUN_HW_LOAD_BALANCER_TEST_CPU(AgentLoadBalancerTestV6EcmpSpray, Ecmp, Full)
+RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6ArsSpray, Ecmp, Full)
+RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6EcmpSpray, Ecmp, Full)
 
 } // namespace facebook::fboss
