@@ -1908,16 +1908,27 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
   return ecmpResourceManager;
 }
 
+std::string EcmpResourceManager::ConsolidationInfo::str() const {
+  std::stringstream ss;
+  ss << " Num Merged Nhops: " << mergedNhops.size() << std::endl;
+  ss << " Penalties:  " << std::endl;
+  for (const auto& [gid, penalty] : groupId2Penalty) {
+    ss << " gid:  " << gid << " penalty: " << penalty << std::endl;
+  }
+  return ss.str();
+}
+
+std::string EcmpResourceManager::ConsolidationInfo::verboseStr() const {
+  std::stringstream ss;
+  ss << str();
+  ss << " Merged Nhops: " << mergedNhops;
+  return ss.str();
+}
+
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::ConsolidationInfo& info) {
-  std::stringstream ss;
-  ss << "Nhops: " << info.mergedNhops << std::endl;
-  ss << " Penalties:  " << std::endl;
-  for (const auto& [gid, penalty] : info.groupId2Penalty) {
-    ss << " gid:  " << gid << " penalty: " << penalty << std::endl;
-  }
-  os << ss.str();
+  os << info.str();
   return os;
 }
 

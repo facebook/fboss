@@ -82,6 +82,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       return std::tie(mergedNhops, groupId2Penalty) ==
           std::tie(other.mergedNhops, other.groupId2Penalty);
     }
+    std::string str() const;
+    std::string verboseStr() const;
     RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
