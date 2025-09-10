@@ -273,7 +273,7 @@ class AgentMirroringTest : public AgentHwTest {
     auto mirrorPortPktStatsBefore = getLatestPortStats(mirrorToPort);
 
     auto trafficPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
-    auto mirroredPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
+    auto mirroredPortPktsBefore = *mirrorPortPktStatsBefore.outUnicastPkts_();
 
     this->sendPackets(1, payloadSize);
 
