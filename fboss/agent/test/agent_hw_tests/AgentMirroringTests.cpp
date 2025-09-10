@@ -212,18 +212,9 @@ class AgentMirroringTest : public AgentHwTest {
     ttl.mask() = 0xFF;
     aclEntry.ttl() = ttl;
     utility::addAclEntry(cfg, aclEntry, utility::kDefaultAclTable());
-
-    cfg::MatchAction matchAction = cfg::MatchAction();
-    if (mirrorName == utility::kIngressErspan) {
-      matchAction.ingressMirror() = mirrorName;
-    } else {
-      matchAction.egressMirror() = mirrorName;
-    }
-    cfg::MatchToAction matchToAction = cfg::MatchToAction();
-    matchToAction.matcher() = aclEntryName;
-    matchToAction.action() = matchAction;
-    cfg->dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
-    cfg->dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
+    auto counterName = aclEntryName + "_counter";
+    utility::addAclMirrorAction(
+        cfg, aclEntryName, counterName, mirrorName, true);
   }
 
   void verifyMirrorProgrammed(
