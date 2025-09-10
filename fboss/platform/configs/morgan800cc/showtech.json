@@ -1,3 +1,7 @@
 {
-  "i2cBusIgnore": []
+  "i2cBusIgnore": [],
+  "psus": [
+    "/run/devmap/sensors/PDB0_PSU_0X58",
+    "/run/devmap/sensors/PDB1_PSU_0X58"
+  ]
 }
