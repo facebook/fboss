@@ -1,10 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 //
 #include "fboss/agent/EcmpResourceManager.h"
-#include "fboss/agent/FabricConnectivityManager.h"
-#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.h"
-#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 DECLARE_bool(list_production_feature);
@@ -21,6 +19,7 @@ class AgentVoqSwitchEcmpCompressionTest
     return cfg;
   }
   void SetUp() override;
+  void TearDown() override;
 
   void setCmdLineFlagOverrides() const override {
     AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides();
@@ -91,6 +90,15 @@ void AgentVoqSwitchEcmpCompressionTest::SetUp() {
   XLOG(DBG2) << " Programming starting routes";
   ecmpHelper.programRoutes(&routeUpdater, nhops, prefixes);
   XLOG(DBG2) << " Programming starting routes done";
+}
+
+void AgentVoqSwitchEcmpCompressionTest::TearDown() {
+  if (!getAgentEnsemble()) {
+    CHECK(FLAGS_list_production_feature);
+    return;
+  }
+  assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+  AgentVoqSwitchFullScaleDsfNodesTest::TearDown();
 }
 
 TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
