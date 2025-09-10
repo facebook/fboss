@@ -183,6 +183,8 @@ void TunManager::addProbedAddr(
     uint8_t mask) {
   for (auto& intf : intfs_) {
     if (intf.second->getIfIndex() == ifIndex) {
+      XLOG(DBG2) << "Adding probed address: " << addr.str() << "/"
+                 << static_cast<int>(mask) << " @ index " << ifIndex;
       intf.second->addAddress(addr, mask);
       return;
     }
@@ -649,6 +651,9 @@ void TunManager::linkProcessor(struct nl_object* obj, void* data) {
     return;
   }
 
+  XLOG(DBG2) << "Adding TUN interface: " << name << " @ index "
+             << rtnl_link_get_ifindex(link);
+
   static_cast<TunManager*>(data)->addExistingIntf(
       std::string(name), rtnl_link_get_ifindex(link));
 }
@@ -757,6 +762,11 @@ void TunManager::deleteAllProbedData() {
   for (const auto& probedRoute : probedRoutes_) {
     if (probedRoute.ifIndex > 0) {
       ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
+      XLOG(DBG2) << "Created mapping: ifIndex " << probedRoute.ifIndex
+                 << " -> tableId " << probedRoute.tableId;
+    } else {
+      XLOG(DBG2) << "Skipping route & source-rule cleanup for table "
+                 << probedRoute.tableId << " (no ifindex)";
     }
   }
 
