@@ -576,6 +576,7 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
     const std::unordered_map<std::string, std::vector<std::string>>&
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice,
+    const std::unordered_map<std::string, cfg::DsfNode>& switchNameToDsfNode,
     bool verbose) {
   CHECK(
       inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTRA ||
@@ -607,8 +608,30 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
 
   auto inputLinkFailure = getLinkFailure(
       inputNeighbors, neighborToLinkFailure, portToVirtualDevice);
+
+  std::vector<std::string> outputNeighbors;
+  auto dstDsfNodeIter = switchNameToDsfNode.find(dstSwitchName);
+  if (dstDsfNodeIter == switchNameToDsfNode.end()) {
+    throw std::runtime_error("No dsfNode Found for " + dstSwitchName);
+  }
+
+  if (inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_SDSW_INTER) {
+    auto dstClusterID = dstDsfNodeIter->second.clusterId();
+    CHECK(dstClusterID.has_value());
+    outputNeighbors =
+        getFdswsInCluster(dstClusterID.value(), switchNameToDsfNode);
+  } else if (
+      inputBalanceDestType == InputBalanceDestType::DUAL_STAGE_FDSW_INTER) {
+    outputNeighbors = getSdswsInCluster(switchNameToDsfNode);
+  } else {
+    // DUAL_STAGE_FDSW_INTRA
+    outputNeighbors = {dstSwitchName};
+  }
+  if (outputNeighbors.empty()) {
+    throw std::runtime_error("Unexpected empty output neighbor.");
+  }
   auto outputLinkFailure = getLinkFailure(
-      {dstSwitchName}, neighborToLinkFailure, portToVirtualDevice);
+      outputNeighbors, neighborToLinkFailure, portToVirtualDevice);
 
   for (int vd = 0; vd < kNumVirtualDevice; vd++) {
     auto localLinkFailure = std::max(
