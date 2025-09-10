@@ -125,7 +125,10 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
                         ", ", (*groupInfo->getMergedGroupInfoItr())->first);
     }
   };
-  auto verify = [&]() {};
+  auto verify = [&]() {
+    assertNumRoutesWithNhopOverrides(getProgrammedState(), 2);
+    EXPECT_EQ(ecmpResourceManager()->getMergedGroups().size(), 1);
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 

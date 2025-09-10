@@ -285,4 +285,30 @@ void assertResourceMgrCorrectness(
   EXPECT_EQ(mgrPrimaryEcmpGroups, primaryEcmpTypeGroups2RefCnt.size());
   EXPECT_EQ(mgrEcmpMembers, ecmpMembers);
 }
+
+void assertNumRoutesWithNhopOverrides(
+    const std::shared_ptr<SwitchState>& state,
+    int expectedNumOverrides) {
+  auto getRouteOverrideCount = [&](auto inFib) {
+    int count{0};
+    for (auto [_, route] : std::as_const(*inFib)) {
+      if (!route->isResolved()) {
+        // Some tests deliberately add unresolved routes to
+        // FIB and run them through local consolidator_ state
+        continue;
+      }
+      CHECK(route);
+      bool isEcmpRoute = route->isResolved() &&
+          route->getForwardInfo().normalizedNextHops().size() > 1;
+      if (!isEcmpRoute) {
+        continue;
+      }
+      count += route->getForwardInfo().hasOverrideNextHops() ? 1 : 0;
+    }
+    return count;
+  };
+  auto overrideCount =
+      getRouteOverrideCount(cfib(state)) + getRouteOverrideCount(cfib4(state));
+  EXPECT_EQ(overrideCount, expectedNumOverrides);
+}
 } // namespace facebook::fboss

@@ -41,4 +41,9 @@ void assertFibAndGroupsMatch(
 void assertResourceMgrCorrectness(
     const EcmpResourceManager& resourceMgr,
     const std::shared_ptr<SwitchState>& state);
+
+void assertNumRoutesWithNhopOverrides(
+    const std::shared_ptr<SwitchState>& state,
+    int numOverrides);
+
 } // namespace facebook::fboss
