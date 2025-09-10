@@ -56,6 +56,8 @@ const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
 long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
   if (platform == facebook::fboss::PlatformType::PLATFORM_MERU800BIA) {
     return 6 * 1000 * 1000 * 1000L; // 6GB
+  } else if (platform == facebook::fboss::PlatformType::PLATFORM_MONTBLANC) {
+    return 4 * 1000 * 1000 * 1000L; // 4GB
   }
   return 3 * 1000 * 1000 * 1000L; // 3GB
 }
