@@ -767,6 +767,7 @@ cpp_library(
         ":pre_update_state_modifier",
         ":stats",
         ":switch_config-cpp2-types",
+        ":utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//fboss/lib:ref_map",

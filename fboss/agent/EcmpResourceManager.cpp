@@ -13,6 +13,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -201,6 +202,15 @@ EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
   CHECK(!preUpdateState_.has_value());
+  std::optional<InputOutputState> inOutState;
+  StopWatch timeIt("EcmpResourceManager::consolidate", false /*json*/);
+  SCOPE_EXIT {
+    if (inOutState.has_value()) {
+      XLOG(DBG2) << " Updated deltas: " << inOutState->updated;
+    } else {
+      XLOG(DBG2) << "Returning original delta";
+    }
+  };
   auto makeRet = [](const StateDelta& in) {
     std::vector<StateDelta> deltas;
     deltas.emplace_back(in.oldState(), in.newState());
@@ -226,8 +236,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     return makeRet(delta);
   }
 
-  std::optional<InputOutputState> inOutState(
-      std::move(switchingModeChangeResult));
+  inOutState = std::move(switchingModeChangeResult);
 
   auto [primaryEcmpGroupsCnt, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
@@ -239,7 +248,9 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   XLOG(DBG2) << " Start delta processing, primary group count: "
              << inOutState->primaryEcmpGroupsCnt << " and "
              << " Ecmp member count is: " << inOutState->ecmpMemberCnt;
-  return consolidateImpl(delta, &(*inOutState));
+  auto deltas = consolidateImpl(delta, &(*inOutState));
+  XLOG(DBG2) << " Will return : " << deltas.size() << " deltas";
+  return deltas;
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
