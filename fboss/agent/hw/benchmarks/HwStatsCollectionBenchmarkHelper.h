@@ -46,7 +46,7 @@ RouteNextHopSet makeNextHops(const std::vector<std::string>& ipsAsStrings) {
  *   iteration (by letting it pick number of iterations), and calculating
  *   cost of a single iterations does not seem to have more fidelity
  */
-inline void runStatsCollectionBenchmark() {
+inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
   folly::BenchmarkSuspender suspender;
   std::unique_ptr<AgentEnsemble> ensemble{};
   // maximum 48 master logical ports (taken from wedge400) to get
@@ -59,12 +59,14 @@ inline void runStatsCollectionBenchmark() {
   int numRouteCounters = 255;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [numPortsToCollectStats,
-       numRouteCounters](const AgentEnsemble& ensemble) {
+      [numPortsToCollectStats, numRouteCounters, alwaysCollectVoqStats](
+          const AgentEnsemble& ensemble) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
-        // Always collect VOQ stats for VOQ switches
-        FLAGS_update_voq_stats_interval_s = 0;
+        if (alwaysCollectVoqStats) {
+          // Always collect VOQ stats for VOQ switches
+          FLAGS_update_voq_stats_interval_s = 0;
+        }
         // Disable DSF subscription on single-box test
         FLAGS_dsf_subscribe = false;
         // Enable fabric ports
