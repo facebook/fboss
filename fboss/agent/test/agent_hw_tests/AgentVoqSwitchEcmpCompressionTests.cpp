@@ -71,6 +71,9 @@ void AgentVoqSwitchEcmpCompressionTest::SetUp() {
     CHECK(FLAGS_list_production_feature);
     return;
   }
+  if (getSw()->getBootType() == BootType::WARM_BOOT) {
+    return;
+  }
   utility::setupRemoteIntfAndSysPorts(
       getSw(),
       isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
@@ -132,4 +135,20 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchEcmpCompressionTest, addMaxScaleRoutesOverEcmpLimit) {
+  constexpr auto kMaxRoutes = 50;
+  auto setup = [&]() {
+    std::vector<RoutePrefixV6> prefixes;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhops;
+    for (auto i = numStartRoutes(); i < kMaxRoutes; ++i) {
+      prefixes.emplace_back(makePrefix(i));
+      nhops.emplace_back(getNextHops(i));
+    }
+    auto routeUpdater = getSw()->getRouteUpdater();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    ecmpHelper.programRoutes(&routeUpdater, nhops, prefixes);
+  };
+  verifyAcrossWarmBoots(setup, []() {});
+}
 } // namespace facebook::fboss
