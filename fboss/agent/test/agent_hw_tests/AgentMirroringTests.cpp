@@ -166,14 +166,12 @@ class AgentMirroringTest : public AgentHwTest {
       cfg::SwitchConfig* cfg,
       const AgentEnsemble& ensemble,
       const std::string& mirrorName) const {
-    auto trafficPort = getTrafficPort(ensemble);
     std::string aclEntryName = kMirrorAcl;
     auto aclEntry = cfg::AclEntry();
     aclEntry.name() = aclEntryName;
     aclEntry.actionType() = cfg::AclActionType::PERMIT;
     aclEntry.l4SrcPort() = srcL4Port_;
     aclEntry.l4DstPort() = dstL4Port_;
-    aclEntry.dstPort() = trafficPort;
     aclEntry.proto() = 17;
     /*
      * The number of packets mirrorred through ACL is different in Native BCM
