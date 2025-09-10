@@ -344,7 +344,13 @@ DEFINE_bool(
     cleanup_probed_kernel_data,
     false,
     "Remove probed routes, addresses, rules, and interfaces from the kernel");
+
 DEFINE_bool(
     ndp_static_neighbor,
     false,
     "Initiate neighbor solicitation for static neighbors");
+
+DEFINE_bool(
+    dsf_single_stage_r128_f40_e16_8k_sys_ports,
+    false,
+    "Allow upto 8K system ports on single stage DSF (default=6144)");
