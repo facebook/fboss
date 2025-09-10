@@ -1,5 +1,11 @@
 {
   "i2cBusIgnore": [
     "SMBus iSMT adapter at 914c1000"
+  ],
+  "psus": [
+    "/run/devmap/sensors/PSU1_PMBUS",
+    "/run/devmap/sensors/PSU2_PMBUS",
+    "/run/devmap/sensors/PSU3_PMBUS",
+    "/run/devmap/sensors/PSU4_PMBUS"
   ]
 }

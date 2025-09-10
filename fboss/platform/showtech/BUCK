@@ -34,4 +34,7 @@ cpp_binary(
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
+    external_deps = [
+        "re2",
+    ],
 )

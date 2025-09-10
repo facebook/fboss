@@ -24,6 +24,7 @@ target_link_libraries(showtech
   showtech_config_cpp2
   platform_config_lib
   platform_name_lib
+  ${RE2}
 )
 
 install(TARGETS showtech)
