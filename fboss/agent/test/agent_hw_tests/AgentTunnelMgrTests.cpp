@@ -715,6 +715,42 @@ class AgentTunnelMgrTest : public AgentHwTest {
     waitForStateUpdates(getAgentEnsemble()->getSw());
   }
 
+  void printInterfaceDetails(const cfg::SwitchConfig& config) {
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      std::vector<std::string> intfIPv4s;
+      std::vector<std::string> intfIPv6s;
+
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+
+        if (intfIP.find("::") != std::string::npos) {
+          intfIPv6s.push_back(intfIP);
+        } else {
+          intfIPv4s.push_back(intfIP);
+        }
+      }
+
+      auto status = tunMgr_->getIntfStatus(
+          getProgrammedState(),
+          (InterfaceID)config.interfaces()[i].intfID().value());
+
+      // Convert vectors to comma-separated strings for logging
+      std::string ipv4List = folly::join(", ", intfIPv4s);
+      std::string ipv6List = folly::join(", ", intfIPv6s);
+
+      XLOG(INFO) << "Interface ID: "
+                 << (InterfaceID)config.interfaces()[i].intfID().value()
+                 << ", Status: " << (status ? "UP" : "DOWN") << ", IPv4: ["
+                 << ipv4List << "]" << ", IPv6: [" << ipv6List << "]";
+    }
+  }
+
   void checkKernelIpEntriesRemoved(
       const InterfaceID& ifId,
       const std::string& intfIP,
@@ -893,6 +929,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
   auto verify = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
 
+    printInterfaceDetails(config);
+
     // Apply the config
     applyNewConfig(config);
     waitForStateUpdates(getAgentEnsemble()->getSw());
@@ -961,6 +999,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
     } else {
       XLOG(INFO) << "Socket does not exist";
     }
+
+    printInterfaceDetails(config);
   };
 
   verifyAcrossWarmBoots(setup, verify);
