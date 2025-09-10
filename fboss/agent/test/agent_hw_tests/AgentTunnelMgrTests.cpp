@@ -1,4 +1,19 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+/**
+ * @def AGENT_TUNNEL_MGR_FRIEND_TESTS
+ * @brief Macro defining friend declarations for AgentTunnelMgrTest
+ *
+ * This macro contains friend class declarations needed to access private
+ * members of TunManager for testing.
+ */
+#define AGENT_TUNNEL_MGR_FRIEND_TESTS \
+  friend class AgentTunnelMgrTest;    \
+  FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanup);
+
 #include <sstream>
 #include <string>
 #include "fboss/agent/SwSwitch.h"
@@ -824,6 +839,92 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6Entries) {
     }
 
     clearAllKernelEntries();
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+/**
+ * Test verifies tunnel manager's probe and cleanup functionality:
+ * - Creates state (interfaces, addresses, source rules, default routes) for 2
+ * interfaces
+ * - Verifies state exists in kernel
+ * - Calls probe and cleanup code (simulating cold/warm boot behavior)
+ * - Verifies kernel has completely clean state after cleanup
+ */
+TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    std::string intfIPv4;
+    std::string intfIPv6;
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+
+        if (intfIP.find("::") != std::string::npos) {
+          intfIPv6 = std::move(intfIP);
+        } else {
+          intfIPv4 = std::move(intfIP);
+        }
+      }
+
+      // Get TunManager pointer
+      auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+      auto status = tunMgr_->getIntfStatus(
+          getProgrammedState(),
+          (InterfaceID)config.interfaces()[i].intfID().value());
+
+      XLOG(INFO) << "Interface ID: "
+                 << (InterfaceID)config.interfaces()[i].intfID().value()
+                 << ", Status: " << (status ? "UP" : "DOWN")
+                 << ", IPv4: " << intfIPv4 << ", IPv6: " << intfIPv6;
+      // There could be a race condition where the interface is up, but the
+      // socket is not created. So, checking for the socket existence.
+      auto socketExists = tunMgr_->isValidNlSocket();
+
+      // There is a known limitation in the kernel that the source route rule
+      // entries are not created if the interface is not up. So, checking for
+      // the kernel entries if the interface is  up
+      if (status && socketExists) {
+        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+      }
+    }
+
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto socketExists = tunMgr_->isValidNlSocket();
+
+    if (socketExists) {
+      // Set probeDone_ to false before calling probe()
+      tunMgr_->probeDone_ = false;
+
+      XLOG(INFO) << "Starting probe and cleanup of kernel data";
+      tunMgr_->probe();
+      XLOG(INFO) << "Stopping probe and clean up of probe data";
+
+      // Check that the kernel entries are removed after probe
+      for (int i = 0; i < config.interfaces()->size(); i++) {
+        checkKernelIpEntriesRemoved(
+            (InterfaceID)config.interfaces()[i].intfID().value(),
+            folly::to<std::string>(intfIPv4),
+            true);
+        checkKernelIpEntriesRemoved(
+            (InterfaceID)config.interfaces()[i].intfID().value(),
+            folly::to<std::string>(intfIPv6),
+            false);
+      }
+    } else {
+      XLOG(INFO) << "Socket does not exist";
+    }
   };
 
   verifyAcrossWarmBoots(setup, verify);
