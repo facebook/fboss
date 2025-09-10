@@ -987,14 +987,16 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
 
       // Check that the kernel entries are removed after probe
       for (int i = 0; i < config.interfaces()->size(); i++) {
-        checkKernelIpEntriesRemoved(
-            (InterfaceID)config.interfaces()[i].intfID().value(),
-            folly::to<std::string>(intfIPv4),
-            true);
-        checkKernelIpEntriesRemoved(
-            (InterfaceID)config.interfaces()[i].intfID().value(),
-            folly::to<std::string>(intfIPv6),
-            false);
+        InterfaceID intfID =
+            InterfaceID(config.interfaces()[i].intfID().value());
+
+        // Get IPv4 address for this interface
+        auto ipv4Addr = getSwitchIntfIP(getProgrammedState(), intfID);
+        checkKernelIpEntriesRemoved(intfID, ipv4Addr.str(), true);
+
+        // Get IPv6 address for this interface
+        auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
+        checkKernelIpEntriesRemoved(intfID, ipv6Addr.str(), false);
       }
     } else {
       XLOG(INFO) << "Socket does not exist";
