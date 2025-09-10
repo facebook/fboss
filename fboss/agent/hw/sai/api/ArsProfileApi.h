@@ -105,6 +105,15 @@ struct SaiArsProfileTraits {
         EnumType,
         SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD,
         sai_uint32_t>;
+    struct AttributeExtensionSamplingIntervalNanosec {
+      std::optional<sai_attr_id_t> operator()();
+    };
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+    using ExtensionSamplingIntervalNanosec = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeExtensionSamplingIntervalNanosec,
+        SaiIntDefault<sai_uint64_t>>;
+#endif
   };
 
   using AdapterKey = ArsProfileSaiId;
@@ -158,6 +167,9 @@ SAI_ATTRIBUTE_NAME(ArsProfile, PortLoadExponent)
 SAI_ATTRIBUTE_NAME(ArsProfile, LoadCurrentMinVal)
 SAI_ATTRIBUTE_NAME(ArsProfile, LoadCurrentMaxVal)
 SAI_ATTRIBUTE_NAME(ArsProfile, MaxFlows)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+SAI_ATTRIBUTE_NAME(ArsProfile, ExtensionSamplingIntervalNanosec)
 #endif
 
 class ArsProfileApi : public SaiApi<ArsProfileApi> {

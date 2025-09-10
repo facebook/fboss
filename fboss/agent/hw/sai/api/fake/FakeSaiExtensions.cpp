@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
@@ -110,6 +111,11 @@ SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeExtensionSamplingIntervalNanosec::operator()() {
   return std::nullopt;
 }
 
