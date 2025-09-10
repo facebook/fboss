@@ -8,6 +8,8 @@
 #include <fmt/core.h>
 #include <re2/re2.h>
 
+#include "fboss/platform/showtech/PsuHelper.h"
+
 using namespace facebook::fboss::platform::showtech_config;
 
 namespace facebook::fboss::platform {
@@ -136,7 +138,12 @@ void Utils::printPsuDetails() {
                      deviceAddr)
               << std::endl;
 
-    // TODO: PSU dump functionality
+    try {
+      PsuHelper(busNum, deviceAddr).dumpRegisters();
+    } catch (const std::exception& e) {
+      std::cout << fmt::format("Error: failed to dump registers: {}", e.what())
+                << std::endl;
+    }
     std::cout << std::endl;
   }
 }
