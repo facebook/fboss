@@ -68,7 +68,8 @@
       TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario); \
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest,                                            \
-      BuildProbedIfIdToTableIdMapInvalidIfIndex);
+      BuildProbedIfIdToTableIdMapInvalidIfIndex);                              \
+  FRIEND_TEST(TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1145,6 +1146,32 @@ TEST_F(
   // Should only include the interface with valid probed route
   EXPECT_EQ(1, probedMapping.size());
   EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+}
+
+/**
+ * @brief Test requiresProbedDataCleanup with identical mappings
+ *
+ * Verifies that requiresProbedDataCleanup returns false when state and probed
+ * mappings are identical.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical) {
+  // Create identical state and probed mappings
+  std::unordered_map<InterfaceID, int> stateMap = {
+      {InterfaceID(2000), 100},
+      {InterfaceID(2001), 101},
+      {InterfaceID(2002), 102}};
+
+  std::unordered_map<InterfaceID, int> probedMap = {
+      {InterfaceID(2000), 100},
+      {InterfaceID(2001), 101},
+      {InterfaceID(2002), 102}};
+
+  // Call requiresProbedDataCleanup
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
+
+  // Should return false since mappings are identical
+  EXPECT_FALSE(requiresCleanup);
 }
 
 } // namespace facebook::fboss
