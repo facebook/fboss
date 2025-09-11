@@ -57,7 +57,8 @@
       TunManagerAddressRuleTest,                                               \
       DeleteProbedAddressesAndRulesNoTableIdMapping);                          \
   FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);              \
-  FRIEND_TEST(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic);
+  FRIEND_TEST(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic);       \
+  FRIEND_TEST(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -954,6 +955,54 @@ TEST_F(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic) {
   EXPECT_EQ(
       tunMgr_->getTableId(InterfaceID(2001)),
       ifIdToTableIdMap[InterfaceID(2001)]);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with basic functionality
+ *
+ * Tests the normal case where interfaces have corresponding probed routes
+ * with valid table IDs.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic) {
+  // Add mock interfaces to intfs_ map
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 43, 1500);
+
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+
+  // Add probed routes that map to these interfaces
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto tableId2001 = tunMgr_->getTableId(InterfaceID(2001));
+
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2000,
+      "0.0.0.0/0",
+      42); // ifIndex 42 -> InterfaceID(2000)
+  addProbedRoute(
+      tunMgr_,
+      AF_INET6,
+      tableId2000,
+      "::/0",
+      42); // ifIndex 42 -> InterfaceID(2000) (duplicate)
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2001,
+      "0.0.0.0/0",
+      43); // ifIndex 43 -> InterfaceID(2001)
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Verify correct mappings
+  EXPECT_EQ(2, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+  EXPECT_EQ(tableId2001, probedMapping[InterfaceID(2001)]);
 }
 
 } // namespace facebook::fboss
