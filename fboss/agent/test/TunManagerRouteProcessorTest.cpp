@@ -56,7 +56,8 @@
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
       DeleteProbedAddressesAndRulesNoTableIdMapping);                          \
-  FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);
+  FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);              \
+  FRIEND_TEST(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -882,6 +883,77 @@ TEST_F(TunManagerAddressRuleTest, DeleteProbedInterfaces) {
   // Test 2: Populated interfaces map scenario
   addMockInterface(InterfaceID(2000), 42, "fboss2000", {});
   verifyDeletionBehavior(1);
+}
+
+/**
+ * @brief Test buildIfIdToTableIdMap functionality
+ *
+ * Verifies that buildIfIdToTableIdMap correctly creates a mapping from
+ * interface IDs to table IDs based on a SwitchState.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic) {
+  // Create a simple SwitchState with interfaces
+  auto state = std::make_shared<SwitchState>();
+
+  // Create switch settings for NPU type (needed for getTableId to work)
+  auto settings = std::make_shared<SwitchSettings>();
+  SwitchIdToSwitchInfo info{};
+  auto [iter, _] = info.emplace(SwitchID(0), cfg::SwitchInfo{});
+  iter->second.switchType() = cfg::SwitchType::NPU;
+  iter->second.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+  settings->setSwitchIdToSwitchInfo(info);
+
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)})
+          .matcherString(),
+      settings);
+
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
+
+  // Create some test interfaces
+  auto interfaces = std::make_shared<MultiSwitchInterfaceMap>();
+  auto interfaceMap = std::make_shared<InterfaceMap>();
+
+  // Add interface with ID 2000 (should map to table ID 1)
+  auto intf1 = std::make_shared<Interface>(
+      InterfaceID(2000),
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("intf2000"),
+      folly::MacAddress("01:02:03:04:05:06"),
+      9000,
+      false,
+      true);
+  interfaceMap->addNode(intf1);
+
+  // Add interface with ID 2001 (should map to table ID 2)
+  auto intf2 = std::make_shared<Interface>(
+      InterfaceID(2001),
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("intf2001"),
+      folly::MacAddress("01:02:03:04:05:07"),
+      9000,
+      false,
+      true);
+  interfaceMap->addNode(intf2);
+
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>{SwitchID(0)});
+  interfaces->addMapNode(interfaceMap, matcher);
+  state->resetIntfs(interfaces);
+
+  // Call buildIfIdToTableIdMap
+  auto ifIdToTableIdMap = tunMgr_->buildIfIdToTableIdMap(state);
+
+  // Verify the mapping is correct
+  EXPECT_EQ(2, ifIdToTableIdMap.size());
+  EXPECT_EQ(
+      tunMgr_->getTableId(InterfaceID(2000)),
+      ifIdToTableIdMap[InterfaceID(2000)]);
+  EXPECT_EQ(
+      tunMgr_->getTableId(InterfaceID(2001)),
+      ifIdToTableIdMap[InterfaceID(2001)]);
 }
 
 } // namespace facebook::fboss
