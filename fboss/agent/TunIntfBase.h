@@ -18,12 +18,12 @@ namespace facebook::fboss {
 class RxPacket;
 
 /**
- * Interface for TUN interface implementations.
+ * Base class for TUN interface implementations.
  * This allows for easy mocking and testing without system calls.
  */
-class TunIntfInterface {
+class TunIntfBase {
  public:
-  virtual ~TunIntfInterface() = default;
+  virtual ~TunIntfBase() = default;
 
   /**
    * Start/Stop packet forwarding on Tun interface.
