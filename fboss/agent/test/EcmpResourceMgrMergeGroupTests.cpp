@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/BaseEcmpResourceMgrMergeGroupsTests.h"
+#include "fboss/agent/test/CounterCache.h"
 
 namespace facebook::fboss {
 
@@ -426,6 +427,14 @@ TEST_F(
   assertGroupsAreRemoved(optimalMergeSet);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, checkPrimaryEcmpExhaustedEvents) {
+  CounterCache counters(sw_);
+  addNextRoute();
+  counters.update();
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "primary_ecmp_groups_exhausted_events.sum",
+      1);
+}
 TEST_F(EcmpResourceMgrMergeGroupTest, removeAllMergeGrpRefrencesInOneUpdate) {
   auto optimalMergeSet =
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();

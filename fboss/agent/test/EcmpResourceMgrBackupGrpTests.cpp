@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include "fboss/agent/test/CounterCache.h"
 
 namespace facebook::fboss {
 
@@ -861,4 +862,22 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
       newConsolidator.get(),
       false /*checkStats*/);
 }
+
+TEST_F(EcmpBackupGroupTypeTest, checkPrimaryEcmpExhaustedEvents) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  CounterCache counters(sw_);
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
+  auto route = makeRoute(makePrefix(routesBefore), *nhopSets.begin());
+  fib6->addNode(route);
+  consolidate(newState);
+  counters.update();
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "primary_ecmp_groups_exhausted_events.sum",
+      1);
+}
+
 } // namespace facebook::fboss
