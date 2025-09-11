@@ -5,5 +5,8 @@
   "psus": [
     "/run/devmap/sensors/PSU1_PMBUS",
     "/run/devmap/sensors/PSU2_PMBUS"
+  ],
+  "nvmeDevices": [
+    "/dev/nvme0n1"
   ]
 }
