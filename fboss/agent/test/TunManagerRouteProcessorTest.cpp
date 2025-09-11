@@ -63,7 +63,9 @@
       TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes);   \
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest,                                            \
-      BuildProbedIfIdToTableIdMapEmptyInterfaces);
+      BuildProbedIfIdToTableIdMapEmptyInterfaces);                             \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1048,6 +1050,53 @@ TEST_F(
 
   // Should return empty mapping
   EXPECT_EQ(0, probedMapping.size());
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with mixed scenario
+ *
+ * Tests a scenario where some interfaces have probed routes and others
+ * don't.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario) {
+  // Add mock interfaces
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 43, 1500);
+  auto mockIntf3 =
+      std::make_unique<MockTunIntf>(InterfaceID(2002), "fboss2002", 44, 1500);
+
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+  tunMgr_->intfs_[InterfaceID(2002)] = std::move(mockIntf3);
+
+  // Add probed routes only for some interfaces
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto tableId2002 = tunMgr_->getTableId(InterfaceID(2002));
+
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2000,
+      "0.0.0.0/0",
+      42); // Interface 2000 has route
+  // Interface 2001 (ifIndex 43) has no probed route
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2002,
+      "0.0.0.0/0",
+      44); // Interface 2002 has route
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should only include interfaces that have probed routes
+  EXPECT_EQ(2, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+  EXPECT_EQ(tableId2002, probedMapping[InterfaceID(2002)]);
+  EXPECT_EQ(probedMapping.end(), probedMapping.find(InterfaceID(2001)));
 }
 
 } // namespace facebook::fboss
