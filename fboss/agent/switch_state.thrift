@@ -150,6 +150,8 @@ struct PortFields {
   59: optional bool desiredSelfHealingECMPLagEnable;
   // Inter-packet gap in bits for this port
   60: optional i32 interPacketGapBits;
+  // AM (Alignment Marker) idles configuration for this port
+  61: optional bool amIdles;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
