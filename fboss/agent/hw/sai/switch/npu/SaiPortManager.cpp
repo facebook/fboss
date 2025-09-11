@@ -630,6 +630,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                << " to value: " << *swPort->getInterPacketGapBits();
   }
 #endif
+  std::optional<bool> amIdles{};
+  // If amIdles is set in switch state, use that value
+  if (swPort->getAmIdles().has_value()) {
+    amIdles = *swPort->getAmIdles();
+    XLOG(DBG2) << "Setting amIdles from switchState for port "
+               << swPort->getID() << " to value: " << *swPort->getAmIdles();
+  }
   std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>
       linkTrainingEnable;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING)) {
