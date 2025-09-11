@@ -55,7 +55,7 @@ bool checkWithRetryErrorReturn(
         std::chrono::milliseconds(1000)) {
   try {
     checkWithRetry(condition, retries, msBetweenRetry);
-  } catch (const FbossError& e) {
+  } catch (const FbossError&) {
     return false;
   }
 
@@ -91,7 +91,7 @@ bool checkAlwaysTrueWithRetryErrorReturn(
         std::chrono::milliseconds(1000)) {
   try {
     checkAlwaysTrueWithRetry(condition, retries, msBetweenRetry);
-  } catch (const FbossError& e) {
+  } catch (const FbossError&) {
     return false;
   }
 
