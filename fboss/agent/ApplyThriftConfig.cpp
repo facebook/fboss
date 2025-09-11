@@ -2673,7 +2673,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->fecErrorDetectEnable().value_or(false) ==
           orig->getFecErrorDetectEnable().value_or(false) &&
       portConf->interPacketGapBits().value_or(0) ==
-          orig->getInterPacketGapBits().value_or(0)) {
+          orig->getInterPacketGapBits().value_or(0) &&
+      portConf->amIdles().value_or(false) ==
+          orig->getAmIdles().value_or(false)) {
     return nullptr;
   }
 
@@ -2739,6 +2741,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setInterPacketGapBits(portConf->interPacketGapBits().value());
   } else {
     newPort->setInterPacketGapBits(std::nullopt);
+  }
+  if (portConf->amIdles().has_value()) {
+    newPort->setAmIdles(portConf->amIdles().value());
+  } else {
+    newPort->setAmIdles(std::nullopt);
   }
   return newPort;
 }
