@@ -821,6 +821,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         false,
 #endif
         fecErrorDetectEnable,
+        std::nullopt, // AmIdles
         std::nullopt, // FabricSystemPort
         std::nullopt, // StaticModuleId
     };
@@ -909,6 +910,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       false,
 #endif
       fecErrorDetectEnable,
+      amIdles, // AmIdles
       std::nullopt, // FabricSystemPort
       std::nullopt, // StaticModuleId
   };

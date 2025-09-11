@@ -471,6 +471,11 @@ struct SaiPortTraits {
         bool,
         AttributeFecErrorDetectEnable,
         SaiBoolDefaultFalse>;
+    struct AttributeAmIdles {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using AmIdles =
+        SaiExtensionAttribute<bool, AttributeAmIdles, SaiBoolDefaultFalse>;
     struct AttributeFabricSystemPort {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -623,6 +628,7 @@ struct SaiPortTraits {
       std::optional<Attributes::AutoNegotiationMode>,
 #endif
       std::optional<Attributes::FecErrorDetectEnable>,
+      std::optional<Attributes::AmIdles>,
       std::optional<Attributes::FabricSystemPort>,
       std::optional<Attributes::StaticModuleId>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
@@ -788,6 +794,7 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashPeriodUS)
 SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
+SAI_ATTRIBUTE_NAME(Port, AmIdles)
 SAI_ATTRIBUTE_NAME(Port, FabricSystemPort)
 SAI_ATTRIBUTE_NAME(Port, StaticModuleId)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
