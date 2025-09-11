@@ -1183,3 +1183,68 @@ TEST(Port, interPacketGapBitsConfig) {
   EXPECT_TRUE(serializedPort->getInterPacketGapBits().has_value());
   EXPECT_EQ(serializedPort->getInterPacketGapBits().value(), 64);
 }
+
+// Test amIdles configuration: default value, config changes,
+// getter/setter methods, and serialization/deserialization
+TEST(Port, amIdlesConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto changeAndVerifyAmIdles = [](std::unique_ptr<MockPlatform>& platform,
+                                   std::shared_ptr<SwitchState>& state,
+                                   std::optional<bool> newAmIdles) {
+    auto oldAmIdles = state->getPorts()->getNodeIf(PortID(1))->getAmIdles();
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    if (newAmIdles.has_value()) {
+      config.ports()[0].amIdles() = newAmIdles.value();
+    }
+    auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+    if (oldAmIdles != newAmIdles) {
+      EXPECT_NE(nullptr, newState);
+      state = newState;
+      auto portAmIdles = state->getPorts()->getNodeIf(PortID(1))->getAmIdles();
+      EXPECT_EQ(portAmIdles, newAmIdles);
+    } else {
+      EXPECT_EQ(nullptr, newState);
+    }
+  };
+
+  // Verify the default amIdles is nullopt
+  EXPECT_EQ(
+      std::nullopt, state->getPorts()->getNodeIf(PortID(1))->getAmIdles());
+
+  // Test setting various values and verify changes are properly configured
+  changeAndVerifyAmIdles(platform, state, true);
+  changeAndVerifyAmIdles(platform, state, false);
+  changeAndVerifyAmIdles(platform, state, true);
+  changeAndVerifyAmIdles(platform, state, std::nullopt);
+
+  // Test direct getter/setter methods
+  auto port = state->getPorts()->getNodeIf(PortID(1));
+  auto newPort = port->clone();
+
+  // Test setting true
+  newPort->setAmIdles(true);
+  EXPECT_TRUE(newPort->getAmIdles().has_value());
+  EXPECT_EQ(newPort->getAmIdles().value(), true);
+
+  // Test setting false
+  newPort->setAmIdles(false);
+  EXPECT_TRUE(newPort->getAmIdles().has_value());
+  EXPECT_EQ(newPort->getAmIdles().value(), false);
+
+  // Test setting nullopt
+  newPort->setAmIdles(std::nullopt);
+  EXPECT_FALSE(newPort->getAmIdles().has_value());
+
+  // Test serialization/deserialization
+  newPort->setAmIdles(true);
+  auto serializedPort = std::make_shared<Port>(newPort->toThrift());
+  EXPECT_TRUE(serializedPort->getAmIdles().has_value());
+  EXPECT_EQ(serializedPort->getAmIdles().value(), true);
+}
