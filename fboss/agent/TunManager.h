@@ -192,6 +192,11 @@ class TunManager : public StateObserver {
   std::unordered_map<InterfaceID, int> buildIfIdToTableIdMap(
       std::shared_ptr<SwitchState> state) const;
 
+  /**
+   * Build a mapping from interface ID to table ID from probed interfaces.
+   */
+  std::unordered_map<InterfaceID, int> buildProbedIfIdToTableIdMap() const;
+
   int getTableIdForNpu(InterfaceID ifID) const;
   int getTableIdForVoq(InterfaceID ifID) const;
 

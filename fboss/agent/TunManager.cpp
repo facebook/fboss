@@ -278,6 +278,40 @@ std::unordered_map<InterfaceID, int> TunManager::buildIfIdToTableIdMap(
   return ifIdToTableId;
 }
 
+std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
+    const {
+  std::unordered_map<InterfaceID, int> probedIfIdToTableId;
+
+  // Build a map of interface index to table ID from probed routes
+  std::unordered_map<int, int> ifIndexToTableId;
+  for (const auto& probedRoute : probedRoutes_) {
+    if (probedRoute.ifIndex > 0) {
+      ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
+      XLOG(DBG2) << "Created mapping: ifIndex " << probedRoute.ifIndex
+                 << " -> tableId " << probedRoute.tableId;
+    }
+  }
+
+  // Map interface IDs to table IDs using probed data
+  for (const auto& intf : intfs_) {
+    auto ifId = intf.first; // InterfaceID from map key
+    auto ifIndex = intf.second->getIfIndex();
+
+    // Get table ID from probed routes instead of computing new one
+    auto tableIdIter = ifIndexToTableId.find(ifIndex);
+    if (tableIdIter != ifIndexToTableId.end()) {
+      auto tableId = tableIdIter->second;
+      probedIfIdToTableId[ifId] = tableId;
+      XLOG(DBG2) << "Created mapping from probed interfaces: ifId " << ifId
+                 << " -> tableId " << tableId;
+    } else {
+      XLOG(DBG2) << "No probed table ID found for interface " << ifId
+                 << " @ ifIndex " << ifIndex;
+    }
+  }
+  return probedIfIdToTableId;
+}
+
 int TunManager::getTableIdForNpu(InterfaceID ifID) const {
   // Kernel only supports up to 256 tables. The last few are used by kernel
   // as main, default, and local. IDs 0, 254 and 255 are not available. So we
