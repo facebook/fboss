@@ -22,8 +22,10 @@ class NextHopGroupInfo;
 class HwAsic;
 
 class EcmpResourceManager : public PreUpdateStateModifier {
- private:
+ public:
   using SwitchStatsGetter = std::function<SwitchStats*()>;
+
+ private:
   EcmpResourceManager(
       const EcmpResourceManagerConfig& config,
       const SwitchStatsGetter& switchStatsGetter);
@@ -388,7 +390,9 @@ class NextHopGroupInfo {
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const std::shared_ptr<SwitchState>& state,
     const HwAsic* asic,
-    SwitchStats* stats = nullptr);
+    const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter = []() {
+      return nullptr;
+    });
 
 std::ostream& operator<<(
     std::ostream& os,

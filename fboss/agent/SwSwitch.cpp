@@ -1344,7 +1344,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     auto l3Asics = hwAsicTable_->getL3Asics();
     if (l3Asics.size()) {
       auto asic = checkSameAndGetAsic(l3Asics);
-      ecmpResourceManager_ = makeEcmpResourceManager(state, asic, stats());
+      ecmpResourceManager_ =
+          makeEcmpResourceManager(state, asic, [this] { return stats(); });
       registerStateModifier(
           ecmpResourceManager_.get(), "Ecmp Resource Manager");
     }

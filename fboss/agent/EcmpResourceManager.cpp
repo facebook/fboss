@@ -1868,7 +1868,7 @@ EcmpResourceManager::getGroupIdToPrefix() const {
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const std::shared_ptr<SwitchState>& state,
     const HwAsic* asic,
-    SwitchStats* stats) {
+    const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter) {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager = nullptr;
   auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
       ? asic->getMaxDlbEcmpGroups()
@@ -1903,11 +1903,11 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
 
     ecmpResourceManager = switchingMode
         ? std::make_unique<EcmpResourceManager>(
-              maxEcmps, switchingMode, [stats] { return stats; })
+              maxEcmps, switchingMode, switchStatsGetter)
         : std::make_unique<EcmpResourceManager>(
-              maxEcmps, ecmpCompressionPenaltyThresholPct.value_or(0), [stats] {
-                return stats;
-              });
+              maxEcmps,
+              ecmpCompressionPenaltyThresholPct.value_or(0),
+              switchStatsGetter);
   }
   return ecmpResourceManager;
 }
