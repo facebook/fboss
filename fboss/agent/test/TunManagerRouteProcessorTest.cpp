@@ -30,6 +30,7 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);          \
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);     \
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);               \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipNonDefaultRoutes);             \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default);    \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default);    \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6);    \
@@ -201,6 +202,55 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
     nl_addr_put(dst);
     rtnl_route_put(route);
   }
+
+  /**
+   * @brief Helper function to test non-default route filtering for both IPv4
+   * and IPv6
+   *
+   * @param family Address family (AF_INET or AF_INET6)
+   * @param tableId Routing table ID
+   * @param addrStr Address string (e.g., "192.168.1.0" or "2001:db8::")
+   * @param prefixLen Prefix length
+   */
+  void testSkipNonDefaultRoute(
+      int family,
+      int tableId,
+      const std::string& addrStr,
+      int prefixLen) {
+    auto route = rtnl_route_alloc();
+    ASSERT_NE(nullptr, route);
+
+    rtnl_route_set_family(route, family);
+    rtnl_route_set_table(route, tableId); // Valid table ID
+
+    // Create a specific destination (non-default route)
+    nl_addr* dst = nullptr;
+    if (family == AF_INET) {
+      struct in_addr addr4;
+      inet_pton(AF_INET, addrStr.c_str(), &addr4);
+      dst = nl_addr_build(AF_INET, &addr4, sizeof(addr4));
+    } else if (family == AF_INET6) {
+      struct in6_addr addr6;
+      inet_pton(AF_INET6, addrStr.c_str(), &addr6);
+      dst = nl_addr_build(AF_INET6, &addr6, sizeof(addr6));
+    }
+
+    ASSERT_NE(nullptr, dst);
+    nl_addr_set_prefixlen(dst, prefixLen);
+    rtnl_route_set_dst(route, dst);
+
+    // Call the routeProcessor function
+    TunManager::routeProcessor(
+        reinterpret_cast<struct nl_object*>(route),
+        static_cast<void*>(tunMgr_));
+
+    // Verify no routes were stored
+    EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+
+    // Cleanup
+    nl_addr_put(dst);
+    rtnl_route_put(route);
+  }
 };
 
 /**
@@ -331,6 +381,25 @@ TEST_F(TunManagerRouteProcessorTest, SkipInvalidTableId) {
 
   // Cleanup
   rtnl_route_put(route);
+}
+
+/**
+ * @brief Test filtering of non-default routes
+ *
+ * Verifies that routeProcessor correctly filters out and ignores routes
+ * that are not default routes. The function should only process routes
+ * where the destination is "none" (which represents default routes in
+ * kernel output), and ignore all other routes like specific network prefixes.
+ */
+TEST_F(TunManagerRouteProcessorTest, SkipNonDefaultRoutes) {
+  // Test IPv4 non-default routes using helper function
+  testSkipNonDefaultRoute(AF_INET, 100, "192.168.1.0", 24);
+  testSkipNonDefaultRoute(AF_INET, 150, "10.0.0.0", 16);
+  testSkipNonDefaultRoute(AF_INET, 200, "127.0.0.1", 8);
+
+  // Test IPv6 non-default routes using helper function
+  testSkipNonDefaultRoute(AF_INET6, 100, "2001:db8::", 64);
+  testSkipNonDefaultRoute(AF_INET6, 150, "fe80::", 64);
 }
 
 /**
