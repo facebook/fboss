@@ -69,7 +69,9 @@
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest,                                            \
       BuildProbedIfIdToTableIdMapInvalidIfIndex);                              \
-  FRIEND_TEST(TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical);
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical);       \
+  FRIEND_TEST(TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1172,6 +1174,29 @@ TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical) {
 
   // Should return false since mappings are identical
   EXPECT_FALSE(requiresCleanup);
+}
+
+/**
+ * @brief Test requiresProbedDataCleanup with different mappings
+ *
+ * Verifies that requiresProbedDataCleanup returns true when state and probed
+ * mappings differ in values.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent) {
+  // Create different state and probed mappings (same keys, different values)
+  std::unordered_map<InterfaceID, int> stateMap = {
+      {InterfaceID(2000), 100}, {InterfaceID(2001), 101}};
+
+  std::unordered_map<InterfaceID, int> probedMap = {
+      {InterfaceID(2000), 200}, // Different table ID
+      {InterfaceID(2001), 101}};
+
+  // Call requiresProbedDataCleanup
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
+
+  // Should return true since mappings differ
+  EXPECT_TRUE(requiresCleanup);
 }
 
 } // namespace facebook::fboss
