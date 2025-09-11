@@ -18,17 +18,21 @@
 
 namespace facebook::fboss {
 
-RouteNextHopSet makeNextHops(int n) {
-  CHECK_LT(n, 255);
+RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
-    auto ipStr = folly::sformat("2400:db00:2110:{}::2", i);
+    auto interfaceId = (i / numNhopsPerIntf) + 1;
+    auto subnetIndex = i / numNhopsPerIntf;
+    // ::1 is local interface address, start nhop addressed from 2
+    auto lastQuad = 2 + startOffset + i % numNhopsPerIntf;
+    auto ipStr = folly::sformat("2400:db00:2110:{}::{}", subnetIndex, lastQuad);
     h.emplace(ResolvedNextHop(
-        folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
+        folly::IPAddress(ipStr),
+        InterfaceID(interfaceId),
+        UCMP_DEFAULT_WEIGHT));
   }
   return h;
 }
-
 RouteNextHopSet makeV4NextHops(int n) {
   CHECK_LT(n, 253);
   RouteNextHopSet h;
