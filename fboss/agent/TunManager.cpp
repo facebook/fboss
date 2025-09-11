@@ -262,6 +262,22 @@ int TunManager::getTableId(InterfaceID ifID) const {
   return tableId;
 }
 
+std::unordered_map<InterfaceID, int> TunManager::buildIfIdToTableIdMap(
+    std::shared_ptr<SwitchState> state) const {
+  std::unordered_map<InterfaceID, int> ifIdToTableId;
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& iter : std::as_const(*intfMap)) {
+      const auto& intf = iter.second;
+      auto ifId = intf->getID();
+      auto tableId = getTableId(ifId);
+      ifIdToTableId[ifId] = tableId;
+      XLOG(DBG2) << "Created mapping from state: ifId " << ifId
+                 << " -> tableId " << tableId;
+    }
+  }
+  return ifIdToTableId;
+}
+
 int TunManager::getTableIdForNpu(InterfaceID ifID) const {
   // Kernel only supports up to 256 tables. The last few are used by kernel
   // as main, default, and local. IDs 0, 254 and 255 are not available. So we
