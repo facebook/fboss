@@ -71,7 +71,9 @@
       BuildProbedIfIdToTableIdMapInvalidIfIndex);                              \
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical);       \
-  FRIEND_TEST(TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent);
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent);       \
+  FRIEND_TEST(TunManagerRouteProcessorTest, RequiresProbedDataCleanupEmptyMaps);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1196,6 +1198,33 @@ TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent) {
       tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
 
   // Should return true since mappings differ
+  EXPECT_TRUE(requiresCleanup);
+}
+
+/**
+ * @brief Test requiresProbedDataCleanup with empty maps
+ *
+ * Verifies that requiresProbedDataCleanup handles empty mappings correctly.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupEmptyMaps) {
+  // Test 1: Both maps empty - should be identical
+  std::unordered_map<InterfaceID, int> emptyState;
+  std::unordered_map<InterfaceID, int> emptyProbed;
+
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(emptyState, emptyProbed);
+  EXPECT_FALSE(requiresCleanup);
+
+  // Test 2: State has entries, probed is empty - should differ
+  std::unordered_map<InterfaceID, int> stateMap = {{InterfaceID(2000), 100}};
+
+  requiresCleanup = tunMgr_->requiresProbedDataCleanup(stateMap, emptyProbed);
+  EXPECT_TRUE(requiresCleanup);
+
+  // Test 3: State is empty, probed has entries - should differ
+  std::unordered_map<InterfaceID, int> probedMap = {{InterfaceID(2000), 100}};
+
+  requiresCleanup = tunMgr_->requiresProbedDataCleanup(emptyState, probedMap);
   EXPECT_TRUE(requiresCleanup);
 }
 
