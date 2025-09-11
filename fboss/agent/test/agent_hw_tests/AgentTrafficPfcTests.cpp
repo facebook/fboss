@@ -9,6 +9,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -260,40 +261,15 @@ class AgentTrafficPfcTest : public AgentHwTest {
     if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB) {
       return;
     }
+
+    // Apply common backend ASIC configuration
+    utility::applyBackendAsicConfig(sw, config);
+
+    // Workaround for CS00012395772 before 13.3
     utility::modifyPlatformConfig(
         config,
-        [](std::string& yamlCfg) {
-          std::string toReplace("LOSSY");
-          std::size_t pos = yamlCfg.find(toReplace);
-          if (pos != std::string::npos) {
-            // for TH4 we skip buffer reservation in prod
-            // but it doesn't seem to work for pfc tests which
-            // play around with other variables. For unblocking
-            // skip it for now
-            if (FLAGS_skip_buffer_reservation) {
-              yamlCfg.replace(
-                  pos,
-                  toReplace.length(),
-                  "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
-            } else {
-              yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
-            }
-          }
-
-          // TODO(maxgg): temp workaround for CS00012395772
-          addLosslessYamlConfig(yamlCfg);
-        },
-        [](std::map<std::string, std::string>& cfg) {
-          // These are only applicable to TH3
-          cfg["mmu_lossless"] = "0x2";
-          cfg["buf.mqueue.guarantee.0"] = "0C";
-          cfg["mmu_config_override"] = "0";
-          cfg["buf.prigroup7.guarantee"] = "0C";
-          if (FLAGS_qgroup_guarantee_enable) {
-            cfg["buf.qgroup.guarantee_mc"] = "0";
-            cfg["buf.qgroup.guarantee"] = "0";
-          }
-        });
+        [](std::string& yamlCfg) { addLosslessYamlConfig(yamlCfg); },
+        [](std::map<std::string, std::string>&) {});
   }
 
   cfg::SwitchConfig initialConfig(

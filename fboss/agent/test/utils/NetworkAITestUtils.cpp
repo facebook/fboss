@@ -321,4 +321,41 @@ const std::vector<int> kNetworkAIWRRAndNCQueueIds() {
   return isDualStage3Q2QQos() ? queueIds3Q2Q : queueIds;
 }
 
+void applyBackendAsicConfig(
+    const cfg::SwitchConfig& sw,
+    cfg::PlatformConfig& config) {
+  if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    return;
+  }
+  modifyPlatformConfig(
+      config,
+      [](std::string& yamlCfg) {
+        std::string toReplace("LOSSY");
+        std::size_t pos = yamlCfg.find(toReplace);
+        if (pos != std::string::npos) {
+          yamlCfg.replace(
+              pos,
+              toReplace.length(),
+              "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
+        }
+
+        // Do not force qgroups on in backend tests.
+        std::string qgroup("sai_mmu_qgroups_default: 1");
+        if (auto pos = yamlCfg.find(qgroup); pos != std::string::npos) {
+          yamlCfg.replace(pos, qgroup.length(), "sai_mmu_qgroups_default: 0");
+        }
+      },
+      [](std::map<std::string, std::string>& cfg) {
+        // These are only applicable to TH3
+        cfg["mmu_lossless"] = "0x2";
+        cfg["buf.mqueue.guarantee.0"] = "0C";
+        cfg["mmu_config_override"] = "0";
+        cfg["buf.prigroup7.guarantee"] = "0C";
+        if (FLAGS_qgroup_guarantee_enable) {
+          cfg["buf.qgroup.guarantee_mc"] = "0";
+          cfg["buf.qgroup.guarantee"] = "0";
+        }
+      });
+}
+
 }; // namespace facebook::fboss::utility
