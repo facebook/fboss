@@ -646,6 +646,9 @@ class SwitchStats : public boost::noncopyable {
   void setBackupEcmpGroupsCount(uint32_t count) const;
   void setMergedEcmpGroupsCount(uint32_t count) const;
   void setMergedEcmpMemberGroupsCount(uint32_t count) const;
+  void primaryEcmpGroupsExhausted() {
+    primaryEcmpGroupsExhaustedEvents_.addValue(1);
+  }
 
   bool getPrimaryEcmpGroupsExhausted() const;
   int64_t getPrimaryEcmpGroupsCount() const;
@@ -1113,6 +1116,11 @@ class SwitchStats : public boost::noncopyable {
    * Number of state updates rejected by resource accountant
    */
   TLTimeseries resourceAccountantRejectedUpdates_;
+  /*
+   * Number of times primary ecmp groups were exhausted
+   * in last interval(.60, .600, .3600)
+   */
+  TLTimeseries primaryEcmpGroupsExhaustedEvents_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;

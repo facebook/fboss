@@ -404,6 +404,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "resource_accountant_rejected_updates",
           SUM,
+          RATE),
+      primaryEcmpGroupsExhaustedEvents_(
+          map,
+          kCounterPrefix + "primary_ecmp_groups_exhausted_events",
+          SUM,
           RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
     hwAgentConnectionStatus_.emplace_back(TLCounter(
