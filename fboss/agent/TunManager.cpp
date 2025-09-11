@@ -997,7 +997,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
         // We need to add route-table and tun-addresses if interface is
         // brought up recently.
-        if (!oldStatus and newStatus) {
+        if (!oldStatus && newStatus) {
           addRouteTable(ifID, ifIndex);
           // Remove old source route rules to avoid duplicates
           for (const auto& addr : oldAddrs) {

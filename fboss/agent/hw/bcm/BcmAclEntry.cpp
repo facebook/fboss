@@ -574,7 +574,7 @@ BcmAclEntry::BcmAclEntry(
   if (warmbootItr != warmBootCache->priority2BcmAclEntryHandle_end()) {
     handle_ = warmbootItr->second;
     const auto& action = acl_->getAclAction();
-    if (action and action->cref<switch_state_tags::redirectToNextHop>()) {
+    if (action && action->cref<switch_state_tags::redirectToNextHop>()) {
       applyRedirectToNextHopAction(
           util::toRouteNextHopSet(
               action->cref<switch_state_tags::redirectToNextHop>()

@@ -28,7 +28,7 @@ std::string createTunIntfName(InterfaceID ifID) {
 }
 
 InterfaceID getIDFromTunIntfName(std::string const& ifName) {
-  if (not isTunIntfName(ifName)) {
+  if (!isTunIntfName(ifName)) {
     throw FbossError(ifName, " is not a valid tun interface");
   }
 
