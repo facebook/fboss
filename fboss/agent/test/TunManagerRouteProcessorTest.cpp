@@ -73,7 +73,9 @@
       TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical);       \
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent);       \
-  FRIEND_TEST(TunManagerRouteProcessorTest, RequiresProbedDataCleanupEmptyMaps);
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupEmptyMaps);       \
+  FRIEND_TEST(TunManagerRouteProcessorTest, RequiresProbedDataCleanupSizeDiff);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1225,6 +1227,37 @@ TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupEmptyMaps) {
   std::unordered_map<InterfaceID, int> probedMap = {{InterfaceID(2000), 100}};
 
   requiresCleanup = tunMgr_->requiresProbedDataCleanup(emptyState, probedMap);
+  EXPECT_TRUE(requiresCleanup);
+}
+/**
+ * @brief Test requiresProbedDataCleanup with different sized mappings
+ *
+ * Verifies that requiresProbedDataCleanup returns true when mappings have
+ * different sizes.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupSizeDiff) {
+  // Create state mapping with more entries than probed mapping
+  std::unordered_map<InterfaceID, int> stateMap = {
+      {InterfaceID(2000), 100},
+      {InterfaceID(2001), 101},
+      {InterfaceID(2002), 102}};
+
+  std::unordered_map<InterfaceID, int> probedMap = {
+      {InterfaceID(2000), 100}, {InterfaceID(2001), 101}};
+
+  // Call requiresProbedDataCleanup
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
+
+  // Should return true since sizes differ
+  EXPECT_TRUE(requiresCleanup);
+
+  // Test opposite case: probed has more entries than state
+  std::unordered_map<InterfaceID, int> smallerStateMap = {
+      {InterfaceID(2000), 100}};
+
+  requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(smallerStateMap, probedMap);
   EXPECT_TRUE(requiresCleanup);
 }
 
