@@ -277,6 +277,9 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     switchStats->setPrimaryEcmpGroupsExhausted(primaryEcmpExhuasted);
     switchStats->setMergedEcmpGroupsCount(mergedGroups_.size());
     switchStats->setMergedEcmpMemberGroupsCount(getMergedGids().size());
+    if (inOutState->updated && primaryEcmpExhuasted) {
+      switchStats->primaryEcmpGroupsExhausted();
+    }
   }
   DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
   return std::move(inOutState->out);

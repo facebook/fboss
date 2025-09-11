@@ -649,6 +649,9 @@ class SwitchStats : public boost::noncopyable {
   void primaryEcmpGroupsExhausted() {
     primaryEcmpGroupsExhaustedEvents_.addValue(1);
   }
+  int64_t getPrimaryEcmpGroupsExhaustedEvents() const {
+    return getCumulativeValue(primaryEcmpGroupsExhaustedEvents_);
+  }
 
   bool getPrimaryEcmpGroupsExhausted() const;
   int64_t getPrimaryEcmpGroupsCount() const;
