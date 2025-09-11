@@ -60,7 +60,10 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic);       \
   FRIEND_TEST(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic); \
   FRIEND_TEST(                                                                 \
-      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes);
+      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes);   \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapEmptyInterfaces);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1019,6 +1022,26 @@ TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes) {
   tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
 
   // No probed routes added (probedRoutes_ is empty)
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should return empty mapping
+  EXPECT_EQ(0, probedMapping.size());
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with empty interfaces
+ *
+ * Tests the case where no interfaces exist in intfs_ map.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapEmptyInterfaces) {
+  // No interfaces in intfs_ map (should be empty by default)
+
+  // Add some probed routes (should not affect result)
+  addProbedRoute(tunMgr_, AF_INET, 100, "0.0.0.0/0", 42);
 
   // Call buildProbedIfIdToTableIdMap
   auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
