@@ -1104,12 +1104,19 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
     dstStr = std::string(dstBuf);
   }
 
-  // Check if this is a default route (no destination, "none", or empty)
-  if (dstStr == "none") {
-    dstStr = (family == AF_INET) ? "0.0.0.0/0" : "::/0";
+  // Check if this is a default route (kernel returns "none" for default routes)
+  if (dstStr != "none") {
+    // Ignore non-default routes and log them
+    XLOG(DBG2) << "Ignoring non-default route to " << dstStr << " in table "
+               << tableId << " with protocol "
+               << rtnl_route_get_protocol(route);
+    return;
   }
 
-  XLOG(DBG2) << "Found route to " << dstStr << " in table " << tableId
+  // Convert "none" to proper default route representation
+  dstStr = (family == AF_INET) ? "0.0.0.0/0" : "::/0";
+
+  XLOG(DBG2) << "Found default route to " << dstStr << " in table " << tableId
              << " with protocol " << rtnl_route_get_protocol(route);
 
   // Store route information
