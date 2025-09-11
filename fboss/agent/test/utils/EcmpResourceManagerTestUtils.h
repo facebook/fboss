@@ -46,4 +46,7 @@ void assertNumRoutesWithNhopOverrides(
     const std::shared_ptr<SwitchState>& state,
     int numOverrides);
 
+std::set<RouteV6::Prefix> getPrefixesForGroups(
+    const EcmpResourceManager& resourceManager,
+    const EcmpResourceManager::NextHopGroupIds& grpIds);
 } // namespace facebook::fboss

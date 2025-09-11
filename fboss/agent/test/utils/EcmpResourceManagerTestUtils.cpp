@@ -311,4 +311,17 @@ void assertNumRoutesWithNhopOverrides(
       getRouteOverrideCount(cfib(state)) + getRouteOverrideCount(cfib4(state));
   EXPECT_EQ(overrideCount, expectedNumOverrides);
 }
+
+std::set<RouteV6::Prefix> getPrefixesForGroups(
+    const EcmpResourceManager& resourceMgr,
+    const EcmpResourceManager::NextHopGroupIds& grpIds) {
+  auto grpId2Prefixes = resourceMgr.getGroupIdToPrefix();
+  std::set<RouteV6::Prefix> prefixes;
+  for (auto grpId : grpIds) {
+    for (const auto& [_, pfx] : grpId2Prefixes.at(grpId)) {
+      prefixes.insert(RouteV6::Prefix(pfx.first.asV6(), pfx.second));
+    }
+  }
+  return prefixes;
+}
 } // namespace facebook::fboss

@@ -47,19 +47,6 @@ class AgentVoqSwitchEcmpCompressionTest
         std::make_move_iterator(sysPortDescs_.begin() + getMaxEcmpWidth()));
   }
 
-  std::set<EcmpResourceManager::Prefix> getPrefixesForGroups(
-      const EcmpResourceManager::NextHopGroupIds& groups) const {
-    auto gidToPrefixes = ecmpResourceManager()->getGroupIdToPrefix();
-    std::set<EcmpResourceManager::Prefix> prefixes;
-    for (const auto& [gid, pfxs] :
-         ecmpResourceManager()->getGroupIdToPrefix()) {
-      if (groups.contains(gid)) {
-        prefixes.insert(pfxs.begin(), pfxs.end());
-      }
-    }
-    return prefixes;
-  }
-
  private:
   boost::container::flat_set<PortDescriptor> sysPortDescs_;
 };
@@ -108,7 +95,8 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
   auto setup = [&]() {
     auto optimalMergeSet = ecmpResourceManager()->getOptimalMergeGroupSet();
     EXPECT_EQ(optimalMergeSet.size(), 2);
-    auto toBeMergedPrefixes = getPrefixesForGroups(optimalMergeSet);
+    auto toBeMergedPrefixes =
+        getPrefixesForGroups(*ecmpResourceManager(), optimalMergeSet);
     EXPECT_EQ(toBeMergedPrefixes.size(), 2);
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
@@ -119,11 +107,11 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
         &routeUpdater,
         getNextHops(numStartRoutes()),
         {makePrefix(numStartRoutes())});
-    for (const auto& ridAndPfx : toBeMergedPrefixes) {
-      auto [rid, pfx] = ridAndPfx;
-      auto groupInfo = ecmpResourceManager()->getGroupInfo(rid, pfx);
+    for (const auto& pfx : toBeMergedPrefixes) {
+      auto groupInfo =
+          ecmpResourceManager()->getGroupInfo(RouterID(0), pfx.toCidrNetwork());
       ASSERT_TRUE(groupInfo->hasOverrideNextHops());
-      XLOG(DBG2) << " Prefix : " << ridAndPfx << " points to merged group: "
+      XLOG(DBG2) << " Prefix : " << pfx.str() << " points to merged group: "
                  << folly::join(
                         ", ", (*groupInfo->getMergedGroupInfoItr())->first);
     }
@@ -149,6 +137,14 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addMaxScaleRoutesOverEcmpLimit) {
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     ecmpHelper.programRoutes(&routeUpdater, nhops, prefixes);
   };
-  verifyAcrossWarmBoots(setup, []() {});
+  auto verify = [this]() {
+    auto resourceMgr = ecmpResourceManager();
+    auto mergedGids = resourceMgr->getMergedGids();
+    EXPECT_GT(mergedGids.size(), 0);
+    assertNumRoutesWithNhopOverrides(
+        getProgrammedState(),
+        getPrefixesForGroups(*resourceMgr, mergedGids).size());
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss

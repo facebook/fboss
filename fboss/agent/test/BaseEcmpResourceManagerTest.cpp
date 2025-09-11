@@ -668,14 +668,8 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoutes(
 
 std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
     const EcmpResourceManager::NextHopGroupIds& grpIds) const {
-  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
-  std::set<RouteV6::Prefix> prefixes;
-  for (auto grpId : grpIds) {
-    for (const auto& [_, pfx] : grpId2Prefixes.at(grpId)) {
-      prefixes.insert(RouteV6::Prefix(pfx.first.asV6(), pfx.second));
-    }
-  }
-  return prefixes;
+  return facebook::fboss::getPrefixesForGroups(
+      *sw_->getEcmpResourceManager(), grpIds);
 }
 
 std::set<RouteV6::Prefix>
