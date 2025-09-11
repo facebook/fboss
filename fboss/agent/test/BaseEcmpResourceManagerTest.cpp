@@ -22,8 +22,6 @@ RouteNextHopSet makeNextHops(int n) {
   CHECK_LT(n, 255);
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
-    std::stringstream ss;
-    ss << std::hex << i + 1;
     auto ipStr = folly::sformat("2400:db00:2110:{}::2", i);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
@@ -35,8 +33,6 @@ RouteNextHopSet makeV4NextHops(int n) {
   CHECK_LT(n, 253);
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
-    std::stringstream ss;
-    ss << std::hex << i + 1;
     auto ipStr = folly::sformat("200.0.{}.2", i);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
