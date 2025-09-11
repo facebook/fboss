@@ -29,7 +29,7 @@ using namespace ::testing;
 class AgentArsFlowletTest : public AgentArsBase {
  public:
   int kDefaultSamplingRate() const {
-    return getAgentEnsemble()->isSai() ? 1 : 500000;
+    return getAgentEnsemble()->isSai() ? 1000 : 500000;
   }
 
   int kScalingFactor1() const {
@@ -42,8 +42,9 @@ class AgentArsFlowletTest : public AgentArsBase {
   int kMinSamplingRate() const {
     auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
 
-    bool isTH4 = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
-    return getAgentEnsemble()->isSai() ? 1 : isTH4 ? 1953125 : 1000000;
+    bool isTH3 = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3;
+    return getAgentEnsemble()->isSai() ? (isTH3 ? 1000 : 512)
+                                       : (isTH3 ? 1000000 : 1953125);
   }
 
   void setCmdLineFlagOverrides() const override {
@@ -235,7 +236,7 @@ class AgentArsFlowletTest : public AgentArsBase {
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         kInactivityIntervalUsecs1,
         kFlowletTableSize1,
-        kDefaultSamplingRate());
+        kMinSamplingRate());
     flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
     cfg.flowletSwitchingConfig() = flowletCfg;
   }

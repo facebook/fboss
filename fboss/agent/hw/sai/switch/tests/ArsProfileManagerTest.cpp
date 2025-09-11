@@ -20,7 +20,7 @@ class ArsProfileManagerTest : public ManagerTestBase {};
 TEST_F(ArsProfileManagerTest, testArsProfileManager) {
   std::shared_ptr<FlowletSwitchingConfig> oldFsc =
       std::make_shared<FlowletSwitchingConfig>();
-  oldFsc->setDynamicSampleRate(1000000);
+  oldFsc->setDynamicSampleRate(1);
   oldFsc->setDynamicEgressLoadExponent(2);
   oldFsc->setDynamicQueueExponent(3);
   oldFsc->setDynamicPhysicalQueueExponent(4);
@@ -35,7 +35,7 @@ TEST_F(ArsProfileManagerTest, testArsProfileManager) {
   auto arsProfileSaiId = arsProfileHandle->arsProfile->adapterKey();
   auto samplingRate = saiApiTable->arsProfileApi().getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::SamplingInterval{});
-  EXPECT_EQ(samplingRate, 1000000);
+  EXPECT_EQ(samplingRate, 1);
   auto portLoadPastWeight = saiApiTable->arsProfileApi().getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::PortLoadPastWeight{});
   EXPECT_EQ(portLoadPastWeight, 2);
@@ -66,7 +66,7 @@ TEST_F(ArsProfileManagerTest, testArsProfileManager) {
 
   std::shared_ptr<FlowletSwitchingConfig> newFsc =
       std::make_shared<FlowletSwitchingConfig>();
-  newFsc->setDynamicSampleRate(2000000);
+  newFsc->setDynamicSampleRate(2);
   newFsc->setDynamicEgressLoadExponent(4);
   newFsc->setDynamicQueueExponent(6);
   newFsc->setDynamicPhysicalQueueExponent(8);
@@ -78,7 +78,7 @@ TEST_F(ArsProfileManagerTest, testArsProfileManager) {
   saiManagerTable->arsProfileManager().changeArsProfile(oldFsc, newFsc);
   samplingRate = saiApiTable->arsProfileApi().getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::SamplingInterval{});
-  EXPECT_EQ(samplingRate, 2000000);
+  EXPECT_EQ(samplingRate, 2);
   portLoadPastWeight = saiApiTable->arsProfileApi().getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::PortLoadPastWeight{});
   EXPECT_EQ(portLoadPastWeight, 4);

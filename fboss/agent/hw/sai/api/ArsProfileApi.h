@@ -125,7 +125,11 @@ struct SaiArsProfileTraits {
       Attributes::QuantBand2MinThreshold>;
 #else
       Attributes::Algo,
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+      Attributes::ExtensionSamplingIntervalNanosec,
+#else
       Attributes::SamplingInterval,
+#endif
       Attributes::RandomSeed,
       Attributes::EnableIPv4,
       Attributes::EnableIPv6,

@@ -153,7 +153,7 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     flowletCfg.dynamicEgressLoadExponent() = 1;
     flowletCfg.dynamicQueueExponent() = 1;
     flowletCfg.dynamicPhysicalQueueExponent() = 5;
-    flowletCfg.dynamicSampleRate() = 1;
+    flowletCfg.dynamicSampleRate() = 1000;
   } else {
     flowletCfg.dynamicEgressLoadExponent() = 0;
     flowletCfg.dynamicQueueExponent() = 0;

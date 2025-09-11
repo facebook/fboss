@@ -99,15 +99,16 @@ class HwArsTest : public HwLinkStateDependentTest {
   }
 
   int kDefaultSamplingRate() const {
-    return getHwSwitchEnsemble()->isSai() ? 1 : 500000;
+    return getHwSwitchEnsemble()->isSai() ? 1000 : 500000;
   }
 
   // SAI is 0.5us but SDK doesn't support yet
   // <1us not supported on TH3
   int kMinSamplingRate() const {
-    bool isTH4 = getPlatform()->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
-    return getHwSwitchEnsemble()->isSai() ? 1 : isTH4 ? 1953125 : 1000000;
+    bool isTH3 = getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK3;
+    return getHwSwitchEnsemble()->isSai() ? (isTH3 ? 1000 : 512)
+                                          : (isTH3 ? 1000000 : 1953125);
   }
 
   cfg::SwitchConfig initialConfig() const override {
