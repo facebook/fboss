@@ -1291,6 +1291,12 @@ struct Port {
    * Inter-packet gap configuration in bits.
    */
   36: optional i32 interPacketGapBits;
+
+  /*
+   * AM (Alignment Marker) idles configuration.
+   * Controls whether AM idles are enabled on the port.
+   */
+  37: optional bool amIdles;
 }
 
 enum LacpPortRate {
