@@ -58,7 +58,9 @@
       DeleteProbedAddressesAndRulesNoTableIdMapping);                          \
   FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);              \
   FRIEND_TEST(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic);       \
-  FRIEND_TEST(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic);
+  FRIEND_TEST(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic); \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1003,6 +1005,26 @@ TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic) {
   EXPECT_EQ(2, probedMapping.size());
   EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
   EXPECT_EQ(tableId2001, probedMapping[InterfaceID(2001)]);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with empty probed routes
+ *
+ * Tests the case where no probed routes exist, resulting in an empty mapping.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes) {
+  // Add mock interfaces to intfs_ map
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+
+  // No probed routes added (probedRoutes_ is empty)
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should return empty mapping
+  EXPECT_EQ(0, probedMapping.size());
 }
 
 } // namespace facebook::fboss
