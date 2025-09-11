@@ -65,7 +65,10 @@
       TunManagerRouteProcessorTest,                                            \
       BuildProbedIfIdToTableIdMapEmptyInterfaces);                             \
   FRIEND_TEST(                                                                 \
-      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario);
+      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario); \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapInvalidIfIndex);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1097,6 +1100,51 @@ TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario) {
   EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
   EXPECT_EQ(tableId2002, probedMapping[InterfaceID(2002)]);
   EXPECT_EQ(probedMapping.end(), probedMapping.find(InterfaceID(2001)));
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with invalid ifIndex
+ *
+ * Tests handling of probed routes with zero or negative ifIndex values.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapInvalidIfIndex) {
+  // Add mock interface
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+
+  // Add probed routes with invalid ifIndex values
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto tableIdInvalid1 =
+      tunMgr_->getTableId(InterfaceID(2001)); // For invalid route 1
+  auto tableIdInvalid2 =
+      tunMgr_->getTableId(InterfaceID(2002)); // For invalid route 2
+
+  TunManager::ProbedRoute invalidRoute1;
+  invalidRoute1.family = AF_INET;
+  invalidRoute1.tableId = tableIdInvalid1;
+  invalidRoute1.destination = "0.0.0.0/0";
+  invalidRoute1.ifIndex = 0; // Invalid ifIndex
+  tunMgr_->probedRoutes_.push_back(invalidRoute1);
+
+  TunManager::ProbedRoute invalidRoute2;
+  invalidRoute2.family = AF_INET;
+  invalidRoute2.tableId = tableIdInvalid2;
+  invalidRoute2.destination = "0.0.0.0/0";
+  invalidRoute2.ifIndex = -1; // Invalid ifIndex
+  tunMgr_->probedRoutes_.push_back(invalidRoute2);
+
+  // Add a valid route for comparison
+  addProbedRoute(tunMgr_, AF_INET, tableId2000, "0.0.0.0/0", 42);
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should only include the interface with valid probed route
+  EXPECT_EQ(1, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
 }
 
 } // namespace facebook::fboss
