@@ -23,30 +23,31 @@ class HwAsic;
 
 class EcmpResourceManager : public PreUpdateStateModifier {
  private:
+  using SwitchStatsGetter = std::function<SwitchStats*()>;
   EcmpResourceManager(
       const EcmpResourceManagerConfig& config,
-      SwitchStats* stats);
+      const SwitchStatsGetter& switchStatsGetter);
 
  public:
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       int compressionPenaltyThresholdPct = 0,
-      SwitchStats* stats = nullptr)
+      SwitchStatsGetter statsGetter = []() { return nullptr; })
       : EcmpResourceManager(
             EcmpResourceManagerConfig(
                 maxHwEcmpGroups,
                 std::nullopt,
                 std::nullopt,
                 compressionPenaltyThresholdPct),
-            stats) {}
+            statsGetter) {}
 
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
-      SwitchStats* stats = nullptr)
+      SwitchStatsGetter statsGetter = []() { return nullptr; })
       : EcmpResourceManager(
             EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
-            stats) {}
+            statsGetter) {}
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
@@ -302,7 +303,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;
-  SwitchStats* switchStats_;
+  SwitchStatsGetter statsGetter_;
   EcmpResourceManagerConfig config_;
 };
 

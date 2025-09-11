@@ -147,16 +147,16 @@ EcmpResourceManager::NextHopGroupIds nhopGroupIdsDifference(
 
 EcmpResourceManager::EcmpResourceManager(
     const EcmpResourceManagerConfig& config,
-    SwitchStats* stats)
+    const SwitchStatsGetter& statsGetter)
     // We keep a buffer of 2 for transient increment in ECMP groups when
     // pushing updates down to HW
-    : switchStats_(stats), config_(config) {
-  if (switchStats_) {
-    switchStats_->setPrimaryEcmpGroupsExhausted(false);
-    switchStats_->setPrimaryEcmpGroupsCount(0);
-    switchStats_->setBackupEcmpGroupsCount(0);
-    switchStats_->setMergedEcmpGroupsCount(0);
-    switchStats_->setMergedEcmpMemberGroupsCount(0);
+    : statsGetter_(statsGetter), config_(config) {
+  if (auto switchStats = statsGetter_()) {
+    switchStats->setPrimaryEcmpGroupsExhausted(false);
+    switchStats->setPrimaryEcmpGroupsCount(0);
+    switchStats->setBackupEcmpGroupsCount(0);
+    switchStats->setMergedEcmpGroupsCount(0);
+    switchStats->setMergedEcmpMemberGroupsCount(0);
   }
 }
 
@@ -266,16 +266,17 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     inOutState->out.clear();
     inOutState->out.emplace_back(delta.oldState(), delta.newState());
   }
-  if (switchStats_) {
-    switchStats_->setPrimaryEcmpGroupsCount(inOutState->primaryEcmpGroupsCnt);
+  if (auto switchStats = statsGetter_()) {
+    switchStats->setPrimaryEcmpGroupsCount(inOutState->primaryEcmpGroupsCnt);
     auto backupEcmpGroupCount = getBackupEcmpSwitchingMode().has_value()
         ? nextHopGroup2Id_.size() - inOutState->primaryEcmpGroupsCnt
         : 0;
-    switchStats_->setBackupEcmpGroupsCount(backupEcmpGroupCount);
-    switchStats_->setPrimaryEcmpGroupsExhausted(
-        backupEcmpGroupCount > 0 || mergedGroups_.size() > 0);
-    switchStats_->setMergedEcmpGroupsCount(mergedGroups_.size());
-    switchStats_->setMergedEcmpMemberGroupsCount(getMergedGids().size());
+    switchStats->setBackupEcmpGroupsCount(backupEcmpGroupCount);
+    auto primaryEcmpExhuasted =
+        backupEcmpGroupCount > 0 || mergedGroups_.size() > 0;
+    switchStats->setPrimaryEcmpGroupsExhausted(primaryEcmpExhuasted);
+    switchStats->setMergedEcmpGroupsCount(mergedGroups_.size());
+    switchStats->setMergedEcmpMemberGroupsCount(getMergedGids().size());
   }
   DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
   return std::move(inOutState->out);
@@ -1901,9 +1902,12 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
                        : "None");
 
     ecmpResourceManager = switchingMode
-        ? std::make_unique<EcmpResourceManager>(maxEcmps, switchingMode, stats)
+        ? std::make_unique<EcmpResourceManager>(
+              maxEcmps, switchingMode, [stats] { return stats; })
         : std::make_unique<EcmpResourceManager>(
-              maxEcmps, ecmpCompressionPenaltyThresholPct.value_or(0), stats);
+              maxEcmps, ecmpCompressionPenaltyThresholPct.value_or(0), [stats] {
+                return stats;
+              });
   }
   return ecmpResourceManager;
 }
