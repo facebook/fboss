@@ -312,6 +312,23 @@ std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
   return probedIfIdToTableId;
 }
 
+bool TunManager::requiresProbedDataCleanup(
+    const std::unordered_map<InterfaceID, int>& stateMap,
+    const std::unordered_map<InterfaceID, int>& probedMap) const {
+  // Most idiomatic: direct equality comparison
+  bool mapsEqual = (stateMap == probedMap);
+
+  if (!mapsEqual) {
+    XLOG(DBG2) << "Interface mappings differ - state has " << stateMap.size()
+               << " entries, probed has " << probedMap.size() << " entries";
+    return true;
+  }
+
+  XLOG(DBG2)
+      << "Interface ID to table ID mappings are identical, skipping cleanup";
+  return false;
+}
+
 int TunManager::getTableIdForNpu(InterfaceID ifID) const {
   // Kernel only supports up to 256 tables. The last few are used by kernel
   // as main, default, and local. IDs 0, 254 and 255 are not available. So we

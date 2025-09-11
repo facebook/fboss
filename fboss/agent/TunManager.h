@@ -197,6 +197,17 @@ class TunManager : public StateObserver {
    */
   std::unordered_map<InterfaceID, int> buildProbedIfIdToTableIdMap() const;
 
+  /**
+   * Check if probed data cleanup is required by comparing interface mappings.
+   *
+   * @param stateMap Interface ID to table ID mapping from SwitchState
+   * @param probedMap Interface ID to table ID mapping from probed interfaces
+   * @return true if cleanup is required (mappings differ), false otherwise
+   */
+  bool requiresProbedDataCleanup(
+      const std::unordered_map<InterfaceID, int>& stateMap,
+      const std::unordered_map<InterfaceID, int>& probedMap) const;
+
   int getTableIdForNpu(InterfaceID ifID) const;
   int getTableIdForVoq(InterfaceID ifID) const;
 
