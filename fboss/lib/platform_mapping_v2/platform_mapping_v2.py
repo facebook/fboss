@@ -37,6 +37,7 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
 )
+from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
 
 # If you want to generate multiple platform mapping variants for a single platform,
 # define a base platform that includes common files (e.g. si_settings.csv) and
@@ -51,6 +52,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "meru800bia": [
         "meru800bia_100g_nif_port_breakout",
         "meru800bia_800g",
+        "meru800bia_800g_hyperport",
         "meru800bia_dual_stage_edsw",
         "meru800bia_dual_stage_rdsw",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
@@ -287,7 +289,9 @@ class PlatformMappingV2:
                     si_settings=self.pm_parser.get_si_settings(),
                     profile=profile,
                     # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
-                    lane_speed=speed_setting.speed / speed_setting.num_lanes,
+                    lane_speed=0
+                    if speed_setting.num_lanes == 0
+                    else speed_setting.speed / speed_setting.num_lanes,
                 )
                 port_entry.supportedProfiles[profile] = platform_port_config
 
@@ -322,20 +326,47 @@ class PlatformMappingV2:
         # subsumed port controlled by the later port
         for port_id, port_entry in ports.items():
             for port_config in port_entry.supportedProfiles.values():
-                all_iphy_pins_needed = port_config.pins.iphy
-                for other_port_id, other_port_entry in ports.items():
-                    if port_id == other_port_id:
-                        continue
-                    for (
-                        other_port_config
-                    ) in other_port_entry.supportedProfiles.values():
-                        if all(
-                            needed_iphy_pin in other_port_config.pins.iphy
-                            for needed_iphy_pin in all_iphy_pins_needed
+                if port_entry.mapping.portType != PortType.HYPER_PORT:
+                    all_iphy_pins_needed = port_config.pins.iphy
+                    for other_port_id, other_port_entry in ports.items():
+                        if (
+                            port_id == other_port_id
+                            or other_port_entry.mapping.portType == PortType.HYPER_PORT
                         ):
-                            if not other_port_config.subsumedPorts:
-                                other_port_config.subsumedPorts = []
-                            if port_id not in other_port_config.subsumedPorts:
-                                other_port_config.subsumedPorts.append(port_id)
-                            port_entry.mapping.controllingPort = other_port_id
+                            continue
+                        for (
+                            other_port_config
+                        ) in other_port_entry.supportedProfiles.values():
+                            if all(
+                                needed_iphy_pin in other_port_config.pins.iphy
+                                for needed_iphy_pin in all_iphy_pins_needed
+                            ):
+                                if not other_port_config.subsumedPorts:
+                                    other_port_config.subsumedPorts = []
+                                if port_id not in other_port_config.subsumedPorts:
+                                    other_port_config.subsumedPorts.append(port_id)
+                                port_entry.mapping.controllingPort = other_port_id
+                elif port_entry.mapping.portType == PortType.HYPER_PORT:
+                    for other_port_id, other_port_entry in ports.items():
+                        other_port_detail = (
+                            self.pm_parser.get_port_profile_mapping().get_ports()[
+                                other_port_id
+                            ]
+                        )
+                        if (
+                            port_id == other_port_id
+                            or other_port_entry.mapping.portType == PortType.HYPER_PORT
+                        ):
+                            continue
+                        if other_port_detail.parent_port_id == port_id:
+                            if not port_entry.supportedProfiles[
+                                PortProfileID.PROFILE_DEFAULT
+                            ].subsumedPorts:
+                                port_entry.supportedProfiles[
+                                    PortProfileID.PROFILE_DEFAULT
+                                ].subsumedPorts = []
+                            port_entry.supportedProfiles[
+                                PortProfileID.PROFILE_DEFAULT
+                            ].subsumedPorts.append(other_port_id)
+
         return dict(sorted(ports.items()))
