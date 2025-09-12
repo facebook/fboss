@@ -1,11 +1,11 @@
 {
-  "pwmBoostOnNumDeadFan": 0,
+  "pwmBoostOnNumDeadFan": 2,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 55,
   "pwmBoostValue": 60,
-  "pwmTransitionValue": 60,
-  "pwmLowerThreshold": 60,
-  "pwmUpperThreshold": 60,
+  "pwmTransitionValue": 45,
+  "pwmLowerThreshold": 25,
+  "pwmUpperThreshold": 70,
   "watchdog": {
     "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
     "value": 0
@@ -14,8 +14,113 @@
     "sensorReadInterval": 5,
     "pwmUpdateInterval": 5
   },
-  "optics": [],
-  "sensors": [],
+  "optics": [
+    {
+      "opticName": "qsfp_group_1",
+      "access": {
+        "accessType": "ACCESS_TYPE_QSFP"
+      },
+      "portList": [],
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID",
+      "pidSettings": {
+        "OPTIC_TYPE_800_GENERIC": {
+          "kp": 2,
+          "ki": 0.6,
+          "kd": 0,
+          "setPoint": 65.0,
+          "posHysteresis": 2.0,
+          "negHysteresis": 0.0
+        },
+        "OPTIC_TYPE_400_GENERIC": {
+          "kp": 2,
+          "ki": 0.6,
+          "kd": 0,
+          "setPoint": 65.0,
+          "posHysteresis": 2.0,
+          "negHysteresis": 0.0
+        },
+        "OPTIC_TYPE_200_GENERIC": {
+          "kp": 2,
+          "ki": 0.6,
+          "kd": 0,
+          "setPoint": 65.0,
+          "posHysteresis": 2.0,
+          "negHysteresis": 0.0
+        },
+        "OPTIC_TYPE_100_GENERIC": {
+          "kp": 2,
+          "ki": 0.6,
+          "kd": 0,
+          "setPoint": 65.0,
+          "posHysteresis": 2.0,
+          "negHysteresis": 0.0
+        }
+      }
+    }
+  ],
+  "sensors": [
+    {
+      "sensorName": "CPU_UNCORE_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 94.0,
+        "posHysteresis": 3.0,
+        "negHysteresis": 3.0
+      }
+    },
+    {
+      "sensorName": "SCM_INLET_U36_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "31": 25,
+        "32": 30,
+        "37": 35,
+        "42": 60
+      },
+      "normalDownTable": {
+        "29": 25,
+        "30": 30,
+        "35": 35,
+        "40": 60
+      },
+      "failUpTable": {
+        "31": 30,
+        "32": 35,
+        "37": 40,
+        "42": 65
+      },
+      "failDownTable": {
+        "29": 30,
+        "30": 35,
+        "35": 40,
+        "40": 65
+      }
+    },
+    {
+      "sensorName": "asic_temp",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 2,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 95.0,
+        "posHysteresis": 2.0,
+        "negHysteresis": 0.0
+      }
+    }
+  ],
   "fans": [
     {
       "fanName": "FAN_1_F",
@@ -246,7 +351,12 @@
     {
       "zoneType": "ZONE_TYPE_MAX",
       "zoneName": "zone1",
-      "sensorNames": [],
+      "sensorNames": [
+        "CPU_UNCORE_TEMP",
+        "SCM_INLET_U36_TEMP",
+        "asic_temp",
+        "qsfp_group_1"
+      ],
       "fanNames": [
         "FAN_1_F",
         "FAN_1_R",
@@ -265,7 +375,7 @@
         "FAN_8_F",
         "FAN_8_R"
       ],
-      "slope": 0
+      "slope": 10
     }
   ]
 }
