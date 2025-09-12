@@ -355,3 +355,8 @@ DEFINE_bool(
     dsf_single_stage_r128_f40_e16_8k_sys_ports,
     false,
     "Allow upto 8K system ports on single stage DSF (default=6144)");
+
+DEFINE_uint32(
+    ecmp_width,
+    64,
+    "Max ecmp width. Also implies ucmp normalization factor");

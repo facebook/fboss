@@ -12,6 +12,7 @@
 #include <tuple>
 
 #include "DsfNodeMap.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
@@ -42,12 +43,6 @@
 using std::make_shared;
 using std::shared_ptr;
 using std::chrono::seconds;
-
-// TODO: it might be worth splitting up limits for ecmp/ucmp
-DEFINE_uint32(
-    ecmp_width,
-    64,
-    "Max ecmp width. Also implies ucmp normalization factor");
 
 DEFINE_bool(
     enable_acl_table_group,
