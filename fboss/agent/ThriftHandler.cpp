@@ -795,7 +795,12 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
   for (const auto& prefix : *prefixes) {
     updater.delRoute(routerID, prefix, clientID);
   }
-  updater.program();
+  try {
+    updater.program();
+  } catch (const FbossHwUpdateError& ex) {
+    sw_->stats()->routeProgrammingUpdateFailures();
+    translateToFibError(ex);
+  }
 }
 
 void ThriftHandler::deleteUnicastRoutes(
@@ -878,6 +883,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
     updater.program(
         {syncFibs, RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY});
   } catch (const FbossHwUpdateError& ex) {
+    sw_->stats()->routeProgrammingUpdateFailures();
     translateToFibError(ex);
   }
 }
@@ -2600,6 +2606,7 @@ void ThriftHandler::addMplsRibRoutes(
     updater.program(
         {syncFibs, RouteUpdateWrapper::SyncFibInfo::SyncFibType::MPLS_ONLY});
   } catch (const FbossHwUpdateError& ex) {
+    sw_->stats()->routeProgrammingUpdateFailures();
     translateToFibError(ex);
   }
 }
@@ -2642,6 +2649,7 @@ void ThriftHandler::deleteMplsRibRoutes(
   try {
     updater.program();
   } catch (const FbossHwUpdateError& ex) {
+    sw_->stats()->routeProgrammingUpdateFailures();
     translateToFibError(ex);
   }
   return;

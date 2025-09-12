@@ -513,7 +513,7 @@ class SwitchStats : public boost::noncopyable {
     routeProgrammingUpdateAttempts_.addValue(1);
   }
 
-  void routeProgrammingUpdateFailure() {
+  void routeProgrammingUpdateFailures() {
     routeProgrammingUpdateFailures_.addValue(1);
   }
 
