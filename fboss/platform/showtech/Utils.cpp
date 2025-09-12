@@ -2,6 +2,7 @@
 
 #include "fboss/platform/showtech/Utils.h"
 
+#include <array>
 #include <filesystem>
 #include <iostream>
 
@@ -145,6 +146,21 @@ void Utils::printPsuDetails() {
                 << std::endl;
     }
     std::cout << std::endl;
+  }
+}
+
+void Utils::printNvmeDetails() {
+  if (!config_.nvmeDevices()->empty()) {
+    std::cout << "##### Nvme Information #####" << std::endl;
+    std::array<std::string, 3> cmds{
+        "nvme smart-log {}", "nvme error-log {}", "nvme id-ctrl {}"};
+    for (const auto& nvmeDevice : *config_.nvmeDevices()) {
+      for (const auto& cmdStr : cmds) {
+        auto cmd = fmt::format(fmt::runtime(cmdStr), nvmeDevice);
+        std::cout << fmt::format("#### Running `{}` ####", cmd) << std::endl;
+        std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+      }
+    }
   }
 }
 

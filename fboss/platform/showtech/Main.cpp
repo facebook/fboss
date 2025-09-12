@@ -37,5 +37,6 @@ int main(int argc, char** argv) {
   showtechUtil.printSensorDetails();
   showtechUtil.printPsuDetails();
   showtechUtil.printI2cDetails();
+  showtechUtil.printNvmeDetails();
   return 0;
 }

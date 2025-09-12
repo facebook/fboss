@@ -4,4 +4,5 @@ namespace cpp2 facebook.fboss.platform.showtech_config
 struct ShowtechConfig {
   1: set<string> i2cBusIgnore;
   2: list<string> psus;
+  3: list<string> nvmeDevices;
 }
