@@ -17,6 +17,7 @@ typedef string fbstring
 struct ClientInformation {
   1: optional fbstring username;
   2: optional fbstring hostname;
+  3: optional fbstring reason;
 }
 
 // The field names are kept consistent with configerator/source/neteng/bgp_policy/thrift/nsf_policy.thrift
