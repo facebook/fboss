@@ -98,6 +98,7 @@ target_link_libraries(sensor_service_client
   tabulate::tabulate
   Folly::folly
   FBThrift::thriftcpp2
+  CLI11::CLI11
 )
 
 install(TARGETS sensor_service)
