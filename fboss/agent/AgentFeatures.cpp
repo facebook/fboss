@@ -55,6 +55,7 @@ DEFINE_int32(
     dsf_subscriber_stream_thread_heartbeat_ms,
     1000,
     "DSF subscriber stream thread heartbeat interval in msec");
+DEFINE_bool(hyper_port, false, "Enable hyper port on edsw front panel ports");
 // Remote neighbor entries are always flushed to avoid blackholing the traffic.
 // However, by default, remote{systemPorts, Rifs} are not flushed but marked
 // STALE in the software. This is to avoid hardware programmign churn.
