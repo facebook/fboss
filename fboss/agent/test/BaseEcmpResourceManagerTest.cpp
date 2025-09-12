@@ -23,9 +23,11 @@ RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   for (int i = 0; i < n; i++) {
     auto interfaceId = (i / numNhopsPerIntf) + 1;
     auto subnetIndex = i / numNhopsPerIntf;
+    std::stringstream ss;
+    ss << std::hex << subnetIndex;
     // ::1 is local interface address, start nhop addressed from 2
     auto lastQuad = 2 + startOffset + i % numNhopsPerIntf;
-    auto ipStr = folly::sformat("2400:db00:2110:{}::{}", subnetIndex, lastQuad);
+    auto ipStr = folly::sformat("2400:db00:2110:{}::{}", ss.str(), lastQuad);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr),
         InterfaceID(interfaceId),
@@ -106,8 +108,10 @@ cfg::SwitchConfig onePortPerIntfConfig(
     cfg.interfaces()[p].mac() = "00:02:00:00:00:01";
     cfg.interfaces()[p].mtu() = 9000;
     cfg.interfaces()[p].ipAddresses()->resize(2);
+    std::stringstream ss;
+    ss << std::hex << p;
     cfg.interfaces()[p].ipAddresses()[0] =
-        folly::sformat("2400:db00:2110:{}::1/64", p);
+        folly::sformat("2400:db00:2110:{}::1/64", ss.str());
     cfg.interfaces()[p].ipAddresses()[1] = folly::sformat("200.0.{}.1/24", p);
   }
   if (ecmpCompressionThresholdPct) {
