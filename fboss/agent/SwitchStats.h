@@ -513,8 +513,15 @@ class SwitchStats : public boost::noncopyable {
     routeProgrammingUpdateAttempts_.addValue(1);
   }
 
+  int64_t getRouteProgrammingUpdateAttempts() const {
+    return getCumulativeValue(routeProgrammingUpdateAttempts_);
+  }
+
   void routeProgrammingUpdateFailures() {
     routeProgrammingUpdateFailures_.addValue(1);
+  }
+  int64_t getRouteProgrammingUpdateFailures() const {
+    return getCumulativeValue(routeProgrammingUpdateFailures_);
   }
 
   void switchConfiguredMs(uint64_t ms) {
