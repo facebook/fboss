@@ -278,7 +278,7 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_ODP) || defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+#if defined(SAI_VERSION_11_7_0_0_ODP)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
   return std::nullopt;
