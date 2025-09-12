@@ -509,6 +509,14 @@ class SwitchStats : public boost::noncopyable {
     resourceAccountantRejectedUpdates_.addValue(1);
   }
 
+  void routeProgrammingUpdateAttempts() {
+    routeProgrammingUpdateAttempts_.addValue(1);
+  }
+
+  void routeProgrammingUpdateFailure() {
+    routeProgrammingUpdateFailures_.addValue(1);
+  }
+
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
@@ -918,6 +926,15 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries addRouteV6_;
   TLTimeseries delRouteV4_;
   TLTimeseries delRouteV6_;
+
+  /**
+   * Number of route programming attempts
+   */
+  TLTimeseries routeProgrammingUpdateAttempts_;
+  /**
+   * Number of route programming update failures
+   */
+  TLTimeseries routeProgrammingUpdateFailures_;
 
   TLTimeseries dstLookupFailureV4_;
   TLTimeseries dstLookupFailureV6_;
