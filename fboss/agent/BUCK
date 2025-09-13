@@ -1736,7 +1736,19 @@ cpp_binary(
         ":fboss_common_init",
         ":load_agent_config",
         ":main-common",
+        ":setup_thrift_prod",  # @manual
         ":split_agent_initializer",
+    ],
+)
+
+cpp_library(
+    name = "setup_thrift_prod",
+    srcs = [
+        "SetupThriftProd.cpp",
+    ],
+    exported_deps = [
+        ":handler",
+        ":setup_thrift",
     ],
 )
 

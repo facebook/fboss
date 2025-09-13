@@ -51,6 +51,7 @@ cpp_binary(
         "//fboss/agent:fake_main",  # @manual
         "//fboss/agent:hw_switch",
         "//fboss/agent:monolithic_agent_initializer",
+        "//fboss/agent:setup_thrift_prod",  # @manual
     ],
 )
 
