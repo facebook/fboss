@@ -81,6 +81,16 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setPortState(portID, true /* enable port */);
 }
 
+void triggerGracefulAgentRestart(const std::string& switchName) {
+  try {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_triggerGracefulExit();
+  } catch (...) {
+    // Thrift request may throw error as the Agent exits.
+    // Ignore it, as we only wanted to trigger exit.
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
