@@ -948,9 +948,11 @@ bool MultiNodeUtil::verifySwSwitchRunState(
 }
 
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
-  // For any one RDSW in every remote cluster issue graceful restart
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  // For any one RDSW in every remote cluster issue graceful restart
   for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
     for (const auto& rdsw : std::as_const(rdsws)) {
       if (rdsw == myHostname) { // exclude self
@@ -964,7 +966,19 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
         return false;
       }
 
-      // TODO verify
+      // Sessions to RDSW that was just restarted are expected to flap.
+      // Verify no other sessions flap.
+      auto expectedPeerToDsfSession = baselinePeerToDsfSession;
+      expectedPeerToDsfSession.erase(rdsw);
+      if (!verifyNoSessionsFlap(
+              myHostname /* rdswToVerify */,
+              expectedPeerToDsfSession,
+              rdsw /* rdswToExclude */)) {
+        return false;
+      }
+
+      // Verify all DSF sessions are established for the RDSW that was restarted
+      verifyAllSessionsEstablished(rdsw);
       // Gracefully restart only one remote RDSW per cluster
 
       // Restart only one remote RDSW per cluster
