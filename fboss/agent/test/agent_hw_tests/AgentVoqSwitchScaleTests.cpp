@@ -12,6 +12,7 @@ class AgentVoqSwitchScaleTest : public AgentVoqSwitchFullScaleDsfNodesTest {};
 
 TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
   const auto kEcmpWidth = getMaxEcmpWidth();
+  const auto kNumPackets = kEcmpWidth * 25000;
   const auto kMaxDeviation = 25;
   auto setup = [&]() {
     utility::setupRemoteIntfAndSysPorts(
@@ -69,22 +70,22 @@ TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
               std::nullopt, /* vlan */
               std::nullopt, /* frontPanelPortToLoopTraffic */
               255, /* hopLimit */
-              1000000 /* numPackets */);
+              kNumPackets);
         },
         [&]() {
           auto ports = std::make_unique<std::vector<int32_t>>();
-          for (auto sysPortDecs : defaultRouteSysPorts) {
+          for (const auto& sysPortDecs : defaultRouteSysPorts) {
             ports->push_back(static_cast<int32_t>(sysPortDecs.sysPortID()));
           }
           getSw()->clearPortStats(ports);
         },
         [&]() {
-          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(
+          utility::isLoadBalanced(
               defaultRouteSysPorts,
               {},
               getSysPortStatsFn,
               kMaxDeviation,
-              false)));
+              false);
           return true;
         });
   };
