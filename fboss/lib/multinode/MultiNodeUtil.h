@@ -129,6 +129,10 @@ class MultiNodeUtil {
   bool verifyGracefulDeviceDownUpForRemoteFdsws();
   bool verifyGracefulDeviceDownUpForRemoteSdsws();
 
+  bool verifySwSwitchRunState(
+      const std::string& rdswToVerify,
+      const SwitchRunState& expectedSwitchRunState);
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;

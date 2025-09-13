@@ -923,6 +923,25 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   return true;
 }
 
+bool MultiNodeUtil::verifySwSwitchRunState(
+    const std::string& rdswToVerify,
+    const SwitchRunState& expectedSwitchRunState) {
+  auto switchRunStateMatches =
+      [this, rdswToVerify, expectedSwitchRunState]() -> bool {
+    auto multiSwitchRunState = getMultiSwitchRunState(rdswToVerify);
+    auto gotSwitchRunState = multiSwitchRunState.swSwitchRunState();
+    return gotSwitchRunState == expectedSwitchRunState;
+  };
+
+  // Thrift client queries will throw exception while the Agent is initializing.
+  // Thus, continue to retry while absorbing exceptions.
+  return checkWithRetryErrorReturn(
+      switchRunStateMatches,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
   // For any one RDSW in every remote cluster issue graceful restart
   auto myHostname = network::NetworkUtil::getLocalHost(
