@@ -13,21 +13,21 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
 
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
+#include "fboss/agent/if/gen-cpp2/MultiNodeTestCtrlAsyncClient.h"
 
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
-using facebook::fboss::FbossCtrl;
 using facebook::fboss::FbossHwCtrl;
+using facebook::fboss::MultiNodeTestCtrl;
 using facebook::fboss::MultiSwitchRunState;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 
-std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
-    const std::string& switchName) {
+std::unique_ptr<apache::thrift::Client<MultiNodeTestCtrl>>
+getSwAgentThriftClient(const std::string& switchName) {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   auto remoteSwitchIp =
       facebook::network::NetworkUtil::getHostByName(switchName);
@@ -35,7 +35,7 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  return std::make_unique<apache::thrift::Client<FbossCtrl>>(
+  return std::make_unique<apache::thrift::Client<MultiNodeTestCtrl>>(
       std::move(channel));
 }
 
