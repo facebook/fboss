@@ -34,9 +34,11 @@ cpp_binary(
         "//folly:string",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+        "//fboss/lib:gpiod_line",
     ],
     external_deps = [
         "CLI11",
         "re2",
+        ("libgpiod", None, "gpiod"),
     ],
 )

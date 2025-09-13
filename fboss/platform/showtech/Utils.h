@@ -22,6 +22,7 @@ class Utils {
   void printSensorDetails();
   void printI2cDetails();
   void printPsuDetails();
+  void printGpioDetails();
   void runFbossCliCmd(const std::string& cmd);
 
  private:
