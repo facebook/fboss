@@ -908,4 +908,9 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   return true;
 }
 
+bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
+  // TODO
+  return true;
+}
+
 } // namespace facebook::fboss::utility

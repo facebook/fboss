@@ -137,4 +137,29 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulDeviceDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    if (!isTestDriver()) {
+      return;
+    }
+
+    auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
+    if (testing::Test::HasNonfatalFailure()) {
+      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
+      FAIL()
+          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
+    }
+
+    EXPECT_TRUE(multiNodeUtil->verifyGracefulDeviceDownUp());
+
+    // Verify that the cluster is still healthy after link down/up
+    verifyDsfClusterHelper(multiNodeUtil);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
