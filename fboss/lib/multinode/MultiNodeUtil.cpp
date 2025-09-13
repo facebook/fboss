@@ -971,6 +971,10 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
 }
 
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
   // For any one FDSW in every remote cluster issue graceful restart
   for (const auto& [_, fdsws] : std::as_const(clusterIdToFdsws_)) {
     // Gracefully restart only one remote FDSW per cluster
@@ -983,6 +987,14 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
         return false;
       }
     }
+  }
+
+  // verify no flaps is expensive.
+  // Thus, only verify after warmboot restarting one FDSW from each cluster.
+  // There is no loss of signal due to this approach as if the sessions flap
+  // due to an intermediate warmboot, it will be detected by this check anyway.
+  if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
+    return false;
   }
 
   return true;
