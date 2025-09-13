@@ -971,6 +971,20 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
 }
 
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
+  // For any one FDSW in every remote cluster issue graceful restart
+  for (const auto& [_, fdsws] : std::as_const(clusterIdToFdsws_)) {
+    // Gracefully restart only one remote FDSW per cluster
+    if (!fdsws.empty()) {
+      auto fdsw = fdsws.front();
+      triggerGracefulAgentRestart(fdsw);
+      // Wait for the switch to come up
+      if (!verifySwSwitchRunState(fdsw, SwitchRunState::CONFIGURED)) {
+        XLOG(DBG2) << "Agent failed to come up post warmboot: " << fdsw;
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
