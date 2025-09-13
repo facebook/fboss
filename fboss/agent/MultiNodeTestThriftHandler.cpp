@@ -10,6 +10,8 @@
 
 #include "fboss/agent/MultiNodeTestThriftHandler.h"
 
+#include "fboss/agent/Utils.h"
+
 namespace facebook::fboss {
 
 MultiNodeTestThriftHandler::MultiNodeTestThriftHandler(SwSwitch* sw)
@@ -17,7 +19,11 @@ MultiNodeTestThriftHandler::MultiNodeTestThriftHandler(SwSwitch* sw)
 
 void MultiNodeTestThriftHandler::triggerGracefulExit() {
   XLOG(INFO) << __func__;
-  // TODO add implementation
+
+  // TODO: Get this to work on monolithic and split binary
+  auto cmd =
+      folly::to<std::string>("systemctl restart wedge_agent_multinode-test");
+  runShellCmd(cmd);
 }
 
 } // namespace facebook::fboss
