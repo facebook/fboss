@@ -953,6 +953,12 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
       }
 
       triggerGracefulAgentRestart(rdsw);
+      // Wait for the switch to come up
+      if (!verifySwSwitchRunState(rdsw, SwitchRunState::CONFIGURED)) {
+        XLOG(DBG2) << "Agent failed to come up post warmboot: " << rdsw;
+        return false;
+      }
+
       // TODO verify
       // Gracefully restart only one remote RDSW per cluster
 
