@@ -75,7 +75,9 @@ class MultiNodeUtil {
 
   bool verifyNoSessionsFlap(
       const std::string& rdswToVerify,
-      const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession);
+      const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
+      const std::optional<std::string>& rdswToExclude = std::nullopt);
+
   bool verifyNoSessionsEstablished(const std::string& rdswToVerify);
   bool verifyAllSessionsEstablished(const std::string& rdswToVerify);
 

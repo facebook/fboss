@@ -783,13 +783,18 @@ bool MultiNodeUtil::verifyDsfSessions() {
 
 bool MultiNodeUtil::verifyNoSessionsFlap(
     const std::string& rdswToVerify,
-    const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession) {
+    const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
+    const std::optional<std::string>& rdswToExclude) {
   auto noSessionFlap =
-      [this, rdswToVerify, baselinePeerToDsfSession]() -> bool {
+      [this, rdswToVerify, baselinePeerToDsfSession, rdswToExclude]() -> bool {
     auto currentPeerToDsfSession = getPeerToDsfSession(rdswToVerify);
     // All entries must be identical i.e.
     // DSF Session state (ESTABLISHED or not) is the same.
     // For any session the establishedAt and connnectedAt is the same.
+    if (rdswToExclude.has_value()) {
+      currentPeerToDsfSession.erase(rdswToExclude.value());
+    }
+
     return baselinePeerToDsfSession == currentPeerToDsfSession;
   };
 
