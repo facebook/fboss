@@ -53,10 +53,15 @@ std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> getHwAgentThriftClient(
       std::move(channel));
 }
 
-int getNumHwSwitches(const std::string& switchName) {
+MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   MultiSwitchRunState runState;
   swAgentClient->sync_getMultiSwitchRunState(runState);
+  return runState;
+}
+
+int getNumHwSwitches(const std::string& switchName) {
+  auto runState = getMultiSwitchRunState(switchName);
   return runState.hwIndexToRunState()->size();
 }
 
