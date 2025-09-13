@@ -55,7 +55,8 @@ bool checkWithRetryErrorReturn(
         std::chrono::milliseconds(1000)) {
   try {
     checkWithRetry(condition, retries, msBetweenRetry);
-  } catch (const FbossError&) {
+  } catch (const FbossError& e) {
+    XLOG(DBG2) << __func__ << " error: " << e.what();
     return false;
   }
 
