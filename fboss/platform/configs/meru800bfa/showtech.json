@@ -7,5 +7,6 @@
     "/run/devmap/sensors/PSU2_PMBUS",
     "/run/devmap/sensors/PSU3_PMBUS",
     "/run/devmap/sensors/PSU4_PMBUS"
-  ]
+  ],
+  "gpios": []
 }
