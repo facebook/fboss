@@ -919,6 +919,24 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
 }
 
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
+  // For any one RDSW in every remote cluster issue graceful restart
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+
+      triggerGracefulAgentRestart(rdsw);
+      // TODO verify
+      // Gracefully restart only one remote RDSW per cluster
+
+      // Restart only one remote RDSW per cluster
+      break;
+    }
+  }
+
   return true;
 }
 
