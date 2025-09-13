@@ -1753,6 +1753,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "setup_thrift_multinode_test",
+    srcs = [
+        "SetupThriftMultiNodeTest.cpp",
+    ],
+    exported_deps = [
+        ":multinode_test_thrift_handler",
+        ":setup_thrift",
+    ],
+)
+
+cpp_library(
     name = "sw_switch_warmboot_helper",
     srcs = [
         "SwSwitchWarmBootHelper.cpp",
