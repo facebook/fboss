@@ -158,6 +158,7 @@ target_link_libraries(utils
   janga800bic_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
+  tahansb800bc_platform_mapping
 )
 
 add_library(stats
