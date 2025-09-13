@@ -1741,6 +1741,20 @@ cpp_binary(
     ],
 )
 
+cpp_binary(
+    name = "fboss_sw_agent_multinode_test",
+    srcs = [
+        "FbossSwAgent.cpp",
+    ],
+    deps = [
+        ":fboss_common_init",
+        ":load_agent_config",
+        ":main-common",
+        ":setup_thrift_multinode_test",  # @manual
+        ":split_agent_initializer",
+    ],
+)
+
 cpp_library(
     name = "setup_thrift_prod",
     srcs = [
