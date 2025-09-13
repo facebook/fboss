@@ -30,11 +30,20 @@ void checkWithRetry(
     int retries = 10,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
         std::chrono::milliseconds(1000),
-    std::optional<std::string> conditionFailedLog = std::nullopt) {
+    std::optional<std::string> conditionFailedLog = std::nullopt,
+    bool retryOnException = false) {
   while (retries--) {
-    if (condition()) {
-      return;
+    try {
+      if (condition()) {
+        return;
+      }
+    } catch (...) {
+      if (!retryOnException) {
+        throw;
+      }
+      // fall-through to sleep and retry
     }
+
     std::this_thread::sleep_for(msBetweenRetry);
   }
 
@@ -52,9 +61,11 @@ bool checkWithRetryErrorReturn(
     CONDITION_FN condition,
     int retries = 10,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
-        std::chrono::milliseconds(1000)) {
+        std::chrono::milliseconds(1000),
+    bool retryOnException = false) {
   try {
-    checkWithRetry(condition, retries, msBetweenRetry);
+    checkWithRetry(
+        condition, retries, msBetweenRetry, std::nullopt, retryOnException);
   } catch (const FbossError& e) {
     XLOG(DBG2) << __func__ << " error: " << e.what();
     return false;
