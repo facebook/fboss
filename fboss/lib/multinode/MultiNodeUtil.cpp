@@ -908,9 +908,22 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   return true;
 }
 
-bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
-  // TODO
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
   return true;
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
+  return true;
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteSdsws() {
+  return true;
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
+  return verifyGracefulDeviceDownUpForRemoteRdsws() &&
+      verifyGracefulDeviceDownUpForRemoteFdsws() &&
+      verifyGracefulDeviceDownUpForRemoteSdsws();
 }
 
 } // namespace facebook::fboss::utility
