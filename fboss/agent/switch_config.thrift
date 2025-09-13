@@ -1312,7 +1312,7 @@ enum LacpPortActivity {
 const i16 DEFAULT_LACP_HOLD_TIMER_MULTIPLIER = 3;
 
 enum AggregatePortType {
-  LAG = 0,
+  LAG_PORT = 0,
   HYPER_PORT = 1,
 }
 
@@ -1347,7 +1347,7 @@ struct AggregatePort {
    * pre-aggregated ODS counters
    */
   6: optional list<string> counterTags;
-  7: AggregatePortType aggregatePortType = LAG;
+  7: AggregatePortType aggregatePortType = LAG_PORT;
 }
 
 struct Lacp {
