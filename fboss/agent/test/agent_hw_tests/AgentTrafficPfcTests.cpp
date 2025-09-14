@@ -474,8 +474,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
 
   void pumpTraffic(const int priority, bool scaleTest) {
     std::vector<PortID> portIds = portIdsForTest(scaleTest);
+    uint8_t queue = 7;
     pumpTraffic(
-        priority, std::nullopt, portIds, getDestinationIps(portIds.size()));
+        priority, queue, portIds, getDestinationIps(portIds.size()));
   }
 
   void stopTraffic(const std::vector<PortID>& portIds) {
