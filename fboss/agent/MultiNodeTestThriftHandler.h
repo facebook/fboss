@@ -23,8 +23,8 @@ class MultiNodeTestThriftHandler
   explicit MultiNodeTestThriftHandler(SwSwitch* sw);
   ~MultiNodeTestThriftHandler() override = default;
 
-  void triggerGracefulExit() override;
-  void triggerUngracefulExit() override;
+  void triggerGracefulRestart() override;
+  void triggerUngracefulRestart() override;
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -89,7 +89,7 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
-    swAgentClient->sync_triggerGracefulExit();
+    swAgentClient->sync_triggerGracefulRestart();
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
@@ -99,7 +99,7 @@ void triggerGracefulAgentRestart(const std::string& switchName) {
 void triggerUngracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
-    swAgentClient->sync_triggerUngracefulExit();
+    swAgentClient->sync_triggerUngracefulRestart();
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
@@ -958,7 +958,7 @@ bool MultiNodeUtil::verifySwSwitchRunState(
 }
 
 bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
-    bool triggerGraceFulExit) {
+    bool triggerGraceFulRestart) {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
@@ -971,8 +971,8 @@ bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
       }
 
       // Trigger graceful or ungraceful Agent restart
-      triggerGraceFulExit ? triggerGracefulAgentRestart(rdsw)
-                          : triggerUngracefulAgentRestart(rdsw);
+      triggerGraceFulRestart ? triggerGracefulAgentRestart(rdsw)
+                             : triggerUngracefulAgentRestart(rdsw);
 
       // Wait for the switch to come up
       if (!verifySwSwitchRunState(rdsw, SwitchRunState::CONFIGURED)) {
@@ -1004,7 +1004,8 @@ bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
 }
 
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
-  return verifyDeviceDownUpForRemoteRdswsHelper(true /* triggerGracefulExit */);
+  return verifyDeviceDownUpForRemoteRdswsHelper(
+      true /* triggerGracefulRestart*/);
 }
 
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
@@ -1049,7 +1050,7 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
 
 bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteRdsws() {
   return verifyDeviceDownUpForRemoteRdswsHelper(
-      false /* triggerGracefulExit */);
+      false /* triggerGracefulRestart*/);
 }
 
 bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteFdsws() {

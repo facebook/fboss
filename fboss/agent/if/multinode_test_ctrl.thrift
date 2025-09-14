@@ -8,6 +8,6 @@ namespace py.asyncio neteng.fboss.asyncio.multinode_test_ctrl
 include "fboss/agent/if/ctrl.thrift"
 
 service MultiNodeTestCtrl extends ctrl.FbossCtrl {
-  void triggerGracefulExit();
-  void triggerUngracefulExit();
+  void triggerGracefulRestart();
+  void triggerUngracefulRestart();
 }

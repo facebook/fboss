@@ -17,7 +17,7 @@ namespace facebook::fboss {
 MultiNodeTestThriftHandler::MultiNodeTestThriftHandler(SwSwitch* sw)
     : ThriftHandler(sw) {}
 
-void MultiNodeTestThriftHandler::triggerGracefulExit() {
+void MultiNodeTestThriftHandler::triggerGracefulRestart() {
   XLOG(INFO) << __func__;
 
   // TODO: Get this to work on monolithic and split binary
@@ -26,7 +26,7 @@ void MultiNodeTestThriftHandler::triggerGracefulExit() {
   runShellCmd(cmd);
 }
 
-void MultiNodeTestThriftHandler::triggerUngracefulExit() {
+void MultiNodeTestThriftHandler::triggerUngracefulRestart() {
   XLOG(INFO) << __func__;
 
   // TODO: Get this to work on monolithic and split binary
