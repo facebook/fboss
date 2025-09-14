@@ -168,4 +168,16 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulDeviceDownUp) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulRestartTimeoutRecovery) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulRestartTimeoutRecovery();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

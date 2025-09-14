@@ -1068,4 +1068,9 @@ bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
       verifyUngracefulDeviceDownUpForRemoteSdsws();
 }
 
+bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
+  // TODO verify
+  return true;
+}
+
 } // namespace facebook::fboss::utility
