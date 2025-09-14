@@ -14,20 +14,20 @@
 #include "common/network/NetworkUtil.h"
 
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
-#include "fboss/agent/if/gen-cpp2/MultiNodeTestCtrlAsyncClient.h"
+#include "fboss/agent/if/gen-cpp2/TestCtrlAsyncClient.h"
 
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
 using facebook::fboss::FbossHwCtrl;
-using facebook::fboss::MultiNodeTestCtrl;
 using facebook::fboss::MultiSwitchRunState;
+using facebook::fboss::TestCtrl;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 
-std::unique_ptr<apache::thrift::Client<MultiNodeTestCtrl>>
-getSwAgentThriftClient(const std::string& switchName) {
+std::unique_ptr<apache::thrift::Client<TestCtrl>> getSwAgentThriftClient(
+    const std::string& switchName) {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   auto remoteSwitchIp =
       facebook::network::NetworkUtil::getHostByName(switchName);
@@ -35,8 +35,7 @@ getSwAgentThriftClient(const std::string& switchName) {
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  return std::make_unique<apache::thrift::Client<MultiNodeTestCtrl>>(
-      std::move(channel));
+  return std::make_unique<apache::thrift::Client<TestCtrl>>(std::move(channel));
 }
 
 std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> getHwAgentThriftClient(
@@ -89,7 +88,7 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
-    swAgentClient->sync_gracefullyRestartService("wedge_agent_multinode_test");
+    swAgentClient->sync_gracefullyRestartService("wedge_agent_test");
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
@@ -99,8 +98,7 @@ void triggerGracefulAgentRestart(const std::string& switchName) {
 void triggerUngracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
-    swAgentClient->sync_ungracefullyRestartService(
-        "wedge_agent_multinode_test");
+    swAgentClient->sync_ungracefullyRestartService("wedge_agent_test");
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
@@ -113,7 +111,7 @@ void restartAgentWithDelay(
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
     swAgentClient->sync_gracefullyRestartServiceWithDelay(
-        "wedge_agent_multinode_test", delayInSeconds);
+        "wedge_agent_test", delayInSeconds);
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.

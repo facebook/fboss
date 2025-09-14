@@ -10,7 +10,7 @@ cpp_library(
         "//common/network:util",
         "//fboss/agent:utils",
         "//fboss/agent/if:hw_ctrl-cpp2-services",
-        "//fboss/agent/if:multinode_test_ctrl-cpp2-clients",
+        "//fboss/agent/if:test_ctrl-cpp2-clients",
         "//fboss/agent/state:state",
         "//fboss/lib:common_utils",
         "//thrift/lib/cpp2/async:rocket_client_channel",

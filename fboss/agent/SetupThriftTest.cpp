@@ -7,13 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/MultiNodeTestThriftHandler.h"
 #include "fboss/agent/SetupThrift.h"
+#include "fboss/agent/TestThriftHandler.h"
 
 namespace facebook::fboss {
 
 std::shared_ptr<ThriftHandler> createThriftHandler(SwSwitch* sw) {
-  auto swHandler = std::make_shared<MultiNodeTestThriftHandler>(sw);
+  auto swHandler = std::make_shared<TestThriftHandler>(sw);
 
   return swHandler;
 }

@@ -10,18 +10,17 @@
 #pragma once
 
 #include "fboss/agent/ThriftHandler.h"
-#include "fboss/agent/if/gen-cpp2/MultiNodeTestCtrl.h"
+#include "fboss/agent/if/gen-cpp2/TestCtrl.h"
 
 namespace facebook::fboss {
 
 class SwSwitch;
 
-class MultiNodeTestThriftHandler
-    : public ThriftHandler,
-      public apache::thrift::ServiceHandler<MultiNodeTestCtrl> {
+class TestThriftHandler : public ThriftHandler,
+                          public apache::thrift::ServiceHandler<TestCtrl> {
  public:
-  explicit MultiNodeTestThriftHandler(SwSwitch* sw);
-  ~MultiNodeTestThriftHandler() override = default;
+  explicit TestThriftHandler(SwSwitch* sw);
+  ~TestThriftHandler() override = default;
 
   void gracefullyRestartService(
       std::unique_ptr<std::string> serviceName) override;
@@ -33,9 +32,8 @@ class MultiNodeTestThriftHandler
 
  private:
   // Forbidden copy constructor and assignment operator
-  MultiNodeTestThriftHandler(MultiNodeTestThriftHandler const&) = delete;
-  MultiNodeTestThriftHandler& operator=(MultiNodeTestThriftHandler const&) =
-      delete;
+  TestThriftHandler(TestThriftHandler const&) = delete;
+  TestThriftHandler& operator=(TestThriftHandler const&) = delete;
 };
 
 } // namespace facebook::fboss

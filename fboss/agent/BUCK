@@ -1091,16 +1091,16 @@ cpp_library(
 )
 
 cpp_library(
-    name = "multinode_test_thrift_handler",
+    name = "test_thrift_handler",
     srcs = [
-        "MultiNodeTestThriftHandler.cpp",
+        "TestThriftHandler.cpp",
     ],
     headers = [
-        "MultiNodeTestThriftHandler.h",
+        "TestThriftHandler.h",
     ],
     exported_deps = [
         ":handler",
-        "//fboss/agent/if:multinode_test_ctrl-cpp2-services",
+        "//fboss/agent/if:test_ctrl-cpp2-services",
     ],
 )
 
@@ -1742,7 +1742,7 @@ cpp_binary(
 )
 
 cpp_binary(
-    name = "fboss_sw_agent_multinode_test",
+    name = "fboss_sw_agent_test",
     srcs = [
         "FbossSwAgent.cpp",
     ],
@@ -1750,7 +1750,7 @@ cpp_binary(
         ":fboss_common_init",
         ":load_agent_config",
         ":main-common",
-        ":setup_thrift_multinode_test",  # @manual
+        ":setup_thrift_test",  # @manual
         ":split_agent_initializer",
     ],
 )
@@ -1767,13 +1767,13 @@ cpp_library(
 )
 
 cpp_library(
-    name = "setup_thrift_multinode_test",
+    name = "setup_thrift_test",
     srcs = [
-        "SetupThriftMultiNodeTest.cpp",
+        "SetupThriftTest.cpp",
     ],
     exported_deps = [
-        ":multinode_test_thrift_handler",
         ":setup_thrift",
+        ":test_thrift_handler",
     ],
 )
 

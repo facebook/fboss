@@ -8,21 +8,20 @@
  *
  */
 
-#include "fboss/agent/MultiNodeTestThriftHandler.h"
+#include "fboss/agent/TestThriftHandler.h"
 
 #include "fboss/agent/Utils.h"
 
 namespace facebook::fboss {
 
-MultiNodeTestThriftHandler::MultiNodeTestThriftHandler(SwSwitch* sw)
-    : ThriftHandler(sw) {}
+TestThriftHandler::TestThriftHandler(SwSwitch* sw) : ThriftHandler(sw) {}
 
-void MultiNodeTestThriftHandler::gracefullyRestartService(
+void TestThriftHandler::gracefullyRestartService(
     std::unique_ptr<std::string> serviceName) {
   XLOG(INFO) << __func__;
 
   static std::set<std::string> kServicesSupportingGracefulRestart = {
-      "wedge_agent_multinode_test",
+      "wedge_agent_test",
       "fsdb",
       "qsfp_service",
       "bgp",
@@ -37,12 +36,12 @@ void MultiNodeTestThriftHandler::gracefullyRestartService(
   runShellCmd(cmd);
 }
 
-void MultiNodeTestThriftHandler::ungracefullyRestartService(
+void TestThriftHandler::ungracefullyRestartService(
     std::unique_ptr<std::string> serviceName) {
   XLOG(INFO) << __func__;
 
   static std::set<std::string> kServicesSupportingUngracefulRestart = {
-      "wedge_agent_multinode_test",
+      "wedge_agent_test",
       "qsfp_service",
   };
   if (kServicesSupportingUngracefulRestart.find(*serviceName) ==
@@ -52,7 +51,7 @@ void MultiNodeTestThriftHandler::ungracefullyRestartService(
   }
 
   std::string fileToCreate;
-  if (*serviceName == "wedge_agent_multinode_test") {
+  if (*serviceName == "wedge_agent_test") {
     fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
   } else if (*serviceName == "qsfp_service") {
     fileToCreate = "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
@@ -63,12 +62,12 @@ void MultiNodeTestThriftHandler::ungracefullyRestartService(
   runShellCmd(cmd);
 }
 
-void MultiNodeTestThriftHandler::gracefullyRestartServiceWithDelay(
+void TestThriftHandler::gracefullyRestartServiceWithDelay(
     std::unique_ptr<std::string> serviceName,
     int32_t delayInSeconds) {
   XLOG(INFO) << __func__;
 
-  if (*serviceName != "wedge_agent_multinode_test") {
+  if (*serviceName != "wedge_agent_test") {
     throw std::runtime_error(folly::to<std::string>(
         "Failed to restart with delay. Unsupported service: ", *serviceName));
   }
