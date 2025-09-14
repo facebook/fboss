@@ -99,7 +99,27 @@ void MultiNodeTestThriftHandler::ungracefullyRestartService(
 void MultiNodeTestThriftHandler::gracefullyRestartServiceWithDelay(
     std::unique_ptr<std::string> serviceName,
     int32_t delayInSeconds) {
-  return;
+  XLOG(INFO) << __func__;
+
+  if (*serviceName != "wedge_agent_multinode_test") {
+    throw std::runtime_error(folly::to<std::string>(
+        "Failed to restart with delay. Unsupported service: ", *serviceName));
+  }
+
+  auto unitName = folly::to<std::string>(*serviceName, "_delayed_start");
+  // Schedule a restart of service after delay seconds
+  auto cmd = folly::to<std::string>(
+      "systemd-run --on-active=",
+      delayInSeconds,
+      "s --unit=",
+      unitName,
+      "systemctl start ",
+      *serviceName);
+  std::system(cmd.c_str());
+
+  // Then stop wedge_agent immediately
+  cmd = folly::to<std::string>("systemctl stop ", *serviceName);
+  std::system(cmd.c_str());
 }
 
 } // namespace facebook::fboss
