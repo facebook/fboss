@@ -35,4 +35,19 @@ void MultiNodeTestThriftHandler::triggerUngracefulRestart() {
   runShellCmd(cmd);
 }
 
+void MultiNodeTestThriftHandler::restartWithDelay(int32_t delayInSeconds) {
+  XLOG(INFO) << __func__;
+
+  // Schedule a restart of wedge_agent after delay seconds
+  auto cmd = folly::to<std::string>(
+      "systemd-run --on-active=",
+      delayInSeconds,
+      "s --unit=wedge_agent_multinode-test_delayed_start systemctl start wedge_agent_multinode-test");
+  std::system(cmd.c_str());
+
+  // Then stop wedge_agent immediately
+  cmd = folly::to<std::string>("systemctl stop wedge_agent_multinode-test");
+  std::system(cmd.c_str());
+}
+
 } // namespace facebook::fboss

@@ -26,6 +26,8 @@ class MultiNodeTestThriftHandler
   void triggerGracefulRestart() override;
   void triggerUngracefulRestart() override;
 
+  void restartWithDelay(int32_t delayInSeconds) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   MultiNodeTestThriftHandler(MultiNodeTestThriftHandler const&) = delete;
