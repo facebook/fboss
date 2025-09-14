@@ -1144,8 +1144,44 @@ MultiNodeUtil::triggerGraceFulRestartTimeoutForRemoteRdsws() {
 
 bool MultiNodeUtil::verifyStaleSystemPorts(
     const std::set<std::string>& restartedRdsws) {
-  // TODO
-  return true;
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  auto staleSystemPorts = [this, myHostname, restartedRdsws] {
+    // Verify system ports for restarted RDSWs are STALE
+    // Verify system ports for non-restarted RDSWs are LIVE
+    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
+    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
+      bool isRestarted = restartedRdsws.find(peer) != restartedRdsws.end();
+
+      for (const auto& systemPort : systemPorts) {
+        auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (isRestarted) {
+          // Restarted RDSW should have STALE system ports
+          if (livenessStatus.value() != LivenessStatus::STALE) {
+            return false;
+          }
+        } else {
+          // Non-Restarted RDSW should have LIVE system ports
+          if (livenessStatus.value() != LivenessStatus::LIVE) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      staleSystemPorts,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool MultiNodeUtil::verifyStaleRifs(
