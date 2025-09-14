@@ -1039,9 +1039,25 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
       verifyGracefulDeviceDownUpForRemoteSdsws();
 }
 
-bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteRdsws() {
   // TODO verify
   return true;
+}
+
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteFdsws() {
+  // TODO verify
+  return true;
+}
+
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteSdsws() {
+  // TODO verify
+  return true;
+}
+
+bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
+  return verifyUngracefulDeviceDownUpForRemoteRdsws() &&
+      verifyUngracefulDeviceDownUpForRemoteFdsws() &&
+      verifyUngracefulDeviceDownUpForRemoteSdsws();
 }
 
 } // namespace facebook::fboss::utility

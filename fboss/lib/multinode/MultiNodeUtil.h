@@ -132,6 +132,10 @@ class MultiNodeUtil {
   bool verifyGracefulDeviceDownUpForRemoteFdsws();
   bool verifyGracefulDeviceDownUpForRemoteSdsws();
 
+  bool verifyUngracefulDeviceDownUpForRemoteRdsws();
+  bool verifyUngracefulDeviceDownUpForRemoteFdsws();
+  bool verifyUngracefulDeviceDownUpForRemoteSdsws();
+
   bool verifySwSwitchRunState(
       const std::string& rdswToVerify,
       const SwitchRunState& expectedSwitchRunState);
