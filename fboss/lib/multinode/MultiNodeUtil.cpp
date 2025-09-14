@@ -89,7 +89,7 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
-    swAgentClient->sync_triggerGracefulRestart();
+    swAgentClient->sync_gracefullyRestartService("wedge_agent_multinode_test");
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
@@ -99,7 +99,8 @@ void triggerGracefulAgentRestart(const std::string& switchName) {
 void triggerUngracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
-    swAgentClient->sync_triggerUngracefulRestart();
+    swAgentClient->sync_ungracefullyRestartService(
+        "wedge_agent_multinode_test");
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
@@ -111,7 +112,8 @@ void restartAgentWithDelay(
     int32_t delayInSeconds) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
-    swAgentClient->sync_restartWithDelay(delayInSeconds);
+    swAgentClient->sync_gracefullyRestartServiceWithDelay(
+        "wedge_agent_multinode_test", delayInSeconds);
   } catch (...) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
