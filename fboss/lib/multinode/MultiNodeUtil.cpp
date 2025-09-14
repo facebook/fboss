@@ -1048,8 +1048,8 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
 }
 
 bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteRdsws() {
-  // TODO verify
-  return true;
+  return verifyDeviceDownUpForRemoteRdswsHelper(
+      false /* triggerGracefulExit */);
 }
 
 bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteFdsws() {
