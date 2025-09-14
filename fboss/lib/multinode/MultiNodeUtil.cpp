@@ -549,26 +549,6 @@ MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) {
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {
-  auto logSystemPort =
-      [rdsw](const facebook::fboss::SystemPortThrift& systemPort) {
-        XLOG(DBG2)
-            << "From " << rdsw << " portId: " << systemPort.portId().value()
-            << " switchId: " << systemPort.switchId().value()
-            << " portName: " << systemPort.portName().value()
-            << " remoteSystemPortType: "
-            << apache::thrift::util::enumNameSafe(
-                   systemPort.remoteSystemPortType().value_or(-1))
-            << " remoteSystemPortLivenessStatus: "
-            << folly::to<std::string>(
-                   systemPort.remoteSystemPortLivenessStatus().value_or(-1))
-            << " scope: "
-            << apache::thrift::util::enumNameSafe(systemPort.scope().value());
-      };
-
-  auto swAgentClient = getSwAgentThriftClient(rdsw);
-  std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries;
-  swAgentClient->sync_getSystemPorts(systemPortEntries);
-
   auto matchesPortType =
       [&types](const facebook::fboss::SystemPortThrift& systemPort) {
         if (systemPort.remoteSystemPortType().has_value()) {
@@ -580,11 +560,13 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
       };
 
   std::set<std::string> systemPortsOfType;
-  for (const auto& [_, systemPort] : systemPortEntries) {
-    logSystemPort(systemPort);
-    if (*systemPort.scope() == cfg::Scope::GLOBAL &&
-        matchesPortType(systemPort)) {
-      systemPortsOfType.insert(systemPort.portName().value());
+  auto peerToSystemPorts = getPeerToSystemPorts(rdsw);
+  for (const auto& [_, systemPorts] : peerToSystemPorts) {
+    for (const auto& systemPort : systemPorts) {
+      if (*systemPort.scope() == cfg::Scope::GLOBAL &&
+          matchesPortType(systemPort)) {
+        systemPortsOfType.insert(systemPort.portName().value());
+      }
     }
   }
 
