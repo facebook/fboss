@@ -1100,6 +1100,7 @@ cpp_library(
     ],
     exported_deps = [
         ":handler",
+        ":utils",
         "//fboss/agent/if:test_ctrl-cpp2-services",
     ],
 )
