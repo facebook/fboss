@@ -957,19 +957,23 @@ bool MultiNodeUtil::verifySwSwitchRunState(
       true /* retry on exception */);
 }
 
-bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
+bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
+    bool triggerGraceFulExit) {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
 
-  // For any one RDSW in every remote cluster issue graceful restart
+  // For any one RDSW in every remote cluster issue Agent restart
   for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
     for (const auto& rdsw : std::as_const(rdsws)) {
       if (rdsw == myHostname) { // exclude self
         continue;
       }
 
-      triggerGracefulAgentRestart(rdsw);
+      // Trigger graceful or ungraceful Agent restart
+      triggerGraceFulExit ? triggerGracefulAgentRestart(rdsw)
+                          : triggerUngracefulAgentRestart(rdsw);
+
       // Wait for the switch to come up
       if (!verifySwSwitchRunState(rdsw, SwitchRunState::CONFIGURED)) {
         XLOG(DBG2) << "Agent failed to come up post warmboot: " << rdsw;
@@ -977,6 +981,7 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
       }
 
       // Sessions to RDSW that was just restarted are expected to flap.
+      // This is regardless of graceful or ungraceful Agent restart.
       // Verify no other sessions flap.
       auto expectedPeerToDsfSession = baselinePeerToDsfSession;
       expectedPeerToDsfSession.erase(rdsw);
@@ -989,7 +994,6 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
 
       // Verify all DSF sessions are established for the RDSW that was restarted
       verifyAllSessionsEstablished(rdsw);
-      // Gracefully restart only one remote RDSW per cluster
 
       // Restart only one remote RDSW per cluster
       break;
@@ -997,6 +1001,10 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
   }
 
   return true;
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
+  return verifyDeviceDownUpForRemoteRdswsHelper(true /* triggerGracefulExit */);
 }
 
 bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {

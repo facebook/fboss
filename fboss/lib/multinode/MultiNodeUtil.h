@@ -128,6 +128,8 @@ class MultiNodeUtil {
   std::set<std::string> getRdswsWithEstablishedDsfSessions(
       const std::string& rdsw);
 
+  bool verifyDeviceDownUpForRemoteRdswsHelper(bool triggerGraceFulExit);
+
   bool verifyGracefulDeviceDownUpForRemoteRdsws();
   bool verifyGracefulDeviceDownUpForRemoteFdsws();
   bool verifyGracefulDeviceDownUpForRemoteSdsws();
