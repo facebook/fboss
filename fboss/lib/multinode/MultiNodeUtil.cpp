@@ -1082,6 +1082,29 @@ bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
 }
 
 bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
+  // This test can be written as:
+  //  - Stop Agent
+  //  - Wait for 120s i.e. GR timeout
+  //  - Verify entries are STALE
+  //  - Start Agent
+  //  - Verify entries are LIVE
+  // However, in order to implement above sequence, we need a mechanism for
+  // the test to invoke "Start Agent" when Agent thrift server is not running.
+  //
+  // This can be accomplished by test client (this code) logging into the
+  // remote device running Agent. But then the test needs to worry about login
+  // credentials. Alternatively, the remote device can run a Thrift server for
+  // the test purpose along, but that is an overkill for this use case.
+  //
+  // This test logic solves it with the following approach:
+  //  - Restart Agent API with delay: Test API supported by remote device
+  //    - Stop Agent,
+  //    - Sleep for 120s (GR Timeout) + 60s (time to verify STALE state)
+  //    - Start Agent
+  //  - Validate STALE state... while Agent is stopped.
+  //  - Validate LIVE state.... after Agent has restarted.
+  //
+
   // TODO verify
   return true;
 }
