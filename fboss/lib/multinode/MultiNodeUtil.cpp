@@ -1258,8 +1258,32 @@ bool MultiNodeUtil::verifyLiveSystemPorts() {
 }
 
 bool MultiNodeUtil::verifyLiveRifs() {
-  // TODO
-  return true;
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  auto liveRifs = [this, myHostname] {
+    auto peerToRifs = getPeerToRifs(myHostname);
+    for (const auto& [peer, rifs] : peerToRifs) {
+      for (const auto& rif : rifs) {
+        auto livenessStatus = rif.remoteIntfLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (livenessStatus.value() != LivenessStatus::LIVE) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      liveRifs,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
