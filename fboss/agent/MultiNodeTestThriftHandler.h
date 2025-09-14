@@ -23,11 +23,6 @@ class MultiNodeTestThriftHandler
   explicit MultiNodeTestThriftHandler(SwSwitch* sw);
   ~MultiNodeTestThriftHandler() override = default;
 
-  void triggerGracefulRestart() override;
-  void triggerUngracefulRestart() override;
-
-  void restartWithDelay(int32_t delayInSeconds) override;
-
   void gracefullyRestartService(
       std::unique_ptr<std::string> serviceName) override;
   void ungracefullyRestartService(
