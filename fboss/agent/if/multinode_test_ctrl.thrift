@@ -9,4 +9,5 @@ include "fboss/agent/if/ctrl.thrift"
 
 service MultiNodeTestCtrl extends ctrl.FbossCtrl {
   void triggerGracefulExit();
+  void triggerUngracefulExit();
 }

@@ -26,4 +26,13 @@ void MultiNodeTestThriftHandler::triggerGracefulExit() {
   runShellCmd(cmd);
 }
 
+void MultiNodeTestThriftHandler::triggerUngracefulExit() {
+  XLOG(INFO) << __func__;
+
+  // TODO: Get this to work on monolithic and split binary
+  auto cmd = folly::to<std::string>(
+      "touch /dev/shm/fboss/warm_boot/cold_boot_once_0 && sudo systemctl restart wedge_agent_multinode-test");
+  runShellCmd(cmd);
+}
+
 } // namespace facebook::fboss

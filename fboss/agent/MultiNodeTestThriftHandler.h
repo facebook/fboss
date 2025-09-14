@@ -24,6 +24,7 @@ class MultiNodeTestThriftHandler
   ~MultiNodeTestThriftHandler() override = default;
 
   void triggerGracefulExit() override;
+  void triggerUngracefulExit() override;
 
  private:
   // Forbidden copy constructor and assignment operator
