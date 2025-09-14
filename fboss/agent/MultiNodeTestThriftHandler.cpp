@@ -50,4 +50,20 @@ void MultiNodeTestThriftHandler::restartWithDelay(int32_t delayInSeconds) {
   std::system(cmd.c_str());
 }
 
+void MultiNodeTestThriftHandler::gracefullyRestartService(
+    std::unique_ptr<std::string> serviceName) {
+  return;
+}
+
+void MultiNodeTestThriftHandler::ungracefullyRestartService(
+    std::unique_ptr<std::string> serviceName) {
+  return;
+}
+
+void MultiNodeTestThriftHandler::gracefullyRestartServiceWithDelay(
+    std::unique_ptr<std::string> serviceName,
+    int32_t delayInSeconds) {
+  return;
+}
+
 } // namespace facebook::fboss

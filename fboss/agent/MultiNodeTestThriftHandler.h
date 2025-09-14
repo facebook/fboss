@@ -28,6 +28,14 @@ class MultiNodeTestThriftHandler
 
   void restartWithDelay(int32_t delayInSeconds) override;
 
+  void gracefullyRestartService(
+      std::unique_ptr<std::string> serviceName) override;
+  void ungracefullyRestartService(
+      std::unique_ptr<std::string> serviceName) override;
+  void gracefullyRestartServiceWithDelay(
+      std::unique_ptr<std::string> serviceName,
+      int32_t delayInSeconds) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   MultiNodeTestThriftHandler(MultiNodeTestThriftHandler const&) = delete;

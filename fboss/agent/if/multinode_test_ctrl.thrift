@@ -18,4 +18,19 @@ service MultiNodeTestCtrl extends ctrl.FbossCtrl {
   //     - Schedule a restart of Agent after delayInSeconds.
   //     - Stop Agent
   void restartWithDelay(i32 delayInSeconds);
+
+  void gracefullyRestartService(1: string serviceName);
+
+  void ungracefullyRestartService(1: string serviceName);
+
+  // When Agent is stopped, MultiNodeTest server will exit.
+  // Impleneting Agent start will then require the client to login to the
+  // device or need a separate thrift server.
+  // We avoid it by implementing restartWithDelay API as below:
+  //     - Schedule a restart of Agent after delayInSeconds.
+  //     - Stop Agent
+  void gracefullyRestartServiceWithDelay(
+    1: string serviceName,
+    2: i32 delayInSeconds,
+  );
 }
