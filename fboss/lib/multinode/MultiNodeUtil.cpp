@@ -1081,6 +1081,33 @@ bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
       verifyUngracefulDeviceDownUpForRemoteSdsws();
 }
 
+std::set<std::string>
+MultiNodeUtil::triggerGraceFulRestartTimeoutForRemoteRdsws() {
+  return {};
+}
+
+bool MultiNodeUtil::verifyStaleSystemPorts(
+    const std::set<std::string>& restartedRdsws) {
+  // TODO
+  return true;
+}
+
+bool MultiNodeUtil::verifyStaleRifs(
+    const std::set<std::string>& restartedRdsws) {
+  // TODO
+  return true;
+}
+
+bool MultiNodeUtil::verifyLiveSystemPorts() {
+  // TODO
+  return true;
+}
+
+bool MultiNodeUtil::verifyLiveRifs() {
+  // TODO
+  return true;
+}
+
 bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
   // This test can be written as:
   //  - Stop Agent
@@ -1105,8 +1132,13 @@ bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
   //  - Validate LIVE state.... after Agent has restarted.
   //
 
-  // TODO verify
-  return true;
+  auto restartedRdsws = triggerGraceFulRestartTimeoutForRemoteRdsws();
+
+  // First: Agent stops, GR time out, Sys ports and Rifs turn STALE.
+  // Later: Agent restarts, Sys ports and Rifs resync and turn LIVE.
+  return verifyStaleSystemPorts(restartedRdsws) &&
+      verifyStaleRifs(restartedRdsws) && verifyLiveSystemPorts() &&
+      verifyLiveRifs();
 }
 
 } // namespace facebook::fboss::utility

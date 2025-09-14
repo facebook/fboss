@@ -143,6 +143,17 @@ class MultiNodeUtil {
       const std::string& rdswToVerify,
       const SwitchRunState& expectedSwitchRunState);
 
+  bool verifyStaleSystemPorts(
+      const std::map<std::string, std::vector<SystemPortThrift>>&
+          peerToSystemPorts,
+      const std::set<std::string>& restartedRdsws);
+
+  std::set<std::string> triggerGraceFulRestartTimeoutForRemoteRdsws();
+  bool verifyStaleSystemPorts(const std::set<std::string>& restartedRdsws);
+  bool verifyStaleRifs(const std::set<std::string>& restartedRdsws);
+  bool verifyLiveSystemPorts();
+  bool verifyLiveRifs();
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;
