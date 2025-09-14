@@ -72,7 +72,28 @@ void MultiNodeTestThriftHandler::gracefullyRestartService(
 
 void MultiNodeTestThriftHandler::ungracefullyRestartService(
     std::unique_ptr<std::string> serviceName) {
-  return;
+  XLOG(INFO) << __func__;
+
+  static std::set<std::string> kServicesSupportingUngracefulRestart = {
+      "wedge_agent_multinode_test",
+      "qsfp_service",
+  };
+  if (kServicesSupportingUngracefulRestart.find(*serviceName) ==
+      kServicesSupportingUngracefulRestart.end()) {
+    throw std::runtime_error(folly::to<std::string>(
+        "Failed to restart ungracefully. Unsupported service: ", *serviceName));
+  }
+
+  std::string fileToCreate;
+  if (*serviceName == "wedge_agent_multinode_test") {
+    fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
+  } else if (*serviceName == "qsfp_service") {
+    fileToCreate = "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
+  }
+
+  auto cmd = folly::to<std::string>(
+      "touch ", fileToCreate, " && systemctl restart ", *serviceName);
+  runShellCmd(cmd);
 }
 
 void MultiNodeTestThriftHandler::gracefullyRestartServiceWithDelay(
