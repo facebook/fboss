@@ -612,6 +612,36 @@ bool MultiNodeUtil::verifySystemPorts() {
   return true;
 }
 
+std::map<std::string, std::vector<InterfaceDetail>>
+MultiNodeUtil::getPeerToRifs(const std::string& rdsw) {
+  auto logRif = [rdsw](const facebook::fboss::InterfaceDetail& rif) {
+    XLOG(DBG2)
+        << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
+        << " interfaceId: " << rif.interfaceId().value() << " remoteIntfType: "
+        << apache::thrift::util::enumNameSafe(rif.remoteIntfType().value_or(-1))
+        << " remoteIntfLivenessStatus: "
+        << folly::to<std::string>(rif.remoteIntfLivenessStatus().value_or(-1))
+        << " scope: "
+        << apache::thrift::util::enumNameSafe(rif.scope().value());
+  };
+
+  auto swAgentClient = getSwAgentThriftClient(rdsw);
+  std::map<int32_t, facebook::fboss::InterfaceDetail> rifs;
+  swAgentClient->sync_getAllInterfaces(rifs);
+
+  std::map<std::string, std::vector<InterfaceDetail>> peerToRifs;
+  for (const auto& [_, rif] : rifs) {
+    logRif(rif);
+    size_t pos = rif.interfaceName().value().find("::");
+    if (pos != std::string::npos) {
+      auto peer = (*rif.interfaceName()).substr(0, pos);
+      peerToRifs[peer].push_back(rif);
+    }
+  }
+
+  return peerToRifs;
+}
+
 std::set<int> MultiNodeUtil::getGlobalRifsOfType(
     const std::string& rdsw,
     const std::set<RemoteInterfaceType>& types) {
