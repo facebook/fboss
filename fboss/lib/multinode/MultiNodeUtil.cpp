@@ -510,6 +510,42 @@ bool MultiNodeUtil::verifyPorts() {
   return true;
 }
 
+std::map<std::string, std::vector<SystemPortThrift>>
+MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) {
+  auto logSystemPort =
+      [rdsw](const facebook::fboss::SystemPortThrift& systemPort) {
+        XLOG(DBG2)
+            << "From " << rdsw << " portId: " << systemPort.portId().value()
+            << " switchId: " << systemPort.switchId().value()
+            << " portName: " << systemPort.portName().value()
+            << " remoteSystemPortType: "
+            << apache::thrift::util::enumNameSafe(
+                   systemPort.remoteSystemPortType().value_or(-1))
+            << " remoteSystemPortLivenessStatus: "
+            << apache::thrift::util::enumNameSafe(
+                   systemPort.remoteSystemPortLivenessStatus().value_or(-1))
+            << " scope: "
+            << apache::thrift::util::enumNameSafe(systemPort.scope().value());
+      };
+
+  auto swAgentClient = getSwAgentThriftClient(rdsw);
+  std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries;
+  swAgentClient->sync_getSystemPorts(systemPortEntries);
+
+  std::map<std::string, std::vector<SystemPortThrift>> peerToSystemPorts;
+  for (const auto& [_, systemPort] : systemPortEntries) {
+    logSystemPort(systemPort);
+    CHECK(
+        switchIdToSwitchName_.find(SwitchID(systemPort.switchId().value())) !=
+        std::end(switchIdToSwitchName_));
+    auto switchName =
+        switchIdToSwitchName_[SwitchID(systemPort.switchId().value())];
+    peerToSystemPorts[switchName].push_back(systemPort);
+  }
+
+  return peerToSystemPorts;
+}
+
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) {

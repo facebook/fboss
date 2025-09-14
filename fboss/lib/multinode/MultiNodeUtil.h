@@ -110,6 +110,8 @@ class MultiNodeUtil {
       SwitchType switchType,
       const std::string& switchName);
 
+  std::map<std::string, std::vector<SystemPortThrift>> getPeerToSystemPorts(
+      const std::string& rdsw);
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
       const std::set<RemoteSystemPortType>& types);
