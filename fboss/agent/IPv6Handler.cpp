@@ -918,8 +918,17 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     return;
   }
 
-  sendMulticastNeighborSolicitation(
-      sw, targetIP, intf->getMac(), intf->getVlanIDIf());
+  auto interfaceMap = sw->getState()->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaceMap)) {
+    for (const auto& intfIter : std::as_const(*intfMap)) {
+      const auto& interface = intfIter.second;
+      if (interface->getRouterID() == RouterID(0) &&
+          interface->canReachAddress(targetIP)) {
+        sendMulticastNeighborSolicitation(
+            sw, targetIP, interface->getMac(), interface->getVlanIDIf());
+      }
+    }
+  }
 }
 
 void IPv6Handler::resolveDestAndHandlePacket(
