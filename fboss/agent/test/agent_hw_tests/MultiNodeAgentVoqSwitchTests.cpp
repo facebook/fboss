@@ -82,6 +82,26 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     });
   }
 
+  void verifyWithGracefulOperationHelper(
+      const std::function<bool(MultiNodeUtil*)>& verifyFn) {
+    if (!isTestDriver()) {
+      return;
+    }
+
+    auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
+    if (testing::Test::HasNonfatalFailure()) {
+      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
+      FAIL()
+          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
+    }
+
+    EXPECT_TRUE(verifyFn(multiNodeUtil.get()));
+
+    // Verify that the cluster is still healthy after link down/up
+    verifyDsfClusterHelper(multiNodeUtil);
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -116,22 +136,9 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    if (!isTestDriver()) {
-      return;
-    }
-
-    auto multiNodeUtil = createMultiNodeUtil();
-    verifyDsfClusterHelper(multiNodeUtil);
-    if (testing::Test::HasNonfatalFailure()) {
-      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
-      FAIL()
-          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
-    }
-
-    EXPECT_TRUE(multiNodeUtil->verifyGracefulFabricLinkDownUp());
-
-    // Verify that the cluster is still healthy after link down/up
-    verifyDsfClusterHelper(multiNodeUtil);
+    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulFabricLinkDownUp();
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -141,22 +148,9 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulDeviceDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    if (!isTestDriver()) {
-      return;
-    }
-
-    auto multiNodeUtil = createMultiNodeUtil();
-    verifyDsfClusterHelper(multiNodeUtil);
-    if (testing::Test::HasNonfatalFailure()) {
-      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
-      FAIL()
-          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
-    }
-
-    EXPECT_TRUE(multiNodeUtil->verifyGracefulDeviceDownUp());
-
-    // Verify that the cluster is still healthy after link down/up
-    verifyDsfClusterHelper(multiNodeUtil);
+    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulDeviceDownUp();
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -166,22 +160,9 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulDeviceDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    if (!isTestDriver()) {
-      return;
-    }
-
-    auto multiNodeUtil = createMultiNodeUtil();
-    verifyDsfClusterHelper(multiNodeUtil);
-    if (testing::Test::HasNonfatalFailure()) {
-      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
-      FAIL()
-          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
-    }
-
-    EXPECT_TRUE(multiNodeUtil->verifyUngracefulDeviceDownUp());
-
-    // Verify that the cluster is still healthy after link down/up
-    verifyDsfClusterHelper(multiNodeUtil);
+    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulDeviceDownUp();
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
