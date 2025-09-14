@@ -1227,7 +1227,33 @@ bool MultiNodeUtil::verifyStaleRifs(
 }
 
 bool MultiNodeUtil::verifyLiveSystemPorts() {
-  // TODO
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  auto liveSystemPorts = [this, myHostname] {
+    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
+    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
+      for (const auto& systemPort : systemPorts) {
+        auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (livenessStatus.value() != LivenessStatus::LIVE) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      liveSystemPorts,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+
   return true;
 }
 
