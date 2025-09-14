@@ -645,21 +645,6 @@ MultiNodeUtil::getPeerToRifs(const std::string& rdsw) {
 std::set<int> MultiNodeUtil::getGlobalRifsOfType(
     const std::string& rdsw,
     const std::set<RemoteInterfaceType>& types) {
-  auto logRif = [rdsw](const facebook::fboss::InterfaceDetail& rif) {
-    XLOG(DBG2)
-        << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
-        << " interfaceId: " << rif.interfaceId().value() << " remoteIntfType: "
-        << apache::thrift::util::enumNameSafe(rif.remoteIntfType().value_or(-1))
-        << " remoteIntfLivenessStatus: "
-        << folly::to<std::string>(rif.remoteIntfLivenessStatus().value_or(-1))
-        << " scope: "
-        << apache::thrift::util::enumNameSafe(rif.scope().value());
-  };
-
-  auto swAgentClient = getSwAgentThriftClient(rdsw);
-  std::map<int32_t, facebook::fboss::InterfaceDetail> rifs;
-  swAgentClient->sync_getAllInterfaces(rifs);
-
   auto matchesRifType = [&types](const facebook::fboss::InterfaceDetail& rif) {
     if (rif.remoteIntfType().has_value()) {
       return types.find(rif.remoteIntfType().value()) != types.end();
@@ -669,13 +654,14 @@ std::set<int> MultiNodeUtil::getGlobalRifsOfType(
   };
 
   std::set<int> rifsOfType;
-  for (const auto& [_, rif] : rifs) {
-    logRif(rif);
-    if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
-      rifsOfType.insert(rif.interfaceId().value());
+  auto peerToRifs = getPeerToRifs(rdsw);
+  for (const auto& [_, rifs] : peerToRifs) {
+    for (const auto& rif : rifs) {
+      if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
+        rifsOfType.insert(rif.interfaceId().value());
+      }
     }
   }
-
   return rifsOfType;
 }
 
