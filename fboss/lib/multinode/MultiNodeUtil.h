@@ -30,6 +30,7 @@ class MultiNodeUtil {
 
   bool verifyGracefulFabricLinkDownUp();
   bool verifyGracefulDeviceDownUp();
+  bool verifyUngracefulDeviceDownUp();
 
  private:
   enum class SwitchType : uint8_t {
