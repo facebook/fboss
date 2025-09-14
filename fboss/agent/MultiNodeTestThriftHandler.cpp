@@ -52,7 +52,22 @@ void MultiNodeTestThriftHandler::restartWithDelay(int32_t delayInSeconds) {
 
 void MultiNodeTestThriftHandler::gracefullyRestartService(
     std::unique_ptr<std::string> serviceName) {
-  return;
+  XLOG(INFO) << __func__;
+
+  static std::set<std::string> kServicesSupportingGracefulRestart = {
+      "wedge_agent_multinode_test",
+      "fsdb",
+      "qsfp_service",
+      "bgp",
+  };
+  if (kServicesSupportingGracefulRestart.find(*serviceName) ==
+      kServicesSupportingGracefulRestart.end()) {
+    throw std::runtime_error(folly::to<std::string>(
+        "Failed to restart gracefully. Unsupported service: ", *serviceName));
+  }
+
+  auto cmd = folly::to<std::string>("systemctl restart ", *serviceName);
+  runShellCmd(cmd);
 }
 
 void MultiNodeTestThriftHandler::ungracefullyRestartService(
