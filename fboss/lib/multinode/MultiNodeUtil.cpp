@@ -1117,7 +1117,29 @@ bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
 
 std::set<std::string>
 MultiNodeUtil::triggerGraceFulRestartTimeoutForRemoteRdsws() {
-  return {};
+  auto static constexpr kGracefulRestartTimeout = 120;
+  auto static constexpr kDelayBetweenRestarts =
+      kGracefulRestartTimeout + 60 /* time to verify STALE post GR timeout */;
+
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  // For any one RDSW in every remote cluster issue delayed Agent restart
+  std::set<std::string> restartedRdsws;
+  for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+      restartAgentWithDelay(rdsw, kDelayBetweenRestarts);
+      restartedRdsws.insert(rdsw);
+
+      // Gracefully restart only one remote RDSW per cluster
+      break;
+    }
+  }
+
+  return restartedRdsws;
 }
 
 bool MultiNodeUtil::verifyStaleSystemPorts(
