@@ -47,18 +47,15 @@ struct RecurseVisitOptions {
       RecurseVisitMode mode,
       RecurseVisitOrder order,
       bool outputIdPaths = false,
-      bool hybridNodeShallowTraversal = false,
-      bool hybridNodeDeepTraversal = false)
+      bool hybridNodeShallowTraversal = false)
       : mode(mode),
         order(order),
         outputIdPaths(outputIdPaths),
-        hybridNodeShallowTraversal(hybridNodeShallowTraversal),
-        hybridNodeDeepTraversal(hybridNodeDeepTraversal) {}
+        hybridNodeShallowTraversal(hybridNodeShallowTraversal) {}
   RecurseVisitMode mode;
   RecurseVisitOrder order;
   bool outputIdPaths;
   bool hybridNodeShallowTraversal;
-  bool hybridNodeDeepTraversal;
 };
 
 template <typename>
@@ -177,10 +174,6 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for hybridNodeDeepTraversal in Set not implemented"));
-    }
     rv_detail::invokeVisitorFnHelper(
         options, traverser, node, std::forward<Func>(f));
   }
@@ -239,10 +232,6 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for hybridNodeDeepTraversal in List not implemented"));
-    }
     if (options.mode == RecurseVisitMode::UNPUBLISHED) {
       // unpublished hybrid node, no children to be published
       rv_detail::invokeVisitorFnHelper(
@@ -323,10 +312,6 @@ struct RecurseVisitor<
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for hybridNodeDeepTraversal in Map not implemented"));
-    }
     if (options.mode == RecurseVisitMode::UNPUBLISHED) {
       rv_detail::invokeVisitorFnHelper(
           options, traverser, node, std::forward<Func>(f));
@@ -423,10 +408,6 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for hybridNodeDeepTraversal in Variant not implemented"));
-    }
     rv_detail::invokeVisitorFnHelper(
         options, traverser, node, std::forward<Func>(f));
   }
@@ -505,10 +486,6 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
              typename folly::remove_cvref_t<NodePtr>::element_type::CowType,
              HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "RecurseVisitor support for hybridNodeDeepTraversal in Struct not implemented"));
-    }
     rv_detail::invokeVisitorFnHelper(
         options, traverser, node, std::forward<Func>(f));
   }
