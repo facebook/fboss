@@ -147298,12 +147298,12 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 2
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core3",
+      "name": "NPU-R3_FE-slot1/chip1/core3",
       "type": 1,
       "physicalID": 3
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core3",
+      "name": "NPU-R3_FE-slot1/chip2/core3",
       "type": 1,
       "physicalID": 3
     },
@@ -147338,12 +147338,12 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 6
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core7",
+      "name": "NPU-R3_FE-slot1/chip1/core7",
       "type": 1,
       "physicalID": 7
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core7",
+      "name": "NPU-R3_FE-slot1/chip2/core7",
       "type": 1,
       "physicalID": 7
     },
@@ -147378,12 +147378,12 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 10
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core11",
+      "name": "NPU-R3_FE-slot1/chip1/core11",
       "type": 1,
       "physicalID": 11
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core11",
+      "name": "NPU-R3_FE-slot1/chip2/core11",
       "type": 1,
       "physicalID": 11
     },
@@ -147588,22 +147588,22 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 31
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core32",
-      "type": 1,
-      "physicalID": 32
-    },
-    {
       "name": "NPU-R3_FE-slot1/chip1/core32",
       "type": 1,
       "physicalID": 32
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core33",
+      "name": "NPU-R3_FE-slot1/chip2/core32",
+      "type": 1,
+      "physicalID": 32
+    },
+    {
+      "name": "NPU-R3_FE-slot1/chip1/core33",
       "type": 1,
       "physicalID": 33
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core33",
+      "name": "NPU-R3_FE-slot1/chip2/core33",
       "type": 1,
       "physicalID": 33
     },
@@ -147698,12 +147698,12 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 42
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core43",
+      "name": "NPU-R3_FE-slot1/chip1/core43",
       "type": 1,
       "physicalID": 43
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core43",
+      "name": "NPU-R3_FE-slot1/chip2/core43",
       "type": 1,
       "physicalID": 43
     },
@@ -147768,12 +147768,12 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 49
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core50",
+      "name": "NPU-R3_FE-slot1/chip1/core50",
       "type": 1,
       "physicalID": 50
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core50",
+      "name": "NPU-R3_FE-slot1/chip2/core50",
       "type": 1,
       "physicalID": 50
     },
@@ -147808,12 +147808,12 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 53
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core54",
+      "name": "NPU-R3_FE-slot1/chip1/core54",
       "type": 1,
       "physicalID": 54
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core54",
+      "name": "NPU-R3_FE-slot1/chip2/core54",
       "type": 1,
       "physicalID": 54
     },
@@ -147828,12 +147828,12 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 55
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core56",
+      "name": "NPU-R3_FE-slot1/chip1/core56",
       "type": 1,
       "physicalID": 56
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core56",
+      "name": "NPU-R3_FE-slot1/chip2/core56",
       "type": 1,
       "physicalID": 56
     },
@@ -147868,22 +147868,22 @@ constexpr auto kJsonMultiNpuProdPlatformMappingStr = R"(
       "physicalID": 59
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core60",
-      "type": 1,
-      "physicalID": 60
-    },
-    {
       "name": "NPU-R3_FE-slot1/chip1/core60",
       "type": 1,
       "physicalID": 60
     },
     {
-      "name": "NPU-R3_FE-slot1/chip2/core61",
+      "name": "NPU-R3_FE-slot1/chip2/core60",
+      "type": 1,
+      "physicalID": 60
+    },
+    {
+      "name": "NPU-R3_FE-slot1/chip1/core61",
       "type": 1,
       "physicalID": 61
     },
     {
-      "name": "NPU-R3_FE-slot1/chip1/core61",
+      "name": "NPU-R3_FE-slot1/chip2/core61",
       "type": 1,
       "physicalID": 61
     },
