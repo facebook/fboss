@@ -212,7 +212,44 @@
           "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
         }
     ],
+    "fuji_5x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTest.*._true.SetPrbs$"
+        },
+        {
+          "test_name_regex": "HwTest.CheckTcvrNameAndInterfaces$"
+        }
+    ],
     "fuji_8x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwXphyPortInfoTest.*$"
+        },
+        {
+          "test_name_regex": "HwPortPrbsTest.*$"
+        }
+    ],
+    "fuji_8x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
           "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
