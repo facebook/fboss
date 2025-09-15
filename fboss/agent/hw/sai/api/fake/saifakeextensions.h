@@ -143,4 +143,5 @@ typedef enum _sai_ingress_priority_group_extensions_attr_t {
 typedef enum _sai_ars_profile_extensions_attr_t {
   SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS =
       SAI_ARS_PROFILE_ATTR_CUSTOM_RANGE_START,
+  SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX,
 } sai_ars_profile_extensions_attr_t;

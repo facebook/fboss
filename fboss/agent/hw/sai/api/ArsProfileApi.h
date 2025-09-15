@@ -123,6 +123,15 @@ struct SaiArsProfileTraits {
         AttributeArsMaxGroups,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    struct AttributeArsBaseIndex {
+      std::optional<sai_attr_id_t> operator()();
+    };
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+    using ArsBaseIndex = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeArsBaseIndex,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
   };
 
   using AdapterKey = ArsProfileSaiId;
@@ -156,7 +165,8 @@ struct SaiArsProfileTraits {
       Attributes::LoadCurrentMaxVal
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
       ,
-      std::optional<Attributes::ArsMaxGroups>>;
+      std::optional<Attributes::ArsMaxGroups>,
+      std::optional<Attributes::ArsBaseIndex>>;
 #else
       >;
 #endif
@@ -190,6 +200,7 @@ SAI_ATTRIBUTE_NAME(ArsProfile, MaxFlows)
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
 SAI_ATTRIBUTE_NAME(ArsProfile, ExtensionSamplingIntervalNanosec)
 SAI_ATTRIBUTE_NAME(ArsProfile, ArsMaxGroups)
+SAI_ATTRIBUTE_NAME(ArsProfile, ArsBaseIndex)
 #endif
 
 class ArsProfileApi : public SaiApi<ArsProfileApi> {

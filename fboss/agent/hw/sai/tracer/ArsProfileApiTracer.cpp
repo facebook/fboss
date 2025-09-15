@@ -51,6 +51,7 @@ void handleExtensionAttributes() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(ArsProfile, ExtensionSamplingIntervalNanosec)
   SAI_EXT_ATTR_MAP(ArsProfile, ArsMaxGroups);
+  SAI_EXT_ATTR_MAP(ArsProfile, ArsBaseIndex);
 #endif
 }
 
