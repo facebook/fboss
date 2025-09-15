@@ -39,7 +39,8 @@ struct FakeArsProfile {
       sai_uint32_t load_current_max_val,
       sai_uint32_t quant_band_0_min_threshold,
       sai_uint32_t quant_band_1_min_threshold,
-      sai_uint32_t quant_band_2_min_threshold)
+      sai_uint32_t quant_band_2_min_threshold,
+      sai_uint32_t ars_max_groups)
       : algo(algo),
         sampling_interval(sampling_interval),
         random_seed(random_seed),
@@ -59,7 +60,8 @@ struct FakeArsProfile {
         load_current_max_val(load_current_max_val),
         quant_band_0_min_threshold(quant_band_0_min_threshold),
         quant_band_1_min_threshold(quant_band_1_min_threshold),
-        quant_band_2_min_threshold(quant_band_2_min_threshold) {}
+        quant_band_2_min_threshold(quant_band_2_min_threshold),
+        ars_max_groups(ars_max_groups) {}
   sai_ars_profile_algo_t algo;
   sai_uint32_t sampling_interval;
   sai_uint32_t random_seed;
@@ -81,6 +83,7 @@ struct FakeArsProfile {
   sai_uint32_t quant_band_0_min_threshold;
   sai_uint32_t quant_band_1_min_threshold;
   sai_uint32_t quant_band_2_min_threshold;
+  sai_uint32_t ars_max_groups;
   sai_object_id_t id;
 };
 

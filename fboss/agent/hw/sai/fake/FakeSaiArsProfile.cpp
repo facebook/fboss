@@ -37,6 +37,7 @@ sai_status_t create_ars_profile_fn(
   sai_uint32_t quant_band_0_min_threshold = 0;
   sai_uint32_t quant_band_1_min_threshold = 0;
   sai_uint32_t quant_band_2_min_threshold = 0;
+  sai_uint32_t ars_max_groups = 0;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_PROFILE_ATTR_ALGO:
@@ -99,6 +100,9 @@ sai_status_t create_ars_profile_fn(
       case SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD:
         quant_band_2_min_threshold = attr_list[i].value.u32;
         break;
+      case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS:
+        ars_max_groups = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -123,7 +127,8 @@ sai_status_t create_ars_profile_fn(
       load_current_max_val,
       quant_band_0_min_threshold,
       quant_band_1_min_threshold,
-      quant_band_2_min_threshold);
+      quant_band_2_min_threshold,
+      ars_max_groups);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -199,6 +204,9 @@ sai_status_t set_ars_profile_attribute_fn(
       break;
     case SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD:
       arsProfile.quant_band_2_min_threshold = attr->value.u32;
+      break;
+    case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS:
+      arsProfile.ars_max_groups = attr->value.u32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -276,6 +284,9 @@ sai_status_t get_ars_profile_attribute_fn(
         break;
       case SAI_ARS_PROFILE_ATTR_QUANT_BAND_2_MIN_THRESHOLD:
         attr[i].value.u32 = arsProfile.quant_band_2_min_threshold;
+        break;
+      case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS:
+        attr[i].value.u32 = arsProfile.ars_max_groups;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

@@ -67,7 +67,13 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       true,
       portLoadExponent,
       loadCurrentMinVal,
-      loadCurrentMaxVal};
+      loadCurrentMaxVal
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+      ,
+      std::nullopt};
+#else
+  };
+#endif
 
   return attributes;
 }

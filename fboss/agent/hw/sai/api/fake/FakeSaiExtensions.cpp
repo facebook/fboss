@@ -929,4 +929,11 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
   return SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST;
 }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS;
+}
+#endif
+
 } // namespace facebook::fboss
