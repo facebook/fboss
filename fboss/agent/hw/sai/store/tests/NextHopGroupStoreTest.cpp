@@ -36,7 +36,13 @@ class NextHopGroupStoreTest : public SaiStoreTest {
 
   ArsSaiId createArs() {
     return saiApiTable->arsApi().create<SaiArsTraits>(
-        {SAI_ARS_MODE_PER_PACKET_QUALITY, 0, 0}, 0);
+        {SAI_ARS_MODE_PER_PACKET_QUALITY,
+         0,
+         0,
+         std::nullopt,
+         std::nullopt,
+         std::nullopt},
+        0);
   }
 
   NextHopGroupMemberSaiId createNextHopGroupMember(

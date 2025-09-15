@@ -23,6 +23,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _ArsMap{
     SAI_ATTR_MAP(Ars, Mode),
     SAI_ATTR_MAP(Ars, IdleTime),
     SAI_ATTR_MAP(Ars, MaxFlows),
+    SAI_ATTR_MAP(Ars, PrimaryPathQualityThreshold),
+    SAI_ATTR_MAP(Ars, AlternatePathCost),
+    SAI_ATTR_MAP(Ars, AlternatePathBias),
 };
 #endif
 

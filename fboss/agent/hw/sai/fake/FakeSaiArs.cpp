@@ -22,6 +22,9 @@ sai_status_t create_ars_fn(
   std::optional<sai_ars_mode_t> mode = SAI_ARS_MODE_FLOWLET_QUALITY;
   std::optional<sai_uint32_t> idle_time = 256;
   std::optional<sai_uint32_t> max_flows = 512;
+  std::optional<sai_uint32_t> primary_path_quality_threshold;
+  std::optional<sai_uint32_t> alternate_path_cost;
+  std::optional<sai_uint32_t> alternate_path_bias;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_ATTR_MODE:
@@ -33,12 +36,26 @@ sai_status_t create_ars_fn(
       case SAI_ARS_ATTR_MAX_FLOWS:
         max_flows = attr_list[i].value.u32;
         break;
+      case SAI_ARS_ATTR_PRIMARY_PATH_QUALITY_THRESHOLD:
+        primary_path_quality_threshold = attr_list[i].value.u32;
+        break;
+      case SAI_ARS_ATTR_ALTERNATE_PATH_COST:
+        alternate_path_cost = attr_list[i].value.u32;
+        break;
+      case SAI_ARS_ATTR_ALTERNATE_PATH_BIAS:
+        alternate_path_bias = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  *ars_id =
-      fs->arsManager.create(mode.value(), idle_time.value(), max_flows.value());
+  *ars_id = fs->arsManager.create(
+      mode.value(),
+      idle_time.value(),
+      max_flows.value(),
+      primary_path_quality_threshold,
+      alternate_path_cost,
+      alternate_path_bias);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -64,6 +81,15 @@ sai_status_t set_ars_attribute_fn(
     case SAI_ARS_ATTR_MAX_FLOWS:
       ars.max_flows = attr->value.u32;
       break;
+    case SAI_ARS_ATTR_PRIMARY_PATH_QUALITY_THRESHOLD:
+      ars.primary_path_quality_threshold = attr->value.u32;
+      break;
+    case SAI_ARS_ATTR_ALTERNATE_PATH_COST:
+      ars.alternate_path_cost = attr->value.u32;
+      break;
+    case SAI_ARS_ATTR_ALTERNATE_PATH_BIAS:
+      ars.alternate_path_bias = attr->value.u32;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -73,19 +99,34 @@ sai_status_t set_ars_attribute_fn(
 sai_status_t get_ars_attribute_fn(
     sai_object_id_t ars_id,
     uint32_t attr_count,
-    sai_attribute_t* attr) {
+    sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   const auto& ars = fs->arsManager.get(ars_id);
   for (int i = 0; i < attr_count; ++i) {
-    switch (attr[i].id) {
+    switch (attr_list[i].id) {
       case SAI_ARS_ATTR_MODE:
-        attr[i].value.s32 = static_cast<int32_t>(ars.mode);
+        attr_list[i].value.s32 = static_cast<sai_int32_t>(ars.mode);
         break;
       case SAI_ARS_ATTR_IDLE_TIME:
-        attr[i].value.u32 = ars.idle_time;
+        attr_list[i].value.u32 = ars.idle_time;
         break;
       case SAI_ARS_ATTR_MAX_FLOWS:
-        attr[i].value.u32 = ars.max_flows;
+        attr_list[i].value.u32 = ars.max_flows;
+        break;
+      case SAI_ARS_ATTR_PRIMARY_PATH_QUALITY_THRESHOLD:
+        if (ars.primary_path_quality_threshold) {
+          attr_list[i].value.u32 = ars.primary_path_quality_threshold.value();
+        }
+        break;
+      case SAI_ARS_ATTR_ALTERNATE_PATH_COST:
+        if (ars.alternate_path_cost) {
+          attr_list[i].value.u32 = ars.alternate_path_cost.value();
+        }
+        break;
+      case SAI_ARS_ATTR_ALTERNATE_PATH_BIAS:
+        if (ars.alternate_path_bias) {
+          attr_list[i].value.u32 = ars.alternate_path_bias.value();
+        }
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

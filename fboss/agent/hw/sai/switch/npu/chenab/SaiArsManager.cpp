@@ -23,7 +23,11 @@ namespace facebook::fboss {
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   SaiArsTraits::CreateAttributes attributes{
-      cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode()),
+      SaiArsTraits::Attributes::Mode{
+          cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
       std::nullopt,
       std::nullopt};
   auto& store = saiStore_->get<SaiArsTraits>();

@@ -23,9 +23,15 @@ namespace facebook::fboss {
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   SaiArsTraits::CreateAttributes attributes{
-      cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode()),
-      flowletSwitchConfig->getInactivityIntervalUsecs(),
-      flowletSwitchConfig->getFlowletTableSize()};
+      SaiArsTraits::Attributes::Mode{
+          cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+      SaiArsTraits::Attributes::IdleTime{
+          flowletSwitchConfig->getInactivityIntervalUsecs()},
+      SaiArsTraits::Attributes::MaxFlows{
+          flowletSwitchConfig->getFlowletTableSize()},
+      std::nullopt, // PrimaryPathQualityThreshold
+      std::nullopt, // AlternatePathCost
+      std::nullopt}; // AlternatePathBias
   auto& store = saiStore_->get<SaiArsTraits>();
   arsHandle_->ars = store.setObject(std::monostate{}, attributes);
 }
