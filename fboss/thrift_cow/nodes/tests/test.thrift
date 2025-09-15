@@ -31,6 +31,7 @@ union TestUnion {
   20: set<string> setOfString;
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct ChildStruct {
   1: map<i32, bool> childMap;
   2: map<string, i32> strMap;
@@ -157,4 +158,12 @@ struct TestStruct2 {
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct TestStruct3 {
   1: i32 inlineInt;
+}
+
+// structs declared for testing annotation on Struct
+struct AnotherRootStruct {
+  1: TestStruct2 childCowStruct;
+  2: TestStruct3 childHybridStruct;
+  3: map<i32, TestStruct3> mapOfHybridStruct;
+  4: list<TestStruct3> listOfHybridStruct;
 }

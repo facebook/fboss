@@ -37,6 +37,21 @@ cfg::L4PortRange buildPortRange(int min, int max) {
 
 } // namespace
 
+TEST(ThriftStructNodeTests, ReadThriftStructAnnotation) {
+  static_assert(
+      read_type_annotation_allow_skip_thrift_cow<
+          apache::thrift::type_class::structure,
+          TestStruct3>::value == true);
+  static_assert(
+      read_type_annotation_allow_skip_thrift_cow<
+          apache::thrift::type_class::structure,
+          ParentTestStruct>::value == false);
+  static_assert(
+      read_type_annotation_allow_skip_thrift_cow<
+          apache::thrift::type_class::integral,
+          int>::value == false);
+}
+
 TEST(ThriftStructNodeTests, ThriftStructFieldsSimple) {
   ThriftStructFields<TestStruct> fields;
   ASSERT_EQ(fields.get<k::inlineBool>(), false);
@@ -411,6 +426,56 @@ TYPED_TEST(ThriftStructNodeTestSuite, NodeTypeTest) {
           HybridNodeType> == enableHybridStorage);
 }
 
+TYPED_TEST(ThriftStructNodeTestSuite, AnnotatedStructNodeTypeTest) {
+  using Param = typename TestFixture::T;
+  constexpr bool enableHybridStorage = Param::hybridStorage;
+
+  auto buildAnnotatedStruct = [](int val) -> TestStruct3 {
+    TestStruct3 data;
+    data.inlineInt() = val;
+    return data;
+  };
+  TestStruct2 testStruct2;
+  testStruct2.deprecatedField() = 123;
+
+  AnotherRootStruct data;
+  data.childCowStruct() = testStruct2;
+  data.childHybridStruct() = buildAnnotatedStruct(1);
+  data.mapOfHybridStruct() = {
+      {1, buildAnnotatedStruct(101)}, {2, buildAnnotatedStruct(102)}};
+  data.listOfHybridStruct() = {
+      buildAnnotatedStruct(201), buildAnnotatedStruct(202)};
+
+  auto initNode = [enableHybridStorage](auto val) -> auto {
+    using RootType = std::remove_cvref_t<decltype(val)>;
+    return std::make_shared<ThriftStructNode<
+        RootType,
+        ThriftStructResolver<RootType, enableHybridStorage>,
+        enableHybridStorage>>(val);
+  };
+
+  auto node = initNode(data);
+  node->publish();
+
+  // root is not hybrid node
+  static_assert(!std::is_same_v<
+                typename decltype(node)::element_type::CowType,
+                HybridNodeType>);
+
+  // check: fields that are not annotated, should never be hybrid
+  static_assert(!std::is_same_v<
+                typename decltype(node->template get<
+                                  k::childCowStruct>())::element_type::CowType,
+                HybridNodeType>);
+
+  // check: fields that are annotated, should be hybrid if enabled
+  static_assert(
+      std::is_same_v<
+          typename decltype(node->template get<
+                            k::childHybridStruct>())::element_type::CowType,
+          HybridNodeType> == enableHybridStorage);
+}
+
 TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
   using Param = typename TestFixture::T;
   constexpr bool enableHybridStorage = Param::hybridStorage;
@@ -428,15 +493,6 @@ TYPED_TEST(ThriftStructNodeTestSuite, ThriftStructNodeModifyTest) {
 
   ASSERT_FALSE(node->isPublished());
   ASSERT_FALSE(node->template cref<k::inlineStruct>()->isPublished());
-
-  auto oldNode = node->template ref<k::mapOfStringToI32>();
-  auto newNode = node->template modify<k::mapOfStringToI32>();
-  // do a ptr comparison to make sure the node is cloned
-  // if node is cow node, then it will not be cloned if it is not published
-  // so only check if hybrid storage is enabled
-  if constexpr (enableHybridStorage) {
-    EXPECT_NE(newNode, oldNode);
-  }
 
   node->publish();
   ASSERT_TRUE(node->isPublished());

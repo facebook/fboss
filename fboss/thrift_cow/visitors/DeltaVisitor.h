@@ -362,8 +362,8 @@ struct DeltaVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
       std::set_symmetric_difference(
           oldRef.begin(),
           oldRef.end(),
@@ -484,8 +484,8 @@ struct DeltaVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
 
       int minSize = std::min(oldRef.size(), newRef.size());
 
@@ -594,8 +594,8 @@ struct DeltaVisitor<
     }
 
     bool hasDifferences{false};
-    const auto& oldRef = oldFields->ref();
-    const auto& newRef = newFields->ref();
+    const auto& oldRef = oldFields->cref();
+    const auto& newRef = newFields->cref();
 
     for (const auto& [key, val] : oldRef) {
       auto it = newRef.find(key);
@@ -803,8 +803,8 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
       if (oldRef != newRef) {
         hasDifferences = true;
       }
@@ -917,8 +917,8 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
       if (oldRef != newRef) {
         hasDifferences = true;
       }

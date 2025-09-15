@@ -317,7 +317,6 @@ struct RecurseVisitor<
           options, traverser, node, std::forward<Func>(f));
       return;
     }
-    auto& tObj = node->ref();
     bool visitIntermediate = options.mode == RecurseVisitMode::FULL;
     if (visitIntermediate &&
         options.order == RecurseVisitOrder::PARENTS_FIRST) {
@@ -327,6 +326,7 @@ struct RecurseVisitor<
     // visit map entries
     if (options.hybridNodeShallowTraversal) {
       if constexpr (std::is_const_v<NodePtr>) {
+        const auto& tObj = node->cref();
         for (const auto& [key, val] : tObj) {
           traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
           rv_detail::invokeVisitorFnWithWrapper<MappedTypeClass>(
@@ -334,6 +334,7 @@ struct RecurseVisitor<
           traverser.pop(TCType<MappedTypeClass>);
         }
       } else {
+        auto& tObj = node->ref();
         for (auto& [key, val] : tObj) {
           traverser.push(folly::to<std::string>(key), TCType<MappedTypeClass>);
           rv_detail::invokeVisitorFnWithWrapper<MappedTypeClass>(
