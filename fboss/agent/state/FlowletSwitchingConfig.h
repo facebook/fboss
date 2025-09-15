@@ -143,6 +143,54 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return get<switch_config_tags::backupSwitchingMode>()->cref();
   }
 
+  void setPrimaryPathQualityThreshold(
+      const std::optional<int32_t>& primaryPathQualityThreshold) {
+    if (primaryPathQualityThreshold) {
+      set<switch_config_tags::primaryPathQualityThreshold>(
+          *primaryPathQualityThreshold);
+    } else {
+      ref<switch_config_tags::primaryPathQualityThreshold>().reset();
+    }
+  }
+
+  std::optional<int32_t> getPrimaryPathQualityThreshold() const {
+    if (auto primaryPathQualityThreshold =
+            get<switch_config_tags::primaryPathQualityThreshold>()) {
+      return primaryPathQualityThreshold->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setAlternatePathCost(const std::optional<int32_t>& alternatePathCost) {
+    if (alternatePathCost) {
+      set<switch_config_tags::alternatePathCost>(*alternatePathCost);
+    } else {
+      ref<switch_config_tags::alternatePathCost>().reset();
+    }
+  }
+
+  std::optional<int32_t> getAlternatePathCost() const {
+    if (auto alternatePathCost = get<switch_config_tags::alternatePathCost>()) {
+      return alternatePathCost->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setAlternatePathBias(const std::optional<int32_t>& alternatePathBias) {
+    if (alternatePathBias) {
+      set<switch_config_tags::alternatePathBias>(*alternatePathBias);
+    } else {
+      ref<switch_config_tags::alternatePathBias>().reset();
+    }
+  }
+
+  std::optional<int32_t> getAlternatePathBias() const {
+    if (auto alternatePathBias = get<switch_config_tags::alternatePathBias>()) {
+      return alternatePathBias->cref();
+    }
+    return std::nullopt;
+  }
+
   FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:
