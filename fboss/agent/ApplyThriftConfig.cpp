@@ -2675,7 +2675,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->interPacketGapBits().value_or(0) ==
           orig->getInterPacketGapBits().value_or(0) &&
       portConf->amIdles().value_or(false) ==
-          orig->getAmIdles().value_or(false)) {
+          orig->getAmIdles().value_or(false) &&
+      portConf->amIdles().has_value() == orig->getAmIdles().has_value()) {
     return nullptr;
   }
 
