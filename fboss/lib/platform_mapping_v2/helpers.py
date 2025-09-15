@@ -56,13 +56,16 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_100G_4_NRZ_RS528_COPPER,
         PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
+        PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
     ]:
         return [PortSpeed.HUNDREDG]
     if profile in [
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
     ]:
         return [PortSpeed.TWOHUNDREDG]
@@ -111,6 +114,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
         PortProfileID.PROFILE_50G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
@@ -125,6 +129,8 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
         PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
     ]:
         return 2
@@ -459,8 +465,11 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_50G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
         PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_100G_4_NRZ_RS528_COPPER,
         PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
