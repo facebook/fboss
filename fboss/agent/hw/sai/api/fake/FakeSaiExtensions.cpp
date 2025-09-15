@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -938,6 +939,11 @@ SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;
+}
+
+std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
+    AttributeArsNextHopGroupMetaData::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA;
 }
 #endif
 

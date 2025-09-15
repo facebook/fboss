@@ -140,6 +140,11 @@ typedef enum _sai_ingress_priority_group_extensions_attr_t {
       SAI_INGRESS_PRIORITY_GROUP_ATTR_CUSTOM_RANGE_START,
 } sai_ingress_priority_group_extensions_attr_t;
 
+typedef enum _sai_next_hop_group_extensions_attr_t {
+  SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA =
+      SAI_NEXT_HOP_GROUP_ATTR_CUSTOM_RANGE_START,
+} sai_next_hop_group_extensions_attr_t;
+
 typedef enum _sai_ars_profile_extensions_attr_t {
   SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS =
       SAI_ARS_PROFILE_ATTR_CUSTOM_RANGE_START,
