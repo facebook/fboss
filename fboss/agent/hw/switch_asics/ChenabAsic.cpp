@@ -473,4 +473,8 @@ uint32_t ChenabAsic::getMaxArsGroups() const {
   return 256;
 }
 
+std::optional<uint32_t> ChenabAsic::getArsBaseIndex() const {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

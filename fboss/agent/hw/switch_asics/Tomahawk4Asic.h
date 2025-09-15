@@ -130,6 +130,7 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
     return 16384;
   }
   uint32_t getMaxArsGroups() const override;
+  std::optional<uint32_t> getArsBaseIndex() const override;
 };
 
 } // namespace facebook::fboss

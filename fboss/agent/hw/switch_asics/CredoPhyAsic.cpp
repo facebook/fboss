@@ -109,4 +109,8 @@ int CredoPhyAsic::getHiPriCpuQueueId() const {
 uint32_t CredoPhyAsic::getMaxArsGroups() const {
   return 0;
 }
+
+std::optional<uint32_t> CredoPhyAsic::getArsBaseIndex() const {
+  return std::nullopt;
+}
 }; // namespace facebook::fboss

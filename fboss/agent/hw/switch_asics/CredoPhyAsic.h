@@ -70,5 +70,6 @@ class CredoPhyAsic : public HwAsic {
   int getMidPriCpuQueueId() const override;
   int getHiPriCpuQueueId() const override;
   uint32_t getMaxArsGroups() const override;
+  std::optional<uint32_t> getArsBaseIndex() const override;
 };
 } // namespace facebook::fboss

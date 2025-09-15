@@ -314,4 +314,8 @@ uint32_t Tomahawk4Asic::getMaxArsGroups() const {
   return 128;
 }
 
+std::optional<uint32_t> Tomahawk4Asic::getArsBaseIndex() const {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -231,6 +231,9 @@ class MockAsic : public HwAsic {
   uint32_t getMaxArsGroups() const override {
     return 128;
   }
+  std::optional<uint32_t> getArsBaseIndex() const override {
+    return std::nullopt;
+  }
 };
 
 } // namespace facebook::fboss

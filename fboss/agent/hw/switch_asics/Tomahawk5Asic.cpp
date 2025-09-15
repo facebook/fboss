@@ -268,4 +268,8 @@ Tomahawk5Asic::desiredLoopbackModes() const {
 uint32_t Tomahawk5Asic::getMaxArsGroups() const {
   return 256;
 }
+
+std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
+  return getMaxEcmpGroups().value() - getMaxArsGroups();
+}
 } // namespace facebook::fboss
