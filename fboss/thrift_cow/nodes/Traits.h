@@ -165,8 +165,10 @@ struct ConvertToNodeTraits<
     EnableHybridStorage,
     apache::thrift::type_class::list<ValueT>,
     TType> {
-  using type = std::shared_ptr<
-      ThriftListNode<apache::thrift::type_class::list<ValueT>, TType>>;
+  using type = std::shared_ptr<ThriftListNode<
+      apache::thrift::type_class::list<ValueT>,
+      TType,
+      EnableHybridStorage>>;
   using isChild = std::true_type;
 };
 

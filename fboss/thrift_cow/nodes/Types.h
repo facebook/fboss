@@ -112,10 +112,10 @@ struct ThriftUnionFields;
 template <typename TType>
 class ThriftUnionNode;
 
-template <typename TypeClass, typename TType>
+template <typename TypeClass, typename TType, bool EnableHybridStorage>
 struct ThriftListFields;
 
-template <typename TypeClass, typename TType>
+template <typename TypeClass, typename TType, bool EnableHybridStorage>
 class ThriftListNode;
 
 template <typename Traits, bool EnableHybridStorage>
