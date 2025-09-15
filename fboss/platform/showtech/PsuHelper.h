@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <vector>
+
 #include "fboss/lib/i2c/I2cDevIo.h"
 
 namespace facebook::fboss::platform {
