@@ -43,6 +43,7 @@
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
 DEFINE_string(
@@ -721,30 +722,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         // max switch-id in single node tests as well
         isDualStage3Q2QMode() || isL2FabricNode;
     if (isDualStage) {
-      /*
-       * Due to a HW bug in J3/R3, we are restricted to using switch-ids in the
-       * range of 0-4064.
-       * For 2-Stage, Num RDSWs = 512. SwitchIds consumed = 2048.
-       * Num EDSW = 128, Switch Ids consumed = 512. These ids will come after
-       * 2048. So 2560 (2.5K total). The last EDSW will take switch-ids from
-       * 2556-2559. We now start FDSWs at 2560. There are 200 FDSWs, taking 4
-       * switch Ids each = 2560 + 800 = 3360. So we start SDSW switch-ids from
-       * 3360. Given there are 128 SDSW, we get 3360 + (128 * 4) = 3872 Max
-       * switch id can only be set in multiples of 32. So we set it to next
-       * multiple of 32, which is 3904.
-       * TODO: look at 2-stage configs, find max switch-id and use that
-       * to compute the value here.
-       */
-      maxSwitchId = 3904;
+      // TODO: look at 2-stage configs, find max switch-id and use that
+      // to compute the value here.
+      maxSwitchId = kDualStageMaxGlobalSwitchId;
     } else {
-      // Single stage FAP-ID on J3/R3 are limited to 1K.
-      // With 4 cores we are limited to 1K switch-ids.
-      // Then with 80 R3 chips we get 160 more switch-ids
-      // so we are well within the 2K (vendor) recommended
-      // limit.
       // TODO: Programatically calculate the max switch-id and
       // assert that we are are within this limit
-      maxSwitchId = 2 * 1024;
+      maxSwitchId = kSingleStageMaxGlobalSwitchId;
     }
     auto maxDsfConfigSwitchId = utility::maxDsfSwitchId(*agentConfig) +
         std::max(getAsic()->getNumCores(),
