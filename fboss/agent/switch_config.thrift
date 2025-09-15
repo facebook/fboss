@@ -2201,6 +2201,12 @@ struct FlowletSwitchingConfig {
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
   // fall back switching mode if DLB groups are exhausted
   13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
+  // primary path quality threshold
+  14: optional i32 primaryPathQualityThreshold;
+  // alternate path cost
+  15: optional i32 alternatePathCost;
+  // alternate path bias
+  16: optional i32 alternatePathBias;
 }
 
 /**

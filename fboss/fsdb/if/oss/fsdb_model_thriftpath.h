@@ -8799,7 +8799,10 @@ std::pair<strings::dynamicEgressMaxThresholdBytes, Child<::std::int32_t, ::apach
 std::pair<strings::dynamicPhysicalQueueExponent, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::maxLinks, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
 std::pair<strings::switchingMode, Child<::facebook::fboss::cfg::SwitchingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchingMode>>>,
-std::pair<strings::backupSwitchingMode, Child<::facebook::fboss::cfg::SwitchingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchingMode>>>>;
+std::pair<strings::backupSwitchingMode, Child<::facebook::fboss::cfg::SwitchingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchingMode>>>,
+std::pair<strings::primaryPathQualityThreshold, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::alternatePathCost, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::alternatePathBias, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
@@ -8812,7 +8815,10 @@ std::pair<strings::backupSwitchingMode, Child<::facebook::fboss::cfg::SwitchingM
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int16_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i16_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::facebook::fboss::cfg::SwitchingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchingMode>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::facebook::fboss::cfg::SwitchingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchingMode>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::facebook::fboss::cfg::SwitchingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::SwitchingMode>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::inactivityIntervalUsecs, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::flowletTableSize, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -8826,7 +8832,10 @@ std::pair<strings::dynamicEgressMaxThresholdBytes, std::integral_constant<apache
 std::pair<strings::dynamicPhysicalQueueExponent, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::maxLinks, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::switchingMode, std::integral_constant<apache::thrift::field_id_t, 12>>,
-std::pair<strings::backupSwitchingMode, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
+std::pair<strings::backupSwitchingMode, std::integral_constant<apache::thrift::field_id_t, 13>>,
+std::pair<strings::primaryPathQualityThreshold, std::integral_constant<apache::thrift::field_id_t, 14>>,
+std::pair<strings::alternatePathCost, std::integral_constant<apache::thrift::field_id_t, 15>>,
+std::pair<strings::alternatePathBias, std::integral_constant<apache::thrift::field_id_t, 16>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -8845,6 +8854,9 @@ std::pair<strings::backupSwitchingMode, std::integral_constant<apache::thrift::f
     STRUCT_CHILD_GETTERS(maxLinks, 11);
     STRUCT_CHILD_GETTERS(switchingMode, 12);
     STRUCT_CHILD_GETTERS(backupSwitchingMode, 13);
+    STRUCT_CHILD_GETTERS(primaryPathQualityThreshold, 14);
+    STRUCT_CHILD_GETTERS(alternatePathCost, 15);
+    STRUCT_CHILD_GETTERS(alternatePathBias, 16);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -8861,6 +8873,9 @@ std::pair<strings::backupSwitchingMode, std::integral_constant<apache::thrift::f
     else if constexpr (__id == 11) { return maxLinks(); }
     else if constexpr (__id == 12) { return switchingMode(); }
     else if constexpr (__id == 13) { return backupSwitchingMode(); }
+    else if constexpr (__id == 14) { return primaryPathQualityThreshold(); }
+    else if constexpr (__id == 15) { return alternatePathCost(); }
+    else if constexpr (__id == 16) { return alternatePathBias(); }
   }
 
   template <typename T, T... Values>
