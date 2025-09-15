@@ -10,6 +10,9 @@
 
 #include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
+
 namespace facebook::fboss {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
@@ -43,6 +46,11 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
     // convert microsec to nanosec
     samplingInterval = samplingInterval * 1000;
   }
+  std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups> arsMaxGroups =
+      FLAGS_enable_ars_scale_mode
+      ? std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
+            platform_->getAsic()->getMaxArsGroups())
+      : std::nullopt;
 #else
   if (samplingInterval >= kArsMinSamplingRateNs) {
     // convert nanosec to microsec
@@ -70,7 +78,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       loadCurrentMaxVal
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
       ,
-      std::nullopt,
+      arsMaxGroups,
       std::nullopt};
 #else
   };
