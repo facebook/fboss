@@ -108,6 +108,7 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
   std::optional<uint32_t> getMaxArpTableSize() const override {
     return 16384;
   }
+  uint32_t getMaxArsGroups() const override;
 };
 
 } // namespace facebook::fboss

@@ -77,5 +77,8 @@ class BroadcomAsic : public HwAsic {
         prbs::PrbsPolynomial::PRBS11,
         prbs::PrbsPolynomial::PRBS58};
   }
+  uint32_t getMaxArsGroups() const override {
+    return 0;
+  }
 };
 } // namespace facebook::fboss

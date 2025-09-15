@@ -246,4 +246,8 @@ int Tomahawk3Asic::getDefaultNumPortQueues(
       " combination");
 }
 
+uint32_t Tomahawk3Asic::getMaxArsGroups() const {
+  return 128;
+}
+
 } // namespace facebook::fboss

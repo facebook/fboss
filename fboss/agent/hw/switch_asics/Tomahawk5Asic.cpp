@@ -264,4 +264,8 @@ Tomahawk5Asic::desiredLoopbackModes() const {
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::MAC}};
   return kLoopbackMode;
 }
+
+uint32_t Tomahawk5Asic::getMaxArsGroups() const {
+  return 256;
+}
 } // namespace facebook::fboss

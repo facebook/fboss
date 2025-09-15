@@ -380,6 +380,8 @@ class HwAsic {
   virtual std::optional<uint32_t> getMaxDlbEcmpGroups() const {
     return std::nullopt;
   }
+
+  virtual uint32_t getMaxArsGroups() const = 0;
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths
   virtual std::optional<uint32_t> getMaxRoutes() const {

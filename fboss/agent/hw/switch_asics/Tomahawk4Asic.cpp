@@ -309,4 +309,9 @@ int Tomahawk4Asic::getDefaultNumPortQueues(
       apache::thrift::util::enumNameSafe(portType),
       " combination");
 }
+
+uint32_t Tomahawk4Asic::getMaxArsGroups() const {
+  return 128;
+}
+
 } // namespace facebook::fboss

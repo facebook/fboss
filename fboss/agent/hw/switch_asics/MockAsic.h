@@ -228,6 +228,9 @@ class MockAsic : public HwAsic {
   int getHiPriCpuQueueId() const override {
     throw FbossError("Mock ASIC does not support cpu queue");
   }
+  uint32_t getMaxArsGroups() const override {
+    return 128;
+  }
 };
 
 } // namespace facebook::fboss

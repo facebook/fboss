@@ -469,4 +469,8 @@ std::vector<prbs::PrbsPolynomial> ChenabAsic::getSupportedPrbsPolynomials()
   return {prbs::PrbsPolynomial::PRBS13};
 }
 
+uint32_t ChenabAsic::getMaxArsGroups() const {
+  return 256;
+}
+
 } // namespace facebook::fboss
