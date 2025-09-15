@@ -4439,6 +4439,18 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   newFlowletSwitchingConfig->setSwitchingMode(*config.switchingMode());
   newFlowletSwitchingConfig->setBackupSwitchingMode(
       *config.backupSwitchingMode());
+  if (config.primaryPathQualityThreshold()) {
+    newFlowletSwitchingConfig->setPrimaryPathQualityThreshold(
+        *config.primaryPathQualityThreshold());
+  }
+  if (config.alternatePathCost()) {
+    newFlowletSwitchingConfig->setAlternatePathCost(
+        *config.alternatePathCost());
+  }
+  if (config.alternatePathBias()) {
+    newFlowletSwitchingConfig->setAlternatePathBias(
+        *config.alternatePathBias());
+  }
   return newFlowletSwitchingConfig;
 }
 
