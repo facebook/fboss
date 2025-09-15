@@ -74,11 +74,14 @@ struct ThriftStructResolver {
       EnableHybridStorage>;
 };
 
-template <typename Traits>
+template <typename Traits, bool EnableHybridStorage = false>
 struct ThriftMapResolver {
   // if resolver is not specialized for given thrift type, default to
   // ThriftStructNode
-  using type = ThriftMapNode<Traits, ThriftMapResolver<Traits>>;
+  using type = ThriftMapNode<
+      Traits,
+      ThriftMapResolver<Traits, EnableHybridStorage>,
+      EnableHybridStorage>;
 };
 
 #define ADD_THRIFT_RESOLVER_MAPPING(ThriftType, CppType) \
@@ -101,8 +104,9 @@ template <typename TType, bool EnableHybridStorage>
 using ResolvedType =
     typename ThriftStructResolver<TType, EnableHybridStorage>::type;
 
-template <typename Traits>
-using ResolvedMapType = typename ThriftMapResolver<Traits>::type;
+template <typename Traits, bool EnableHybridStorage>
+using ResolvedMapType =
+    typename ThriftMapResolver<Traits, EnableHybridStorage>::type;
 
 template <bool EnableHybridStorage, typename TC, typename TType>
 struct ConvertToNodeTraits {
@@ -195,8 +199,9 @@ struct ConvertToNodeTraits<
     apache::thrift::type_class::map<KeyT, ValueT>,
     TType> {
   using type_class = apache::thrift::type_class::map<KeyT, ValueT>;
-  using map_type =
-      ResolvedMapType<ThriftMapTraits<EnableHybridStorage, type_class, TType>>;
+  using map_type = ResolvedMapType<
+      ThriftMapTraits<EnableHybridStorage, type_class, TType>,
+      EnableHybridStorage>;
   using type = std::shared_ptr<map_type>;
   using isChild = std::true_type;
 };

@@ -468,11 +468,25 @@ TYPED_TEST(ThriftStructNodeTestSuite, AnnotatedStructNodeTypeTest) {
                                   k::childCowStruct>())::element_type::CowType,
                 HybridNodeType>);
 
+  // check map that is not annotated should never be hybrid
+  static_assert(
+      !std::is_same_v<
+          typename decltype(node->template get<
+                            k::mapOfHybridStruct>())::element_type::CowType,
+          HybridNodeType>);
+
   // check: fields that are annotated, should be hybrid if enabled
   static_assert(
       std::is_same_v<
           typename decltype(node->template get<
                             k::childHybridStruct>())::element_type::CowType,
+          HybridNodeType> == enableHybridStorage);
+
+  // check map of hybrid struct should contain values that are hybrid if enabled
+  auto val = node->template get<k::mapOfHybridStruct>()->at(1);
+  static_assert(
+      std::is_same_v<
+          typename decltype(val)::element_type::CowType,
           HybridNodeType> == enableHybridStorage);
 }
 
