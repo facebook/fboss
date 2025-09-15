@@ -54,6 +54,7 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         return [PortSpeed.HUNDREDANDSIXPOINTTWOFIVEG]
     if profile in [
         PortProfileID.PROFILE_100G_4_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
@@ -83,9 +84,19 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
     ]:
         return [PortSpeed.XG]
-    if profile in [PortProfileID.PROFILE_50G_2_NRZ_RS528_OPTICAL]:
+    if profile in [
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_OPTICAL,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_50G_1_PAM4_RS544_COPPER,
+    ]:
         return [PortSpeed.FIFTYG]
-    if profile in [PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL]:
+    if profile in [
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
+    ]:
         return [PortSpeed.TWENTYFIVEG]
     if profile in [PortProfileID.PROFILE_DEFAULT]:
         return [PortSpeed.DEFAULT]
@@ -101,18 +112,25 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
+        PortProfileID.PROFILE_50G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
     ]:
         return 1
     if profile in [
         PortProfileID.PROFILE_50G_2_NRZ_RS528_OPTICAL,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
     ]:
         return 2
     if profile in [
         PortProfileID.PROFILE_100G_4_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
@@ -423,6 +441,7 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_50G_2_NRZ_RS528_OPTICAL,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
@@ -435,7 +454,13 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_10G_1_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_50G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_100G_4_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
