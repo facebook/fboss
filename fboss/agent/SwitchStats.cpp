@@ -92,6 +92,16 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       addRouteV6_(map, kCounterPrefix + "route.v6.add", RATE),
       delRouteV4_(map, kCounterPrefix + "route.v4.delete", RATE),
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
+      routeProgrammingUpdateAttempts_(
+          map,
+          kCounterPrefix + "route_programming_update_attempts",
+          SUM,
+          RATE),
+      routeProgrammingUpdateFailures_(
+          map,
+          kCounterPrefix + "route_programming_update_failures",
+          SUM,
+          RATE),
       dstLookupFailureV4_(
           map,
           kCounterPrefix + "ipv4.dst_lookup_failure",
@@ -403,6 +413,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       resourceAccountantRejectedUpdates_(
           map,
           kCounterPrefix + "resource_accountant_rejected_updates",
+          SUM,
+          RATE),
+      primaryEcmpGroupsExhaustedEvents_(
+          map,
+          kCounterPrefix + "primary_ecmp_groups_exhausted_events",
           SUM,
           RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {

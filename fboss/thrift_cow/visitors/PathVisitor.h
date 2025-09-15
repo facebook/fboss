@@ -762,6 +762,75 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
   template <typename Fields, typename Op>
   static ThriftTraverseResult
   visit(Fields& fields, const VisitImplParams<Op>& params, PathIter cursor)
+    requires(!is_cow_type_v<Fields> && !is_field_type_v<Fields>)
+  {
+    std::optional<ThriftTraverseResult> result;
+
+    try {
+      if (cursor == params.end || params.options.mode == PathVisitMode::FULL) {
+        params.op.template visitTyped<TC, Fields>(fields, cursor, params.end);
+        if (cursor == params.end) {
+          return ThriftTraverseResult();
+        }
+      }
+    } catch (const std::exception& ex) {
+      std::string message = folly::to<std::string>(
+          "PathVisitor exception for path: ",
+          folly::join("/", params.begin, params.end),
+          " at: ",
+          (cursor == params.end ? "(end)" : *cursor),
+          ". exception: ",
+          ex.what());
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
+    }
+
+    // iterate over all members and find the one with the matching key
+    auto key = *cursor++;
+    using descriptors = typename apache::thrift::reflect_variant<
+        folly::remove_cvref_t<Fields>>::traits::descriptors;
+    fatal::foreach<descriptors>([&](auto tag) {
+      using descriptor = decltype(fatal::tag_type(tag));
+      using member_name = typename descriptor::metadata::name;
+      using member_tc = typename descriptor::metadata::type_class;
+
+      const std::string fieldNameStr =
+          fatal::to_instance<std::string, member_name>();
+      if (fieldNameStr != key) {
+        return;
+      }
+
+      if (folly::to_underlying(fields.getType()) !=
+          descriptor::metadata::id::value) {
+        std::string err = folly::to<std::string>(
+            "Thrift path: ",
+            folly::join("/", params.begin, params.end),
+            " unexpected type for mmeber: ",
+            key);
+        result = ThriftTraverseResult(
+            ThriftTraverseResult::Code::INCORRECT_VARIANT_MEMBER, err);
+        return;
+      }
+
+      auto& child = typename descriptor::getter()(fields);
+      result = PathVisitorImpl<member_tc>::visit(child, params, cursor);
+    });
+
+    if (!result.has_value()) {
+      std::string err = folly::to<std::string>(
+          "Thrift path: ",
+          folly::join("/", params.begin, params.end),
+          " invalid member: ",
+          key);
+      result = ThriftTraverseResult(
+          ThriftTraverseResult::Code::INVALID_VARIANT_MEMBER, err);
+    }
+    return result.value();
+  }
+
+  template <typename Fields, typename Op>
+  static ThriftTraverseResult
+  visit(Fields& fields, const VisitImplParams<Op>& params, PathIter cursor)
       // only enable for Fields types
     requires(
         is_field_type_v<Fields> &&

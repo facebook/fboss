@@ -7,17 +7,19 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
-#include "fboss/agent/MultiNodeTestThriftHandler.h"
+#include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
 
 namespace facebook::fboss {
 
-MultiNodeTestThriftHandler::MultiNodeTestThriftHandler(SwSwitch* sw)
-    : ThriftHandler(sw) {}
+void SaiBcmIcetea800bcPlatformPort::linkStatusChanged(
+    bool /*up*/,
+    bool /*adminUp*/) {
+  // TODO: set led color
+}
 
-void MultiNodeTestThriftHandler::triggerGracefulExit() {
-  XLOG(INFO) << __func__;
-  // TODO add implementation
+void SaiBcmIcetea800bcPlatformPort::externalState(
+    PortLedExternalState /*lfs*/) {
+  // TODO: set led color
 }
 
 } // namespace facebook::fboss

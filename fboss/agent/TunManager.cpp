@@ -183,6 +183,8 @@ void TunManager::addProbedAddr(
     uint8_t mask) {
   for (auto& intf : intfs_) {
     if (intf.second->getIfIndex() == ifIndex) {
+      XLOG(DBG2) << "Adding probed address: " << addr.str() << "/"
+                 << static_cast<int>(mask) << " @ index " << ifIndex;
       intf.second->addAddress(addr, mask);
       return;
     }
@@ -258,6 +260,73 @@ int TunManager::getTableId(InterfaceID ifID) const {
   CHECK_LE(tableId, 253);
 
   return tableId;
+}
+
+std::unordered_map<InterfaceID, int> TunManager::buildIfIdToTableIdMap(
+    std::shared_ptr<SwitchState> state) const {
+  std::unordered_map<InterfaceID, int> ifIdToTableId;
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
+    for (const auto& iter : std::as_const(*intfMap)) {
+      const auto& intf = iter.second;
+      auto ifId = intf->getID();
+      auto tableId = getTableId(ifId);
+      ifIdToTableId[ifId] = tableId;
+      XLOG(DBG2) << "Created mapping from state: ifId " << ifId
+                 << " -> tableId " << tableId;
+    }
+  }
+  return ifIdToTableId;
+}
+
+std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
+    const {
+  std::unordered_map<InterfaceID, int> probedIfIdToTableId;
+
+  // Build a map of interface index to table ID from probed routes
+  std::unordered_map<int, int> ifIndexToTableId;
+  for (const auto& probedRoute : probedRoutes_) {
+    if (probedRoute.ifIndex > 0) {
+      ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
+      XLOG(DBG2) << "Created mapping: ifIndex " << probedRoute.ifIndex
+                 << " -> tableId " << probedRoute.tableId;
+    }
+  }
+
+  // Map interface IDs to table IDs using probed data
+  for (const auto& intf : intfs_) {
+    auto ifId = intf.first; // InterfaceID from map key
+    auto ifIndex = intf.second->getIfIndex();
+
+    // Get table ID from probed routes instead of computing new one
+    auto tableIdIter = ifIndexToTableId.find(ifIndex);
+    if (tableIdIter != ifIndexToTableId.end()) {
+      auto tableId = tableIdIter->second;
+      probedIfIdToTableId[ifId] = tableId;
+      XLOG(DBG2) << "Created mapping from probed interfaces: ifId " << ifId
+                 << " -> tableId " << tableId;
+    } else {
+      XLOG(DBG2) << "No probed table ID found for interface " << ifId
+                 << " @ ifIndex " << ifIndex;
+    }
+  }
+  return probedIfIdToTableId;
+}
+
+bool TunManager::requiresProbedDataCleanup(
+    const std::unordered_map<InterfaceID, int>& stateMap,
+    const std::unordered_map<InterfaceID, int>& probedMap) const {
+  // Most idiomatic: direct equality comparison
+  bool mapsEqual = (stateMap == probedMap);
+
+  if (!mapsEqual) {
+    XLOG(DBG2) << "Interface mappings differ - state has " << stateMap.size()
+               << " entries, probed has " << probedMap.size() << " entries";
+    return true;
+  }
+
+  XLOG(DBG2)
+      << "Interface ID to table ID mappings are identical, skipping cleanup";
+  return false;
 }
 
 int TunManager::getTableIdForNpu(InterfaceID ifID) const {
@@ -649,6 +718,9 @@ void TunManager::linkProcessor(struct nl_object* obj, void* data) {
     return;
   }
 
+  XLOG(DBG2) << "Adding TUN interface: " << name << " @ index "
+             << rtnl_link_get_ifindex(link);
+
   static_cast<TunManager*>(data)->addExistingIntf(
       std::string(name), rtnl_link_get_ifindex(link));
 }
@@ -757,6 +829,11 @@ void TunManager::deleteAllProbedData() {
   for (const auto& probedRoute : probedRoutes_) {
     if (probedRoute.ifIndex > 0) {
       ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
+      XLOG(DBG2) << "Created mapping: ifIndex " << probedRoute.ifIndex
+                 << " -> tableId " << probedRoute.tableId;
+    } else {
+      XLOG(DBG2) << "Skipping route & source-rule cleanup for table "
+                 << probedRoute.tableId << " (no ifindex)";
     }
   }
 
@@ -987,7 +1064,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
 
         // We need to add route-table and tun-addresses if interface is
         // brought up recently.
-        if (!oldStatus and newStatus) {
+        if (!oldStatus && newStatus) {
           addRouteTable(ifID, ifIndex);
           // Remove old source route rules to avoid duplicates
           for (const auto& addr : oldAddrs) {
@@ -1094,12 +1171,19 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
     dstStr = std::string(dstBuf);
   }
 
-  // Check if this is a default route (no destination, "none", or empty)
-  if (dstStr == "none") {
-    dstStr = (family == AF_INET) ? "0.0.0.0/0" : "::/0";
+  // Check if this is a default route (kernel returns "none" for default routes)
+  if (dstStr != "none") {
+    // Ignore non-default routes and log them
+    XLOG(DBG2) << "Ignoring non-default route to " << dstStr << " in table "
+               << tableId << " with protocol "
+               << rtnl_route_get_protocol(route);
+    return;
   }
 
-  XLOG(DBG2) << "Found route to " << dstStr << " in table " << tableId
+  // Convert "none" to proper default route representation
+  dstStr = (family == AF_INET) ? "0.0.0.0/0" : "::/0";
+
+  XLOG(DBG2) << "Found default route to " << dstStr << " in table " << tableId
              << " with protocol " << rtnl_route_get_protocol(route);
 
   // Store route information

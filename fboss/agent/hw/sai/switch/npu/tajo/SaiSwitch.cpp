@@ -99,10 +99,21 @@ void SaiSwitch::tamEventCallback(
     uint32_t /*attr_count*/,
     const sai_attribute_t* /*attr_list*/) {
   auto eventDesc = static_cast<const sai_tam_event_desc_t*>(buffer);
+
+#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001)
   if (eventDesc->type != (sai_tam_event_type_t)SAI_TAM_EVENT_TYPE_SWITCH) {
     // not a switch type event
     return;
   }
+#else
+  // >= 25.5.5210, eventDesc->type is type of sai_tam_event_type_extensions_t
+  // including SAI_TAM_EVENT_TYPE_SWITCH
+  if (eventDesc->type != SAI_TAM_EVENT_TYPE_SWITCH) {
+    // not a switch type event
+    return;
+  }
+#endif
+
   auto eventType = eventDesc->event.switch_event.type;
   std::stringstream sstream;
   sstream << "received switch event=" << eventName(eventType);

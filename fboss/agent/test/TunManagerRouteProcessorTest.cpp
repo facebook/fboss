@@ -30,6 +30,7 @@
   FRIEND_TEST(TunManagerRouteProcessorTest, ProcessIPv6DefaultRoute);          \
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipUnsupportedAddressFamily);     \
   FRIEND_TEST(TunManagerRouteProcessorTest, SkipInvalidTableId);               \
+  FRIEND_TEST(TunManagerRouteProcessorTest, SkipNonDefaultRoutes);             \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv4Default);    \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesIPv6Default);    \
   FRIEND_TEST(TunManagerRouteProcessorTest, DeleteProbedRoutesBothV4AndV6);    \
@@ -55,7 +56,29 @@
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
       DeleteProbedAddressesAndRulesNoTableIdMapping);                          \
-  FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);
+  FRIEND_TEST(TunManagerAddressRuleTest, DeleteProbedInterfaces);              \
+  FRIEND_TEST(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic);       \
+  FRIEND_TEST(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic); \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes);   \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapEmptyInterfaces);                             \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario); \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapInvalidIfIndex);                              \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical);       \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent);       \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupEmptyMaps);       \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupSizeDiff);        \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -201,6 +224,55 @@ class TunManagerRouteProcessorTest : public ::testing::Test {
     nl_addr_put(dst);
     rtnl_route_put(route);
   }
+
+  /**
+   * @brief Helper function to test non-default route filtering for both IPv4
+   * and IPv6
+   *
+   * @param family Address family (AF_INET or AF_INET6)
+   * @param tableId Routing table ID
+   * @param addrStr Address string (e.g., "192.168.1.0" or "2001:db8::")
+   * @param prefixLen Prefix length
+   */
+  void testSkipNonDefaultRoute(
+      int family,
+      int tableId,
+      const std::string& addrStr,
+      int prefixLen) {
+    auto route = rtnl_route_alloc();
+    ASSERT_NE(nullptr, route);
+
+    rtnl_route_set_family(route, family);
+    rtnl_route_set_table(route, tableId); // Valid table ID
+
+    // Create a specific destination (non-default route)
+    nl_addr* dst = nullptr;
+    if (family == AF_INET) {
+      struct in_addr addr4;
+      inet_pton(AF_INET, addrStr.c_str(), &addr4);
+      dst = nl_addr_build(AF_INET, &addr4, sizeof(addr4));
+    } else if (family == AF_INET6) {
+      struct in6_addr addr6;
+      inet_pton(AF_INET6, addrStr.c_str(), &addr6);
+      dst = nl_addr_build(AF_INET6, &addr6, sizeof(addr6));
+    }
+
+    ASSERT_NE(nullptr, dst);
+    nl_addr_set_prefixlen(dst, prefixLen);
+    rtnl_route_set_dst(route, dst);
+
+    // Call the routeProcessor function
+    TunManager::routeProcessor(
+        reinterpret_cast<struct nl_object*>(route),
+        static_cast<void*>(tunMgr_));
+
+    // Verify no routes were stored
+    EXPECT_EQ(0, tunMgr_->probedRoutes_.size());
+
+    // Cleanup
+    nl_addr_put(dst);
+    rtnl_route_put(route);
+  }
 };
 
 /**
@@ -331,6 +403,25 @@ TEST_F(TunManagerRouteProcessorTest, SkipInvalidTableId) {
 
   // Cleanup
   rtnl_route_put(route);
+}
+
+/**
+ * @brief Test filtering of non-default routes
+ *
+ * Verifies that routeProcessor correctly filters out and ignores routes
+ * that are not default routes. The function should only process routes
+ * where the destination is "none" (which represents default routes in
+ * kernel output), and ignore all other routes like specific network prefixes.
+ */
+TEST_F(TunManagerRouteProcessorTest, SkipNonDefaultRoutes) {
+  // Test IPv4 non-default routes using helper function
+  testSkipNonDefaultRoute(AF_INET, 100, "192.168.1.0", 24);
+  testSkipNonDefaultRoute(AF_INET, 150, "10.0.0.0", 16);
+  testSkipNonDefaultRoute(AF_INET, 200, "127.0.0.1", 8);
+
+  // Test IPv6 non-default routes using helper function
+  testSkipNonDefaultRoute(AF_INET6, 100, "2001:db8::", 64);
+  testSkipNonDefaultRoute(AF_INET6, 150, "fe80::", 64);
 }
 
 /**
@@ -813,6 +904,386 @@ TEST_F(TunManagerAddressRuleTest, DeleteProbedInterfaces) {
   // Test 2: Populated interfaces map scenario
   addMockInterface(InterfaceID(2000), 42, "fboss2000", {});
   verifyDeletionBehavior(1);
+}
+
+/**
+ * @brief Test buildIfIdToTableIdMap functionality
+ *
+ * Verifies that buildIfIdToTableIdMap correctly creates a mapping from
+ * interface IDs to table IDs based on a SwitchState.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildIfIdToTableIdMapBasic) {
+  // Create a simple SwitchState with interfaces
+  auto state = std::make_shared<SwitchState>();
+
+  // Create switch settings for NPU type (needed for getTableId to work)
+  auto settings = std::make_shared<SwitchSettings>();
+  SwitchIdToSwitchInfo info{};
+  auto [iter, _] = info.emplace(SwitchID(0), cfg::SwitchInfo{});
+  iter->second.switchType() = cfg::SwitchType::NPU;
+  iter->second.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+  settings->setSwitchIdToSwitchInfo(info);
+
+  auto multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)})
+          .matcherString(),
+      settings);
+
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
+
+  // Create some test interfaces
+  auto interfaces = std::make_shared<MultiSwitchInterfaceMap>();
+  auto interfaceMap = std::make_shared<InterfaceMap>();
+
+  // Add interface with ID 2000 (should map to table ID 1)
+  auto intf1 = std::make_shared<Interface>(
+      InterfaceID(2000),
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("intf2000"),
+      folly::MacAddress("01:02:03:04:05:06"),
+      9000,
+      false,
+      true);
+  interfaceMap->addNode(intf1);
+
+  // Add interface with ID 2001 (should map to table ID 2)
+  auto intf2 = std::make_shared<Interface>(
+      InterfaceID(2001),
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("intf2001"),
+      folly::MacAddress("01:02:03:04:05:07"),
+      9000,
+      false,
+      true);
+  interfaceMap->addNode(intf2);
+
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>{SwitchID(0)});
+  interfaces->addMapNode(interfaceMap, matcher);
+  state->resetIntfs(interfaces);
+
+  // Call buildIfIdToTableIdMap
+  auto ifIdToTableIdMap = tunMgr_->buildIfIdToTableIdMap(state);
+
+  // Verify the mapping is correct
+  EXPECT_EQ(2, ifIdToTableIdMap.size());
+  EXPECT_EQ(
+      tunMgr_->getTableId(InterfaceID(2000)),
+      ifIdToTableIdMap[InterfaceID(2000)]);
+  EXPECT_EQ(
+      tunMgr_->getTableId(InterfaceID(2001)),
+      ifIdToTableIdMap[InterfaceID(2001)]);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with basic functionality
+ *
+ * Tests the normal case where interfaces have corresponding probed routes
+ * with valid table IDs.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapBasic) {
+  // Add mock interfaces to intfs_ map
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 43, 1500);
+
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+
+  // Add probed routes that map to these interfaces
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto tableId2001 = tunMgr_->getTableId(InterfaceID(2001));
+
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2000,
+      "0.0.0.0/0",
+      42); // ifIndex 42 -> InterfaceID(2000)
+  addProbedRoute(
+      tunMgr_,
+      AF_INET6,
+      tableId2000,
+      "::/0",
+      42); // ifIndex 42 -> InterfaceID(2000) (duplicate)
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2001,
+      "0.0.0.0/0",
+      43); // ifIndex 43 -> InterfaceID(2001)
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Verify correct mappings
+  EXPECT_EQ(2, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+  EXPECT_EQ(tableId2001, probedMapping[InterfaceID(2001)]);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with empty probed routes
+ *
+ * Tests the case where no probed routes exist, resulting in an empty mapping.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapEmptyRoutes) {
+  // Add mock interfaces to intfs_ map
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+
+  // No probed routes added (probedRoutes_ is empty)
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should return empty mapping
+  EXPECT_EQ(0, probedMapping.size());
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with empty interfaces
+ *
+ * Tests the case where no interfaces exist in intfs_ map.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapEmptyInterfaces) {
+  // No interfaces in intfs_ map (should be empty by default)
+
+  // Add some probed routes (should not affect result)
+  addProbedRoute(tunMgr_, AF_INET, 100, "0.0.0.0/0", 42);
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should return empty mapping
+  EXPECT_EQ(0, probedMapping.size());
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with mixed scenario
+ *
+ * Tests a scenario where some interfaces have probed routes and others
+ * don't.
+ */
+TEST_F(TunManagerRouteProcessorTest, BuildProbedIfIdToTableIdMapMixedScenario) {
+  // Add mock interfaces
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 43, 1500);
+  auto mockIntf3 =
+      std::make_unique<MockTunIntf>(InterfaceID(2002), "fboss2002", 44, 1500);
+
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+  tunMgr_->intfs_[InterfaceID(2002)] = std::move(mockIntf3);
+
+  // Add probed routes only for some interfaces
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto tableId2002 = tunMgr_->getTableId(InterfaceID(2002));
+
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2000,
+      "0.0.0.0/0",
+      42); // Interface 2000 has route
+  // Interface 2001 (ifIndex 43) has no probed route
+  addProbedRoute(
+      tunMgr_,
+      AF_INET,
+      tableId2002,
+      "0.0.0.0/0",
+      44); // Interface 2002 has route
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should only include interfaces that have probed routes
+  EXPECT_EQ(2, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+  EXPECT_EQ(tableId2002, probedMapping[InterfaceID(2002)]);
+  EXPECT_EQ(probedMapping.end(), probedMapping.find(InterfaceID(2001)));
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with invalid ifIndex
+ *
+ * Tests handling of probed routes with zero or negative ifIndex values.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapInvalidIfIndex) {
+  // Add mock interface
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+
+  // Add probed routes with invalid ifIndex values
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto tableIdInvalid1 =
+      tunMgr_->getTableId(InterfaceID(2001)); // For invalid route 1
+  auto tableIdInvalid2 =
+      tunMgr_->getTableId(InterfaceID(2002)); // For invalid route 2
+
+  TunManager::ProbedRoute invalidRoute1;
+  invalidRoute1.family = AF_INET;
+  invalidRoute1.tableId = tableIdInvalid1;
+  invalidRoute1.destination = "0.0.0.0/0";
+  invalidRoute1.ifIndex = 0; // Invalid ifIndex
+  tunMgr_->probedRoutes_.push_back(invalidRoute1);
+
+  TunManager::ProbedRoute invalidRoute2;
+  invalidRoute2.family = AF_INET;
+  invalidRoute2.tableId = tableIdInvalid2;
+  invalidRoute2.destination = "0.0.0.0/0";
+  invalidRoute2.ifIndex = -1; // Invalid ifIndex
+  tunMgr_->probedRoutes_.push_back(invalidRoute2);
+
+  // Add a valid route for comparison
+  addProbedRoute(tunMgr_, AF_INET, tableId2000, "0.0.0.0/0", 42);
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should only include the interface with valid probed route
+  EXPECT_EQ(1, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+}
+
+/**
+ * @brief Test requiresProbedDataCleanup with identical mappings
+ *
+ * Verifies that requiresProbedDataCleanup returns false when state and probed
+ * mappings are identical.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupIdentical) {
+  // Create identical state and probed mappings
+  std::unordered_map<InterfaceID, int> stateMap = {
+      {InterfaceID(2000), 100},
+      {InterfaceID(2001), 101},
+      {InterfaceID(2002), 102}};
+
+  std::unordered_map<InterfaceID, int> probedMap = {
+      {InterfaceID(2000), 100},
+      {InterfaceID(2001), 101},
+      {InterfaceID(2002), 102}};
+
+  // Call requiresProbedDataCleanup
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
+
+  // Should return false since mappings are identical
+  EXPECT_FALSE(requiresCleanup);
+}
+
+/**
+ * @brief Test requiresProbedDataCleanup with different mappings
+ *
+ * Verifies that requiresProbedDataCleanup returns true when state and probed
+ * mappings differ in values.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupDifferent) {
+  // Create different state and probed mappings (same keys, different values)
+  std::unordered_map<InterfaceID, int> stateMap = {
+      {InterfaceID(2000), 100}, {InterfaceID(2001), 101}};
+
+  std::unordered_map<InterfaceID, int> probedMap = {
+      {InterfaceID(2000), 200}, // Different table ID
+      {InterfaceID(2001), 101}};
+
+  // Call requiresProbedDataCleanup
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
+
+  // Should return true since mappings differ
+  EXPECT_TRUE(requiresCleanup);
+}
+
+/**
+ * @brief Test requiresProbedDataCleanup with empty maps
+ *
+ * Verifies that requiresProbedDataCleanup handles empty mappings correctly.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupEmptyMaps) {
+  // Test 1: Both maps empty - should be identical
+  std::unordered_map<InterfaceID, int> emptyState;
+  std::unordered_map<InterfaceID, int> emptyProbed;
+
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(emptyState, emptyProbed);
+  EXPECT_FALSE(requiresCleanup);
+
+  // Test 2: State has entries, probed is empty - should differ
+  std::unordered_map<InterfaceID, int> stateMap = {{InterfaceID(2000), 100}};
+
+  requiresCleanup = tunMgr_->requiresProbedDataCleanup(stateMap, emptyProbed);
+  EXPECT_TRUE(requiresCleanup);
+
+  // Test 3: State is empty, probed has entries - should differ
+  std::unordered_map<InterfaceID, int> probedMap = {{InterfaceID(2000), 100}};
+
+  requiresCleanup = tunMgr_->requiresProbedDataCleanup(emptyState, probedMap);
+  EXPECT_TRUE(requiresCleanup);
+}
+/**
+ * @brief Test requiresProbedDataCleanup with different sized mappings
+ *
+ * Verifies that requiresProbedDataCleanup returns true when mappings have
+ * different sizes.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupSizeDiff) {
+  // Create state mapping with more entries than probed mapping
+  std::unordered_map<InterfaceID, int> stateMap = {
+      {InterfaceID(2000), 100},
+      {InterfaceID(2001), 101},
+      {InterfaceID(2002), 102}};
+
+  std::unordered_map<InterfaceID, int> probedMap = {
+      {InterfaceID(2000), 100}, {InterfaceID(2001), 101}};
+
+  // Call requiresProbedDataCleanup
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
+
+  // Should return true since sizes differ
+  EXPECT_TRUE(requiresCleanup);
+
+  // Test opposite case: probed has more entries than state
+  std::unordered_map<InterfaceID, int> smallerStateMap = {
+      {InterfaceID(2000), 100}};
+
+  requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(smallerStateMap, probedMap);
+  EXPECT_TRUE(requiresCleanup);
+}
+/**
+ * @brief Test requiresProbedDataCleanup with missing keys
+ *
+ * Verifies that requiresProbedDataCleanup returns true when mappings have
+ * same size but different keys.
+ */
+TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys) {
+  // Create mappings with same size but different keys
+  std::unordered_map<InterfaceID, int> stateMap = {
+      {InterfaceID(2000), 100}, {InterfaceID(2001), 101}};
+
+  std::unordered_map<InterfaceID, int> probedMap = {
+      {InterfaceID(2000), 100},
+      {InterfaceID(2002), 102}}; // Different second key
+
+  // Call requiresProbedDataCleanup
+  bool requiresCleanup =
+      tunMgr_->requiresProbedDataCleanup(stateMap, probedMap);
+
+  // Should return true since keys differ
+  EXPECT_TRUE(requiresCleanup);
 }
 
 } // namespace facebook::fboss

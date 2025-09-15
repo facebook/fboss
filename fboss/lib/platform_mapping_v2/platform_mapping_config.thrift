@@ -69,6 +69,7 @@ struct Port {
   7: optional i32 virtual_device_id;
   8: switch_config.PortType port_type;
   9: switch_config.Scope scope;
+  10: optional i32 parent_port_id;
 }
 
 struct ChipSetting {

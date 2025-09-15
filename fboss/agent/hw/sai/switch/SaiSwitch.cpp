@@ -2254,7 +2254,7 @@ void SaiSwitch::updatePmdInfo(
 #endif
 
   std::vector<phy::SerdesParameters> pmdSerdesParameters;
-  if (readSerdesParams) {
+  if (readSerdesParams && serdes) {
     pmdSerdesParameters = managerTable_->portManager().getSerdesParameters(
         serdes->adapterKey(), portID, numPmdLanes);
   } else {

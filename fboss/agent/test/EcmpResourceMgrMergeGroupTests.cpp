@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/BaseEcmpResourceMgrMergeGroupsTests.h"
+#include "fboss/agent/test/CounterCache.h"
 
 namespace facebook::fboss {
 
@@ -234,7 +235,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, rmRouteToUnmergeAndOverflowInSameUpdate) {
   newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
   fib6->addNode(newRoute);
   newState->publish();
-  consolidate(newState);
+  auto deltas = consolidate(newState);
+  // Umerge delta, merge delta, route add delta
+  EXPECT_EQ(deltas.size(), 3);
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 1);
   // New merge set should be selected, since the old one got unbundled
   // in this update.
@@ -271,7 +274,9 @@ TEST_F(
   newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
   fib6->addNode(newRoute);
   newState->publish();
-  consolidate(newState);
+  auto deltas = consolidate(newState);
+  // Umerge delta, merge delta, route add delta
+  EXPECT_EQ(deltas.size(), 3);
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 1);
   // New merge set should be selected, since the old one got unbundled
   // in this update.
@@ -304,7 +309,9 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateUnnmergedRouteInSameUpdate) {
   newRoute->setResolved(RouteNextHopEntry(newNhopSet, kDefaultAdminDistance));
   fib6->updateNode(newRoute);
   newState->publish();
-  consolidate(newState);
+  auto deltas = consolidate(newState);
+  // Umerge delta, route update delta
+  EXPECT_EQ(deltas.size(), 2);
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGroups().size(), 0);
   assertEndState(sw_->getState(), {});
 }
@@ -336,6 +343,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateMergedRouteInSameUpdate) {
   auto mergedRouteUpdated = makeRoute(*overflowPrefixes.begin(), newNhops);
   fib6->updateNode(std::move(mergedRouteUpdated));
   auto deltas = consolidate(newState);
+  // Merge delta, add route + unmerge delta, route update
   EXPECT_EQ(deltas.size(), 3);
   // No routes should have override nhops
   assertEndState(sw_->getState(), {});
@@ -419,6 +427,14 @@ TEST_F(
   assertGroupsAreRemoved(optimalMergeSet);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, checkPrimaryEcmpExhaustedEvents) {
+  CounterCache counters(sw_);
+  addNextRoute();
+  counters.update();
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "primary_ecmp_groups_exhausted_events.sum",
+      1);
+}
 TEST_F(EcmpResourceMgrMergeGroupTest, removeAllMergeGrpRefrencesInOneUpdate) {
   auto optimalMergeSet =
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
@@ -518,7 +534,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, exhaustAllPairwiseMerges) {
   removeRoutesAndCheck();
 }
 
-TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndReplay) {
+TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
   std::set<RouteV6::Prefix> overflowPrefixes;
@@ -527,10 +543,15 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndReplay) {
         auto newerState = state_->clone();
         auto fib6 = fib(newerState);
         for (const auto& origRoute : getPostConfigResolvedRoutes(state_)) {
-          auto route = fib6->getRouteIf(origRoute->prefix())->clone();
-          if (toReplay.size() && !toReplay.contains(route->prefix())) {
+          if (toReplay.size() && !toReplay.contains(origRoute->prefix())) {
             continue;
           }
+          auto route = fib6->getRouteIf(origRoute->prefix())->clone();
+          // Clear any overrides. This test mimics routes
+          // coming over thrift (say on FibSync) which would
+          // come w/o any overrides set.
+          route->setResolved(RouteNextHopEntry(
+              route->getForwardInfo().getNextHopSet(), kDefaultAdminDistance));
           route->publish();
           fib6->updateNode(route);
         }
@@ -637,7 +658,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateAllRoutesToNewNhopsAboveEcmpLimit) {
   }
 }
 
-TEST_F(EcmpResourceMgrMergeGroupTest, overflowRoutesInReverseOrderOfReplay) {
+TEST_F(EcmpResourceMgrMergeGroupTest, overflowRoutesReconstructInReverseOrder) {
   std::set<RouteV6::Prefix> startPrefixes;
   for (const auto& route : getPostConfigResolvedRoutes(state_)) {
     startPrefixes.insert(route->prefix());
@@ -716,7 +737,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, overflowRoutesInReverseOrderOfReplay) {
   }
 }
 
-TEST_F(EcmpResourceMgrMergeGroupTest, reclaimOnReplay) {
+TEST_F(EcmpResourceMgrMergeGroupTest, reclaimOnReconstructionFromSwitchState) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
   auto routesBefore = getPostConfigResolvedRoutes(sw_->getState()).size();

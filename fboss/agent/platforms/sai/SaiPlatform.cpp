@@ -19,6 +19,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
@@ -385,6 +386,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiMinipack3NPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_ICECUBE800BC) {
       saiPort = std::make_unique<SaiBcmIcecube800bcPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_ICETEA800BC) {
+      saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800BA) {
       saiPort = std::make_unique<SaiBcmWedge800baPlatformPort>(portId, this);
     } else {
@@ -806,14 +809,19 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     //        7482: Management port
     //  [7483-7500: One for each of the 16 x 800G NIF ports
     maxSystemPortId = 8120;
-    maxLocalSystemPortId = 184;
     maxSystemPorts = 8121;
-    maxVoqs = 8121 * 8;
+    maxLocalSystemPortId = 184;
+    maxVoqs = maxSystemPorts.value() * 8;
   } else {
-    maxSystemPortId = 6143;
+    if (FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports) {
+      maxSystemPortId = 8120;
+      maxSystemPorts = 8121;
+    } else {
+      maxSystemPortId = 6143;
+      maxSystemPorts = 6144;
+    }
     maxLocalSystemPortId = -1;
-    maxSystemPorts = 6144;
-    maxVoqs = 6144 * 8;
+    maxVoqs = maxSystemPorts.value() * 8;
   }
 #endif
   if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {

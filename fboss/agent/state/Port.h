@@ -819,6 +819,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  /** @brief Get AM idles state */
+  std::optional<bool> getAmIdles() const {
+    if (auto amIdles = cref<switch_state_tags::amIdles>()) {
+      return amIdles->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set AM idles state */
+  void setAmIdles(std::optional<bool> amIdles) {
+    if (!amIdles.has_value()) {
+      ref<switch_state_tags::amIdles>().reset();
+    } else {
+      set<switch_state_tags::amIdles>(amIdles.value());
+    }
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();

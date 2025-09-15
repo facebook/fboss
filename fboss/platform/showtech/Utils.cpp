@@ -6,6 +6,9 @@
 #include <iostream>
 
 #include <fmt/core.h>
+#include <re2/re2.h>
+
+#include "fboss/platform/showtech/PsuHelper.h"
 
 using namespace facebook::fboss::platform::showtech_config;
 
@@ -97,6 +100,51 @@ void Utils::printI2cDetails() {
     std::cout << fmt::format("##### Running `{}` for {} #####", cmd, busName)
               << std::endl;
     std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+  }
+}
+
+void Utils::printPsuDetails() {
+  std::cout << "##### PSU Information #####" << std::endl;
+
+  for (const auto& psu : *config_.psus()) {
+    std::cout << fmt::format("#### PSU Details {} ####", psu) << std::endl;
+
+    std::string psuPmbusI2cPath{};
+    try {
+      // Resolve the symlink to get the actual i2c device path
+      psuPmbusI2cPath = std::filesystem::read_symlink(psu).string();
+      std::cout << fmt::format("Resolved path: {}", psuPmbusI2cPath)
+                << std::endl;
+    } catch (const std::filesystem::filesystem_error& ex) {
+      std::cout << "Error: failed to resolve symlink " << psu << ": "
+                << ex.what() << std::endl;
+      continue;
+    }
+
+    int busNum;
+    int deviceAddr;
+    RE2 i2cPattern(R"(/sys/bus/i2c/devices/(\d+)-([0-9a-fA-F]+)/)");
+
+    if (!RE2::PartialMatch(
+            psuPmbusI2cPath, i2cPattern, &busNum, RE2::Hex(&deviceAddr))) {
+      std::cout << "Error: Could not extract i2c bus and address from path: "
+                << psuPmbusI2cPath << std::endl;
+      continue;
+    }
+
+    std::cout << fmt::format(
+                     "Extracted i2c bus: {}, device address: 0x{:04x}",
+                     busNum,
+                     deviceAddr)
+              << std::endl;
+
+    try {
+      PsuHelper(busNum, deviceAddr).dumpRegisters();
+    } catch (const std::exception& e) {
+      std::cout << fmt::format("Error: failed to dump registers: {}", e.what())
+                << std::endl;
+    }
+    std::cout << std::endl;
   }
 }
 

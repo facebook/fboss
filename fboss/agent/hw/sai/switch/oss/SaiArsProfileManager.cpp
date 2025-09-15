@@ -36,6 +36,20 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       flowletSwitchConfig->getDynamicQueueMinThresholdBytes() >> 1;
   auto loadCurrentMaxVal =
       flowletSwitchConfig->getDynamicQueueMaxThresholdBytes() >> 1;
+
+  // Workarounds until 11.7 completely goes away and 13.0 is rolled out
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+  if (samplingInterval < kArsMinSamplingRateNs) {
+    // convert microsec to nanosec
+    samplingInterval = samplingInterval * 1000;
+  }
+#else
+  if (samplingInterval >= kArsMinSamplingRateNs) {
+    // convert nanosec to microsec
+    samplingInterval = std::ceil(static_cast<double>(samplingInterval) / 1000);
+  }
+#endif
+
   SaiArsProfileTraits::CreateAttributes attributes{
       SAI_ARS_PROFILE_ALGO_EWMA,
       samplingInterval,

@@ -23,6 +23,10 @@ char** argVec{nullptr};
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
 DECLARE_bool(intf_nbr_tables);
+DEFINE_bool(
+    enable_sdk_dump,
+    false,
+    "Generate sdk debug dump when exiting test");
 
 namespace facebook::fboss {
 
@@ -66,6 +70,10 @@ void AgentEnsembleTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
+  if (FLAGS_enable_sdk_dump) {
+    agentEnsemble_->getHwDebugDump();
+  }
+
   if (FLAGS_setup_for_warmboot &&
       isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT)) {
     XLOG(DBG2) << "tearDownAgentEnsemble() for warmboot";

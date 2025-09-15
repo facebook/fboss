@@ -41,9 +41,18 @@ void verifyArsProfile(
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && !defined(CHENAB_SAI_SDK)
   auto& arsProfileApi = SaiApiTable::getInstance()->arsProfileApi();
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+  auto samplingInterval = arsProfileApi.getAttribute(
+      arsProfileSaiId,
+      SaiArsProfileTraits::Attributes::ExtensionSamplingIntervalNanosec());
+  EXPECT_EQ(*flowletCfg.dynamicSampleRate(), samplingInterval);
+#else
   auto samplingInterval = arsProfileApi.getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::SamplingInterval());
-  EXPECT_EQ(*flowletCfg.dynamicSampleRate(), samplingInterval);
+  auto expectedInterval =
+      std::ceil(static_cast<double>(*flowletCfg.dynamicSampleRate()) / 1000);
+  EXPECT_EQ(expectedInterval, samplingInterval);
+#endif
   auto randomSeed = arsProfileApi.getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::RandomSeed());
   EXPECT_EQ(SaiArsProfileManager::kArsRandomSeed, randomSeed);

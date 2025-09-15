@@ -11,7 +11,7 @@
 
 #include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/StateObserver.h"
-#include "fboss/agent/TunIntfInterface.h"
+#include "fboss/agent/TunIntfBase.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/types.h"
 
@@ -36,6 +36,10 @@ class TunManager : public StateObserver {
 
 #ifdef TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS
   TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS
+#endif
+
+#ifdef AGENT_TUNNEL_MGR_FRIEND_TESTS
+  AGENT_TUNNEL_MGR_FRIEND_TESTS
 #endif
 
   /**
@@ -181,6 +185,28 @@ class TunManager : public StateObserver {
    * Creates a tableId for given interface.
    */
   int getTableId(InterfaceID ifID) const;
+
+  /**
+   * Build a mapping from interface ID to table ID from SwitchState.
+   */
+  std::unordered_map<InterfaceID, int> buildIfIdToTableIdMap(
+      std::shared_ptr<SwitchState> state) const;
+
+  /**
+   * Build a mapping from interface ID to table ID from probed interfaces.
+   */
+  std::unordered_map<InterfaceID, int> buildProbedIfIdToTableIdMap() const;
+
+  /**
+   * Check if probed data cleanup is required by comparing interface mappings.
+   *
+   * @param stateMap Interface ID to table ID mapping from SwitchState
+   * @param probedMap Interface ID to table ID mapping from probed interfaces
+   * @return true if cleanup is required (mappings differ), false otherwise
+   */
+  bool requiresProbedDataCleanup(
+      const std::unordered_map<InterfaceID, int>& stateMap,
+      const std::unordered_map<InterfaceID, int>& probedMap) const;
 
   int getTableIdForNpu(InterfaceID ifID) const;
   int getTableIdForVoq(InterfaceID ifID) const;
@@ -335,8 +361,7 @@ class TunManager : public StateObserver {
    * sync() could manipulate intfs_. Called on the thread that serves evb_.
    * sendPacketToHost() uses intfs_, it can be called from any thread.
    */
-  boost::container::flat_map<InterfaceID, std::unique_ptr<TunIntfInterface>>
-      intfs_;
+  boost::container::flat_map<InterfaceID, std::unique_ptr<TunIntfBase>> intfs_;
   std::mutex mutex_;
 
   // Whether the manager has registered itself to listen for state updates

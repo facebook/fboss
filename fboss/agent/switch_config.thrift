@@ -1291,6 +1291,12 @@ struct Port {
    * Inter-packet gap configuration in bits.
    */
   36: optional i32 interPacketGapBits;
+
+  /*
+   * AM (Alignment Marker) idles configuration.
+   * Controls whether AM idles are enabled on the port.
+   */
+  37: optional bool amIdles;
 }
 
 enum LacpPortRate {
@@ -1304,6 +1310,11 @@ enum LacpPortActivity {
 }
 
 const i16 DEFAULT_LACP_HOLD_TIMER_MULTIPLIER = 3;
+
+enum AggregatePortType {
+  LAG_PORT = 0,
+  HYPER_PORT = 1,
+}
 
 struct AggregatePortMember {
   /**
@@ -1336,6 +1347,7 @@ struct AggregatePort {
    * pre-aggregated ODS counters
    */
   6: optional list<string> counterTags;
+  7: AggregatePortType aggregatePortType = LAG_PORT;
 }
 
 struct Lacp {
@@ -1548,6 +1560,10 @@ struct Interface {
 
   /* valid only for port type of interface */
   17: optional i32 portID;
+  /* valid only for port type of interface
+   * These fields contains information of remote GPU */
+  18: optional string desiredPeerName;
+  19: optional string desiredPeerAddressIPv6;
 }
 
 struct StaticRouteWithNextHops {

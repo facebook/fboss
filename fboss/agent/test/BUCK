@@ -201,6 +201,7 @@ cpp_library(
         "//fboss/agent:constants",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:monolithic_hw_switch_handler",
         "//fboss/agent:multi_switch_hw_switch_handler",
@@ -978,6 +979,7 @@ cpp_unittest(
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:ecmp_resource_mgr_test_utils",
         "//folly:network_address",
     ],
 )

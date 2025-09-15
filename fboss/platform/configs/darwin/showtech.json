@@ -1,3 +1,4 @@
 {
-  "i2cBusIgnore": []
+  "i2cBusIgnore": [],
+  "psus": []
 }

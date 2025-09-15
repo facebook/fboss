@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+latestString="latest_stable_hashes.tar.gz"
+prevString="previous_stable_hashes.tar.gz"
+latest=$( ls -l $latestString | awk '{print $NF}' )
+prev=$( ls -l $prevString | awk '{print $NF}' )
+new=$( ls -lt github_hashes* | head -n 1 | awk '{print $NF}' )
+
+unlink $latestString
+unlink $prevString
+ln -sf $new $latestString
+ln -sf $latest $prevString
+rm $prev

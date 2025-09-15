@@ -15,6 +15,7 @@ class HwPortProfileTest : public HwTest {
  protected:
   void SetUp() override {
     utility::enableTransceiverProgramming(true);
+    utility::enableSixtapProgramming();
     HwTest::SetUp();
   }
 
@@ -218,7 +219,6 @@ class HwPortProfileTest : public HwTest {
 #endif
       return;
     }
-    utility::enableSixtapProgramming();
     auto setup = [=, this]() {
       auto config = initialConfig(availablePorts);
       for (auto port : {availablePorts[0], availablePorts[1]}) {

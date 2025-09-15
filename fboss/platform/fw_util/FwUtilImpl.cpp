@@ -54,14 +54,14 @@ void FwUtilImpl::init() {
       fwDeviceNamesByPrio_, fwUtilConfig_);
 }
 
-std::string FwUtilImpl::printFpdList() {
-  // get list of firmware devide name
-  std::string fpdList;
+std::vector<std::string> FwUtilImpl::getFpdNameList() {
+  std::vector<std::string> fpdNameList;
+  fpdNameList.reserve(fwDeviceNamesByPrio_.size());
   for (const auto& fpd : fwDeviceNamesByPrio_) {
-    fpdList += fpd.first + " ";
+    fpdNameList.emplace_back(fpd.first);
   }
 
-  return fpdList;
+  return fpdNameList;
 }
 
 std::tuple<std::string, FwConfig> FwUtilImpl::getFpd(

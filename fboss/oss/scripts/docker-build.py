@@ -23,6 +23,7 @@ OPT_ARG_NUM_JOBS = "--num-jobs"
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 CONTAINER_SCRATCH_PATH = "/var/FBOSS/tmp_bld_dir"
+CONTAINER_WORKDIR = "/var/FBOSS/fboss"
 
 
 def get_linux_type() -> Tuple[str, Optional[str], Optional[str]]:
@@ -174,6 +175,27 @@ def get_docker_path():
     return docker_dir_path
 
 
+def get_repo_path():
+    scripts_path = os.path.dirname(__file__)
+    return Path(scripts_path).parent.parent.parent.absolute()
+
+
+def use_stable_hashes():
+    cwd = os.getcwd()
+    os.chdir(get_repo_path())
+    cmd = [
+        "rm",
+        "-rf",
+        "build/deps/github_hashes/",
+        "&&",
+        "tar",
+        "xvzf",
+        "fboss/oss/stable_commits/latest_stable_hashes.tar.gz",
+    ]
+    subprocess.run(cmd)
+    os.chdir(cwd)
+
+
 def build_docker_image(docker_dir_path: str):
     fd, log_path = tempfile.mkstemp(suffix="docker-build.log")
     print(
@@ -210,6 +232,8 @@ def run_fboss_build(
     use_local: bool,
     num_jobs: Optional[int],
 ):
+    use_stable_hashes()
+
     cmd_args = ["sudo", "docker", "run"]
     # Add build environment variables, if any.
     for ev in env_vars:
@@ -221,6 +245,9 @@ def run_fboss_build(
             errMsg = f"Ignoring environment variable string {ev} as it does not match a supported pattern."
             print(errMsg, file=sys.stderr)
 
+    # Mount fboss repository in container
+    cmd_args.append("-v")
+    cmd_args.append(f"{get_repo_path()}:{CONTAINER_WORKDIR}:z")
     # Add args for directory mount for build output.
     cmd_args.append("-v")
     cmd_args.append(f"{scratch_path}:{CONTAINER_SCRATCH_PATH}:z")

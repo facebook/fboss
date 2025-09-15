@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include "fboss/agent/test/CounterCache.h"
 
 namespace facebook::fboss {
 
@@ -277,7 +278,7 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   assertEndState(newState, overflowPrefixes);
 }
 
-TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
+TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();
   auto oldState = state_;
@@ -304,6 +305,11 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndReplay) {
     fib6 = fib(newerState);
     for (const auto& pfx : overflowPrefixes) {
       auto route = fib6->getRouteIf(pfx)->clone();
+      // Clear any overrides. This test mimics routes
+      // coming over thrift (say on FibSync) which would
+      // come w/o any overrides set.
+      route->setResolved(RouteNextHopEntry(
+          route->getForwardInfo().getNextHopSet(), kDefaultAdminDistance));
       route->publish();
       fib6->updateNode(route);
     }
@@ -856,4 +862,22 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimOnReplay) {
       newConsolidator.get(),
       false /*checkStats*/);
 }
+
+TEST_F(EcmpBackupGroupTypeTest, checkPrimaryEcmpExhaustedEvents) {
+  // Add new routes pointing to new nhops. ECMP limit is breached.
+  CounterCache counters(sw_);
+  auto nhopSets = nextNhopSets();
+  auto oldState = state_;
+  auto newState = oldState->clone();
+  auto fib6 = fib(newState);
+  auto routesBefore = getPostConfigResolvedRoutes(newState).size();
+  auto route = makeRoute(makePrefix(routesBefore), *nhopSets.begin());
+  fib6->addNode(route);
+  consolidate(newState);
+  counters.update();
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "primary_ecmp_groups_exhausted_events.sum",
+      1);
+}
+
 } // namespace facebook::fboss

@@ -47,6 +47,12 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _ArsProfileMap{
 };
 #endif
 
+void handleExtensionAttributes() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+  SAI_EXT_ATTR_MAP(ArsProfile, ExtensionSamplingIntervalNanosec)
+#endif
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -58,6 +64,7 @@ WRAP_SET_ATTR_FUNC(ars_profile, SAI_OBJECT_TYPE_ARS_PROFILE, arsProfile);
 WRAP_GET_ATTR_FUNC(ars_profile, SAI_OBJECT_TYPE_ARS_PROFILE, arsProfile);
 
 sai_ars_profile_api_t* wrappedArsProfileApi() {
+  handleExtensionAttributes();
   static sai_ars_profile_api_t arsProfileWrappers;
 
   arsProfileWrappers.create_ars_profile = &wrap_create_ars_profile;

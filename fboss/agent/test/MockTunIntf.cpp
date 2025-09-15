@@ -14,7 +14,7 @@
  * @author ashutosh grewal
  *
  * This file implements the MockTunIntf class which provides a mock
- * implementation of the TunIntfInterface. It enables unit testing of TUN
+ * implementation of the TunIntfBase. It enables unit testing of TUN
  * interface functionality without requiring actual system calls or kernel
  * interactions.
  */

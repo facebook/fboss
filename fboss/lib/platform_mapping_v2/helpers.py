@@ -84,6 +84,8 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         return [PortSpeed.FIFTYG]
     if profile in [PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL]:
         return [PortSpeed.TWENTYFIVEG]
+    if profile in [PortProfileID.PROFILE_DEFAULT]:
+        return [PortSpeed.DEFAULT]
     raise Exception("Can't convert profile to speed for profileID ", profile)
 
 
@@ -122,6 +124,8 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
     ]:
         return 8
+    if profile in [PortProfileID.PROFILE_DEFAULT]:
+        return 0
     raise Exception("Can't find num lanes for profile ", profile)
 
 
@@ -215,10 +219,10 @@ def get_platform_config_entry(
 def get_start_connection_end(
     port_name: str, static_mapping: StaticMapping
 ) -> ConnectionEnd:
-    match = re.match(r"(rcy|eth|fab|evt)(\d+)/(\d+)/(\d+)", port_name)
+    match = re.match(r"(rcy|eth|fab|evt|hyp)(\d+)/(\d+)/(\d+)", port_name)
     if not match:
         raise Exception(f"Port name {port_name} is not a valid format.")
-    if match[1] == "rcy" or match[1] == "evt":
+    if match[1] in ["rcy", "evt", "hyp"]:
         # Recycle ports are named "rcy{slot_id}/{chip_id}/{core_id}"
         return static_mapping.find_connection_end(
             slot_id=int(match[2]),
@@ -242,10 +246,12 @@ def get_start_connection_end(
 def get_connection_pairs_for_profile(
     static_mapping: StaticMapping, port: Port, num_lanes: int, profile: PortProfileID
 ) -> List[ConnectionPair]:
+    connections = []
+    if num_lanes == 0:
+        return connections
     start_connection_end = get_start_connection_end(
         port_name=port.port_name, static_mapping=static_mapping
     )
-    connections = []
     for lane in range(num_lanes):
         # Start with given lane
         current_connection_end = static_mapping.find_connection_end(
@@ -399,6 +405,8 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
     ]:
         return [TransmitterTechnology.COPPER]
+    if profile in [PortProfileID.PROFILE_DEFAULT]:
+        return [TransmitterTechnology.UNKNOWN]
     raise Exception("Can't figure out transmitter tech for profile ", profile)
 
 

@@ -78,6 +78,7 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // CondEntropyRehashSeed
         std::nullopt, // ShelEnable
         std::nullopt, // FecErrorDetectEnable
+        std::nullopt, // AmIdles
         std::nullopt, // FabricSystemPort
         std::nullopt, // StaticModuleId
     };

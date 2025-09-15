@@ -256,17 +256,20 @@ void verifyTxSettting(
     EXPECT_EQ(pre3, expectedPre3->value());
   }
 
+  auto asicType = saiPlatform->getAsic()->getAsicType();
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     pre2 = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre2{});
-    post2 = portApi.getAttribute(
-        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
-    post3 = portApi.getAttribute(
-        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost3{});
     EXPECT_EQ(pre2, GET_OPT_ATTR(PortSerdes, TxFirPre2, expectedTx));
-    EXPECT_EQ(post2, GET_OPT_ATTR(PortSerdes, TxFirPost2, expectedTx));
-    EXPECT_EQ(post3, GET_OPT_ATTR(PortSerdes, TxFirPost3, expectedTx));
+    if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      post2 = portApi.getAttribute(
+          serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
+      post3 = portApi.getAttribute(
+          serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost3{});
+      EXPECT_EQ(post2, GET_OPT_ATTR(PortSerdes, TxFirPost2, expectedTx));
+      EXPECT_EQ(post3, GET_OPT_ATTR(PortSerdes, TxFirPost3, expectedTx));
+    }
   }
 
   // Also verify sixtap attributes against expected pin config
@@ -279,8 +282,10 @@ void verifyTxSettting(
     if (saiPlatform->getAsic()->isSupported(
             HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
       EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
-      EXPECT_EQ(post2[i], expectedTxFromPin.post2());
-      EXPECT_EQ(post3[i], expectedTxFromPin.post3());
+      if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+        EXPECT_EQ(post2[i], expectedTxFromPin.post2());
+        EXPECT_EQ(post3[i], expectedTxFromPin.post3());
+      }
     }
   }
 

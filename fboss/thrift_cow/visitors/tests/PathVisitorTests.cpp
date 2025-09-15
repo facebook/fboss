@@ -188,6 +188,8 @@ TYPED_TEST(PathVisitorTests, AccessAtHybridNodeTest) {
   ChildStruct got = facebook::thrift::from_dynamic<ChildStruct>(
       dyn[20], facebook::thrift::dynamic_format::JSON_1);
   EXPECT_EQ(got.leafI32(), 0);
+  EXPECT_TRUE(got.optionalUnion().has_value());
+  EXPECT_EQ(got.optionalUnion()->inlineString(), "strInUnion");
 
   // Thrift path terminating at HybridNode - Set
   using TC = apache::thrift::type_class::map<

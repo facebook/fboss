@@ -38,12 +38,12 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
 
   auto address = network::toIPAddress(*nht.address());
   NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight());
-  bool v6LinkLocal = address.isV6() and address.isLinkLocal();
+  bool v6LinkLocal = address.isV6() && address.isLinkLocal();
   // Only honor interface specified over thrift if the address
   // is a v6 link-local. Otherwise, consume it as an unresolved
   // next hop and let route resolution populate the interface.
-  if (apache::thrift::get_pointer(nht.address()->ifName()) and
-      (v6LinkLocal or allowV6NonLinkLocal)) {
+  if (apache::thrift::get_pointer(nht.address()->ifName()) &&
+      (v6LinkLocal || allowV6NonLinkLocal)) {
     InterfaceID intfID = utility::getIDFromTunIntfName(
         *(apache::thrift::get_pointer(nht.address()->ifName())));
     return ResolvedNextHop(
@@ -170,7 +170,7 @@ UnresolvedNextHop::UnresolvedNextHop(
       disableTTLDecrement_(disableTTLDecrement),
       topologyInfo_(topologyInfo),
       adjustedWeight_(adjustedWeight) {
-  if (addr_.isV6() and addr_.isLinkLocal()) {
+  if (addr_.isV6() && addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
   }
@@ -189,7 +189,7 @@ UnresolvedNextHop::UnresolvedNextHop(
       disableTTLDecrement_(disableTTLDecrement),
       topologyInfo_(topologyInfo),
       adjustedWeight_(adjustedWeight) {
-  if (addr_.isV6() and addr_.isLinkLocal()) {
+  if (addr_.isV6() && addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr_.str());
   }

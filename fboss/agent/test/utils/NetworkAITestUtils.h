@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #pragma once
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <string>
@@ -70,5 +71,9 @@ const std::map<int, uint8_t> kNetworkAIWRRQueueToWeight();
 const std::vector<int> kNetworkAIWRRQueueIds();
 const std::vector<int> kNetworkAIWRRAndICPQueueIds();
 const std::vector<int> kNetworkAIWRRAndNCQueueIds();
+
+void applyBackendAsicConfig(
+    const cfg::SwitchConfig& sw,
+    cfg::PlatformConfig& config);
 
 } // namespace facebook::fboss::utility

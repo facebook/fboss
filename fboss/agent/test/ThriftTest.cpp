@@ -26,6 +26,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
@@ -71,6 +72,10 @@ IpPrefix ipPrefix(const folly::CIDRNetwork& nw) {
   result.ip() = toBinaryAddress(nw.first);
   result.prefixLength() = nw.second;
   return result;
+}
+
+IpPrefix ipPrefix(StringPiece prefixStr) {
+  return ipPrefix(IPAddress::createNetwork(prefixStr));
 }
 
 FlowEntry makeFlow(
@@ -651,9 +656,9 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptionClientId) {
   }
 }
 
-std::unique_ptr<UnicastRoute> makeUnicastRoute(
+std::unique_ptr<UnicastRoute> makeEcmpUnicastRoute(
     std::string prefixStr,
-    std::string nxtHop,
+    const std::vector<std::string>& nxtHops,
     AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE,
     std::optional<RouteCounterID> counterID = std::nullopt,
     std::optional<cfg::AclLookupClass> classID = std::nullopt) {
@@ -663,7 +668,9 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
   auto nr = std::make_unique<UnicastRoute>();
   *nr->dest()->ip() = toBinaryAddress(IPAddress(vec.at(0)));
   *nr->dest()->prefixLength() = folly::to<uint8_t>(vec.at(1));
-  nr->nextHopAddrs()->push_back(toBinaryAddress(IPAddress(nxtHop)));
+  for (const auto& nxtHop : nxtHops) {
+    nr->nextHopAddrs()->push_back(toBinaryAddress(IPAddress(nxtHop)));
+  }
   nr->adminDistance() = distance;
   if (counterID.has_value()) {
     nr->counterID() = *counterID;
@@ -672,6 +679,20 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
     nr->classID() = *classID;
   }
   return nr;
+}
+
+std::unique_ptr<UnicastRoute> makeUnicastRoute(
+    const std::string& prefixStr,
+    const std::string& nxtHop,
+    AdminDistance distance = AdminDistance::MAX_ADMIN_DISTANCE,
+    std::optional<RouteCounterID> counterID = std::nullopt,
+    std::optional<cfg::AclLookupClass> classID = std::nullopt) {
+  return makeEcmpUnicastRoute(
+      prefixStr,
+      std::vector<std::string>({nxtHop}),
+      distance,
+      counterID,
+      classID);
 }
 
 // Test for the ThriftHandler::syncFib method
@@ -1483,6 +1504,97 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
   }
 }
 
+TEST_F(ThriftTest, addUnicastRoutesWithOverrides) {
+  // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
+  ThriftHandler handler(sw_);
+
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto prefixA6 = "aaaa:1::0/64";
+  auto prefixA4 = "7.1.0.0/16";
+
+  auto makeV4Route = [prefixA4, bgpAdmin](bool withOverrides = false) {
+    auto cli1_nhop4 = "10.0.0.11";
+    auto cli2_nhop4 = "10.0.0.22";
+    auto v4Route =
+        makeEcmpUnicastRoute(prefixA4, {cli1_nhop4, cli2_nhop4}, bgpAdmin);
+    if (withOverrides) {
+      v4Route->overrideEcmpSwitchingMode() =
+          cfg::SwitchingMode::PER_PACKET_RANDOM;
+    }
+    return v4Route;
+  };
+  auto makeV4RouteWithOverride = [&makeV4Route]() { return makeV4Route(true); };
+  auto makeV6Route = [prefixA6, bgpAdmin](bool withOverrides = false) {
+    auto cli1_nhop6 = "2401:db00:2110:3001::0011";
+    auto cli2_nhop6 = "2401:db00:2110:3001::0022";
+    auto cli3_nhop6 = "2401:db00:2110:3001::0033";
+    auto v6Route = makeEcmpUnicastRoute(
+        prefixA6, {cli1_nhop6, cli2_nhop6, cli3_nhop6}, bgpAdmin);
+    if (withOverrides) {
+      v6Route->overrideNextHops() = std::vector<NextHopThrift>();
+    }
+    return v6Route;
+  };
+  auto makeV6RouteWithOverride = [&makeV6Route]() { return makeV6Route(true); };
+  auto makeUnicastRoutes = [](const std::unique_ptr<UnicastRoute>& routeOne,
+                              const std::unique_ptr<UnicastRoute>& routeTwo) {
+    auto routes = std::make_unique<std::vector<UnicastRoute>>();
+    routes->emplace_back(*routeOne);
+    routes->emplace_back(*routeTwo);
+    return routes;
+  };
+
+  handler.addUnicastRoute(bgpClient, makeV4Route());
+  handler.addUnicastRoute(bgpClient, makeV6Route());
+  // update routes to add overrides, should get rejected
+  EXPECT_THROW(
+      handler.addUnicastRoute(bgpClient, makeV4RouteWithOverride()),
+      FbossError);
+  auto v6Route = makeV6Route();
+  EXPECT_THROW(
+      handler.addUnicastRoute(bgpClient, makeV6RouteWithOverride()),
+      FbossError);
+  // Update multiple routes together with overrides, should get rejected
+  EXPECT_THROW(
+      handler.addUnicastRoutes(
+          bgpClient,
+          makeUnicastRoutes(makeV4Route(), makeV6RouteWithOverride())),
+      FbossError);
+  EXPECT_THROW(
+      handler.addUnicastRoutes(
+          bgpClient,
+          makeUnicastRoutes(makeV4RouteWithOverride(), makeV6Route())),
+      FbossError);
+  EXPECT_THROW(
+      handler.addUnicastRoutes(
+          bgpClient,
+          makeUnicastRoutes(
+              makeV4RouteWithOverride(), makeV6RouteWithOverride())),
+      FbossError);
+  // Delete routes. Later we will add them with overrides and assert for
+  // rejection
+  std::vector<IpPrefix> delRoutes = {ipPrefix(prefixA4), ipPrefix(prefixA6)};
+  handler.deleteUnicastRoutes(
+      bgpClient, std::make_unique<std::vector<IpPrefix>>(delRoutes));
+  EXPECT_THROW(
+      handler.addUnicastRoutes(
+          bgpClient,
+          makeUnicastRoutes(
+              makeV4RouteWithOverride(), makeV6RouteWithOverride())),
+      FbossError);
+  EXPECT_THROW(
+      handler.addUnicastRoutes(
+          bgpClient,
+          makeUnicastRoutes(makeV4Route(), makeV6RouteWithOverride())),
+      FbossError);
+  EXPECT_THROW(
+      handler.addUnicastRoutes(
+          bgpClient,
+          makeUnicastRoutes(makeV4RouteWithOverride(), makeV6Route())),
+      FbossError);
+}
+
 TEST_F(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 
@@ -1588,6 +1700,7 @@ TEST_F(ThriftTest, delUnicastRoutes) {
 TEST_F(ThriftTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto addRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 =
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
@@ -1615,10 +1728,15 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
   newRoutes->push_back(nr1);
@@ -1628,7 +1746,6 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
       {
         try {
           handler.addUnicastRoutes(10, std::move(newRoutes));
-
         } catch (const FbossFibUpdateError& fibError) {
           EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes()->size(), 1);
           auto itr = fibError.vrf2failedAddUpdatePrefixes()->find(0);
@@ -1637,6 +1754,10 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, getRouteTable) {
@@ -1686,6 +1807,7 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
 TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
@@ -1703,11 +1825,16 @@ TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
@@ -1725,6 +1852,10 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {

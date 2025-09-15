@@ -125,6 +125,14 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     return cfg;
   }
 
+  void dscpMappingSetupHelper(bool newDscpSchema) {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    auto l3Asics = getAgentEnsemble()->getL3Asics();
+    /* update Dscp 46 to gold queue*/
+    utility::addOlympicV2QosMaps(newCfg, l3Asics, newDscpSchema);
+    applyNewConfig(newCfg);
+  }
+
   void dscpMappingVerifyHelper(int kQueueId, int16_t kDscp) {
     for (bool frontPanel : {false, true}) {
       auto beforeQueueOutPkts =
@@ -172,11 +180,7 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
 
     if (dscpTcChangePostWarmboot) {
       auto setupPostWarmboot = [this]() {
-        auto newCfg{initialConfig(*getAgentEnsemble())};
-        auto l3Asics = getAgentEnsemble()->getL3Asics();
-        /* update Dscp 46 to gold queue*/
-        utility::addOlympicV2QosMaps(newCfg, l3Asics, true /* newDscpSchema*/);
-        applyNewConfig(newCfg);
+        dscpMappingSetupHelper(true /*newDscpSchema*/);
       };
       auto verifyPostWarmboot = [this, kQueueIdPostWarmboot, kDscp]() {
         dscpMappingVerifyHelper(kQueueIdPostWarmboot, kDscp);
@@ -186,6 +190,27 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     } else {
       verifyAcrossWarmBoots(setup, verify);
     }
+  }
+
+  void verifyDscpQueueMappingCanaryOff(
+      int kQueueId,
+      int16_t kDscp,
+      int kQueueIdPostWarmboot) {
+    auto setup = [this]() {
+      dscpMappingSetupHelper(true /*newDscpSchema*/);
+      setupHelper();
+    };
+
+    auto verify = [this, kQueueId, kDscp]() {
+      dscpMappingVerifyHelper(kQueueId, kDscp);
+    };
+    auto setupPostWarmboot = [this]() {
+      dscpMappingSetupHelper(false /*newDscpSchema*/);
+    };
+    auto verifyPostWarmboot = [this, kQueueIdPostWarmboot, kDscp]() {
+      dscpMappingVerifyHelper(kQueueIdPostWarmboot, kDscp);
+    };
+    verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
   }
 };
 
@@ -380,6 +405,18 @@ TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMappingChangePostWarmboot) {
       utility::kDscpToRemap,
       true /* dscpTcChangePostWarmboot */,
       utility::kOlympicAllSPGoldQueueId);
+}
+
+TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMappingCanaryOff) {
+  /*
+   * Same as VerifyDscpQueueMappingChangePostWarmboot but this tests the
+   * canary off scenario where dscp 46 is GOLD prewarmboot and changes to
+   * SILVER post warmboot (to test rollback)
+   */
+  verifyDscpQueueMappingCanaryOff(
+      utility::kOlympicAllSPGoldQueueId,
+      utility::kDscpToRemap,
+      utility::kOlympicAllSPSilverQueueId);
 }
 
 // Verify that traffic arriving on front panel/cpu port with non-conflicting

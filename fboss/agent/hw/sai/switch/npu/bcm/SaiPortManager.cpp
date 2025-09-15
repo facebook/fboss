@@ -234,7 +234,7 @@ void SaiPortManager::changePortFlowletConfig(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
     defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
     // for test purposes, BCM ARS requires the link state to force up
-    if (newPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC) {
+    if (newPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC && arsEnable) {
       int arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
       portHandle->port->setOptionalAttribute(
           SaiPortTraits::Attributes::ArsLinkState{arsLinkState});

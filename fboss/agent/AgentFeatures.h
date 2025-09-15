@@ -114,3 +114,7 @@ DECLARE_bool(enable_high_frequency_stats_polling);
 DECLARE_bool(dsf_headroom_pool_size_multiplication_factor_fix);
 DECLARE_bool(ignore_asic_hard_reset_notification);
 DECLARE_bool(cleanup_probed_kernel_data);
+DECLARE_bool(ndp_static_neighbor);
+DECLARE_bool(dsf_single_stage_r128_f40_e16_8k_sys_ports);
+DECLARE_bool(hyper_port);
+DECLARE_uint32(ecmp_width);

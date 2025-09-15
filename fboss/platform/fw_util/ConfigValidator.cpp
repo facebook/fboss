@@ -69,6 +69,13 @@ bool ConfigValidator::isValidFwConfig(
     const fw_util_config::FwConfig& fwConfig) {
   XLOG(DBG1) << fmt::format("Validating FwConfig for device: {}", deviceName);
 
+  // Skip validation for oob_eeprom as it's not currently being used
+  // and contains unsupported command types like ddDynamicBus
+  if (deviceName == "oob_eeprom") {
+    XLOG(INFO) << "Skipping validation for oob_eeprom device";
+    return true;
+  }
+
   if (deviceName.empty()) {
     XLOG(ERR) << "Device name cannot be empty";
     return false;

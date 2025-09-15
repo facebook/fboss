@@ -8,30 +8,48 @@
  *
  */
 #pragma once
-#include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/PreUpdateStateModifier.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/state/Route.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
-#include "fboss/agent/state/StateDelta.h"
-#include "fboss/lib/RefMap.h"
-
 #include <memory>
 #include <ostream>
+#include "fboss/agent/EcmpResourceManagerConfig.h"
+#include "fboss/agent/PreUpdateStateModifier.h"
+#include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
 class SwitchStats;
 class NextHopGroupInfo;
+class HwAsic;
 
 class EcmpResourceManager : public PreUpdateStateModifier {
+ public:
+  using SwitchStatsGetter = std::function<SwitchStats*()>;
+
+ private:
+  EcmpResourceManager(
+      const EcmpResourceManagerConfig& config,
+      const SwitchStatsGetter& switchStatsGetter);
+
  public:
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       int compressionPenaltyThresholdPct = 0,
+      SwitchStatsGetter statsGetter = []() { return nullptr; })
+      : EcmpResourceManager(
+            EcmpResourceManagerConfig(
+                maxHwEcmpGroups,
+                std::nullopt,
+                std::nullopt,
+                compressionPenaltyThresholdPct),
+            statsGetter) {}
+
+  explicit EcmpResourceManager(
+      uint32_t maxHwEcmpGroups,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
-      SwitchStats* stats = nullptr);
+      SwitchStatsGetter statsGetter = []() { return nullptr; })
+      : EcmpResourceManager(
+            EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
+            statsGetter) {}
   using NextHopGroupId = uint32_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
@@ -52,13 +70,13 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   void updateDone() override;
   void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
-    return backupEcmpGroupType_;
+    return config_.getBackupEcmpSwitchingMode();
   }
   int32_t getEcmpCompressionThresholdPct() const {
-    return compressionPenaltyThresholdPct_;
+    return config_.getEcmpCompressionThresholdPct();
   }
   uint32_t getMaxPrimaryEcmpGroups() const {
-    return maxEcmpGroups_;
+    return config_.getMaxPrimaryEcmpGroups();
   }
 
   struct ConsolidationInfo {
@@ -67,15 +85,20 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       return std::tie(mergedNhops, groupId2Penalty) ==
           std::tie(other.mergedNhops, other.groupId2Penalty);
     }
+    std::string str() const;
+    std::string verboseStr() const;
     RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
   };
+  ConsolidationInfo computeConsolidationInfo(
+      const NextHopGroupIds& grpIds) const;
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
   using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
   NextHopGroupIds getUnMergedGids() const;
   NextHopGroupIds getMergedGids() const;
   std::vector<NextHopGroupIds> getMergedGroups() const;
+  std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
    * non test code.
@@ -114,7 +137,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
   struct InputOutputState {
     InputOutputState(
-        uint32_t _nonBackupEcmpGroupsCnt,
+        uint32_t _primaryEcmpGroupsCnt,
+        uint32_t ecmpMemberCnt,
         const StateDelta& _in,
         const PreUpdateState& _groupIdCache = PreUpdateState());
     /*
@@ -165,11 +189,14 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      * reach the maxEcmpGroups limit, we either compress groups
      * by combining 2 or more groups.
      */
-    uint32_t nonBackupEcmpGroupsCnt;
+    uint32_t primaryEcmpGroupsCnt{0};
+    uint32_t ecmpMemberCnt{0};
     std::vector<StateDelta> out;
     PreUpdateState groupIdCache;
     bool updated{false};
   };
+  bool checkPrimaryGroupAndMemberCounts(
+      const InputOutputState& inOutState) const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
       const StateDelta& delta);
   void handleSwitchSettingsDelta(const StateDelta& delta);
@@ -255,11 +282,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
   void validateCfgUpdate(
-      int32_t compressionPenaltyThresholdPct,
+      uint32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
   NextHopGroupId findNextAvailableId() const;
-  ConsolidationInfo computeConsolidationInfo(
-      const NextHopGroupIds& grpIds) const;
   template <std::forward_iterator ForwardIt>
   void computeCandidateMergesForNewUnmergedGroups(
       ForwardIt begin,
@@ -280,11 +305,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   // Cached pre update state, will be used in case of roll back
   // if update fails
   std::optional<PreUpdateState> preUpdateState_;
-  // Knobs to control resource mgt policy
-  uint32_t maxEcmpGroups_{0};
-  int compressionPenaltyThresholdPct_{0};
-  std::optional<cfg::SwitchingMode> backupEcmpGroupType_;
-  SwitchStats* switchStats_;
+  SwitchStatsGetter statsGetter_;
+  EcmpResourceManagerConfig config_;
 };
 
 class NextHopGroupInfo {
@@ -332,6 +354,9 @@ class NextHopGroupInfo {
   const RouteNextHopSet& getNhops() const {
     return ngItr_->first;
   }
+  size_t numNhops() const {
+    return getNhops().size();
+  }
   bool hasOverrideNextHops() const {
     return mergedGroupsToInfoItr_.has_value();
   }
@@ -365,7 +390,9 @@ class NextHopGroupInfo {
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const std::shared_ptr<SwitchState>& state,
     const HwAsic* asic,
-    SwitchStats* stats = nullptr);
+    const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter = []() {
+      return nullptr;
+    });
 
 std::ostream& operator<<(
     std::ostream& os,
