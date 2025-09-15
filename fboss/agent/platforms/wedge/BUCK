@@ -21,6 +21,7 @@ oncall("fboss_agent_push")
             ":platform",
             "//fboss/agent:main-bcm",  # @manual
             "//fboss/agent:monolithic_agent_initializer",
+            "//fboss/agent:setup_thrift_prod",  # @manual
         ],
     )
     for sdk in BCM_SDKS
