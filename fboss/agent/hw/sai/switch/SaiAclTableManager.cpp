@@ -1170,15 +1170,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     }
 
     if (matchAction.getEgressMirror().has_value()) {
+      egressMirror = matchAction.getEgressMirror().value();
       std::vector<sai_object_id_t> aclEntryMirrorEgressOidList;
       auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
           matchAction.getEgressMirror().value());
       if (mirrorHandle) {
         aclEntryMirrorEgressOidList.push_back(mirrorHandle->adapterKey());
+        aclActionMirrorEgress =
+            SaiAclEntryTraits::Attributes::ActionMirrorEgress{
+                AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
       }
-      egressMirror = matchAction.getEgressMirror().value();
-      aclActionMirrorEgress = SaiAclEntryTraits::Attributes::ActionMirrorEgress{
-          AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
     }
 
     if (matchAction.getSetDscp()) {
