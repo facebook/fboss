@@ -65,6 +65,9 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.maxLinks() = 9;
   flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+  flowletCfg.primaryPathQualityThreshold() = 100;
+  flowletCfg.alternatePathCost() = 50;
+  flowletCfg.alternatePathBias() = 25;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -91,6 +94,12 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(
       flowletCfg2->getBackupSwitchingMode(),
       cfg::SwitchingMode::PER_PACKET_RANDOM);
+  EXPECT_TRUE(flowletCfg2->getPrimaryPathQualityThreshold().has_value());
+  EXPECT_EQ(flowletCfg2->getPrimaryPathQualityThreshold().value(), 100);
+  EXPECT_TRUE(flowletCfg2->getAlternatePathCost().has_value());
+  EXPECT_EQ(flowletCfg2->getAlternatePathCost().value(), 50);
+  EXPECT_TRUE(flowletCfg2->getAlternatePathBias().has_value());
+  EXPECT_EQ(flowletCfg2->getAlternatePathBias().value(), 25);
 
   flowletCfg.switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
@@ -146,6 +155,9 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.maxLinks() = 7;
   flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  flowletCfg.primaryPathQualityThreshold() = 200;
+  flowletCfg.alternatePathCost() = 75;
+  flowletCfg.alternatePathBias() = 30;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
@@ -204,6 +216,9 @@ TEST(FlowletSwitching, applyConfig) {
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
   flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+  flowletCfg.primaryPathQualityThreshold() = 150;
+  flowletCfg.alternatePathCost() = 60;
+  flowletCfg.alternatePathBias() = 35;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
