@@ -99,6 +99,7 @@ enum ProductionFeature {
   CLASS_ID_FOR_NEIGHBOR = 86,
   UDF_HASH = 87,
   INTER_PACKET_GAP = 88,
+  AM_IDLES = 89,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

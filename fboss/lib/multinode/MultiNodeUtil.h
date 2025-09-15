@@ -29,6 +29,9 @@ class MultiNodeUtil {
   bool verifyDsfSessions();
 
   bool verifyGracefulFabricLinkDownUp();
+  bool verifyGracefulDeviceDownUp();
+  bool verifyUngracefulDeviceDownUp();
+  bool verifyGracefulRestartTimeoutRecovery();
 
  private:
   enum class SwitchType : uint8_t {
@@ -74,7 +77,9 @@ class MultiNodeUtil {
 
   bool verifyNoSessionsFlap(
       const std::string& rdswToVerify,
-      const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession);
+      const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
+      const std::optional<std::string>& rdswToExclude = std::nullopt);
+
   bool verifyNoSessionsEstablished(const std::string& rdswToVerify);
   bool verifyAllSessionsEstablished(const std::string& rdswToVerify);
 
@@ -105,11 +110,15 @@ class MultiNodeUtil {
       SwitchType switchType,
       const std::string& switchName);
 
+  std::map<std::string, std::vector<SystemPortThrift>> getPeerToSystemPorts(
+      const std::string& rdsw);
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
       const std::set<RemoteSystemPortType>& types);
   bool verifySystemPortsForRdsw(const std::string& rdswToVerify);
 
+  std::map<std::string, std::vector<InterfaceDetail>> getPeerToRifs(
+      const std::string& rdsw);
   std::set<int> getGlobalRifsOfType(
       const std::string& rdsw,
       const std::set<RemoteInterfaceType>& types);
@@ -123,6 +132,31 @@ class MultiNodeUtil {
       const std::string& rdsw);
   std::set<std::string> getRdswsWithEstablishedDsfSessions(
       const std::string& rdsw);
+
+  bool verifyDeviceDownUpForRemoteRdswsHelper(bool triggerGraceFulExit);
+
+  bool verifyGracefulDeviceDownUpForRemoteRdsws();
+  bool verifyGracefulDeviceDownUpForRemoteFdsws();
+  bool verifyGracefulDeviceDownUpForRemoteSdsws();
+
+  bool verifyUngracefulDeviceDownUpForRemoteRdsws();
+  bool verifyUngracefulDeviceDownUpForRemoteFdsws();
+  bool verifyUngracefulDeviceDownUpForRemoteSdsws();
+
+  bool verifySwSwitchRunState(
+      const std::string& rdswToVerify,
+      const SwitchRunState& expectedSwitchRunState);
+
+  bool verifyStaleSystemPorts(
+      const std::map<std::string, std::vector<SystemPortThrift>>&
+          peerToSystemPorts,
+      const std::set<std::string>& restartedRdsws);
+
+  std::set<std::string> triggerGraceFulRestartTimeoutForRemoteRdsws();
+  bool verifyStaleSystemPorts(const std::set<std::string>& restartedRdsws);
+  bool verifyStaleRifs(const std::set<std::string>& restartedRdsws);
+  bool verifyLiveSystemPorts();
+  bool verifyLiveRifs();
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;

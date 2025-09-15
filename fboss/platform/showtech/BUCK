@@ -26,7 +26,6 @@ cpp_binary(
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":showtech_config-cpp2-types",
-        "//fb303:logging",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/helpers:init_cli",
@@ -37,6 +36,7 @@ cpp_binary(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     external_deps = [
+        "CLI11",
         "re2",
     ],
 )

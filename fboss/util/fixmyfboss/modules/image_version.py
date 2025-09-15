@@ -19,6 +19,7 @@ def expected_kernel_version():
     if current_kernel_version not in supported_versions:
         return Problem(
             description=f"""This device is running a non-supported kernel version:
-                {current_kernel_version}""",
+                Current: {current_kernel_version}
+                Expected: {', '.join(supported_versions)}""",
             manual_remediation="""Please reprovision the device""",
         )

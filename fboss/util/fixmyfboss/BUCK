@@ -27,7 +27,7 @@ python_library(
 python_binary(
     name = "fixmyfboss",
     srcs = ["main.py"],
-    main_function = ".main.main",
+    main_function = "fboss.util.fixmyfboss.main.main",
     deps = [
         ":cli_wrapper",
         ":fixmyfboss_library",

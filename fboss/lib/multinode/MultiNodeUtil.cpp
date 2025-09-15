@@ -13,20 +13,20 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
 
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
+#include "fboss/agent/if/gen-cpp2/TestCtrlAsyncClient.h"
 
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
-using facebook::fboss::FbossCtrl;
 using facebook::fboss::FbossHwCtrl;
 using facebook::fboss::MultiSwitchRunState;
+using facebook::fboss::TestCtrl;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 
-std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
+std::unique_ptr<apache::thrift::Client<TestCtrl>> getSwAgentThriftClient(
     const std::string& switchName) {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   auto remoteSwitchIp =
@@ -35,8 +35,7 @@ std::unique_ptr<apache::thrift::Client<FbossCtrl>> getSwAgentThriftClient(
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  return std::make_unique<apache::thrift::Client<FbossCtrl>>(
-      std::move(channel));
+  return std::make_unique<apache::thrift::Client<TestCtrl>>(std::move(channel));
 }
 
 std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> getHwAgentThriftClient(
@@ -53,10 +52,15 @@ std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> getHwAgentThriftClient(
       std::move(channel));
 }
 
-int getNumHwSwitches(const std::string& switchName) {
+MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   MultiSwitchRunState runState;
   swAgentClient->sync_getMultiSwitchRunState(runState);
+  return runState;
+}
+
+int getNumHwSwitches(const std::string& switchName) {
+  auto runState = getMultiSwitchRunState(switchName);
   return runState.hwIndexToRunState()->size();
 }
 
@@ -79,6 +83,39 @@ void adminDisablePort(const std::string& switchName, int32_t portID) {
 void adminEnablePort(const std::string& switchName, int32_t portID) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_setPortState(portID, true /* enable port */);
+}
+
+void triggerGracefulAgentRestart(const std::string& switchName) {
+  try {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_gracefullyRestartService("wedge_agent_test");
+  } catch (...) {
+    // Thrift request may throw error as the Agent exits.
+    // Ignore it, as we only wanted to trigger exit.
+  }
+}
+
+void triggerUngracefulAgentRestart(const std::string& switchName) {
+  try {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_ungracefullyRestartService("wedge_agent_test");
+  } catch (...) {
+    // Thrift request may throw error as the Agent exits.
+    // Ignore it, as we only wanted to trigger exit.
+  }
+}
+
+void restartAgentWithDelay(
+    const std::string& switchName,
+    int32_t delayInSeconds) {
+  try {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_gracefullyRestartServiceWithDelay(
+        "wedge_agent_test", delayInSeconds);
+  } catch (...) {
+    // Thrift request may throw error as the Agent exits.
+    // Ignore it, as we only wanted to trigger exit.
+  }
 }
 
 } // namespace
@@ -473,9 +510,8 @@ bool MultiNodeUtil::verifyPorts() {
   return true;
 }
 
-std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
-    const std::string& rdsw,
-    const std::set<RemoteSystemPortType>& types) {
+std::map<std::string, std::vector<SystemPortThrift>>
+MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) {
   auto logSystemPort =
       [rdsw](const facebook::fboss::SystemPortThrift& systemPort) {
         XLOG(DBG2)
@@ -486,7 +522,7 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
             << apache::thrift::util::enumNameSafe(
                    systemPort.remoteSystemPortType().value_or(-1))
             << " remoteSystemPortLivenessStatus: "
-            << folly::to<std::string>(
+            << apache::thrift::util::enumNameSafe(
                    systemPort.remoteSystemPortLivenessStatus().value_or(-1))
             << " scope: "
             << apache::thrift::util::enumNameSafe(systemPort.scope().value());
@@ -496,6 +532,23 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
   std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries;
   swAgentClient->sync_getSystemPorts(systemPortEntries);
 
+  std::map<std::string, std::vector<SystemPortThrift>> peerToSystemPorts;
+  for (const auto& [_, systemPort] : systemPortEntries) {
+    logSystemPort(systemPort);
+    CHECK(
+        switchIdToSwitchName_.find(SwitchID(systemPort.switchId().value())) !=
+        std::end(switchIdToSwitchName_));
+    auto switchName =
+        switchIdToSwitchName_[SwitchID(systemPort.switchId().value())];
+    peerToSystemPorts[switchName].push_back(systemPort);
+  }
+
+  return peerToSystemPorts;
+}
+
+std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
+    const std::string& rdsw,
+    const std::set<RemoteSystemPortType>& types) {
   auto matchesPortType =
       [&types](const facebook::fboss::SystemPortThrift& systemPort) {
         if (systemPort.remoteSystemPortType().has_value()) {
@@ -507,11 +560,13 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
       };
 
   std::set<std::string> systemPortsOfType;
-  for (const auto& [_, systemPort] : systemPortEntries) {
-    logSystemPort(systemPort);
-    if (*systemPort.scope() == cfg::Scope::GLOBAL &&
-        matchesPortType(systemPort)) {
-      systemPortsOfType.insert(systemPort.portName().value());
+  auto peerToSystemPorts = getPeerToSystemPorts(rdsw);
+  for (const auto& [_, systemPorts] : peerToSystemPorts) {
+    for (const auto& systemPort : systemPorts) {
+      if (*systemPort.scope() == cfg::Scope::GLOBAL &&
+          matchesPortType(systemPort)) {
+        systemPortsOfType.insert(systemPort.portName().value());
+      }
     }
   }
 
@@ -557,9 +612,8 @@ bool MultiNodeUtil::verifySystemPorts() {
   return true;
 }
 
-std::set<int> MultiNodeUtil::getGlobalRifsOfType(
-    const std::string& rdsw,
-    const std::set<RemoteInterfaceType>& types) {
+std::map<std::string, std::vector<InterfaceDetail>>
+MultiNodeUtil::getPeerToRifs(const std::string& rdsw) {
   auto logRif = [rdsw](const facebook::fboss::InterfaceDetail& rif) {
     XLOG(DBG2)
         << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
@@ -575,6 +629,22 @@ std::set<int> MultiNodeUtil::getGlobalRifsOfType(
   std::map<int32_t, facebook::fboss::InterfaceDetail> rifs;
   swAgentClient->sync_getAllInterfaces(rifs);
 
+  std::map<std::string, std::vector<InterfaceDetail>> peerToRifs;
+  for (const auto& [_, rif] : rifs) {
+    logRif(rif);
+    size_t pos = rif.interfaceName().value().find("::");
+    if (pos != std::string::npos) {
+      auto peer = (*rif.interfaceName()).substr(0, pos);
+      peerToRifs[peer].push_back(rif);
+    }
+  }
+
+  return peerToRifs;
+}
+
+std::set<int> MultiNodeUtil::getGlobalRifsOfType(
+    const std::string& rdsw,
+    const std::set<RemoteInterfaceType>& types) {
   auto matchesRifType = [&types](const facebook::fboss::InterfaceDetail& rif) {
     if (rif.remoteIntfType().has_value()) {
       return types.find(rif.remoteIntfType().value()) != types.end();
@@ -584,13 +654,14 @@ std::set<int> MultiNodeUtil::getGlobalRifsOfType(
   };
 
   std::set<int> rifsOfType;
-  for (const auto& [_, rif] : rifs) {
-    logRif(rif);
-    if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
-      rifsOfType.insert(rif.interfaceId().value());
+  auto peerToRifs = getPeerToRifs(rdsw);
+  for (const auto& [_, rifs] : peerToRifs) {
+    for (const auto& rif : rifs) {
+      if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
+        rifsOfType.insert(rif.interfaceId().value());
+      }
     }
   }
-
   return rifsOfType;
 }
 
@@ -768,13 +839,18 @@ bool MultiNodeUtil::verifyDsfSessions() {
 
 bool MultiNodeUtil::verifyNoSessionsFlap(
     const std::string& rdswToVerify,
-    const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession) {
+    const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
+    const std::optional<std::string>& rdswToExclude) {
   auto noSessionFlap =
-      [this, rdswToVerify, baselinePeerToDsfSession]() -> bool {
+      [this, rdswToVerify, baselinePeerToDsfSession, rdswToExclude]() -> bool {
     auto currentPeerToDsfSession = getPeerToDsfSession(rdswToVerify);
     // All entries must be identical i.e.
     // DSF Session state (ESTABLISHED or not) is the same.
     // For any session the establishedAt and connnectedAt is the same.
+    if (rdswToExclude.has_value()) {
+      currentPeerToDsfSession.erase(rdswToExclude.value());
+    }
+
     return baselinePeerToDsfSession == currentPeerToDsfSession;
   };
 
@@ -906,6 +982,341 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
   }
 
   return true;
+}
+
+bool MultiNodeUtil::verifySwSwitchRunState(
+    const std::string& rdswToVerify,
+    const SwitchRunState& expectedSwitchRunState) {
+  auto switchRunStateMatches =
+      [this, rdswToVerify, expectedSwitchRunState]() -> bool {
+    auto multiSwitchRunState = getMultiSwitchRunState(rdswToVerify);
+    auto gotSwitchRunState = multiSwitchRunState.swSwitchRunState();
+    return gotSwitchRunState == expectedSwitchRunState;
+  };
+
+  // Thrift client queries will throw exception while the Agent is initializing.
+  // Thus, continue to retry while absorbing exceptions.
+  return checkWithRetryErrorReturn(
+      switchRunStateMatches,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
+    bool triggerGraceFulRestart) {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  // For any one RDSW in every remote cluster issue Agent restart
+  for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+
+      // Trigger graceful or ungraceful Agent restart
+      triggerGraceFulRestart ? triggerGracefulAgentRestart(rdsw)
+                             : triggerUngracefulAgentRestart(rdsw);
+
+      // Wait for the switch to come up
+      if (!verifySwSwitchRunState(rdsw, SwitchRunState::CONFIGURED)) {
+        XLOG(DBG2) << "Agent failed to come up post warmboot: " << rdsw;
+        return false;
+      }
+
+      // Sessions to RDSW that was just restarted are expected to flap.
+      // This is regardless of graceful or ungraceful Agent restart.
+      // Verify no other sessions flap.
+      auto expectedPeerToDsfSession = baselinePeerToDsfSession;
+      expectedPeerToDsfSession.erase(rdsw);
+      if (!verifyNoSessionsFlap(
+              myHostname /* rdswToVerify */,
+              expectedPeerToDsfSession,
+              rdsw /* rdswToExclude */)) {
+        return false;
+      }
+
+      // Verify all DSF sessions are established for the RDSW that was restarted
+      verifyAllSessionsEstablished(rdsw);
+
+      // Restart only one remote RDSW per cluster
+      break;
+    }
+  }
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
+  return verifyDeviceDownUpForRemoteRdswsHelper(
+      true /* triggerGracefulRestart*/);
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  // For any one FDSW in every remote cluster issue graceful restart
+  for (const auto& [_, fdsws] : std::as_const(clusterIdToFdsws_)) {
+    // Gracefully restart only one remote FDSW per cluster
+    if (!fdsws.empty()) {
+      auto fdsw = fdsws.front();
+      triggerGracefulAgentRestart(fdsw);
+      // Wait for the switch to come up
+      if (!verifySwSwitchRunState(fdsw, SwitchRunState::CONFIGURED)) {
+        XLOG(DBG2) << "Agent failed to come up post warmboot: " << fdsw;
+        return false;
+      }
+    }
+  }
+
+  // verify no flaps is expensive.
+  // Thus, only verify after warmboot restarting one FDSW from each cluster.
+  // There is no loss of signal due to this approach as if the sessions flap
+  // due to an intermediate warmboot, it will be detected by this check anyway.
+  if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteSdsws() {
+  return true;
+}
+
+bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
+  return verifyGracefulDeviceDownUpForRemoteRdsws() &&
+      verifyGracefulDeviceDownUpForRemoteFdsws() &&
+      verifyGracefulDeviceDownUpForRemoteSdsws();
+}
+
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteRdsws() {
+  return verifyDeviceDownUpForRemoteRdswsHelper(
+      false /* triggerGracefulRestart*/);
+}
+
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteFdsws() {
+  // TODO verify
+  return true;
+}
+
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteSdsws() {
+  // TODO verify
+  return true;
+}
+
+bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
+  return verifyUngracefulDeviceDownUpForRemoteRdsws() &&
+      verifyUngracefulDeviceDownUpForRemoteFdsws() &&
+      verifyUngracefulDeviceDownUpForRemoteSdsws();
+}
+
+std::set<std::string>
+MultiNodeUtil::triggerGraceFulRestartTimeoutForRemoteRdsws() {
+  auto static constexpr kGracefulRestartTimeout = 120;
+  auto static constexpr kDelayBetweenRestarts =
+      kGracefulRestartTimeout + 60 /* time to verify STALE post GR timeout */;
+
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  // For any one RDSW in every remote cluster issue delayed Agent restart
+  std::set<std::string> restartedRdsws;
+  for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+      restartAgentWithDelay(rdsw, kDelayBetweenRestarts);
+      restartedRdsws.insert(rdsw);
+
+      // Gracefully restart only one remote RDSW per cluster
+      break;
+    }
+  }
+
+  return restartedRdsws;
+}
+
+bool MultiNodeUtil::verifyStaleSystemPorts(
+    const std::set<std::string>& restartedRdsws) {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  auto staleSystemPorts = [this, myHostname, restartedRdsws] {
+    // Verify system ports for restarted RDSWs are STALE
+    // Verify system ports for non-restarted RDSWs are LIVE
+    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
+    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
+      bool isRestarted = restartedRdsws.find(peer) != restartedRdsws.end();
+
+      for (const auto& systemPort : systemPorts) {
+        auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (isRestarted) {
+          // Restarted RDSW should have STALE system ports
+          if (livenessStatus.value() != LivenessStatus::STALE) {
+            return false;
+          }
+        } else {
+          // Non-Restarted RDSW should have LIVE system ports
+          if (livenessStatus.value() != LivenessStatus::LIVE) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      staleSystemPorts,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool MultiNodeUtil::verifyStaleRifs(
+    const std::set<std::string>& restartedRdsws) {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  auto staleRifs = [this, myHostname, restartedRdsws] {
+    // Verify rifs for restarted RDSWs are STALE
+    // Verify rifs for non-restarted RDSWs are LIVE
+    auto peerToRifs = getPeerToRifs(myHostname);
+    for (const auto& [peer, rifs] : peerToRifs) {
+      bool isRestarted = restartedRdsws.find(peer) != restartedRdsws.end();
+
+      for (const auto& rif : rifs) {
+        auto livenessStatus = rif.remoteIntfLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (isRestarted) {
+          // Restarted RDSW should have STALE rifs
+          if (livenessStatus.value() != LivenessStatus::STALE) {
+            return false;
+          }
+        } else {
+          // Non-Restarted RDSW should have LIVE rifs
+          if (livenessStatus.value() != LivenessStatus::LIVE) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      staleRifs,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool MultiNodeUtil::verifyLiveSystemPorts() {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  auto liveSystemPorts = [this, myHostname] {
+    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
+    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
+      for (const auto& systemPort : systemPorts) {
+        auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (livenessStatus.value() != LivenessStatus::LIVE) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      liveSystemPorts,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyLiveRifs() {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  auto liveRifs = [this, myHostname] {
+    auto peerToRifs = getPeerToRifs(myHostname);
+    for (const auto& [peer, rifs] : peerToRifs) {
+      for (const auto& rif : rifs) {
+        auto livenessStatus = rif.remoteIntfLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (livenessStatus.value() != LivenessStatus::LIVE) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      liveRifs,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
+  // This test can be written as:
+  //  - Stop Agent
+  //  - Wait for 120s i.e. GR timeout
+  //  - Verify entries are STALE
+  //  - Start Agent
+  //  - Verify entries are LIVE
+  // However, in order to implement above sequence, we need a mechanism for
+  // the test to invoke "Start Agent" when Agent thrift server is not running.
+  //
+  // This can be accomplished by test client (this code) logging into the
+  // remote device running Agent. But then the test needs to worry about login
+  // credentials. Alternatively, the remote device can run a Thrift server for
+  // the test purpose along, but that is an overkill for this use case.
+  //
+  // This test logic solves it with the following approach:
+  //  - Restart Agent API with delay: Test API supported by remote device
+  //    - Stop Agent,
+  //    - Sleep for 120s (GR Timeout) + 60s (time to verify STALE state)
+  //    - Start Agent
+  //  - Validate STALE state... while Agent is stopped.
+  //  - Validate LIVE state.... after Agent has restarted.
+  //
+
+  auto restartedRdsws = triggerGraceFulRestartTimeoutForRemoteRdsws();
+
+  // First: Agent stops, GR time out, Sys ports and Rifs turn STALE.
+  // Later: Agent restarts, Sys ports and Rifs resync and turn LIVE.
+  return verifyStaleSystemPorts(restartedRdsws) &&
+      verifyStaleRifs(restartedRdsws) && verifyLiveSystemPorts() &&
+      verifyLiveRifs();
 }
 
 } // namespace facebook::fboss::utility

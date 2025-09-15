@@ -26,6 +26,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
@@ -1699,6 +1700,7 @@ TEST_F(ThriftTest, delUnicastRoutes) {
 TEST_F(ThriftTest, syncFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto addRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 =
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
@@ -1726,10 +1728,15 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
   newRoutes->push_back(nr1);
@@ -1739,7 +1746,6 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
       {
         try {
           handler.addUnicastRoutes(10, std::move(newRoutes));
-
         } catch (const FbossFibUpdateError& fibError) {
           EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes()->size(), 1);
           auto itr = fibError.vrf2failedAddUpdatePrefixes()->find(0);
@@ -1748,6 +1754,10 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, getRouteTable) {
@@ -1797,6 +1807,7 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
 TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
@@ -1814,11 +1825,16 @@ TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);
+  CounterCache counters(sw_);
   auto newRoutes = std::make_unique<std::vector<MplsRoute>>();
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
@@ -1836,6 +1852,10 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
         }
       },
       FbossFibUpdateError);
+  counters.update();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(sw_->stats()->getRouteProgrammingUpdateFailures(), 0);
+  });
 }
 
 TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {

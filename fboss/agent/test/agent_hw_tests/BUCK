@@ -13,6 +13,7 @@ cpp_library(
         "AgentAclCounterTests.cpp",
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
+        "AgentAmIdlesTests.cpp",
         "AgentAqmTests.cpp",
         "AgentArsBase.cpp",
         "AgentArsFlowletTest.cpp",
@@ -291,6 +292,7 @@ cpp_binary(
     deps = [
         "fbsource//third-party/googletest:gtest",
         ":agent_hw_test_src",
+        "//fboss/agent:setup_thrift_prod",  # @manual
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:multi_switch_agent_ensemble",
         "//folly/logging:init",
@@ -312,6 +314,7 @@ cpp_binary(
             "fbsource//third-party/googletest:gtest",
             ":agent_hw_test_src",
             "//fboss/agent:main-bcm",
+            "//fboss/agent:setup_thrift_prod",
             "//fboss/agent/hw/bcm/tests:agent_hw_test_thrift_handler",
             "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
             "//fboss/agent/hw/bcm/tests:bcm_aqm_utils",
@@ -356,10 +359,12 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
             "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+            "//fboss/agent:setup_thrift_prod",
             "//fboss/agent/test:agent_hw_test",
             "//fboss/agent/test:linkstate_toggler",
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+            "//fboss/agent:setup_thrift_prod",
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
@@ -388,12 +393,14 @@ _sai_agent_scale_test_prefix = "sai_agent_scale_test"
         deps = [
             "fbsource//third-party/googletest:gtest",
             ":agent_scale_test_src",
+            "//fboss/agent:setup_thrift_prod",
             "//fboss/agent/test:agent_hw_test",
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+            "//fboss/agent:setup_thrift_prod",
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
@@ -426,6 +433,7 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+            "//fboss/agent:setup_thrift_prod",
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_DNX_IMPLS
@@ -454,11 +462,13 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         deps = [
             "fbsource//third-party/googletest:gtest",
             ":agent_hw_provision_test_src",
+            "//fboss/agent:setup_thrift_prod",
             "//fboss/agent/test:agent_hw_test",
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+            "//fboss/agent:setup_thrift_prod",
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_LEABA_IMPLS

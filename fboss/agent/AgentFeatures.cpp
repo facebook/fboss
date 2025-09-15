@@ -55,6 +55,7 @@ DEFINE_int32(
     dsf_subscriber_stream_thread_heartbeat_ms,
     1000,
     "DSF subscriber stream thread heartbeat interval in msec");
+DEFINE_bool(hyper_port, false, "Enable hyper port on edsw front panel ports");
 // Remote neighbor entries are always flushed to avoid blackholing the traffic.
 // However, by default, remote{systemPorts, Rifs} are not flushed but marked
 // STALE in the software. This is to avoid hardware programmign churn.
@@ -354,3 +355,8 @@ DEFINE_bool(
     dsf_single_stage_r128_f40_e16_8k_sys_ports,
     false,
     "Allow upto 8K system ports on single stage DSF (default=6144)");
+
+DEFINE_uint32(
+    ecmp_width,
+    64,
+    "Max ecmp width. Also implies ucmp normalization factor");

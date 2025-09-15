@@ -1059,13 +1059,6 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   if (!preUpdateState_.has_value()) {
     preUpdateState_ = PreUpdateState();
   }
-  /*
-   * TODO - when we goto merged groups, cur state will no longer
-   * be efficient for rebuilding state. As for merged, nhops we will
-   * endup needing to look up all combinations of individual groups
-   * and find merges. So we will need to store more state around
-   * warm boots.
-   */
   // Clear state which needs to be resored from given state
   nextHopGroup2Id_.clear();
   mergedGroups_.clear();

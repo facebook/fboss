@@ -27,6 +27,7 @@ target_link_libraries(showtech
   platform_name_lib
   i2c_ctrl
   ${RE2}
+  CLI11::CLI11
 )
 
 install(TARGETS showtech)

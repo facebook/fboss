@@ -101,6 +101,22 @@ feel free to run all tests and work through them however you please.
 ```bash file=../fboss/oss/hw_sanity_tests/t0_qsfp_hw_tests.conf
 ```
 
+
+**Use the qsfp hw test list below for any platform that do not support Transceivers.**
+
+`run_test.py`:
+```bash
+./bin/run_test.py qsfp \
+--filter_file=./share/hw_sanity_tests/t0_qsfp_hw_tests_without_transceivers.conf \
+--qsfp-config ./share/qsfp_test_configs/$CONFIG \
+--known-bad-tests-file ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON \
+--unsupported-tests-file ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON \
+--skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t0_qsfp_hw_tests_without_transceivers.conf
+```
+
 ### Link Tests
 
 `run_test.py`:
@@ -113,6 +129,21 @@ feel free to run all tests and work through them however you please.
 ```
 
 ```bash file=../fboss/oss/hw_sanity_tests/t0_link_tests.conf
+```
+
+
+**Use the link test list below for any platform that do not support Transceivers.**
+
+`run_test.py`:
+```bash
+./bin/run_test.py link \
+--filter_file=./share/hw_sanity_tests/t0_link_tests_without_transceivers.conf \
+--config ./share/link_test_configs/$CONFIG \
+--known-bad-tests-file ./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON \
+--skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+```
+
+```bash file=../fboss/oss/hw_sanity_tests/t0_link_tests_without_transceivers.conf
 ```
 
 ### BSP Tests

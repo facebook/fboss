@@ -45,11 +45,14 @@ void verifyArsProfile(
   auto samplingInterval = arsProfileApi.getAttribute(
       arsProfileSaiId,
       SaiArsProfileTraits::Attributes::ExtensionSamplingIntervalNanosec());
+  EXPECT_EQ(*flowletCfg.dynamicSampleRate(), samplingInterval);
 #else
   auto samplingInterval = arsProfileApi.getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::SamplingInterval());
+  auto expectedInterval =
+      std::ceil(static_cast<double>(*flowletCfg.dynamicSampleRate()) / 1000);
+  EXPECT_EQ(expectedInterval, samplingInterval);
 #endif
-  EXPECT_EQ(*flowletCfg.dynamicSampleRate(), samplingInterval);
   auto randomSeed = arsProfileApi.getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::RandomSeed());
   EXPECT_EQ(SaiArsProfileManager::kArsRandomSeed, randomSeed);
