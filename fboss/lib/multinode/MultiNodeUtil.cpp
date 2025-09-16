@@ -1371,6 +1371,10 @@ bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
 bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
   XLOG(DBG2) << __func__;
 
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
   // For every RDSW issue QSFP graceful restart
   for (const auto& rdsw : std::as_const(allRdsws_)) {
     triggerGracefulQsfpRestart(rdsw);
@@ -1384,7 +1388,10 @@ bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
     }
   }
 
-  // TODO verify
+  // No session flaps are expected for QSFP graceful restart.
+  if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
+    return false;
+  }
 
   return true;
 }
