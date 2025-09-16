@@ -462,6 +462,10 @@ void populateAggregatePortThrift(
   *aggregatePortThrift.minimumLinkCount() =
       aggregatePort->getMinimumLinkCount();
   *aggregatePortThrift.isUp() = aggregatePort->isUp();
+  if (aggregatePort->getMinimumLinkCountToUp().has_value()) {
+    aggregatePortThrift.minimumLinkCountToUp() =
+        aggregatePort->getMinimumLinkCountToUp().value();
+  }
 
   // Since aggregatePortThrift.memberPorts is being push_back'ed to, but is an
   // out parameter, make sure it's clear() first
