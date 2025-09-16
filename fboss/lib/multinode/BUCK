@@ -13,6 +13,7 @@ cpp_library(
         "//fboss/agent/if:test_ctrl-cpp2-clients",
         "//fboss/agent/state:state",
         "//fboss/lib:common_utils",
+        "//fboss/qsfp_service/if:qsfp-cpp2-clients",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
