@@ -1369,6 +1369,23 @@ bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
 }
 
 bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
+  XLOG(DBG2) << __func__;
+
+  // For every RDSW issue QSFP graceful restart
+  for (const auto& rdsw : std::as_const(allRdsws_)) {
+    triggerGracefulQsfpRestart(rdsw);
+  }
+
+  // Wait for QSFP service to come up
+  for (const auto& rdsw : std::as_const(allRdsws_)) {
+    if (!verifyQsfpServiceRunState(rdsw, QsfpServiceRunState::ACTIVE)) {
+      XLOG(DBG2) << "QSFP failed to come up post warmboot: " << rdsw;
+      return false;
+    }
+  }
+
+  // TODO verify
+
   return true;
 }
 
