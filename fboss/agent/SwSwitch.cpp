@@ -2561,9 +2561,9 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
           setPortActiveStatusCounter(portID, isActive);
           portStats(portID)->linkActiveStateChange(isActive);
 
-          auto getActiveStr = [](std::optional<bool> isActive) {
-            return isActive.has_value()
-                ? (isActive.value() ? "ACTIVE" : "INACTIVE")
+          auto getActiveStr = [](std::optional<bool> activeState) {
+            return activeState.has_value()
+                ? (activeState.value() ? "ACTIVE" : "INACTIVE")
                 : "NONE";
           };
           XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
