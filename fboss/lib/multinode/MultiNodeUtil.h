@@ -148,6 +148,9 @@ class MultiNodeUtil {
   bool verifySwSwitchRunState(
       const std::string& rdswToVerify,
       const SwitchRunState& expectedSwitchRunState);
+  bool verifyQsfpServiceRunState(
+      const std::string& rdswToVerify,
+      const QsfpServiceRunState& expectedQsfpRunState);
 
   bool verifyStaleSystemPorts(
       const std::map<std::string, std::vector<SystemPortThrift>>&

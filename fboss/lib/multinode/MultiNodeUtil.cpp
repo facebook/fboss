@@ -1034,6 +1034,24 @@ bool MultiNodeUtil::verifySwSwitchRunState(
       true /* retry on exception */);
 }
 
+bool MultiNodeUtil::verifyQsfpServiceRunState(
+    const std::string& rdswToVerify,
+    const QsfpServiceRunState& expectedQsfpRunState) {
+  auto qsfpServiceRunStateMatches = [rdswToVerify,
+                                     expectedQsfpRunState]() -> bool {
+    auto gotQsfpServiceRunState = getQsfpServiceRunState(rdswToVerify);
+    return gotQsfpServiceRunState == expectedQsfpRunState;
+  };
+
+  // Thrift client queries will throw exception while QSFP is initializing.
+  // Thus, continue to retry while absorbing exceptions.
+  return checkWithRetryErrorReturn(
+      qsfpServiceRunStateMatches,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
     bool triggerGraceFulRestart) {
   auto myHostname = network::NetworkUtil::getLocalHost(
