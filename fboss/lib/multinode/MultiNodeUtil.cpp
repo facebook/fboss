@@ -157,6 +157,7 @@ MultiNodeUtil::MultiNodeUtil(
     const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
   populateDsfNodes(dsfNodeMap);
   populateAllRdsws();
+  populateAllFdsws();
 }
 
 void MultiNodeUtil::populateDsfNodes(
