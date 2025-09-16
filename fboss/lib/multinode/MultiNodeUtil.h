@@ -34,6 +34,7 @@ class MultiNodeUtil {
   bool verifyGracefulRestartTimeoutRecovery();
 
   bool verifyGracefulQsfpDownUp();
+  bool verifyUngracefulQsfpDownUp();
 
  private:
   enum class SwitchType : uint8_t {

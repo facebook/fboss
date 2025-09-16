@@ -1397,4 +1397,8 @@ bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
   return true;
 }
 
+bool MultiNodeUtil::verifyUngracefulQsfpDownUp() {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
