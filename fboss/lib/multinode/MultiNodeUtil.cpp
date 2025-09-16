@@ -1375,15 +1375,15 @@ bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
 
-  // For every RDSW issue QSFP graceful restart
-  for (const auto& rdsw : std::as_const(allRdsws_)) {
-    triggerGracefulQsfpRestart(rdsw);
+  // For every device (RDSW, FDSW, SDSW) issue QSFP graceful restart
+  for (const auto& [_, switchName] : switchIdToSwitchName_) {
+    triggerGracefulQsfpRestart(switchName);
   }
 
   // Wait for QSFP service to come up
-  for (const auto& rdsw : std::as_const(allRdsws_)) {
-    if (!verifyQsfpServiceRunState(rdsw, QsfpServiceRunState::ACTIVE)) {
-      XLOG(DBG2) << "QSFP failed to come up post warmboot: " << rdsw;
+  for (const auto& [_, switchName] : switchIdToSwitchName_) {
+    if (!verifyQsfpServiceRunState(switchName, QsfpServiceRunState::ACTIVE)) {
+      XLOG(DBG2) << "QSFP failed to come up post warmboot: " << switchName;
       return false;
     }
   }
