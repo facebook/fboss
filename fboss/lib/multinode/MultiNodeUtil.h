@@ -33,6 +33,8 @@ class MultiNodeUtil {
   bool verifyUngracefulDeviceDownUp();
   bool verifyGracefulRestartTimeoutRecovery();
 
+  bool verifyGracefulQsfpDownUp();
+
  private:
   enum class SwitchType : uint8_t {
     RDSW = 0,

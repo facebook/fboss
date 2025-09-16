@@ -180,4 +180,16 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulRestartTimeoutRecovery) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulQsfpDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulQsfpDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

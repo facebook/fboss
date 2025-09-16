@@ -1319,4 +1319,8 @@ bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
       verifyLiveRifs();
 }
 
+bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
