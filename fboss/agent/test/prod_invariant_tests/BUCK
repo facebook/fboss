@@ -60,6 +60,7 @@ _sai_invariant_agent_test_prefix = "sai_invariant_agent_test"
             "//fboss/agent/hw/sai/hw_test:sai_acl_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/hw/sai/hw_test:sai_copp_utils{}".format(to_impl_suffix(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+            "//fboss/agent:setup_thrift_prod",
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
