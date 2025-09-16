@@ -186,10 +186,10 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
   /* sleep override */
   sleep(2 * fetchFrequencyInSec + 10);
   controlLogic_->controlFan();
-  auto currSensorData = controlLogic_->sensorData();
+  auto sensorDataAfterFsdbStop = controlLogic_->sensorData();
   for (const auto& [sensorName, prevSensorEntry] :
        prevSensorData.getSensorEntries()) {
-    auto currSensorEntry = currSensorData.getSensorEntry(sensorName);
+    auto currSensorEntry = sensorDataAfterFsdbStop.getSensorEntry(sensorName);
     ASSERT_TRUE(currSensorEntry);
     ASSERT_EQ(currSensorEntry->lastUpdated, prevSensorEntry.lastUpdated);
   }
