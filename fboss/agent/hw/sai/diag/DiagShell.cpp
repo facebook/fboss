@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/diag/PythonRepl.h"
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <boost/uuid/uuid.hpp>
@@ -229,6 +230,20 @@ void DiagShell::consumeInput(
   }
 }
 
+void DiagShell::logCommandToReplayer(const std::string& command) {
+  // Skip logging shell initialization command "\r\n"
+  if (command == "\r\n") {
+    return;
+  }
+
+  // Log the shell command as a comment in the SAI replayer log
+  if (auto tracer = SaiTracer::getInstance()) {
+    tracer->logShellCommand(command);
+  } else {
+    XLOG(ERR) << "DiagShell: SaiTracer instance not found!";
+  }
+}
+
 std::string DiagShell::readOutput(int timeoutMs) {
   auto fd = getPtymFd();
   std::string output;
@@ -410,6 +425,9 @@ std::string DiagCmdServer::diagCmd(
   produceOutput();
   diagShell_->consumeInput(
       std::make_unique<std::string>(inputStr), std::move(client));
+  if (FLAGS_enable_replayer) {
+    diagShell_->logCommandToReplayer(inputStr);
+  }
   diagShell_->consumeInput(
       std::make_unique<std::string>(getDelimiterDiagCmd(uuid_)),
       std::move(client));
