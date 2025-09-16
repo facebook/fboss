@@ -214,6 +214,8 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logShellCommand(const std::string& command);
+
   std::string getVariable(sai_object_id_t object_id);
 
   uint32_t
