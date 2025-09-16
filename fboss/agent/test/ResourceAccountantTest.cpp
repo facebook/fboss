@@ -17,7 +17,9 @@
 
 namespace {
 constexpr auto ecmpWeight = 1;
-}
+constexpr auto oddWeight = 3;
+constexpr auto evenWeight = 2;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -337,6 +339,107 @@ TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
     const auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("300::", i + 1)), 128},
         {ecmpNextHops, AdminDistance::EBGP});
+    if (i < groupsToAdd - 1) {
+      EXPECT_TRUE(this->resourceAccountant_
+                      ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                          route, true /* add */));
+    } else {
+      EXPECT_FALSE(this->resourceAccountant_
+                       ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                           route, true /* add */));
+    }
+  }
+
+  EXPECT_TRUE(this->resourceAccountant_
+                  ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                      routes[0], false /* add */));
+}
+
+TEST_F(
+    ResourceAccountantTest,
+    checkAndUpdateGenericEcmpResourceForUcmpWeights) {
+  // Add one ECMP group with ECMP width limit
+  const auto ecmpWidth = getMaxEcmpWidth();
+  auto constexpr kUcmpGroupsWithWeights = 7;
+  auto constexpr kTotalWeightForUCMP = 60;
+  std::array<RouteNextHopSet, kUcmpGroupsWithWeights> ecmpNexthops;
+  std::array<std::shared_ptr<RouteV6>, kUcmpGroupsWithWeights> routes;
+
+  // Configure kUcmpGroupsWithWeights number of UCMP groups with
+  // kTotalWeightForUCMP each
+  for (int i = 0; i < kUcmpGroupsWithWeights; ++i) {
+    int groupWeight = 0;
+    for (int j = 0; j < ecmpWidth; j++) {
+      int ecmpWeight = j % 2 == 0 ? evenWeight : oddWeight;
+      if (groupWeight == kTotalWeightForUCMP) {
+        break;
+      }
+      if (groupWeight + ecmpWeight > kTotalWeightForUCMP) {
+        ecmpWeight = 1;
+      }
+      groupWeight += ecmpWeight;
+      ecmpNexthops[i].insert(ResolvedNextHop(
+          folly::IPAddress(folly::to<std::string>(i + 1, "::", j + 1)),
+          InterfaceID(j + 1),
+          ecmpWeight));
+    }
+    routes[i] = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("100::", i + 1)), 128},
+        {ecmpNexthops[i], AdminDistance::EBGP});
+
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                        routes[i], true /* add */));
+  }
+
+  // Add another UCMP group where total weights of all members in all groups  >
+  // maxEcmpMembers
+  RouteNextHopSet ecmpNexthops8;
+  for (int i = 0; i < ecmpWidth; i++) {
+    int ecmpWeight = i % 2 == 0 ? evenWeight : oddWeight;
+    int groupWeight = 0;
+    if (groupWeight == ecmpWidth) {
+      break;
+    }
+    if (groupWeight + ecmpWeight > ecmpWidth) {
+      ecmpWeight = 1;
+    }
+    groupWeight += ecmpWeight;
+    ecmpNexthops8.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("2.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        ecmpWeight));
+  }
+  const auto route8 = makeV6Route(
+      {folly::IPAddressV6("200::1"), 128},
+      {ecmpNexthops8, AdminDistance::EBGP});
+
+  EXPECT_FALSE(this->resourceAccountant_
+                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                       route8, true /* add */));
+
+  // Remove above route
+  EXPECT_TRUE(this->resourceAccountant_
+                  ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
+                      route8, false /* add */));
+
+  //  Add more groups (with width = 2 each) and
+  // Testing max UCMP groups > MaxEcmpGroups returns False.
+  const auto groupsToAdd = getMaxEcmpGroups() - kUcmpGroupsWithWeights + 1;
+  for (int i = 0; i < groupsToAdd; i++) {
+    auto ecmpNextHops = RouteNextHopSet{
+        ResolvedNextHop(
+            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+            InterfaceID(i + 1),
+            evenWeight),
+        ResolvedNextHop(
+            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
+            InterfaceID(i + 2),
+            oddWeight)};
+    const auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("300::", i + 1)), 128},
+        {ecmpNextHops, AdminDistance::EBGP});
+
     if (i < groupsToAdd - 1) {
       EXPECT_TRUE(this->resourceAccountant_
                       ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
