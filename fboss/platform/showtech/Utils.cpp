@@ -9,6 +9,7 @@
 #include <fmt/core.h>
 #include <re2/re2.h>
 
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/showtech/PsuHelper.h"
 
@@ -179,11 +180,37 @@ void Utils::printGpioDetails() {
   }
 }
 
+void Utils::printPemDetails() {
+  std::cout << "##### PEM Information #####" << std::endl;
+  if (config_.pems()->empty()) {
+    std::cout << "No PEM found found from configs\n" << std::endl;
+    return;
+  }
+  for (const auto& pem : *config_.pems()) {
+    std::cout << fmt::format("#### {} ####", *pem.name()) << std::endl;
+    printSysfsAttribute("present", *pem.presenceSysfsPath());
+    printSysfsAttribute("input_ok", *pem.inputOkSysfsPath());
+    printSysfsAttribute("status", *pem.statusSysfsPath());
+  }
+  std::cout << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
     std::cout << fmt::format("##### {} #####", fullCmd) << std::endl;
     std::cout << platformUtils_.execCommand(fullCmd).second << std::endl;
+  }
+}
+
+void Utils::printSysfsAttribute(
+    const std::string& label,
+    const std::string& path) {
+  std::cout << label << ": ";
+  try {
+    std::cout << readSysfs(path) << std::endl;
+  } catch (const std::exception& e) {
+    std::cout << "Error: failed to read sysfs path " << path << std::endl;
   }
 }
 

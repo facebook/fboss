@@ -5,6 +5,7 @@ struct ShowtechConfig {
   1: set<string> i2cBusIgnore;
   2: list<string> psus;
   3: list<Gpio> gpios;
+  4: list<Pem> pems;
 }
 
 struct Gpio {
@@ -15,4 +16,11 @@ struct Gpio {
 struct GpioLine {
   1: string name;
   2: i32 lineIndex;
+}
+
+struct Pem {
+  1: string name;
+  2: string presenceSysfsPath;
+  3: string inputOkSysfsPath;
+  4: string statusSysfsPath;
 }
