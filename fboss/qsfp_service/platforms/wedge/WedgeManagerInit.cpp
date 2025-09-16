@@ -23,6 +23,7 @@
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
@@ -133,6 +134,10 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     case PlatformType::PLATFORM_WEDGE400:
       return createFBWedgeManager(
           std::move(productInfo), platformMapping, threads);
+    case PlatformType::PLATFORM_TAHANSB800BC:
+      return createBspWedgeManager<
+          Tahansb800bcBspPlatformMapping,
+          PlatformType::PLATFORM_TAHANSB800BC>(platformMapping, threads);
     default:
       return std::make_unique<Wedge40Manager>(platformMapping, threads);
   }
