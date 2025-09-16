@@ -24,6 +24,7 @@ namespace {
 using facebook::fboss::FbossHwCtrl;
 using facebook::fboss::MultiSwitchRunState;
 using facebook::fboss::QsfpService;
+using facebook::fboss::QsfpServiceRunState;
 using facebook::fboss::TestCtrl;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
@@ -72,6 +73,11 @@ MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
   MultiSwitchRunState runState;
   swAgentClient->sync_getMultiSwitchRunState(runState);
   return runState;
+}
+
+QsfpServiceRunState getQsfpServiceRunState(const std::string& switchName) {
+  auto qsfpClient = getQsfpThriftClient(switchName);
+  return qsfpClient->sync_getQsfpServiceRunState();
 }
 
 int getNumHwSwitches(const std::string& switchName) {
