@@ -35,12 +35,13 @@ RUN echo "source /opt/rh/gcc-toolset-12/enable" >> ~/.bashrc
 
 RUN rm -rf /var/FBOSS/fboss/*
 
-# The following libraries are needed for building Broadcom SDK
+# The following libraries are needed for building SDK
 RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel
-# Perl modules needed for Broadcom SDK build
+# Install Perl modules
 RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-Compare \
     perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
     perl-Math-BigInt perl-YAML-LibYAML perl-Sys-Hostname perl-Time
+RUN dnf install -y libxml2-devel expat-devel wget
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN pip install pyyaml filelock
 # ============================================================
