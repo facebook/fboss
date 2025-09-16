@@ -633,6 +633,9 @@ struct AggregatePortFields {
   4: i32 systemPriority;
   // network byte order
   5: i64 systemID;
+  // Minimum active link count to bring up/down the aggregate port
+  // If minimumLinkCountToUp is set, minimumLinkCount will be used as
+  // the lower bound to bring down the aggregate port
   6: i16 minimumLinkCount;
   7: list<Subport> ports;
   // portId to forwarding {ture -> enabled; false -> disabled};
@@ -641,6 +644,8 @@ struct AggregatePortFields {
   9: map<i32, ParticipantInfo> portToPartnerState;
   // List of interfaces for given aggregate port
   10: list<i32> interfaceIDs;
+  // Used as the upper bound to bring up the aggregate port
+  11: optional i16 minimumLinkCountToUp;
 }
 
 struct TeFlowEntryFields {

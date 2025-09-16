@@ -415,7 +415,9 @@ class ThriftConfigApplier {
   std::vector<int32_t> getAggregatePortInterfaceIDs(
       const std::vector<AggregatePort::Subport>& subports);
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
-  uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
+  uint8_t computeMinimumLinkCount(
+      const cfg::MinimumCapacity& minCapacity,
+      size_t memberPortsSize);
   std::shared_ptr<VlanMap> updateVlans();
   bool updateMacTable(
       std::shared_ptr<Vlan>& newVlan,
@@ -2799,13 +2801,21 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   folly::MacAddress cfgSystemID;
   std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
 
-  auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
+  auto cfgMinLinkCount = computeMinimumLinkCount(
+      *cfg.minimumCapacity(), (*cfg.memberPorts()).size());
+  std::optional<uint8_t> cfgMinLinkCountToUp = std::nullopt;
+  if (cfg.minimumCapacityToUp()) {
+    cfgMinLinkCountToUp = computeMinimumLinkCount(
+        *cfg.minimumCapacityToUp(), (*cfg.memberPorts()).size());
+    CHECK_GE(cfgMinLinkCountToUp.value(), cfgMinLinkCount);
+  }
 
   if (origAggPort->getName() == *cfg.name() &&
       origAggPort->getDescription() == *cfg.description() &&
       origAggPort->getSystemPriority() == cfgSystemPriority &&
       origAggPort->getSystemID() == cfgSystemID &&
       origAggPort->getMinimumLinkCount() == cfgMinLinkCount &&
+      origAggPort->getMinimumLinkCountToUp() == cfgMinLinkCountToUp &&
       std::equal(
           origSubports.begin(), origSubports.end(), cfgSubports.begin()) &&
       std::equal(
@@ -2823,6 +2833,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   newAggPort->setMinimumLinkCount(cfgMinLinkCount);
   newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
   newAggPort->setInterfaceIDs(cfgAggregatePortInterfaceIDs);
+  newAggPort->setMinimumLinkCounToUp(cfgMinLinkCountToUp);
 
   return newAggPort;
 }
@@ -2836,7 +2847,15 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
   folly::MacAddress cfgSystemID;
   std::tie(cfgSystemID, cfgSystemPriority) = getSystemLacpConfig();
 
-  auto cfgMinLinkCount = computeMinimumLinkCount(cfg);
+  auto cfgMinLinkCount = computeMinimumLinkCount(
+      *cfg.minimumCapacity(), (*cfg.memberPorts()).size());
+
+  std::optional<uint8_t> cfgMinLinkCountToUp = std::nullopt;
+  if (cfg.minimumCapacityToUp()) {
+    cfgMinLinkCountToUp = computeMinimumLinkCount(
+        *cfg.minimumCapacityToUp(), (*cfg.memberPorts()).size());
+    CHECK_GE(cfgMinLinkCountToUp.value(), cfgMinLinkCount);
+  }
 
   return AggregatePort::fromSubportRange(
       AggregatePortID(*cfg.key()),
@@ -2846,7 +2865,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
       cfgSystemID,
       cfgMinLinkCount,
       folly::range(subports.begin(), subports.end()),
-      aggregatePortInterfaceIDs);
+      aggregatePortInterfaceIDs,
+      cfgMinLinkCountToUp);
 }
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
@@ -2923,10 +2943,9 @@ ThriftConfigApplier::getSystemLacpConfig() {
 }
 
 uint8_t ThriftConfigApplier::computeMinimumLinkCount(
-    const cfg::AggregatePort& cfg) {
+    const cfg::MinimumCapacity& minCapacity,
+    size_t memberPortsSize) {
   uint8_t minLinkCount = 1;
-
-  auto minCapacity = *cfg.minimumCapacity();
   switch (minCapacity.getType()) {
     case cfg::MinimumCapacity::Type::linkCount:
       // Thrift's byte type is an int8_t
@@ -2938,11 +2957,9 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
       CHECK_GT(minCapacity.get_linkPercentage(), 0);
       CHECK_LE(minCapacity.get_linkPercentage(), 1);
 
-      minLinkCount = std::ceil(
-          minCapacity.get_linkPercentage() *
-          std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()));
-      if (std::distance(cfg.memberPorts()->begin(), cfg.memberPorts()->end()) !=
-          0) {
+      minLinkCount =
+          std::ceil(minCapacity.get_linkPercentage() * memberPortsSize);
+      if (memberPortsSize != 0) {
         CHECK_GE(minLinkCount, 1);
       }
 

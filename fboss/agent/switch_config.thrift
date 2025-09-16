@@ -1348,6 +1348,15 @@ struct AggregatePort {
    */
   6: optional list<string> counterTags;
   7: AggregatePortType aggregatePortType = LAG_PORT;
+  /*
+   * If minimumCapacityToUp is provided, it will be used with minimumCapacity to
+   * provide a flap-resistant way to decide AggregatePort Up/Down.
+   * a. If active link count < minimumCapacity, bring AggregatePort down.
+   * b. If active link count >= minimumCapacityToUp, bring AggregatePort up.
+   * c. If minimumCapacity <= active link count < minimumCapacityToUp,
+   * keep AggregatePort current oper state.
+   */
+  8: optional MinimumCapacity minimumCapacityToUp;
 }
 
 struct Lacp {
