@@ -45,8 +45,8 @@ sai_status_t facebook::fboss::FakeSwitch::setLed(const sai_attribute_t* attr) {
       if (attr->value.u32list.count != 4) {
         return SAI_STATUS_INVALID_PARAMETER;
       }
-      auto id = attr->value.u32list.list[0];
-      auto ledState = ledState_.find(id);
+      auto ledId = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(ledId);
       if (ledState == ledState_.end()) {
         return SAI_STATUS_INVALID_ATTR_VALUE_0;
       }
@@ -67,8 +67,8 @@ sai_status_t facebook::fboss::FakeSwitch::setLed(const sai_attribute_t* attr) {
       if (attr->value.u32list.count != 2) {
         return SAI_STATUS_INVALID_PARAMETER;
       }
-      auto id = attr->value.u32list.list[0];
-      auto ledState = ledState_.find(id);
+      auto ledId = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(ledId);
       if (ledState == ledState_.end()) {
         return SAI_STATUS_INVALID_ATTR_VALUE_0;
       }
@@ -87,8 +87,8 @@ sai_status_t facebook::fboss::FakeSwitch::getLed(sai_attribute_t* attr) const {
         attr->value.u32list.count = 4;
         return SAI_STATUS_BUFFER_OVERFLOW;
       }
-      auto id = attr->value.u32list.list[0];
-      auto ledState = ledState_.find(id);
+      auto ledId = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(ledId);
       if (ledState == ledState_.end()) {
         return SAI_STATUS_INVALID_ATTR_VALUE_0;
       }
@@ -111,8 +111,8 @@ sai_status_t facebook::fboss::FakeSwitch::getLed(sai_attribute_t* attr) const {
         attr->value.u32list.count = 2;
         return SAI_STATUS_BUFFER_OVERFLOW;
       }
-      auto id = attr->value.u32list.list[0];
-      auto ledState = ledState_.find(id);
+      auto ledId = attr->value.u32list.list[0];
+      auto ledState = ledState_.find(ledId);
       if (ledState == ledState_.end()) {
         return SAI_STATUS_INVALID_ATTR_VALUE_0;
       }
