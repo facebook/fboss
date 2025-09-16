@@ -15,7 +15,7 @@ class WeutilDarwin : public WeutilInterface {
 
   std::vector<std::pair<std::string, std::string>> getContents() override;
   void printInfo() override;
-  void printInfoJson() override;
+  folly::dynamic getInfoJson() override;
 
  private:
   void genSpiPrefdlFile();

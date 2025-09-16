@@ -1,10 +1,9 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include "fboss/platform/weutil/Weutil.h"
 
 namespace facebook::fboss::platform {
-
-class WeutilInterface;
 
 class WeutilTest : public ::testing::Test {
  public:
@@ -14,5 +13,7 @@ class WeutilTest : public ::testing::Test {
 
  protected:
   std::unique_ptr<WeutilInterface> weutilInstance;
+  weutil_config::WeutilConfig config;
+  std::unordered_map<std::string, weutil_config::FruEepromConfig> fruList;
 };
 } // namespace facebook::fboss::platform

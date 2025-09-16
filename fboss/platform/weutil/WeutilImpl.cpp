@@ -48,7 +48,7 @@ void WeutilImpl::printInfo() {
   }
 }
 
-void WeutilImpl::printInfoJson() {
+folly::dynamic WeutilImpl::getInfoJson() {
   folly::dynamic eepromObject = folly::dynamic::object;
   for (const auto& [key, value] : getContents()) {
     if (key == "CRC16") {
@@ -61,7 +61,8 @@ void WeutilImpl::printInfoJson() {
   json["Information"] = eepromObject;
   json["Actions"] = folly::dynamic::array();
   json["Resources"] = folly::dynamic::array();
-  std::cout << folly::toPrettyJson(json) << std::endl;
+
+  return json;
 }
 
 } // namespace facebook::fboss::platform
