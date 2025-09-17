@@ -32,6 +32,13 @@ class EcmpResourceManagerDsfScaleTest : public ::testing::Test {
     return kMaxHwEcmpGroups -
         FLAGS_ecmp_resource_manager_make_before_break_buffer;
   }
+  RouteNextHopSet getNhops(int index) const {
+    auto nhopStart = index * kAdjacentNextHopDeltaSize;
+    CHECK_LT(nhopStart + kEcmpWidth, allNextHops_.size());
+    return RouteNextHopSet(
+        allNextHops_.begin() + nhopStart,
+        allNextHops_.begin() + nhopStart + kEcmpWidth);
+  }
   void SetUp() override;
   std::vector<StateDelta> consolidate(
       const std::shared_ptr<SwitchState>& newState);
@@ -65,16 +72,23 @@ void EcmpResourceManagerDsfScaleTest::SetUp() {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
   for (auto i = 0; i < numStartRoutes(); ++i) {
-    auto pfx = makePrefix(i);
-    auto nhopStart = i * kAdjacentNextHopDeltaSize;
-    CHECK_LT(nhopStart + kEcmpWidth, allNextHops_.size());
-    RouteNextHopSet nhops(
-        allNextHops_.begin() + nhopStart,
-        allNextHops_.begin() + nhopStart + kEcmpWidth);
-    fib6->addNode(makeRoute(pfx, nhops));
+    fib6->addNode(makeRoute(makePrefix(i), getNhops(i)));
   }
   consolidate(newState);
 }
 
 TEST_F(EcmpResourceManagerDsfScaleTest, init) {}
+TEST_F(EcmpResourceManagerDsfScaleTest, addOneRouteOverEcmpLimit) {
+  auto optimalMergeSet = ecmpResourceMgr_->getOptimalMergeGroupSet();
+  EXPECT_EQ(optimalMergeSet.size(), 2);
+  auto toBeMergedPrefixes =
+      getPrefixesForGroups(*ecmpResourceMgr_, optimalMergeSet);
+  EXPECT_EQ(toBeMergedPrefixes.size(), 2);
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  fib6->addNode(
+      makeRoute(makePrefix(numStartRoutes()), getNhops(numStartRoutes())));
+  consolidate(newState);
+  assertNumRoutesWithNhopOverrides(state_, toBeMergedPrefixes.size());
+}
 } // namespace facebook::fboss
