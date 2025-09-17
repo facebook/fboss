@@ -242,8 +242,8 @@ TEST_F(BcmLabelSwitchActionTest, addLabelSwitchAction) {
 #endif
     return;
   }
-  auto setup = [=]() { addAllTestLabelForwardingEntries(); };
-  auto verify = [=]() { verifyAllTestLabelForwardingEntries(); };
+  auto setup = [=, this]() { addAllTestLabelForwardingEntries(); };
+  auto verify = [=, this]() { verifyAllTestLabelForwardingEntries(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -256,11 +256,11 @@ TEST_F(BcmLabelSwitchActionTest, addLabelSwitchActionWithL3Routes) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     addAllTestLabelForwardingEntries();
     addL3Routes();
   };
-  auto verify = [=]() { verifyAllTestLabelForwardingEntries(); };
+  auto verify = [=, this]() { verifyAllTestLabelForwardingEntries(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -272,11 +272,11 @@ TEST_F(BcmLabelSwitchActionTest, removeLabelSwitchAction) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     addAllTestLabelForwardingEntries();
     removeAllTestLabelForwardingEntries();
   };
-  auto verify = [=]() { verifyAllTestLabelForwardingEntriesNotFound(); };
+  auto verify = [=, this]() { verifyAllTestLabelForwardingEntriesNotFound(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }

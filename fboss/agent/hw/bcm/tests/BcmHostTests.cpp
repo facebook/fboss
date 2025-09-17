@@ -244,8 +244,8 @@ class BcmHostTest : public BcmTest {
 };
 
 TEST_F(BcmHostTest, CreateV4AndV6L3Host) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     InterfaceID intfID = InterfaceID(utility::kBaseVlanId);
     const auto& swIntf = getProgrammedState()->getInterfaces()->getNode(intfID);
     int expectedHostNum{0};
@@ -262,16 +262,16 @@ TEST_F(BcmHostTest, CreateV4AndV6L3Host) {
 }
 
 TEST_F(BcmHostTest, CreateInterfaceWithoutIp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(utility::oneL3IntfNoIPAddrConfig(
         getHwSwitch(), masterLogicalPortIds()[0]));
   };
-  auto verify = [=]() { checkSwHwBcmHostNum(0); };
+  auto verify = [=, this]() { checkSwHwBcmHostNum(0); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmHostTest, CreateInterfaceWithHostIp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = utility::oneL3IntfNoIPAddrConfig(
         getHwSwitch(), masterLogicalPortIds()[0]);
     config.interfaces()[0].ipAddresses()->resize(2);
@@ -279,12 +279,12 @@ TEST_F(BcmHostTest, CreateInterfaceWithHostIp) {
     config.interfaces()[0].ipAddresses()[1] = "1::/128";
     applyNewConfig(config);
   };
-  auto verify = [=]() { checkSwHwBcmHostNum(2); };
+  auto verify = [=, this]() { checkSwHwBcmHostNum(2); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(BcmHostTest, DeleteV4AndV6L3Host) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // first apply config which interface has ip addresses assigned
     applyNewConfig(initialConfig());
     // check HW side should has only 2 l3_host created
@@ -298,7 +298,7 @@ TEST_F(BcmHostTest, DeleteV4AndV6L3Host) {
     applyNewConfig(utility::oneL3IntfNoIPAddrConfig(
         getHwSwitch(), masterLogicalPortIds()[0]));
   };
-  auto verify = [=]() { checkSwHwBcmHostNum(0); };
+  auto verify = [=, this]() { checkSwHwBcmHostNum(0); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -314,7 +314,7 @@ TEST_F(BcmHostTest, HostRouteLookupClassNotSet) {
           CIDRNetwork(IPAddress("20.1.1.0"), 32), IPAddress("2.2.2.10")),
       std::make_pair(
           CIDRNetwork(IPAddress("2001::0"), 128), IPAddress("2::10"))};
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     for (const auto& networkAndNexthop : networkAndNexthops) {
@@ -330,7 +330,7 @@ TEST_F(BcmHostTest, HostRouteLookupClassNotSet) {
     }
     updater.program();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (const auto& networkAndNexthop : networkAndNexthops) {
       const BcmHostTableIf* hostTableIf;
       if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
