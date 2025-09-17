@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/showtech/I2cHelper.h"
 #include "fboss/platform/showtech/gen-cpp2/showtech_config_types.h"
@@ -10,7 +11,10 @@ namespace facebook::fboss::platform {
 
 class Utils {
  public:
-  Utils(const showtech_config::ShowtechConfig& config) : config_(config){};
+  Utils(
+      const showtech_config::ShowtechConfig& config,
+      const fan_service::FanServiceConfig& fanServiceConfig)
+      : config_(config), fanServiceConfig_(fanServiceConfig){};
   ~Utils() = default;
 
   void printHostDetails();
@@ -24,9 +28,11 @@ class Utils {
   void printPsuDetails();
   void printGpioDetails();
   void printPemDetails();
+  void printFanDetails();
 
  private:
   const showtech_config::ShowtechConfig& config_;
+  const fan_service::FanServiceConfig& fanServiceConfig_;
   PlatformUtils platformUtils_{};
   I2cHelper i2cHelper_{};
   void runFbossCliCmd(const std::string& cmd);

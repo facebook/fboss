@@ -3,14 +3,17 @@
 #include "fboss/platform/showtech/Utils.h"
 
 #include <gpiod.h>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <thread>
 
 #include <fmt/core.h>
 #include <re2/re2.h>
 
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/GpiodLine.h"
+#include "fboss/platform/showtech/FanHelper.h"
 #include "fboss/platform/showtech/PsuHelper.h"
 
 using namespace facebook::fboss::platform::showtech_config;
@@ -193,6 +196,57 @@ void Utils::printPemDetails() {
     printSysfsAttribute("status", *pem.statusSysfsPath());
   }
   std::cout << std::endl;
+}
+
+void Utils::printFanDetails() {
+  std::cout << "##### Fan Information #####" << std::endl;
+  if (fanServiceConfig_.fans()->empty()) {
+    std::cout << "No fans found from configs\n" << std::endl;
+    return;
+  }
+
+  for (int i = 0; i < 2; ++i) {
+    if (i > 0) {
+      std::cout << "Sleeping for 0.5s...\n" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    for (const auto& fan : *fanServiceConfig_.fans()) {
+      bool fanPresent;
+      try {
+        fanPresent = readFanIsPresentOnDevice(fan);
+      } catch (const std::exception& e) {
+        std::cout << fmt::format("{} -> present=Error", *fan.fanName())
+                  << std::endl;
+        continue;
+      }
+
+      if (!fanPresent) {
+        std::cout << fmt::format("{} -> present=False", *fan.fanName())
+                  << std::endl;
+      } else {
+        std::string rpmStr;
+        std::string pwmPercentStr;
+        try {
+          rpmStr = std::to_string(readFanRpm(fan));
+        } catch (const std::exception&) {
+          rpmStr = "Error";
+        }
+        try {
+          pwmPercentStr = std::to_string(readFanPwmPercent(fan));
+        } catch (const std::exception&) {
+          pwmPercentStr = "Error";
+        }
+        std::cout << fmt::format(
+                         "{} -> present=True, rpm={} ({}%)",
+                         *fan.fanName(),
+                         rpmStr,
+                         pwmPercentStr)
+                  << std::endl;
+      }
+    }
+    std::cout << std::endl;
+  }
 }
 
 void Utils::runFbossCliCmd(const std::string& cmd) {

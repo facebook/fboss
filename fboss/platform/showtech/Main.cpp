@@ -10,6 +10,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 #include "fboss/platform/helpers/InitCli.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/showtech/Utils.h"
@@ -31,8 +32,9 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
         {"port", [](Utils& util) { util.printPortDetails(); }},
         {"sensor", [](Utils& util) { util.printSensorDetails(); }},
         {"psu", [](Utils& util) { util.printPsuDetails(); }},
-        {"gpio", [](Utils& util) { util.printGpioDetails(); }},
         {"pem", [](Utils& util) { util.printPemDetails(); }},
+        {"fan", [](Utils& util) { util.printFanDetails(); }},
+        {"gpio", [](Utils& util) { util.printGpioDetails(); }},
         {"i2c", [](Utils& util) { util.printI2cDetails(); }},
 };
 
@@ -100,7 +102,12 @@ int main(int argc, char** argv) {
         apache::thrift::SimpleJSONSerializer::deserialize<ShowtechConfig>(
             showtechConfJson);
 
-    Utils showtechUtil(config);
+    std::string fanServiceConfJson =
+        ConfigLib().getFanServiceConfig(platformName);
+    auto fanServiceConfig = apache::thrift::SimpleJSONSerializer::deserialize<
+        fan_service::FanServiceConfig>(fanServiceConfJson);
+
+    Utils showtechUtil(config, fanServiceConfig);
     executeRequestedDetails(showtechUtil, detailsArg);
   } catch (const std::exception& e) {
     XLOG(ERR) << "Error during showtech execution: " << e.what();

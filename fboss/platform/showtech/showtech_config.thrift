@@ -16,7 +16,6 @@ struct Gpio {
 struct GpioLine {
   1: string name;
   2: i32 lineIndex;
-  3: list<Pem> pems;
 }
 
 struct Pem {
