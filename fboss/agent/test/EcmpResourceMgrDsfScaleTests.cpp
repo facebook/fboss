@@ -1,0 +1,70 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AlpmUtils.h"
+#include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
+
+#include <gtest/gtest.h>
+
+namespace facebook::fboss {
+class EcmpResourceManagerDsfScaleTest : public ::testing::Test {
+ public:
+  static auto constexpr kMaxHwEcmpGroups = 16;
+  static auto constexpr kMaxRoutes = 50;
+  static auto constexpr kAdjacentNextHopDeltaSize = 4;
+  static auto constexpr kEcmpWidth = 2048;
+  int numStartRoutes() const {
+    return kMaxHwEcmpGroups -
+        FLAGS_ecmp_resource_manager_make_before_break_buffer;
+  }
+  void SetUp() override;
+  std::vector<StateDelta> consolidate(
+      const std::shared_ptr<SwitchState>& newState);
+  std::unique_ptr<EcmpResourceManager> ecmpResourceMgr_;
+  std::shared_ptr<SwitchState> state_;
+  RouteNextHopSet allNextHops_;
+};
+
+std::vector<StateDelta> EcmpResourceManagerDsfScaleTest::consolidate(
+    const std::shared_ptr<SwitchState>& newState) {
+  auto deltas = ecmpResourceMgr_->consolidate(StateDelta(state_, newState));
+  state_ = deltas.back().newState();
+  return deltas;
+}
+
+void EcmpResourceManagerDsfScaleTest::SetUp() {
+  FLAGS_ecmp_width = kEcmpWidth;
+  ecmpResourceMgr_ = std::make_unique<EcmpResourceManager>(
+      16 /*maxHwEcmpGroups*/, 100 /*compressionPenaltyThresholdPct*/);
+  state_ = std::make_shared<SwitchState>();
+  addSwitchInfo(state_);
+  state_ = setupMinAlpmRouteState(state_);
+  state_->publish();
+  allNextHops_ =
+      makeNextHops(kEcmpWidth + kMaxRoutes * kAdjacentNextHopDeltaSize);
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  for (auto i = 0; i < numStartRoutes(); ++i) {
+    auto pfx = makePrefix(i);
+    auto nhopStart = i * kAdjacentNextHopDeltaSize;
+    CHECK_LT(nhopStart + kEcmpWidth, allNextHops_.size());
+    RouteNextHopSet nhops(
+        allNextHops_.begin() + nhopStart,
+        allNextHops_.begin() + nhopStart + kEcmpWidth);
+    fib6->addNode(makeRoute(pfx, nhops));
+  }
+  consolidate(newState);
+  assertResourceMgrCorrectness(*ecmpResourceMgr_, newState);
+}
+
+TEST_F(EcmpResourceManagerDsfScaleTest, init) {}
+} // namespace facebook::fboss
