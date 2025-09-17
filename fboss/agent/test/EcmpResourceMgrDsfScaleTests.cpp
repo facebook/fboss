@@ -16,6 +16,12 @@
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
+namespace {
+std::unique_ptr<EcmpResourceManager> makeResourceMgr() {
+  return std::make_unique<EcmpResourceManager>(
+      16 /*maxHwEcmpGroups*/, 100 /*compressionPenaltyThresholdPct*/);
+}
+} // namespace
 class EcmpResourceManagerDsfScaleTest : public ::testing::Test {
  public:
   static auto constexpr kMaxHwEcmpGroups = 16;
@@ -38,13 +44,18 @@ std::vector<StateDelta> EcmpResourceManagerDsfScaleTest::consolidate(
     const std::shared_ptr<SwitchState>& newState) {
   auto deltas = ecmpResourceMgr_->consolidate(StateDelta(state_, newState));
   state_ = deltas.back().newState();
+  ecmpResourceMgr_->updateDone();
+  assertResourceMgrCorrectness(*ecmpResourceMgr_, state_);
+  auto newEcmpResourceMgr = makeResourceMgr();
+  newEcmpResourceMgr->reconstructFromSwitchState(state_);
+  assertResourceMgrCorrectness(*newEcmpResourceMgr, state_);
+
   return deltas;
 }
 
 void EcmpResourceManagerDsfScaleTest::SetUp() {
   FLAGS_ecmp_width = kEcmpWidth;
-  ecmpResourceMgr_ = std::make_unique<EcmpResourceManager>(
-      16 /*maxHwEcmpGroups*/, 100 /*compressionPenaltyThresholdPct*/);
+  ecmpResourceMgr_ = makeResourceMgr();
   state_ = std::make_shared<SwitchState>();
   addSwitchInfo(state_);
   state_ = setupMinAlpmRouteState(state_);
@@ -63,7 +74,6 @@ void EcmpResourceManagerDsfScaleTest::SetUp() {
     fib6->addNode(makeRoute(pfx, nhops));
   }
   consolidate(newState);
-  assertResourceMgrCorrectness(*ecmpResourceMgr_, newState);
 }
 
 TEST_F(EcmpResourceManagerDsfScaleTest, init) {}
