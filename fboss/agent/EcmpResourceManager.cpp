@@ -1014,8 +1014,6 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
           false /*isBackupEcmpGroupType*/);
     }
     CHECK(insertedGrp);
-  } else if (getEcmpCompressionThresholdPct()) {
-    // Bump up penalty for now referenced group
   }
   return updateForwardingInfoAndInsertDelta(
       rid, route, grpInfo, ecmpDemandExceeded, inOutState);
@@ -1257,18 +1255,27 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
   CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   if (getEcmpCompressionThresholdPct()) {
-    if (grpInserted && !pitr->second->getMergedGroupInfoItr()) {
-      /*
-       * New umerged group added, compute candidate merges
-       * for it
-       */
-      computeCandidateMergesForNewUnmergedGroups({idItr->second});
-    } else if (pfxInserted) {
+    if (pfxInserted) {
       /*
        * New prefix points to existing group
        * update consolidation penalties
        */
       updateConsolidationPenalty(*pitr->second);
+    }
+    if (grpInserted) {
+      if (auto nmitr = pitr->second->getMergedGroupInfoItr()) {
+        /*
+         * New merged group added, compute candidate merges
+         * for it
+         */
+        computeCandidateMergesForNewMergedGroup((*nmitr)->first);
+      } else {
+        /*
+         * New unmerged group added, compute candidate merges
+         * for it
+         */
+        computeCandidateMergesForNewUnmergedGroups({idItr->second});
+      }
     }
   }
 }
@@ -1319,7 +1326,10 @@ EcmpResourceManager::fixAndGetMergeGroupItr(
         mergedGroups_.insert({{newMemberGroupId}, std::move(info)});
   } else {
     NextHopGroupIds newMergeSet = mitr->first;
-    auto info = mitr->second;
+    XLOG(DBG2) << " Group ID : " << newMemberGroupId
+               << " found existing merged nhops, merging with: " << mitr->first;
+    auto info = std::move(mitr->second);
+    pruneFromCandidateMerges(mitr->first);
     mergedGroups_.erase(mitr);
     auto [_, inserted] = newMergeSet.insert(newMemberGroupId);
     CHECK(inserted);
@@ -1525,13 +1535,13 @@ void EcmpResourceManager::updateConsolidationPenalty(
       auto citr = info.groupId2Penalty.find(groupInfo.getID());
       CHECK(citr != info.groupId2Penalty.end());
       auto nhopsLost = grpNhopsSize - info.mergedNhops.size();
-      XLOG(DBG2) << " Computing penalty with: " << mergedGroups
+      XLOG(DBG4) << " Computing penalty with: " << mergedGroups
                  << " Nhops lost : " << nhopsLost
                  << " Group nhops : " << grpNhopsSize
                  << " Merged nhops: " << info.mergedNhops.size();
       auto newPenalty = std::ceil((nhopsLost * 100.0) / grpNhopsSize) *
           groupInfo.getRouteUsageCount();
-      XLOG(DBG2) << " GID: " << groupInfo.getID()
+      XLOG(DBG4) << " GID: " << groupInfo.getID()
                  << " merge penalty for: " << mergedGroups
                  << " prev penalty: " << citr->second
                  << " new penalty: " << newPenalty;
@@ -1775,7 +1785,7 @@ EcmpResourceManager::computeConsolidationInfo(
     auto nhopsPctLoss =
         std::ceil((nhopsLost * 100.0) / grpInfo->getNhops().size());
     auto penalty = grpInfo->getRouteUsageCount() * nhopsPctLoss;
-    XLOG(DBG2) << " For group : " << grpId
+    XLOG(DBG4) << " For group : " << grpId
                << " orig nhops: " << grpInfo->getNhops().size()
                << " nhops lost: " << nhopsLost << " penalty: " << penalty
                << "%";

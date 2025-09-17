@@ -96,6 +96,7 @@ void assertGroupsAreUnMerged(
       unmergedGroups.begin(),
       unmergedGroups.end(),
       [&resourceMgr, expectedCandidateMergeForEachUnmerged](auto gid) {
+        XLOG(DBG2) << " Checking candidate merges for unmerged group: " << gid;
         auto candidateMergeToConsolidationInfo =
             resourceMgr.getCandidateMergeConsolidationInfo(gid);
         EXPECT_EQ(
