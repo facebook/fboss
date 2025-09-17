@@ -26,6 +26,7 @@ target_link_libraries(showtech
   platform_config_lib
   platform_name_lib
   i2c_ctrl
+  gpiod_line
   ${RE2}
   CLI11::CLI11
 )

@@ -1,4 +1,67 @@
 {
   "i2cBusIgnore": [],
-  "psus": []
+  "psus": [],
+  "gpios": [
+    {
+      "path": "/run/devmap/gpiochips/RACKMON_PLS",
+      "lines": [
+        {
+          "name": "RJ1_BKP_RED",
+          "lineIndex": 0
+        },
+        {
+          "name": "RJ2_BKP_RED",
+          "lineIndex": 1
+        },
+        {
+          "name": "RJ3_BKP_RED",
+          "lineIndex": 2
+        },
+        {
+          "name": "GPIO_FTDI_RST",
+          "lineIndex": 3
+        },
+        {
+          "name": "RJ1_PWR_OK",
+          "lineIndex": 4
+        },
+        {
+          "name": "RJ2_PWR_OK",
+          "lineIndex": 5
+        },
+        {
+          "name": "RJ3_PWR_OK",
+          "lineIndex": 6
+        },
+        {
+          "name": "BMC_MOD_ID0",
+          "lineIndex": 9
+        },
+        {
+          "name": "BMC_MOD_ID1",
+          "lineIndex": 10
+        },
+        {
+          "name": "BMC_MOD_ID2",
+          "lineIndex": 11
+        },
+        {
+          "name": "BMC_ALIVE",
+          "lineIndex": 12
+        },
+        {
+          "name": "BMC_PGOOD_CONN",
+          "lineIndex": 13
+        },
+        {
+          "name": "IOEXP_BMC_RESET",
+          "lineIndex": 14
+        },
+        {
+          "name": "BMC_PRSNT_L",
+          "lineIndex": 15
+        }
+      ]
+    }
+  ]
 }

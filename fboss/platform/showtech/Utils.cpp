@@ -2,12 +2,14 @@
 
 #include "fboss/platform/showtech/Utils.h"
 
+#include <gpiod.h>
 #include <filesystem>
 #include <iostream>
 
 #include <fmt/core.h>
 #include <re2/re2.h>
 
+#include "fboss/lib/GpiodLine.h"
 #include "fboss/platform/showtech/PsuHelper.h"
 
 using namespace facebook::fboss::platform::showtech_config;
@@ -144,6 +146,35 @@ void Utils::printPsuDetails() {
       std::cout << fmt::format("Error: failed to dump registers: {}", e.what())
                 << std::endl;
     }
+    std::cout << std::endl;
+  }
+}
+
+void Utils::printGpioDetails() {
+  std::cout << "##### GPIO Information #####" << std::endl;
+
+  if (config_.gpios()->empty()) {
+    std::cout << "No GPIO chip found from configs\n" << std::endl;
+    return;
+  }
+
+  for (const auto& gpio : *config_.gpios()) {
+    std::cout << fmt::format("#### GPIO Chip Details {} ####", *gpio.path())
+              << std::endl;
+    struct gpiod_chip* chip = gpiod_chip_open(gpio.path()->c_str());
+    for (const auto& line : *gpio.lines()) {
+      std::cout << fmt::format(
+          "line {:>3}:   {:<15} -> ", *line.lineIndex(), *line.name());
+      try {
+        std::cout << GpiodLine(chip, *line.lineIndex(), *line.name()).getValue()
+                  << std::endl;
+      } catch (const std::exception& e) {
+        std::cout << fmt::format(
+                         "Error: failed to read gpio line: {}", e.what())
+                  << std::endl;
+      }
+    }
+    gpiod_chip_close(chip);
     std::cout << std::endl;
   }
 }

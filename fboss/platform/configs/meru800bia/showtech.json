@@ -5,5 +5,60 @@
   "psus": [
     "/run/devmap/sensors/PSU1_PMBUS",
     "/run/devmap/sensors/PSU2_PMBUS"
+  ],
+  "gpios": [
+    {
+      "path": "/run/devmap/gpiochips/SMB_PCA",
+      "lines": [
+        {
+          "name": "SCD_DONE",
+          "lineIndex": 0
+        },
+        {
+          "name": "OVER_TEMP_L",
+          "lineIndex": 1
+        },
+        {
+          "name": "SYS_PGOOD",
+          "lineIndex": 2
+        },
+        {
+          "name": "P1V2_CP_PGOOD",
+          "lineIndex": 3
+        },
+        {
+          "name": "SCD_CRC_ERR",
+          "lineIndex": 4
+        },
+        {
+          "name": "P1V0_CP_PGOOD",
+          "lineIndex": 5
+        },
+        {
+          "name": "P1V8_CP_PGOOD",
+          "lineIndex": 6
+        },
+        {
+          "name": "P3V3_CP_PGOOD",
+          "lineIndex": 7
+        },
+        {
+          "name": "SCD_PRGM_L",
+          "lineIndex": 8
+        },
+        {
+          "name": "SCD_HOLD_L",
+          "lineIndex": 9
+        },
+        {
+          "name": "CPU_QSPI_SEL",
+          "lineIndex": 12
+        },
+        {
+          "name": "SCD_RESET_L",
+          "lineIndex": 14
+        }
+      ]
+    }
   ]
 }
