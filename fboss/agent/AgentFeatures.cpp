@@ -362,3 +362,8 @@ DEFINE_uint32(
     "Max ecmp width. Also implies ucmp normalization factor");
 
 DEFINE_bool(enable_ars_scale_mode, false, "Enable ARS scale mode");
+
+DEFINE_bool(
+    check_wb_handles,
+    false,
+    "Fail if any warm boot handles are left unclaimed.");

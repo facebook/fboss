@@ -120,11 +120,6 @@ DEFINE_string(
     "CRITICAL",
     "Turn on SAI SDK logging. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
 
-DEFINE_bool(
-    check_wb_handles,
-    false,
-    "Fail if any warm boot handles are left unclaimed.");
-
 DECLARE_bool(enable_acl_table_group);
 
 DEFINE_bool(

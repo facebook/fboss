@@ -119,3 +119,4 @@ DECLARE_bool(dsf_single_stage_r128_f40_e16_8k_sys_ports);
 DECLARE_bool(hyper_port);
 DECLARE_uint32(ecmp_width);
 DECLARE_bool(enable_ars_scale_mode);
+DECLARE_bool(check_wb_handles);
