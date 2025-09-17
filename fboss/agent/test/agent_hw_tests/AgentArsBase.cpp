@@ -51,6 +51,11 @@ cfg::SwitchConfig AgentArsBase::initialConfig(
   return cfg;
 }
 
+bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
+  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB);
+}
+
 std::string AgentArsBase::getAclName(AclType aclType) const {
   std::string aclName{};
   switch (aclType) {

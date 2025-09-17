@@ -86,6 +86,7 @@ class AgentArsBase : public AgentHwTest {
       const RoutePrefixV6& prefix,
       cfg::SwitchingMode switchingMode) const;
   uint32_t getMaxDlbEcmpGroups() const;
+  bool isChenab(const AgentEnsemble& ensemble) const;
 
  protected:
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};

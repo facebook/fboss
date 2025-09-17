@@ -40,12 +40,15 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentArsBase::initialConfig(ensemble);
+    auto backupSwitchingMode = isChenab(ensemble)
+        ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+        : cfg::SwitchingMode::PER_PACKET_RANDOM;
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY,
-        cfg::SwitchingMode::PER_PACKET_RANDOM);
+        backupSwitchingMode);
     return cfg;
   }
 
