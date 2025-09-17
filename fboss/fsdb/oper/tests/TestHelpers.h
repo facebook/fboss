@@ -20,7 +20,15 @@ dynamic createTestDynamic() {
       "structMap", dynamic::object(3, dynamic::object("min", 100)("max", 200)))(
       "structList", dynamic::array())("enumSet", dynamic::array())(
       "integralSet", dynamic::array())("mapOfStringToI32", dynamic::object())(
-      "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array());
+      "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())(
+      "mapOfHybridStruct",
+      dynamic::object(
+          301,
+          dynamic::object("optionalIntegral", 1101)("str", "optStr")(
+              "integralSet", dynamic::array(1201, 1202))(
+              "structMap",
+              dynamic::object(
+                  2101, dynamic::object("min", 2111)("max", 2112)))));
   return dyn;
 }
 

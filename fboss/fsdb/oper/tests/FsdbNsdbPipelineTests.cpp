@@ -94,7 +94,10 @@ void applyDeltaAndVerify(
 
 } // namespace
 
-enum class TestDataType { kHybridMapOfStruct };
+enum class TestDataType {
+  kHybridMapOfStruct, // test data covering hybrid map of struct
+  kMapOfHybridStruct // test data covering map with hybrid struct values
+};
 
 template <typename StorageT, TestDataType dataType>
 struct TestDataFactory;
@@ -209,6 +212,114 @@ struct TestDataFactory<StorageT, TestDataType::kHybridMapOfStruct> {
   }
 };
 
+template <typename StorageT>
+struct TestDataFactory<StorageT, TestDataType::kMapOfHybridStruct> {
+ private:
+  StorageT& storage_;
+  const thriftpath::RootThriftPath<TestStruct> root;
+  decltype(root.mapOfHybridStruct()) subscriptionPath_ =
+      root.mapOfHybridStruct();
+  const int oldKey = 301;
+  const int newKey = 5301;
+  int newIntVal = 777;
+
+  TestHybridStruct buildNewStruct() {
+    TestHybridStruct newStruct;
+    newStruct.optionalIntegral() = 999;
+    return newStruct;
+  }
+
+  auto getUpdatedEntry() {
+    return storage_.get(subscriptionPath()[oldKey]).value();
+  }
+
+ public:
+  explicit TestDataFactory(StorageT& storage) : storage_(storage) {}
+
+  auto& subscriptionPath() {
+    return subscriptionPath_;
+  }
+
+  std::optional<StorageError> addNewEntryToMap() {
+    auto newStruct = buildNewStruct();
+    return storage_.set(subscriptionPath()[newKey], newStruct);
+  }
+
+  void verifyOperDeltaForNewEntry(OperDelta& deltaMsg) {
+    auto first = deltaMsg.changes()->at(0);
+    // expect only new field
+    EXPECT_FALSE(first.oldState());
+    EXPECT_TRUE(first.newState());
+    // expect newly added entry
+    EXPECT_THAT(
+        *first.path()->raw(),
+        ::testing::ContainerEq(std::vector<std::string>({"5301"})));
+    EXPECT_FALSE(first.oldState());
+    TestHybridStruct deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::structure, TestHybridStruct>(
+            OperProtocol::SIMPLE_JSON, *first.newState());
+    auto expected = buildNewStruct();
+    EXPECT_EQ(deserialized, expected);
+  }
+
+  std::optional<StorageError> deepUpdateExistingEntryInMap() {
+    return storage_.set(
+        subscriptionPath()[oldKey].optionalIntegral(), newIntVal);
+  }
+
+  void verifyOperDeltaForDeepUpdate(OperDelta& deltaMsg, bool isHybridStorage) {
+    storage_.publishCurrentState();
+    auto first = deltaMsg.changes()->at(0);
+    // expect both old and new states
+    EXPECT_TRUE(first.oldState());
+    EXPECT_TRUE(first.newState());
+    if (isHybridStorage) {
+      // expect full struct
+      EXPECT_EQ(first.path()->raw()->size(), 1);
+      EXPECT_THAT(
+          *first.path()->raw(),
+          ::testing::ContainerEq(std::vector<std::string>({"301"})));
+      TestHybridStruct deserialized = facebook::fboss::thrift_cow::
+          deserialize<apache::thrift::type_class::structure, TestHybridStruct>(
+              OperProtocol::SIMPLE_JSON, *first.newState());
+      auto expected = getUpdatedEntry();
+      EXPECT_EQ(deserialized, expected);
+      EXPECT_EQ(deserialized.optionalIntegral(), newIntVal);
+    } else {
+      // expect only changed field
+      EXPECT_EQ(first.path()->raw()->size(), 2);
+      EXPECT_THAT(
+          *first.path()->raw(),
+          ::testing::ContainerEq(
+              std::vector<std::string>({"301", "optionalIntegral"})));
+      auto deserializedInt32 = facebook::fboss::thrift_cow::
+          deserialize<apache::thrift::type_class::integral, int>(
+              OperProtocol::SIMPLE_JSON, *first.newState());
+      EXPECT_EQ(deserializedInt32, newIntVal);
+    }
+  }
+
+  std::optional<StorageError> deleteExistingEntryFromMap() {
+    storage_.remove(subscriptionPath()[newKey]);
+    return std::nullopt;
+  }
+
+  void verifyOperDeltaForDelete(OperDelta& deltaMsg) {
+    // expect deleted entry
+    auto first = deltaMsg.changes()->at(0);
+    EXPECT_TRUE(first.oldState());
+    EXPECT_FALSE(first.newState());
+    EXPECT_THAT(
+        *first.path()->raw(),
+        ::testing::ContainerEq(std::vector<std::string>({"5301"})));
+    TestHybridStruct deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::structure, TestHybridStruct>(
+            OperProtocol::SIMPLE_JSON, *first.oldState());
+    auto newStruct = buildNewStruct();
+    EXPECT_EQ(deserialized, newStruct);
+  }
+};
+
 template <bool EnableHybridStorage, TestDataType DataType>
 struct TestParams {
   static constexpr auto hybridStorage = EnableHybridStorage;
@@ -217,7 +328,9 @@ struct TestParams {
 
 using FsdbNsdbPipelineTestTypes = ::testing::Types<
     TestParams<false, TestDataType::kHybridMapOfStruct>,
-    TestParams<true, TestDataType::kHybridMapOfStruct>>;
+    TestParams<true, TestDataType::kHybridMapOfStruct>,
+    TestParams<false, TestDataType::kMapOfHybridStruct>,
+    TestParams<true, TestDataType::kMapOfHybridStruct>>;
 
 // helper class to test data propagation through FSDB-NSDB pipeline
 template <typename TestParams>
@@ -361,15 +474,18 @@ TYPED_TEST(FsdbNsdbPipelineTests, verifyNsdbDeltaSubscriptionGranularity) {
   // 2. add new entry to map
   EXPECT_EQ(factory.addNewEntryToMap(), std::nullopt);
   deltaMsg = awaitDelta(generator);
+  // verify that received delta is as expected for new entry
   factory.verifyOperDeltaForNewEntry(deltaMsg);
 
   // 2. deep update existing entry in map
   EXPECT_EQ(factory.deepUpdateExistingEntryInMap(), std::nullopt);
   deltaMsg = awaitDelta(generator);
+  // verify that received delta is as expected for the change
   factory.verifyOperDeltaForDeepUpdate(deltaMsg, this->isHybridStorage());
 
   // 3. delete existing entry from map
   EXPECT_EQ(factory.deleteExistingEntryFromMap(), std::nullopt);
   deltaMsg = awaitDelta(generator);
+  // verify that received delta is as expected for deleted entry
   factory.verifyOperDeltaForDelete(deltaMsg);
 }
