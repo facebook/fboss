@@ -555,7 +555,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if defined(BRCM_SAI_SDK_XGS)
   auto platformMode = getType();
   if (platformMode == PlatformType::PLATFORM_FUJI ||
-      platformMode == PlatformType::PLATFORM_ELBERT) {
+      platformMode == PlatformType::PLATFORM_ELBERT ||
+      platformMode == PlatformType::PLATFORM_MONTBLANC ||
+      platformMode == PlatformType::PLATFORM_TAHAN800BC) {
     std::vector<int8_t> dllPathCharArray;
     std::copy(
         FLAGS_dll_path.c_str(),
