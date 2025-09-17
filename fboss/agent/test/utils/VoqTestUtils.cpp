@@ -482,10 +482,8 @@ std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble) {
   return dummyEncapIndex;
 }
 
-// Resolve and return list of remote nhops
-boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
-    TestEnsembleIf* ensemble,
-    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+boost::container::flat_set<PortDescriptor> getRemoteSysPorts(
+    TestEnsembleIf* ensemble) {
   auto remoteSysPorts =
       ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
   boost::container::flat_set<PortDescriptor> sysPortDescs;
@@ -498,6 +496,16 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
               PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
         }
       });
+  return sysPortDescs;
+}
+
+// Resolve and return list of remote nhops
+boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+  auto remoteSysPorts =
+      ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
+  auto sysPortDescs = getRemoteSysPorts(ensemble);
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.resolveNextHops(
         in, sysPortDescs, false, getDummyEncapIndex(ensemble));
@@ -510,16 +518,7 @@ boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
     utility::EcmpSetupTargetedPorts6& ecmpHelper) {
   auto remoteSysPorts =
       ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-  boost::container::flat_set<PortDescriptor> sysPortDescs;
-  std::for_each(
-      remoteSysPorts->begin(),
-      remoteSysPorts->end(),
-      [&sysPortDescs](const auto& idAndPort) {
-        if (!idAndPort.second->isStatic()) {
-          sysPortDescs.insert(
-              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
-        }
-      });
+  auto sysPortDescs = getRemoteSysPorts(ensemble);
   ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
     return ecmpHelper.unresolveNextHops(in, sysPortDescs, false);
   });
