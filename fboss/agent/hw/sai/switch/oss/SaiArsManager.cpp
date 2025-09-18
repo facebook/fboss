@@ -37,6 +37,48 @@ void SaiArsManager::addArs(
 
   auto& store = saiStore_->get<SaiArsTraits>();
   arsHandle_->ars = store.setObject(hostKey, attributes);
+
+  bool needAlternateArs =
+      flowletSwitchConfig->getAlternatePathCost().has_value() &&
+      flowletSwitchConfig->getAlternatePathBias().has_value();
+
+  if (needAlternateArs) {
+    std::optional<SaiArsTraits::Attributes::AlternatePathCost>
+        alternatePathCost = std::nullopt;
+    std::optional<SaiArsTraits::Attributes::AlternatePathBias>
+        alternatePathBias = std::nullopt;
+    std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
+        primaryPathQualityThreshold = std::nullopt;
+    if (auto cost = flowletSwitchConfig->getAlternatePathCost()) {
+      alternatePathCost = SaiArsTraits::Attributes::AlternatePathCost{
+          static_cast<sai_uint32_t>(*cost)};
+    }
+
+    if (auto bias = flowletSwitchConfig->getAlternatePathBias()) {
+      alternatePathBias = SaiArsTraits::Attributes::AlternatePathBias{
+          static_cast<sai_uint32_t>(*bias)};
+    }
+
+    if (auto threshold =
+            flowletSwitchConfig->getPrimaryPathQualityThreshold()) {
+      primaryPathQualityThreshold =
+          SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
+              static_cast<sai_uint32_t>(*threshold)};
+    }
+    SaiArsTraits::CreateAttributes alternateMemArsAttributes{
+        SaiArsTraits::Attributes::Mode{
+            cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+        SaiArsTraits::Attributes::IdleTime{
+            flowletSwitchConfig->getInactivityIntervalUsecs()},
+        SaiArsTraits::Attributes::MaxFlows{
+            flowletSwitchConfig->getFlowletTableSize()},
+        primaryPathQualityThreshold,
+        alternatePathCost,
+        alternatePathBias};
+    alternateMemberArsHandle_->ars = store.setObject(
+        getAdapterHostKey(alternateMemArsAttributes),
+        alternateMemArsAttributes);
+  }
 }
 
 bool SaiArsManager::isFlowsetTableFull(const ArsSaiId& /* unused */) {
