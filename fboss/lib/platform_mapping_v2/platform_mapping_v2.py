@@ -37,7 +37,7 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
 )
-from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
+from neteng.fboss.switch_config.ttypes import PortProfileID, PortType
 
 # If you want to generate multiple platform mapping variants for a single platform,
 # define a base platform that includes common files (e.g. si_settings.csv) and
