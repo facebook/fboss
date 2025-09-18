@@ -17,17 +17,17 @@
 
 namespace facebook::fboss {
 namespace {
+auto constexpr kMaxHwEcmpGroups = 16;
+auto constexpr kMaxRoutes = 50;
+auto constexpr kAdjacentNextHopDeltaSize = 4;
+auto constexpr kEcmpWidth = 2048;
 std::unique_ptr<EcmpResourceManager> makeResourceMgr() {
   return std::make_unique<EcmpResourceManager>(
-      16 /*maxHwEcmpGroups*/, 100 /*compressionPenaltyThresholdPct*/);
+      kMaxHwEcmpGroups, 100 /*compressionPenaltyThresholdPct*/);
 }
 } // namespace
 class EcmpResourceManagerDsfScaleTest : public ::testing::Test {
  public:
-  static auto constexpr kMaxHwEcmpGroups = 16;
-  static auto constexpr kMaxRoutes = 50;
-  static auto constexpr kAdjacentNextHopDeltaSize = 4;
-  static auto constexpr kEcmpWidth = 2048;
   int numStartRoutes() const {
     return kMaxHwEcmpGroups -
         FLAGS_ecmp_resource_manager_make_before_break_buffer;
@@ -78,6 +78,7 @@ void EcmpResourceManagerDsfScaleTest::SetUp() {
 }
 
 TEST_F(EcmpResourceManagerDsfScaleTest, init) {}
+
 TEST_F(EcmpResourceManagerDsfScaleTest, addOneRouteOverEcmpLimit) {
   auto optimalMergeSet = ecmpResourceMgr_->getOptimalMergeGroupSet();
   EXPECT_EQ(optimalMergeSet.size(), 2);
@@ -90,5 +91,18 @@ TEST_F(EcmpResourceManagerDsfScaleTest, addOneRouteOverEcmpLimit) {
       makeRoute(makePrefix(numStartRoutes()), getNhops(numStartRoutes())));
   consolidate(newState);
   assertNumRoutesWithNhopOverrides(state_, toBeMergedPrefixes.size());
+}
+
+TEST_F(EcmpResourceManagerDsfScaleTest, addMaxScaleRoutesOverEcmpLimit) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  for (auto i = numStartRoutes(); i < kMaxRoutes; ++i) {
+    fib6->addNode(makeRoute(makePrefix(i), getNhops(i)));
+  }
+  consolidate(newState);
+  auto mergedGids = ecmpResourceMgr_->getMergedGids();
+  EXPECT_GT(mergedGids.size(), 0);
+  assertNumRoutesWithNhopOverrides(
+      state_, getPrefixesForGroups(*ecmpResourceMgr_, mergedGids).size());
 }
 } // namespace facebook::fboss

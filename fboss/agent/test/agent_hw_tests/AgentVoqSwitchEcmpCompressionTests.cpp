@@ -19,7 +19,6 @@ class AgentVoqSwitchEcmpCompressionTest
     return cfg;
   }
   void SetUp() override;
-  void TearDown() override;
 
   void setCmdLineFlagOverrides() const override {
     AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides();
@@ -29,6 +28,9 @@ class AgentVoqSwitchEcmpCompressionTest
   int numStartRoutes() const {
     return getMaxEcmpGroup() -
         FLAGS_ecmp_resource_manager_make_before_break_buffer;
+  }
+  int maxRoutes() const {
+    return numStartRoutes() + 30;
   }
   const EcmpResourceManager* ecmpResourceManager() const {
     return getSw()->getEcmpResourceManager();
@@ -44,7 +46,8 @@ class AgentVoqSwitchEcmpCompressionTest
     auto sysPortStart = (index * kNhopOffset);
     return boost::container::flat_set<PortDescriptor>(
         std::make_move_iterator(sysPortDescs_.begin() + sysPortStart),
-        std::make_move_iterator(sysPortDescs_.begin() + getMaxEcmpWidth()));
+        std::make_move_iterator(
+            sysPortDescs_.begin() + sysPortStart + getMaxEcmpWidth()));
   }
 
  private:
@@ -82,15 +85,6 @@ void AgentVoqSwitchEcmpCompressionTest::SetUp() {
   XLOG(DBG2) << " Programming starting routes done";
 }
 
-void AgentVoqSwitchEcmpCompressionTest::TearDown() {
-  if (!getAgentEnsemble()) {
-    CHECK(FLAGS_list_production_feature);
-    return;
-  }
-  assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
-  AgentVoqSwitchFullScaleDsfNodesTest::TearDown();
-}
-
 TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
   auto setup = [&]() {
     auto optimalMergeSet = ecmpResourceManager()->getOptimalMergeGroupSet();
@@ -119,16 +113,16 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
   auto verify = [&]() {
     assertNumRoutesWithNhopOverrides(getProgrammedState(), 2);
     EXPECT_EQ(ecmpResourceManager()->getMergedGroups().size(), 1);
+    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentVoqSwitchEcmpCompressionTest, addMaxScaleRoutesOverEcmpLimit) {
-  constexpr auto kMaxRoutes = 50;
   auto setup = [&]() {
     std::vector<RoutePrefixV6> prefixes;
     std::vector<boost::container::flat_set<PortDescriptor>> nhops;
-    for (auto i = numStartRoutes(); i < kMaxRoutes; ++i) {
+    for (auto i = numStartRoutes(); i < maxRoutes(); ++i) {
       prefixes.emplace_back(makePrefix(i));
       nhops.emplace_back(getNextHops(i));
     }
@@ -144,6 +138,7 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addMaxScaleRoutesOverEcmpLimit) {
     assertNumRoutesWithNhopOverrides(
         getProgrammedState(),
         getPrefixesForGroups(*resourceMgr, mergedGids).size());
+    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
