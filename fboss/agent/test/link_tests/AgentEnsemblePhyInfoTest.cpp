@@ -294,7 +294,9 @@ TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
 }
 
 TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
-  auto cabledPorts = getCabledPorts();
+  auto cabledPorts = getXphyCabledPorts();
+  ASSERT_FALSE(cabledPorts.empty());
+
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto now = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
