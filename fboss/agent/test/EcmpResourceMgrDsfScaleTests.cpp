@@ -105,4 +105,27 @@ TEST_F(EcmpResourceManagerDsfScaleTest, addMaxScaleRoutesOverEcmpLimit) {
   assertNumRoutesWithNhopOverrides(
       state_, getPrefixesForGroups(*ecmpResourceMgr_, mergedGids).size());
 }
+
+TEST_F(EcmpResourceManagerDsfScaleTest, addRemoveMaxScaleRoutes) {
+  std::vector<RoutePrefixV6> addedRoutes;
+  {
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    for (auto i = numStartRoutes(); i < kMaxRoutes; ++i) {
+      addedRoutes.emplace_back(makePrefix(i));
+      fib6->addNode(makeRoute(addedRoutes.back(), getNhops(i)));
+    }
+    consolidate(newState);
+  }
+  {
+    // remote routes;
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    for (const auto& pfx : addedRoutes) {
+      fib6->removeNode(pfx.str());
+    }
+    consolidate(newState);
+  }
+  EXPECT_EQ(ecmpResourceMgr_->getMergedGids().size(), 0);
+}
 } // namespace facebook::fboss
