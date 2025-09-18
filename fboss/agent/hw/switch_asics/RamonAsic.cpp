@@ -26,6 +26,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
       return true;
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     default:
       return false;
   }

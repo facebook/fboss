@@ -114,6 +114,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ARS:
     case HwAsic::Feature::QCM:
