@@ -8,41 +8,48 @@
  *
  */
 
-#include "fboss/platform/weutil/hw_test/WeutilTest.h"
+#include <gtest/gtest.h>
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/weutil/ContentValidator.h"
+#include "fboss/platform/weutil/Weutil.h"
 
 namespace facebook::fboss::platform {
 
-WeutilTest::~WeutilTest() {}
+class WeutilTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    weutilInstance_ = createWeUtilIntf("chassis", "", 0);
+    config_ = getWeUtilConfig();
 
-void WeutilTest::SetUp() {
-  weutilInstance = createWeUtilIntf("chassis", "", 0);
-  config = getWeUtilConfig();
-
-  for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
-    std::string fruName = eepromName;
-    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
-    fruList[fruName] = eepromConfig;
+    for (const auto& [eepromName, eepromConfig] : *config_.fruEepromList()) {
+      std::string fruName = eepromName;
+      std::transform(
+          fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
+      fruList_[fruName] = eepromConfig;
+    }
   }
-}
-void WeutilTest::TearDown() {}
+
+ protected:
+  std::unique_ptr<WeutilInterface> weutilInstance_;
+  weutil_config::WeutilConfig config_;
+  std::unordered_map<std::string, weutil_config::FruEepromConfig> fruList_;
+};
 
 TEST_F(WeutilTest, getWedgeInfo) {
-  EXPECT_GT(weutilInstance->getContents().size(), 0);
+  EXPECT_GT(weutilInstance_->getContents().size(), 0);
 }
 
 TEST_F(WeutilTest, getEepromPaths) {
-  EXPECT_GT(config.fruEepromList()->size(), 0);
+  EXPECT_GT(config_.fruEepromList()->size(), 0);
 }
 
 TEST_F(WeutilTest, ValidateAllEepromContents) {
   auto platformName = helpers::PlatformNameLib().getPlatformName();
   bool isDarwin = platformName && *platformName == "DARWIN";
-  EXPECT_GT(config.fruEepromList()->size(), 0);
-  for (const auto& [fruName, eepromConfig] : fruList) {
+  EXPECT_GT(config_.fruEepromList()->size(), 0);
+  for (const auto& [fruName, eepromConfig] : fruList_) {
     try {
       auto weutilInstance =
           createWeUtilIntf(fruName, "", *eepromConfig.offset());
@@ -61,7 +68,7 @@ TEST_F(WeutilTest, ValidateAllEepromContents) {
 }
 
 TEST_F(WeutilTest, getInfoJson) {
-  for (const auto& [fruName, eepromConfig] : fruList) {
+  for (const auto& [fruName, eepromConfig] : fruList_) {
     try {
       auto weutilInstance = createWeUtilIntf(
           fruName, *eepromConfig.path(), *eepromConfig.offset());
