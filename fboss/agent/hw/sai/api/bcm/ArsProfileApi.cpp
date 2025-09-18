@@ -72,6 +72,15 @@ SaiArsProfileTraits::Attributes::AttributeArsRouteMetaDataMask::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeArsPrimaryMembersRouteMetaData::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA;
+#else
+  return std::nullopt;
+#endif
+}
 #endif
 
 } // namespace facebook::fboss

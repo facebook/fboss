@@ -946,6 +946,11 @@ SaiArsProfileTraits::Attributes::AttributeArsRouteMetaDataMask::operator()() {
   return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK;
 }
 
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeArsPrimaryMembersRouteMetaData::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA;
+}
+
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;

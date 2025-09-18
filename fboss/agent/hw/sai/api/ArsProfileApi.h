@@ -150,6 +150,15 @@ struct SaiArsProfileTraits {
         AttributeArsRouteMetaDataMask,
         SaiIntDefault<sai_uint32_t>>;
 #endif
+    struct AttributeArsPrimaryMembersRouteMetaData {
+      std::optional<sai_attr_id_t> operator()();
+    };
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
+    using ArsPrimaryMembersRouteMetaData = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeArsPrimaryMembersRouteMetaData,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
   };
 
   using AdapterKey = ArsProfileSaiId;
@@ -186,7 +195,8 @@ struct SaiArsProfileTraits {
       std::optional<Attributes::ArsMaxGroups>,
       std::optional<Attributes::ArsBaseIndex>,
       std::optional<Attributes::ArsAlternateMembersRouteMetaData>,
-      std::optional<Attributes::ArsRouteMetaDataMask>>;
+      std::optional<Attributes::ArsRouteMetaDataMask>,
+      std::optional<Attributes::ArsPrimaryMembersRouteMetaData>>;
 #else
       >;
 #endif
@@ -223,6 +233,7 @@ SAI_ATTRIBUTE_NAME(ArsProfile, ArsMaxGroups)
 SAI_ATTRIBUTE_NAME(ArsProfile, ArsBaseIndex)
 SAI_ATTRIBUTE_NAME(ArsProfile, ArsAlternateMembersRouteMetaData)
 SAI_ATTRIBUTE_NAME(ArsProfile, ArsRouteMetaDataMask)
+SAI_ATTRIBUTE_NAME(ArsProfile, ArsPrimaryMembersRouteMetaData)
 #endif
 
 class ArsProfileApi : public SaiApi<ArsProfileApi> {

@@ -66,6 +66,9 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
   std::optional<SaiArsProfileTraits::Attributes::ArsRouteMetaDataMask>
       arsRouteMetaDataMask = static_cast<sai_uint32_t>(
           cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS);
+
+  std::optional<SaiArsProfileTraits::Attributes::ArsPrimaryMembersRouteMetaData>
+      arsPrimaryMembersRouteMetaData = 0;
 #else
   if (samplingInterval >= kArsMinSamplingRateNs) {
     // convert nanosec to microsec
@@ -96,7 +99,8 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       arsMaxGroups,
       arsBaseIndex,
       arsAlternateMembersRouteMetaData,
-      arsRouteMetaDataMask};
+      arsRouteMetaDataMask,
+      arsPrimaryMembersRouteMetaData};
 #else
   };
 #endif
