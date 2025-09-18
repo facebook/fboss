@@ -14863,7 +14863,8 @@ std::pair<strings::redirectToNextHop, ChildThriftPath<::facebook::fboss::cfg::Re
 std::pair<strings::setTc, ChildThriftPath<::facebook::fboss::cfg::SetTcAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::userDefinedTrap, ChildThriftPath<::facebook::fboss::cfg::UserDefinedTrapAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::flowletAction, Child<::facebook::fboss::cfg::FlowletAction, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::FlowletAction>>>,
-std::pair<strings::ecmpHashAction, ChildThriftPath<::facebook::fboss::cfg::SetEcmpHashAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<strings::ecmpHashAction, ChildThriftPath<::facebook::fboss::cfg::SetEcmpHashAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::enableAlternateArsMembers, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::facebook::fboss::cfg::QueueMatchAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::facebook::fboss::cfg::PacketCounterMatchAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::cfg::SetDscpMatchAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
@@ -14876,7 +14877,8 @@ std::pair<strings::ecmpHashAction, ChildThriftPath<::facebook::fboss::cfg::SetEc
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, ChildThriftPath<::facebook::fboss::cfg::SetTcAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, ChildThriftPath<::facebook::fboss::cfg::UserDefinedTrapAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::facebook::fboss::cfg::FlowletAction, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::FlowletAction>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, ChildThriftPath<::facebook::fboss::cfg::SetEcmpHashAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, ChildThriftPath<::facebook::fboss::cfg::SetEcmpHashAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::sendToQueue, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::packetCounter_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -14890,7 +14892,8 @@ std::pair<strings::redirectToNextHop, std::integral_constant<apache::thrift::fie
 std::pair<strings::setTc, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::userDefinedTrap, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::flowletAction, std::integral_constant<apache::thrift::field_id_t, 12>>,
-std::pair<strings::ecmpHashAction, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
+std::pair<strings::ecmpHashAction, std::integral_constant<apache::thrift::field_id_t, 13>>,
+std::pair<strings::enableAlternateArsMembers, std::integral_constant<apache::thrift::field_id_t, 14>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -14909,6 +14912,7 @@ std::pair<strings::ecmpHashAction, std::integral_constant<apache::thrift::field_
     STRUCT_CHILD_GETTERS(userDefinedTrap, 11);
     STRUCT_CHILD_GETTERS(flowletAction, 12);
     STRUCT_CHILD_GETTERS(ecmpHashAction, 13);
+    STRUCT_CHILD_GETTERS(enableAlternateArsMembers, 14);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -14925,6 +14929,7 @@ std::pair<strings::ecmpHashAction, std::integral_constant<apache::thrift::field_
     else if constexpr (__id == 11) { return userDefinedTrap(); }
     else if constexpr (__id == 12) { return flowletAction(); }
     else if constexpr (__id == 13) { return ecmpHashAction(); }
+    else if constexpr (__id == 14) { return enableAlternateArsMembers(); }
   }
 
   template <typename T, T... Values>

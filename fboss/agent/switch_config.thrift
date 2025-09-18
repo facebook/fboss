@@ -797,6 +797,7 @@ struct MatchAction {
   11: optional UserDefinedTrapAction userDefinedTrap;
   12: optional FlowletAction flowletAction;
   13: optional SetEcmpHashAction ecmpHashAction;
+  14: optional bool enableAlternateArsMembers;
 }
 
 struct MatchToAction {
