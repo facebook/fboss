@@ -26,6 +26,7 @@ cpp_binary(
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":showtech_config-cpp2-types",
+        "//fboss/lib:common_file_utils",
         "//fboss/lib:gpiod_line",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/platform/config_lib:config_lib",

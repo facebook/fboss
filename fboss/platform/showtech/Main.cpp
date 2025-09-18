@@ -32,6 +32,7 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
         {"sensor", [](Utils& util) { util.printSensorDetails(); }},
         {"psu", [](Utils& util) { util.printPsuDetails(); }},
         {"gpio", [](Utils& util) { util.printGpioDetails(); }},
+        {"pem", [](Utils& util) { util.printPemDetails(); }},
         {"i2c", [](Utils& util) { util.printI2cDetails(); }},
 };
 
