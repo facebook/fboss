@@ -1047,9 +1047,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetUserTrap{std::nullopt};
 #endif
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionSetArsObject>
       aclActionSetArsObject{std::nullopt};
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionDisableArsForwarding>
       aclActionDisableArsForwarding{std::nullopt};
 #endif
@@ -1269,6 +1271,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         switch (flowletAction) {
           case cfg::FlowletAction::FORWARD: {
 #if defined(CHENAB_SAI_SDK)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
             auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
             if (arsHandlePtr->ars) {
               aclActionSetArsObject =
@@ -1276,6 +1279,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                       AclEntryActionSaiObjectIdT(
                           arsHandlePtr->ars->adapterKey())};
             }
+#endif
 #else
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
@@ -1288,6 +1292,20 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             break;
         }
       }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      if (matchAction.getEnableAlternateArsMembers().has_value()) {
+        auto alternateMemberArsHandlePtr =
+            managerTable_->arsManager().getAlternateMemberArsHandle();
+        if (alternateMemberArsHandlePtr->ars) {
+          aclActionSetArsObject =
+              SaiAclEntryTraits::Attributes::ActionSetArsObject{
+                  AclEntryActionSaiObjectIdT(
+                      alternateMemberArsHandlePtr->ars->adapterKey())};
+        }
+        aclActionL3SwitchCancel =
+            SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
+      }
+#endif
     }
 #endif
   }
@@ -1340,11 +1358,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        || aclActionSetUserTrap.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-       || aclActionSetArsObject.has_value() ||
-       aclActionDisableArsForwarding.has_value()
+       || aclActionDisableArsForwarding.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-       || aclActionSetEcmpHashAlgorithm.has_value()
+       || aclActionSetArsObject.has_value() ||
+       aclActionSetEcmpHashAlgorithm.has_value() ||
+       aclActionL3SwitchCancel.has_value()
 #endif
       );
 
@@ -1413,8 +1432,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if !defined(TAJO_SDK)
       aclActionSetUserTrap,
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetArsObject,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       aclActionDisableArsForwarding,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)

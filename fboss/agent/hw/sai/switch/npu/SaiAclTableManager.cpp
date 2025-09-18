@@ -121,9 +121,9 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
-      if (isChenab) {
-        actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT);
-      }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT);
+#endif
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING);
     }
 #endif

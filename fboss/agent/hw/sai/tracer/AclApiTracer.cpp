@@ -146,8 +146,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
 #if !defined(TAJO_SDK)
     SAI_ATTR_MAP(AclEntry, ActionSetUserTrap),
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     SAI_ATTR_MAP(AclEntry, ActionSetArsObject),
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     SAI_ATTR_MAP(AclEntry, ActionDisableArsForwarding),
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)

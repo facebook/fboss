@@ -532,12 +532,14 @@ struct SaiAclEntryTraits {
         SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID,
         AclEntryActionSaiObjectIdT>;
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     using ActionSetArsObject = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_SET_ARS_OBJECT,
         AclEntryActionSaiObjectIdT,
         SaiAclEntryActionSaiObjectDefault>;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     using ActionDisableArsForwarding = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING,
@@ -618,9 +620,12 @@ struct SaiAclEntryTraits {
       ,
       std::optional<Attributes::ActionSetUserTrap>
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::ActionSetArsObject>
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       ,
-      std::optional<Attributes::ActionSetArsObject>,
       std::optional<Attributes::ActionDisableArsForwarding>
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -685,8 +690,10 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionMacsecFlow);
 #if !defined(TAJO_SDK)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetUserTrap);
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetArsObject);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
