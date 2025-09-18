@@ -155,6 +155,13 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
 #endif
 };
 
+void handleExtensionAttributes() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
+    defined(BRCM_SAI_SDK_XGS)
+  SAI_EXT_ATTR_MAP(AclEntry, ActionL3SwitchCancel);
+#endif
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -231,6 +238,7 @@ sai_status_t wrap_get_acl_range_attribute(
 sai_acl_api_t* wrappedAclApi() {
   static sai_acl_api_t aclWrappers;
 
+  handleExtensionAttributes();
   aclWrappers.create_acl_table = &wrap_create_acl_table;
   aclWrappers.remove_acl_table = &wrap_remove_acl_table;
   aclWrappers.set_acl_table_attribute = &wrap_set_acl_table_attribute;

@@ -551,6 +551,13 @@ struct SaiAclEntryTraits {
         AclEntryActionU32,
         StdNullOptDefault<AclEntryActionU32>>;
 #endif
+    struct AttributeActionL3SwitchCancel {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ActionL3SwitchCancel = SaiExtensionAttribute<
+        AclEntryActionBool,
+        AttributeActionL3SwitchCancel,
+        SaiAclEntryActionBoolFalse>;
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -618,9 +625,11 @@ struct SaiAclEntryTraits {
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      std::optional<Attributes::ActionSetEcmpHashAlgorithm>
-#endif
+      std::optional<Attributes::ActionSetEcmpHashAlgorithm>,
+      std::optional<Attributes::ActionL3SwitchCancel>>;
+#else
       >;
+#endif
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
@@ -682,6 +691,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetEcmpHashAlgorithm);
+SAI_ATTRIBUTE_NAME(AclEntry, ActionL3SwitchCancel);
 #endif
 
 struct SaiAclCounterTraits {

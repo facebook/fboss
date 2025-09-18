@@ -1041,6 +1041,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm>
       aclActionSetEcmpHashAlgorithm{std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::ActionL3SwitchCancel>
+      aclActionL3SwitchCancel{std::nullopt};
 #endif
 
   auto action = addedAclEntry->getAclAction();
@@ -1402,6 +1404,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetEcmpHashAlgorithm,
+      aclActionL3SwitchCancel,
 #endif
   };
 
