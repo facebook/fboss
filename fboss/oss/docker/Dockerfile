@@ -30,7 +30,7 @@ RUN python3 -m pip install gitpython
 RUN python3 -m pip install meson
 RUN python3 -m pip install jinja2
 RUN dnf install gperf libcap-devel libmount-devel -y
-RUN dnf install gcc-toolset-12 -y
+RUN dnf install gcc-toolset-12 gcc-toolset-12-libasan-devel gcc-toolset-12-libubsan-devel -y
 RUN echo "source /opt/rh/gcc-toolset-12/enable" >> ~/.bashrc
 
 RUN rm -rf /var/FBOSS/fboss/*
