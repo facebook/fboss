@@ -21,6 +21,15 @@ namespace facebook::fboss {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
+  std::optional<SaiArsTraits::Attributes::AlternatePathCost>
+      alternatePathCostForArs = std::nullopt;
+  std::optional<SaiArsTraits::Attributes::AlternatePathBias>
+      alternatePathBiasForArs = std::nullopt;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  // Need to set default values as these attributes are part of host adapter key
+  alternatePathCostForArs = SaiArsTraits::Attributes::AlternatePathCost{0};
+  alternatePathBiasForArs = SaiArsTraits::Attributes::AlternatePathBias{0};
+#endif
   SaiArsTraits::CreateAttributes attributes{
       SaiArsTraits::Attributes::Mode{
           cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
@@ -29,10 +38,13 @@ void SaiArsManager::addArs(
       SaiArsTraits::Attributes::MaxFlows{
           flowletSwitchConfig->getFlowletTableSize()},
       std::nullopt, // PrimaryPathQualityThreshold
-      std::nullopt, // AlternatePathCost
-      std::nullopt}; // AlternatePathBias
+      alternatePathCostForArs,
+      alternatePathBiasForArs};
+
+  auto hostKey = getAdapterHostKey(attributes);
+
   auto& store = saiStore_->get<SaiArsTraits>();
-  arsHandle_->ars = store.setObject(std::monostate{}, attributes);
+  arsHandle_->ars = store.setObject(hostKey, attributes);
 }
 
 // Use custom attribute SAI_SWITCH_ATTR_ARS_AVAILABLE_FLOWS to query remaining

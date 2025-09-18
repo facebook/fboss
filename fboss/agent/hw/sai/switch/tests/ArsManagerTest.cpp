@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/types.h"
@@ -44,6 +45,9 @@ TEST_F(ArsManagerTest, testArsManager) {
   newFsc->setSwitchingMode(cfg::SwitchingMode::PER_PACKET_QUALITY);
   // verify ars config change
   saiManagerTable->arsManager().changeArs(oldFsc, newFsc);
+  // Get the new ARS ID after changeArs since it creates a new ARS object
+  arsHandle = saiManagerTable->arsManager().getArsHandle();
+  arsSaiId = arsHandle->ars->adapterKey();
   mode = saiApiTable->arsApi().getAttribute(
       arsSaiId, SaiArsTraits::Attributes::Mode{});
   EXPECT_EQ(mode, SAI_ARS_MODE_PER_PACKET_QUALITY);

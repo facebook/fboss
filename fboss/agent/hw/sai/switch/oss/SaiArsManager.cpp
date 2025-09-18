@@ -30,10 +30,13 @@ void SaiArsManager::addArs(
       SaiArsTraits::Attributes::MaxFlows{
           flowletSwitchConfig->getFlowletTableSize()},
       std::nullopt, // PrimaryPathQualityThreshold
-      std::nullopt, // AlternatePathCost
-      std::nullopt}; // AlternatePathBias
+      SaiArsTraits::Attributes::AlternatePathCost{0},
+      SaiArsTraits::Attributes::AlternatePathBias{0}};
+
+  auto hostKey = getAdapterHostKey(attributes);
+
   auto& store = saiStore_->get<SaiArsTraits>();
-  arsHandle_->ars = store.setObject(std::monostate{}, attributes);
+  arsHandle_->ars = store.setObject(hostKey, attributes);
 }
 
 bool SaiArsManager::isFlowsetTableFull(const ArsSaiId& /* unused */) {

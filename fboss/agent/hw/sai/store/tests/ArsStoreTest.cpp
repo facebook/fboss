@@ -25,13 +25,30 @@ class ArsStoreTest : public SaiStoreTest {
       sai_uint32_t alternatePathCost,
       sai_uint32_t alternatePathBias) {
     return saiApiTable->arsApi().create<SaiArsTraits>(
-        {SaiArsTraits::Attributes::Mode{SAI_ARS_MODE_FLOWLET_QUALITY},
-         SaiArsTraits::Attributes::IdleTime{idleTime},
-         SaiArsTraits::Attributes::MaxFlows{maxFlows},
-         primaryPathQualityThreshold,
-         alternatePathCost,
-         alternatePathBias},
+        getArsAttributes(
+            idleTime,
+            maxFlows,
+            primaryPathQualityThreshold,
+            alternatePathCost,
+            alternatePathBias),
         0);
+  }
+
+ protected:
+  SaiArsTraits::CreateAttributes getArsAttributes(
+      sai_uint32_t idleTime,
+      sai_uint32_t maxFlows,
+      sai_uint32_t primaryPathQualityThreshold,
+      sai_uint32_t alternatePathCost,
+      sai_uint32_t alternatePathBias) {
+    return SaiArsTraits::CreateAttributes{
+        SaiArsTraits::Attributes::Mode{SAI_ARS_MODE_FLOWLET_QUALITY},
+        SaiArsTraits::Attributes::IdleTime{idleTime},
+        SaiArsTraits::Attributes::MaxFlows{maxFlows},
+        SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
+            primaryPathQualityThreshold},
+        SaiArsTraits::Attributes::AlternatePathCost{alternatePathCost},
+        SaiArsTraits::Attributes::AlternatePathBias{alternatePathBias}};
   }
 };
 
@@ -42,7 +59,9 @@ TEST_F(ArsStoreTest, loadArs) {
   s.reload();
   auto& store = s.get<SaiArsTraits>();
 
-  auto got = store.get(std::monostate{});
+  auto attributes = getArsAttributes(20000, 2000, 100, 200, 50);
+  auto hostKey = getAdapterHostKey(attributes);
+  auto got = store.get(hostKey);
   EXPECT_EQ(got->adapterKey(), arsSaiId1);
 }
 
@@ -63,10 +82,11 @@ TEST_F(ArsStoreTest, arsCreateCtor) {
       SaiArsTraits::Attributes::Mode{SAI_ARS_MODE_FLOWLET_QUALITY},
       SaiArsTraits::Attributes::IdleTime{40000},
       SaiArsTraits::Attributes::MaxFlows{4000},
-      150, // Primary path quality threshold
-      300, // Alternate path cost
-      75}; // Alternate path bias
-  auto obj = createObj<SaiArsTraits>(std::monostate{}, c, 0);
+      SaiArsTraits::Attributes::PrimaryPathQualityThreshold{150},
+      SaiArsTraits::Attributes::AlternatePathCost{300},
+      SaiArsTraits::Attributes::AlternatePathBias{75}};
+  auto hostKey = getAdapterHostKey(c);
+  auto obj = createObj<SaiArsTraits>(hostKey, c, 0);
   EXPECT_EQ(GET_OPT_ATTR(Ars, IdleTime, obj.attributes()), 40000);
   EXPECT_EQ(GET_OPT_ATTR(Ars, MaxFlows, obj.attributes()), 4000);
   EXPECT_EQ(

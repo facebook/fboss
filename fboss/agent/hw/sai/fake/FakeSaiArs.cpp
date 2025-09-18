@@ -116,16 +116,25 @@ sai_status_t get_ars_attribute_fn(
       case SAI_ARS_ATTR_PRIMARY_PATH_QUALITY_THRESHOLD:
         if (ars.primary_path_quality_threshold) {
           attr_list[i].value.u32 = ars.primary_path_quality_threshold.value();
+        } else {
+          attr_list[i].value.u32 =
+              0; // Default value for unset optional attribute
         }
         break;
       case SAI_ARS_ATTR_ALTERNATE_PATH_COST:
         if (ars.alternate_path_cost) {
           attr_list[i].value.u32 = ars.alternate_path_cost.value();
+        } else {
+          attr_list[i].value.u32 =
+              0; // Default value for unset optional attribute
         }
         break;
       case SAI_ARS_ATTR_ALTERNATE_PATH_BIAS:
         if (ars.alternate_path_bias) {
           attr_list[i].value.u32 = ars.alternate_path_bias.value();
+        } else {
+          attr_list[i].value.u32 =
+              0; // Default value for unset optional attribute
         }
         break;
       default:
