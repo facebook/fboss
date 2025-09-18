@@ -142,4 +142,30 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addMaxScaleRoutesOverEcmpLimit) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchEcmpCompressionTest, addRemoveMaxScaleRoutes) {
+  auto setup = [&]() {
+    std::vector<RoutePrefixV6> prefixes;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhops;
+    for (auto i = numStartRoutes(); i < maxRoutes(); ++i) {
+      prefixes.emplace_back(makePrefix(i));
+      nhops.emplace_back(getNextHops(i));
+    }
+    auto routeUpdater = getSw()->getRouteUpdater();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    ecmpHelper.programRoutes(&routeUpdater, nhops, prefixes);
+    XLOG(DBG2) << " Removing routes over max scale";
+    ecmpHelper.unprogramRoutes(&routeUpdater, prefixes);
+  };
+  auto verify = [this]() {
+    auto resourceMgr = ecmpResourceManager();
+    auto mergedGids = resourceMgr->getMergedGids();
+    EXPECT_EQ(mergedGids.size(), 0);
+    assertNumRoutesWithNhopOverrides(getProgrammedState(), 0);
+    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
