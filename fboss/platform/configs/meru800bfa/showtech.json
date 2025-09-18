@@ -9,5 +9,6 @@
     "/run/devmap/sensors/PSU4_PMBUS"
   ],
   "gpios": [],
-  "pems": []
+  "pems": [],
+  "fanspinners": []
 }
