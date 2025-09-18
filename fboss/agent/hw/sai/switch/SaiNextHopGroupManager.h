@@ -210,6 +210,7 @@ struct SaiNextHopGroupHandle {
   uint32_t maxVariableWidthEcmpSize;
   std::optional<cfg::SwitchingMode> desiredArsMode_;
   SaiStore* saiStore_;
+  uint32_t arsClassId{0};
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -260,6 +261,9 @@ class SaiNextHopGroupManager {
 
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
+
+  uint32_t getNextHopGroupArsClassId(
+      const std::shared_ptr<SaiNextHopGroupHandle>& handle);
 
  private:
   bool isFixedWidthNextHopGroup(
