@@ -95,6 +95,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
   using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
+  using GroupIds2ConsolidationInfoCItr =
+      GroupIds2ConsolidationInfo::const_iterator;
   NextHopGroupIds getUnMergedGids() const;
   NextHopGroupIds getMergedGids() const;
   std::vector<NextHopGroupIds> getMergedGroups() const;
@@ -115,6 +117,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   /* Test helper API end */
 
  private:
+  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
+      const RouteNextHopSet& mergedNhops);
   GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
       const NextHopGroupId newMemberGroup,
       const RouteNextHopSet& mergedNhops);
@@ -315,6 +319,8 @@ class NextHopGroupInfo {
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
   using GroupIds2ConsolidationInfoItr =
       EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
+  using GroupIds2ConsolidationInfoCItr =
+      EcmpResourceManager::GroupIds2ConsolidationInfo::const_iterator;
   NextHopGroupInfo(
       NextHopGroupId id,
       NextHopGroupItr ngItr,

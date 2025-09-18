@@ -1086,7 +1086,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
   if (!preUpdateState_.has_value()) {
     preUpdateState_ = PreUpdateState();
   }
-  // Clear state which needs to be resored from given state
+  // Clear state which needs to be restored from given state
   nextHopGroup2Id_.clear();
   mergedGroups_.clear();
   prefixToGroupInfo_.clear();
@@ -1309,6 +1309,15 @@ void EcmpResourceManager::routeAddedOrUpdated(
   }
 }
 
+std::optional<EcmpResourceManager::GroupIds2ConsolidationInfoItr>
+EcmpResourceManager::getMergeGroupItr(const RouteNextHopSet& mergedNhops) {
+  for (auto mitr = mergedGroups_.begin(); mitr != mergedGroups_.end(); ++mitr) {
+    if (mitr->second.mergedNhops == mergedNhops) {
+      return mitr;
+    }
+  }
+  return std::nullopt;
+}
 /*
  * When restoring from switch state (e.g. warm boot). We may
  * encounter prefixes that already have override nhops. This implies
@@ -1340,20 +1349,17 @@ EcmpResourceManager::GroupIds2ConsolidationInfoItr
 EcmpResourceManager::fixAndGetMergeGroupItr(
     const NextHopGroupId newMemberGroupId,
     const RouteNextHopSet& mergedNhops) {
-  auto mitr = mergedGroups_.begin();
-  for (; mitr != mergedGroups_.end(); ++mitr) {
-    if (mitr->second.mergedNhops == mergedNhops) {
-      CHECK(!mitr->first.contains(newMemberGroupId));
-      break;
-    }
-  }
-  if (mitr == mergedGroups_.end()) {
+  auto existingMitr = getMergeGroupItr(mergedNhops);
+  GroupIds2ConsolidationInfoItr mitr;
+  if (!existingMitr) {
     XLOG(DBG2) << " Group ID : " << newMemberGroupId
                << " merged nhops not found, creating new merged group entry";
     ConsolidationInfo info{mergedNhops, {}};
     std::tie(mitr, std::ignore) =
         mergedGroups_.insert({{newMemberGroupId}, std::move(info)});
   } else {
+    mitr = *existingMitr;
+    CHECK(!mitr->first.contains(newMemberGroupId));
     NextHopGroupIds newMergeSet = mitr->first;
     XLOG(DBG2) << " Group ID : " << newMemberGroupId
                << " found existing merged nhops, merging with: " << mitr->first;
