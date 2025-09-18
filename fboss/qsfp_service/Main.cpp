@@ -60,9 +60,9 @@ int main(int argc, char** argv) {
   // before we try to retrieve stats for it
   publisher.init();
   scheduler->addFunction(
-      [&publisher, server = server]() {
+      [&publisher, thriftServer = server]() {
         publisher.publishStats(
-            server->getEventBaseManager()->getEventBase(),
+            thriftServer->getEventBaseManager()->getEventBase(),
             FLAGS_stats_publish_interval);
       },
       std::chrono::seconds(FLAGS_stats_publish_interval),
