@@ -32,6 +32,16 @@
 #include <cstdint>
 #include <memory>
 
+extern "C" {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiaclextensions.h>
+#else
+#include <saiaclextensions.h>
+#endif
+#endif
+}
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -413,6 +423,11 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         break;
       case cfg::AclTableActionType::DISABLE_ARS_FORWARDING:
         saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
+        break;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+      case cfg::AclTableActionType::L3_SWITCH_CANCEL:
+        saiActionType = SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL;
         break;
 #endif
       default:
