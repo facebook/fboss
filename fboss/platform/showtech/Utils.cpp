@@ -251,6 +251,22 @@ void Utils::printFanDetails() {
   }
 }
 
+void Utils::printFanspinnerDetails() {
+  std::cout << "##### Fanspinner Information #####" << std::endl;
+  if (config_.fanspinners()->empty()) {
+    std::cout << "No fanspinner found from configs\n" << std::endl;
+    return;
+  }
+  for (const auto& fs : *config_.fanspinners()) {
+    std::cout << fmt::format("#### Fanspinner Details {} ####", *fs.path())
+              << std::endl;
+    for (const auto& attr : *fs.sysfsAttributes()) {
+      printSysfsAttribute(*attr.name(), *attr.path());
+    }
+  }
+  std::cout << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
