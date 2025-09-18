@@ -81,9 +81,6 @@ void SaiArsManager::addArs(
   }
 }
 
-bool SaiArsManager::isFlowsetTableFull(const ArsSaiId& /* unused */) {
-  return false;
-}
 #endif
 
 } // namespace facebook::fboss

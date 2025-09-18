@@ -52,7 +52,6 @@ class SaiArsManager {
   SaiArsHandle* getArsHandle() const;
   SaiArsHandle* getAlternateMemberArsHandle() const;
   sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) const;
-  bool isFlowsetTableFull(const ArsSaiId& arsSaiId);
 #endif
 
  private:

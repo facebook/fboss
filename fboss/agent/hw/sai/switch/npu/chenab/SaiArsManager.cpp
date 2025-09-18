@@ -37,9 +37,6 @@ void SaiArsManager::addArs(
   arsHandle_->ars = store.setObject(hostKey, attributes);
 }
 
-bool SaiArsManager::isFlowsetTableFull(const ArsSaiId& /* unused */) {
-  return false;
-}
 #endif
 
 } // namespace facebook::fboss

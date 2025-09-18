@@ -96,10 +96,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
       if (arsHandlePtr->ars) {
         auto arsSaiId = arsHandlePtr->ars->adapterKey();
-        if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
-          arsObjectId =
-              SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
-        }
+        arsObjectId = SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
       }
 #endif
     } else {
@@ -299,10 +296,8 @@ void SaiNextHopGroupManager::updateArsModeAll(
     }
 
     if (newFlowletConfig) {
-      if (!managerTable_->arsManager().isFlowsetTableFull(arsSaiId)) {
-        handlePtr->nextHopGroup->setOptionalAttribute(
-            SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId});
-      }
+      handlePtr->nextHopGroup->setOptionalAttribute(
+          SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId});
     } else {
       // flowlet config removal scenario
       handlePtr->nextHopGroup->setOptionalAttribute(
