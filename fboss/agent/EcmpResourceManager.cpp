@@ -1219,7 +1219,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
       if (auto overrideNhops =
               newRoute->getForwardInfo().getOverrideNextHops()) {
         auto numMergeGroupsBefore = mergedGroups_.size();
-        mergeGrpItr = fixAndGetMergeGroupItr(idItr->second, *overrideNhops);
+        mergeGrpItr =
+            fixAndGetMergeGroupItr(idItr->second, *overrideNhops, std::nullopt);
         CHECK(
             mergedGroups_.size() == numMergeGroupsBefore ||
             mergedGroups_.size() == numMergeGroupsBefore + 1);
@@ -1348,8 +1349,9 @@ EcmpResourceManager::getMergeGroupItr(const RouteNextHopSet& mergedNhops) {
 EcmpResourceManager::GroupIds2ConsolidationInfoItr
 EcmpResourceManager::fixAndGetMergeGroupItr(
     const NextHopGroupId newMemberGroupId,
-    const RouteNextHopSet& mergedNhops) {
-  auto existingMitr = getMergeGroupItr(mergedNhops);
+    const RouteNextHopSet& mergedNhops,
+    std::optional<GroupIds2ConsolidationInfoItr> existingMitr) {
+  existingMitr = existingMitr ? existingMitr : getMergeGroupItr(mergedNhops);
   GroupIds2ConsolidationInfoItr mitr;
   if (!existingMitr) {
     XLOG(DBG2) << " Group ID : " << newMemberGroupId
