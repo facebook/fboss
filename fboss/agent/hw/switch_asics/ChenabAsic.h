@@ -64,9 +64,8 @@ class ChenabAsic : public HwAsic {
       const override;
   std::optional<uint32_t> getMaxEcmpGroups() const override;
   std::optional<uint32_t> getMaxEcmpMembers() const override;
-  std::optional<uint32_t> getMaxDlbEcmpGroups() const override;
   uint32_t getThresholdGranularity() const override;
-  uint32_t getMaxArsGroups() const override;
+  std::optional<uint32_t> getMaxArsGroups() const override;
   std::optional<uint32_t> getArsBaseIndex() const override;
 
   virtual std::optional<uint32_t> getMaxAclTables() const override {

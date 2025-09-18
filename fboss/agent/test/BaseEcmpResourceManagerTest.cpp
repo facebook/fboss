@@ -243,7 +243,7 @@ void BaseEcmpResourceManagerTest::SetUp() {
   auto asic = *sw_->getHwAsicTable()->getL3Asics().begin();
   int asicMaxEcmpGroups, maxPct;
   if (getBackupEcmpSwitchingMode()) {
-    asicMaxEcmpGroups = *asic->getMaxDlbEcmpGroups();
+    asicMaxEcmpGroups = *asic->getMaxArsGroups();
     maxPct = FLAGS_ars_resource_percentage;
   } else {
     asicMaxEcmpGroups = *asic->getMaxEcmpGroups();

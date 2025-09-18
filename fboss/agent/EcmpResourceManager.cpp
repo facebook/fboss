@@ -1906,9 +1906,8 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const HwAsic* asic,
     const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter) {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager = nullptr;
-  auto maxEcmpGroups = FLAGS_flowletSwitchingEnable
-      ? asic->getMaxDlbEcmpGroups()
-      : asic->getMaxEcmpGroups();
+  auto maxEcmpGroups = FLAGS_flowletSwitchingEnable ? asic->getMaxArsGroups()
+                                                    : asic->getMaxEcmpGroups();
   std::optional<cfg::SwitchingMode> switchingMode;
   std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
   if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {

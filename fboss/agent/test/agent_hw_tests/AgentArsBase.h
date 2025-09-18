@@ -85,7 +85,7 @@ class AgentArsBase : public AgentHwTest {
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
       cfg::SwitchingMode switchingMode) const;
-  uint32_t getMaxDlbEcmpGroups() const;
+  uint32_t getMaxArsGroups() const;
   bool isChenab(const AgentEnsemble& ensemble) const;
 
  protected:

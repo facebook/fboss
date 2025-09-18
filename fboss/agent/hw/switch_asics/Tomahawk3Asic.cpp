@@ -247,8 +247,13 @@ int Tomahawk3Asic::getDefaultNumPortQueues(
       " combination");
 }
 
-uint32_t Tomahawk3Asic::getMaxArsGroups() const {
-  return 128;
+std::optional<uint32_t> Tomahawk3Asic::getMaxArsGroups() const {
+  if (FLAGS_use_full_dlb_scale) {
+    return 128;
+  } else {
+    // CS00012344837, CS00012328553
+    return 64;
+  }
 }
 
 std::optional<uint32_t> Tomahawk3Asic::getArsBaseIndex() const {

@@ -78,14 +78,6 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 64000;
   }
-  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
-    if (FLAGS_use_full_dlb_scale) {
-      return 128;
-    } else {
-      // CS00012344837, CS00012328553
-      return 64;
-    }
-  }
   uint32_t getStaticQueueLimitBytes() const override {
     // Per ITM buffers limits the queue size
     return getMMUSizeBytes() / 2;
@@ -108,7 +100,7 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
   std::optional<uint32_t> getMaxArpTableSize() const override {
     return 16384;
   }
-  uint32_t getMaxArsGroups() const override;
+  std::optional<uint32_t> getMaxArsGroups() const override;
   std::optional<uint32_t> getArsBaseIndex() const override;
 };
 

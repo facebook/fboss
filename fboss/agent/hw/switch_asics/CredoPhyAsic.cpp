@@ -107,8 +107,8 @@ int CredoPhyAsic::getMidPriCpuQueueId() const {
 int CredoPhyAsic::getHiPriCpuQueueId() const {
   throw FbossError("Credo ASIC does not support cpu queue");
 }
-uint32_t CredoPhyAsic::getMaxArsGroups() const {
-  return 0;
+std::optional<uint32_t> CredoPhyAsic::getMaxArsGroups() const {
+  return std::nullopt;
 }
 
 std::optional<uint32_t> CredoPhyAsic::getArsBaseIndex() const {

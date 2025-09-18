@@ -61,11 +61,7 @@ class HwArsTest : public HwLinkStateDependentTest {
   }
 
   int kMaxDlbGroups() {
-    return getHwSwitch()
-        ->getPlatform()
-        ->getAsic()
-        ->getMaxDlbEcmpGroups()
-        .value();
+    return getHwSwitch()->getPlatform()->getAsic()->getMaxArsGroups().value();
   }
 
   // native BCM has access to BRCM IDs >=200128 cannot be configured as DLB

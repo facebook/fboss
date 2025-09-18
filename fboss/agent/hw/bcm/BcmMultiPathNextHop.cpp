@@ -271,7 +271,7 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
     return;
   }
   auto maxDlbGroups =
-      getBcmSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups();
+      getBcmSwitch()->getPlatform()->getAsic()->getMaxArsGroups();
   CHECK(maxDlbGroups.has_value());
   bool dlbExhausted = false;
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {

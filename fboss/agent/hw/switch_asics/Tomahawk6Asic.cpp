@@ -257,7 +257,8 @@ Tomahawk6Asic::desiredLoopbackModes() const {
   return kLoopbackMode;
 }
 
-uint32_t Tomahawk6Asic::getMaxArsGroups() const {
+std::optional<uint32_t> Tomahawk6Asic::getMaxArsGroups() const {
+  // TODO: old TH4 number, update if necessary
   return 128;
 }
 

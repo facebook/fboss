@@ -62,11 +62,10 @@ class ResourceAccountantTest : public ::testing::Test {
     return maxEcmpMembers.value();
   }
 
-  uint64_t getMaxDlbEcmpGroups() {
-    auto maxDlbEcmpGroups =
-        asicTable_->getHwAsic(SwitchID(0))->getMaxDlbEcmpGroups();
-    CHECK(maxDlbEcmpGroups.has_value());
-    return maxDlbEcmpGroups.value();
+  uint64_t getMaxArsGroups() {
+    auto maxArsGroups = asicTable_->getHwAsic(SwitchID(0))->getMaxArsGroups();
+    CHECK(maxArsGroups.has_value());
+    return maxArsGroups.value();
   }
 
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
@@ -130,8 +129,8 @@ TEST_F(ResourceAccountantTest, checkArsResource) {
   };
   int i = 0;
   std::vector<RouteNextHopSet> ecmpNexthopsList;
-  ecmpNexthopsList.reserve(getMaxDlbEcmpGroups());
-  for (i = 0; i < getMaxDlbEcmpGroups() - 2; i++) {
+  ecmpNexthopsList.reserve(getMaxArsGroups());
+  for (i = 0; i < getMaxArsGroups() - 2; i++) {
     addEcmp(i, ecmpNexthopsList);
   }
   for (const auto& nhopSet : ecmpNexthopsList) {
@@ -648,7 +647,7 @@ TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
   int i = 0;
   std::vector<std::shared_ptr<Route<folly::IPAddressV6>>> routes;
   // add upto limit of DLB groups
-  for (i = 0; i < getMaxDlbEcmpGroups(); i++) {
+  for (i = 0; i < getMaxArsGroups(); i++) {
     addRoute(i, routes, std::nullopt);
     EXPECT_TRUE(this->resourceAccountant_
                     ->checkAndUpdateArsEcmpResource<folly::IPAddressV6>(

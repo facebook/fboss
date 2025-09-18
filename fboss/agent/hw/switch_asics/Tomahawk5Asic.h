@@ -96,9 +96,6 @@ class Tomahawk5Asic : public BroadcomXgsAsic {
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 64000;
   }
-  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
-    return 128;
-  }
   uint32_t getStaticQueueLimitBytes() const override {
     // TODO: update numbers if necessary
     return getMMUSizeBytes() / 2;
@@ -107,7 +104,7 @@ class Tomahawk5Asic : public BroadcomXgsAsic {
     // TODO: update numbers if necessary
     return 2;
   }
-  uint32_t getMaxArsGroups() const override;
+  std::optional<uint32_t> getMaxArsGroups() const override;
   std::optional<uint32_t> getArsBaseIndex() const override;
 };
 

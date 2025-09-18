@@ -148,9 +148,6 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 512;
   }
-  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
-    return 7;
-  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8;
   }
@@ -228,8 +225,8 @@ class MockAsic : public HwAsic {
   int getHiPriCpuQueueId() const override {
     throw FbossError("Mock ASIC does not support cpu queue");
   }
-  uint32_t getMaxArsGroups() const override {
-    return 128;
+  std::optional<uint32_t> getMaxArsGroups() const override {
+    return 7;
   }
   std::optional<uint32_t> getArsBaseIndex() const override {
     return std::nullopt;

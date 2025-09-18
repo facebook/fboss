@@ -431,9 +431,6 @@ std::optional<uint32_t> ChenabAsic::getMaxEcmpGroups() const {
 std::optional<uint32_t> ChenabAsic::getMaxEcmpMembers() const {
   return 32000;
 }
-std::optional<uint32_t> ChenabAsic::getMaxDlbEcmpGroups() const {
-  return 256;
-}
 uint32_t ChenabAsic::getNumCores() const {
   return 1;
 }
@@ -470,7 +467,7 @@ std::vector<prbs::PrbsPolynomial> ChenabAsic::getSupportedPrbsPolynomials()
   return {prbs::PrbsPolynomial::PRBS13};
 }
 
-uint32_t ChenabAsic::getMaxArsGroups() const {
+std::optional<uint32_t> ChenabAsic::getMaxArsGroups() const {
   return 256;
 }
 

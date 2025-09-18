@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
+#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 
@@ -266,11 +267,11 @@ Tomahawk5Asic::desiredLoopbackModes() const {
   return kLoopbackMode;
 }
 
-uint32_t Tomahawk5Asic::getMaxArsGroups() const {
-  return 256;
+std::optional<uint32_t> Tomahawk5Asic::getMaxArsGroups() const {
+  return FLAGS_enable_th5_ars_scale_mode ? 256 : 128;
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
-  return getMaxEcmpGroups().value() - getMaxArsGroups();
+  return getMaxEcmpGroups().value() - getMaxArsGroups().value();
 }
 } // namespace facebook::fboss
