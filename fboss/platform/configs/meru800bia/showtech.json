@@ -2,6 +2,12 @@
   "i2cBusIgnore": [
     "SMBus iSMT adapter at 911c1000"
   ],
+  "i2cDumpDevices": [
+    {
+      "path": "/run/devmap/cplds/FAN_CPLD",
+      "isI2cDevice": true
+    }
+  ],
   "psus": [
     "/run/devmap/sensors/PSU1_PMBUS",
     "/run/devmap/sensors/PSU2_PMBUS"

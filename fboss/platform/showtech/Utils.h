@@ -21,6 +21,7 @@ class Utils {
   void printPortDetails();
   void printSensorDetails();
   void printI2cDetails();
+  void printI2cDumpDetails();
   void printPsuDetails();
   void printGpioDetails();
   void printPemDetails();
@@ -33,6 +34,8 @@ class Utils {
   I2cHelper i2cHelper_{};
   void runFbossCliCmd(const std::string& cmd);
   void printSysfsAttribute(const std::string& label, const std::string& path);
+  std::optional<std::tuple<int, int>> getI2cInfoForDevice(
+      const showtech_config::Device& device);
 };
 
 } // namespace facebook::fboss::platform

@@ -6,7 +6,9 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <optional>
 #include <thread>
+#include <tuple>
 
 #include <fmt/core.h>
 #include <re2/re2.h>
@@ -94,7 +96,7 @@ void Utils::printSensorDetails() {
 }
 
 void Utils::printI2cDetails() {
-  std::cout << "##### I2C Information #####" << std::endl;
+  std::cout << "##### I2C Scan Information #####" << std::endl;
   auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
   std::cout << output << std::endl;
 
@@ -109,6 +111,26 @@ void Utils::printI2cDetails() {
     std::cout << fmt::format("##### Running `{}` for {} #####", cmd, busName)
               << std::endl;
     std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+  }
+}
+
+void Utils::printI2cDumpDetails() {
+  std::cout << "##### I2C Dump Information #####" << std::endl;
+  if (config_.i2cDumpDevices()->empty()) {
+    std::cout << "No device to i2cdump found from configs\n" << std::endl;
+    return;
+  }
+
+  for (const auto& device : *config_.i2cDumpDevices()) {
+    std::cout << fmt::format("#### i2cdump for {} ####", *device.path())
+              << std::endl;
+    auto i2cInfo = getI2cInfoForDevice(device);
+    if (i2cInfo) {
+      auto [bus, devAddr] = *i2cInfo;
+      auto cmd = fmt::format("i2cdump -f -y {} {} b", bus, devAddr);
+      std::cout << fmt::format("Running `{}`", cmd) << std::endl;
+      std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+    }
   }
 }
 
@@ -286,6 +308,42 @@ void Utils::printSysfsAttribute(
                      "Error: failed to read sysfs path {}: {}", path, e.what())
               << std::endl;
   }
+}
+
+std::optional<std::tuple<int, int>> Utils::getI2cInfoForDevice(
+    const showtech_config::Device& device) {
+  if (!*device.isI2cDevice()) {
+    return std::nullopt;
+  }
+
+  std::string i2cPath{};
+  try {
+    i2cPath = std::filesystem::read_symlink(*device.path()).string();
+  } catch (const std::filesystem::filesystem_error& ex) {
+    std::cout << fmt::format(
+                     "Error: failed to resolve device symlink {}:{}",
+                     *device.path(),
+                     ex.what())
+              << std::endl;
+    return std::nullopt;
+  }
+
+  int busNum;
+  int deviceAddr;
+  RE2 i2cPattern(R"(/sys/bus/i2c/devices/(\d+)-([0-9a-fA-F]+))");
+
+  if (!RE2::PartialMatch(i2cPath, i2cPattern, &busNum, RE2::Hex(&deviceAddr))) {
+    std::cout << "Error: Could not extract i2c bus and address from path: "
+              << i2cPath << std::endl;
+    return std::nullopt;
+  }
+
+  std::cout << fmt::format(
+                   "Extracted i2c bus: {}, device address: 0x{:04x}",
+                   busNum,
+                   deviceAddr)
+            << std::endl;
+  return std::make_tuple(busNum, deviceAddr);
 }
 
 } // namespace facebook::fboss::platform

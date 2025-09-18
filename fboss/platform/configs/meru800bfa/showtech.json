@@ -2,6 +2,24 @@
   "i2cBusIgnore": [
     "SMBus iSMT adapter at 914c1000"
   ],
+  "i2cDumpDevices": [
+    {
+      "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD",
+      "isI2cDevice": true
+    },
+    {
+      "path": "/run/devmap/cplds/FAN0_CPLD",
+      "isI2cDevice": true
+    },
+    {
+      "path": "/run/devmap/cplds/FAN1_CPLD",
+      "isI2cDevice": true
+    },
+    {
+      "path": "/run/devmap/cplds/FAN2_CPLD",
+      "isI2cDevice": true
+    }
+  ],
   "psus": [
     "/run/devmap/sensors/PSU1_PMBUS",
     "/run/devmap/sensors/PSU2_PMBUS",
