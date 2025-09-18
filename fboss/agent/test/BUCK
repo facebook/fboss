@@ -978,7 +978,6 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-types",
-        "//fboss/agent:fib_helpers",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//fboss/agent/test/utils:ecmp_resource_mgr_test_utils",

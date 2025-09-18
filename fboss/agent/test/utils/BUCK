@@ -626,7 +626,9 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:agent_features",
         "//fboss/agent:ecmp_resource_manager",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent/state:state",
     ],
 )

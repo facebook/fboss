@@ -10,7 +10,6 @@
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
@@ -205,109 +204,7 @@ void BaseEcmpResourceManagerTest::failUpdate(
 
 void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
     const std::vector<StateDelta>& deltas) const {
-  auto primaryEcmpTypeGroups2RefCnt =
-      getPrimaryEcmpTypeGroups2RefCnt(deltas.begin()->oldState());
-  XLOG(DBG2) << " Primary ECMP groups : "
-             << primaryEcmpTypeGroups2RefCnt.size();
-  // ECMP groups should not exceed the limit.
-  EXPECT_LE(
-      primaryEcmpTypeGroups2RefCnt.size(),
-      consolidator_->getMaxPrimaryEcmpGroups());
-  auto routeDeleted = [&primaryEcmpTypeGroups2RefCnt](const auto& oldRoute) {
-    XLOG(DBG2) << " Route deleted: " << oldRoute->str();
-    if (!oldRoute->isResolved() ||
-        oldRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
-      return;
-    }
-    if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
-      return;
-    }
-    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        oldRoute->getForwardInfo().normalizedNextHops());
-    ASSERT_NE(pitr, primaryEcmpTypeGroups2RefCnt.end());
-    EXPECT_GE(pitr->second, 1);
-    --pitr->second;
-    if (pitr->second == 0) {
-      primaryEcmpTypeGroups2RefCnt.erase(pitr);
-      XLOG(DBG2) << " Primary ECMP group count decremented to: "
-                 << primaryEcmpTypeGroups2RefCnt.size()
-                 << " on pfx: " << oldRoute->str();
-    }
-  };
-  auto routeAdded = [&primaryEcmpTypeGroups2RefCnt,
-                     this](const auto& newRoute) {
-    XLOG(DBG2) << " Route added: " << newRoute->str();
-    if (!newRoute->isResolved() ||
-        newRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
-      return;
-    }
-    if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
-      return;
-    }
-    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        newRoute->getForwardInfo().normalizedNextHops());
-    if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
-      ++pitr->second;
-    } else {
-      bool inserted{false};
-      std::tie(pitr, inserted) = primaryEcmpTypeGroups2RefCnt.insert(
-          {newRoute->getForwardInfo().normalizedNextHops(), 1});
-      EXPECT_TRUE(inserted);
-      XLOG(DBG2) << " Primary ECMP group count incremented to: "
-                 << primaryEcmpTypeGroups2RefCnt.size()
-                 << " on pfx: " << newRoute->str();
-    }
-    // Transiently we can exceed consolidator maxPrimaryEcmpGroups,
-    // but we should never exceed
-    // maxPrimaryEcmpGroups +
-    // FLAGS_ecmp_resource_manager_make_before_break_buffer We deliberately set
-    // consolidator's maxPrimaryEcmpGroups to be Actual limit -
-    // FLAGS_ecmp_resource_manager_make_before_break_buffer
-    EXPECT_LE(
-        primaryEcmpTypeGroups2RefCnt.size(),
-        consolidator_->getMaxPrimaryEcmpGroups() +
-            FLAGS_ecmp_resource_manager_make_before_break_buffer);
-  };
-
-  auto idx = 1;
-  for (const auto& delta : deltas) {
-    XLOG(DBG2) << " Processing delta #" << idx++;
-    forEachChangedRoute<folly::IPAddressV6>(
-        delta,
-        [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
-          if (!oldRoute->isResolved() && !newRoute->isResolved()) {
-            return;
-          }
-          if (oldRoute->isResolved() && !newRoute->isResolved()) {
-            routeDeleted(oldRoute);
-            return;
-          }
-          if (!oldRoute->isResolved() && newRoute->isResolved()) {
-            routeAdded(newRoute);
-            return;
-          }
-          // Both old and new are resolved
-          CHECK(oldRoute->isResolved() && newRoute->isResolved());
-          if (oldRoute->getForwardInfo() != newRoute->getForwardInfo()) {
-            // First process as a add route, since ECMP is make before break
-            routeAdded(newRoute);
-            routeDeleted(oldRoute);
-          }
-        },
-        [=](RouterID /*rid*/, const auto& newRoute) {
-          if (newRoute->isResolved()) {
-            routeAdded(newRoute);
-          }
-        },
-        [=](RouterID /*rid*/, const auto& oldRoute) {
-          if (oldRoute->isResolved()) {
-            routeDeleted(oldRoute);
-          }
-        });
-    EXPECT_LE(
-        primaryEcmpTypeGroups2RefCnt.size(),
-        consolidator_->getMaxPrimaryEcmpGroups());
-  }
+  facebook::fboss::assertDeltasForOverflow(*consolidator_, deltas);
 }
 
 RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {

@@ -9,6 +9,7 @@
  */
 #pragma once
 #include "fboss/agent/EcmpResourceManager.h"
+#include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {
 class SwitchState;
@@ -49,4 +50,8 @@ void assertNumRoutesWithNhopOverrides(
 std::set<RouteV6::Prefix> getPrefixesForGroups(
     const EcmpResourceManager& resourceManager,
     const EcmpResourceManager::NextHopGroupIds& grpIds);
+
+void assertDeltasForOverflow(
+    const EcmpResourceManager& resourceManager,
+    const std::vector<StateDelta>& deltas);
 } // namespace facebook::fboss
