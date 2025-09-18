@@ -3651,6 +3651,10 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto ecmpHashAction = mta.action()->ecmpHashAction()) {
           matchAction.setEcmpHashAction(*ecmpHashAction);
         }
+        if (auto enableAlternateArsMembers =
+                mta.action()->enableAlternateArsMembers()) {
+          matchAction.setEnableAlternateArsMembers(*enableAlternateArsMembers);
+        }
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));

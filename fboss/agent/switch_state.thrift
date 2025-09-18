@@ -196,6 +196,7 @@ struct MatchAction {
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
   11: optional switch_config.FlowletAction flowletAction;
   12: optional switch_config.SetEcmpHashAction ecmpHashAction;
+  13: optional bool enableAlternateArsMembers;
 }
 
 struct AclEntryFields {
