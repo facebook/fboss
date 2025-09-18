@@ -57,6 +57,11 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       ? std::optional<SaiArsProfileTraits::Attributes::ArsBaseIndex>(
             platform_->getAsic()->getArsBaseIndex().value())
       : std::nullopt;
+
+  std::optional<
+      SaiArsProfileTraits::Attributes::ArsAlternateMembersRouteMetaData>
+      arsAlternateMembersRouteMetaData = static_cast<sai_uint32_t>(
+          cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS);
 #else
   if (samplingInterval >= kArsMinSamplingRateNs) {
     // convert nanosec to microsec
@@ -85,7 +90,8 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
       ,
       arsMaxGroups,
-      arsBaseIndex};
+      arsBaseIndex,
+      arsAlternateMembersRouteMetaData};
 #else
   };
 #endif

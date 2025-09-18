@@ -39,6 +39,7 @@ sai_status_t create_ars_profile_fn(
   sai_uint32_t quant_band_2_min_threshold = 0;
   sai_uint32_t ars_max_groups = 0;
   sai_uint32_t ars_base_index = 0;
+  sai_uint32_t ars_alternate_members_route_meta_data = 0;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_PROFILE_ATTR_ALGO:
@@ -107,6 +108,9 @@ sai_status_t create_ars_profile_fn(
       case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX:
         ars_base_index = attr_list[i].value.u32;
         break;
+      case SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA:
+        ars_alternate_members_route_meta_data = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -133,7 +137,8 @@ sai_status_t create_ars_profile_fn(
       quant_band_1_min_threshold,
       quant_band_2_min_threshold,
       ars_max_groups,
-      ars_base_index);
+      ars_base_index,
+      ars_alternate_members_route_meta_data);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -215,6 +220,9 @@ sai_status_t set_ars_profile_attribute_fn(
       break;
     case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX:
       arsProfile.ars_base_index = attr->value.u32;
+      break;
+    case SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA:
+      arsProfile.ars_alternate_members_route_meta_data = attr->value.u32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -298,6 +306,9 @@ sai_status_t get_ars_profile_attribute_fn(
         break;
       case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX:
         attr[i].value.u32 = arsProfile.ars_base_index;
+        break;
+      case SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA:
+        attr[i].value.u32 = arsProfile.ars_alternate_members_route_meta_data;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

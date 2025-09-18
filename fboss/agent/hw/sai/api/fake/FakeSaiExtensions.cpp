@@ -936,6 +936,11 @@ SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS;
 }
 
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeArsAlternateMembersRouteMetaData::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA;
+}
+
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;

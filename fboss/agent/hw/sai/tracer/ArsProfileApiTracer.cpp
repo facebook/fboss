@@ -52,6 +52,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(ArsProfile, ExtensionSamplingIntervalNanosec)
   SAI_EXT_ATTR_MAP(ArsProfile, ArsMaxGroups);
   SAI_EXT_ATTR_MAP(ArsProfile, ArsBaseIndex);
+  SAI_EXT_ATTR_MAP(ArsProfile, ArsAlternateMembersRouteMetaData);
 #endif
 }
 
