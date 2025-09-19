@@ -1555,9 +1555,8 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUp() {
       verifyUngracefulQsfpDownUpForRemoteSdsws();
 }
 
-bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
-  XLOG(DBG2) << __func__;
-
+bool MultiNodeUtil::verifyFsdbDownUpForRemoteRdswsHelper(
+    bool triggerGraceFulRestart) {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
@@ -1568,7 +1567,10 @@ bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
       if (rdsw == myHostname) { // exclude self
         continue;
       }
-      triggerGracefulFsdbRestart(rdsw);
+
+      // Trigger graceful or ungraceful FSDB restart
+      triggerGraceFulRestart ? triggerGracefulFsdbRestart(rdsw)
+                             : triggerUngracefulFsdbRestart(rdsw);
 
       // Wait for FSDB to come up
       if (!verifyFsdbIsUp(rdsw)) {
@@ -1596,6 +1598,12 @@ bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
   }
 
   return true;
+}
+
+bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
+  XLOG(DBG2) << __func__;
+  return verifyFsdbDownUpForRemoteRdswsHelper(
+      true /* triggerGracefulFsdbRestart */);
 }
 
 bool MultiNodeUtil::verifyUngracefulFsdbDownUp() {

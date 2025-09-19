@@ -172,6 +172,8 @@ class MultiNodeUtil {
   bool verifyUngracefulQsfpDownUpForRemoteFdsws();
   bool verifyUngracefulQsfpDownUpForRemoteSdsws();
 
+  bool verifyFsdbDownUpForRemoteRdswsHelper(bool triggerGraceFulRestart);
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;
