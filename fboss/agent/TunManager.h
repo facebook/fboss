@@ -306,6 +306,19 @@ class TunManager : public StateObserver {
   static void routeProcessor(struct nl_object* obj, void* data);
 
   /**
+   * Netlink callback for processing source routing rules read from kernel.
+   *
+   * Process source routing rules discovered during kernel probing and stores
+   * them for later cleanup. It filters rules based on address family
+   * (IPv4/IPv6 only), table ID (1-253 range), and extracts source address
+   * and table information.
+   *
+   * @param obj Netlink rule object to process
+   * @param data Pointer to TunManager instance for storing probed rules
+   */
+  static void ruleProcessor(struct nl_object* obj, void* data);
+
+  /**
    * Delete probed routes from kernel routing tables.
    *
    * Removes default routes (0.0.0.0/0 and ::/0) that were discovered

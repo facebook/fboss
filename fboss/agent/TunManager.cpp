@@ -807,6 +807,15 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
       nl_cache_free(routeCache);
     };
     nl_cache_foreach(routeCache, &TunManager::routeProcessor, this);
+
+    // Get source routing rules
+    struct nl_cache* ruleCache;
+    error = rtnl_rule_alloc_cache(sock_, AF_UNSPEC, &ruleCache);
+    nlCheckError(error, "Cannot get rules from Kernel");
+    SCOPE_EXIT {
+      nl_cache_free(ruleCache);
+    };
+    nl_cache_foreach(ruleCache, &TunManager::ruleProcessor, this);
   }
 
   start();
@@ -1212,6 +1221,70 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
 
   // Store the route
   tunManager->probedRoutes_.push_back(probedRoute);
+}
+
+/**
+ * Netlink callback for processing source routing rules read from kernel.
+ * Process source routing rules discovered during kernel probing and stores
+ * them for later cleanup. It filters rules based on address family
+ * (IPv4/IPv6 only), table ID (1-253 range), and extracts source address
+ * and table information.
+ *
+ * @param obj Netlink rule object to process
+ * @param data Pointer to TunManager instance for storing probed rules
+ */
+void TunManager::ruleProcessor(struct nl_object* obj, void* data) {
+  struct rtnl_rule* rule = reinterpret_cast<struct rtnl_rule*>(obj);
+
+  // Get rule family
+  auto family = rtnl_rule_get_family(rule);
+  if (family != AF_INET && family != AF_INET6) {
+    XLOG(DBG2) << "Skip rule because of unsupported address family " << family;
+    return;
+  }
+
+  // Only process rules with table ID in our range [1-253]
+  auto tableId = rtnl_rule_get_table(rule);
+  if (tableId < 1 || tableId > 253) {
+    XLOG(DBG2) << "Skip rule because table ID " << tableId
+               << " is outside range [1-253]";
+    return;
+  }
+
+  // Get source address
+  auto src = rtnl_rule_get_src(rule);
+  if (!src) {
+    XLOG(DBG2) << "Skip rule because it has no source address";
+    return;
+  }
+
+  char srcBuf[INET6_ADDRSTRLEN];
+  nl_addr2str(src, srcBuf, sizeof(srcBuf));
+  std::string srcAddrOnly(srcBuf);
+
+  // Get the prefix length and construct full address string like we create it
+  auto prefixLen = nl_addr_get_prefixlen(src);
+  std::string srcStr = srcAddrOnly + "/" + std::to_string(prefixLen);
+
+  // Skip link-local addresses (they don't have source rules in our
+  // implementation)
+  try {
+    auto ipaddr = IPAddress::createNetwork(srcAddrOnly, -1, false).first;
+    if (ipaddr.isLinkLocal()) {
+      XLOG(DBG2) << "Skip rule for link-local address " << srcAddrOnly;
+      return;
+    }
+  } catch (const std::exception& ex) {
+    XLOG(DBG2) << "Skip rule due to invalid address " << srcAddrOnly << ": "
+               << ex.what();
+    return;
+  }
+
+  XLOG(DBG2) << "Found source rule: " << srcStr << " -> table " << tableId;
+
+  // Store rule information
+  auto* tunManager = static_cast<TunManager*>(data);
+  tunManager->probedRules_.emplace_back(family, tableId, srcStr);
 }
 
 /**
