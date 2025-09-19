@@ -164,6 +164,10 @@ class MultiNodeUtil {
   bool verifyLiveSystemPorts();
   bool verifyLiveRifs();
 
+  bool verifyUngracefulQsfpDownUpForRemoteRdsws();
+  bool verifyUngracefulQsfpDownUpForRemoteFdsws();
+  bool verifyUngracefulQsfpDownUpForRemoteSdsws();
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;
