@@ -403,6 +403,9 @@ class TunManager : public StateObserver {
   /*< Container to store probed routes from kernel */
   std::vector<ProbedRoute> probedRoutes_;
 
+  /*< Container to store probed rules from kernel */
+  std::vector<ProbedRule> probedRules_;
+
   enum : uint8_t {
     /**
      * The protocol value used to add the source routing IP rule and the
