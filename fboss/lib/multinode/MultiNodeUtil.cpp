@@ -1501,6 +1501,26 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUp() {
 }
 
 bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
+  XLOG(DBG2) << __func__;
+
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  // For any one RDSW in every remote cluster issue graceful FSDB restart
+  for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+      triggerGracefulFsdbRestart(rdsw);
+
+      // TODO verify
+
+      // Restart only one remote RDSW FSDB per cluster
+      break;
+    }
+  }
+
   return true;
 }
 
