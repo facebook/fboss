@@ -83,7 +83,7 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
   }
 
   void verifySetupRunTestVerifyAgain(
-      const std::function<bool(MultiNodeUtil*)>& verifyFn) {
+      const std::function<bool(const MultiNodeUtil*)>& verifyFn) {
     if (!isTestDriver()) {
       return;
     }
@@ -136,7 +136,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulFabricLinkDownUp();
     });
   };
@@ -148,7 +148,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulDeviceDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulDeviceDownUp();
     });
   };
@@ -160,7 +160,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulDeviceDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyUngracefulDeviceDownUp();
     });
   };
@@ -172,7 +172,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulRestartTimeoutRecovery) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulRestartTimeoutRecovery();
     });
   };
@@ -184,7 +184,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulQsfpDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulQsfpDownUp();
     });
   };
@@ -195,7 +195,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulQsfpDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyUngracefulQsfpDownUp();
     });
   };
@@ -207,7 +207,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFsdbDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulFsdbDownUp();
     });
   };
@@ -219,7 +219,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulFsdbDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifySetupRunTestVerifyAgain([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyUngracefulFsdbDownUp();
     });
   };

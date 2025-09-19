@@ -20,24 +20,24 @@ class MultiNodeUtil {
   explicit MultiNodeUtil(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
 
-  bool verifyFabricConnectivity();
-  bool verifyFabricReachability();
-  bool verifyPorts();
-  bool verifySystemPorts();
-  bool verifyRifs();
-  bool verifyStaticNdpEntries();
-  bool verifyDsfSessions();
+  bool verifyFabricConnectivity() const;
+  bool verifyFabricReachability() const;
+  bool verifyPorts() const;
+  bool verifySystemPorts() const;
+  bool verifyRifs() const;
+  bool verifyStaticNdpEntries() const;
+  bool verifyDsfSessions() const;
 
-  bool verifyGracefulFabricLinkDownUp();
-  bool verifyGracefulDeviceDownUp();
-  bool verifyUngracefulDeviceDownUp();
-  bool verifyGracefulRestartTimeoutRecovery();
+  bool verifyGracefulFabricLinkDownUp() const;
+  bool verifyGracefulDeviceDownUp() const;
+  bool verifyUngracefulDeviceDownUp() const;
+  bool verifyGracefulRestartTimeoutRecovery() const;
 
-  bool verifyGracefulQsfpDownUp();
-  bool verifyUngracefulQsfpDownUp();
+  bool verifyGracefulQsfpDownUp() const;
+  bool verifyUngracefulQsfpDownUp() const;
 
-  bool verifyGracefulFsdbDownUp();
-  bool verifyUngracefulFsdbDownUp();
+  bool verifyGracefulFsdbDownUp() const;
+  bool verifyUngracefulFsdbDownUp() const;
 
  private:
   enum class SwitchType : uint8_t {
@@ -46,7 +46,7 @@ class MultiNodeUtil {
     SDSW = 2,
   };
 
-  std::string switchTypeToString(SwitchType switchType) {
+  std::string switchTypeToString(SwitchType switchType) const {
     switch (switchType) {
       case SwitchType::RDSW:
         return "RDSW";
@@ -62,117 +62,121 @@ class MultiNodeUtil {
   void populateAllFdsws();
 
   std::map<std::string, FabricEndpoint> getFabricEndpoints(
-      const std::string& switchName);
-  std::set<std::string> getConnectedFabricPorts(const std::string& switchName);
+      const std::string& switchName) const;
+  std::set<std::string> getConnectedFabricPorts(
+      const std::string& switchName) const;
   bool verifyFabricConnectedSwitchesHelper(
       SwitchType switchType,
       const std::string& switchToVerify,
-      const std::set<std::string>& expectedConnectedSwitches);
+      const std::set<std::string>& expectedConnectedSwitches) const;
   bool verifyFabricConnectedSwitchesForRdsw(
       int clusterId,
-      const std::string& rdswToVerify);
-  bool verifyFabricConnectedSwitchesForAllRdsws();
+      const std::string& rdswToVerify) const;
+  bool verifyFabricConnectedSwitchesForAllRdsws() const;
   bool verifyFabricConnectedSwitchesForFdsw(
       int clusterId,
-      const std::string& fdswToVerify);
-  bool verifyFabricConnectedSwitchesForAllFdsws();
-  bool verifyFabricConnectedSwitchesForSdsw(const std::string& sdswToVerify);
-  bool verifyFabricConnectedSwitchesForAllSdsws();
+      const std::string& fdswToVerify) const;
+  bool verifyFabricConnectedSwitchesForAllFdsws() const;
+  bool verifyFabricConnectedSwitchesForSdsw(
+      const std::string& sdswToVerify) const;
+  bool verifyFabricConnectedSwitchesForAllSdsws() const;
 
-  bool verifyFabricReachablityForRdsw(const std::string& rdswToVerify);
+  bool verifyFabricReachablityForRdsw(const std::string& rdswToVerify) const;
 
   bool verifyNoSessionsFlap(
       const std::string& rdswToVerify,
       const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
-      const std::optional<std::string>& rdswToExclude = std::nullopt);
+      const std::optional<std::string>& rdswToExclude = std::nullopt) const;
 
-  bool verifyNoSessionsEstablished(const std::string& rdswToVerify);
-  bool verifyAllSessionsEstablished(const std::string& rdswToVerify);
+  bool verifyNoSessionsEstablished(const std::string& rdswToVerify) const;
+  bool verifyAllSessionsEstablished(const std::string& rdswToVerify) const;
 
   bool verifyGracefulFabricLinkDown(
       const std::string& rdswToVerify,
       const std::map<std::string, PortInfoThrift>&
-          activeFabricPortNameToPortInfo);
+          activeFabricPortNameToPortInfo) const;
   bool verifyGracefulFabricLinkUp(
       const std::string& rdswToVerify,
       const std::map<std::string, PortInfoThrift>&
-          activeFabricPortNameToPortInfo);
+          activeFabricPortNameToPortInfo) const;
 
   std::map<int32_t, facebook::fboss::PortInfoThrift> getPorts(
-      const std::string& switchName);
-  std::set<std::string> getActiveFabricPorts(const std::string& switchName);
+      const std::string& switchName) const;
+  std::set<std::string> getActiveFabricPorts(
+      const std::string& switchName) const;
   std::map<std::string, PortInfoThrift> getActiveFabricPortNameToPortInfo(
-      const std::string& switchName);
+      const std::string& switchName) const;
   std::map<std::string, PortInfoThrift> getFabricPortNameToPortInfo(
-      const std::string& switchName);
+      const std::string& switchName) const;
 
   bool verifyPortActiveStateForSwitch(
       SwitchType switchType,
-      const std::string& switchName);
+      const std::string& switchName) const;
   bool verifyNoPortErrorsForSwitch(
       SwitchType switchType,
-      const std::string& switchName);
+      const std::string& switchName) const;
   bool verifyPortsForSwitch(
       SwitchType switchType,
-      const std::string& switchName);
+      const std::string& switchName) const;
 
   std::map<std::string, std::vector<SystemPortThrift>> getPeerToSystemPorts(
-      const std::string& rdsw);
+      const std::string& rdsw) const;
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
-      const std::set<RemoteSystemPortType>& types);
-  bool verifySystemPortsForRdsw(const std::string& rdswToVerify);
+      const std::set<RemoteSystemPortType>& types) const;
+  bool verifySystemPortsForRdsw(const std::string& rdswToVerify) const;
 
   std::map<std::string, std::vector<InterfaceDetail>> getPeerToRifs(
-      const std::string& rdsw);
+      const std::string& rdsw) const;
   std::set<int> getGlobalRifsOfType(
       const std::string& rdsw,
-      const std::set<RemoteInterfaceType>& types);
-  bool verifyRifsForRdsw(const std::string& rdswToVerify);
+      const std::set<RemoteInterfaceType>& types) const;
+  bool verifyRifsForRdsw(const std::string& rdswToVerify) const;
 
   std::set<std::pair<std::string, std::string>> getNdpEntriesAndSwitchOfType(
       const std::string& rdsw,
-      const std::set<std::string>& types);
+      const std::set<std::string>& types) const;
 
   std::map<std::string, DsfSessionThrift> getPeerToDsfSession(
-      const std::string& rdsw);
+      const std::string& rdsw) const;
   std::set<std::string> getRdswsWithEstablishedDsfSessions(
-      const std::string& rdsw);
+      const std::string& rdsw) const;
 
-  bool verifyDeviceDownUpForRemoteRdswsHelper(bool triggerGraceFulExit);
+  bool verifyDeviceDownUpForRemoteRdswsHelper(bool triggerGraceFulExit) const;
 
-  bool verifyGracefulDeviceDownUpForRemoteRdsws();
-  bool verifyGracefulDeviceDownUpForRemoteFdsws();
-  bool verifyGracefulDeviceDownUpForRemoteSdsws();
+  bool verifyGracefulDeviceDownUpForRemoteRdsws() const;
+  bool verifyGracefulDeviceDownUpForRemoteFdsws() const;
+  bool verifyGracefulDeviceDownUpForRemoteSdsws() const;
 
-  bool verifyUngracefulDeviceDownUpForRemoteRdsws();
-  bool verifyUngracefulDeviceDownUpForRemoteFdsws();
-  bool verifyUngracefulDeviceDownUpForRemoteSdsws();
+  bool verifyUngracefulDeviceDownUpForRemoteRdsws() const;
+  bool verifyUngracefulDeviceDownUpForRemoteFdsws() const;
+  bool verifyUngracefulDeviceDownUpForRemoteSdsws() const;
 
   bool verifySwSwitchRunState(
       const std::string& rdswToVerify,
-      const SwitchRunState& expectedSwitchRunState);
+      const SwitchRunState& expectedSwitchRunState) const;
   bool verifyQsfpServiceRunState(
       const std::string& rdswToVerify,
-      const QsfpServiceRunState& expectedQsfpRunState);
-  bool verifyFsdbIsUp(const std::string& rdswToVerify);
+      const QsfpServiceRunState& expectedQsfpRunState) const;
+  bool verifyFsdbIsUp(const std::string& rdswToVerify) const;
 
   bool verifyStaleSystemPorts(
       const std::map<std::string, std::vector<SystemPortThrift>>&
           peerToSystemPorts,
-      const std::set<std::string>& restartedRdsws);
+      const std::set<std::string>& restartedRdsws) const;
 
-  std::set<std::string> triggerGraceFulRestartTimeoutForRemoteRdsws();
-  bool verifyStaleSystemPorts(const std::set<std::string>& restartedRdsws);
-  bool verifyStaleRifs(const std::set<std::string>& restartedRdsws);
-  bool verifyLiveSystemPorts();
-  bool verifyLiveRifs();
+  std::set<std::string> triggerGraceFulRestartTimeoutForRemoteRdsws() const;
+  bool verifyStaleSystemPorts(
+      const std::set<std::string>& restartedRdsws) const;
+  bool verifyStaleRifs(const std::set<std::string>& restartedRdsws) const;
+  bool verifyLiveSystemPorts() const;
+  bool verifyLiveRifs() const;
 
-  bool verifyUngracefulQsfpDownUpForRemoteRdsws();
-  bool verifyUngracefulQsfpDownUpForRemoteFdsws();
-  bool verifyUngracefulQsfpDownUpForRemoteSdsws();
+  bool verifyUngracefulQsfpDownUpForRemoteRdsws() const;
+  bool verifyUngracefulQsfpDownUpForRemoteFdsws() const;
+  bool verifyUngracefulQsfpDownUpForRemoteSdsws() const;
 
-  bool verifyFsdbDownUpForRemoteRdswsHelper(bool triggerGraceFulRestart);
+  bool verifyFsdbDownUpForRemoteRdswsHelper(bool triggerGraceFulRestart) const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;

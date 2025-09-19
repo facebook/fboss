@@ -261,7 +261,7 @@ void MultiNodeUtil::populateAllFdsws() {
 }
 
 std::map<std::string, FabricEndpoint> MultiNodeUtil::getFabricEndpoints(
-    const std::string& switchName) {
+    const std::string& switchName) const {
   std::map<std::string, FabricEndpoint> fabricEndpoints;
   auto hwAgentQueryFn =
       [&fabricEndpoints](
@@ -276,7 +276,7 @@ std::map<std::string, FabricEndpoint> MultiNodeUtil::getFabricEndpoints(
 }
 
 std::set<std::string> MultiNodeUtil::getConnectedFabricPorts(
-    const std::string& switchName) {
+    const std::string& switchName) const {
   auto fabricEndpoints = getFabricEndpoints(switchName);
 
   std::set<std::string> connectedPorts;
@@ -292,7 +292,7 @@ std::set<std::string> MultiNodeUtil::getConnectedFabricPorts(
 bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
     SwitchType switchType,
     const std::string& switchToVerify,
-    const std::set<std::string>& expectedConnectedSwitches) {
+    const std::set<std::string>& expectedConnectedSwitches) const {
   auto logFabricEndpoint = [switchToVerify](
                                const FabricEndpoint& fabricEndpoint) {
     XLOG(DBG2) << "From " << " switchName: " << switchToVerify
@@ -354,16 +354,17 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForRdsw(
     int clusterId,
-    const std::string& rdswToVerify) {
+    const std::string& rdswToVerify) const {
   // Every RDSW is connected to all FDSWs in its cluster
   std::set<std::string> expectedConnectedSwitches(
-      clusterIdToFdsws_[clusterId].begin(), clusterIdToFdsws_[clusterId].end());
+      std::begin(clusterIdToFdsws_.at(clusterId)),
+      std::end(clusterIdToFdsws_.at(clusterId)));
 
   return verifyFabricConnectedSwitchesHelper(
       SwitchType::RDSW, rdswToVerify, expectedConnectedSwitches);
 }
 
-bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllRdsws() {
+bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllRdsws() const {
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
     for (const auto& rdsw : rdsws) {
       if (!verifyFabricConnectedSwitchesForRdsw(clusterId, rdsw)) {
@@ -377,17 +378,18 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllRdsws() {
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForFdsw(
     int clusterId,
-    const std::string& fdswToVerify) {
+    const std::string& fdswToVerify) const {
   // Every FDSW is connected to all RDSWs in its cluster and all SDSWs
   std::set<std::string> expectedConnectedSwitches(
-      clusterIdToRdsws_[clusterId].begin(), clusterIdToRdsws_[clusterId].end());
+      std::begin(clusterIdToRdsws_.at(clusterId)),
+      std::end(clusterIdToRdsws_.at(clusterId)));
   expectedConnectedSwitches.insert(sdsws_.begin(), sdsws_.end());
 
   return verifyFabricConnectedSwitchesHelper(
       SwitchType::FDSW, fdswToVerify, expectedConnectedSwitches);
 }
 
-bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllFdsws() {
+bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllFdsws() const {
   for (const auto& [clusterId, fdsws] : std::as_const(clusterIdToFdsws_)) {
     for (const auto& fdsw : fdsws) {
       if (!verifyFabricConnectedSwitchesForFdsw(clusterId, fdsw)) {
@@ -400,7 +402,7 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllFdsws() {
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForSdsw(
-    const std::string& sdswToVerify) {
+    const std::string& sdswToVerify) const {
   // Every SDSW is connected to all FDSWs in all clusters
   auto expectedConnectedSwitches = allFdsws_;
 
@@ -408,7 +410,7 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForSdsw(
       SwitchType::SDSW, sdswToVerify, expectedConnectedSwitches);
 }
 
-bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllSdsws() {
+bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllSdsws() const {
   for (const auto& sdsw : sdsws_) {
     if (!verifyFabricConnectedSwitchesForSdsw(sdsw)) {
       return false;
@@ -418,14 +420,14 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllSdsws() {
   return true;
 }
 
-bool MultiNodeUtil::verifyFabricConnectivity() {
+bool MultiNodeUtil::verifyFabricConnectivity() const {
   return verifyFabricConnectedSwitchesForAllRdsws() &&
       verifyFabricConnectedSwitchesForAllFdsws() &&
       verifyFabricConnectedSwitchesForAllSdsws();
 }
 
 bool MultiNodeUtil::verifyFabricReachablityForRdsw(
-    const std::string& rdswToVerify) {
+    const std::string& rdswToVerify) const {
   auto logReachability = [rdswToVerify](
                              const std::string& remoteSwitchName,
                              const std::vector<std::string>& reachablePorts) {
@@ -472,7 +474,7 @@ bool MultiNodeUtil::verifyFabricReachablityForRdsw(
   return true;
 }
 
-bool MultiNodeUtil::verifyFabricReachability() {
+bool MultiNodeUtil::verifyFabricReachability() const {
   for (const auto& rdsw : allRdsws_) {
     if (!verifyFabricReachablityForRdsw(rdsw)) {
       return false;
@@ -483,7 +485,7 @@ bool MultiNodeUtil::verifyFabricReachability() {
 }
 
 std::map<int32_t, facebook::fboss::PortInfoThrift> MultiNodeUtil::getPorts(
-    const std::string& switchName) {
+    const std::string& switchName) const {
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_getAllPortInfo(portEntries);
@@ -492,7 +494,7 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> MultiNodeUtil::getPorts(
 }
 
 std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
-    const std::string& switchName) {
+    const std::string& switchName) const {
   std::set<std::string> activePorts;
   for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(switchName)) {
     if (portInfo.activeState().has_value() &&
@@ -506,7 +508,7 @@ std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
 
 std::map<std::string, PortInfoThrift>
 MultiNodeUtil::getActiveFabricPortNameToPortInfo(
-    const std::string& switchName) {
+    const std::string& switchName) const {
   std::map<std::string, PortInfoThrift> activeFabricPortNameToPortInfo;
   for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(switchName)) {
     if (portInfo.activeState().has_value() &&
@@ -519,7 +521,8 @@ MultiNodeUtil::getActiveFabricPortNameToPortInfo(
 }
 
 std::map<std::string, PortInfoThrift>
-MultiNodeUtil::getFabricPortNameToPortInfo(const std::string& switchName) {
+MultiNodeUtil::getFabricPortNameToPortInfo(
+    const std::string& switchName) const {
   std::map<std::string, PortInfoThrift> fabricPortNameToPortInfo;
   for (const auto& [_, portInfo] : getPorts(switchName)) {
     if (portInfo.portType().value() == cfg::PortType::FABRIC_PORT) {
@@ -532,7 +535,7 @@ MultiNodeUtil::getFabricPortNameToPortInfo(const std::string& switchName) {
 
 bool MultiNodeUtil::verifyPortActiveStateForSwitch(
     SwitchType switchType,
-    const std::string& switchName) {
+    const std::string& switchName) const {
   // Every Connected Fabric Port must be Active
   auto expectedActivePorts = getConnectedFabricPorts(switchName);
   auto gotActivePorts = getActiveFabricPorts(switchName);
@@ -547,7 +550,7 @@ bool MultiNodeUtil::verifyPortActiveStateForSwitch(
 
 bool MultiNodeUtil::verifyNoPortErrorsForSwitch(
     SwitchType switchType,
-    const std::string& switchName) {
+    const std::string& switchName) const {
   // No ports should have errors
   auto ports = getPorts(switchName);
   for (const auto& port : ports) {
@@ -566,12 +569,12 @@ bool MultiNodeUtil::verifyNoPortErrorsForSwitch(
 
 bool MultiNodeUtil::verifyPortsForSwitch(
     SwitchType switchType,
-    const std::string& switchName) {
+    const std::string& switchName) const {
   return verifyPortActiveStateForSwitch(switchType, switchName) &&
       verifyNoPortErrorsForSwitch(switchType, switchName);
 }
 
-bool MultiNodeUtil::verifyPorts() {
+bool MultiNodeUtil::verifyPorts() const {
   // The checks are identical for all Switch types at the moment
   // as we only verify Fabric ports. We may add Ethernet port checks
   // specific to RDSWs in the future.
@@ -597,7 +600,7 @@ bool MultiNodeUtil::verifyPorts() {
 }
 
 std::map<std::string, std::vector<SystemPortThrift>>
-MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) {
+MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) const {
   auto logSystemPort =
       [rdsw](const facebook::fboss::SystemPortThrift& systemPort) {
         XLOG(DBG2)
@@ -625,7 +628,7 @@ MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) {
         switchIdToSwitchName_.find(SwitchID(systemPort.switchId().value())) !=
         std::end(switchIdToSwitchName_));
     auto switchName =
-        switchIdToSwitchName_[SwitchID(systemPort.switchId().value())];
+        switchIdToSwitchName_.at(SwitchID(systemPort.switchId().value()));
     peerToSystemPorts[switchName].push_back(systemPort);
   }
 
@@ -634,7 +637,7 @@ MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) {
 
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
-    const std::set<RemoteSystemPortType>& types) {
+    const std::set<RemoteSystemPortType>& types) const {
   auto matchesPortType =
       [&types](const facebook::fboss::SystemPortThrift& systemPort) {
         if (systemPort.remoteSystemPortType().has_value()) {
@@ -659,7 +662,8 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
   return systemPortsOfType;
 }
 
-bool MultiNodeUtil::verifySystemPortsForRdsw(const std::string& rdswToVerify) {
+bool MultiNodeUtil::verifySystemPortsForRdsw(
+    const std::string& rdswToVerify) const {
   // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY or
   // DYNAMIC_ENTRY of the local RDSW
   std::set<std::string> gotSystemPorts;
@@ -688,7 +692,7 @@ bool MultiNodeUtil::verifySystemPortsForRdsw(const std::string& rdswToVerify) {
   return expectedSystemPorts == gotSystemPorts;
 }
 
-bool MultiNodeUtil::verifySystemPorts() {
+bool MultiNodeUtil::verifySystemPorts() const {
   for (const auto& rdsw : allRdsws_) {
     if (!verifySystemPortsForRdsw(rdsw)) {
       return false;
@@ -699,7 +703,7 @@ bool MultiNodeUtil::verifySystemPorts() {
 }
 
 std::map<std::string, std::vector<InterfaceDetail>>
-MultiNodeUtil::getPeerToRifs(const std::string& rdsw) {
+MultiNodeUtil::getPeerToRifs(const std::string& rdsw) const {
   auto logRif = [rdsw](const facebook::fboss::InterfaceDetail& rif) {
     XLOG(DBG2)
         << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
@@ -730,7 +734,7 @@ MultiNodeUtil::getPeerToRifs(const std::string& rdsw) {
 
 std::set<int> MultiNodeUtil::getGlobalRifsOfType(
     const std::string& rdsw,
-    const std::set<RemoteInterfaceType>& types) {
+    const std::set<RemoteInterfaceType>& types) const {
   auto matchesRifType = [&types](const facebook::fboss::InterfaceDetail& rif) {
     if (rif.remoteIntfType().has_value()) {
       return types.find(rif.remoteIntfType().value()) != types.end();
@@ -751,7 +755,7 @@ std::set<int> MultiNodeUtil::getGlobalRifsOfType(
   return rifsOfType;
 }
 
-bool MultiNodeUtil::verifyRifsForRdsw(const std::string& rdswToVerify) {
+bool MultiNodeUtil::verifyRifsForRdsw(const std::string& rdswToVerify) const {
   // Every GLOBAL rif of every remote RDSW is either a STATIC_ENTRY or
   // DYNAMIC_ENTRY of the local RDSW
   std::set<int> gotRifs;
@@ -779,7 +783,7 @@ bool MultiNodeUtil::verifyRifsForRdsw(const std::string& rdswToVerify) {
   return expectedRifs == gotRifs;
 }
 
-bool MultiNodeUtil::verifyRifs() {
+bool MultiNodeUtil::verifyRifs() const {
   for (const auto& rdsw : allRdsws_) {
     if (!verifyRifsForRdsw(rdsw)) {
       return false;
@@ -792,7 +796,7 @@ bool MultiNodeUtil::verifyRifs() {
 std::set<std::pair<std::string, std::string>>
 MultiNodeUtil::getNdpEntriesAndSwitchOfType(
     const std::string& rdsw,
-    const std::set<std::string>& types) {
+    const std::set<std::string>& types) const {
   auto logNdpEntry = [rdsw](const facebook::fboss::NdpEntryThrift& ndpEntry) {
     auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
         folly::StringPiece(ndpEntry.ip().value().addr().value())));
@@ -825,14 +829,14 @@ MultiNodeUtil::getNdpEntriesAndSwitchOfType(
 
       ndpEntriesAndSwitchOfType.insert(std::make_pair(
           ip.str(),
-          switchIdToSwitchName_[SwitchID(ndpEntry.switchId().value())]));
+          switchIdToSwitchName_.at(SwitchID(ndpEntry.switchId().value()))));
     }
   }
 
   return ndpEntriesAndSwitchOfType;
 }
 
-bool MultiNodeUtil::verifyStaticNdpEntries() {
+bool MultiNodeUtil::verifyStaticNdpEntries() const {
   // Every remote RDSW must have a STATIC NDP entry in the local RDSW
   auto expectedRdsws = allRdsws_;
 
@@ -861,7 +865,7 @@ bool MultiNodeUtil::verifyStaticNdpEntries() {
 }
 
 std::map<std::string, DsfSessionThrift> MultiNodeUtil::getPeerToDsfSession(
-    const std::string& rdsw) {
+    const std::string& rdsw) const {
   auto logDsfSession =
       [rdsw](const facebook::fboss::DsfSessionThrift& session) {
         XLOG(DBG2) << "From " << rdsw << " session: " << *session.remoteName()
@@ -892,7 +896,7 @@ std::map<std::string, DsfSessionThrift> MultiNodeUtil::getPeerToDsfSession(
 }
 
 std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
-    const std::string& rdsw) {
+    const std::string& rdsw) const {
   std::set<std::string> gotRdsws;
   for (const auto& [peer, session] : getPeerToDsfSession(rdsw)) {
     if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
@@ -903,7 +907,7 @@ std::set<std::string> MultiNodeUtil::getRdswsWithEstablishedDsfSessions(
   return gotRdsws;
 }
 
-bool MultiNodeUtil::verifyDsfSessions() {
+bool MultiNodeUtil::verifyDsfSessions() const {
   // Every RDSW must have an ESTABLISHED DSF Session with every other RDSW
 
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
@@ -926,7 +930,7 @@ bool MultiNodeUtil::verifyDsfSessions() {
 bool MultiNodeUtil::verifyNoSessionsFlap(
     const std::string& rdswToVerify,
     const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
-    const std::optional<std::string>& rdswToExclude) {
+    const std::optional<std::string>& rdswToExclude) const {
   auto noSessionFlap =
       [this, rdswToVerify, baselinePeerToDsfSession, rdswToExclude]() -> bool {
     auto currentPeerToDsfSession = getPeerToDsfSession(rdswToVerify);
@@ -948,7 +952,7 @@ bool MultiNodeUtil::verifyNoSessionsFlap(
 }
 
 bool MultiNodeUtil::verifyNoSessionsEstablished(
-    const std::string& rdswToVerify) {
+    const std::string& rdswToVerify) const {
   auto noSessionsEstablished = [this, rdswToVerify]() -> bool {
     for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
       if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
@@ -966,7 +970,7 @@ bool MultiNodeUtil::verifyNoSessionsEstablished(
 }
 
 bool MultiNodeUtil::verifyAllSessionsEstablished(
-    const std::string& rdswToVerify) {
+    const std::string& rdswToVerify) const {
   auto allSessionsEstablished = [this, rdswToVerify]() -> bool {
     for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
       if (session.state() != facebook::fboss::DsfSessionState::ESTABLISHED) {
@@ -986,8 +990,8 @@ bool MultiNodeUtil::verifyAllSessionsEstablished(
 
 bool MultiNodeUtil::verifyGracefulFabricLinkDown(
     const std::string& rdswToVerify,
-    const std::map<std::string, PortInfoThrift>&
-        activeFabricPortNameToPortInfo) {
+    const std::map<std::string, PortInfoThrift>& activeFabricPortNameToPortInfo)
+    const {
   CHECK(activeFabricPortNameToPortInfo.size() > 2);
   auto rIter = activeFabricPortNameToPortInfo.rbegin();
   auto lastActivePort = rIter->first;
@@ -1027,8 +1031,8 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDown(
 
 bool MultiNodeUtil::verifyGracefulFabricLinkUp(
     const std::string& rdswToVerify,
-    const std::map<std::string, PortInfoThrift>&
-        activeFabricPortNameToPortInfo) {
+    const std::map<std::string, PortInfoThrift>& activeFabricPortNameToPortInfo)
+    const {
   CHECK(activeFabricPortNameToPortInfo.size() > 2);
   auto firstActivePort = activeFabricPortNameToPortInfo.begin()->first;
   auto rIter = activeFabricPortNameToPortInfo.rbegin();
@@ -1053,7 +1057,7 @@ bool MultiNodeUtil::verifyGracefulFabricLinkUp(
   return true;
 }
 
-bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
+bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() const {
   auto myHostname = getLocalHostname();
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(myHostname);
@@ -1072,7 +1076,7 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDownUp() {
 
 bool MultiNodeUtil::verifySwSwitchRunState(
     const std::string& rdswToVerify,
-    const SwitchRunState& expectedSwitchRunState) {
+    const SwitchRunState& expectedSwitchRunState) const {
   auto switchRunStateMatches =
       [this, rdswToVerify, expectedSwitchRunState]() -> bool {
     auto multiSwitchRunState = getMultiSwitchRunState(rdswToVerify);
@@ -1091,7 +1095,7 @@ bool MultiNodeUtil::verifySwSwitchRunState(
 
 bool MultiNodeUtil::verifyQsfpServiceRunState(
     const std::string& rdswToVerify,
-    const QsfpServiceRunState& expectedQsfpRunState) {
+    const QsfpServiceRunState& expectedQsfpRunState) const {
   auto qsfpServiceRunStateMatches = [rdswToVerify,
                                      expectedQsfpRunState]() -> bool {
     auto gotQsfpServiceRunState = getQsfpServiceRunState(rdswToVerify);
@@ -1107,7 +1111,7 @@ bool MultiNodeUtil::verifyQsfpServiceRunState(
       true /* retry on exception */);
 }
 
-bool MultiNodeUtil::verifyFsdbIsUp(const std::string& rdswToVerify) {
+bool MultiNodeUtil::verifyFsdbIsUp(const std::string& rdswToVerify) const {
   auto fsdbIsUp = [this, rdswToVerify]() -> bool {
     // Unlike Agent and QSFP, FSDB lacks notion of "RunState" that can be
     // queried to confirm whether FSDB has completed initialization.
@@ -1129,7 +1133,7 @@ bool MultiNodeUtil::verifyFsdbIsUp(const std::string& rdswToVerify) {
 }
 
 bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
-    bool triggerGraceFulRestart) {
+    bool triggerGraceFulRestart) const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
@@ -1174,12 +1178,12 @@ bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
   return true;
 }
 
-bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() {
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteRdsws() const {
   return verifyDeviceDownUpForRemoteRdswsHelper(
       true /* triggerGracefulRestart*/);
 }
 
-bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
@@ -1209,39 +1213,39 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() {
   return true;
 }
 
-bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteSdsws() {
+bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteSdsws() const {
   return true;
 }
 
-bool MultiNodeUtil::verifyGracefulDeviceDownUp() {
+bool MultiNodeUtil::verifyGracefulDeviceDownUp() const {
   return verifyGracefulDeviceDownUpForRemoteRdsws() &&
       verifyGracefulDeviceDownUpForRemoteFdsws() &&
       verifyGracefulDeviceDownUpForRemoteSdsws();
 }
 
-bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteRdsws() {
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteRdsws() const {
   return verifyDeviceDownUpForRemoteRdswsHelper(
       false /* triggerGracefulRestart*/);
 }
 
-bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteFdsws() {
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteFdsws() const {
   // TODO verify
   return true;
 }
 
-bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteSdsws() {
+bool MultiNodeUtil::verifyUngracefulDeviceDownUpForRemoteSdsws() const {
   // TODO verify
   return true;
 }
 
-bool MultiNodeUtil::verifyUngracefulDeviceDownUp() {
+bool MultiNodeUtil::verifyUngracefulDeviceDownUp() const {
   return verifyUngracefulDeviceDownUpForRemoteRdsws() &&
       verifyUngracefulDeviceDownUpForRemoteFdsws() &&
       verifyUngracefulDeviceDownUpForRemoteSdsws();
 }
 
 std::set<std::string>
-MultiNodeUtil::triggerGraceFulRestartTimeoutForRemoteRdsws() {
+MultiNodeUtil::triggerGraceFulRestartTimeoutForRemoteRdsws() const {
   auto static constexpr kGracefulRestartTimeout = 120;
   auto static constexpr kDelayBetweenRestarts =
       kGracefulRestartTimeout + 60 /* time to verify STALE post GR timeout */;
@@ -1268,7 +1272,7 @@ MultiNodeUtil::triggerGraceFulRestartTimeoutForRemoteRdsws() {
 }
 
 bool MultiNodeUtil::verifyStaleSystemPorts(
-    const std::set<std::string>& restartedRdsws) {
+    const std::set<std::string>& restartedRdsws) const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
 
@@ -1310,7 +1314,7 @@ bool MultiNodeUtil::verifyStaleSystemPorts(
 }
 
 bool MultiNodeUtil::verifyStaleRifs(
-    const std::set<std::string>& restartedRdsws) {
+    const std::set<std::string>& restartedRdsws) const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
 
@@ -1351,7 +1355,7 @@ bool MultiNodeUtil::verifyStaleRifs(
       true /* retry on exception */);
 }
 
-bool MultiNodeUtil::verifyLiveSystemPorts() {
+bool MultiNodeUtil::verifyLiveSystemPorts() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
 
@@ -1382,7 +1386,7 @@ bool MultiNodeUtil::verifyLiveSystemPorts() {
   return true;
 }
 
-bool MultiNodeUtil::verifyLiveRifs() {
+bool MultiNodeUtil::verifyLiveRifs() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
 
@@ -1411,7 +1415,7 @@ bool MultiNodeUtil::verifyLiveRifs() {
       true /* retry on exception */);
 }
 
-bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
+bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() const {
   // This test can be written as:
   //  - Stop Agent
   //  - Wait for 120s i.e. GR timeout
@@ -1444,7 +1448,7 @@ bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() {
       verifyLiveRifs();
 }
 
-bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
+bool MultiNodeUtil::verifyGracefulQsfpDownUp() const {
   XLOG(DBG2) << __func__;
 
   auto myHostname = network::NetworkUtil::getLocalHost(
@@ -1472,7 +1476,7 @@ bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
   return true;
 }
 
-bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() {
+bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
@@ -1513,7 +1517,7 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() {
   return true;
 }
 
-bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteFdsws() {
+bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteFdsws() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
@@ -1544,19 +1548,19 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteFdsws() {
   return true;
 }
 
-bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteSdsws() {
+bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteSdsws() const {
   // TODO
   return true;
 }
 
-bool MultiNodeUtil::verifyUngracefulQsfpDownUp() {
+bool MultiNodeUtil::verifyUngracefulQsfpDownUp() const {
   return verifyUngracefulQsfpDownUpForRemoteRdsws() &&
       verifyUngracefulQsfpDownUpForRemoteFdsws() &&
       verifyUngracefulQsfpDownUpForRemoteSdsws();
 }
 
 bool MultiNodeUtil::verifyFsdbDownUpForRemoteRdswsHelper(
-    bool triggerGraceFulRestart) {
+    bool triggerGraceFulRestart) const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
@@ -1600,13 +1604,13 @@ bool MultiNodeUtil::verifyFsdbDownUpForRemoteRdswsHelper(
   return true;
 }
 
-bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
+bool MultiNodeUtil::verifyGracefulFsdbDownUp() const {
   XLOG(DBG2) << __func__;
   return verifyFsdbDownUpForRemoteRdswsHelper(
       true /* triggerGracefulFsdbRestart */);
 }
 
-bool MultiNodeUtil::verifyUngracefulFsdbDownUp() {
+bool MultiNodeUtil::verifyUngracefulFsdbDownUp() const {
   XLOG(DBG2) << __func__;
   return verifyFsdbDownUpForRemoteRdswsHelper(
       false /* triggerGracefulFsdbRestart */);
