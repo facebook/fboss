@@ -12,6 +12,21 @@
 
 #include "fboss/agent/Utils.h"
 
+namespace {
+
+const std::set<std::string> kServicesSupportingRestart() {
+  static const std::set<std::string> servicesSupportingRestart = {
+      "wedge_agent_test",
+      "fsdb",
+      "qsfp_service",
+      "bgp",
+  };
+
+  return servicesSupportingRestart;
+}
+
+} // namespace
+
 namespace facebook::fboss {
 
 TestThriftHandler::TestThriftHandler(SwSwitch* sw) : ThriftHandler(sw) {}
@@ -20,14 +35,8 @@ void TestThriftHandler::gracefullyRestartService(
     std::unique_ptr<std::string> serviceName) {
   XLOG(INFO) << __func__;
 
-  static std::set<std::string> kServicesSupportingGracefulRestart = {
-      "wedge_agent_test",
-      "fsdb",
-      "qsfp_service",
-      "bgp",
-  };
-  if (kServicesSupportingGracefulRestart.find(*serviceName) ==
-      kServicesSupportingGracefulRestart.end()) {
+  if (kServicesSupportingRestart().find(*serviceName) ==
+      kServicesSupportingRestart().end()) {
     throw std::runtime_error(folly::to<std::string>(
         "Failed to restart gracefully. Unsupported service: ", *serviceName));
   }
