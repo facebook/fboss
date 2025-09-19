@@ -239,4 +239,19 @@ void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable) {
   };
   ensemble->applyNewState(updatePortTx);
 }
+
+void resetQueueCreditBalance(
+    TestEnsembleIf* ensemble,
+    PortID port,
+    bool enable) {
+  auto updateResetQueueCreditBalance =
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto switchState = in->clone();
+        auto newPort =
+            switchState->getPorts()->getNodeIf(port)->modify(&switchState);
+        newPort->setResetQueueCreditBalance(enable);
+        return switchState;
+      };
+  ensemble->applyNewState(updateResetQueueCreditBalance);
+}
 } // namespace facebook::fboss::utility
