@@ -194,7 +194,7 @@ void setCreditWatchdogAndPortTx(
     TestEnsembleIf* ensemble,
     PortID port,
     bool enable) {
-  bool setCreditWatchdog =
+  bool isVoqSwitch =
       ensemble->getHwAsicTable()
           ->getHwAsic(ensemble->scopeResolver().scope(port).switchId())
           ->getSwitchType() == cfg::SwitchType::VOQ;
@@ -204,8 +204,13 @@ void setCreditWatchdogAndPortTx(
         auto newPort =
             switchState->getPorts()->getNodeIf(port)->modify(&switchState);
         newPort->setTxEnable(enable);
+        // VoQ switch specific handling
+        if (isVoqSwitch) {
+          // For VoQ switches, TX disable should be accompanied by the
+          // port initial credits being reset to avoid leaking of data
+          // due to the residual credit.
+          newPort->setResetQueueCreditBalance(!enable);
 
-        if (setCreditWatchdog) {
           for (const auto& [_, switchSetting] :
                std::as_const(*switchState->getSwitchSettings())) {
             auto newSwitchSettings = switchSetting->modify(&switchState);
@@ -235,6 +240,14 @@ void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable) {
     auto newPort =
         switchState->getPorts()->getNodeIf(port)->modify(&switchState);
     newPort->setTxEnable(enable);
+    // For VoQ switches, TX disable should be accompanied by the
+    // port initial credits being reset to avoid leaking of data
+    // due to the residual credit.
+    if (ensemble->getHwAsicTable()
+            ->getHwAsic(ensemble->scopeResolver().scope(port).switchId())
+            ->getSwitchType() == cfg::SwitchType::VOQ) {
+      newPort->setResetQueueCreditBalance(!enable);
+    }
     return switchState;
   };
   ensemble->applyNewState(updatePortTx);
