@@ -5844,7 +5844,8 @@ std::pair<strings::selfHealingECMPLagEnable, Child<bool, ::apache::thrift::type_
 std::pair<strings::fecErrorDetectEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::desiredSelfHealingECMPLagEnable, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::interPacketGapBits, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::amIdles, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::amIdles, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::resetQueueCreditBalance, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
@@ -5903,7 +5904,8 @@ std::pair<strings::amIdles, Child<bool, ::apache::thrift::type_class::integral, 
    std::pair<std::integral_constant<apache::thrift::field_id_t, 58>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 59>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 60>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 61>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 61>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 62>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::portId, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::portName, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -5963,7 +5965,8 @@ std::pair<strings::selfHealingECMPLagEnable, std::integral_constant<apache::thri
 std::pair<strings::fecErrorDetectEnable, std::integral_constant<apache::thrift::field_id_t, 58>>,
 std::pair<strings::desiredSelfHealingECMPLagEnable, std::integral_constant<apache::thrift::field_id_t, 59>>,
 std::pair<strings::interPacketGapBits, std::integral_constant<apache::thrift::field_id_t, 60>>,
-std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 61>>>::template type_of<Name>;
+std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 61>>,
+std::pair<strings::resetQueueCreditBalance, std::integral_constant<apache::thrift::field_id_t, 62>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -6028,6 +6031,7 @@ std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 6
     STRUCT_CHILD_GETTERS(desiredSelfHealingECMPLagEnable, 59);
     STRUCT_CHILD_GETTERS(interPacketGapBits, 60);
     STRUCT_CHILD_GETTERS(amIdles, 61);
+    STRUCT_CHILD_GETTERS(resetQueueCreditBalance, 62);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -6090,6 +6094,7 @@ std::pair<strings::amIdles, std::integral_constant<apache::thrift::field_id_t, 6
     else if constexpr (__id == 59) { return desiredSelfHealingECMPLagEnable(); }
     else if constexpr (__id == 60) { return interPacketGapBits(); }
     else if constexpr (__id == 61) { return amIdles(); }
+    else if constexpr (__id == 62) { return resetQueueCreditBalance(); }
   }
 
   template <typename T, T... Values>

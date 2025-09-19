@@ -152,6 +152,8 @@ struct PortFields {
   60: optional i32 interPacketGapBits;
   // AM (Alignment Marker) idles configuration for this port
   61: optional bool amIdles;
+  // Option to reset the initial credits for a port, primarily for tests
+  62: optional bool resetQueueCreditBalance;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
