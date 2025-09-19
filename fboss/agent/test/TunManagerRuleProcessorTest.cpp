@@ -26,7 +26,8 @@
 #define TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS                     \
   friend class TunManagerRuleProcessorTest;                        \
   FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule); \
-  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule);
+  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule); \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipUnsupportedFamily);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -203,6 +204,31 @@ TEST_F(TunManagerRuleProcessorTest, ProcessIPv6SourceRule) {
 
   // Verify the rule was stored by ruleProcessor
   verifyStoredRule(AF_INET6, 150, "2001:db8::1/128");
+
+  // Cleanup
+  rtnl_rule_put(rule);
+}
+
+/**
+ * @brief Test skipping rules with unsupported address family
+ *
+ * Verifies that ruleProcessor correctly skips rules with unsupported address
+ * family (e.g., AF_PACKET) and does not store them in probedRules_.
+ */
+TEST_F(TunManagerRuleProcessorTest, SkipUnsupportedFamily) {
+  auto rule = rtnl_rule_alloc();
+  ASSERT_NE(nullptr, rule);
+
+  // Set unsupported family
+  rtnl_rule_set_family(rule, AF_PACKET);
+  rtnl_rule_set_table(rule, 100);
+
+  // Call the actual ruleProcessor function
+  TunManager::ruleProcessor(
+      reinterpret_cast<struct nl_object*>(rule), static_cast<void*>(tunMgr_));
+
+  // Verify no rule was stored
+  EXPECT_EQ(0, tunMgr_->probedRules_.size());
 
   // Cleanup
   rtnl_rule_put(rule);
