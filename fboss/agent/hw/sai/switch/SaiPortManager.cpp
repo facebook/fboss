@@ -1561,12 +1561,16 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   auto port = std::make_shared<Port>(std::move(portFields));
 
   switch (portType.value()) {
-    case SAI_PORT_TYPE_LOGICAL:
-      port->setPortType(derivePortTypeOfLogicalPort(portSaiId));
-      break;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+    case SAI_PORT_TYPE_LOGICAL:
+      port->setPortType(cfg::PortType::INTERFACE_PORT);
+      break;
     case SAI_PORT_TYPE_MGMT:
       port->setPortType(cfg::PortType::MANAGEMENT_PORT);
+      break;
+#else
+    case SAI_PORT_TYPE_LOGICAL:
+      port->setPortType(derivePortTypeOfLogicalPort(portSaiId));
       break;
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
