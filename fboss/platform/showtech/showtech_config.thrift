@@ -6,6 +6,7 @@ struct ShowtechConfig {
   2: list<string> psus;
   3: list<Gpio> gpios;
   4: list<Pem> pems;
+  5: list<Device> fanspinners;
 }
 
 struct Gpio {
@@ -16,7 +17,6 @@ struct Gpio {
 struct GpioLine {
   1: string name;
   2: i32 lineIndex;
-  3: list<Pem> pems;
 }
 
 struct Pem {
@@ -24,4 +24,15 @@ struct Pem {
   2: string presenceSysfsPath;
   3: string inputOkSysfsPath;
   4: string statusSysfsPath;
+}
+
+struct Device {
+  1: string path;
+  2: bool isI2cDevice;
+  3: optional list<SysfsAttribute> sysfsAttributes;
+}
+
+struct SysfsAttribute {
+  1: string name;
+  2: string path;
 }
