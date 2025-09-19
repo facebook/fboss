@@ -1607,7 +1607,9 @@ bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
 }
 
 bool MultiNodeUtil::verifyUngracefulFsdbDownUp() {
-  return true;
+  XLOG(DBG2) << __func__;
+  return verifyFsdbDownUpForRemoteRdswsHelper(
+      false /* triggerGracefulFsdbRestart */);
 }
 
 } // namespace facebook::fboss::utility
