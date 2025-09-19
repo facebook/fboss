@@ -35,7 +35,7 @@ const std::string kMergedEcmpMemberGroupsCount =
 namespace facebook::fboss {
 
 // set to empty string, we'll prepend prefix when fbagent collects counters
-std::string SwitchStats::kCounterPrefix = "";
+std::string SwitchStats::kCounterPrefix;
 
 // Temporary until we get this into fb303 with D40324952
 static constexpr const std::array<double, 1> kP100{{1.0}};
