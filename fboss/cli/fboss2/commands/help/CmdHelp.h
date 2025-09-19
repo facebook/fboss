@@ -12,8 +12,6 @@ class CmdHelp {
   ReverseHelpTree tree_;
 
   ReverseHelpTree revHelpTree(std::vector<CommandTree>& cmdTrees) {
-    using RevHelpForObj = std::map<HelpInfo, std::vector<Command>>;
-
     ReverseHelpTree root;
     for (auto cmdTree : cmdTrees) {
       for (const auto& cmd : cmdTree) {
