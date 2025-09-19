@@ -28,7 +28,8 @@
   FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule); \
   FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule); \
   FRIEND_TEST(TunManagerRuleProcessorTest, SkipUnsupportedFamily); \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipInvalidTableId);
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipInvalidTableId);    \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -247,6 +248,31 @@ TEST_F(TunManagerRuleProcessorTest, SkipInvalidTableId) {
 
   rtnl_rule_set_family(rule, AF_INET);
   rtnl_rule_set_table(rule, 254); // Outside valid range [1-253]
+
+  // Call the actual ruleProcessor function
+  TunManager::ruleProcessor(
+      reinterpret_cast<struct nl_object*>(rule), static_cast<void*>(tunMgr_));
+
+  // Verify no rule was stored
+  EXPECT_EQ(0, tunMgr_->probedRules_.size());
+
+  // Cleanup
+  rtnl_rule_put(rule);
+}
+
+/**
+ * @brief Test skipping rules without source address
+ *
+ * Verifies that ruleProcessor correctly skips rules that don't have a source
+ * address set and does not store them in probedRules_.
+ */
+TEST_F(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr) {
+  auto rule = rtnl_rule_alloc();
+  ASSERT_NE(nullptr, rule);
+
+  rtnl_rule_set_family(rule, AF_INET);
+  rtnl_rule_set_table(rule, 100);
+  // Intentionally not setting source address
 
   // Call the actual ruleProcessor function
   TunManager::ruleProcessor(
