@@ -702,6 +702,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       fabricLLFC;
   std::optional<int32_t> maxSystemPortId;
   std::optional<int32_t> maxLocalSystemPortId;
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+  std::optional<std::vector<sai_u16_range_t>> localSystemPortIdRangeList;
+#endif
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
   std::optional<int32_t> maxSwitchId;
@@ -753,7 +756,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
   if (isDualStage3Q2QMode()) {
     maxSystemPortId = 32694;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+#else
     maxLocalSystemPortId = 184;
+#endif
     maxSystemPorts = 22136;
     maxVoqs = 65284;
   } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
@@ -796,7 +803,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     //  [7483-7500: One for each of the 16 x 800G NIF ports
     maxSystemPortId = 8120;
     maxSystemPorts = 8121;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+#else
     maxLocalSystemPortId = 184;
+#endif
     maxVoqs = maxSystemPorts.value() * 8;
   } else {
     if (FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports) {
@@ -806,7 +817,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSystemPortId = 6143;
       maxSystemPorts = 6144;
     }
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+#else
     maxLocalSystemPortId = -1;
+#endif
     maxVoqs = maxSystemPorts.value() * 8;
   }
 #endif
@@ -942,6 +957,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // disable sll and hll timeout
       std::nullopt, // credit request profile scheduler mode
       std::nullopt, // module id to credit request profile param list
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      localSystemPortIdRangeList, // range list of local scope system port ids
+#endif
   };
 }
 
