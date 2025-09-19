@@ -1097,6 +1097,27 @@ bool MultiNodeUtil::verifyQsfpServiceRunState(
       true /* retry on exception */);
 }
 
+bool MultiNodeUtil::verifyFsdbIsUp(const std::string& rdswToVerify) {
+  auto fsdbIsUp = [this, rdswToVerify]() -> bool {
+    // Unlike Agent and QSFP, FSDB lacks notion of "RunState" that can be
+    // queried to confirm whether FSDB has completed initialization.
+    // In the meanwhile, query some FSDB thrift method.
+    // If FSDB has not up yet, this will throw an error and
+    // checkwithRetryErrorReturn will retry the specified number of times.
+    // TODO: T238268316 will add "RunState" to FSDB. Leverage it then.
+    getSubscriberIdToOperSusbscriberInfos(rdswToVerify);
+    return true;
+  };
+
+  // Thrift client queries will throw exception while FSDB is initializing.
+  // Thus, continue to retry while absorbing exceptions.
+  return checkWithRetryErrorReturn(
+      fsdbIsUp,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
     bool triggerGraceFulRestart) {
   auto myHostname = network::NetworkUtil::getLocalHost(

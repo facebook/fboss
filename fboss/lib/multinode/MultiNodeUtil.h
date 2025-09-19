@@ -154,6 +154,7 @@ class MultiNodeUtil {
   bool verifyQsfpServiceRunState(
       const std::string& rdswToVerify,
       const QsfpServiceRunState& expectedQsfpRunState);
+  bool verifyFsdbIsUp(const std::string& rdswToVerify);
 
   bool verifyStaleSystemPorts(
       const std::map<std::string, std::vector<SystemPortThrift>>&
