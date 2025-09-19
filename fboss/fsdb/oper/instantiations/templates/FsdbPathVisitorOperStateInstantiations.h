@@ -40,7 +40,8 @@ extern template ThriftTraverseResult pv_detail::visitNode<
     BasePathVisitorOperator>(
     const ThriftStructNode<fsdb::FsdbOperStateRoot>& node,
     const pv_detail::VisitImplParams<BasePathVisitorOperator>& params,
-    pv_detail::PathIter cursor);
+    pv_detail::PathIter cursor,
+    bool isContainerNode);
 
 // Extern template for PathVisitorImpl::visit with const ThriftStructFields and
 // BasePathVisitorOperator

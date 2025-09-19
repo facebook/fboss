@@ -1197,6 +1197,8 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   storage.setConvertToIDPaths(true);
   storage.start();
 
+  auto tgtStorage = this->createCowStorage(this->testStruct);
+
   const auto& path =
       ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
   auto generator = storage.subscribe_patch_extended(
@@ -1211,11 +1213,19 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
         folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
     EXPECT_FALSE(ret.hasException());
 
+    for (auto& patch : ret->chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+    }
+
     // update value
     EXPECT_EQ(storage.set(setPath, 10), std::nullopt);
     ret = co_await co_awaitTry(
         folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
     EXPECT_FALSE(ret.hasException());
+
+    for (auto& patch : ret->chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+    }
 
     // remove value
     storage.remove(this->root.stringToStruct()["test1"]);
@@ -1230,6 +1240,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
     EXPECT_EQ(
         patch.patch()->getType(),
         facebook::fboss::thrift_cow::PatchNode::Type::del);
+    for (auto& subPatch : ret->chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(subPatch)), std::nullopt);
+    }
   }
 }
 
