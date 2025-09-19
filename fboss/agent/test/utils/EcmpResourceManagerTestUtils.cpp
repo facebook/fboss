@@ -398,7 +398,7 @@ void assertDeltasForOverflow(
   auto idx = 1;
   for (const auto& delta : deltas) {
     XLOG(DBG2) << " Processing delta #" << idx++;
-    forEachChangedRoute<folly::IPAddressV6>(
+    processFibsDeltaInHwSwitchOrder(
         delta,
         [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
           if (!oldRoute->isResolved() && !newRoute->isResolved()) {
