@@ -455,6 +455,9 @@ class SaiPortManager {
   void changeTxEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void changeResetQueueCreditBalance(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
   void reloadSixTapAttributes(
       SaiPortHandle* portHandle,
       SaiPortSerdesTraits::CreateAttributes& attr);

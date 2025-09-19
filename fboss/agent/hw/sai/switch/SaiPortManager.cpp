@@ -3332,6 +3332,27 @@ void SaiPortManager::changeTxEnable(
   }
 }
 
+void SaiPortManager::changeResetQueueCreditBalance(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getResetQueueCreditBalance() !=
+      newPort->getResetQueueCreditBalance()) {
+    auto portHandle = getPortHandle(newPort->getID());
+    if (!portHandle) {
+      throw FbossError(
+          "Cannot change enable initial credit on non existent port: ",
+          newPort->getID());
+    }
+    // Set the attribute only if its explicitly specified
+    if (newPort->getResetQueueCreditBalance().has_value()) {
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->port->adapterKey(),
+          SaiPortTraits::Attributes::ResetQueueCreditBalance{
+              newPort->getResetQueueCreditBalance().value()});
+    }
+  }
+}
+
 void SaiPortManager::addPortShelEnable(
     const std::shared_ptr<Port>& swPort) const {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
