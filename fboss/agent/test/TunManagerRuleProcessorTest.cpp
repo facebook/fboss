@@ -23,9 +23,10 @@
  * to access private members of TunManager for testing the ruleProcessor
  * functionality.
  */
-#define TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS \
-  friend class TunManagerRuleProcessorTest;    \
-  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule);
+#define TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS                     \
+  friend class TunManagerRuleProcessorTest;                        \
+  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule); \
+  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -174,6 +175,34 @@ TEST_F(TunManagerRuleProcessorTest, ProcessIPv4SourceRule) {
 
   // Verify the rule was stored by ruleProcessor
   verifyStoredRule(AF_INET, 100, "192.168.1.1/32");
+
+  // Cleanup
+  rtnl_rule_put(rule);
+}
+
+/**
+ * @brief Test processing of IPv6 source routing rule
+ *
+ * Verifies that ruleProcessor correctly processes and stores an IPv6 source
+ * routing rule with valid parameters. The test creates a real netlink rule
+ * object with:
+ * - IPv6 address family (AF_INET6)
+ * - Valid table ID (150, within range [1-253])
+ * - Source address with /128 prefix
+ *
+ * Expects the rule to be stored in probedRules_ with all fields correctly
+ * extracted and parsed.
+ */
+TEST_F(TunManagerRuleProcessorTest, ProcessIPv6SourceRule) {
+  auto rule = createRule(AF_INET6, 150, "2001:db8::1", 128);
+  ASSERT_NE(nullptr, rule);
+
+  // Call the actual ruleProcessor function
+  TunManager::ruleProcessor(
+      reinterpret_cast<struct nl_object*>(rule), static_cast<void*>(tunMgr_));
+
+  // Verify the rule was stored by ruleProcessor
+  verifyStoredRule(AF_INET6, 150, "2001:db8::1/128");
 
   // Cleanup
   rtnl_rule_put(rule);
