@@ -1408,7 +1408,24 @@ bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
 }
 
 bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() {
-  // TODO
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  // For any one RDSW in every remote cluster issue ungraceful QSFP restart
+  for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+      triggerUngracefulQsfpRestart(rdsw);
+
+      // TODO verify
+
+      // Ungracefully restart only one remote RDSW QSFP per cluster
+      break;
+    }
+  }
+
   return true;
 }
 
