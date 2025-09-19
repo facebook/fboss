@@ -18,6 +18,7 @@ thrift_library(
 cpp_binary(
     name = "showtech",
     srcs = [
+        "FanImpl.cpp",
         "I2cHelper.cpp",
         "Main.cpp",
         "PsuHelper.cpp",
@@ -30,8 +31,8 @@ cpp_binary(
         "//fboss/lib:gpiod_line",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//fboss/platform/helpers:init_cli",
-        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/platform/helpers:platform_utils",
         "//folly:string",
         "//folly/logging:logging",

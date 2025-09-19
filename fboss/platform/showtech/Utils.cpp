@@ -3,14 +3,20 @@
 #include "fboss/platform/showtech/Utils.h"
 
 #include <gpiod.h>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <thread>
 
 #include <fmt/core.h>
 #include <re2/re2.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/GpiodLine.h"
+#include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
+#include "fboss/platform/showtech/FanImpl.h"
 #include "fboss/platform/showtech/PsuHelper.h"
 
 using namespace facebook::fboss::platform::showtech_config;
@@ -193,6 +199,56 @@ void Utils::printPemDetails() {
     printSysfsAttribute("status", *pem.statusSysfsPath());
   }
   std::cout << std::endl;
+}
+
+void Utils::printFanDetails() {
+  std::cout << "##### Fan Information #####" << std::endl;
+  std::string fanServiceConfJson = ConfigLib().getFanServiceConfig();
+  auto fanServiceConfig = apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_service::FanServiceConfig>(fanServiceConfJson);
+  if (fanServiceConfig.fans()->empty()) {
+    std::cout << "No fans found from configs\n" << std::endl;
+    return;
+  }
+
+  for (int i = 0; i < 2; ++i) {
+    if (i > 0) {
+      std::cout << "Sleeping for 0.5s...\n" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    for (const auto& fan : *fanServiceConfig.fans()) {
+      std::string presenceStr{"ReadError"}, rpmStr{"ReadError"},
+          pwmPercentStr{"ReadError"};
+
+      FanImpl fanImpl(fan);
+
+      try {
+        presenceStr = fanImpl.readFanIsPresentOnDevice() ? "True" : "False";
+      } catch (const std::exception& e) {
+        std::cout << "Error in reading Fan Presence: " << e.what() << std::endl;
+        continue;
+      }
+      try {
+        rpmStr = std::to_string(fanImpl.readFanRpm());
+      } catch (const std::exception& e) {
+        std::cout << "Error in reading Fan RPM: " << e.what() << std::endl;
+      }
+      try {
+        pwmPercentStr = fmt::format("{}%", fanImpl.readFanPwmPercent());
+      } catch (const std::exception& e) {
+        std::cout << "Error in reading Fan PWM: " << e.what() << std::endl;
+      }
+      std::cout << fmt::format(
+                       "{} -> present={}, rpm={}, pwmPercent={}",
+                       *fan.fanName(),
+                       presenceStr,
+                       rpmStr,
+                       pwmPercentStr)
+                << std::endl;
+    }
+    std::cout << std::endl;
+  }
 }
 
 void Utils::runFbossCliCmd(const std::string& cmd) {
