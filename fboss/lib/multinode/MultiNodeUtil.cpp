@@ -1490,4 +1490,8 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUp() {
       verifyUngracefulQsfpDownUpForRemoteSdsws();
 }
 
+bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
+  return true;
+}
+
 } // namespace facebook::fboss::utility

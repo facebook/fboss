@@ -36,6 +36,8 @@ class MultiNodeUtil {
   bool verifyGracefulQsfpDownUp();
   bool verifyUngracefulQsfpDownUp();
 
+  bool verifyGracefulFsdbDownUp();
+
  private:
   enum class SwitchType : uint8_t {
     RDSW = 0,
