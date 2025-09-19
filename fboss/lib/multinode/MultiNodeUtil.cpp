@@ -15,6 +15,7 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/if/gen-cpp2/TestCtrlAsyncClient.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 #include "fboss/agent/Utils.h"
@@ -26,6 +27,7 @@ using facebook::fboss::MultiSwitchRunState;
 using facebook::fboss::QsfpService;
 using facebook::fboss::QsfpServiceRunState;
 using facebook::fboss::TestCtrl;
+using facebook::fboss::fsdb::FsdbService;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 
@@ -65,6 +67,19 @@ std::unique_ptr<apache::thrift::Client<QsfpService>> getQsfpThriftClient(
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
   return std::make_unique<apache::thrift::Client<QsfpService>>(
+      std::move(channel));
+}
+
+std::unique_ptr<apache::thrift::Client<FsdbService>> getFsdbThriftClient(
+    const std::string& switchName) {
+  folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
+  auto remoteSwitchIp =
+      facebook::network::NetworkUtil::getHostByName(switchName);
+  folly::SocketAddress fsdb(remoteSwitchIp, 5908);
+  auto socket = folly::AsyncSocket::newSocket(eb, fsdb);
+  auto channel =
+      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+  return std::make_unique<apache::thrift::Client<FsdbService>>(
       std::move(channel));
 }
 
