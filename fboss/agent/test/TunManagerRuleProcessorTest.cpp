@@ -23,13 +23,14 @@
  * to access private members of TunManager for testing the ruleProcessor
  * functionality.
  */
-#define TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS                     \
-  friend class TunManagerRuleProcessorTest;                        \
-  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule); \
-  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule); \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipUnsupportedFamily); \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipInvalidTableId);    \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr);
+#define TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS                      \
+  friend class TunManagerRuleProcessorTest;                         \
+  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule);  \
+  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule);  \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipUnsupportedFamily);  \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipInvalidTableId);     \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr); \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipLinkLocalAddress);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -283,6 +284,40 @@ TEST_F(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr) {
 
   // Cleanup
   rtnl_rule_put(rule);
+}
+
+/**
+ * @brief Test skipping rules with link-local addresses
+ *
+ * Verifies that ruleProcessor correctly skips rules with link-local source
+ * addresses since they don't have source routing rules in our implementation.
+ */
+TEST_F(TunManagerRuleProcessorTest, SkipLinkLocalAddress) {
+  // Test IPv4 link-local (169.254.x.x)
+  auto ipv4Rule = createRule(AF_INET, 100, "169.254.1.1", 32);
+  ASSERT_NE(nullptr, ipv4Rule);
+
+  TunManager::ruleProcessor(
+      reinterpret_cast<struct nl_object*>(ipv4Rule),
+      static_cast<void*>(tunMgr_));
+
+  // Verify no rule was stored for IPv4 link-local
+  EXPECT_EQ(0, tunMgr_->probedRules_.size());
+
+  rtnl_rule_put(ipv4Rule);
+
+  // Test IPv6 link-local (fe80::/10)
+  auto ipv6Rule = createRule(AF_INET6, 100, "fe80::1", 128);
+  ASSERT_NE(nullptr, ipv6Rule);
+
+  TunManager::ruleProcessor(
+      reinterpret_cast<struct nl_object*>(ipv6Rule),
+      static_cast<void*>(tunMgr_));
+
+  // Verify no rule was stored for IPv6 link-local
+  EXPECT_EQ(0, tunMgr_->probedRules_.size());
+
+  rtnl_rule_put(ipv6Rule);
 }
 
 } // namespace facebook::fboss
