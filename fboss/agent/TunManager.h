@@ -130,6 +130,33 @@ class TunManager : public StateObserver {
     ProbedRoute() = default;
   };
 
+  /**
+   * @brief Probed rule from the kernel.
+   */
+  struct ProbedRule {
+    /*< Address family (AF_INET for IPv4, AF_INET6 for IPv6) */
+    int family{};
+    /*< Routing table identifier */
+    int tableId{};
+    /*< Source address as string */
+    std::string srcAddr;
+
+    /**
+     * @brief Constructor for initializing family, tableId, and srcAddr.
+     *
+     * @param family Address family (AF_INET for IPv4, AF_INET6 for IPv6)
+     * @param tableId Routing table identifier
+     * @param srcAddr Source address as string
+     */
+    ProbedRule(int family, int tableId, const std::string& srcAddr)
+        : family(family), tableId(tableId), srcAddr(srcAddr) {}
+
+    /**
+     * @brief Default constructor.
+     */
+    ProbedRule() = default;
+  };
+
   // no copy to assign
   TunManager(const TunManager&) = delete;
   TunManager& operator=(const TunManager&) = delete;
