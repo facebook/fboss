@@ -1449,15 +1449,31 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() {
 }
 
 bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteFdsws() {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
   // For any one FDSW in every remote cluster issue ungraceful QSFP restart
+  std::set<std::string> restartedFdsws;
   for (const auto& [_, fdsws] : std::as_const(clusterIdToFdsws_)) {
     // Ungracefully restart only one remote FDSW QSFP per cluster
     if (!fdsws.empty()) {
       auto fdsw = fdsws.front();
       triggerUngracefulQsfpRestart(fdsw);
-
-      // TODO verify
     }
+  }
+
+  for (const auto& fdsw : restartedFdsws) {
+    // Wait for QSFP service to come up
+    if (!verifyQsfpServiceRunState(fdsw, QsfpServiceRunState::ACTIVE)) {
+      XLOG(DBG2) << "QSFP failed to come up post warmboot: " << fdsw;
+      return false;
+    }
+  }
+
+  // No session flaps are expected for QSFP restart.
+  if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
+    return false;
   }
 
   return true;
