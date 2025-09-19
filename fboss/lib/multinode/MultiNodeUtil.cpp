@@ -28,6 +28,7 @@ using facebook::fboss::QsfpService;
 using facebook::fboss::QsfpServiceRunState;
 using facebook::fboss::TestCtrl;
 using facebook::fboss::fsdb::FsdbService;
+using facebook::fboss::fsdb::SubscriberIdToOperSubscriberInfos;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 
@@ -182,6 +183,14 @@ void triggerGracefulFsdbRestart(const std::string& switchName) {
     // Thrift request may throw error as the Agent exits.
     // Ignore it, as we only wanted to trigger exit.
   }
+}
+
+SubscriberIdToOperSubscriberInfos getSubscriberIdToOperSusbscriberInfos(
+    const std::string& switchName) {
+  auto fsdbClient = getFsdbThriftClient(switchName);
+  SubscriberIdToOperSubscriberInfos subInfos;
+  fsdbClient->sync_getAllOperSubscriberInfos(subInfos);
+  return subInfos;
 }
 
 } // namespace
