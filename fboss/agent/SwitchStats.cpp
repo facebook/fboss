@@ -92,6 +92,16 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       addRouteV6_(map, kCounterPrefix + "route.v6.add", RATE),
       delRouteV4_(map, kCounterPrefix + "route.v4.delete", RATE),
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
+      routeProgrammingUpdateAttempts_(
+          map,
+          kCounterPrefix + "route_programming_update_attempts",
+          SUM,
+          RATE),
+      routeProgrammingUpdateFailures_(
+          map,
+          kCounterPrefix + "route_programming_update_failures",
+          SUM,
+          RATE),
       dstLookupFailureV4_(
           map,
           kCounterPrefix + "ipv4.dst_lookup_failure",

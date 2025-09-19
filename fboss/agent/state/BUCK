@@ -130,6 +130,7 @@ cpp_library(
         ":nodebase",
         "//common/network/if:if-cpp2-types",
         "//fboss/agent:address_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:constants",
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-error",

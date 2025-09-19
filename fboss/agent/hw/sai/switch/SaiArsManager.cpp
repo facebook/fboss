@@ -26,6 +26,7 @@ SaiArsManager::SaiArsManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   arsHandle_ = std::make_unique<SaiArsHandle>();
+  alternateMemberArsHandle_ = std::make_unique<SaiArsHandle>();
 #endif
 }
 
@@ -52,6 +53,9 @@ void SaiArsManager::removeArs(
   if (arsHandle_->ars) {
     arsHandle_->ars.reset();
   }
+  if (alternateMemberArsHandle_->ars) {
+    alternateMemberArsHandle_->ars.reset();
+  }
 }
 
 void SaiArsManager::changeArs(
@@ -62,6 +66,10 @@ void SaiArsManager::changeArs(
 
 SaiArsHandle* SaiArsManager::getArsHandle() const {
   return arsHandle_.get();
+}
+
+SaiArsHandle* SaiArsManager::getAlternateMemberArsHandle() const {
+  return alternateMemberArsHandle_.get();
 }
 #endif
 

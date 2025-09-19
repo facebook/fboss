@@ -68,6 +68,9 @@ QueueConfig getDefaultVoqConfig(cfg::PortType portType);
 
 std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble);
 
+boost::container::flat_set<PortDescriptor> getRemoteSysPorts(
+    TestEnsembleIf* ensemble);
+
 boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);

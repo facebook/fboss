@@ -17,6 +17,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_fsw_scale_route_add_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -35,6 +36,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_fsw_scale_route_del_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -53,6 +55,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_th_alpm_scale_route_add_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -71,6 +74,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_th_alpm_scale_route_del_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -88,6 +92,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     hw_hgrid_du_scale_route_add_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -106,6 +111,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_hgrid_du_scale_route_del_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -124,6 +130,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_hgrid_uu_scale_route_add_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -142,6 +149,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_hgrid_uu_scale_route_del_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -160,6 +168,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_anticipated_scale_route_add_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -178,6 +187,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     hw_anticipated_scale_route_del_speed
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -194,6 +204,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     hw_stats_collection_speed
     mono_sai_agent_benchmarks_main
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -211,6 +222,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     hw_tx_slow_path_rate
     mono_sai_agent_benchmarks_main
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -230,6 +242,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     mono_sai_agent_benchmarks_main
     sai_ecmp_utils
     sai_port_utils
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -249,6 +262,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     hw_ecmp_shrink_with_competing_route_updates_speed
     sai_ecmp_utils
     sai_port_utils
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -268,6 +282,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     hw_rx_slow_path_rate
     sai_copp_utils
     sai_acl_utils
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -285,6 +300,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_40Gx10G
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -302,6 +318,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_100Gx10G
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -319,6 +336,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_100Gx25G
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -336,6 +354,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_100Gx50G
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -353,6 +372,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_100Gx100G
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -370,6 +390,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_400Gx400G
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -387,6 +408,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_voq
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -404,6 +426,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_copp_utils
     hw_init_and_exit_fabric
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -422,6 +445,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     hw_rib_resolution_speed
     mono_sai_agent_benchmarks_main
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -440,6 +464,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     hw_rib_sync_fib_speed
     mono_sai_agent_benchmarks_main
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -458,6 +483,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     hw_voq_scale_route_add_speed
     mono_sai_agent_benchmarks_main
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -476,6 +502,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     hw_voq_scale_route_del_speed
     mono_sai_agent_benchmarks_main
     route_scale_gen
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -493,6 +520,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     hw_switch_reachability_change_speed
     mono_sai_agent_benchmarks_main
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -510,6 +538,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     hw_voq_sys_port_programming
     mono_sai_agent_benchmarks_main
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
@@ -527,6 +556,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     hw_voq_remote_neighbor_programming
     mono_sai_agent_benchmarks_main
+    setup_thrift_prod
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )

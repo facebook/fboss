@@ -197,7 +197,9 @@ class BcmRtag7Test : public BcmTest {
 };
 
 TEST_F(BcmRtag7Test, programUdfLoadBalancerMap) {
-  auto setupUdfLoadBalancers = [=]() { applyNewState(setupFullEcmpUdfHash()); };
+  auto setupUdfLoadBalancers = [=, this]() {
+    applyNewState(setupFullEcmpUdfHash());
+  };
   auto verifyUdfLoadBalancers = [=]() {
     const int v4HalfHash = BCM_HASH_FIELD_IP4SRC_LO | BCM_HASH_FIELD_IP4SRC_HI |
         BCM_HASH_FIELD_IP4DST_LO | BCM_HASH_FIELD_IP4DST_HI;
@@ -230,7 +232,7 @@ TEST_F(BcmRtag7Test, programUdfLoadBalancerMap) {
 };
 
 TEST_F(BcmRtag7Test, unprogramUdfLoadBalancerMap) {
-  auto setupUndoUdfLoadBalancers = [=]() {
+  auto setupUndoUdfLoadBalancers = [=, this]() {
     applyNewState(setupFullEcmpUdfHash());
     // undo udf hashing
     applyNewState(setupFullEcmpHash());
@@ -264,12 +266,12 @@ TEST_F(BcmRtag7Test, unprogramUdfLoadBalancerMap) {
 };
 
 TEST_F(BcmRtag7Test, programLoadBalancerMap) {
-  auto setupBothLoadBalancers = [=]() {
+  auto setupBothLoadBalancers = [=, this]() {
     applyNewState(setupFullEcmpHash());
     applyNewState(setupHalfTrunkHash());
   };
 
-  auto verifyBothLoadBalancers = [=]() {
+  auto verifyBothLoadBalancers = [=, this]() {
     // TODO(samank): factor out unit number
     const bool kEnable = true;
 
@@ -363,13 +365,13 @@ TEST_F(BcmRtag7Test, programLoadBalancerMap) {
 }
 
 TEST_F(BcmRtag7Test, programMPLSLoadBalancer) {
-  auto setupBothLoadBalancers = [=]() {
+  auto setupBothLoadBalancers = [=, this]() {
     applyNewState(setupHashWithAllFields(LoadBalancerID::ECMP));
     return applyNewState(
         setupHashWithAllFields(LoadBalancerID::AGGREGATE_PORT));
   };
 
-  auto verifyBothLoadBalancers = [=]() {
+  auto verifyBothLoadBalancers = [=, this]() {
     auto mplsTerminationHash =
         getDefaultHashSubFieldSelectorsForL3MPLSTerminate();
     auto mplsForwardHash = getDefaultHashSubFieldSelectorsForL3MPLSForward();

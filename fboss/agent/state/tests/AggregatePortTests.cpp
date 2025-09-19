@@ -759,7 +759,8 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
       folly::MacAddress("01:02:03:04:05:06"), // systemID
       4,
       subportRange,
-      {1});
+      {1},
+      5);
 
   validateThriftStructNodeSerialization(*aggPort);
 
@@ -776,6 +777,9 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
   EXPECT_EQ(
       aggPort->getMinimumLinkCount(),
       deserializedAggPort->getMinimumLinkCount());
+  EXPECT_EQ(
+      aggPort->getMinimumLinkCountToUp(),
+      deserializedAggPort->getMinimumLinkCountToUp());
   EXPECT_TRUE(std::equal(
       aggPort->sortedSubports().begin(),
       aggPort->sortedSubports().end(),

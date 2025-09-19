@@ -17,7 +17,11 @@ cpp_unittest(
 
 cpp_unittest(
     name = "subscribable_storage_tests",
-    srcs = ["SubscribableStorageTests.cpp"],
+    srcs = [
+        "FsdbNsdbPipelineTests.cpp",
+        "SubscribableStorageTests.cpp",
+    ],
+    headers = ["TestHelpers.h"],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
     supports_static_listing = False,
     deps = [

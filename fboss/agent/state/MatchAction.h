@@ -151,6 +151,14 @@ class MatchAction {
     setEcmpHashAction_ = setEcmpHashAction;
   }
 
+  std::optional<bool> getEnableAlternateArsMembers() const {
+    return enableAlternateArsMembers_;
+  }
+
+  void setEnableAlternateArsMembers(bool enableAlternateArsMembers) {
+    enableAlternateArsMembers_ = enableAlternateArsMembers;
+  }
+
   bool operator==(const MatchAction& action) const {
     return std::tie(
                sendToQueue_,
@@ -164,7 +172,8 @@ class MatchAction {
                setTc_,
                userDefinedTrap_,
                flowletAction_,
-               setEcmpHashAction_) ==
+               setEcmpHashAction_,
+               enableAlternateArsMembers_) ==
         std::tie(
                action.sendToQueue_,
                action.ingressMirror_,
@@ -177,7 +186,8 @@ class MatchAction {
                action.setTc_,
                action.userDefinedTrap_,
                action.flowletAction_,
-               action.setEcmpHashAction_);
+               action.setEcmpHashAction_,
+               action.enableAlternateArsMembers_);
   }
 
   MatchAction& operator=(const MatchAction& action) {
@@ -193,7 +203,8 @@ class MatchAction {
         setTc_,
         userDefinedTrap_,
         flowletAction_,
-        setEcmpHashAction_) =
+        setEcmpHashAction_,
+        enableAlternateArsMembers_) =
         std::tie(
             action.sendToQueue_,
             action.ingressMirror_,
@@ -206,7 +217,8 @@ class MatchAction {
             action.setTc_,
             action.userDefinedTrap_,
             action.flowletAction_,
-            action.setEcmpHashAction_);
+            action.setEcmpHashAction_,
+            action.enableAlternateArsMembers_);
     return *this;
   }
 
@@ -226,6 +238,7 @@ class MatchAction {
   std::optional<UserDefinedTrap> userDefinedTrap_{std::nullopt};
   std::optional<cfg::FlowletAction> flowletAction_{std::nullopt};
   std::optional<cfg::SetEcmpHashAction> setEcmpHashAction_{std::nullopt};
+  std::optional<bool> enableAlternateArsMembers_{std::nullopt};
 };
 
 } // namespace facebook::fboss

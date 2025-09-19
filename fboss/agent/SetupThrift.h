@@ -27,6 +27,11 @@ DECLARE_bool(hw_agent_for_testing);
 
 namespace facebook::fboss {
 
+class SwSwitch;
+class ThriftHandler;
+
+std::shared_ptr<ThriftHandler> createThriftHandler(SwSwitch* sw);
+
 void serverSSLSetup(apache::thrift::ThriftServer& server);
 
 void setupThriftModules();

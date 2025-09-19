@@ -139,7 +139,7 @@ bool ResourceAccountant::checkArsResource(bool intermediateState) const {
         intermediateState ? kHundredPercentage : FLAGS_ars_resource_percentage;
 
     for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
-      const auto arsGroupLimit = hwAsic->getMaxDlbEcmpGroups();
+      const auto arsGroupLimit = hwAsic->getMaxArsGroups();
       if (arsGroupLimit.has_value() &&
           arsEcmpGroupRefMap_.size() >
               (arsGroupLimit.value() * resourcePercentage) /
@@ -301,7 +301,7 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
         << "Invalid route update - exceeding DLB resource limits. New state consumes "
         << arsEcmpGroupRefMap_.size() << " DLB ECMP groups";
     for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
-      const auto dlbGroupLimit = hwAsic->getMaxDlbEcmpGroups();
+      const auto dlbGroupLimit = hwAsic->getMaxArsGroups();
       XLOG(WARNING) << "DLB ECMP resource limits for Switch " << switchId
                     << ": max DLB groups="
                     << (dlbGroupLimit.has_value()

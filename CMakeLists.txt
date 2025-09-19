@@ -1020,6 +1020,7 @@ add_dependencies(fboss_platform_services
   fan_service_hw_test
   sensor_service_hw_test
   weutil_hw_test
+  platform_hw_test
   platform_manager_hw_test
   cross_config_validator_test
   fw_util_hw_test

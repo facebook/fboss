@@ -214,6 +214,8 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logShellCommand(const std::string& command);
+
   std::string getVariable(sai_object_id_t object_id);
 
   uint32_t
@@ -303,6 +305,7 @@ class SaiTracer {
       {TYPE_INDEX(AclEntryFieldU16), &aclEntryFieldU16Attr},
       {TYPE_INDEX(AclEntryFieldU8), &aclEntryFieldU8Attr},
       {TYPE_INDEX(AclEntryActionU8), &aclEntryActionU8Attr},
+      {TYPE_INDEX(AclEntryActionBool), &aclEntryActionBoolAttr},
       {TYPE_INDEX(AclEntryFieldMac), &aclEntryFieldMacAttr},
       // System port
       {TYPE_INDEX(sai_system_port_config_t), &systemPortConfigAttr},

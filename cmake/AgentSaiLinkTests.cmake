@@ -21,6 +21,7 @@ function(BUILD_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_ecmp_utils
     sai_port_utils
     sai_traced_api
+    setup_thrift_prod
     trap_packet_utils
     -Wl,--no-whole-archive
     ref_map

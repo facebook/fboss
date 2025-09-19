@@ -1,14 +1,14 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <boost/container/flat_set.hpp>
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentEnsembleTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/link_tests/LinkTestUtils.h"
+#include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
-
-#include <boost/container/flat_set.hpp>
-#include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 
 DECLARE_string(config);
 DECLARE_bool(disable_neighbor_updates);
@@ -65,6 +65,17 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
       std::optional<SwitchID> switchId = std::nullopt) const;
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
+  }
+
+  std::vector<PortID> getXphyCabledPorts() const {
+    std::vector<PortID> xphyPorts;
+    auto& ports = getCabledPorts();
+    for (const auto& port : ports) {
+      if (utility::getPortExternalPhyID(getSw(), port).has_value()) {
+        xphyPorts.push_back(port);
+      }
+    }
+    return xphyPorts;
   }
 
   void checkAgentMemoryInBounds() const;

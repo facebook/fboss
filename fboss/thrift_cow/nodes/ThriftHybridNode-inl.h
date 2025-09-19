@@ -17,21 +17,80 @@
 
 namespace facebook::fboss::thrift_cow {
 
+// HybridNodeFields wraps a Thrift struct object
+template <typename TType>
+struct HybridNodeFields {
+  HybridNodeFields() = default;
+
+  explicit HybridNodeFields(const TType& obj) : obj_(obj) {}
+
+  template <typename Fn>
+  void forEachChild(Fn /*fn*/) {}
+
+  TType& ref() {
+    return obj_;
+  }
+
+  const TType& ref() const {
+    return obj_;
+  }
+
+  const TType& cref() const {
+    return obj_;
+  }
+
+  void set(const TType& obj) {
+    obj_ = obj;
+  }
+
+  TType toThrift() const {
+    return obj_;
+  }
+
+#ifdef ENABLE_DYNAMIC_APIS
+  folly::dynamic toFollyDynamic() const {
+    folly::dynamic dyn;
+    facebook::thrift::to_dynamic(
+        dyn, obj_, facebook::thrift::dynamic_format::JSON_1);
+    return dyn;
+  }
+
+  void fromFollyDynamic(const folly::dynamic& obj) {
+    facebook::thrift::from_dynamic(
+        obj_, obj, facebook::thrift::dynamic_format::JSON_1);
+  }
+#else
+  folly::dynamic toFollyDynamic() const {
+    return {};
+  }
+#endif
+
+ private:
+  TType obj_{};
+};
+
+// ThriftHybridNode is a Node holding a wrapped Thrift object
 template <typename TypeClass, typename TType>
-struct ThriftHybridNode : public thrift_cow::Serializable {
+struct ThriftHybridNode : public fboss::NodeBaseT<
+                              ThriftHybridNode<TypeClass, TType>,
+                              HybridNodeFields<TType>>,
+                          public thrift_cow::Serializable {
  public:
   using ThriftType = TType;
   using TC = TypeClass;
+  using BaseT =
+      NodeBaseT<ThriftHybridNode<TypeClass, TType>, HybridNodeFields<TType>>;
   using CowType = HybridNodeType;
   using Self = ThriftHybridNode<TypeClass, TType>;
   using PathIter = typename std::vector<std::string>::const_iterator;
 
   ThriftHybridNode() = default;
-  explicit ThriftHybridNode(TType obj) : obj_(std::move(obj)) {}
+  explicit ThriftHybridNode(TType obj) : BaseT(std::move(obj)) {}
+  explicit ThriftHybridNode(const Self* other) : BaseT(other->cref()) {}
 
   template <typename T = Self>
   auto set(const TType& obj) {
-    obj_ = obj;
+    this->writableFields()->set(obj);
   }
 
   void operator=(const TType& obj) {
@@ -39,23 +98,23 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
   }
 
   void operator==(const Self& other) {
-    return obj_ == other.obj_;
+    return this->toThrift() == other.toThrift();
   }
 
   void operator!=(const Self& other) {
-    return obj_ != other.obj_;
+    return this->toThrift() != other.toThrift();
   }
 
   void operator<(const Self& other) {
-    return obj_ < other.obj_;
+    return this->toThrift() < other.toThrift();
   }
 
   TType operator*() const {
-    return obj_;
+    return this->toThrift();
   }
 
   TType toThrift() const {
-    return obj_;
+    return this->getFields()->toThrift();
   }
 
   template <typename T = Self>
@@ -64,7 +123,7 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
   }
 
   folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
-    return serializeBuf<TypeClass>(proto, toThrift());
+    return serializeBuf<TypeClass>(proto, cref());
   }
 
   void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
@@ -86,42 +145,28 @@ struct ThriftHybridNode : public thrift_cow::Serializable {
   }
 
   TType& ref() {
-    return obj_;
+    return this->writableFields()->ref();
   }
 
   const TType& ref() const {
-    return obj_;
+    return this->getFields()->ref();
   }
 
   const TType& cref() const {
-    return obj_;
+    return this->getFields()->cref();
   }
 
   std::size_t hash() const {
-    return std::hash<TType>()(obj_);
+    return std::hash<TType>()(cref());
   }
 
-#ifdef ENABLE_DYNAMIC_APIS
   folly::dynamic toFollyDynamic() const override {
-    folly::dynamic dyn;
-    facebook::thrift::to_dynamic(
-        dyn, this->ref(), facebook::thrift::dynamic_format::JSON_1);
-    return dyn;
+    return this->getFields()->toFollyDynamic();
   }
 
-  // this would override the underlying thrift object
-  void fromFollyDynamic(const folly::dynamic& obj) {
-    facebook::thrift::from_dynamic(
-        this->ref(), obj, facebook::thrift::dynamic_format::JSON_1);
+  void fromFollyDynamic(const folly::dynamic& value) {
+    return this->writableFields()->fromFollyDynamic(value);
   }
-#else
-  folly::dynamic toFollyDynamic() const override {
-    return {};
-  }
-#endif
-
- private:
-  TType obj_{};
 };
 
 } // namespace facebook::fboss::thrift_cow

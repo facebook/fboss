@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
+#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 
@@ -84,6 +85,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
@@ -263,5 +265,13 @@ Tomahawk5Asic::desiredLoopbackModes() const {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::MAC}};
   return kLoopbackMode;
+}
+
+std::optional<uint32_t> Tomahawk5Asic::getMaxArsGroups() const {
+  return FLAGS_enable_th5_ars_scale_mode ? 256 : 128;
+}
+
+std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
+  return getMaxEcmpGroups().value() - getMaxArsGroups().value();
 }
 } // namespace facebook::fboss

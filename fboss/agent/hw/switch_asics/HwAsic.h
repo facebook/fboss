@@ -231,6 +231,7 @@ class HwAsic {
     FABRIC_INTER_CELL_JITTER_WATERMARK,
     MAC_TRANSMIT_DATA_QUEUE_WATERMARK,
     FABRIC_LINK_MONITORING,
+    ARS_ALTERNATE_MEMBERS,
   };
 
   enum class AsicMode {
@@ -377,9 +378,8 @@ class HwAsic {
     return std::nullopt;
   }
 
-  virtual std::optional<uint32_t> getMaxDlbEcmpGroups() const {
-    return std::nullopt;
-  }
+  virtual std::optional<uint32_t> getMaxArsGroups() const = 0;
+  virtual std::optional<uint32_t> getArsBaseIndex() const = 0;
   // TODO(zecheng): Define more specific limits for v4/v6 routes with different
   // mask lengths
   virtual std::optional<uint32_t> getMaxRoutes() const {

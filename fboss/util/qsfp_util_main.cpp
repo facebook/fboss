@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
           portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
         } else if (isalpha(portStr[0])) {
           portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
-          portNames.push_back(portStr);
+          portNames.emplace_back(portStr);
         } else {
           portNum = folly::to<unsigned int>(argv[n]);
           auto portName =

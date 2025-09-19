@@ -1159,8 +1159,8 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
 
     WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
       // Old entry should be flushed
-      auto entry = getNDPTableEntry(neighborAddr, intfID);
-      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+      auto flushedEntry = getNDPTableEntry(neighborAddr, intfID);
+      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
     });
 
     // Send neighbor advertisement on Aggregate
@@ -1226,8 +1226,8 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
 
     WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
       // Old entry should be flushed
-      auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
-      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+      auto flushedEntry = getNDPTableEntry(neighborAddr, VlanID(5));
+      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
     });
 
     // Send neighbor advertisement on Aggregate

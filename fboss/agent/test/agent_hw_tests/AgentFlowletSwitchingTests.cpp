@@ -40,12 +40,15 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentArsBase::initialConfig(ensemble);
+    auto backupSwitchingMode = isChenab(ensemble)
+        ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+        : cfg::SwitchingMode::PER_PACKET_RANDOM;
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY,
-        cfg::SwitchingMode::PER_PACKET_RANDOM);
+        backupSwitchingMode);
     return cfg;
   }
 
@@ -295,7 +298,7 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     // 200000 - 2000126 - DLB ECMP groups we don't care
     // 200127 - DLB ECMP group under test
     // 200128 - Random spray ECMP group under test
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups() - 1;
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups() - 1;
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes128 = {
         prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
@@ -754,7 +757,7 @@ TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriorityWB) {
 TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
   auto verify = [this] {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups();
     // install 60% of max DLB ecmp groups
     {
       int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
@@ -825,7 +828,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
   // Start with 60% ECMP groups
   auto setup = [this]() {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups();
     int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes60 = {
@@ -837,7 +840,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
   // Post warmboot, dlb resource check is enforced since >75%
   auto setupPostWarmboot = [this]() {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups();
     {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes128 = {
@@ -895,7 +898,7 @@ class AgentFlowletBcmTest : public AgentFlowletSwitchingTest {
 
 TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
   generatePrefixes();
-  const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+  const auto kMaxDlbEcmpGroup = getMaxArsGroups();
   // Create two test prefix vectors
   std::vector<RoutePrefixV6> testPrefixes1 = {
       prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};

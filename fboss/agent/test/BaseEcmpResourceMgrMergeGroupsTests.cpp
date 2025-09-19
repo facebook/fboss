@@ -133,4 +133,36 @@ TEST_F(BaseEcmpResourceMgrMergeGroupsTest, reloadInvalidConfigs) {
     EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
   }
 }
+
+TEST_F(BaseEcmpResourceMgrMergeGroupsTest, assertConsoloidationInfo) {
+  auto nhops2Id = sw_->getEcmpResourceManager()->getNhopsToId();
+  for (const auto& [myNhops, myId] : nhops2Id) {
+    auto consolidationInfos =
+        sw_->getEcmpResourceManager()->getCandidateMergeConsolidationInfo(myId);
+    for (const auto& [grpIds, info] : consolidationInfos) {
+      ASSERT_TRUE(grpIds.contains(myId));
+      ASSERT_EQ(grpIds.size(), 2);
+      auto allIds = grpIds;
+      allIds.erase(myId);
+      auto otherId = *allIds.begin();
+      RouteNextHopSet expectedCommonNhops;
+      auto otherNhops = getNextHops(otherId);
+      std::set_intersection(
+          myNhops.begin(),
+          myNhops.end(),
+          otherNhops.begin(),
+          otherNhops.end(),
+          std::inserter(expectedCommonNhops, expectedCommonNhops.end()));
+      EXPECT_EQ(info.mergedNhops, expectedCommonNhops);
+      auto myPenalty = std::ceil(
+          ((myNhops.size() - expectedCommonNhops.size()) * 100.0) /
+          myNhops.size());
+      EXPECT_EQ(info.groupId2Penalty.find(myId)->second, myPenalty);
+      auto otherPenalty = std::ceil(
+          ((otherNhops.size() - expectedCommonNhops.size()) * 100.0) /
+          otherNhops.size());
+      EXPECT_EQ(info.groupId2Penalty.find(otherId)->second, otherPenalty);
+    }
+  }
+}
 } // namespace facebook::fboss

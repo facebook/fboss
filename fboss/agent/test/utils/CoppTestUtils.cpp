@@ -230,7 +230,7 @@ uint32_t getCoppQueueKbpsFromPps(const HwAsic* hwAsic, uint32_t pps) {
   return kbps;
 }
 
-cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
+cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   uint32_t pps = getCoppQueuePps(hwAsic, queueId);
   auto portQueueRate = cfg::PortQueueRate();
 
@@ -264,7 +264,7 @@ void addCpuQueueConfig(
   queue0.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
   queue0.weight() = kCoppLowPriWeight;
   if (setQueueRate) {
-    queue0.portQueueRate() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
+    queue0.portQueueRate() = getPortQueueRate(hwAsic, kCoppLowPriQueueId);
   }
   if (!hwAsic->mmuQgroupsEnabled()) {
     queue0.reservedBytes() = kCoppLowPriReservedBytes;
@@ -288,7 +288,7 @@ void addCpuQueueConfig(
     queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
     setWeight(&queue1, kCoppDefaultPriWeight);
     if (setQueueRate) {
-      queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
+      queue1.portQueueRate() = getPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
     if (!hwAsic->mmuQgroupsEnabled()) {
       queue1.reservedBytes() = kCoppDefaultPriReservedBytes;

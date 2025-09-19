@@ -139,7 +139,7 @@ ExtendedOperPath parseExtendedOperPath(
 }
 
 int main(int argc, char** argv) {
-  folly::init(&argc, &argv);
+  const folly::Init init(&argc, &argv);
 
   if (argc < 3) {
     std::cout << "Incorrect usage. Expected 2 arguments, function and path"

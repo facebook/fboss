@@ -26,6 +26,7 @@ hardware.
 - These tests need to be run on the specific network hardware.
 - These tests are inside `hw_test` directory of individual services.
 - The following are the current set of hardware tests.
+  - platform_hw_test
   - data_corral_service_hw_test
   - fan_service_hw_test
   - sensor_service_hw_test

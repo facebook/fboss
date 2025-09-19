@@ -25,7 +25,7 @@ std::string PathHelpers::toString(const ExtendedOperPath& path) {
         pathElms.push_back(pathElm.regex().value());
         break;
       case OperPathElem::Type::any:
-        pathElms.push_back("*");
+        pathElms.emplace_back("*");
         break;
       case OperPathElem::Type::__EMPTY__:
         throw std::runtime_error("Illformed extended path");

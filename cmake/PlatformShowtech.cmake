@@ -25,8 +25,11 @@ target_link_libraries(showtech
   showtech_config_cpp2
   platform_config_lib
   platform_name_lib
+  common_file_utils
   i2c_ctrl
+  gpiod_line
   ${RE2}
+  CLI11::CLI11
 )
 
 install(TARGETS showtech)

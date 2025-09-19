@@ -19,6 +19,16 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+extern "C" {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiaclextensions.h>
+#else
+#include <saiaclextensions.h>
+#endif
+#endif
+}
+
 DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss {
@@ -111,9 +121,9 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     if (platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
-      if (isChenab) {
-        actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT);
-      }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ARS_OBJECT);
+#endif
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING);
     }
 #endif
@@ -121,6 +131,13 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM)) {
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_SET_ECMP_HASH_ALGORITHM);
+    }
+#endif
+
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::ARS_ALTERNATE_MEMBERS)) {
+      actionTypeList.push_back(SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL);
     }
 #endif
     return actionTypeList;

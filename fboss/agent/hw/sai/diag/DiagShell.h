@@ -77,6 +77,9 @@ class DiagShell {
   void consumeInput(
       std::unique_ptr<std::string> input,
       std::unique_ptr<ClientInformation> client);
+
+  void logCommandToReplayer(const std::string& command);
+
   std::string readOutput(int timeoutMs);
   bool tryConnect();
   void disconnect();

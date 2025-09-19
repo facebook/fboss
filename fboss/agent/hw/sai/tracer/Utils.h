@@ -52,6 +52,11 @@ void aclEntryActionU8Attr(
     int i,
     std::vector<std::string>& attrLines);
 
+void aclEntryActionBoolAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
 void aclEntryActionU32Attr(
     const sai_attribute_t* attr_list,
     int i,

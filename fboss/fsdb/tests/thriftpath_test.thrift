@@ -46,6 +46,16 @@ struct OtherStruct {
   5: optional i32 o;
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
+struct TestHybridStruct {
+  1: optional i32 optionalIntegral;
+  2: string str;
+  3: optional TestEnum optionalEnum;
+  6: set<i32> integralSet = [];
+  4: map<i32, TestStructSimple> structMap = {};
+  5: list<TestStructSimple> structList = [];
+}
+
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct TestStruct {
   1: bool tx = false;
@@ -75,4 +85,5 @@ struct TestStruct {
   18: map<string, OtherStruct> mapOfStructs;
   19: list<OtherStruct> listofStructs;
   20: set<string> setOfStrings = [];
+  21: map<i32, TestHybridStruct> mapOfHybridStruct;
 }

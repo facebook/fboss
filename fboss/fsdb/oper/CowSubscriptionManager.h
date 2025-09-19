@@ -305,16 +305,10 @@ class CowSubscriptionManager
     auto processPath = [&](CowPublishAndAddTraverseHelper& /*traverser*/,
                            auto&& node) mutable {
       if constexpr (is_shared_ptr_v<folly::remove_cvref_t<decltype(node)>>) {
-        // skip publish on HybridNode.
-        if constexpr (!std::is_same_v<
-                          typename folly::remove_cvref_t<
-                              decltype(*node)>::CowType,
-                          thrift_cow::HybridNodeType>) {
-          // We only want to publish the node itself, not recurse to
-          // children.  This invokes the base version of publish to
-          // avoid recursing automatically.
-          node->NodeBase::publish();
-        }
+        // We only want to publish the node itself, not recurse to
+        // children.  This invokes the base version of publish to
+        // avoid recursing automatically.
+        node->NodeBase::publish();
       }
     };
 

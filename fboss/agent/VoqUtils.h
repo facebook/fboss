@@ -29,6 +29,36 @@ using RouterIDToPrefixes = boost::container::
 
 constexpr auto k2StageEdgePodClusterId = 200;
 
+// Due to a HW bug in J3/R3, we are restricted to using switch-ids in the
+// range of 0-4064.
+// For 2-Stage,
+//   - Num RDSWs = 512. SwitchIds consumed = 2048.
+//   - Num EDSWs = 128, Switch Ids consumed = 512. These ids will come after
+//     2048. So 2560 (2.5K total). The last EDSW will take switch-ids from
+//     2556-2559.
+//   - Num FDSWs = 200. We now start FDSWs at 2560. Taking 4 switch IDs each,
+//     FDSWs will use 800 switch IDs in the range 2560-3359.
+//   - Num SDSWs = 128. We start SDSW switch-ids from 3360. Taking 4 switch
+//     IDs each, this will use up 128*4 switch IDs in the range 3360-3871.
+// Now, MAX switch ID can only be set in multiples of 32. So we set the max
+// switch ID to be the next multiple of 32 which is 3904.
+constexpr auto kDualStageMaxGlobalSwitchId{3904};
+
+// Single stage FAP-ID on J3/R3 are limited to 1K. With 4 cores we are
+// limited to 1K switch-ids. Then with 80 R3 chips we get 160 more switch
+// IDs, so we are well within the 2K (vendor) recommended limit.
+constexpr auto kSingleStageMaxGlobalSwitchId{2048};
+
+// Max switch IDs needed in the RDSW/EDSW-FDSW level
+constexpr auto kFabricLinkMonitoringMaxLeafSwitchIds{160};
+// Max switch IDs needed in the FDSW-SDSW level
+constexpr auto kFabricLinkMonitoringMaxLevel2SwitchIds{200};
+// Define the starting switch ID for use with fabric link mon between
+// RDSW/EDSW-FDSW as level1 and FDSW-SDSW as level2.
+constexpr auto kFabricLinkMonitoringLeafBaseSwitchId{
+    kDualStageMaxGlobalSwitchId};
+constexpr auto kFabricLinkMonitoringLevel2BaseSwitchId{4096};
+
 int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope);
 
 int getRemotePortNumVoqs(

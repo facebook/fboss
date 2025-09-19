@@ -46,6 +46,12 @@ class TajoAsic : public HwAsic {
   int getHiPriCpuQueueId() const override {
     return kDefaultMidPriCpuQueueId_;
   }
+  std::optional<uint32_t> getMaxArsGroups() const override {
+    return std::nullopt;
+  }
+  std::optional<uint32_t> getArsBaseIndex() const override {
+    return std::nullopt;
+  }
 
  private:
   static constexpr int kDefaultMidPriCpuQueueId_ = 2;

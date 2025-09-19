@@ -203,7 +203,7 @@
           "commandType": "gpioget",
           "gpiogetArgs": {
             "gpioChip": "fboss_iob_pci.gpiochip.*",
-            "gpioChipPin": "10"
+            "gpioChipPin": "65"
           }
         }
       ],
@@ -420,9 +420,10 @@
           }
         },
         {
-          "commandType": "gpioget",
-          "gpiogetArgs": {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
             "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "0",
             "gpioChipPin": "10"
           }
         }
@@ -485,9 +486,10 @@
           }
         },
         {
-          "commandType": "gpioget",
-          "gpiogetArgs": {
+          "commandType": "gpioset",
+          "gpiosetArgs": {
             "gpioChip": "fboss_iob_pci.gpiochip.*",
+            "gpioChipValue": "0",
             "gpioChipPin": "9"
           }
         }

@@ -36,8 +36,13 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.minorVersion() = 93;
       break;
     case PlatformType::PLATFORM_FUJI:
+#ifdef BARCHETTA2_SDK_7_4
+      desiredFw.version() = 0xD013;
+      desiredFw.crc() = 0x5d6e3f0e;
+#else
       desiredFw.version() = 0xD008;
       desiredFw.crc() = 0x4dcf6a59;
+#endif
       break;
     case PlatformType::PLATFORM_MINIPACK:
       desiredFw.version() = 0xD037;

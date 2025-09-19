@@ -33,7 +33,7 @@ def list_checks() -> None:
     description="This tool will run a set of checks and remediations to help you fix your FBOSS device.",
     options={"list-checks": ("Show list of performed checks.", list_checks)},
 )
-def main() -> int:
+def main() -> None:
     load_checks()
     overwrite_print(f"Loaded {len(_checks)} checks")
 
@@ -46,7 +46,9 @@ def main() -> int:
     show_remediations(auto_remediations, manual_remediations)
     run_remediations(auto_remediations)
 
-    return all(isinstance(s, status.Ok) for s in statuses)
+    # Exit with proper code: 0 if all passed, 1 if any failed
+    exit_code = 0 if all(isinstance(s, status.Ok) for s in statuses) else 1
+    sys.exit(exit_code)
 
 
 def run_checks(checks: Dict[str, Check]) -> List[status.Status]:
@@ -158,4 +160,4 @@ def get_auto_remediations(checks: List[Check]) -> List[Remediation]:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

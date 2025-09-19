@@ -35,6 +35,12 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopGroupMemberMap{
     SAI_ATTR_MAP(NextHopGroupMember, Weight),
 };
 
+void handleExtensionAttributes() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  SAI_EXT_ATTR_MAP(NextHopGroup, ArsNextHopGroupMetaData);
+#endif
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -82,6 +88,7 @@ WRAP_GET_ATTR_FUNC(
     nextHopGroup);
 
 sai_next_hop_group_api_t* wrappedNextHopGroupApi() {
+  handleExtensionAttributes();
   static sai_next_hop_group_api_t nextHopGroupWrappers;
 
   nextHopGroupWrappers.create_next_hop_group = &wrap_create_next_hop_group;

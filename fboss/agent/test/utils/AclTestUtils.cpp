@@ -571,9 +571,13 @@ void addAclEcmpHashCancelAction(
     const std::string& matcher,
     const std::string& counterName) {
   cfg::MatchAction matchAction = cfg::MatchAction();
-  matchAction.ecmpHashAction() = cfg::SetEcmpHashAction();
-  matchAction.ecmpHashAction()->switchingMode() =
-      cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  auto asicType = checkSameAndGetAsicType(*cfg);
+  // Chenab doesn't require/support hash action, just use permit
+  if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+    matchAction.ecmpHashAction() = cfg::SetEcmpHashAction();
+    matchAction.ecmpHashAction()->switchingMode() =
+        cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  }
 
   matchAction.counter() = counterName;
   std::vector<cfg::CounterType> counterTypes{

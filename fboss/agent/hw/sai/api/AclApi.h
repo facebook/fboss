@@ -532,12 +532,14 @@ struct SaiAclEntryTraits {
         SAI_ACL_ENTRY_ATTR_ACTION_SET_USER_TRAP_ID,
         AclEntryActionSaiObjectIdT>;
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     using ActionSetArsObject = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_SET_ARS_OBJECT,
         AclEntryActionSaiObjectIdT,
         SaiAclEntryActionSaiObjectDefault>;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     using ActionDisableArsForwarding = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING,
@@ -551,6 +553,13 @@ struct SaiAclEntryTraits {
         AclEntryActionU32,
         StdNullOptDefault<AclEntryActionU32>>;
 #endif
+    struct AttributeActionL3SwitchCancel {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ActionL3SwitchCancel = SaiExtensionAttribute<
+        AclEntryActionBool,
+        AttributeActionL3SwitchCancel,
+        SaiAclEntryActionBoolFalse>;
   };
 
   using AdapterKey = AclEntrySaiId;
@@ -611,16 +620,21 @@ struct SaiAclEntryTraits {
       ,
       std::optional<Attributes::ActionSetUserTrap>
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::ActionSetArsObject>
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       ,
-      std::optional<Attributes::ActionSetArsObject>,
       std::optional<Attributes::ActionDisableArsForwarding>
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      std::optional<Attributes::ActionSetEcmpHashAlgorithm>
-#endif
+      std::optional<Attributes::ActionSetEcmpHashAlgorithm>,
+      std::optional<Attributes::ActionL3SwitchCancel>>;
+#else
       >;
+#endif
 };
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
@@ -676,12 +690,15 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionMacsecFlow);
 #if !defined(TAJO_SDK)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetUserTrap);
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetArsObject);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetEcmpHashAlgorithm);
+SAI_ATTRIBUTE_NAME(AclEntry, ActionL3SwitchCancel);
 #endif
 
 struct SaiAclCounterTraits {

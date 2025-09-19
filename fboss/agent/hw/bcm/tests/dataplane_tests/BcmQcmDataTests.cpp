@@ -439,7 +439,7 @@ TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
   // intent of this test is to load the QcmFirmware during
   // initialization (using flags above in SetUp) and ensure it goes through fine
   // Verify if the status of firmware is good
-  auto setup = [=]() { setupHelper(); };
+  auto setup = [=, this]() { setupHelper(); };
 
   auto verify = [this]() {
     BcmLogBuffer logBuffer;
@@ -577,8 +577,8 @@ TEST_F(BcmQcmDataTest, VerifyQcmStartStop) {
 #endif
     return;
   }
-  auto setup = [=]() { setupHelper(true /* enable policer */); };
-  auto setupQcm = [=](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
+  auto setup = [=, this]() { setupHelper(true /* enable policer */); };
+  auto setupQcm = [=, this](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
   auto verify = [&]() {
     // send 1 flow
     auto [nonFlowLearnPortCounter, flowLearnPortCounter] =
@@ -621,8 +621,8 @@ TEST_F(BcmQcmDataTest, VerifyQcmStartStopPddcMode) {
 #endif
     return;
   }
-  auto setup = [=]() { setupHelperInPddcMode(); };
-  auto setupQcm = [=](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
+  auto setup = [=, this]() { setupHelperInPddcMode(); };
+  auto setupQcm = [=, this](const bool qcmEnable) { setupQcmOnly(qcmEnable); };
   auto verify = [&]() {
     // send 1 flow
     createQcmFlows(1, kPktTxCount);
@@ -660,7 +660,9 @@ TEST_F(BcmQcmDataTest, VerifyQcmPddcModeScanIntervalZero) {
 #endif
     return;
   }
-  auto setup = [=]() { setupHelperInPddcMode(true /* bestEffortScan */); };
+  auto setup = [=, this]() {
+    setupHelperInPddcMode(true /* bestEffortScan */);
+  };
   auto verify = [&]() {
     // send 1 flow
     createQcmFlows(1, kPktTxCount);

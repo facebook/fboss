@@ -613,6 +613,21 @@ TEST(Acl, AclGeneration) {
       ->ecmpHashAction()
       ->switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
 
+  // Add ACL with enableAlternateArsMembers action
+  config.acls()->resize(8);
+  *config.acls()[7].name() = "acl8";
+  config.acls()[7].proto() = kUdpProto;
+  config.acls()[7].l4DstPort() = 2048;
+
+  config.dataPlaneTrafficPolicy()->matchToAction()->resize(6);
+  *config.dataPlaneTrafficPolicy()->matchToAction()[5].matcher() = "acl8";
+  *config.dataPlaneTrafficPolicy()->matchToAction()[5].action() =
+      cfg::MatchAction();
+  config.dataPlaneTrafficPolicy()
+      ->matchToAction()[5]
+      .action()
+      ->enableAlternateArsMembers() = true;
+
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
   auto acls = stateV1->getAcls();
@@ -668,6 +683,13 @@ TEST(Acl, AclGeneration) {
           ->getAclAction()
           ->cref<switch_state_tags::ecmpHashAction>()
           ->cref<switch_config_tags::switchingMode>()
+          ->cref());
+  EXPECT_TRUE(acls->getNodeIf("acl8")->getAclAction() != nullptr);
+  EXPECT_EQ(
+      true,
+      acls->getNodeIf("acl8")
+          ->getAclAction()
+          ->cref<switch_state_tags::enableAlternateArsMembers>()
           ->cref());
 }
 

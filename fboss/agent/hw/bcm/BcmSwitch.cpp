@@ -775,7 +775,7 @@ void BcmSwitch::setupLinkscan() {
     XLOG(DBG1) << " Skipping linkscan registeration as the feature is disabled";
     return;
   }
-  linkScanBottomHalfThread_ = std::make_unique<std::thread>([=]() {
+  linkScanBottomHalfThread_ = std::make_unique<std::thread>([=, this]() {
     initThread("fbossLinkScanBH");
     linkScanBottomHalfEventBase_.loopForever();
   });

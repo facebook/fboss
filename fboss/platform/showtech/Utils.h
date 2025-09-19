@@ -22,12 +22,15 @@ class Utils {
   void printSensorDetails();
   void printI2cDetails();
   void printPsuDetails();
-  void runFbossCliCmd(const std::string& cmd);
+  void printGpioDetails();
+  void printPemDetails();
 
  private:
   const showtech_config::ShowtechConfig& config_;
   PlatformUtils platformUtils_{};
   I2cHelper i2cHelper_{};
+  void runFbossCliCmd(const std::string& cmd);
+  void printSysfsAttribute(const std::string& label, const std::string& path);
 };
 
 } // namespace facebook::fboss::platform

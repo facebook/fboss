@@ -549,13 +549,6 @@ class ThriftStructNode : public NodeBaseT<
           auto clonedChild = child->clone();
           child.swap(clonedChild);
         }
-      } else if constexpr (
-          EnableHybridStorage &&
-          Fields::template HasSkipThriftCow<Name>::value) {
-        using UnderlyingType =
-            typename Fields::template TypeFor<Name>::element_type;
-        auto clonedChild = std::make_shared<UnderlyingType>(child->ref());
-        child.swap(clonedChild);
       }
     } else if (construct) {
       this->template constructMember<Name>();

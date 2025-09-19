@@ -100,14 +100,6 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
     // CS00012330051
     return 56000;
   }
-  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
-    if (FLAGS_use_full_dlb_scale) {
-      return 128;
-    } else {
-      // CS00012398177
-      return 127;
-    }
-  }
   uint32_t getStaticQueueLimitBytes() const override {
     // Per ITM buffers limits the queue size
     return getMMUSizeBytes() / 2;
@@ -129,6 +121,8 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
   std::optional<uint32_t> getMaxArpTableSize() const override {
     return 16384;
   }
+  std::optional<uint32_t> getMaxArsGroups() const override;
+  std::optional<uint32_t> getArsBaseIndex() const override;
 };
 
 } // namespace facebook::fboss

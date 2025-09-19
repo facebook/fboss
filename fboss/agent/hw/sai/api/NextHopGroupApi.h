@@ -87,6 +87,13 @@ struct SaiNextHopGroupTraits {
         sai_int32_t,
         StdNullOptDefault<sai_int32_t>>;
 #endif
+    struct AttributeArsNextHopGroupMetaData {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ArsNextHopGroupMetaData = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeArsNextHopGroupMetaData,
+        SaiIntDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = NextHopGroupSaiId;
@@ -112,6 +119,7 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, ArsObjectId)
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(NextHopGroup, HashAlgorithm)
 #endif
+SAI_ATTRIBUTE_NAME(NextHopGroup, ArsNextHopGroupMetaData)
 
 struct SaiNextHopGroupMemberTraits {
   static constexpr sai_object_type_t ObjectType =

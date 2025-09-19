@@ -287,7 +287,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   void verifyClassIDHelper(
       RoutePrefix<AddrT> routePrefix,
       std::optional<cfg ::AclLookupClass> classID) {
-    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=, this]() {
       auto route = findRoute<AddrT>(
           kRid(),
           {folly::IPAddress(routePrefix.network()), routePrefix.mask()},
@@ -325,7 +325,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
         NdpTable>;
 
     this->updateState(
-        "Add new route", [=](const std::shared_ptr<SwitchState>& state) {
+        "Add new route", [=, this](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
 
           NeighborTableT* neighborTable;
@@ -355,7 +355,8 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   void updateLookupClasses(
       const std::vector<cfg::AclLookupClass>& lookupClasses) {
     this->updateState(
-        "Remove lookupclasses", [=](const std::shared_ptr<SwitchState>& state) {
+        "Remove lookupclasses",
+        [=, this](const std::shared_ptr<SwitchState>& state) {
           auto newState = state->clone();
           auto newPortMaps = newState->getPorts()->modify(&newState);
 

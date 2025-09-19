@@ -235,6 +235,9 @@ class FakeAclEntry {
   bool actionSetEcmpHashAlgorithmEnable{false};
   sai_object_id_t actionSetEcmpHashAlgorithmData{};
 
+  bool actionL3SwitchCancelEnable{false};
+  bool actionL3SwitchCancelData{false};
+
   sai_object_id_t id;
 };
 

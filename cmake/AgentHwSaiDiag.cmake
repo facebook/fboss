@@ -13,6 +13,7 @@ target_link_libraries(diag_shell
   python_repl
   error
   sai_switch
+  sai_tracer
   Folly::folly
   sai_ctrl_cpp2
 )

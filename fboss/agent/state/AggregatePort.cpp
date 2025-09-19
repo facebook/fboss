@@ -30,7 +30,8 @@ AggregatePort::AggregatePort(
     Subports&& ports,
     const std::vector<int32_t>& interfaceIDs,
     LegacyAggregatePortFields::Forwarding fwd,
-    ParticipantInfo pState) {
+    ParticipantInfo pState,
+    std::optional<uint8_t> minimumLinkCountToUp) {
   set<switch_state_tags::id>(id);
   set<switch_state_tags::name>(name);
   set<switch_state_tags::description>(description);
@@ -53,6 +54,9 @@ AggregatePort::AggregatePort(
   }
   set<switch_state_tags::portToPartnerState>(std::move(portToPartnerState));
   set<switch_state_tags::interfaceIDs>(interfaceIDs);
+  if (minimumLinkCountToUp.has_value()) {
+    set<switch_state_tags::minimumLinkCountToUp>(minimumLinkCountToUp.value());
+  }
 }
 
 AggregatePort::AggregatePort(
@@ -64,7 +68,8 @@ AggregatePort::AggregatePort(
     uint8_t minLinkCount,
     Subports&& ports,
     SubportToForwardingState&& portStates,
-    SubportToPartnerState&& portPartnerStates) {
+    SubportToPartnerState&& portPartnerStates,
+    std::optional<uint8_t> minLinkCountToUp) {
   set<switch_state_tags::id>(id);
   set<switch_state_tags::name>(name);
   set<switch_state_tags::description>(description);
@@ -85,6 +90,9 @@ AggregatePort::AggregatePort(
     portToPartnerState.emplace(port, partnerState.toThrift());
   }
   set<switch_state_tags::portToPartnerState>(std::move(portToPartnerState));
+  if (minLinkCountToUp.has_value()) {
+    set<switch_state_tags::minimumLinkCountToUp>(minLinkCountToUp.value());
+  }
 }
 
 uint32_t AggregatePort::forwardingSubportCount() const {

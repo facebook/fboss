@@ -946,14 +946,14 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
               folly::join("/", params.begin, params.end),
               " at: ",
               (cursor == params.end ? "(end)" : *cursor));
-          *result = ThriftTraverseResult(
+          result = ThriftTraverseResult(
               ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
           return;
         }
       }
       // Recurse further
       auto& child = getter{}(tObj);
-      *result = PathVisitorImpl<tc>::visit(child, params, cursor);
+      result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
     if (!result.has_value()) {

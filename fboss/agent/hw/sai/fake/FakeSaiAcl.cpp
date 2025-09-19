@@ -94,6 +94,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
     case SAI_ACL_ENTRY_ATTR_ACTION_DISABLE_ARS_FORWARDING:
     case SAI_ACL_ENTRY_ATTR_ACTION_SET_ECMP_HASH_ALGORITHM:
       return true;
+    case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
+      return true;
     default:
       return false;
   }
@@ -841,6 +843,12 @@ sai_status_t set_acl_entry_attribute_fn(
           attr->value.aclaction.parameter.oid;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
+      aclEntry.actionL3SwitchCancelEnable = attr->value.aclaction.enable;
+      aclEntry.actionL3SwitchCancelData =
+          attr->value.aclaction.parameter.booldata;
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -1121,6 +1129,12 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.actionSetEcmpHashAlgorithmEnable;
         attr_list[i].value.aclaction.parameter.oid =
             aclEntry.actionSetEcmpHashAlgorithmData;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL:
+        attr_list[i].value.aclaction.enable =
+            aclEntry.actionL3SwitchCancelEnable;
+        attr_list[i].value.aclaction.parameter.booldata =
+            aclEntry.actionL3SwitchCancelData;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;

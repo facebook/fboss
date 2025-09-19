@@ -1315,6 +1315,27 @@ void SaiTracer::logClearStatsFn(
   writeToFile(lines);
 }
 
+void SaiTracer::logShellCommand(const std::string& command) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  if (!asyncLogger_) {
+    XLOG(ERR) << "SaiTracer: AsyncLogger is null!";
+    return;
+  }
+
+  try {
+    // Log shell command as a C comment with a timestamp
+    std::string timestampLine = "\n" + logTimeAndRv(0);
+    std::string commentLine = "\n// Shell command: " + command;
+    asyncLogger_->appendLog(timestampLine.c_str(), timestampLine.size());
+    asyncLogger_->appendLog(commentLine.c_str(), commentLine.size());
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "SaiTracer: ERROR writing to asyncLogger: " << e.what();
+  }
+}
+
 std::tuple<string, string> SaiTracer::declareVariable(
     sai_object_id_t* object_id,
     sai_object_type_t object_type) {

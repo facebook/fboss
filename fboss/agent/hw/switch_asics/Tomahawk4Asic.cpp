@@ -236,6 +236,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
       return false;
   }
@@ -309,4 +310,18 @@ int Tomahawk4Asic::getDefaultNumPortQueues(
       apache::thrift::util::enumNameSafe(portType),
       " combination");
 }
+
+std::optional<uint32_t> Tomahawk4Asic::getMaxArsGroups() const {
+  if (FLAGS_use_full_dlb_scale) {
+    return 128;
+  } else {
+    // CS00012398177
+    return 127;
+  }
+}
+
+std::optional<uint32_t> Tomahawk4Asic::getArsBaseIndex() const {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

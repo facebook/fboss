@@ -1219,10 +1219,12 @@ TEST(Port, amIdlesConfig) {
       std::nullopt, state->getPorts()->getNodeIf(PortID(1))->getAmIdles());
 
   // Test setting various values and verify changes are properly configured
-  changeAndVerifyAmIdles(platform, state, true);
-  changeAndVerifyAmIdles(platform, state, false);
-  changeAndVerifyAmIdles(platform, state, true);
-  changeAndVerifyAmIdles(platform, state, std::nullopt);
+  changeAndVerifyAmIdles(platform, state, false); // nullopt → false
+  changeAndVerifyAmIdles(platform, state, true); // false → true
+  changeAndVerifyAmIdles(platform, state, false); // true → false
+  changeAndVerifyAmIdles(platform, state, std::nullopt); // false → nullopt
+  changeAndVerifyAmIdles(platform, state, true); // nullopt → true
+  changeAndVerifyAmIdles(platform, state, std::nullopt); // true → nullopt
 
   // Test direct getter/setter methods
   auto port = state->getPorts()->getNodeIf(PortID(1));

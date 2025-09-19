@@ -651,11 +651,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, ValidateFecErrorDetect) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyRxFifoStuckDetectedCallback) {
   auto verify = [this]() {
     std::string out;
-    WITH_RETRIES_N_TIMED(5, std::chrono::seconds(5), {
+    WITH_RETRIES({
       for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
         getAgentEnsemble()->runDiagCommand(
             "fabric link rx_fifo_monitor action=TRIGGER\n", out, switchId);
-        getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
         auto multiSwitchStats = getSw()->getHwSwitchStatsExpensive();
         auto asicError = *multiSwitchStats[switchId].hwAsicErrors();
         auto rxFifoStuckDetected = asicError.rxFifoStuckDetected().value_or(0);

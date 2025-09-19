@@ -178,7 +178,7 @@ void WeutilDarwin::printInfo() {
   }
 }
 
-void WeutilDarwin::printInfoJson() {
+folly::dynamic WeutilDarwin::getInfoJson() {
   folly::dynamic wedgeInfo = folly::dynamic::object;
 
   wedgeInfo["Actions"] = folly::dynamic::array();
@@ -202,7 +202,8 @@ void WeutilDarwin::printInfoJson() {
         wedgeInfo["Information"]["Local MAC"];
     wedgeInfo["Information"]["Extended MAC Address Size"] = "1";
   }
-  std::cout << folly::toPrettyJson(wedgeInfo);
+
+  return wedgeInfo;
 }
 
 } // namespace facebook::fboss::platform

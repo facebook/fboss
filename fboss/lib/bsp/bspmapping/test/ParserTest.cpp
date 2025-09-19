@@ -60,6 +60,10 @@ TEST(ParserTest, GetNameForTests) {
       facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_ICETEA800BC),
       "icetea");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_TAHANSB800BC),
+      "tahansb");
 }
 
 TEST(ParserTest, GetTransceiverConfigRowFromCsvLine) {

@@ -23,16 +23,20 @@ namespace facebook::fboss {
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   SaiArsTraits::CreateAttributes attributes{
-      cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode()),
+      SaiArsTraits::Attributes::Mode{
+          cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
       std::nullopt,
       std::nullopt};
+
+  auto hostKey = getAdapterHostKey(attributes);
+
   auto& store = saiStore_->get<SaiArsTraits>();
-  arsHandle_->ars = store.setObject(std::monostate{}, attributes);
+  arsHandle_->ars = store.setObject(hostKey, attributes);
 }
 
-bool SaiArsManager::isFlowsetTableFull(const ArsSaiId& /* unused */) {
-  return false;
-}
 #endif
 
 } // namespace facebook::fboss

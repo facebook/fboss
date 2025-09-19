@@ -156,6 +156,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
@@ -244,6 +245,19 @@ int Tomahawk3Asic::getDefaultNumPortQueues(
       " portType: ",
       apache::thrift::util::enumNameSafe(portType),
       " combination");
+}
+
+std::optional<uint32_t> Tomahawk3Asic::getMaxArsGroups() const {
+  if (FLAGS_use_full_dlb_scale) {
+    return 128;
+  } else {
+    // CS00012344837, CS00012328553
+    return 64;
+  }
+}
+
+std::optional<uint32_t> Tomahawk3Asic::getArsBaseIndex() const {
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

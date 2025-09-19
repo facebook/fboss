@@ -242,7 +242,7 @@ int SwAgentInitializer::initAgent() {
 int SwAgentInitializer::initAgent(
     HwSwitchCallback* callback,
     const HwWriteBehavior& hwWriteBehavior) {
-  auto swHandler = std::make_shared<ThriftHandler>(sw_.get());
+  auto swHandler = createThriftHandler(sw_.get());
   swHandler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   auto handlers = getThrifthandlers();
   handlers.push_back(swHandler);

@@ -435,11 +435,11 @@ void PhyManager::restoreFromWarmbootState(
     PortID portIDStrong = PortID(portID);
     const auto& wLockedCache = it.second->wlock();
     for (auto lane : portCacheInfo[kSystemLanesKey]) {
-      wLockedCache->systemLanes.push_back(LaneID(lane.asInt()));
+      wLockedCache->systemLanes.emplace_back(lane.asInt());
       isProgrammed = true;
     }
     for (auto lane : portCacheInfo[kLineLanesKey]) {
-      wLockedCache->lineLanes.push_back(LaneID(lane.asInt()));
+      wLockedCache->lineLanes.emplace_back(lane.asInt());
     }
 
     if (isProgrammed) {

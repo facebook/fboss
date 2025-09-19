@@ -174,7 +174,7 @@ class SignalHandler : public AsyncSignalHandler {
  */
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv);
+  const folly::Init init(&argc, &argv);
   facebook::fboss::FbossEventBase streamEvb{"DiagShellClientStreamEventBase"};
   facebook::fboss::FbossEventBase stdinEvb{"DiagShellClientStdinEventBase"};
 

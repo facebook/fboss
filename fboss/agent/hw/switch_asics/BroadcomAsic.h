@@ -77,5 +77,11 @@ class BroadcomAsic : public HwAsic {
         prbs::PrbsPolynomial::PRBS11,
         prbs::PrbsPolynomial::PRBS58};
   }
+  std::optional<uint32_t> getMaxArsGroups() const override {
+    return std::nullopt;
+  }
+  std::optional<uint32_t> getArsBaseIndex() const override {
+    return std::nullopt;
+  }
 };
 } // namespace facebook::fboss
