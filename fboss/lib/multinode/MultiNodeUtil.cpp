@@ -1410,6 +1410,7 @@ bool MultiNodeUtil::verifyGracefulQsfpDownUp() {
 bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
 
   // For any one RDSW in every remote cluster issue ungraceful QSFP restart
   for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
@@ -1419,7 +1420,25 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() {
       }
       triggerUngracefulQsfpRestart(rdsw);
 
-      // TODO verify
+      // Wait for QSFP service to come up
+      if (!verifyQsfpServiceRunState(rdsw, QsfpServiceRunState::ACTIVE)) {
+        XLOG(DBG2) << "QSFP failed to come up post warmboot: " << rdsw;
+        return false;
+      }
+
+      // Sessions to RDSW whose QSFP just restarted are expected to flap.
+      // Verify no other sessions flap.
+      auto expectedPeerToDsfSession = baselinePeerToDsfSession;
+      expectedPeerToDsfSession.erase(rdsw);
+      if (!verifyNoSessionsFlap(
+              myHostname /* rdswToVerify */,
+              expectedPeerToDsfSession,
+              rdsw /* rdswToExclude */)) {
+        return false;
+      }
+
+      // Verify all DSF sessions are established for the RDSW that was restarted
+      verifyAllSessionsEstablished(rdsw);
 
       // Ungracefully restart only one remote RDSW QSFP per cluster
       break;
