@@ -1588,4 +1588,8 @@ bool MultiNodeUtil::verifyGracefulFsdbDownUp() {
   return true;
 }
 
+bool MultiNodeUtil::verifyUngracefulFsdbDownUp() {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
