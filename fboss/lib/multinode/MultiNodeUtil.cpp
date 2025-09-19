@@ -1449,7 +1449,17 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() {
 }
 
 bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteFdsws() {
-  // TODO
+  // For any one FDSW in every remote cluster issue ungraceful QSFP restart
+  for (const auto& [_, fdsws] : std::as_const(clusterIdToFdsws_)) {
+    // Ungracefully restart only one remote FDSW QSFP per cluster
+    if (!fdsws.empty()) {
+      auto fdsw = fdsws.front();
+      triggerUngracefulQsfpRestart(fdsw);
+
+      // TODO verify
+    }
+  }
+
   return true;
 }
 
