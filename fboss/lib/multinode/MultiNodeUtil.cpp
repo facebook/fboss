@@ -159,6 +159,16 @@ void triggerUngracefulQsfpRestart(const std::string& switchName) {
   }
 }
 
+void triggerGracefulFsdbRestart(const std::string& switchName) {
+  try {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_gracefullyRestartService("fsdb");
+  } catch (...) {
+    // Thrift request may throw error as the Agent exits.
+    // Ignore it, as we only wanted to trigger exit.
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
