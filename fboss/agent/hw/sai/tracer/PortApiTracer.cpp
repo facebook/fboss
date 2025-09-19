@@ -151,6 +151,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, ReachabilityGroup)
   SAI_EXT_ATTR_MAP(Port, FecErrorDetectEnable)
   SAI_EXT_ATTR_MAP(Port, AmIdles)
+  SAI_EXT_ATTR_MAP(Port, ResetQueueCreditBalance)
   SAI_EXT_ATTR_MAP(PortSerdes, TxDiffEncoderEn)
   SAI_EXT_ATTR_MAP(PortSerdes, TxDigGain)
   SAI_EXT_ATTR_MAP(PortSerdes, TxFfeCoeff0)

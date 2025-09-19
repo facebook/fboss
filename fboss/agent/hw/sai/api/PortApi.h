@@ -476,6 +476,13 @@ struct SaiPortTraits {
     };
     using AmIdles =
         SaiExtensionAttribute<bool, AttributeAmIdles, SaiBoolDefaultFalse>;
+    struct AttributeResetQueueCreditBalance {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ResetQueueCreditBalance = SaiExtensionAttribute<
+        bool,
+        AttributeResetQueueCreditBalance,
+        SaiBoolDefaultFalse>;
     struct AttributeFabricSystemPort {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -795,6 +802,7 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
 SAI_ATTRIBUTE_NAME(Port, AmIdles)
+SAI_ATTRIBUTE_NAME(Port, ResetQueueCreditBalance)
 SAI_ATTRIBUTE_NAME(Port, FabricSystemPort)
 SAI_ATTRIBUTE_NAME(Port, StaticModuleId)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
