@@ -8,17 +8,17 @@
  *
  */
 
-#include "fboss/agent/hw/benchmarks/HwVoqRemoteNeighborBenchmarkHelper.h"
+#include "fboss/agent/hw/benchmarks/HwVoqRemoteEntityBenchmarkHelper.h"
 
 #include <folly/Benchmark.h>
 
 namespace facebook::fboss {
 
 BENCHMARK(HwVoqRemoteNeighborAdd) {
-  remoteNeighborBenchmark(true /*add*/);
+  remoteEntityBenchmark(RemoteEntityType::REMOTE_NBR_ONLY, true /*add*/);
 }
 
 BENCHMARK(HwVoqRemoteNeighborDel) {
-  remoteNeighborBenchmark(false /*add*/);
+  remoteEntityBenchmark(RemoteEntityType::REMOTE_NBR_ONLY, false /*add*/);
 }
 } // namespace facebook::fboss

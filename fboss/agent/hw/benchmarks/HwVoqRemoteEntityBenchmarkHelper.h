@@ -22,7 +22,12 @@
 
 namespace facebook::fboss {
 
-inline void remoteNeighborBenchmark(bool add) {
+enum class RemoteEntityType {
+  REMOTE_SYS_PORT_AND_INTF,
+  REMOTE_NBR_ONLY,
+};
+
+inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
   folly::BenchmarkSuspender suspender;
 
   AgentEnsembleSwitchConfigFn voqInitialConfig =
@@ -55,48 +60,51 @@ inline void remoteNeighborBenchmark(bool add) {
   utility::populateRemoteIntfAndSysPorts(
       switchId2SystemPorts, switchId2IntfsWithNeighbor, config, useEncapIndex);
 
-  utility::populateRemoteIntfAndSysPorts(
-      switchId2SystemPorts,
-      switchId2IntfsWithoutNeighbor,
-      config,
-      useEncapIndex,
-      false /*addNeighbor*/);
+  // Only populate intf without neighbor and setup initial state if testing for
+  // neighbor only.
+  if (type == RemoteEntityType::REMOTE_NBR_ONLY) {
+    utility::populateRemoteIntfAndSysPorts(
+        switchId2SystemPorts,
+        switchId2IntfsWithoutNeighbor,
+        config,
+        useEncapIndex,
+        false /*addNeighbor*/);
+
+    SwSwitch::StateUpdateFn updateDsfStateWithNeighborFn =
+        [&ensemble, &switchId2SystemPorts, &switchId2IntfsWithNeighbor](
+            const std::shared_ptr<SwitchState>& in) {
+          return DsfStateUpdaterUtil::getUpdatedState(
+              in,
+              ensemble->getSw()->getScopeResolver(),
+              ensemble->getSw()->getRib(),
+              switchId2SystemPorts,
+              switchId2IntfsWithNeighbor);
+        };
+
+    SwSwitch::StateUpdateFn updateDsfStateWithoutNeighborFn =
+        [&ensemble, &switchId2SystemPorts, &switchId2IntfsWithoutNeighbor](
+            const std::shared_ptr<SwitchState>& in) {
+          return DsfStateUpdaterUtil::getUpdatedState(
+              in,
+              ensemble->getSw()->getScopeResolver(),
+              ensemble->getSw()->getRib(),
+              switchId2SystemPorts,
+              switchId2IntfsWithoutNeighbor);
+        };
+
+    ensemble->getSw()->getRib()->updateStateInRibThread(
+        [&ensemble,
+         updateDsfStateWithNeighborFn,
+         updateDsfStateWithoutNeighborFn,
+         add]() {
+          ensemble->getSw()->updateStateWithHwFailureProtection(
+              folly::sformat("Update state for node: {}", 0),
+              add ? updateDsfStateWithoutNeighborFn
+                  : updateDsfStateWithNeighborFn);
+        });
+  }
 
   ScopedCallTimer timeIt;
-
-  SwSwitch::StateUpdateFn updateDsfStateWithNeighborFn =
-      [&ensemble, &switchId2SystemPorts, &switchId2IntfsWithNeighbor](
-          const std::shared_ptr<SwitchState>& in) {
-        return DsfStateUpdaterUtil::getUpdatedState(
-            in,
-            ensemble->getSw()->getScopeResolver(),
-            ensemble->getSw()->getRib(),
-            switchId2SystemPorts,
-            switchId2IntfsWithNeighbor);
-      };
-
-  SwSwitch::StateUpdateFn updateDsfStateWithoutNeighborFn =
-      [&ensemble, &switchId2SystemPorts, &switchId2IntfsWithoutNeighbor](
-          const std::shared_ptr<SwitchState>& in) {
-        return DsfStateUpdaterUtil::getUpdatedState(
-            in,
-            ensemble->getSw()->getScopeResolver(),
-            ensemble->getSw()->getRib(),
-            switchId2SystemPorts,
-            switchId2IntfsWithoutNeighbor);
-      };
-
-  ensemble->getSw()->getRib()->updateStateInRibThread(
-      [&ensemble,
-       updateDsfStateWithNeighborFn,
-       updateDsfStateWithoutNeighborFn,
-       add]() {
-        ensemble->getSw()->updateStateWithHwFailureProtection(
-            folly::sformat("Update state for node: {}", 0),
-            add ? updateDsfStateWithoutNeighborFn
-                : updateDsfStateWithNeighborFn);
-      });
-
   suspender.dismiss();
   auto intfMaps =
       add ? switchId2IntfsWithNeighbor : switchId2IntfsWithoutNeighbor;

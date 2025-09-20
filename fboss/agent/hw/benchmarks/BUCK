@@ -430,9 +430,9 @@ agent_benchmark_lib(
 )
 
 cpp_library(
-    name = "hw_voq_remote_neighbor_benchmark_helpers",
+    name = "hw_voq_remote_entity_benchmark_helpers",
     headers = [
-        "HwVoqRemoteNeighborBenchmarkHelper.h",
+        "HwVoqRemoteEntityBenchmarkHelper.h",
     ],
     exported_deps = [
         "//fboss/agent:agent_features",
@@ -450,9 +450,9 @@ cpp_library(
 )
 
 agent_benchmark_lib(
-    name = "hw_voq_remote_neighbor_programming",
-    srcs = ["HwVoqRemoteNeighborProgrammingBenchmark.cpp"],
-    extra_deps = [":hw_voq_remote_neighbor_benchmark_helpers"],
+    name = "hw_voq_remote_entity_programming",
+    srcs = ["HwVoqRemoteEntityProgrammingBenchmark.cpp"],
+    extra_deps = [":hw_voq_remote_entity_benchmark_helpers"],
 )
 
 agent_benchmark_lib(

@@ -455,11 +455,11 @@ target_link_libraries(hw_voq_sys_port_programming
   Folly::follybenchmark
 )
 
-add_library(hw_voq_remote_neighbor_programming
-  fboss/agent/hw/benchmarks/HwVoqRemoteNeighborProgrammingBenchmark.cpp
+add_library(hw_voq_remote_entity_programming
+  fboss/agent/hw/benchmarks/HwVoqRemoteEntityProgrammingBenchmark.cpp
 )
 
-target_link_libraries(hw_voq_remote_neighbor_programming
+target_link_libraries(hw_voq_remote_entity_programming
   voq_test_utils
   dsf_config_utils
   Folly::folly
