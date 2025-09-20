@@ -27,27 +27,9 @@
 
 extern "C" {
 #include <sai.h>
-
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-#include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
-#include <experimental/saiexperimentalfirmware.h>
-#include <experimental/saiexperimentaltameventaginggroup.h>
-#else
-#include <saiexperimentalfirmware.h>
-#include <saiexperimentaltameventaginggroup.h>
-#endif
-#endif
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-#include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
-#include <experimental/saiexperimentalswitchpipeline.h>
-#include <experimental/saiexperimentalvendorswitch.h>
-#else
-#include <saiexperimentalswitchpipeline.h>
-#include <saiexperimentalvendorswitch.h>
-#endif
-#endif
+// Note: All SAI extension headers are managed in SaiExtensionsIncludes.h.
+// Please add new SAI extension headers there.
+#include "fboss/agent/hw/sai/tracer/SaiExtensionsIncludes.h"
 }
 
 DECLARE_bool(enable_replayer);
