@@ -51,6 +51,8 @@ inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
   std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2IntfsWithNeighbor;
   std::map<SwitchID, std::shared_ptr<InterfaceMap>>
       switchId2IntfsWithoutNeighbor;
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> emptySysPortMaps;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> emptyIntfMaps;
 
   const auto& config = ensemble->getSw()->getConfig();
   const auto useEncapIndex =
@@ -59,6 +61,17 @@ inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
 
   utility::populateRemoteIntfAndSysPorts(
       switchId2SystemPorts, switchId2IntfsWithNeighbor, config, useEncapIndex);
+
+  SwSwitch::StateUpdateFn updateDsfStateWithNeighborFn =
+      [&ensemble, &switchId2SystemPorts, &switchId2IntfsWithNeighbor](
+          const std::shared_ptr<SwitchState>& in) {
+        return DsfStateUpdaterUtil::getUpdatedState(
+            in,
+            ensemble->getSw()->getScopeResolver(),
+            ensemble->getSw()->getRib(),
+            switchId2SystemPorts,
+            switchId2IntfsWithNeighbor);
+      };
 
   // Only populate intf without neighbor and setup initial state if testing for
   // neighbor only.
@@ -69,17 +82,6 @@ inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
         config,
         useEncapIndex,
         false /*addNeighbor*/);
-
-    SwSwitch::StateUpdateFn updateDsfStateWithNeighborFn =
-        [&ensemble, &switchId2SystemPorts, &switchId2IntfsWithNeighbor](
-            const std::shared_ptr<SwitchState>& in) {
-          return DsfStateUpdaterUtil::getUpdatedState(
-              in,
-              ensemble->getSw()->getScopeResolver(),
-              ensemble->getSw()->getRib(),
-              switchId2SystemPorts,
-              switchId2IntfsWithNeighbor);
-        };
 
     SwSwitch::StateUpdateFn updateDsfStateWithoutNeighborFn =
         [&ensemble, &switchId2SystemPorts, &switchId2IntfsWithoutNeighbor](
@@ -102,31 +104,63 @@ inline void remoteEntityBenchmark(RemoteEntityType type, bool add) {
               add ? updateDsfStateWithoutNeighborFn
                   : updateDsfStateWithNeighborFn);
         });
+  } else if (type == RemoteEntityType::REMOTE_SYS_PORT_AND_INTF && !add) {
+    // Populate Empty intf and sys port maps to remove all remote entities
+    for (const auto& [switchId, _] : switchId2SystemPorts) {
+      emptySysPortMaps[switchId] = std::make_shared<SystemPortMap>();
+      emptyIntfMaps[switchId] = std::make_shared<InterfaceMap>();
+    }
+
+    // Setup initial state with all system ports and interfaces
+    ensemble->getSw()->getRib()->updateStateInRibThread(
+        [&ensemble, updateDsfStateWithNeighborFn]() {
+          ensemble->getSw()->updateStateWithHwFailureProtection(
+              folly::sformat("Update state for node: {}", 0),
+              updateDsfStateWithNeighborFn);
+        });
   }
 
   ScopedCallTimer timeIt;
   suspender.dismiss();
-  auto intfMaps =
-      add ? switchId2IntfsWithNeighbor : switchId2IntfsWithoutNeighbor;
+  auto intfMaps = add ? switchId2IntfsWithNeighbor
+                      : (type == RemoteEntityType::REMOTE_NBR_ONLY
+                             ? switchId2IntfsWithoutNeighbor
+                             : emptyIntfMaps);
+  auto sysPortMaps = add
+      ? switchId2SystemPorts
+      : (type == RemoteEntityType::REMOTE_NBR_ONLY ? switchId2SystemPorts
+                                                   : emptySysPortMaps);
+  CHECK(!intfMaps.empty());
+  if (type == RemoteEntityType::REMOTE_SYS_PORT_AND_INTF) {
+    CHECK(!sysPortMaps.empty());
+    CHECK_EQ(intfMaps.size(), sysPortMaps.size());
+  }
+
   for (const auto& [switchId, intfMap] : intfMaps) {
-    SwSwitch::StateUpdateFn updateSingleIntfMap =
-        [&ensemble, switchId, &intfMap](
+    CHECK(sysPortMaps.contains(switchId));
+    auto sysPortMap = sysPortMaps.at(switchId);
+    SwSwitch::StateUpdateFn updateForSingleRemoteNode =
+        [&ensemble, switchId, type, &intfMap, &sysPortMap](
             const std::shared_ptr<SwitchState>& in) {
           std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intf;
           switchId2Intf[switchId] = intfMap;
+          std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SysPort;
+          if (type == RemoteEntityType::REMOTE_SYS_PORT_AND_INTF) {
+            switchId2SysPort[switchId] = sysPortMap;
+          }
           return DsfStateUpdaterUtil::getUpdatedState(
               in,
               ensemble->getSw()->getScopeResolver(),
               ensemble->getSw()->getRib(),
-              {},
+              switchId2SysPort,
               switchId2Intf);
         };
     ensemble->getSw()->getRib()->updateStateInRibThread(
-        [&ensemble, switchId, updateSingleIntfMap]() {
+        [&ensemble, switchId, updateForSingleRemoteNode]() {
           ensemble->getSw()->updateStateWithHwFailureProtection(
               folly::sformat(
                   "Update state for node: {}", static_cast<int>(switchId)),
-              updateSingleIntfMap);
+              updateForSingleRemoteNode);
         });
   }
   suspender.rehire();

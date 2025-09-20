@@ -21,4 +21,14 @@ BENCHMARK(HwVoqRemoteNeighborAdd) {
 BENCHMARK(HwVoqRemoteNeighborDel) {
   remoteEntityBenchmark(RemoteEntityType::REMOTE_NBR_ONLY, false /*add*/);
 }
+
+BENCHMARK(HwVoqRemoteSysPortAndIntfAdd) {
+  remoteEntityBenchmark(
+      RemoteEntityType::REMOTE_SYS_PORT_AND_INTF, true /*add*/);
+}
+
+BENCHMARK(HwVoqRemoteSysPortAndIntfDel) {
+  remoteEntityBenchmark(
+      RemoteEntityType::REMOTE_SYS_PORT_AND_INTF, false /*add*/);
+}
 } // namespace facebook::fboss
