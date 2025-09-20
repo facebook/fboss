@@ -16,6 +16,7 @@ class ParserUtils {
   static std::string parseBeHex(int len, unsigned char* ptr);
   static std::string parseString(int len, unsigned char* ptr);
   static std::string parseMac(int len, unsigned char* ptr);
+  static std::string parseOnieMac(int len, unsigned char* ptr);
   static std::string parseDate(int len, unsigned char* ptr);
   static uint16_t calculateCrc16(const uint8_t* buffer, size_t len);
 };
