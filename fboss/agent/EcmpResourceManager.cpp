@@ -252,8 +252,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     return makeRet(delta);
   }
 
-  preUpdateState_ = PreUpdateState(
-      mergedGroups_, nextHopGroup2Id_, getBackupEcmpSwitchingMode());
+  preUpdateState_ =
+      PreUpdateState(nextHopGroup2Id_, getBackupEcmpSwitchingMode());
 
   handleSwitchSettingsDelta(delta);
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);

@@ -138,7 +138,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::shared_ptr<Route<AddrT>>& newRoute) const;
 
   struct PreUpdateState {
-    std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups;
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
