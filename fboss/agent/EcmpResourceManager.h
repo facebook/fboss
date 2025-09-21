@@ -114,6 +114,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   const NextHopGroupInfo* getGroupInfo(
       RouterID rid,
       const folly::CIDRNetwork& nw) const;
+  const NextHopGroupInfo* getGroupInfo(NextHopGroupId gid) const {
+    auto grpInfo = nextHopGroupIdToInfo_.ref(gid);
+    return grpInfo ? grpInfo.get() : nullptr;
+  }
   /* Test helper API end */
 
  private:
