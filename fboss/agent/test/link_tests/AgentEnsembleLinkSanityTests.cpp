@@ -46,9 +46,14 @@ bool isEqual(
 // For some reason this flag always evaluates as false if we hardcode the string
 // So return it from a function instead
 const std::string qsfpUtilPrefix() {
-  return FLAGS_multi_npu_platform_mapping
-      ? "wedge_qsfp_util --multi-npu-platform-mapping "
-      : "wedge_qsfp_util ";
+  std::string extraFlags = "";
+  if (FLAGS_multi_npu_platform_mapping) {
+    extraFlags += " --multi-npu-platform-mapping ";
+  }
+  if (FLAGS_janga_test) {
+    extraFlags += " --janga-test ";
+  }
+  return "wedge_qsfp_util " + extraFlags;
 }
 
 const std::vector<std::string> l1LinkTestNames = {"qsfpWarmbootIsHitLess"};
