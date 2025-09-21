@@ -47,6 +47,8 @@ uint32_t EcmpResourceManagerConfig::computeMaxHwEcmpGroups(
     uint32_t maxHwEcmpGroups) {
   CHECK_GT(
       maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  // We keep a buffer of 2 for transient increment in ECMP groups when
+  // pushing updates down to HW
   return maxHwEcmpGroups - FLAGS_ecmp_resource_manager_make_before_break_buffer;
 }
 

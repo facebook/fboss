@@ -176,9 +176,12 @@ RouteNextHopSet computeCommonNextHops(
 EcmpResourceManager::EcmpResourceManager(
     const EcmpResourceManagerConfig& config,
     const SwitchStatsGetter& statsGetter)
-    // We keep a buffer of 2 for transient increment in ECMP groups when
-    // pushing updates down to HW
-    : statsGetter_(statsGetter), config_(config) {
+    : nextHopGroupIdToInfo_(
+          [this](const NextHopGroupId&, const NextHopGroupInfo& grpInfo) {
+            nextHopGroup2Id_.erase(grpInfo.getNhops());
+          }),
+      statsGetter_(statsGetter),
+      config_(config) {
   if (auto switchStats = statsGetter_()) {
     switchStats->setPrimaryEcmpGroupsExhausted(false);
     switchStats->setPrimaryEcmpGroupsCount(0);
@@ -1516,7 +1519,6 @@ void EcmpResourceManager::routeDeleted(
                  << inOutState->primaryEcmpGroupsCnt << " Group ID: " << groupId
                  << " removed";
     }
-    nextHopGroup2Id_.erase(routeNhops);
     if (mergeInfoItr) {
       updateMergedGroups(
           {(*mergeInfoItr)->first},
