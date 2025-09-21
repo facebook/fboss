@@ -1220,15 +1220,12 @@ void EcmpResourceManager::routeAddedOrUpdated(
     } else {
       bool newMergeGrpCreated{false};
       if (overrideNhops) {
-        auto numMergeGroupsBefore = mergedGroups_.size();
+        // If merge itr is not null, we will just update the existing merge
+        // group. Else we will create a new one
+        newMergeGrpCreated = !mergeGrpItr.has_value();
         mergeGrpItr =
             fixAndGetMergeGroupItr(idItr->second, *overrideNhops, mergeGrpItr);
-        CHECK(
-            mergedGroups_.size() == numMergeGroupsBefore ||
-            mergedGroups_.size() == numMergeGroupsBefore + 1);
-        newMergeGrpCreated = mergedGroups_.size() > numMergeGroupsBefore;
       }
-
       std::tie(grpInfo, grpInserted) = nextHopGroupIdToInfo_.refOrEmplace(
           idItr->second,
           idItr->second,
