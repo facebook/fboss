@@ -10,8 +10,10 @@
 
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -434,5 +436,39 @@ void assertDeltasForOverflow(
         primaryEcmpTypeGroups2RefCnt.size(),
         resourceManager.getMaxPrimaryEcmpGroups());
   }
+}
+
+void assertRollbacks(
+    EcmpResourceManager& newEcmpResourceMgr,
+    const std::shared_ptr<SwitchState>& startState,
+    const std::shared_ptr<SwitchState>& endState) {
+  auto applyDelta = [&newEcmpResourceMgr](
+                        const StateDelta& delta, bool failUpdate = false) {
+    auto deltas = newEcmpResourceMgr.consolidate(delta);
+    facebook::fboss::assertDeltasForOverflow(newEcmpResourceMgr, deltas);
+    assertResourceMgrCorrectness(newEcmpResourceMgr, deltas.back().newState());
+    if (failUpdate) {
+      newEcmpResourceMgr.updateFailed(delta.oldState());
+      assertResourceMgrCorrectness(newEcmpResourceMgr, delta.oldState());
+    } else {
+      newEcmpResourceMgr.updateDone();
+    }
+    return deltas;
+  };
+  auto emptyState = std::make_shared<SwitchState>();
+  addSwitchInfo(emptyState);
+  emptyState = setupMinAlpmRouteState(emptyState);
+
+  // Get to the startState - essentially the state post ::SetUp
+  applyDelta(StateDelta(emptyState, startState));
+  // Get to the current test state, assert no overflow and mgr correctness
+  // Now mark the latest update as failed and assert that resourceMgr reverts
+  // to setup state
+  applyDelta(StateDelta(startState, endState), true /*failUpdate*/);
+  // Now once again goto current state, and then revert back to
+  // startState. This time assert that deltas for this revert did not cause a
+  // overflow
+  auto deltas = applyDelta(StateDelta(startState, endState));
+  applyDelta(StateDelta(deltas.back().newState(), startState));
 }
 } // namespace facebook::fboss
