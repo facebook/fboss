@@ -171,6 +171,14 @@ RouteNextHopSet computeCommonNextHops(
   return RouteNextHopSet(out.begin(), out.end());
 }
 
+int computePenalty(int numGroupNhops, int numMergedNhops, int routeRefCount) {
+  CHECK_GT(numGroupNhops, 0);
+  CHECK_GE(numGroupNhops, numMergedNhops);
+  auto nhopsLost = numGroupNhops - numMergedNhops;
+  auto nhopsPctLoss = std::ceil((nhopsLost * 100.0) / numGroupNhops);
+  return routeRefCount * nhopsPctLoss;
+}
+
 } // namespace
 
 EcmpResourceManager::EcmpResourceManager(
@@ -1226,8 +1234,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
         // If merge itr is not null, we will just update the existing merge
         // group. Else we will create a new one
         newMergeGrpCreated = !mergeGrpItr.has_value();
-        mergeGrpItr =
-            fixAndGetMergeGroupItr(idItr->second, *overrideNhops, mergeGrpItr);
+        mergeGrpItr = fixAndGetMergeGroupItr(
+            {idItr->second}, *overrideNhops, mergeGrpItr);
       }
       std::tie(grpInfo, grpInserted) = nextHopGroupIdToInfo_.refOrEmplace(
           idItr->second,
@@ -1350,37 +1358,50 @@ EcmpResourceManager::getMergeGroupItr(const RouteNextHopSet& mergedNhops) {
  */
 EcmpResourceManager::GroupIds2ConsolidationInfoItr
 EcmpResourceManager::fixAndGetMergeGroupItr(
-    const NextHopGroupId newMemberGroupId,
+    const NextHopGroupIds& newMemberGroupIds,
     const RouteNextHopSet& mergedNhops,
     std::optional<GroupIds2ConsolidationInfoItr> existingMitr) {
   GroupIds2ConsolidationInfoItr mitr;
   if (!existingMitr) {
-    XLOG(DBG2) << " Group ID : " << newMemberGroupId
+    XLOG(DBG2) << " Group ID : " << newMemberGroupIds
                << " merged nhops not found, creating new merged group entry";
     ConsolidationInfo info{mergedNhops, {}};
     std::tie(mitr, std::ignore) =
-        mergedGroups_.insert({{newMemberGroupId}, std::move(info)});
+        mergedGroups_.insert({newMemberGroupIds, std::move(info)});
   } else {
     mitr = *existingMitr;
-    CHECK(!mitr->first.contains(newMemberGroupId));
     NextHopGroupIds newMergeSet = mitr->first;
-    XLOG(DBG2) << " Group ID : " << newMemberGroupId
+    XLOG(DBG2) << " Group ID : " << newMemberGroupIds
                << " found existing merged nhops, merging with: " << mitr->first;
     auto info = std::move(mitr->second);
     pruneFromCandidateMerges(mitr->first);
     mergedGroups_.erase(mitr);
-    auto [_, inserted] = newMergeSet.insert(newMemberGroupId);
-    CHECK(inserted);
+    newMergeSet.insert(newMemberGroupIds.begin(), newMemberGroupIds.end());
+    bool inserted{false};
     std::tie(mitr, inserted) =
         mergedGroups_.insert({newMergeSet, std::move(info)});
     CHECK(inserted);
     // Fix up iterators
-    fixMergeItreators(newMergeSet, mitr, {newMemberGroupId});
+    fixMergeItreators(newMergeSet, mitr, newMemberGroupIds);
   }
-  CHECK(!nextHopGroupIdToInfo_.ref(newMemberGroupId));
-  auto [_, insertedPenalty] =
-      mitr->second.groupId2Penalty.insert({newMemberGroupId, 0});
-  CHECK(insertedPenalty);
+  std::for_each(
+      newMemberGroupIds.begin(),
+      newMemberGroupIds.end(),
+      [this, &mitr](auto newMemberGroupId) {
+        auto grpInfo = nextHopGroupIdToInfo_.ref(newMemberGroupId);
+        // fixAndGetMergeGroupItr gets called in 2 casess
+        // - Merging a new (yet unreferenced) group into a existing merge set
+        // - Merging already referenced groups with a existing merge set
+        // So handle both cases accordingly
+        auto penalty = grpInfo ? computePenalty(
+                                     grpInfo->getNhops().size(),
+                                     mitr->second.mergedNhops.size(),
+                                     grpInfo->getRouteUsageCount())
+                               : 0;
+        auto [_, insertedPenalty] =
+            mitr->second.groupId2Penalty.insert({newMemberGroupId, penalty});
+        CHECK(insertedPenalty);
+      });
   return mitr;
 }
 
@@ -1810,16 +1831,16 @@ EcmpResourceManager::computeConsolidationInfo(
   consolidationInfo.mergedNhops = computeCommonNextHops(unmergedNhopSets);
   for (auto grpId : grpIds) {
     const auto& grpInfo = nextHopGroupIdToInfo_.ref(grpId);
-    CHECK_GE(grpInfo->getNhops().size(), consolidationInfo.mergedNhops.size());
-    auto nhopsLost =
-        grpInfo->getNhops().size() - consolidationInfo.mergedNhops.size();
-    auto nhopsPctLoss =
-        std::ceil((nhopsLost * 100.0) / grpInfo->getNhops().size());
-    auto penalty = grpInfo->getRouteUsageCount() * nhopsPctLoss;
+    auto penalty = computePenalty(
+        grpInfo->getNhops().size(),
+        consolidationInfo.mergedNhops.size(),
+        grpInfo->getRouteUsageCount());
     XLOG(DBG4) << " For group : " << grpId
                << " orig nhops: " << grpInfo->getNhops().size()
-               << " nhops lost: " << nhopsLost << " penalty: " << penalty
-               << "%";
+               << " nhops lost: "
+               << (grpInfo->getNhops().size() -
+                   consolidationInfo.mergedNhops.size())
+               << " penalty: " << penalty << "%";
     consolidationInfo.groupId2Penalty.insert({grpId, penalty});
   }
   return consolidationInfo;
