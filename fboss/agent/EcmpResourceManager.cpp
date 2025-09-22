@@ -2029,6 +2029,7 @@ void NextHopGroupInfo::routeUsageCountChanged(
         CHECK_EQ(prevRouteUsageCount, 0);
         // From 0, routeUsageCount can only transition to 1
         CHECK_EQ(curRouteUsageCount, 1);
+        DCHECK(mergedAndUnmergedNhopsMatch());
         state_ = NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
       }
       break;
@@ -2053,7 +2054,7 @@ void NextHopGroupInfo::mergeInfoItrChanged() {
   switch (state_) {
     case NextHopGroupState::UNINITIALIZED:
       CHECK_EQ(routeUsageCount_, 0);
-      if (mergedGroupsToInfoItr_) {
+      if (mergedAndUnmergedNhopsMatch()) {
         state_ = NextHopGroupState::MERGED_NHOPS_ONLY;
       }
       break;
