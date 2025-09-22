@@ -325,6 +325,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     }
   }
   DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
+  DCHECK(checkNoUnitializedGroups());
   return std::move(inOutState->out);
 }
 
@@ -338,6 +339,14 @@ bool EcmpResourceManager::checkPrimaryGroupAndMemberCounts(
   return primaryEcmpGroups == inOutState.primaryEcmpGroupsCnt;
 }
 
+bool EcmpResourceManager::checkNoUnitializedGroups() const {
+  return std::all_of(
+      nextHopGroupIdToInfo_.begin(),
+      nextHopGroupIdToInfo_.end(),
+      [](const auto& idAndInfo) {
+        return !idAndInfo.second.lock()->isUnitialized();
+      });
+}
 std::vector<std::shared_ptr<NextHopGroupInfo>>
 EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
   std::vector<std::shared_ptr<NextHopGroupInfo>> overrideGroupsSorted;
@@ -1664,6 +1673,7 @@ void EcmpResourceManager::processRouteUpdates(
           RouterID rid, const auto& oldRoute, const auto& newRoute) {
         SCOPE_EXIT {
           DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
+          DCHECK(checkNoUnitializedGroups());
         };
         if (!oldRoute->isResolved() && !newRoute->isResolved()) {
           return;
@@ -1691,6 +1701,7 @@ void EcmpResourceManager::processRouteUpdates(
       [this, inOutState](RouterID rid, const auto& newRoute) {
         SCOPE_EXIT {
           DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
+          DCHECK(checkNoUnitializedGroups());
         };
         if (newRoute->isResolved()) {
           routeAdded(rid, newRoute, inOutState);
@@ -1699,6 +1710,7 @@ void EcmpResourceManager::processRouteUpdates(
       [this, inOutState](RouterID rid, const auto& oldRoute) {
         SCOPE_EXIT {
           DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
+          DCHECK(checkNoUnitializedGroups());
         };
         if (oldRoute->isResolved()) {
           routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);

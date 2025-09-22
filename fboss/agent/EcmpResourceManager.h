@@ -213,6 +213,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
   bool checkPrimaryGroupAndMemberCounts(
       const InputOutputState& inOutState) const;
+  bool checkNoUnitializedGroups() const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
       const StateDelta& delta);
   void handleSwitchSettingsDelta(const StateDelta& delta);
