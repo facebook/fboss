@@ -4213,7 +4213,12 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       : IPAddressV6("::");
   intf->setDhcpV4Relay(dhcpV4Relay);
   intf->setDhcpV6Relay(dhcpV6Relay);
-
+  if (config->desiredPeerName().has_value()) {
+    intf->setDesiredPeerName(config->desiredPeerName().value());
+  }
+  if (config->desiredPeerAddressIPv6().has_value()) {
+    intf->setDesiredPeerAddressIPv6(config->desiredPeerAddressIPv6().value());
+  }
   return intf;
 }
 
