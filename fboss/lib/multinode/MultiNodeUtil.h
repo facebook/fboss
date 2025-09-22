@@ -60,6 +60,18 @@ class MultiNodeUtil {
         return "SDSW";
     }
   }
+
+  void logNdpEntry(
+      const std::string& rdsw,
+      const facebook::fboss::NdpEntryThrift& ndpEntry) const {
+    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+        folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+    XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
+               << " state: " << ndpEntry.state().value()
+               << " switchId: " << ndpEntry.switchId().value_or(-1);
+  }
+
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
