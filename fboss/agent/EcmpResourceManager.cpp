@@ -1427,15 +1427,11 @@ EcmpResourceManager::fixAndGetMergeGroupItr(
       newMemberGroupIds.end(),
       [this, &mitr](auto newMemberGroupId) {
         auto grpInfo = nextHopGroupIdToInfo_.ref(newMemberGroupId);
-        // fixAndGetMergeGroupItr gets called in 2 casess
-        // - Merging a new (yet unreferenced) group into a existing merge set
-        // - Merging already referenced groups with a existing merge set
-        // So handle both cases accordingly
-        auto penalty = grpInfo ? computePenalty(
-                                     grpInfo->getNhops().size(),
-                                     mitr->second.mergedNhops.size(),
-                                     grpInfo->getRouteUsageCount())
-                               : 0;
+        CHECK(grpInfo);
+        auto penalty = computePenalty(
+            grpInfo->getNhops().size(),
+            mitr->second.mergedNhops.size(),
+            grpInfo->getRouteUsageCount());
         auto [_, insertedPenalty] =
             mitr->second.groupId2Penalty.insert({newMemberGroupId, penalty});
         CHECK(insertedPenalty);
