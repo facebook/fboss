@@ -110,6 +110,8 @@ class MultiNodeUtil {
       const std::string& switchName) const;
   std::map<std::string, PortInfoThrift> getFabricPortNameToPortInfo(
       const std::string& switchName) const;
+  std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
+      const std::string& switchName) const;
 
   bool verifyPortActiveStateForSwitch(
       SwitchType switchType,

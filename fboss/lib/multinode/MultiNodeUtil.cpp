@@ -533,6 +533,20 @@ MultiNodeUtil::getFabricPortNameToPortInfo(
   return fabricPortNameToPortInfo;
 }
 
+std::map<std::string, PortInfoThrift>
+MultiNodeUtil::getUpEthernetPortNameToPortInfo(
+    const std::string& switchName) const {
+  std::map<std::string, PortInfoThrift> upEthernetPortNameToPortInfo;
+  for (const auto& [_, portInfo] : getPorts(switchName)) {
+    if (portInfo.portType().value() == cfg::PortType::INTERFACE_PORT &&
+        portInfo.operState().value() == PortOperState::UP) {
+      upEthernetPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
+    }
+  }
+
+  return upEthernetPortNameToPortInfo;
+}
+
 bool MultiNodeUtil::verifyPortActiveStateForSwitch(
     SwitchType switchType,
     const std::string& switchName) const {
