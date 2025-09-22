@@ -8,6 +8,11 @@
 
 namespace facebook::fboss {
 
+namespace {
+constexpr auto kEcmpWidth128 = 128;
+constexpr auto kEcmpWidth512 = 512;
+} // namespace
+
 class AgentVoqSwitchScaleTest : public AgentVoqSwitchFullScaleDsfNodesTest {};
 
 TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
@@ -260,6 +265,70 @@ TEST_F(AgentVoqSwitchScaleWithFabricPortsTest, failUpdateAtFullSysPortScale) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentVoqSwitchEcmpWidthUpdateTest
+    : public AgentVoqSwitchFullScaleDsfNodesTest {
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentVoqSwitchFullScaleDsfNodesTest::setCmdLineFlagOverrides();
+    FLAGS_ecmp_width = kEcmpWidth512;
+    FLAGS_check_wb_handles = false;
+  }
+
+  // Allow hardware writes during WB when ECMP width changes
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+};
+
+TEST_F(AgentVoqSwitchEcmpWidthUpdateTest, ecmpWidthExpansion) {
+  auto programRoute = [this](
+                          const auto& prefix,
+                          auto& ecmpHelper,
+                          const flat_set<PortDescriptor>& portDescs) {
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, portDescs, {prefix});
+  };
+  auto setup = [this, programRoute]() {
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+    // Program routes with width set to 128
+    FLAGS_ecmp_width = kEcmpWidth128;
+
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto remoteSysPortDescs =
+        utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+    programRoute(
+        RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
+        ecmpHelper,
+        flat_set<PortDescriptor>(
+            remoteSysPortDescs.begin(),
+            remoteSysPortDescs.begin() + kEcmpWidth512));
+    programRoute(
+        RoutePrefixV6{folly::IPAddressV6("2::2"), 128},
+        ecmpHelper,
+        flat_set<PortDescriptor>(
+            remoteSysPortDescs.begin() + 1,
+            remoteSysPortDescs.begin() + 1 + kEcmpWidth512));
+  };
+  auto setupPostWB = [this, programRoute]() {
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto remoteSysPortDescs = utility::getRemoteSysPorts(getAgentEnsemble());
+
+    // Move one route to 10 less width, simulating remote system port down
+    auto offset = 10;
+    programRoute(
+        RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
+        ecmpHelper,
+        flat_set<PortDescriptor>(
+            remoteSysPortDescs.begin(),
+            remoteSysPortDescs.begin() + kEcmpWidth512 - offset));
+  };
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWB, []() {});
 }
 
 } // namespace facebook::fboss
