@@ -72,6 +72,21 @@ class MultiNodeUtil {
                << " switchId: " << ndpEntry.switchId().value_or(-1);
   }
 
+  void logRdswToNdpEntries(
+      const std::map<std::string, std::vector<NdpEntryThrift>>&
+          rdswToNdpEntries) const {
+    for (const auto& [rdsw, ndpEntries] : rdswToNdpEntries) {
+      for (const auto& ndpEntry : ndpEntries) {
+        auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
+            folly::StringPiece(ndpEntry.ip().value().addr().value())));
+        XLOG(DBG2) << "RDSW:: " << rdsw
+                   << " NDP Entry to verify:: port: " << ndpEntry.port().value()
+                   << " interfaceID: " << ndpEntry.interfaceID().value()
+                   << " IP: " << ndpEntryIp;
+      }
+    }
+  }
+
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
