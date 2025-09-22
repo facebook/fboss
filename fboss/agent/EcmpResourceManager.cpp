@@ -1751,31 +1751,29 @@ EcmpResourceManager::NextHopGroupId
 EcmpResourceManager::findCachedOrNewIdForNhops(
     const RouteNextHopSet& nhops,
     const InputOutputState& inOutState) const {
+  auto findNextAvailableId = [this]() {
+    std::unordered_set<NextHopGroupId> allocatedIds;
+    auto fillAllocatedIds = [&allocatedIds](const auto& nhopGroup2Id) {
+      for (const auto& [_, id] : nhopGroup2Id) {
+        allocatedIds.insert(id);
+      }
+    };
+    CHECK(preUpdateState_.has_value());
+    fillAllocatedIds(nextHopGroup2Id_);
+    fillAllocatedIds(preUpdateState_->nextHopGroup2Id);
+    for (auto start = kMinNextHopGroupId;
+         start < std::numeric_limits<NextHopGroupId>::max();
+         ++start) {
+      if (allocatedIds.find(start) == allocatedIds.end()) {
+        return start;
+      }
+    }
+    throw FbossError("Unable to find id to allocate for new next hop group");
+  };
   auto nitr = inOutState.groupIdCache.nextHopGroup2Id.find(nhops);
   return nitr != inOutState.groupIdCache.nextHopGroup2Id.end()
       ? nitr->second
       : findNextAvailableId();
-}
-
-EcmpResourceManager::NextHopGroupId EcmpResourceManager::findNextAvailableId()
-    const {
-  std::unordered_set<NextHopGroupId> allocatedIds;
-  auto fillAllocatedIds = [&allocatedIds](const auto& nhopGroup2Id) {
-    for (const auto& [_, id] : nhopGroup2Id) {
-      allocatedIds.insert(id);
-    }
-  };
-  CHECK(preUpdateState_.has_value());
-  fillAllocatedIds(nextHopGroup2Id_);
-  fillAllocatedIds(preUpdateState_->nextHopGroup2Id);
-  for (auto start = kMinNextHopGroupId;
-       start < std::numeric_limits<NextHopGroupId>::max();
-       ++start) {
-    if (allocatedIds.find(start) == allocatedIds.end()) {
-      return start;
-    }
-  }
-  throw FbossError("Unable to find id to allocate for new next hop group");
 }
 
 size_t EcmpResourceManager::getRouteUsageCount(NextHopGroupId nhopGrpId) const {

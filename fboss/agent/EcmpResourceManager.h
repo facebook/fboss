@@ -300,7 +300,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   void validateCfgUpdate(
       uint32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;
-  NextHopGroupId findNextAvailableId() const;
   template <std::forward_iterator ForwardIt>
   void computeCandidateMergesForNewUnmergedGroups(
       ForwardIt begin,
