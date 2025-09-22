@@ -280,17 +280,18 @@ class AgentVoqSwitchEcmpWidthUpdateTest
   bool failHwCallsOnWarmboot() const override {
     return false;
   }
+
+  void programRoute(
+      const auto& prefix,
+      utility::EcmpSetupTargetedPorts6& ecmpHelper,
+      const flat_set<PortDescriptor>& portDescs) {
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, portDescs, {prefix});
+  }
 };
 
 TEST_F(AgentVoqSwitchEcmpWidthUpdateTest, ecmpWidthExpansion) {
-  auto programRoute = [this](
-                          const auto& prefix,
-                          auto& ecmpHelper,
-                          const flat_set<PortDescriptor>& portDescs) {
-    auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, portDescs, {prefix});
-  };
-  auto setup = [this, programRoute]() {
+  auto setup = [this]() {
     utility::setupRemoteIntfAndSysPorts(
         getSw(),
         isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
@@ -314,7 +315,57 @@ TEST_F(AgentVoqSwitchEcmpWidthUpdateTest, ecmpWidthExpansion) {
             remoteSysPortDescs.begin() + 1,
             remoteSysPortDescs.begin() + 1 + kEcmpWidth512));
   };
-  auto setupPostWB = [this, programRoute]() {
+  auto setupPostWB = [this]() {
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto remoteSysPortDescs = utility::getRemoteSysPorts(getAgentEnsemble());
+
+    // Move one route to 10 less width, simulating remote system port down
+    auto offset = 10;
+    programRoute(
+        RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
+        ecmpHelper,
+        flat_set<PortDescriptor>(
+            remoteSysPortDescs.begin(),
+            remoteSysPortDescs.begin() + kEcmpWidth512 - offset));
+  };
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWB, []() {});
+}
+
+class AgentVoqSwitchEcmpWidthShrinkTest
+    : public AgentVoqSwitchEcmpWidthUpdateTest {
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentVoqSwitchEcmpWidthUpdateTest::setCmdLineFlagOverrides();
+    FLAGS_ecmp_width = kEcmpWidth128;
+  }
+};
+
+TEST_F(AgentVoqSwitchEcmpWidthShrinkTest, ecmpWidthShrink) {
+  auto setup = [this]() {
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+    FLAGS_ecmp_width = kEcmpWidth512;
+
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto remoteSysPortDescs =
+        utility::resolveRemoteNhops(getAgentEnsemble(), ecmpHelper);
+    programRoute(
+        RoutePrefixV6{folly::IPAddressV6("1::1"), 128},
+        ecmpHelper,
+        flat_set<PortDescriptor>(
+            remoteSysPortDescs.begin(),
+            remoteSysPortDescs.begin() + kEcmpWidth512));
+    programRoute(
+        RoutePrefixV6{folly::IPAddressV6("2::2"), 128},
+        ecmpHelper,
+        flat_set<PortDescriptor>(
+            remoteSysPortDescs.begin() + 1,
+            remoteSysPortDescs.begin() + 1 + kEcmpWidth512));
+  };
+  auto setupPostWB = [this]() {
     auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto remoteSysPortDescs = utility::getRemoteSysPorts(getAgentEnsemble());
