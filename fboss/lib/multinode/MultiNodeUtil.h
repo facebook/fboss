@@ -189,6 +189,7 @@ class MultiNodeUtil {
   std::set<std::string> allRdsws_;
   std::set<std::string> allFdsws_;
   std::map<SwitchID, std::string> switchIdToSwitchName_;
+  std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
 };
 
 } // namespace facebook::fboss::utility
