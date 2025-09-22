@@ -765,7 +765,7 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
       [&gids](const auto& gidAndGroup) {
         auto grpInfo = gidAndGroup.second.lock();
         CHECK(grpInfo);
-        if (!grpInfo->getMergedGroupInfoItr()) {
+        if (!(grpInfo->isUnitialized() || grpInfo->getMergedGroupInfoItr())) {
           gids.insert(gidAndGroup.first);
         }
       });
@@ -1107,13 +1107,13 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     bool ecmpDemandExceeded,
     InputOutputState* inOutState,
     bool addNewDelta) {
-  if (ecmpDemandExceeded && getBackupEcmpSwitchingMode()) {
-    // If ecmpDemandExceeded and we have getBackupEcmpSwitchingMode() set,
-    // then this group should spillover to backup ecmpType config.
-    // For merge group mode, we are not guaranteed which groups
-    // will be picked for merge, so we can't assert that the
-    // new groups  will always be of merge type.
-    CHECK(grpInfo->isBackupEcmpGroupType());
+  if (ecmpDemandExceeded) {
+    if (getBackupEcmpSwitchingMode().has_value()) {
+      grpInfo->setIsBackupEcmpGroupType(true);
+    } else {
+      CHECK(getEcmpCompressionThresholdPct());
+      mergeGroupAndMigratePrefixes(inOutState);
+    }
   }
   const auto& curForwardInfo = route->getForwardInfo();
   auto newForwardInfo = RouteNextHopEntry(
@@ -1121,7 +1121,8 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
       curForwardInfo.getAdminDistance(),
       curForwardInfo.getCounterID(),
       curForwardInfo.getClassID(),
-      getBackupEcmpSwitchingMode(),
+      grpInfo->isBackupEcmpGroupType() ? getBackupEcmpSwitchingMode()
+                                       : std::optional<cfg::SwitchingMode>(),
       std::optional<RouteNextHopSet>(grpInfo->getOverrideNextHops()));
   auto newRoute = route->clone();
   newRoute->setResolved(std::move(newForwardInfo));
@@ -1259,9 +1260,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
     }
   }
   auto nhopSet = newRoute->getForwardInfo().nonOverrideNormalizedNextHops();
-  auto [idItr, grpInserted] = nextHopGroup2Id_.insert(
-      {nhopSet, findCachedOrNewIdForNhops(nhopSet, *inOutState)});
-  std::shared_ptr<NextHopGroupInfo> grpInfo;
+  auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
     const auto& overrideNhops =
         newRoute->getForwardInfo().getOverrideNextHops();
@@ -1279,7 +1278,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
                  << (oldRoute ? "add" : "update")
                  << " route: " << newRoute->str();
       grpInfo = updateForwardingInfoAndInsertDelta(
-          rid, newRoute, idItr, ecmpLimitReached, inOutState);
+          rid, newRoute, grpInfo, ecmpLimitReached, inOutState);
       // If new group does not have override mode or nhops, increment non
       // backup ecmp group count
       inOutState->primaryEcmpGroupsCnt += grpInfo->hasOverrides() ? 0 : 1;
@@ -1305,15 +1304,12 @@ void EcmpResourceManager::routeAddedOrUpdated(
         // group. Else we will create a new one
         newMergeGrpCreated = !mergeGrpItr.has_value();
         mergeGrpItr = fixAndGetMergeGroupItr(
-            {idItr->second}, *overrideNhops, mergeGrpItr);
+            {grpInfo->getID()}, *overrideNhops, mergeGrpItr);
       }
-      std::tie(grpInfo, grpInserted) = nextHopGroupIdToInfo_.refOrEmplace(
-          idItr->second,
-          idItr->second,
-          idItr,
-          newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value(),
-          mergeGrpItr);
-      CHECK(grpInserted);
+      grpInfo->setIsBackupEcmpGroupType(newRoute->getForwardInfo()
+                                            .getOverrideEcmpSwitchingMode()
+                                            .has_value());
+      grpInfo->setMergedGroupInfoItr(mergeGrpItr);
       inOutState->addOrUpdateRoute(
           rid, newRoute, false /* ecmpDemandExceeded*/);
       if (!grpInfo->hasOverrides()) {
@@ -1339,7 +1335,6 @@ void EcmpResourceManager::routeAddedOrUpdated(
     }
   } else {
     // Route points to a existing group
-    grpInfo = nextHopGroupIdToInfo_.ref(idItr->second);
     if (grpInfo->hasOverrides() !=
         newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops()) {
       auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
@@ -1355,7 +1350,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
   }
   CHECK(grpInfo);
   auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
-      {{rid, newRoute->prefix().toCidrNetwork()}, std::move(grpInfo)});
+      {{rid, newRoute->prefix().toCidrNetwork()}, grpInfo});
   if (pfxInserted) {
     /*
      * If a new prefix points to this group increment ref count
@@ -1384,7 +1379,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
          * New unmerged group added, compute candidate merges
          * for it
          */
-        computeCandidateMergesForNewUnmergedGroups({idItr->second});
+        computeCandidateMergesForNewUnmergedGroups({grpInfo->getID()});
       }
     }
   }
