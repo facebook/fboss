@@ -331,6 +331,7 @@ class NextHopGroupInfo {
   using GroupIds2ConsolidationInfoItr =
       EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
   enum class NextHopGroupState {
+    UNINITIALIZED,
     UNMERGED_NHOPS_ONLY,
     MERGED_NHOPS_ONLY,
     // Matching MERGED and UMERGED NHOPS group
@@ -341,24 +342,24 @@ class NextHopGroupInfo {
       NextHopGroupItr ngItr,
       bool isBackupEcmpGroupType = false,
       std::optional<GroupIds2ConsolidationInfoItr> mergedGroupsToInfoItr =
-          std::nullopt)
-      : id_(id),
-        ngItr_(ngItr),
-        isBackupEcmpGroupType_(isBackupEcmpGroupType),
-        mergedGroupsToInfoItr_(mergedGroupsToInfoItr),
-        state_(NextHopGroupState::UNMERGED_NHOPS_ONLY) {}
+          std::nullopt);
+
   NextHopGroupId getID() const {
     return id_;
   }
   size_t getRouteUsageCount() const {
-    CHECK_GT(routeUsageCount_, 0);
+    CHECK_GE(routeUsageCount_, 0);
     return routeUsageCount_;
   }
   void incRouteUsageCount() {
+    CHECK_GE(routeUsageCount_, 0);
     ++routeUsageCount_;
+    routeUsageCountChanged(routeUsageCount_ - 1, routeUsageCount_);
   }
   void decRouteUsageCount() {
+    CHECK_GT(routeUsageCount_, 0);
     --routeUsageCount_;
+    routeUsageCountChanged(routeUsageCount_ + 1, routeUsageCount_);
   }
   bool isBackupEcmpGroupType() const {
     return isBackupEcmpGroupType_;
@@ -369,6 +370,7 @@ class NextHopGroupInfo {
   void setMergedGroupInfoItr(
       std::optional<GroupIds2ConsolidationInfoItr> gitr) {
     mergedGroupsToInfoItr_ = gitr;
+    mergeInfoItrChanged();
   }
   std::optional<GroupIds2ConsolidationInfoItr> getMergedGroupInfoItr() const {
     return mergedGroupsToInfoItr_;
@@ -404,12 +406,18 @@ class NextHopGroupInfo {
   }
 
  private:
+  bool mergedAndUnmergedNhopsMatch() const {
+    return mergedGroupsToInfoItr_ &&
+        (*mergedGroupsToInfoItr_)->second.mergedNhops == getNhops();
+  }
+  void routeUsageCountChanged(int prevRouteUsageCount, int curRouteUsageCount);
+  void mergeInfoItrChanged();
   NextHopGroupId id_;
   NextHopGroupItr ngItr_;
   bool isBackupEcmpGroupType_{false};
   std::optional<GroupIds2ConsolidationInfoItr> mergedGroupsToInfoItr_;
   int routeUsageCount_{0};
-  NextHopGroupState state_;
+  NextHopGroupState state_{NextHopGroupState::UNINITIALIZED};
 };
 
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(

@@ -1936,6 +1936,87 @@ EcmpResourceManager::getGroupIdToPrefix() const {
   return toRet;
 }
 
+NextHopGroupInfo::NextHopGroupInfo(
+    NextHopGroupId id,
+    NextHopGroupItr ngItr,
+    bool isBackupEcmpGroupType,
+    std::optional<GroupIds2ConsolidationInfoItr> mergedGroupsToInfoItr)
+    : id_(id),
+      ngItr_(ngItr),
+      isBackupEcmpGroupType_(isBackupEcmpGroupType),
+      mergedGroupsToInfoItr_(mergedGroupsToInfoItr) {
+  if (mergedGroupsToInfoItr_ &&
+      (*mergedGroupsToInfoItr_)->second.mergedNhops == getNhops()) {
+    state_ = NextHopGroupState::MERGED_NHOPS_ONLY;
+  }
+}
+
+void NextHopGroupInfo::routeUsageCountChanged(
+    int prevRouteUsageCount,
+    int curRouteUsageCount) {
+  switch (state_) {
+    case NextHopGroupState::UNINITIALIZED:
+      CHECK_EQ(prevRouteUsageCount, 0);
+      // From 0, routeUsageCount can only transition to 1
+      CHECK_EQ(curRouteUsageCount, 1);
+      state_ = NextHopGroupState::UNMERGED_NHOPS_ONLY;
+      break;
+    case NextHopGroupState::UNMERGED_NHOPS_ONLY:
+      // Nothing to do on route usage count change
+      // for unmerged group nhops
+      break;
+    case NextHopGroupState::MERGED_NHOPS_ONLY:
+      if (curRouteUsageCount) {
+        // New unmerged nhop group has same nhops has a
+        // merged nhop group.
+        // If current state was MERGED_NHOPS_ONLY, the prior
+        // route usage count must be 0
+        CHECK_EQ(prevRouteUsageCount, 0);
+        // From 0, routeUsageCount can only transition to 1
+        CHECK_EQ(curRouteUsageCount, 1);
+        state_ = NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
+      }
+      break;
+    case NextHopGroupState::UNMERGED_AND_MERGED_NHOPS:
+      if (!curRouteUsageCount) {
+        state_ = NextHopGroupState::MERGED_NHOPS_ONLY;
+      }
+      break;
+  }
+}
+
+void NextHopGroupInfo::mergeInfoItrChanged() {
+  switch (state_) {
+    case NextHopGroupState::UNINITIALIZED:
+      CHECK_EQ(routeUsageCount_, 0);
+      if (mergedGroupsToInfoItr_) {
+        state_ = NextHopGroupState::MERGED_NHOPS_ONLY;
+      }
+      break;
+    case NextHopGroupState::UNMERGED_NHOPS_ONLY:
+      if (mergedAndUnmergedNhopsMatch()) {
+        state_ = NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
+      }
+      break;
+    case NextHopGroupState::MERGED_NHOPS_ONLY:
+      // mergeItr should always be non null for MERGED_NHOPS_ONLY
+      // Such a group can only transition to UNMERGED_AND_MERGED_NHOPS
+      // on a route counter update or get deleted.
+      // Setting mergeInfoItr to null would imply
+      // a dangling nexthopgroup info.
+      CHECK(mergedGroupsToInfoItr_.has_value());
+      break;
+    case NextHopGroupState::UNMERGED_AND_MERGED_NHOPS:
+      // In such a state routeUsageCount must always be > 0,
+      // since we are just updating the iterator.
+      CHECK_GT(routeUsageCount_, 0);
+      if (!mergedAndUnmergedNhopsMatch()) {
+        state_ = NextHopGroupState::UNMERGED_NHOPS_ONLY;
+      }
+      break;
+  }
+}
+
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const std::shared_ptr<SwitchState>& state,
     const HwAsic* asic,
