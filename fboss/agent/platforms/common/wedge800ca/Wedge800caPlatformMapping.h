@@ -21,6 +21,7 @@ class Wedge800caPlatformMapping : public PlatformMapping {
  private:
   // Forbidden copy constructor and assignment operator
   Wedge800caPlatformMapping(Wedge800caPlatformMapping const&) = delete;
-  Wedge800caPlatformMapping& operator=(Wedge800caPlatformMapping const&) = delete;
+  Wedge800caPlatformMapping& operator=(Wedge800caPlatformMapping const&) =
+      delete;
 };
 } // namespace facebook::fboss
