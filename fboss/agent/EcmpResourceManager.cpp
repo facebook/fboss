@@ -951,9 +951,54 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
       << "Ecmp overflow, but no candidates available for merge";
   auto citr = candidateMergeGroups_.find(mergeSet);
   CHECK(citr != candidateMergeGroups_.end());
-  auto [mitr, mergedGroupsInerted] =
-      mergedGroups_.insert({citr->first, citr->second});
-  CHECK(mergedGroupsInerted);
+  auto [newMergeGrpInfo, mergeGrpNhopsInserted] =
+      getOrCreateGroupInfo(citr->second.mergedNhops);
+
+  bool mergeSetUpdated{false};
+  if (mergeGrpNhopsInserted) {
+    // New merge group nothing to do
+    XLOG(DBG2) << " Merge set : " << mergeSet
+               << " nhops, did not match any existing nhops";
+  } else if (
+      newMergeGrpInfo->getState() ==
+      NextHopGroupInfo::NextHopGroupState::UNMERGED_NHOPS_ONLY) {
+    // mergeSet nhops matches a existing unmerged group. Add that
+    // to the mergeSet. But check for case where merge set already
+    // contained the existing group ID. For e.g. a new merge set
+    // [1, 2]'s merged nhops may match group 2's nhops. In which
+    // case mergeSet already has the requisite GID.
+    XLOG(DBG2) << " Merge set : " << mergeSet
+               << " nhops matched existing group : " << newMergeGrpInfo->getID()
+               << " next hops";
+    std::tie(std::ignore, mergeSetUpdated) =
+        mergeSet.insert(newMergeGrpInfo->getID());
+    if (mergeSetUpdated) {
+      XLOG(DBG2) << " Merge set updated to : " << mergeSet;
+    }
+    if (newMergeGrpInfo->getMergedGroupInfoItr()) {
+      DCHECK_NE(
+          (*newMergeGrpInfo->getMergedGroupInfoItr())->second.mergedNhops,
+          citr->second.mergedNhops);
+    }
+  } else {
+    // We matched a existing merged group. Merge the 2 merged groups
+    // to make a larger group.
+    CHECK(newMergeGrpInfo->getMergedGroupInfoItr());
+    auto existingMergeGrpItr = *newMergeGrpInfo->getMergedGroupInfoItr();
+    XLOG(DBG2) << " Merge set : " << mergeSet
+               << " nhops matched existing merged group : "
+               << existingMergeGrpItr->first << " next hops";
+    mergeSet.insert(
+        existingMergeGrpItr->first.begin(), existingMergeGrpItr->first.end());
+    mergeSetUpdated = true;
+  }
+  auto [mitr, mergedGroupsInserted] = mergedGroups_.insert(
+      {mergeSet,
+       mergeSetUpdated ? computeConsolidationInfo(mergeSet) : citr->second
+
+      });
+  CHECK(mergedGroupsInserted);
+
   // Added to merged groups, no longer a candidate merge.
   pruneFromCandidateMerges(mergeSet);
   // Find out if the new merge set has existing merge
@@ -1024,6 +1069,11 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     // Rest will just queue updates on that same delta
     addNewDelta &= false;
   }
+  // Set merge info itr for new merged group
+  newMergeGrpInfo->setMergedGroupInfoItr(mitr);
+  // Cache the NextHopGroupInfo shared pointer in merged
+  // group's consolidation info
+  mitr->second.mergedGroupInfo = std::move(newMergeGrpInfo);
   // We added one merged group, so increment primaryEcmpGroupsCnt and
   // ecmpMemberCnt
   ++inOutState->primaryEcmpGroupsCnt;
@@ -1558,15 +1608,6 @@ void EcmpResourceManager::routeDeleted(
                  << inOutState->primaryEcmpGroupsCnt << " Group ID: " << groupId
                  << " removed";
     }
-    if (mergeInfoItr) {
-      updateMergedGroups(
-          {(*mergeInfoItr)->first},
-          MergeGroupUpdateOp::DELETE_GROUPS,
-          {groupId},
-          inOutState);
-    } else {
-      pruneFromCandidateMerges({groupId});
-    }
   } else {
     decRouteUsageCount(*groupInfo);
     XLOG(DBG2) << "Delete route: " << removed->str()
@@ -1574,6 +1615,24 @@ void EcmpResourceManager::routeDeleted(
                << inOutState->primaryEcmpGroupsCnt << " Group ID: " << groupId
                << " route usage count decremented to: "
                << groupInfo->getRouteUsageCount();
+  }
+  bool lastRouteRefToGroupRemoved = !groupInfo ||
+      groupInfo->getState() ==
+          NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY;
+  if (lastRouteRefToGroupRemoved) {
+    if (mergeInfoItr) {
+      // If this was part of a merged group, remove it from the
+      // merged group
+      updateMergedGroups(
+          {(*mergeInfoItr)->first},
+          MergeGroupUpdateOp::DELETE_GROUPS,
+          {groupId},
+          inOutState);
+    } else {
+      // Not part of a merged group and last reference gone
+      // remove from candidate merges
+      pruneFromCandidateMerges({groupId});
+    }
   }
 }
 
@@ -1588,8 +1647,10 @@ void EcmpResourceManager::decRouteUsageCount(NextHopGroupInfo& groupInfo) {
   XLOG(DBG2) << " GID: " << groupInfo.getID()
              << " route ref count decremented to : "
              << groupInfo.getRouteUsageCount();
-  CHECK_GT(groupInfo.getRouteUsageCount(), 0);
-  updateConsolidationPenalty(groupInfo);
+  if (groupInfo.getState() !=
+      NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY) {
+    updateConsolidationPenalty(groupInfo);
+  }
 }
 
 void EcmpResourceManager::updateConsolidationPenalty(
