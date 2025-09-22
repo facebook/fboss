@@ -250,7 +250,7 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
   void verifyState(cfg::PortState desiredState, const PortMap& ports) const {
     std::vector<PortID> portIds;
     for (const auto& [portId, _] : ports) {
-      portIds.push_back(PortID(portId));
+      portIds.emplace_back(portId);
     }
     verifyState(desiredState, portIds);
   }

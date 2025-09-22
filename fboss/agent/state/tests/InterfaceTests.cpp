@@ -104,10 +104,10 @@ class InterfaceTest : public ::testing::Test {
       portIntf.portID() = *port.logicalID();
       portIntf.routerID() = *port.logicalID();
       portIntf.name() = folly::to<std::string>("port-", *port.logicalID());
-      portIntf.ipAddresses()->push_back("10.1.1.1/24");
-      portIntf.ipAddresses()->push_back("20.1.1.2/24");
-      portIntf.ipAddresses()->push_back("::22:33:44/120");
-      portIntf.ipAddresses()->push_back("::11:11:11/120");
+      portIntf.ipAddresses()->emplace_back("10.1.1.1/24");
+      portIntf.ipAddresses()->emplace_back("20.1.1.2/24");
+      portIntf.ipAddresses()->emplace_back("::22:33:44/120");
+      portIntf.ipAddresses()->emplace_back("::11:11:11/120");
 
       if (raRouterAddr) {
         portIntf.ndp() = cfg::NdpConfig{};

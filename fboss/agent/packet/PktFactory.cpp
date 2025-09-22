@@ -176,8 +176,8 @@ EthHdr makeEthHdr(
   EthHdr::VlanTags_t vlanTags;
 
   if (vlan.has_value()) {
-    vlanTags.push_back(VlanTag(
-        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+    vlanTags.emplace_back(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
   }
 
   EthHdr ethHdr(dstMac, srcMac, vlanTags, static_cast<uint16_t>(etherType));

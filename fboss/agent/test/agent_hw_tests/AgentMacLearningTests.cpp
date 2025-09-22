@@ -1269,11 +1269,11 @@ class AgentMacOverFlowTest : public AgentMacLearningBatchEntriesTest {
         (VlanID)*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID();
 
     for (auto& mac : macs) {
-      l2Entries.push_back(L2Entry(
+      l2Entries.emplace_back(
           mac,
           vlanId,
           portDescr,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED));
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
     }
     return l2Entries;
   }
