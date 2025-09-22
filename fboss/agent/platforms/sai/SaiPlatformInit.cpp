@@ -35,9 +35,9 @@
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatform.h"
-#include "fboss/agent/platforms/sai/SaiWedge800caPlatform.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
+#include "fboss/agent/platforms/sai/SaiWedge800caPlatform.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 
 namespace facebook::fboss {
