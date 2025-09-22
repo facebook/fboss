@@ -878,6 +878,24 @@ MultiNodeUtil::getNdpEntriesAndSwitchOfType(
   return ndpEntriesAndSwitchOfType;
 }
 
+std::vector<NdpEntryThrift> MultiNodeUtil::getNdpEntriesOfType(
+    const std::string& rdsw,
+    const std::set<std::string>& types) const {
+  auto ndpEntries = getNdpEntries(rdsw);
+
+  std::vector<NdpEntryThrift> filteredNdpEntries;
+  std::copy_if(
+      ndpEntries.begin(),
+      ndpEntries.end(),
+      std::back_inserter(filteredNdpEntries),
+      [this, rdsw, &types](const facebook::fboss::NdpEntryThrift& ndpEntry) {
+        logNdpEntry(rdsw, ndpEntry);
+        return types.find(ndpEntry.state().value()) != types.end();
+      });
+
+  return filteredNdpEntries;
+}
+
 bool MultiNodeUtil::verifyStaticNdpEntries() const {
   // Every remote RDSW must have a STATIC NDP entry in the local RDSW
   auto expectedRdsws = allRdsws_;

@@ -154,6 +154,9 @@ class MultiNodeUtil {
   std::set<std::pair<std::string, std::string>> getNdpEntriesAndSwitchOfType(
       const std::string& rdsw,
       const std::set<std::string>& types) const;
+  std::vector<NdpEntryThrift> getNdpEntriesOfType(
+      const std::string& rdsw,
+      const std::set<std::string>& types) const;
 
   std::map<std::string, DsfSessionThrift> getPeerToDsfSession(
       const std::string& rdsw) const;
