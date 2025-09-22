@@ -421,16 +421,16 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           SUM,
           RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
-    hwAgentConnectionStatus_.emplace_back(TLCounter(
+    hwAgentConnectionStatus_.emplace_back(
         map,
         folly::to<std::string>(
-            kCounterPrefix, "switch.", switchIndex, ".", "connection_status")));
-    hwAgentUpdateTimeouts_.emplace_back(TLTimeseries(
+            kCounterPrefix, "switch.", switchIndex, ".", "connection_status"));
+    hwAgentUpdateTimeouts_.emplace_back(
         map,
         folly::to<std::string>(
             kCounterPrefix, "switch.", switchIndex, ".", "hwupdate_timeouts"),
         SUM,
-        RATE));
+        RATE);
     thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
     switchReachabilityInconsistencyDetected_.emplace_back(
         map,

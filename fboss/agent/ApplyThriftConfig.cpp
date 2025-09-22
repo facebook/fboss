@@ -3692,7 +3692,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
           throw FbossError("Mirror ", egMirror->cref(), " is undefined");
         }
       }
-      entries.push_back(std::make_pair(acl->getID(), acl));
+      entries.emplace_back(acl->getID(), acl);
     }
     return entries;
   };

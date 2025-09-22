@@ -351,8 +351,8 @@ std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
 
   for (const auto& remoteHost : testInterface.remoteHosts) {
     PortID portId(remoteHost.port.id);
-    subports.push_back(AggregatePort::Subport(
-        portId, 0, cfg::LacpPortRate::SLOW, cfg::LacpPortActivity::PASSIVE, 0));
+    subports.emplace_back(
+        portId, 0, cfg::LacpPortRate::SLOW, cfg::LacpPortActivity::PASSIVE, 0);
   }
   std::string name = folly::sformat("lag{}", testInterface.id);
 
@@ -578,7 +578,7 @@ std::vector<QueueSaiId> ManagerTestBase::getPortQueueSaiIds(
       portHandle->port->adapterKey(), queueListAttribute);
   std::vector<QueueSaiId> queueSaiIds;
   for (auto queueSaiId : queueSaiIdList) {
-    queueSaiIds.push_back(QueueSaiId(queueSaiId));
+    queueSaiIds.emplace_back(queueSaiId);
   }
   return queueSaiIds;
 }

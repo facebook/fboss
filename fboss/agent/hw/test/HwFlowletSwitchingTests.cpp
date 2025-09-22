@@ -125,7 +125,7 @@ class HwArsTest : public HwLinkStateDependentTest {
     std::vector<PortDescriptor> portDescriptorIds;
     for (auto& portId : masterLogicalPortsIds) {
       this->resolveNextHop(PortDescriptor(portId));
-      portDescriptorIds.push_back(PortDescriptor(portId));
+      portDescriptorIds.emplace_back(portId);
     }
     this->addRoute(addr, 64, portDescriptorIds);
   }

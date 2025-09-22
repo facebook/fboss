@@ -415,7 +415,7 @@ std::vector<std::pair<int, int>> Jericho3Asic::getPortGroups() const {
   for (auto g = 0; g < kNumPortGroups; ++g) {
     auto portGroupStart = kPortGroupStart + g * kPortGroupSize;
     auto portGroupEnd = portGroupStart + kPortGroupSize - 1;
-    portGroups.push_back(std::make_pair(portGroupStart, portGroupEnd));
+    portGroups.emplace_back(portGroupStart, portGroupEnd);
   }
   return portGroups;
 }
