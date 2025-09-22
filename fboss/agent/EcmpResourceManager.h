@@ -122,34 +122,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   /* Test helper API end */
 
  private:
-  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
-      const RouteNextHopSet& mergedNhops);
-  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
-      const std::optional<RouteNextHopSet>& mergedNhops) {
-    return mergedNhops ? getMergeGroupItr(*mergedNhops) : std::nullopt;
-  }
-  std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
-      const RouteNextHopSet& nhops);
-  GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
-      const NextHopGroupIds& newMemberGroups,
-      const RouteNextHopSet& mergedNhops,
-      std::optional<GroupIds2ConsolidationInfoItr> existingMitr);
-  void fixMergeItreators(
-      const NextHopGroupIds& newMergeSet,
-      GroupIds2ConsolidationInfoItr mitr,
-      const NextHopGroupIds& toIgnore);
-  bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
-  template <typename AddrT>
-  bool routeFwdEqual(
-      const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::shared_ptr<Route<AddrT>>& newRoute) const;
-
   struct PreUpdateState {
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
-  void decRouteUsageCount(NextHopGroupInfo& groupInfo);
-  void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
   struct InputOutputState {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
@@ -210,6 +186,31 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     PreUpdateState groupIdCache;
     bool updated{false};
   };
+  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
+      const RouteNextHopSet& mergedNhops);
+  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
+      const std::optional<RouteNextHopSet>& mergedNhops) {
+    return mergedNhops ? getMergeGroupItr(*mergedNhops) : std::nullopt;
+  }
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
+      const RouteNextHopSet& nhops,
+      const InputOutputState& inOutState);
+  GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
+      const NextHopGroupIds& newMemberGroups,
+      const RouteNextHopSet& mergedNhops,
+      std::optional<GroupIds2ConsolidationInfoItr> existingMitr);
+  void fixMergeItreators(
+      const NextHopGroupIds& newMergeSet,
+      GroupIds2ConsolidationInfoItr mitr,
+      const NextHopGroupIds& toIgnore);
+  bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
+  template <typename AddrT>
+  bool routeFwdEqual(
+      const std::shared_ptr<Route<AddrT>>& oldRoute,
+      const std::shared_ptr<Route<AddrT>>& newRoute) const;
+
+  void decRouteUsageCount(NextHopGroupInfo& groupInfo);
+  void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
   bool checkPrimaryGroupAndMemberCounts(
       const InputOutputState& inOutState) const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
