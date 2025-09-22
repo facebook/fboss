@@ -10,7 +10,12 @@
 
 #include "fboss/agent/TestThriftHandler.h"
 
+#include "fboss/agent/NdpCache.h"
+#include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
+
+using facebook::network::toIPAddress;
 
 namespace {
 
@@ -99,6 +104,30 @@ void TestThriftHandler::addNeighbor(
     int32_t interfaceID,
     std::unique_ptr<BinaryAddress> ip,
     std::unique_ptr<std::string> mac,
-    int32_t portID) {}
+    int32_t portID) {
+  ensureConfigured(__func__);
+  auto neighborIP = toIPAddress(*ip);
+
+  if (!neighborIP.isV6()) {
+    throw std::runtime_error(folly::to<std::string>(
+        "Thrift API addNeighbor supports IPv6 neighbors only. Neighbor to add:",
+        neighborIP));
+  }
+
+  auto neighborMac = folly::MacAddress::tryFromString(*mac);
+  if (!neighborMac.hasValue()) {
+    throw std::runtime_error(folly::to<std::string>(
+        "Thrift API addNeighbor: invalid MAC address provided: ", *mac));
+  }
+
+  // To resolve a neighbor, mimic receiving NDP Response from neighbor
+  getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
+      InterfaceID(interfaceID),
+      neighborIP.asV6(),
+      neighborMac.value(),
+      PortDescriptor(PortID(portID)),
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+      0 /* flags */);
+}
 
 } // namespace facebook::fboss

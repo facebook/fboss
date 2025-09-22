@@ -1099,6 +1099,7 @@ cpp_library(
         "TestThriftHandler.h",
     ],
     exported_deps = [
+        ":core",
         ":handler",
         ":utils",
         "//fboss/agent/if:test_ctrl-cpp2-services",
