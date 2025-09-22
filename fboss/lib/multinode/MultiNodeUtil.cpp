@@ -902,15 +902,23 @@ bool MultiNodeUtil::verifyStaticNdpEntries() const {
 
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
     for (const auto& rdsw : std::as_const(rdsws)) {
-      auto ndpEntriesAndSwitchOfType =
-          getNdpEntriesAndSwitchOfType(rdsw, {"STATIC"});
+      auto staticNdpEntries = getNdpEntriesOfType(rdsw, {"STATIC"});
 
       std::set<std::string> gotRdsws;
       std::transform(
-          ndpEntriesAndSwitchOfType.begin(),
-          ndpEntriesAndSwitchOfType.end(),
+          staticNdpEntries.begin(),
+          staticNdpEntries.end(),
           std::inserter(gotRdsws, gotRdsws.begin()),
-          [](const auto& pair) { return pair.second; });
+          [this](const auto& ndpEntry) {
+            CHECK(ndpEntry.switchId().has_value());
+            CHECK(
+                switchIdToSwitchName_.find(
+                    SwitchID(ndpEntry.switchId().value())) !=
+                std::end(switchIdToSwitchName_));
+
+            return switchIdToSwitchName_.at(
+                SwitchID(ndpEntry.switchId().value()));
+          });
 
       if (expectedRdsws != gotRdsws) {
         XLOG(DBG2) << "STATIC NDP Entries from " << rdsw
