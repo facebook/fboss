@@ -227,4 +227,16 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulFsdbDownUp) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNeighborAddRemove) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNeighborAddRemove();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

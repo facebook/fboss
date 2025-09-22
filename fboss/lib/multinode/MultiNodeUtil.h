@@ -39,6 +39,8 @@ class MultiNodeUtil {
   bool verifyGracefulFsdbDownUp() const;
   bool verifyUngracefulFsdbDownUp() const;
 
+  bool verifyNeighborAddRemove() const;
+
  private:
   enum class SwitchType : uint8_t {
     RDSW = 0,

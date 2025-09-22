@@ -1616,4 +1616,8 @@ bool MultiNodeUtil::verifyUngracefulFsdbDownUp() const {
       false /* triggerGracefulFsdbRestart */);
 }
 
+bool MultiNodeUtil::verifyNeighborAddRemove() const {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
