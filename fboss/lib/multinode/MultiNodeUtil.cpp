@@ -13,6 +13,7 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/if/gen-cpp2/TestCtrlAsyncClient.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
@@ -31,6 +32,7 @@ using facebook::fboss::fsdb::FsdbService;
 using facebook::fboss::fsdb::SubscriberIdToOperSubscriberInfos;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
+using facebook::fboss::cfg::DsfNode;
 
 std::unique_ptr<apache::thrift::Client<TestCtrl>> getSwAgentThriftClient(
     const std::string& switchName) {
@@ -120,6 +122,13 @@ void adminDisablePort(const std::string& switchName, int32_t portID) {
 void adminEnablePort(const std::string& switchName, int32_t portID) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_setPortState(portID, true /* enable port */);
+}
+
+std::map<int64_t, DsfNode> getSwitchIdToDsfNode(const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<int64_t, DsfNode> switchIdToDsfNode;
+  swAgentClient->sync_getDsfNodes(switchIdToDsfNode);
+  return switchIdToDsfNode;
 }
 
 void triggerGracefulAgentRestart(const std::string& switchName) {
