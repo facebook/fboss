@@ -1842,11 +1842,16 @@ bool MultiNodeUtil::verifyNeighborsPresent(
 }
 
 bool MultiNodeUtil::verifyNeighborsAbsent(
-    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const {
-  auto verifyNeighborAbsentHelper = [this, neighbors] {
-    auto getRdswToAllNdpEntries = [this]() {
+    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+    const std::optional<std::string>& rdswToExclude) const {
+  auto verifyNeighborAbsentHelper = [this, neighbors, rdswToExclude] {
+    auto getRdswToAllNdpEntries = [this, rdswToExclude]() {
       std::map<std::string, std::vector<NdpEntryThrift>> rdswToAllNdpEntries;
       for (const auto& rdsw : allRdsws_) {
+        if (rdswToExclude.has_value() && rdswToExclude.value() == rdsw) {
+          continue;
+        }
+
         rdswToAllNdpEntries[rdsw] = getNdpEntries(rdsw);
       }
 
