@@ -127,6 +127,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::optional<RouteNextHopSet>& mergedNhops) {
     return mergedNhops ? getMergeGroupItr(*mergedNhops) : std::nullopt;
   }
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
+      const RouteNextHopSet& nhops);
   GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
       const NextHopGroupIds& newMemberGroups,
       const RouteNextHopSet& mergedNhops,

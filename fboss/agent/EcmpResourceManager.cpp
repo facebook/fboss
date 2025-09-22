@@ -926,6 +926,20 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
       addNewDelta);
 }
 
+std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
+EcmpResourceManager::getOrCreateGroupInfo(const RouteNextHopSet& nhops) {
+  auto [nitr, nhopsInserted] =
+      nextHopGroup2Id_.insert({nhops, findNextAvailableId()});
+  if (nhopsInserted) {
+    CHECK(!nextHopGroupIdToInfo_.ref(nitr->second));
+    auto [grpInfo, grpInserted] =
+        nextHopGroupIdToInfo_.refOrEmplace(nitr->second, nitr->second, nitr);
+    CHECK(grpInserted);
+    return {grpInfo, nhopsInserted};
+  }
+  return {nextHopGroupIdToInfo_.ref(nitr->second), nhopsInserted};
+}
+
 void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     InputOutputState* inOutState) {
   auto mergeSet = getOptimalMergeGroupSet();
