@@ -25,6 +25,7 @@ class Utils {
   void printGpioDetails();
   void printPemDetails();
   void printFanDetails();
+  void printFanspinnerDetails();
 
  private:
   const showtech_config::ShowtechConfig& config_;

@@ -189,7 +189,7 @@ void Utils::printGpioDetails() {
 void Utils::printPemDetails() {
   std::cout << "##### PEM Information #####" << std::endl;
   if (config_.pems()->empty()) {
-    std::cout << "No PEM found found from configs\n" << std::endl;
+    std::cout << "No PEM found found from config\n" << std::endl;
     return;
   }
   for (const auto& pem : *config_.pems()) {
@@ -249,6 +249,22 @@ void Utils::printFanDetails() {
     }
     std::cout << std::endl;
   }
+}
+
+void Utils::printFanspinnerDetails() {
+  std::cout << "##### Fanspinner Information #####" << std::endl;
+  if (config_.fanspinners()->empty()) {
+    std::cout << "No fanspinner found from config\n" << std::endl;
+    return;
+  }
+  for (const auto& fs : *config_.fanspinners()) {
+    std::cout << fmt::format("#### Fanspinner Path: {} ####", *fs.path())
+              << std::endl;
+    for (const auto& attr : *fs.sysfsAttributes()) {
+      printSysfsAttribute(*attr.name(), *attr.path());
+    }
+  }
+  std::cout << std::endl;
 }
 
 void Utils::runFbossCliCmd(const std::string& cmd) {
