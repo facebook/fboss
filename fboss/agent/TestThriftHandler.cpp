@@ -106,6 +106,12 @@ void TestThriftHandler::addNeighbor(
     std::unique_ptr<std::string> mac,
     int32_t portID) {
   ensureConfigured(__func__);
+
+  if (!FLAGS_intf_nbr_tables) {
+    throw std::runtime_error(
+        "Thrift API addNeighbor is only supported for Interface Neighbor Tables");
+  }
+
   auto neighborIP = toIPAddress(*ip);
 
   if (!neighborIP.isV6()) {
