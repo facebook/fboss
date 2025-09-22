@@ -245,6 +245,10 @@ class MultiNodeUtil {
   bool verifyNeighborsPresent(
       const std::string& rdswToVerify,
       const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const;
+  bool verifyNeighborLocalPresent(
+      const std::string& rdsw,
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+      const std::set<std::string>& types) const;
   bool verifyNeighborsAbsent(
       const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
       const std::optional<std::string>& rdswToExclude = std::nullopt) const;

@@ -1841,6 +1841,43 @@ bool MultiNodeUtil::verifyNeighborsPresent(
       true /* retry on exception */);
 }
 
+bool MultiNodeUtil::verifyNeighborLocalPresent(
+    const std::string& rdsw,
+    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+    const std::set<std::string>& types) const {
+  auto verifyNeighborLocalPresentHelper = [this, rdsw, neighbors, types]() {
+    auto isLocalNeighborPresent = [this, rdsw, types](const auto& neighbor) {
+      auto ndpEntries = getNdpEntriesOfType(rdsw, types);
+
+      for (const auto& ndpEntry : ndpEntries) {
+        auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
+            folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+        if (ndpEntry.interfaceID().value() == neighbor.intfID &&
+            ndpEntryIp == neighbor.ip) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    for (const auto& neighbor : neighbors) {
+      if (isLocalNeighborPresent(neighbor)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyNeighborLocalPresentHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 bool MultiNodeUtil::verifyNeighborsAbsent(
     const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
     const std::optional<std::string>& rdswToExclude) const {
