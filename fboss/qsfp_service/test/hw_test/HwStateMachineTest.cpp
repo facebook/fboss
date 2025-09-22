@@ -45,10 +45,10 @@ class HwStateMachineTest : public HwTest {
           if (std::find(
                   cabledTransceivers.begin(), cabledTransceivers.end(), id) !=
               cabledTransceivers.end()) {
-            presentTransceivers_.push_back(TransceiverID(id));
+            presentTransceivers_.emplace_back(id);
           }
         } else {
-          absentTransceivers_.push_back(TransceiverID(id));
+          absentTransceivers_.emplace_back(id);
         }
       }
       XLOG(DBG2) << "Transceivers num: [present:" << presentTransceivers_.size()
