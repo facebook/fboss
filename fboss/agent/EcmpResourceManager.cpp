@@ -86,10 +86,14 @@ EcmpResourceManager::GroupIds2ConsolidationInfo getConsolidationInfos(
   return mergedGrps2Info;
 }
 
+std::string toStr(const EcmpResourceManager::NextHopGroupIds& gids) {
+  return "[" + folly::join(", ", gids) + "]";
+}
+
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::NextHopGroupIds& gids) {
-  os << "[" << folly::join(", ", gids) << "]";
+  os << toStr(gids);
   return os;
 }
 
@@ -1974,6 +1978,9 @@ std::ostream& operator<<(
 void NextHopGroupInfo::routeUsageCountChanged(
     int prevRouteUsageCount,
     int curRouteUsageCount) {
+  XLOG(DBG2) << " Updating state for group: " << getID()
+             << " current state: " << state_;
+  auto prevState = state_;
   switch (state_) {
     case NextHopGroupState::UNINITIALIZED:
       CHECK_EQ(prevRouteUsageCount, 0);
@@ -2003,9 +2010,18 @@ void NextHopGroupInfo::routeUsageCountChanged(
       }
       break;
   }
+  XLOG(DBG2) << "For group: " << getID()
+             << " on route usage count update, state transitioned from: "
+             << prevState << " to: " << state_ << ". Merge group points to: "
+             << (mergedGroupsToInfoItr_
+                     ? toStr((*mergedGroupsToInfoItr_)->first)
+                     : " null");
 }
 
 void NextHopGroupInfo::mergeInfoItrChanged() {
+  XLOG(DBG2) << " Updating state for group: " << getID()
+             << " current state: " << state_;
+  auto prevState = state_;
   switch (state_) {
     case NextHopGroupState::UNINITIALIZED:
       CHECK_EQ(routeUsageCount_, 0);
@@ -2035,6 +2051,12 @@ void NextHopGroupInfo::mergeInfoItrChanged() {
       }
       break;
   }
+  XLOG(DBG2) << "For group: " << getID()
+             << " on merge itr update, state transitioned from: " << prevState
+             << " to: " << state_ << ". Merge group points to: "
+             << (mergedGroupsToInfoItr_
+                     ? toStr((*mergedGroupsToInfoItr_)->first)
+                     : " null");
 }
 
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
