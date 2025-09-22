@@ -201,6 +201,18 @@ class MultiNodeUtil {
     int32_t intfID = 0;
     folly::IPAddress ip = folly::IPAddress("::");
     folly::MacAddress mac = folly::MacAddress("00:00:00:00:00:00");
+
+    std::string str() const {
+      return folly::to<std::string>(
+          "portID: ",
+          portID,
+          ", intfID: ",
+          intfID,
+          ", ip: ",
+          ip.str(),
+          ", mac: ",
+          mac.toString());
+    }
   };
   std::vector<NeighborInfo> computeNeighborsForRdsw(
       const std::string& rdsw,
