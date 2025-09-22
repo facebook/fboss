@@ -1833,6 +1833,25 @@ bool MultiNodeUtil::verifyNeighborsPresent(
       neighbors, rdswToNdpEntries, true /* allNeighborsMustBePresent */);
 }
 
+bool MultiNodeUtil::verifyNeighborsAbsent(
+    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const {
+  auto getRdswToAllNdpEntries = [this]() {
+    std::map<std::string, std::vector<NdpEntryThrift>> rdswToAllNdpEntries;
+    for (const auto& rdsw : allRdsws_) {
+      rdswToAllNdpEntries[rdsw] = getNdpEntries(rdsw);
+    }
+
+    return rdswToAllNdpEntries;
+  };
+
+  auto rdswToAllNdpEntries = getRdswToAllNdpEntries();
+  logRdswToNdpEntries(rdswToAllNdpEntries);
+  return verifyNeighborHelper(
+      neighbors,
+      rdswToAllNdpEntries,
+      false /* allNeighborsMust NOT be present */);
+}
+
 bool MultiNodeUtil::verifyNeighborAddRemove() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
