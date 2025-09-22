@@ -95,4 +95,10 @@ void TestThriftHandler::gracefullyRestartServiceWithDelay(
   std::system(cmd.c_str());
 }
 
+void TestThriftHandler::addNeighbor(
+    int32_t interfaceID,
+    std::unique_ptr<BinaryAddress> ip,
+    std::unique_ptr<std::string> mac,
+    int32_t portID) {}
+
 } // namespace facebook::fboss

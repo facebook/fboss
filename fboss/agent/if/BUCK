@@ -391,5 +391,6 @@ thrift_library(
     },
     deps = [
         ":ctrl",
+        "//common/network/if:if",
     ],
 )

@@ -5,6 +5,7 @@ namespace py neteng.fboss.test_ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.test_ctrl
 
+include "common/network/if/Address.thrift"
 include "fboss/agent/if/ctrl.thrift"
 
 service TestCtrl extends ctrl.FbossCtrl {
@@ -21,5 +22,12 @@ service TestCtrl extends ctrl.FbossCtrl {
   void gracefullyRestartServiceWithDelay(
     1: string serviceName,
     2: i32 delayInSeconds,
+  );
+
+  void addNeighbor(
+    1: i32 interfaceID,
+    2: Address.BinaryAddress ip,
+    3: string mac,
+    4: i32 portID,
   );
 }
