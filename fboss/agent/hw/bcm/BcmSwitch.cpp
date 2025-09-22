@@ -2497,7 +2497,7 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
       BCM_PBMP_PORT_ADD(ubmp, bcmPort);
     }
   }
-  typedef BcmWarmBootCache::VlanInfo VlanInfo;
+  using VlanInfo = BcmWarmBootCache::VlanInfo;
   // Since during warm boot all VLAN in the config will show
   // up as added VLANs we only need to consult the warm boot
   // cache here.

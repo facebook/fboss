@@ -314,9 +314,9 @@ class ThriftConfigApplier {
   }
 
   // Interface route prefix. IPAddress has mask applied
-  typedef std::pair<InterfaceID, folly::IPAddress> IntfAddress;
-  typedef boost::container::flat_map<folly::CIDRNetwork, IntfAddress> IntfRoute;
-  typedef boost::container::flat_map<RouterID, IntfRoute> IntfRouteTable;
+  using IntfAddress = std::pair<InterfaceID, folly::IPAddress>;
+  using IntfRoute = boost::container::flat_map<folly::CIDRNetwork, IntfAddress>;
+  using IntfRouteTable = boost::container::flat_map<RouterID, IntfRoute>;
   IntfRouteTable intfRouteTables_;
 
   /* The ThriftConfigApplier object exposes a single, top-level method "run()".
