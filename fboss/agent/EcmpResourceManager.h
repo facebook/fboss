@@ -89,14 +89,15 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     std::string verboseStr() const;
     RouteNextHopSet mergedNhops;
     std::map<NextHopGroupId, int> groupId2Penalty;
+    // mergedGroupInfo is set when the merged nhops get
+    // used as part of a merged group
+    std::shared_ptr<NextHopGroupInfo> mergedGroupInfo;
   };
   ConsolidationInfo computeConsolidationInfo(
       const NextHopGroupIds& grpIds) const;
   using GroupIds2ConsolidationInfo =
       std::map<NextHopGroupIds, ConsolidationInfo>;
   using GroupIds2ConsolidationInfoItr = GroupIds2ConsolidationInfo::iterator;
-  using GroupIds2ConsolidationInfoCItr =
-      GroupIds2ConsolidationInfo::const_iterator;
   NextHopGroupIds getUnMergedGids() const;
   NextHopGroupIds getMergedGids() const;
   std::vector<NextHopGroupIds> getMergedGroups() const;
@@ -329,8 +330,6 @@ class NextHopGroupInfo {
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
   using GroupIds2ConsolidationInfoItr =
       EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
-  using GroupIds2ConsolidationInfoCItr =
-      EcmpResourceManager::GroupIds2ConsolidationInfo::const_iterator;
   NextHopGroupInfo(
       NextHopGroupId id,
       NextHopGroupItr ngItr,
