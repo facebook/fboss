@@ -131,6 +131,14 @@ std::map<int64_t, DsfNode> getSwitchIdToDsfNode(const std::string& switchName) {
   return switchIdToDsfNode;
 }
 
+std::vector<facebook::fboss::NdpEntryThrift> getNdpEntries(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::vector<facebook::fboss::NdpEntryThrift> ndpEntries;
+  swAgentClient->sync_getNdpTable(ndpEntries);
+  return ndpEntries;
+}
+
 void addNeighbor(
     const std::string& switchName,
     const int32_t& interfaceID,
