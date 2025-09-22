@@ -184,6 +184,16 @@ class MultiNodeUtil {
 
   bool verifyFsdbDownUpForRemoteRdswsHelper(bool triggerGraceFulRestart) const;
 
+  struct NeighborInfo {
+    int32_t portID = 0;
+    int32_t intfID = 0;
+    folly::IPAddress ip = folly::IPAddress("::");
+    folly::MacAddress mac = folly::MacAddress("00:00:00:00:00:00");
+  };
+  std::vector<NeighborInfo> computeNeighborsForRdsw(
+      const std::string& rdsw,
+      const int& numNeighbors) const;
+
   bool verifyNeighbors(const std::string& rdswToVerify) const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
