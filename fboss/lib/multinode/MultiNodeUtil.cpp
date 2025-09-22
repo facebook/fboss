@@ -1810,46 +1810,62 @@ bool MultiNodeUtil::verifyNeighborHelper(
 bool MultiNodeUtil::verifyNeighborsPresent(
     const std::string& rdswToVerify,
     const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const {
-  auto getRdswToNdpEntries = [this, rdswToVerify]() {
-    std::map<std::string, std::vector<NdpEntryThrift>> rdswToNdpEntries;
-    for (const auto& rdsw : allRdsws_) {
-      if (rdsw == rdswToVerify) { // PROBE/REACHABLE for rdswToVerify
-        rdswToNdpEntries[rdsw] =
-            getNdpEntriesOfType(rdswToVerify, {"PROBE", "REACHABLE"});
-      } else { // DYNAMIC for every remote RDSW
-        rdswToNdpEntries[rdsw] = getNdpEntriesOfType(rdsw, {"DYNAMIC"});
+  auto verifyNeighborPresentHelper = [this, rdswToVerify, neighbors] {
+    auto getRdswToNdpEntries = [this, rdswToVerify]() {
+      std::map<std::string, std::vector<NdpEntryThrift>> rdswToNdpEntries;
+      for (const auto& rdsw : allRdsws_) {
+        if (rdsw == rdswToVerify) { // PROBE/REACHABLE for rdswToVerify
+          rdswToNdpEntries[rdsw] =
+              getNdpEntriesOfType(rdswToVerify, {"PROBE", "REACHABLE"});
+        } else { // DYNAMIC for every remote RDSW
+          rdswToNdpEntries[rdsw] = getNdpEntriesOfType(rdsw, {"DYNAMIC"});
+        }
       }
-    }
 
-    return rdswToNdpEntries;
+      return rdswToNdpEntries;
+    };
+
+    // Every neighbor added to rdswToVerify, the neighbor must be:
+    //    - PROBE/REACHABLE for rdswToVerify
+    //    - DYNAMIC for every other rdsw.
+    auto rdswToNdpEntries = getRdswToNdpEntries();
+    logRdswToNdpEntries(rdswToNdpEntries);
+    return verifyNeighborHelper(
+        neighbors, rdswToNdpEntries, true /* allNeighborsMustBePresent */);
   };
 
-  // Every neighbor added to rdswToVerify, the neighbor must be:
-  //    - PROBE/REACHABLE for rdswToVerify
-  //    - DYNAMIC for every other rdsw.
-  auto rdswToNdpEntries = getRdswToNdpEntries();
-  logRdswToNdpEntries(rdswToNdpEntries);
-  return verifyNeighborHelper(
-      neighbors, rdswToNdpEntries, true /* allNeighborsMustBePresent */);
+  return checkWithRetryErrorReturn(
+      verifyNeighborPresentHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool MultiNodeUtil::verifyNeighborsAbsent(
     const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const {
-  auto getRdswToAllNdpEntries = [this]() {
-    std::map<std::string, std::vector<NdpEntryThrift>> rdswToAllNdpEntries;
-    for (const auto& rdsw : allRdsws_) {
-      rdswToAllNdpEntries[rdsw] = getNdpEntries(rdsw);
-    }
+  auto verifyNeighborAbsentHelper = [this, neighbors] {
+    auto getRdswToAllNdpEntries = [this]() {
+      std::map<std::string, std::vector<NdpEntryThrift>> rdswToAllNdpEntries;
+      for (const auto& rdsw : allRdsws_) {
+        rdswToAllNdpEntries[rdsw] = getNdpEntries(rdsw);
+      }
 
-    return rdswToAllNdpEntries;
+      return rdswToAllNdpEntries;
+    };
+
+    auto rdswToAllNdpEntries = getRdswToAllNdpEntries();
+    logRdswToNdpEntries(rdswToAllNdpEntries);
+    return verifyNeighborHelper(
+        neighbors,
+        rdswToAllNdpEntries,
+        false /* allNeighborsMust NOT be present */);
   };
 
-  auto rdswToAllNdpEntries = getRdswToAllNdpEntries();
-  logRdswToNdpEntries(rdswToAllNdpEntries);
-  return verifyNeighborHelper(
-      neighbors,
-      rdswToAllNdpEntries,
-      false /* allNeighborsMust NOT be present */);
+  return checkWithRetryErrorReturn(
+      verifyNeighborAbsentHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool MultiNodeUtil::verifyNeighborAddRemove() const {
