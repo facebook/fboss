@@ -745,11 +745,7 @@ MultiNodeUtil::getPeerToRifs(const std::string& rdsw) const {
   std::map<std::string, std::vector<InterfaceDetail>> peerToRifs;
   for (const auto& [_, rif] : rifs) {
     logRif(rif);
-    size_t pos = rif.interfaceName().value().find("::");
-    if (pos != std::string::npos) {
-      auto peer = (*rif.interfaceName()).substr(0, pos);
-      peerToRifs[peer].push_back(rif);
-    }
+    peerToRifs[rdsw].push_back(rif);
   }
 
   return peerToRifs;
