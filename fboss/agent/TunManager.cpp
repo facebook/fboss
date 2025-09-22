@@ -278,19 +278,28 @@ std::unordered_map<InterfaceID, int> TunManager::buildIfIdToTableIdMap(
   return ifIdToTableId;
 }
 
-std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
-    const {
-  std::unordered_map<InterfaceID, int> probedIfIdToTableId;
-
-  // Build a map of interface index to table ID from probed routes
+std::unordered_map<int, int>
+TunManager::buildIfIndexToTableIdMapFromProbedRoutes() const {
   std::unordered_map<int, int> ifIndexToTableId;
   for (const auto& probedRoute : probedRoutes_) {
     if (probedRoute.ifIndex > 0) {
       ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
       XLOG(DBG2) << "Created mapping: ifIndex " << probedRoute.ifIndex
                  << " -> tableId " << probedRoute.tableId;
+    } else {
+      XLOG(DBG2) << "Skipping route & source-rule cleanup for table "
+                 << probedRoute.tableId << " (no ifindex)";
     }
   }
+  return ifIndexToTableId;
+}
+
+std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
+    const {
+  std::unordered_map<InterfaceID, int> probedIfIdToTableId;
+
+  // Build a map of interface index to table ID from probed routes
+  auto ifIndexToTableId = buildIfIndexToTableIdMapFromProbedRoutes();
 
   // Map interface IDs to table IDs using probed data
   for (const auto& intf : intfs_) {
@@ -834,17 +843,7 @@ void TunManager::deleteAllProbedData() {
   XLOG(INFO) << "Starting to delete all probed data from kernel";
 
   // Build a map of interface index to table ID from probed routes
-  std::unordered_map<int, int> ifIndexToTableId;
-  for (const auto& probedRoute : probedRoutes_) {
-    if (probedRoute.ifIndex > 0) {
-      ifIndexToTableId[probedRoute.ifIndex] = probedRoute.tableId;
-      XLOG(DBG2) << "Created mapping: ifIndex " << probedRoute.ifIndex
-                 << " -> tableId " << probedRoute.tableId;
-    } else {
-      XLOG(DBG2) << "Skipping route & source-rule cleanup for table "
-                 << probedRoute.tableId << " (no ifindex)";
-    }
-  }
+  auto ifIndexToTableId = buildIfIndexToTableIdMapFromProbedRoutes();
 
   deleteProbedRoutes(ifIndexToTableId);
   deleteProbedAddressesAndRules(ifIndexToTableId);

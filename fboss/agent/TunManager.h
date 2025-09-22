@@ -224,6 +224,11 @@ class TunManager : public StateObserver {
       std::shared_ptr<SwitchState> state) const;
 
   /**
+   * Build a mapping from interface index to table ID from probed routes.
+   */
+  std::unordered_map<int, int> buildIfIndexToTableIdMapFromProbedRoutes() const;
+
+  /**
    * Build a mapping from interface ID to table ID from probed interfaces.
    */
   std::unordered_map<InterfaceID, int> buildProbedIfIdToTableIdMap() const;
