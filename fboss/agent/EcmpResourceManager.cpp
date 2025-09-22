@@ -1343,7 +1343,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
     if (grpInfo->hasOverrides() !=
         newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops()) {
       auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
-          rid, newRoute, idItr, false /*ecmpLimitReached*/, inOutState);
+          rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
       CHECK_EQ(existingGrpInfo, grpInfo);
     } else {
       inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
