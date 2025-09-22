@@ -900,36 +900,6 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
   out.emplace_back(oldState, newState);
 }
 
-template <typename AddrT>
-std::shared_ptr<NextHopGroupInfo>
-EcmpResourceManager::updateForwardingInfoAndInsertDelta(
-    RouterID rid,
-    const folly::CIDRNetwork& pfx,
-    std::shared_ptr<NextHopGroupInfo>& pfxGrpInfo,
-    InputOutputState* inOutState,
-    bool addNewDelta) {
-  auto newState = inOutState->out.back().newState();
-  auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>();
-  std::shared_ptr<Route<AddrT>> existingRoute;
-  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-    CHECK(pfx.first.isV6());
-    existingRoute = fib->getRouteIf(
-        RoutePrefix<folly::IPAddressV6>(pfx.first.asV6(), pfx.second));
-  } else {
-    CHECK(pfx.first.isV4());
-    existingRoute =
-        fib->getRouteIf(RoutePrefix<AddrT>(pfx.first.asV4(), pfx.second));
-  }
-  CHECK(existingRoute);
-  return updateForwardingInfoAndInsertDelta(
-      rid,
-      existingRoute,
-      pfxGrpInfo,
-      false /*ecmpDemandExceeded*/,
-      inOutState,
-      addNewDelta);
-}
-
 std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
 EcmpResourceManager::getOrCreateGroupInfo(
     const RouteNextHopSet& nhops,
@@ -1159,6 +1129,36 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
   inOutState->addOrUpdateRoute(rid, newRoute, ecmpDemandExceeded, addNewDelta);
   inOutState->updated = true;
   return grpInfo;
+}
+
+template <typename AddrT>
+std::shared_ptr<NextHopGroupInfo>
+EcmpResourceManager::updateForwardingInfoAndInsertDelta(
+    RouterID rid,
+    const folly::CIDRNetwork& pfx,
+    std::shared_ptr<NextHopGroupInfo>& pfxGrpInfo,
+    InputOutputState* inOutState,
+    bool addNewDelta) {
+  auto newState = inOutState->out.back().newState();
+  auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>();
+  std::shared_ptr<Route<AddrT>> existingRoute;
+  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
+    CHECK(pfx.first.isV6());
+    existingRoute = fib->getRouteIf(
+        RoutePrefix<folly::IPAddressV6>(pfx.first.asV6(), pfx.second));
+  } else {
+    CHECK(pfx.first.isV4());
+    existingRoute =
+        fib->getRouteIf(RoutePrefix<AddrT>(pfx.first.asV4(), pfx.second));
+  }
+  CHECK(existingRoute);
+  return updateForwardingInfoAndInsertDelta(
+      rid,
+      existingRoute,
+      pfxGrpInfo,
+      false /*ecmpDemandExceeded*/,
+      inOutState,
+      addNewDelta);
 }
 
 std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
