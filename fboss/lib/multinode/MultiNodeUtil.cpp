@@ -131,6 +131,20 @@ std::map<int64_t, DsfNode> getSwitchIdToDsfNode(const std::string& switchName) {
   return switchIdToDsfNode;
 }
 
+void addNeighbor(
+    const std::string& switchName,
+    const int32_t& interfaceID,
+    const folly::IPAddress& neighborIP,
+    const folly::MacAddress& macAddress,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_addNeighbor(
+      interfaceID,
+      facebook::network::toBinaryAddress(neighborIP),
+      macAddress.toString(),
+      portID);
+}
+
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
