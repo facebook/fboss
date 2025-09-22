@@ -1067,42 +1067,6 @@ std::shared_ptr<NextHopGroupInfo>
 EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& route,
-    NextHops2GroupId::iterator nhops2IdItr,
-    bool ecmpDemandExceeded,
-    InputOutputState* inOutState) {
-  auto grpInfo = nextHopGroupIdToInfo_.ref(nhops2IdItr->second);
-
-  if (!grpInfo) {
-    CHECK(ecmpDemandExceeded);
-    bool insertedGrp{false};
-    if (getBackupEcmpSwitchingMode().has_value()) {
-      std::tie(grpInfo, insertedGrp) = nextHopGroupIdToInfo_.refOrEmplace(
-          nhops2IdItr->second,
-          nhops2IdItr->second,
-          nhops2IdItr,
-          true /*isBackupEcmpGroupType*/);
-    } else {
-      CHECK(getEcmpCompressionThresholdPct());
-      mergeGroupAndMigratePrefixes(inOutState);
-      // Since this is a new group, it cannot be part of the
-      // optimal merge groups (since it just being created).
-      std::tie(grpInfo, insertedGrp) = nextHopGroupIdToInfo_.refOrEmplace(
-          nhops2IdItr->second,
-          nhops2IdItr->second,
-          nhops2IdItr,
-          false /*isBackupEcmpGroupType*/);
-    }
-    CHECK(insertedGrp);
-  }
-  return updateForwardingInfoAndInsertDelta(
-      rid, route, grpInfo, ecmpDemandExceeded, inOutState);
-}
-
-template <typename AddrT>
-std::shared_ptr<NextHopGroupInfo>
-EcmpResourceManager::updateForwardingInfoAndInsertDelta(
-    RouterID rid,
-    const std::shared_ptr<Route<AddrT>>& route,
     std::shared_ptr<NextHopGroupInfo>& grpInfo,
     bool ecmpDemandExceeded,
     InputOutputState* inOutState,

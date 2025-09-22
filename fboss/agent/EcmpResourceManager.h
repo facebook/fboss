@@ -250,13 +250,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
       RouterID rid,
       const std::shared_ptr<Route<AddrT>>& route,
-      NextHops2GroupId::iterator nhops2IdItr,
-      bool ecmpDemandExceeded,
-      InputOutputState* inOutState);
-  template <typename AddrT>
-  std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
-      RouterID rid,
-      const std::shared_ptr<Route<AddrT>>& route,
       std::shared_ptr<NextHopGroupInfo>& grpInfo,
       bool ecmpDemandExceeded,
       InputOutputState* inOutState,
