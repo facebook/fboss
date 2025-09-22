@@ -835,49 +835,6 @@ bool MultiNodeUtil::verifyRifs() const {
   return true;
 }
 
-std::set<std::pair<std::string, std::string>>
-MultiNodeUtil::getNdpEntriesAndSwitchOfType(
-    const std::string& rdsw,
-    const std::set<std::string>& types) const {
-  auto logNdpEntry = [rdsw](const facebook::fboss::NdpEntryThrift& ndpEntry) {
-    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-        folly::StringPiece(ndpEntry.ip().value().addr().value())));
-
-    XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
-               << " state: " << ndpEntry.state().value()
-               << " switchId: " << ndpEntry.switchId().value_or(-1);
-  };
-
-  auto swAgentClient = getSwAgentThriftClient(rdsw);
-  std::vector<facebook::fboss::NdpEntryThrift> ndpEntries;
-  swAgentClient->sync_getNdpTable(ndpEntries);
-
-  auto matchesNdpType =
-      [&types](const facebook::fboss::NdpEntryThrift& ndpEntry) {
-        return types.find(ndpEntry.state().value()) != types.end();
-      };
-
-  std::set<std::pair<std::string, std::string>> ndpEntriesAndSwitchOfType;
-  for (const auto& ndpEntry : ndpEntries) {
-    logNdpEntry(ndpEntry);
-    if (matchesNdpType(ndpEntry)) {
-      CHECK(ndpEntry.switchId().has_value());
-      CHECK(
-          switchIdToSwitchName_.find(SwitchID(ndpEntry.switchId().value())) !=
-          std::end(switchIdToSwitchName_));
-
-      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-          folly::StringPiece(ndpEntry.ip().value().addr().value())));
-
-      ndpEntriesAndSwitchOfType.insert(std::make_pair(
-          ip.str(),
-          switchIdToSwitchName_.at(SwitchID(ndpEntry.switchId().value()))));
-    }
-  }
-
-  return ndpEntriesAndSwitchOfType;
-}
-
 std::vector<NdpEntryThrift> MultiNodeUtil::getNdpEntriesOfType(
     const std::string& rdsw,
     const std::set<std::string>& types) const {
