@@ -434,4 +434,8 @@ std::ostream& operator<<(
 std::ostream& operator<<(
     std::ostream& os,
     const EcmpResourceManager::Prefix& pfx);
+
+std::ostream& operator<<(
+    std::ostream& os,
+    NextHopGroupInfo::NextHopGroupState state);
 } // namespace facebook::fboss

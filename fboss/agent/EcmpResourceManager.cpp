@@ -1951,6 +1951,26 @@ NextHopGroupInfo::NextHopGroupInfo(
   }
 }
 
+std::ostream& operator<<(
+    std::ostream& os,
+    NextHopGroupInfo::NextHopGroupState state) {
+  switch (state) {
+    case NextHopGroupInfo::NextHopGroupState::UNINITIALIZED:
+      os << "UNINITIALIZED";
+      break;
+    case NextHopGroupInfo::NextHopGroupState::UNMERGED_NHOPS_ONLY:
+      os << "UNMERGED_NHOPS_ONLY";
+      break;
+    case NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY:
+      os << "MERGED_NHOPS_ONLY";
+      break;
+    case NextHopGroupInfo::NextHopGroupState::UNMERGED_AND_MERGED_NHOPS:
+      os << "UNMERGED_AND_MERGED_NHOPS";
+      break;
+  }
+  return os;
+}
+
 void NextHopGroupInfo::routeUsageCountChanged(
     int prevRouteUsageCount,
     int curRouteUsageCount) {
