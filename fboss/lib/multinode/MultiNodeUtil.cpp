@@ -1775,7 +1775,12 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
         continue;
       }
 
-      // TODO add neighbors
+      auto neighbors =
+          computeNeighborsForRdsw(rdsw, 1 /* number of neighbors */);
+      CHECK_EQ(neighbors.size(), 1);
+      auto neighbor = neighbors[0];
+      addNeighbor(
+          rdsw, neighbor.intfID, neighbor.ip, neighbor.mac, neighbor.portID);
 
       if (!verifyNeighbors(rdsw)) {
         XLOG(DBG2) << "Neighbor verification failed: " << rdsw;
