@@ -13,6 +13,8 @@
 #include <string>
 #include "fboss/agent/state/DsfNodeMap.h"
 
+#include <folly/MacAddress.h>
+
 namespace facebook::fboss::utility {
 
 class MultiNodeUtil {
@@ -181,6 +183,8 @@ class MultiNodeUtil {
   bool verifyUngracefulQsfpDownUpForRemoteSdsws() const;
 
   bool verifyFsdbDownUpForRemoteRdswsHelper(bool triggerGraceFulRestart) const;
+
+  bool verifyNeighbors(const std::string& rdswToVerify) const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;

@@ -1650,7 +1650,33 @@ bool MultiNodeUtil::verifyUngracefulFsdbDownUp() const {
       false /* triggerGracefulFsdbRestart */);
 }
 
+bool MultiNodeUtil::verifyNeighbors(const std::string& rdsw) const {
+  return true;
+}
+
 bool MultiNodeUtil::verifyNeighborAddRemove() const {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
+  // For any one RDSW in every cluster
+  for (const auto& [_, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+
+      // TODO add neighbors
+
+      if (!verifyNeighbors(rdsw)) {
+        XLOG(DBG2) << "Neighbor verification failed: " << rdsw;
+        return false;
+      }
+
+      // Add neighbor to one remote RDSW per cluster
+      break;
+    }
+  }
+
   return true;
 }
 

@@ -16,6 +16,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/lib:common_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-clients",
+        "//folly:network_address",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
