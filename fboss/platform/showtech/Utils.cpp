@@ -267,6 +267,24 @@ void Utils::printFanspinnerDetails() {
   std::cout << std::endl;
 }
 
+void Utils::printPowerGoodDetails() {
+  std::cout << "##### Power Good Information #####" << std::endl;
+
+  if (config_.sc_powergood() && config_.sc_powergood()->sysfsAttribute()) {
+    std::cout << "Reading sc_powergood from sysfs" << std::endl;
+    auto pgSysfs = config_.sc_powergood()->sysfsAttribute();
+    printSysfsAttribute(*pgSysfs->name(), *pgSysfs->path());
+  } else if (
+      config_.sc_powergood() && config_.sc_powergood()->gpioAttribute()) {
+    std::cout << "Reading sc_powergood from gpio" << std::endl;
+    auto pgGpio = config_.sc_powergood()->gpioAttribute();
+    printGpioAttribute(*pgGpio->name(), *pgGpio->path(), *pgGpio->lineIndex());
+  } else {
+    std::cout << "No powergood info found from config\n";
+  }
+  std::cout << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
@@ -284,6 +302,24 @@ void Utils::printSysfsAttribute(
   } catch (const std::exception& e) {
     std::cout << fmt::format(
                      "Error: failed to read sysfs path {}: {}", path, e.what())
+              << std::endl;
+  }
+}
+
+void Utils::printGpioAttribute(
+    const std::string& label,
+    const std::string& gpioPath,
+    int gpioLineIndex) {
+  std::cout << label << ": ";
+  try {
+    struct gpiod_chip* chip = gpiod_chip_open(gpioPath.c_str());
+    int value = GpiodLine(chip, gpioLineIndex, "gpioline").getValue();
+    std::cout << value << std::endl;
+  } catch (const std::exception& e) {
+    std::cout << fmt::format(
+                     "Error: failed to read gpio {} line {}",
+                     gpioPath,
+                     gpioLineIndex)
               << std::endl;
   }
 }

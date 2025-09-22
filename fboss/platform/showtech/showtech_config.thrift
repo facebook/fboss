@@ -7,6 +7,7 @@ struct ShowtechConfig {
   3: list<Gpio> gpios;
   4: list<Pem> pems;
   5: list<FanSpinnerDevice> fanspinners;
+  6: optional SwitchCardPowerGoodStatus sc_powergood;
 }
 
 struct Gpio {
@@ -31,7 +32,18 @@ struct FanSpinnerDevice {
   2: list<SysfsAttribute> sysfsAttributes;
 }
 
+struct SwitchCardPowerGoodStatus {
+  1: optional SysfsAttribute sysfsAttribute;
+  2: optional GpioAttribute gpioAttribute;
+}
+
 struct SysfsAttribute {
   1: string name;
   2: string path;
+}
+
+struct GpioAttribute {
+  1: string name;
+  2: string path;
+  3: i32 lineIndex;
 }
