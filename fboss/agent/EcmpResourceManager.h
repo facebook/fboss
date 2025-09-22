@@ -330,6 +330,12 @@ class NextHopGroupInfo {
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
   using GroupIds2ConsolidationInfoItr =
       EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
+  enum class NextHopGroupState {
+    UNMERGED_NHOPS_ONLY,
+    MERGED_NHOPS_ONLY,
+    // Matching MERGED and UMERGED NHOPS group
+    UNMERGED_AND_MERGED_NHOPS,
+  };
   NextHopGroupInfo(
       NextHopGroupId id,
       NextHopGroupItr ngItr,
@@ -339,7 +345,8 @@ class NextHopGroupInfo {
       : id_(id),
         ngItr_(ngItr),
         isBackupEcmpGroupType_(isBackupEcmpGroupType),
-        mergedGroupsToInfoItr_(mergedGroupsToInfoItr) {}
+        mergedGroupsToInfoItr_(mergedGroupsToInfoItr),
+        state_(NextHopGroupState::UNMERGED_NHOPS_ONLY) {}
   NextHopGroupId getID() const {
     return id_;
   }
@@ -385,6 +392,9 @@ class NextHopGroupInfo {
         : routeUsageCount_;
   }
 
+  NextHopGroupState getState() const {
+    return state_;
+  }
   std::optional<RouteNextHopSet> getOverrideNextHops() const {
     std::optional<RouteNextHopSet> overrideNhops;
     if (mergedGroupsToInfoItr_.has_value()) {
@@ -394,12 +404,12 @@ class NextHopGroupInfo {
   }
 
  private:
-  static constexpr int kInvalidRouteUsageCount = 0;
   NextHopGroupId id_;
   NextHopGroupItr ngItr_;
   bool isBackupEcmpGroupType_{false};
   std::optional<GroupIds2ConsolidationInfoItr> mergedGroupsToInfoItr_;
-  int routeUsageCount_{kInvalidRouteUsageCount};
+  int routeUsageCount_{0};
+  NextHopGroupState state_;
 };
 
 std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
