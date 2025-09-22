@@ -233,7 +233,6 @@ class MultiNodeUtil {
       const std::string& rdsw,
       const int& numNeighbors) const;
 
-  bool verifyNeighbors(const std::string& rdswToVerify) const;
   // if allNeighborsMustBePresent is true, then all neighbors must be present
   // for every rdsw in rdswToNdpEntries.
   // if allNeighborsMustBePresent is false, then all neighbors must be absent
@@ -243,6 +242,9 @@ class MultiNodeUtil {
       const std::map<std::string, std::vector<NdpEntryThrift>>&
           rdswToNdpEntries,
       bool allNeighborsMustBePresent) const;
+  bool verifyNeighborsPresent(
+      const std::string& rdswToVerify,
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;

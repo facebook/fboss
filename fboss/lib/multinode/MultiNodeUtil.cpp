@@ -1807,8 +1807,30 @@ bool MultiNodeUtil::verifyNeighborHelper(
   return true;
 }
 
-bool MultiNodeUtil::verifyNeighbors(const std::string& rdsw) const {
-  return true;
+bool MultiNodeUtil::verifyNeighborsPresent(
+    const std::string& rdswToVerify,
+    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const {
+  auto getRdswToNdpEntries = [this, rdswToVerify]() {
+    std::map<std::string, std::vector<NdpEntryThrift>> rdswToNdpEntries;
+    for (const auto& rdsw : allRdsws_) {
+      if (rdsw == rdswToVerify) { // PROBE/REACHABLE for rdswToVerify
+        rdswToNdpEntries[rdsw] =
+            getNdpEntriesOfType(rdswToVerify, {"PROBE", "REACHABLE"});
+      } else { // DYNAMIC for every remote RDSW
+        rdswToNdpEntries[rdsw] = getNdpEntriesOfType(rdsw, {"DYNAMIC"});
+      }
+    }
+
+    return rdswToNdpEntries;
+  };
+
+  // Every neighbor added to rdswToVerify, the neighbor must be:
+  //    - PROBE/REACHABLE for rdswToVerify
+  //    - DYNAMIC for every other rdsw.
+  auto rdswToNdpEntries = getRdswToNdpEntries();
+  logRdswToNdpEntries(rdswToNdpEntries);
+  return verifyNeighborHelper(
+      neighbors, rdswToNdpEntries, true /* allNeighborsMustBePresent */);
 }
 
 bool MultiNodeUtil::verifyNeighborAddRemove() const {
@@ -1829,8 +1851,8 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
       addNeighbor(
           rdsw, neighbor.intfID, neighbor.ip, neighbor.mac, neighbor.portID);
 
-      if (!verifyNeighbors(rdsw)) {
-        XLOG(DBG2) << "Neighbor verification failed: " << rdsw;
+      if (!verifyNeighborsPresent(rdsw, neighbors)) {
+        XLOG(DBG2) << "Neighbor add verification failed: " << rdsw;
         return false;
       }
 
