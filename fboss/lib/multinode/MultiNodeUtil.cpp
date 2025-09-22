@@ -1761,6 +1761,52 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
   return neighbors;
 }
 
+// if allNeighborsMustBePresent is true, then all neighbors must be present
+// for every rdsw in rdswToNdpEntries.
+// if allNeighborsMustBePresent is false, then all neighbors must be absent
+// for every rdsw in rdswToNdpEntries.
+bool MultiNodeUtil::verifyNeighborHelper(
+    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+    const std::map<std::string, std::vector<NdpEntryThrift>>& rdswToNdpEntries,
+    bool allNeighborsMustBePresent) const {
+  auto isNeighborPresentHelper = [](const auto& ndpEntries,
+                                    const auto& neighbor) {
+    for (const auto& ndpEntry : ndpEntries) {
+      auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
+          folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+      if (ndpEntry.interfaceID().value() == neighbor.intfID &&
+          ndpEntryIp == neighbor.ip) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  logRdswToNdpEntries(rdswToNdpEntries);
+  for (const auto& neighbor : neighbors) {
+    for (const auto& [rdsw, ndpEntries] : rdswToNdpEntries) {
+      auto isNeighborPresent = isNeighborPresentHelper(ndpEntries, neighbor);
+      if (allNeighborsMustBePresent) {
+        if (!isNeighborPresent) {
+          XLOG(DBG2) << "RDSW: " << rdsw
+                     << " neighbor missing: " << neighbor.str();
+          return false;
+        }
+      } else { // allNeighborsMust NOT be present
+        if (isNeighborPresent) {
+          XLOG(DBG2) << "RDSW: " << rdsw
+                     << " excess neighbor: " << neighbor.str();
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyNeighbors(const std::string& rdsw) const {
   return true;
 }
