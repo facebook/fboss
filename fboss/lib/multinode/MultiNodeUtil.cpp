@@ -436,10 +436,11 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllFdsws() const {
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForSdsw(
     const std::string& sdswToVerify) const {
   // Every SDSW is connected to all FDSWs in all clusters
-  auto expectedConnectedSwitches = allFdsws_;
 
   return verifyFabricConnectedSwitchesHelper(
-      SwitchType::SDSW, sdswToVerify, expectedConnectedSwitches);
+      SwitchType::SDSW,
+      sdswToVerify,
+      allFdsws_ /* expectedConnectedSwitches */);
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesForAllSdsws() const {
