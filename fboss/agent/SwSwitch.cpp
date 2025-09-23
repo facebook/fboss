@@ -2730,13 +2730,13 @@ void SwSwitch::validateSwitchReachabilityInformation(
       inactivePortsWithSwitchReachability) {
     // Increment the number of switch reachability inconsistency seen!
     stats()->switchReachabilityInconsistencyDetected(switchIndex);
-    XLOG(WARN) << "Switch reachability inconsistency seen on switch"
+    XLOG(WARN) << "Switch reachability inconsistency seen on switch index"
                << switchIndex << ", active ports w/o reachability: "
                << activePortsWithoutSwitchReachability
                << ", inactive ports w/ reachability: "
                << inactivePortsWithSwitchReachability;
   } else {
-    XLOG(DBG2) << "No switch reachability inconsistency seen for switch"
+    XLOG(DBG2) << "No switch reachability inconsistency seen for switch index"
                << switchIndex;
   }
 }
