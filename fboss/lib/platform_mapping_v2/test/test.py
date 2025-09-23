@@ -3,7 +3,7 @@
 # pyre-strict
 
 import unittest
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.gen import read_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
@@ -25,6 +25,7 @@ from neteng.fboss.phy.ttypes import (
 from neteng.fboss.platform_config.ttypes import (
     PlatformPortConfig,
     PlatformPortConfigFactor,
+    PlatformPortConfigOverride,
     PlatformPortEntry,
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
@@ -323,11 +324,10 @@ class TestPlatformMappingGeneration(unittest.TestCase):
         )
         return [entry_one, entry_two]
 
-    def test_get_platform_mapping_single_npu(self) -> None:
-        platform_mapping = PlatformMappingV2(
-            self._get_test_vendor_data(), "test", multi_npu=False
-        )
-
+    def _verify_single_npu_platform_mapping(
+        self,
+        platform_mapping: PlatformMappingV2,
+    ) -> None:
         # Verify ports
         self.assertEqual(
             platform_mapping.get_platform_port_map(),
@@ -356,11 +356,10 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             "Supported profiles do not match.",
         )
 
-    def test_get_platform_mapping_multi_npu(self) -> None:
-        platform_mapping = PlatformMappingV2(
-            self._get_test_vendor_data(), "test", multi_npu=True
-        )
-
+    def _verify_multi_npu_platform_mapping(
+        self,
+        platform_mapping: PlatformMappingV2,
+    ) -> None:
         # Verify ports
         self.assertEqual(
             platform_mapping.get_platform_port_map(),
@@ -388,6 +387,18 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             ),
             "Supported profiles do not match.",
         )
+
+    def test_get_platform_mapping_single_npu(self) -> None:
+        platform_mapping = PlatformMappingV2(
+            self._get_test_vendor_data(), "test", multi_npu=False
+        )
+        self._verify_single_npu_platform_mapping(platform_mapping)
+
+    def test_get_platform_mapping_multi_npu(self) -> None:
+        platform_mapping = PlatformMappingV2(
+            self._get_test_vendor_data(), "test", multi_npu=True
+        )
+        self._verify_multi_npu_platform_mapping(platform_mapping)
 
 
 def run_tests() -> None:
