@@ -262,6 +262,8 @@ class PortManager {
 
   void triggerAgentConfigChangeEvent();
 
+  void updateStateBlocking(PortID id, PortStateMachineEvent event);
+
   // For testing purposes only.
   const std::unordered_set<PortID>& getCachedXphyPortsForTest() const {
     return cachedXphyPorts_;
@@ -304,7 +306,6 @@ class PortManager {
   // All Functions Required for Updating State Machines
   void waitForAllBlockingStateUpdateDone(
       const BlockingStateUpdateResultList& results);
-  void updateStateBlocking(PortID id, PortStateMachineEvent event);
   std::shared_ptr<BlockingStateMachineUpdateResult>
   updateStateBlockingWithoutWait(PortID id, PortStateMachineEvent event);
   std::shared_ptr<BlockingStateMachineUpdateResult>
