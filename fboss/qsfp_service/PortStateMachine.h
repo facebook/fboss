@@ -165,16 +165,27 @@ if (!portMgr) {
 }
 
 try {
-  portMgr->programExternalPhyPort(
-      portId, fsm.get_attribute(xphyNeedResetDataPath));
+  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
+    // Port should orchestrate PHY programming.
+    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
+      portMgr->programExternalPhyPorts(
+          tcvrID, fsm.get_attribute(xphyNeedResetDataPath));
+    }
+  } else {
+    // Port shouldn't orchestrate PHY programming. Port needs to check state
+    // of orchestrating port to proceed to next stage.
+    auto lowestIdxPort =
+        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
+    return portMgr->hasPortFinishedXphyProgramming(lowestIdxPort);
+  }
   return true;
 } catch (const std::exception& ex) {
   // We have retry mechanism to handle failure. No crash here
   XLOG(WARN) << "[Port:" << name
-             << "] programExternalPhyPort failed:" << folly::exceptionStr(ex);
+             << "] programExternalPhyPorts failed:" << folly::exceptionStr(ex);
   return false;
 }
-} // namespace facebook::fboss
+}
 }
 ;
 

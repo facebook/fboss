@@ -375,10 +375,18 @@ TEST_F(PortManagerTest, programXphyPortNoPhyManager) {
       FbossError);
 }
 
-TEST_F(PortManagerTest, programExternalPhyPort) {
+TEST_F(PortManagerTest, programExternalPhyPorts) {
   initManagers(1, 4, true /* setPhyManager */);
   programInternalPhyPortsForTest();
 
+  // Add ports to the initialized ports cache - this is normally done by the
+  // state machine during port initialization
+  portManager_->setPortsEnabledStatusInCache(
+      {{PortID(1), true}, {PortID(3), true}});
+
+  // programExternalPhyPorts should program all ports for the transceiver
+  // Based on overrideMultiPortTcvrToPortAndProfile_, TransceiverID(0) has ports
+  // 1 and 3
   EXPECT_CALL(
       *phyManager_,
       programOnePort(
@@ -387,18 +395,29 @@ TEST_F(PortManagerTest, programExternalPhyPort) {
           ::testing::_,
           false))
       .Times(1);
+  EXPECT_CALL(
+      *phyManager_,
+      programOnePort(
+          PortID(3),
+          cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+          ::testing::_,
+          false))
+      .Times(1);
 
-  EXPECT_NO_THROW(portManager_->programExternalPhyPort(PortID(1), false));
-  // We don't throw if the port isn't an XPHY port.
-  EXPECT_NO_THROW(portManager_->programExternalPhyPort(PortID(1000), false));
+  EXPECT_NO_THROW(
+      portManager_->programExternalPhyPorts(TransceiverID(0), false));
+  // We don't throw if the transceiver doesn't have XPHY ports.
+  EXPECT_NO_THROW(
+      portManager_->programExternalPhyPorts(TransceiverID(1000), false));
 }
 
-TEST_F(PortManagerTest, programExternalPhyPortNoPhyManager) {
+TEST_F(PortManagerTest, programExternalPhyPortsNoPhyManager) {
   // Test the early return when phyManager_ is null
   initManagers(1, 4, false /* setPhyManager */);
 
   // Should return early without throwing when phyManager_ is null
-  EXPECT_NO_THROW(portManager_->programExternalPhyPort(PortID(1), false));
+  EXPECT_NO_THROW(
+      portManager_->programExternalPhyPorts(TransceiverID(0), false));
 }
 
 TEST_F(PortManagerTest, initAndExit) {

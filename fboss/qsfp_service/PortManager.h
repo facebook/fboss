@@ -180,11 +180,14 @@ class PortManager {
   std::vector<TransceiverID> getTransceiverIdsForPort(PortID portId) const;
 
   bool hasPortFinishedIphyProgramming(PortID portId) const;
+  bool hasPortFinishedXphyProgramming(PortID portId) const;
 
   void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
-  void programExternalPhyPort(PortID portId, bool xPhyNeedResetDataPath);
+  void programExternalPhyPorts(
+      TransceiverID tcvrId,
+      bool xPhyNeedResetDataPath);
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
 
