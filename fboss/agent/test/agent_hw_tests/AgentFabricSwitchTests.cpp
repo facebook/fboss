@@ -460,9 +460,8 @@ TEST_F(AgentFabricSwitchTest, switchReachability) {
       bool switchReachabilityWorking = false;
       WITH_RETRIES({
         auto switchReachability = getSw()->getSwitchReachability();
+        ASSERT_EVENTUALLY_TRUE(switchReachability.contains(switchId));
         auto switchIter = switchReachability.find(switchId);
-        EXPECT_EVENTUALLY_TRUE(
-            switchIter != getSw()->getSwitchReachability().end());
         for (auto& [destinationSwitchId, portGroupId] :
              *switchIter->second.switchIdToFabricPortGroupMap()) {
           auto portGroupIter =
