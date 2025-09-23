@@ -918,8 +918,8 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     return;
   }
 
-  for (const auto& [_, intfMap] :
-       std::as_const(*sw->getState()->getInterfaces())) {
+  auto interfaceMap = sw->getState()->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaceMap)) {
     for (const auto& intfIter : std::as_const(*intfMap)) {
       const auto& interface = intfIter.second;
       if (interface->getRouterID() == RouterID(0) &&

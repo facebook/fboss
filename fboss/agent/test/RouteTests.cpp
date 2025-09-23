@@ -1624,7 +1624,7 @@ TEST_F(RouteTest, withLabelForwardingAction) {
   RouteNextHopSet nexthops;
 
   for (auto i = 0; i < 4; i++) {
-    labeledNextHops.emplace(std::make_pair(nextHopAddrs[i], nextHopStacks[i]));
+    labeledNextHops.emplace(nextHopAddrs[i], nextHopStacks[i]);
     nexthops.emplace(UnresolvedNextHop(
         nextHopAddrs[i],
         1,
@@ -1729,14 +1729,14 @@ TEST_F(RouteTest, withTunnelAndRouteLabels) {
 
   std::vector<ResolvedNextHop> igpNextHops;
   for (auto i = 0; i < 4; i++) {
-    igpNextHops.push_back(ResolvedNextHop(
+    igpNextHops.emplace_back(
         kIgpAddrs[i],
         kInterfaces[i],
         ECMP_WEIGHT,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH,
             LabelForwardingAction::LabelStack{
-                kLabelStacks[i].begin() + 2, kLabelStacks[i].begin() + 3})));
+                kLabelStacks[i].begin() + 2, kLabelStacks[i].begin() + 3}));
   }
 
   // igp routes to bgp nexthops,
@@ -1812,14 +1812,14 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
 
   std::vector<ResolvedNextHop> igpNextHops;
   for (auto i = 0; i < 4; i++) {
-    igpNextHops.push_back(ResolvedNextHop(
+    igpNextHops.emplace_back(
         kIgpAddrs[i],
         kInterfaces[i],
         ECMP_WEIGHT,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH,
             LabelForwardingAction::LabelStack{
-                kLabelStacks[i].begin(), kLabelStacks[i].end()})));
+                kLabelStacks[i].begin(), kLabelStacks[i].end()}));
   }
 
   // igp routes to bgp nexthops,
@@ -2244,7 +2244,7 @@ class UcmpTest : public RouteTest {
         networkAndNextHops;
     auto netsIter = nets.begin();
     for (const auto& nhs : routeUnresolvedNextHops) {
-      networkAndNextHops.push_back({*netsIter, nhs});
+      networkAndNextHops.emplace_back(*netsIter, nhs);
       netsIter++;
     }
     resolveRoutes(networkAndNextHops);

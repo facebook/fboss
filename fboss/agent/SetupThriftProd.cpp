@@ -7,18 +7,15 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
-#include "fboss/agent/hw/benchmarks/HwVoqRemoteNeighborBenchmarkHelper.h"
-
-#include <folly/Benchmark.h>
+#include "fboss/agent/SetupThrift.h"
+#include "fboss/agent/ThriftHandler.h"
 
 namespace facebook::fboss {
 
-BENCHMARK(HwVoqRemoteNeighborAdd) {
-  remoteNeighborBenchmark(true /*add*/);
+std::shared_ptr<ThriftHandler> createThriftHandler(SwSwitch* sw) {
+  auto swHandler = std::make_shared<ThriftHandler>(sw);
+
+  return swHandler;
 }
 
-BENCHMARK(HwVoqRemoteNeighborDel) {
-  remoteNeighborBenchmark(false /*add*/);
-}
 } // namespace facebook::fboss

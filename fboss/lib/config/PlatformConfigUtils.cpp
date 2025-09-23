@@ -323,7 +323,7 @@ std::map<PortID, std::vector<PortID>> getSubsidiaryPortIDs(
       results[controlPortID] = std::vector<PortID>();
     }
     // Note that the subsidiary_ports map includes the controlling port
-    results[controlPortID].push_back(facebook::fboss::PortID(itPort.first));
+    results[controlPortID].emplace_back(itPort.first);
   }
 
   // Sort subsidiary port ids

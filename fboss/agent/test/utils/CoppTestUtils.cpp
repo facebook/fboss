@@ -230,7 +230,7 @@ uint32_t getCoppQueueKbpsFromPps(const HwAsic* hwAsic, uint32_t pps) {
   return kbps;
 }
 
-cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
+cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
   uint32_t pps = getCoppQueuePps(hwAsic, queueId);
   auto portQueueRate = cfg::PortQueueRate();
 
@@ -264,7 +264,7 @@ void addCpuQueueConfig(
   queue0.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
   queue0.weight() = kCoppLowPriWeight;
   if (setQueueRate) {
-    queue0.portQueueRate() = setPortQueueRate(hwAsic, kCoppLowPriQueueId);
+    queue0.portQueueRate() = getPortQueueRate(hwAsic, kCoppLowPriQueueId);
   }
   if (!hwAsic->mmuQgroupsEnabled()) {
     queue0.reservedBytes() = kCoppLowPriReservedBytes;
@@ -288,7 +288,7 @@ void addCpuQueueConfig(
     queue1.scheduling() = getCpuDefaultQueueScheduling(hwAsic);
     setWeight(&queue1, kCoppDefaultPriWeight);
     if (setQueueRate) {
-      queue1.portQueueRate() = setPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
+      queue1.portQueueRate() = getPortQueueRate(hwAsic, kCoppDefaultPriQueueId);
     }
     if (!hwAsic->mmuQgroupsEnabled()) {
       queue1.reservedBytes() = kCoppDefaultPriReservedBytes;
@@ -426,10 +426,10 @@ void addEtherTypeToAcl(
         newAcl.name() = folly::to<std::string>(acl.name().value(), "-v6");
       }
       addEtherTypeToAcl(hwAsic, &newAcl, etherType);
-      acls.push_back(std::make_pair(newAcl, action));
+      acls.emplace_back(newAcl, action);
     }
   } else {
-    acls.push_back(std::make_pair(acl, action));
+    acls.emplace_back(acl, action);
   }
 }
 
@@ -556,12 +556,12 @@ void addHighPriAclForArp(
   acl1.name() = folly::to<std::string>("cpuPolicing-high-arp-request-acl");
   auto action =
       createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction);
-  acls.push_back(std::make_pair(acl1, action));
+  acls.emplace_back(acl1, action);
   cfg::AclEntry acl2;
   acl2.etherType() = cfg::EtherType::ARP;
   acl2.ipType() = cfg::IpType::ARP_REPLY;
   acl2.name() = folly::to<std::string>("cpuPolicing-high-arp-reply-acl");
-  acls.push_back(std::make_pair(acl2, action));
+  acls.emplace_back(acl2, action);
 }
 
 void addHighPriAclForNdp(
@@ -584,7 +584,7 @@ void addHighPriAclForNdp(
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
   acl1.name() =
       folly::to<std::string>("cpuPolicing-high-ndp-router-solicit-acl");
-  acls.push_back(std::make_pair(acl1, action));
+  acls.emplace_back(acl1, action);
 
   cfg::AclEntry acl2;
   acl2.etherType() = cfg::EtherType::IPv6;
@@ -594,7 +594,7 @@ void addHighPriAclForNdp(
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
   acl2.name() =
       folly::to<std::string>("cpuPolicing-high-ndp-router-advertisement-acl");
-  acls.push_back(std::make_pair(acl2, action));
+  acls.emplace_back(acl2, action);
 
   cfg::AclEntry acl3;
   acl3.etherType() = cfg::EtherType::IPv6;
@@ -604,7 +604,7 @@ void addHighPriAclForNdp(
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION);
   acl3.name() =
       folly::to<std::string>("cpuPolicing-high-ndp-neighbor-solicit-acl");
-  acls.push_back(std::make_pair(acl3, action));
+  acls.emplace_back(acl3, action);
 
   cfg::AclEntry acl4;
   acl4.etherType() = cfg::EtherType::IPv6;
@@ -614,7 +614,7 @@ void addHighPriAclForNdp(
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
   acl4.name() =
       folly::to<std::string>("cpuPolicing-high-ndp-neighbor-advertisement-acl");
-  acls.push_back(std::make_pair(acl4, action));
+  acls.emplace_back(acl4, action);
 
   cfg::AclEntry acl5;
   acl5.etherType() = cfg::EtherType::IPv6;
@@ -623,7 +623,7 @@ void addHighPriAclForNdp(
   acl5.icmpType() =
       static_cast<uint16_t>(ICMPv6Type::ICMPV6_TYPE_NDP_REDIRECT_MESSAGE);
   acl5.name() = folly::to<std::string>("cpuPolicing-high-ndp-redirect-acl");
-  acls.push_back(std::make_pair(acl5, action));
+  acls.emplace_back(acl5, action);
 }
 
 void addHighPriAclForLacp(
@@ -638,7 +638,7 @@ void addHighPriAclForLacp(
   acl.name() = folly::to<std::string>("cpuPolicing-high-lacp-acl");
   auto action =
       createQueueMatchAction(hwAsic, highPriQueueId, isSai, toCpuAction);
-  acls.push_back(std::make_pair(acl, action));
+  acls.emplace_back(acl, action);
 }
 
 void addMidPriAclForLldp(
@@ -653,7 +653,7 @@ void addMidPriAclForLldp(
   acl.name() = folly::to<std::string>("cpuPolicing-mid-lldp-acl");
   auto action =
       createQueueMatchAction(hwAsic, midPriQueueId, isSai, toCpuAction);
-  acls.push_back(std::make_pair(acl, action));
+  acls.emplace_back(acl, action);
 }
 
 void addMidPriAclForIp2Me(

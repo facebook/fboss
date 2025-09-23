@@ -764,7 +764,7 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
       : MockPlatform::getMockLinkLocalIp6();
   // Add an interface with a /128 mask, to make sure it isn't included
   // in the generated RA packets.
-  config.interfaces()[0].ipAddresses()->push_back(
+  config.interfaces()[0].ipAddresses()->emplace_back(
       "2401:db00:2000:1234:1::/128");
   auto handle = createTestHandle(&config);
   auto sw = handle->getSw();
@@ -1159,8 +1159,8 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
 
     WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
       // Old entry should be flushed
-      auto entry = getNDPTableEntry(neighborAddr, intfID);
-      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+      auto flushedEntry = getNDPTableEntry(neighborAddr, intfID);
+      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
     });
 
     // Send neighbor advertisement on Aggregate
@@ -1226,8 +1226,8 @@ TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
 
     WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
       // Old entry should be flushed
-      auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
-      EXPECT_EVENTUALLY_EQ(entry, nullptr);
+      auto flushedEntry = getNDPTableEntry(neighborAddr, VlanID(5));
+      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
     });
 
     // Send neighbor advertisement on Aggregate
@@ -1823,8 +1823,7 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
   VlanID vlanID(5);
   std::vector<IPAddressV6> targetIPs;
   for (uint32_t i = 1; i <= 255; i++) {
-    targetIPs.push_back(
-        IPAddressV6("2401:db00:2110:3004::" + std::to_string(i)));
+    targetIPs.emplace_back("2401:db00:2110:3004::" + std::to_string(i));
   }
   if (this->isIntfNbrTable()) {
     // populate ndp entries first before flush

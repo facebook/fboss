@@ -63,7 +63,7 @@ void listCommands() {
 }
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  const folly::Init init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
   folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
           portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
         } else if (isalpha(portStr[0])) {
           portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
-          portNames.push_back(portStr);
+          portNames.emplace_back(portStr);
         } else {
           portNum = folly::to<unsigned int>(argv[n]);
           auto portName =

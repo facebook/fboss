@@ -149,6 +149,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::ECMP_DLB_OFFSET:

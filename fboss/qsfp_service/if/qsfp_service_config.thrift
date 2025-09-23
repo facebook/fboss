@@ -84,6 +84,32 @@ struct TransceiverI2cLogging {
   4: i32 bufferSlots;
 }
 
+// Center optical channel frequnecy can be specified in either of the following ways
+// 1. Frequency in MHz
+// 2. Channel number
+union CenterFrequencyConfig {
+  1: i32 frequencyMhz;
+  2: i32 channelNumber;
+}
+
+// Frequency config can be specified in either of the following ways
+// 1. Frequency grid + Frequency(MhZ), internally software will calculate channel number based on frequency and grid
+// And program the module with channel number and grid.
+// 2. Frequency grid + Channel number, directly program the module with channel number and grid.
+struct FrequencyConfig {
+  1: transceiver.FrequencyGrid frequencyGrid;
+  2: CenterFrequencyConfig centerFrequencyConfig;
+}
+
+struct OpticalChannelConfig {
+  // Frequency config
+  1: FrequencyConfig frequencyConfig;
+  // Transmitter power in 0.01 dBm
+  2: i32 txPower0P01Dbm;
+  // Application Select code published by the META ZR spec
+  3: i32 appSelCode;
+}
+
 struct QsfpServiceConfig {
   // This is used to override the default command line arguments we
   // pass to qsfp service.
@@ -105,4 +131,7 @@ struct QsfpServiceConfig {
   7: optional list<
     transceiver_validation.VendorConfig
   > transceiverValidationConfig;
+
+  // Port name to optical channel config map
+  8: optional map<string, OpticalChannelConfig> tunableOpticsConfig;
 }

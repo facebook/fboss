@@ -106,7 +106,11 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, checkArsResource);
   FRIEND_TEST(ResourceAccountantTest, checkEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, checkEcmpResourceForUcmpWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateGenericEcmpResource);
+  FRIEND_TEST(
+      ResourceAccountantTest,
+      checkAndUpdateGenericEcmpResourceForUcmpWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateArsEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, computeWeightedEcmpMemberCount);
   FRIEND_TEST(ResourceAccountantTest, checkNeighborResource);

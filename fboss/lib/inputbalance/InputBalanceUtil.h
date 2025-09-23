@@ -125,6 +125,7 @@ std::vector<InputBalanceResult> checkInputBalanceDualStageCluster(
     const std::unordered_map<std::string, std::vector<std::string>>&
         neighborToLinkFailure,
     const std::unordered_map<std::string, int>& portToVirtualDevice,
+    const std::unordered_map<std::string, cfg::DsfNode>& switchNameToDsfNode,
     bool verbose);
 
 std::vector<std::pair<std::string, InputBalanceDestType>>

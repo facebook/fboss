@@ -30,15 +30,18 @@ RUN python3 -m pip install gitpython
 RUN python3 -m pip install meson
 RUN python3 -m pip install jinja2
 RUN dnf install gperf libcap-devel libmount-devel -y
-RUN dnf install gcc-toolset-12 -y
+RUN dnf install gcc-toolset-12 gcc-toolset-12-libasan-devel gcc-toolset-12-libubsan-devel -y
 RUN echo "source /opt/rh/gcc-toolset-12/enable" >> ~/.bashrc
 
-# The following libraries are needed for building Broadcom SDK
+RUN rm -rf /var/FBOSS/fboss/*
+
+# The following libraries are needed for building SDK
 RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel
-# Perl modules needed for Broadcom SDK build
+# Install Perl modules
 RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-Compare \
     perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
     perl-Math-BigInt perl-YAML-LibYAML perl-Sys-Hostname perl-Time
+RUN dnf install -y libxml2-devel expat-devel wget
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN pip install pyyaml filelock
 # ============================================================

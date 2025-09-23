@@ -1,10 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 //
 #include "fboss/agent/EcmpResourceManager.h"
-#include "fboss/agent/FabricConnectivityManager.h"
-#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.h"
-#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
 DECLARE_bool(list_production_feature);
@@ -31,6 +29,9 @@ class AgentVoqSwitchEcmpCompressionTest
     return getMaxEcmpGroup() -
         FLAGS_ecmp_resource_manager_make_before_break_buffer;
   }
+  int maxRoutes() const {
+    return numStartRoutes() + 30;
+  }
   const EcmpResourceManager* ecmpResourceManager() const {
     return getSw()->getEcmpResourceManager();
   }
@@ -45,20 +46,8 @@ class AgentVoqSwitchEcmpCompressionTest
     auto sysPortStart = (index * kNhopOffset);
     return boost::container::flat_set<PortDescriptor>(
         std::make_move_iterator(sysPortDescs_.begin() + sysPortStart),
-        std::make_move_iterator(sysPortDescs_.begin() + getMaxEcmpWidth()));
-  }
-
-  std::set<EcmpResourceManager::Prefix> getPrefixesForGroups(
-      const EcmpResourceManager::NextHopGroupIds& groups) const {
-    auto gidToPrefixes = ecmpResourceManager()->getGroupIdToPrefix();
-    std::set<EcmpResourceManager::Prefix> prefixes;
-    for (const auto& [gid, pfxs] :
-         ecmpResourceManager()->getGroupIdToPrefix()) {
-      if (groups.contains(gid)) {
-        prefixes.insert(pfxs.begin(), pfxs.end());
-      }
-    }
-    return prefixes;
+        std::make_move_iterator(
+            sysPortDescs_.begin() + sysPortStart + getMaxEcmpWidth()));
   }
 
  private:
@@ -70,6 +59,9 @@ void AgentVoqSwitchEcmpCompressionTest::SetUp() {
   AgentVoqSwitchFullScaleDsfNodesTest::SetUp();
   if (!getAgentEnsemble()) {
     CHECK(FLAGS_list_production_feature);
+    return;
+  }
+  if (getSw()->getBootType() == BootType::WARM_BOOT) {
     return;
   }
   utility::setupRemoteIntfAndSysPorts(
@@ -97,7 +89,8 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
   auto setup = [&]() {
     auto optimalMergeSet = ecmpResourceManager()->getOptimalMergeGroupSet();
     EXPECT_EQ(optimalMergeSet.size(), 2);
-    auto toBeMergedPrefixes = getPrefixesForGroups(optimalMergeSet);
+    auto toBeMergedPrefixes =
+        getPrefixesForGroups(*ecmpResourceManager(), optimalMergeSet);
     EXPECT_EQ(toBeMergedPrefixes.size(), 2);
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
@@ -108,16 +101,70 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
         &routeUpdater,
         getNextHops(numStartRoutes()),
         {makePrefix(numStartRoutes())});
-    for (const auto& ridAndPfx : toBeMergedPrefixes) {
-      auto [rid, pfx] = ridAndPfx;
-      auto groupInfo = ecmpResourceManager()->getGroupInfo(rid, pfx);
+    for (const auto& pfx : toBeMergedPrefixes) {
+      auto groupInfo =
+          ecmpResourceManager()->getGroupInfo(RouterID(0), pfx.toCidrNetwork());
       ASSERT_TRUE(groupInfo->hasOverrideNextHops());
-      XLOG(DBG2) << " Prefix : " << ridAndPfx << " points to merged group: "
+      XLOG(DBG2) << " Prefix : " << pfx.str() << " points to merged group: "
                  << folly::join(
                         ", ", (*groupInfo->getMergedGroupInfoItr())->first);
     }
   };
-  auto verify = [&]() {};
+  auto verify = [&]() {
+    assertNumRoutesWithNhopOverrides(getProgrammedState(), 2);
+    EXPECT_EQ(ecmpResourceManager()->getMergedGroups().size(), 1);
+    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchEcmpCompressionTest, addMaxScaleRoutesOverEcmpLimit) {
+  auto setup = [&]() {
+    std::vector<RoutePrefixV6> prefixes;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhops;
+    for (auto i = numStartRoutes(); i < maxRoutes(); ++i) {
+      prefixes.emplace_back(makePrefix(i));
+      nhops.emplace_back(getNextHops(i));
+    }
+    auto routeUpdater = getSw()->getRouteUpdater();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    ecmpHelper.programRoutes(&routeUpdater, nhops, prefixes);
+  };
+  auto verify = [this]() {
+    auto resourceMgr = ecmpResourceManager();
+    auto mergedGids = resourceMgr->getMergedGids();
+    EXPECT_GT(mergedGids.size(), 0);
+    assertNumRoutesWithNhopOverrides(
+        getProgrammedState(),
+        getPrefixesForGroups(*resourceMgr, mergedGids).size());
+    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchEcmpCompressionTest, addRemoveMaxScaleRoutes) {
+  auto setup = [&]() {
+    std::vector<RoutePrefixV6> prefixes;
+    std::vector<boost::container::flat_set<PortDescriptor>> nhops;
+    for (auto i = numStartRoutes(); i < maxRoutes(); ++i) {
+      prefixes.emplace_back(makePrefix(i));
+      nhops.emplace_back(getNextHops(i));
+    }
+    auto routeUpdater = getSw()->getRouteUpdater();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    ecmpHelper.programRoutes(&routeUpdater, nhops, prefixes);
+    XLOG(DBG2) << " Removing routes over max scale";
+    ecmpHelper.unprogramRoutes(&routeUpdater, prefixes);
+  };
+  auto verify = [this]() {
+    auto resourceMgr = ecmpResourceManager();
+    auto mergedGids = resourceMgr->getMergedGids();
+    EXPECT_EQ(mergedGids.size(), 0);
+    assertNumRoutesWithNhopOverrides(getProgrammedState(), 0);
+    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 

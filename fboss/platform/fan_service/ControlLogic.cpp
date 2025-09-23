@@ -461,12 +461,18 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
   if (!fan.ledSysfsPath()->empty()) {
     unsigned int valueToWrite =
         (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-    pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
     XLOG(INFO) << fmt::format(
         "{}: Setting LED to {} (value: {})",
         *fan.fanName(),
         (fanFailed ? "Fail" : "Good"),
         valueToWrite);
+    bool ret = pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
+    if (!ret) {
+      XLOG(ERR) << fmt::format(
+          "{}: Failed to set LED sysfs path {}",
+          *fan.fanName(),
+          *fan.ledSysfsPath());
+    }
   } else {
     XLOG(INFO) << fmt::format(
         "{}: FAN LED sysfs path is empty. It's likely that FAN LED is controlled by hardware.",

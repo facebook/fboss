@@ -156,7 +156,8 @@ class AggregatePort
       Subports&& ports,
       const std::vector<int32_t>& interfaceIDs,
       LegacyAggregatePortFields::Forwarding fwd = Forwarding::DISABLED,
-      ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo());
+      ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo(),
+      std::optional<uint8_t> minimumLinkCountToUp = std::nullopt);
 
   AggregatePort(
       AggregatePortID id,
@@ -167,7 +168,8 @@ class AggregatePort
       uint8_t minLinkCount,
       Subports&& ports,
       SubportToForwardingState&& portStates,
-      SubportToPartnerState&& portPartnerStates);
+      SubportToPartnerState&& portPartnerStates,
+      std::optional<uint8_t> minimumLinkCountToUp = std::nullopt);
 
   template <typename Iterator>
   static std::shared_ptr<AggregatePort> fromSubportRange(
@@ -178,7 +180,8 @@ class AggregatePort
       folly::MacAddress systemID,
       uint8_t minLinkCount,
       folly::Range<Iterator> subports,
-      const std::vector<int32_t>& interfaceIDs) {
+      const std::vector<int32_t>& interfaceIDs,
+      std::optional<uint8_t> minLinkCountToUp = std::nullopt) {
     return std::make_shared<AggregatePort>(
         id,
         name,
@@ -189,7 +192,8 @@ class AggregatePort
         Subports(subports.begin(), subports.end()),
         interfaceIDs,
         Forwarding::DISABLED,
-        ParticipantInfo::defaultParticipantInfo());
+        ParticipantInfo::defaultParticipantInfo(),
+        minLinkCountToUp);
   }
 
   AggregatePortID getID() const {
@@ -235,6 +239,22 @@ class AggregatePort
 
   void setMinimumLinkCount(uint8_t minLinkCount) {
     set<switch_state_tags::minimumLinkCount>(minLinkCount);
+  }
+
+  std::optional<uint8_t> getMinimumLinkCountToUp() const {
+    if (auto minimumLinkCountToUp =
+            safe_cref<switch_state_tags::minimumLinkCountToUp>()) {
+      return minimumLinkCountToUp->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setMinimumLinkCounToUp(std::optional<uint8_t>& minLinkCountToUp) {
+    if (!minLinkCountToUp) {
+      safe_ref<switch_state_tags::minimumLinkCountToUp>().reset();
+      return;
+    }
+    set<switch_state_tags::minimumLinkCountToUp>(minLinkCountToUp.value());
   }
 
   AggregatePort::Forwarding getForwardingState(PortID port) {

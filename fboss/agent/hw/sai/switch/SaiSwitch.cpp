@@ -120,11 +120,6 @@ DEFINE_string(
     "CRITICAL",
     "Turn on SAI SDK logging. Options are DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL");
 
-DEFINE_bool(
-    check_wb_handles,
-    false,
-    "Fail if any warm boot handles are left unclaimed.");
-
 DECLARE_bool(enable_acl_table_group);
 
 DEFINE_bool(
@@ -4303,8 +4298,8 @@ void SaiSwitch::fdbEventCallback(
           break;
       }
     }
-    fdbEventNotificationDataTmp.push_back(FdbEventNotificationData(
-        data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData));
+    fdbEventNotificationDataTmp.emplace_back(
+        data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData);
     XLOG(DBG2) << "Received FDB event: " << fdbEventToString(data[i].event_type)
                << " for bridge port: " << bridgePortSaiId;
   }
@@ -4336,7 +4331,7 @@ void SaiSwitch::fdbEventCallbackLockedBottomHalf(
         if (l2Entry) {
           XLOG(DBG2) << "Received FDB " << updateTypeStr
                      << " notification for: " << l2Entry->str();
-          l2Entries.push_back({l2Entry.value(), ditr->second});
+          l2Entries.emplace_back(l2Entry.value(), ditr->second);
         }
       }
     }

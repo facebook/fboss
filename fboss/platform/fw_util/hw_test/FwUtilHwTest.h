@@ -16,6 +16,7 @@ class FwUtilHwTest : public ::testing::Test {
 
  protected:
   std::unique_ptr<fw_util::FwUtilImpl> fwUtilImpl_;
+  FwUtilConfig fwUtilConfig_{};
 };
 
 } // namespace facebook::fboss::platform::fw_util

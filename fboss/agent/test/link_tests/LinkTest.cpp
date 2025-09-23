@@ -174,9 +174,9 @@ void LinkTest::initializeCabledPorts() {
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty()) {
       auto portID = *port.logicalID();
-      cabledPorts_.push_back(PortID(portID));
+      cabledPorts_.emplace_back(portID);
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
-        cabledFabricPorts_.push_back(PortID(portID));
+        cabledFabricPorts_.emplace_back(portID);
       }
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
@@ -580,7 +580,7 @@ std::vector<std::pair<PortID, PortID>> LinkTest::getPortPairsForFecErrInj()
           "FEC different on both ends of the link: ", fecPort1, fecPort2);
     }
     if (supportedFecs.find(fecPort1) != supportedFecs.end()) {
-      supportedPorts.push_back({port1, port2});
+      supportedPorts.emplace_back(port1, port2);
     }
   }
   return supportedPorts;

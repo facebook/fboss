@@ -274,11 +274,12 @@ TYPED_TEST_CASE(AclNexthopHandlerTest, AclNexthopHandlerTestTypes);
 
 TYPED_TEST(AclNexthopHandlerTest, UnresolvedAclNextHop) {
   this->updateState(
-      "UnresolvedAclNextHop", [=](const std::shared_ptr<SwitchState>& state) {
+      "UnresolvedAclNextHop",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addAcl(state, kAclName, this->getAclNexthopIps(1));
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto aclEntry = state->getAcls()->getNode(kAclName);
     EXPECT_NE(aclEntry, nullptr);
@@ -294,7 +295,8 @@ TYPED_TEST(AclNexthopHandlerTest, UnresolvedAclNextHop) {
 
 TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopSingleNexthop) {
   this->updateState(
-      "UnresolvedAclNextHop", [=](const std::shared_ptr<SwitchState>& state) {
+      "UnresolvedAclNextHop",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addAcl(state, kAclName, this->getAclNexthopIps(1));
       });
 
@@ -322,7 +324,8 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopSingleNexthop) {
 
 TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthop) {
   this->updateState(
-      "UnresolvedAclNextHop", [=](const std::shared_ptr<SwitchState>& state) {
+      "UnresolvedAclNextHop",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addAcl(state, kAclName, this->getAclNexthopIps(2));
       });
 
@@ -378,7 +381,8 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthop) {
 // Test with nexthops that include MPLS action
 TYPED_TEST(AclNexthopHandlerTest, MplsNexthops) {
   this->updateState(
-      "UnresolvedAclNextHop", [=](const std::shared_ptr<SwitchState>& state) {
+      "UnresolvedAclNextHop",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addAcl(state, kAclName, this->getAclNexthopIps(2));
       });
 
@@ -439,7 +443,8 @@ TYPED_TEST(AclNexthopHandlerTest, ResolvedAclNextHopMultiNexthopWithInterface) {
   auto outIntfs = this->getOutInterfaces(4);
   // Create acl with one outinterface from each nexthop
   this->updateState(
-      "UnresolvedAclNextHop", [=](const std::shared_ptr<SwitchState>& state) {
+      "UnresolvedAclNextHop",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addAcl(
             state,
             kAclName,

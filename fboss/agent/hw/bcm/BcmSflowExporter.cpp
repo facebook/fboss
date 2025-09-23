@@ -77,7 +77,7 @@ folly::IPAddress getLocalIPv6() {
       continue;
     }
     std::string ifname{ifa->ifa_name};
-    if (ifname != "eth0" or ifa->ifa_addr->sa_family != AF_INET6) {
+    if (ifname != "eth0" || ifa->ifa_addr->sa_family != AF_INET6) {
       continue;
     }
     int retno = getnameinfo(

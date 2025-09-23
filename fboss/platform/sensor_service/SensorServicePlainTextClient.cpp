@@ -1,14 +1,17 @@
-#include <time.h>
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <folly/Conv.h>
+#include <CLI/CLI.hpp>
 #include <folly/String.h>
+#include <folly/init/Init.h>
 #include <tabulate/table.hpp>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
@@ -143,7 +146,30 @@ void printSensorTable(const std::vector<sensor_service::SensorData>& sensors) {
 // A sample sensor service plain text thrift client to be used by vendors.
 // This is not for internal production use.
 int main(int argc, char** argv) {
-  helpers::initCli(&argc, &argv, "sensor_service_client");
+  // Initialize folly with gflags disabled
+  folly::InitOptions options;
+  options.useGFlags(false);
+  folly::Init init(&argc, &argv, options);
+
+  CLI::App app{"Sensor service client for querying sensor data"};
+  app.set_version_flag("--version", helpers::getBuildVersion());
+
+  std::string slotPathFilter;
+
+  app.add_option(
+         "--slotpath", slotPathFilter, "Filter sensors by slotpath substring")
+      ->transform([](const std::string& input) {
+        std::string upper = input;
+        std::transform(upper.begin(), upper.end(), upper.begin(), ::toupper);
+        return upper;
+      });
+
+  try {
+    app.parse(argc, argv);
+  } catch (const CLI::ParseError& e) {
+    return app.exit(e);
+  }
+
   folly::EventBase eb;
   folly::SocketAddress sockAddr("::1", 5970);
   auto socket = folly::AsyncSocket::newSocket(&eb, sockAddr, 5000);
@@ -166,11 +192,28 @@ int main(int argc, char** argv) {
       sensorsBySlotPath;
   int failureCount = 0;
 
+  std::set<std::string> uniqueSlotPaths;
   for (const auto& sensor : *res.sensorData()) {
+    uniqueSlotPaths.insert(*sensor.slotPath());
+    // Filter by slotpath if specified
+    if (!slotPathFilter.empty() &&
+        sensor.slotPath()->find(slotPathFilter) == std::string::npos) {
+      continue;
+    }
+
     sensorsBySlotPath[*sensor.slotPath()].push_back(sensor);
     if (getSensorStatus(sensor) != kStatusPass) {
       failureCount++;
     }
+  }
+
+  // If no sensors match the filter, show available slotpaths
+  if (sensorsBySlotPath.empty() && !slotPathFilter.empty()) {
+    std::cout << "No sensors found for slotpath: " << slotPathFilter
+              << std::endl;
+    std::cout << "\nAvailable slotpaths:" << std::endl;
+    std::cout << folly::join("\n", uniqueSlotPaths) << std::endl;
+    return 1;
   }
 
   std::cout << "\nSensor Service Output:\n";

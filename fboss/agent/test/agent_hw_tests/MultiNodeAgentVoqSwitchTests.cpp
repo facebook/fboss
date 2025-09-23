@@ -82,6 +82,26 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     });
   }
 
+  void verifySetupRunTestVerifyAgain(
+      const std::function<bool(const MultiNodeUtil*)>& verifyFn) {
+    if (!isTestDriver()) {
+      return;
+    }
+
+    auto multiNodeUtil = createMultiNodeUtil();
+    verifyDsfClusterHelper(multiNodeUtil);
+    if (testing::Test::HasNonfatalFailure()) {
+      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
+      FAIL()
+          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
+    }
+
+    EXPECT_TRUE(verifyFn(multiNodeUtil.get()));
+
+    // Verify that the cluster is still healthy after link down/up
+    verifyDsfClusterHelper(multiNodeUtil);
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
@@ -116,22 +136,104 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    if (!isTestDriver()) {
-      return;
-    }
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulFabricLinkDownUp();
+    });
+  };
 
-    auto multiNodeUtil = createMultiNodeUtil();
-    verifyDsfClusterHelper(multiNodeUtil);
-    if (testing::Test::HasNonfatalFailure()) {
-      // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
-      FAIL()
-          << "Sanity checks in DSF cluster verification failed, can't proceed with test";
-    }
+  verifyAcrossWarmBoots(setup, verify);
+}
 
-    EXPECT_TRUE(multiNodeUtil->verifyGracefulFabricLinkDownUp());
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulDeviceDownUp) {
+  auto setup = []() {};
 
-    // Verify that the cluster is still healthy after link down/up
-    verifyDsfClusterHelper(multiNodeUtil);
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulDeviceDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulDeviceDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulDeviceDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulRestartTimeoutRecovery) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulRestartTimeoutRecovery();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulQsfpDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulQsfpDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulQsfpDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulQsfpDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFsdbDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulFsdbDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulFsdbDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulFsdbDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNeighborAddRemove) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNeighborAddRemove();
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);

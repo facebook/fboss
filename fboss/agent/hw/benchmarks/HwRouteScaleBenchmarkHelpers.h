@@ -236,12 +236,12 @@ voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth) {
   std::vector<flat_set<PortDescriptor>> nhopSets;
   CHECK_GE(portDescriptor.size(), ecmpWidth + ecmpGroup - 1);
   for (int i = 0; i < ecmpGroup; i++) {
-    prefixes.push_back(RoutePrefixV6{
+    prefixes.emplace_back(
         folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
-        static_cast<uint8_t>(i == 0 ? 0 : 128)});
-    nhopSets.push_back(flat_set<PortDescriptor>(
+        static_cast<uint8_t>(i == 0 ? 0 : 128));
+    nhopSets.emplace_back(
         std::make_move_iterator(portDescriptor.begin() + i),
-        std::make_move_iterator(portDescriptor.begin() + i + ecmpWidth)));
+        std::make_move_iterator(portDescriptor.begin() + i + ecmpWidth));
   }
 
   auto programRoutes = [&]() {

@@ -461,6 +461,14 @@ class SwitchStats : public boost::noncopyable {
     coldBoot_.addValue(1);
   }
 
+  void probedStateCleanedUp() {
+    probedStateCleanupStatus_.incrementValue(1);
+  }
+
+  int64_t getProbedStateCleanupStatus() const {
+    return getCumulativeValue(probedStateCleanupStatus_, false);
+  }
+
   void multiSwitchStatus(bool enabled) {
     multiSwitchStatus_.addValue(enabled ? 1 : 0);
   }
@@ -507,6 +515,21 @@ class SwitchStats : public boost::noncopyable {
 
   void resourceAccountantRejectedUpdates() {
     resourceAccountantRejectedUpdates_.addValue(1);
+  }
+
+  void routeProgrammingUpdateAttempts() {
+    routeProgrammingUpdateAttempts_.addValue(1);
+  }
+
+  int64_t getRouteProgrammingUpdateAttempts() const {
+    return getCumulativeValue(routeProgrammingUpdateAttempts_);
+  }
+
+  void routeProgrammingUpdateFailures() {
+    routeProgrammingUpdateFailures_.addValue(1);
+  }
+  int64_t getRouteProgrammingUpdateFailures() const {
+    return getCumulativeValue(routeProgrammingUpdateFailures_);
   }
 
   void switchConfiguredMs(uint64_t ms) {
@@ -646,6 +669,12 @@ class SwitchStats : public boost::noncopyable {
   void setBackupEcmpGroupsCount(uint32_t count) const;
   void setMergedEcmpGroupsCount(uint32_t count) const;
   void setMergedEcmpMemberGroupsCount(uint32_t count) const;
+  void primaryEcmpGroupsExhausted() {
+    primaryEcmpGroupsExhaustedEvents_.addValue(1);
+  }
+  int64_t getPrimaryEcmpGroupsExhaustedEvents() const {
+    return getCumulativeValue(primaryEcmpGroupsExhaustedEvents_);
+  }
 
   bool getPrimaryEcmpGroupsExhausted() const;
   int64_t getPrimaryEcmpGroupsCount() const;
@@ -913,6 +942,15 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries delRouteV4_;
   TLTimeseries delRouteV6_;
 
+  /**
+   * Number of route programming attempts
+   */
+  TLTimeseries routeProgrammingUpdateAttempts_;
+  /**
+   * Number of route programming update failures
+   */
+  TLTimeseries routeProgrammingUpdateFailures_;
+
   TLTimeseries dstLookupFailureV4_;
   TLTimeseries dstLookupFailureV6_;
   TLTimeseries dstLookupFailure_;
@@ -1083,10 +1121,11 @@ class SwitchStats : public boost::noncopyable {
   TLCounter failedDsfSubscription_;
   // Failed Dsf subscriptions by peer SwitchID
   std::map<std::string, TLCounter> failedDsfSubscriptionByPeerSwitchName_;
-
   TLTimeseries txBufferLimitExceedDrop_;
+
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
+  TLCounter probedStateCleanupStatus_;
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;
   TLTimeseries dsfUpdateFailed_;
@@ -1113,6 +1152,11 @@ class SwitchStats : public boost::noncopyable {
    * Number of state updates rejected by resource accountant
    */
   TLTimeseries resourceAccountantRejectedUpdates_;
+  /*
+   * Number of times primary ecmp groups were exhausted
+   * in last interval(.60, .600, .3600)
+   */
+  TLTimeseries primaryEcmpGroupsExhaustedEvents_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLTimeseries> hwAgentUpdateTimeouts_;

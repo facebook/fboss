@@ -137,7 +137,9 @@ int main(int argc, char* argv[]) {
         ->setLevel(folly::LogLevel::DBG2);
     fwUtilImpl.doFirmwareAction(fw_target_name, fw_action);
   } else if (fw_action == "list") {
-    XLOG(INFO) << "supported Binary names are: " << fwUtilImpl.printFpdList();
+    XLOG(INFO) << fmt::format(
+        "Supported binary names: {}",
+        folly::join(" ", fwUtilImpl.getFpdNameList()));
   } else if (fw_action == "audit") {
     fwUtilImpl.doVersionAudit();
   } else {

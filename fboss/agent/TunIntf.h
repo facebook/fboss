@@ -11,7 +11,7 @@
 
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventHandler.h>
-#include "fboss/agent/TunIntfInterface.h"
+#include "fboss/agent/TunIntfBase.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/types.h"
@@ -21,7 +21,7 @@ namespace facebook::fboss {
 class SwSwitch;
 class RxPacket;
 
-class TunIntf : public TunIntfInterface, private folly::EventHandler {
+class TunIntf : public TunIntfBase, private folly::EventHandler {
  public:
   /**
    * Creates a TunIntf object of already existing linux interface. Initial

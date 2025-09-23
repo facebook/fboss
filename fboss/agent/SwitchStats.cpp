@@ -35,7 +35,7 @@ const std::string kMergedEcmpMemberGroupsCount =
 namespace facebook::fboss {
 
 // set to empty string, we'll prepend prefix when fbagent collects counters
-std::string SwitchStats::kCounterPrefix = "";
+std::string SwitchStats::kCounterPrefix;
 
 // Temporary until we get this into fb303 with D40324952
 static constexpr const std::array<double, 1> kP100{{1.0}};
@@ -92,6 +92,16 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       addRouteV6_(map, kCounterPrefix + "route.v6.add", RATE),
       delRouteV4_(map, kCounterPrefix + "route.v4.delete", RATE),
       delRouteV6_(map, kCounterPrefix + "route.v6.delete", RATE),
+      routeProgrammingUpdateAttempts_(
+          map,
+          kCounterPrefix + "route_programming_update_attempts",
+          SUM,
+          RATE),
+      routeProgrammingUpdateFailures_(
+          map,
+          kCounterPrefix + "route_programming_update_failures",
+          SUM,
+          RATE),
       dstLookupFailureV4_(
           map,
           kCounterPrefix + "ipv4.dst_lookup_failure",
@@ -349,6 +359,9 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       coldBoot_(map, kCounterPrefix + "cold_boot", SUM, RATE),
       warmBoot_(map, kCounterPrefix + "warm_boot", SUM, RATE),
+      probedStateCleanupStatus_(
+          map,
+          kCounterPrefix + "probed_state_cleanup_status"),
       switchConfiguredMs_(
           map,
           kCounterPrefix + "switch_configured_ms",
@@ -404,18 +417,23 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           map,
           kCounterPrefix + "resource_accountant_rejected_updates",
           SUM,
+          RATE),
+      primaryEcmpGroupsExhaustedEvents_(
+          map,
+          kCounterPrefix + "primary_ecmp_groups_exhausted_events",
+          SUM,
           RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
-    hwAgentConnectionStatus_.emplace_back(TLCounter(
+    hwAgentConnectionStatus_.emplace_back(
         map,
         folly::to<std::string>(
-            kCounterPrefix, "switch.", switchIndex, ".", "connection_status")));
-    hwAgentUpdateTimeouts_.emplace_back(TLTimeseries(
+            kCounterPrefix, "switch.", switchIndex, ".", "connection_status"));
+    hwAgentUpdateTimeouts_.emplace_back(
         map,
         folly::to<std::string>(
             kCounterPrefix, "switch.", switchIndex, ".", "hwupdate_timeouts"),
         SUM,
-        RATE));
+        RATE);
     thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
     switchReachabilityInconsistencyDetected_.emplace_back(
         map,

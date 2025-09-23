@@ -13,7 +13,7 @@
  * @brief Mock implementation of TUN interface for unit testing
  * @author ashutosh grewal
  *
- * This file provides a mock implementation of the TunIntfInterface that enables
+ * This file provides a mock implementation of the TunIntfBase that enables
  * comprehensive unit testing of TUN interface functionality without requiring
  * actual system calls.
  */
@@ -21,12 +21,12 @@
 #pragma once
 
 #include <gmock/gmock.h>
-#include "fboss/agent/TunIntfInterface.h"
+#include "fboss/agent/TunIntfBase.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
-class MockTunIntf : public TunIntfInterface {
+class MockTunIntf : public TunIntfBase {
  public:
   MockTunIntf(
       const InterfaceID& ifID,

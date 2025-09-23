@@ -172,12 +172,12 @@ cpp_binary(
     deps = [
         "//fboss/platform/helpers:init_cli",
         "//fboss/platform/sensor_service/if:sensor_service-cpp2-clients",
-        "//folly:conv",
         "//folly:string",
+        "//folly/init:init",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
     external_deps = [
-        ("glibc", None, "rt"),
+        "CLI11",
         "tabulatecpp",
     ],
 )

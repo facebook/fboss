@@ -10,7 +10,6 @@
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
@@ -18,25 +17,27 @@
 
 namespace facebook::fboss {
 
-RouteNextHopSet makeNextHops(int n) {
-  CHECK_LT(n, 255);
+RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
+    auto interfaceId = (i / numNhopsPerIntf) + 1;
+    auto subnetIndex = i / numNhopsPerIntf;
     std::stringstream ss;
-    ss << std::hex << i + 1;
-    auto ipStr = folly::sformat("2400:db00:2110:{}::2", i);
+    ss << std::hex << subnetIndex;
+    // ::1 is local interface address, start nhop addressed from 2
+    auto lastQuad = 2 + startOffset + i % numNhopsPerIntf;
+    auto ipStr = folly::sformat("2400:db00:2110:{}::{}", ss.str(), lastQuad);
     h.emplace(ResolvedNextHop(
-        folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
+        folly::IPAddress(ipStr),
+        InterfaceID(interfaceId),
+        UCMP_DEFAULT_WEIGHT));
   }
   return h;
 }
-
 RouteNextHopSet makeV4NextHops(int n) {
   CHECK_LT(n, 253);
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
-    std::stringstream ss;
-    ss << std::hex << i + 1;
     auto ipStr = folly::sformat("200.0.{}.2", i);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
@@ -106,8 +107,10 @@ cfg::SwitchConfig onePortPerIntfConfig(
     cfg.interfaces()[p].mac() = "00:02:00:00:00:01";
     cfg.interfaces()[p].mtu() = 9000;
     cfg.interfaces()[p].ipAddresses()->resize(2);
+    std::stringstream ss;
+    ss << std::hex << p;
     cfg.interfaces()[p].ipAddresses()[0] =
-        folly::sformat("2400:db00:2110:{}::1/64", p);
+        folly::sformat("2400:db00:2110:{}::1/64", ss.str());
     cfg.interfaces()[p].ipAddresses()[1] = folly::sformat("200.0.{}.1/24", p);
   }
   if (ecmpCompressionThresholdPct) {
@@ -166,6 +169,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   {
     // Assert restoration from current state results in no
     // overflow and the route backup group state matches
+    XLOG(DBG2) << " Asserting for reconstructing from switch state";
     auto newConsolidator = makeResourceMgr();
     auto restoreDeltas = newConsolidator->reconstructFromSwitchState(state_);
     EXPECT_EQ(restoreDeltas.size(), 1);
@@ -201,109 +205,7 @@ void BaseEcmpResourceManagerTest::failUpdate(
 
 void BaseEcmpResourceManagerTest::assertDeltasForOverflow(
     const std::vector<StateDelta>& deltas) const {
-  auto primaryEcmpTypeGroups2RefCnt =
-      getPrimaryEcmpTypeGroups2RefCnt(deltas.begin()->oldState());
-  XLOG(DBG2) << " Primary ECMP groups : "
-             << primaryEcmpTypeGroups2RefCnt.size();
-  // ECMP groups should not exceed the limit.
-  EXPECT_LE(
-      primaryEcmpTypeGroups2RefCnt.size(),
-      consolidator_->getMaxPrimaryEcmpGroups());
-  auto routeDeleted = [&primaryEcmpTypeGroups2RefCnt](const auto& oldRoute) {
-    XLOG(DBG2) << " Route deleted: " << oldRoute->str();
-    if (!oldRoute->isResolved() ||
-        oldRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
-      return;
-    }
-    if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
-      return;
-    }
-    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        oldRoute->getForwardInfo().normalizedNextHops());
-    ASSERT_NE(pitr, primaryEcmpTypeGroups2RefCnt.end());
-    EXPECT_GE(pitr->second, 1);
-    --pitr->second;
-    if (pitr->second == 0) {
-      primaryEcmpTypeGroups2RefCnt.erase(pitr);
-      XLOG(DBG2) << " Primary ECMP group count decremented to: "
-                 << primaryEcmpTypeGroups2RefCnt.size()
-                 << " on pfx: " << oldRoute->str();
-    }
-  };
-  auto routeAdded = [&primaryEcmpTypeGroups2RefCnt,
-                     this](const auto& newRoute) {
-    XLOG(DBG2) << " Route added: " << newRoute->str();
-    if (!newRoute->isResolved() ||
-        newRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
-      return;
-    }
-    if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
-      return;
-    }
-    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        newRoute->getForwardInfo().normalizedNextHops());
-    if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
-      ++pitr->second;
-    } else {
-      bool inserted{false};
-      std::tie(pitr, inserted) = primaryEcmpTypeGroups2RefCnt.insert(
-          {newRoute->getForwardInfo().normalizedNextHops(), 1});
-      EXPECT_TRUE(inserted);
-      XLOG(DBG2) << " Primary ECMP group count incremented to: "
-                 << primaryEcmpTypeGroups2RefCnt.size()
-                 << " on pfx: " << newRoute->str();
-    }
-    // Transiently we can exceed consolidator maxPrimaryEcmpGroups,
-    // but we should never exceed
-    // maxPrimaryEcmpGroups +
-    // FLAGS_ecmp_resource_manager_make_before_break_buffer We deliberately set
-    // consolidator's maxPrimaryEcmpGroups to be Actual limit -
-    // FLAGS_ecmp_resource_manager_make_before_break_buffer
-    EXPECT_LE(
-        primaryEcmpTypeGroups2RefCnt.size(),
-        consolidator_->getMaxPrimaryEcmpGroups() +
-            FLAGS_ecmp_resource_manager_make_before_break_buffer);
-  };
-
-  auto idx = 1;
-  for (const auto& delta : deltas) {
-    XLOG(DBG2) << " Processing delta #" << idx++;
-    forEachChangedRoute<folly::IPAddressV6>(
-        delta,
-        [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
-          if (!oldRoute->isResolved() && !newRoute->isResolved()) {
-            return;
-          }
-          if (oldRoute->isResolved() && !newRoute->isResolved()) {
-            routeDeleted(oldRoute);
-            return;
-          }
-          if (!oldRoute->isResolved() && newRoute->isResolved()) {
-            routeAdded(newRoute);
-            return;
-          }
-          // Both old and new are resolved
-          CHECK(oldRoute->isResolved() && newRoute->isResolved());
-          if (oldRoute->getForwardInfo() != newRoute->getForwardInfo()) {
-            // First process as a add route, since ECMP is make before break
-            routeAdded(newRoute);
-            routeDeleted(oldRoute);
-          }
-        },
-        [=](RouterID /*rid*/, const auto& newRoute) {
-          if (newRoute->isResolved()) {
-            routeAdded(newRoute);
-          }
-        },
-        [=](RouterID /*rid*/, const auto& oldRoute) {
-          if (oldRoute->isResolved()) {
-            routeDeleted(oldRoute);
-          }
-        });
-    EXPECT_LE(
-        primaryEcmpTypeGroups2RefCnt.size(),
-        consolidator_->getMaxPrimaryEcmpGroups());
-  }
+  facebook::fboss::assertDeltasForOverflow(*consolidator_, deltas);
 }
 
 RouteV6::Prefix BaseEcmpResourceManagerTest::nextPrefix() const {
@@ -342,7 +244,7 @@ void BaseEcmpResourceManagerTest::SetUp() {
   auto asic = *sw_->getHwAsicTable()->getL3Asics().begin();
   int asicMaxEcmpGroups, maxPct;
   if (getBackupEcmpSwitchingMode()) {
-    asicMaxEcmpGroups = *asic->getMaxDlbEcmpGroups();
+    asicMaxEcmpGroups = *asic->getMaxArsGroups();
     maxPct = FLAGS_ars_resource_percentage;
   } else {
     asicMaxEcmpGroups = *asic->getMaxEcmpGroups();
@@ -668,14 +570,8 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::rmRoutes(
 
 std::set<RouteV6::Prefix> BaseEcmpResourceManagerTest::getPrefixesForGroups(
     const EcmpResourceManager::NextHopGroupIds& grpIds) const {
-  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
-  std::set<RouteV6::Prefix> prefixes;
-  for (auto grpId : grpIds) {
-    for (const auto& [_, pfx] : grpId2Prefixes.at(grpId)) {
-      prefixes.insert(RouteV6::Prefix(pfx.first.asV6(), pfx.second));
-    }
-  }
-  return prefixes;
+  return facebook::fboss::getPrefixesForGroups(
+      *sw_->getEcmpResourceManager(), grpIds);
 }
 
 std::set<RouteV6::Prefix>

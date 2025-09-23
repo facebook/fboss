@@ -40,7 +40,7 @@ class FwUtilImpl {
     init();
   }
   void doVersionAudit();
-  std::string printFpdList();
+  std::vector<std::string> getFpdNameList();
   void doFirmwareAction(const std::string&, const std::string&);
   void printVersion(const std::string&);
   // Finds matching fpd case-insensitive

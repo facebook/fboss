@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/BaseEcmpResourceMgrMergeGroupsTests.h"
+#include "fboss/agent/test/CounterCache.h"
 
 namespace facebook::fboss {
 
@@ -89,7 +90,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addV4RouteAboveEcmpLimit) {
   auto newRoute = makeV4Route(makeV4Prefix(1), defaultNhops);
   auto newState = state_->clone();
   auto fib = fib4(newState);
-  fib->addNode(newRoute->prefix().str(), std::move(newRoute));
+  fib->addNode(newRoute->prefix().str(), newRoute);
   newState->publish();
   auto deltas = consolidate(newState);
   // Route delta + merge delta
@@ -336,8 +337,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateMergedRouteInSameUpdate) {
   auto overflowCausingRoute =
       makeRoute((*startRoutes.begin())->prefix(), newNhops);
   // This will cause prefixes from overflowPrefixes to be merged
-  fib6->addNode(
-      overflowCausingRoute->prefix().str(), std::move(overflowCausingRoute));
+  fib6->addNode(overflowCausingRoute->prefix().str(), overflowCausingRoute);
   // This update route will cause the just merged groups to get unmerged again.
   auto mergedRouteUpdated = makeRoute(*overflowPrefixes.begin(), newNhops);
   fib6->updateNode(std::move(mergedRouteUpdated));
@@ -426,6 +426,14 @@ TEST_F(
   assertGroupsAreRemoved(optimalMergeSet);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, checkPrimaryEcmpExhaustedEvents) {
+  CounterCache counters(sw_);
+  addNextRoute();
+  counters.update();
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "primary_ecmp_groups_exhausted_events.sum",
+      1);
+}
 TEST_F(EcmpResourceMgrMergeGroupTest, removeAllMergeGrpRefrencesInOneUpdate) {
   auto optimalMergeSet =
       sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
@@ -748,9 +756,11 @@ TEST_F(EcmpResourceMgrMergeGroupTest, reclaimOnReconstructionFromSwitchState) {
     EXPECT_EQ(deltas.size(), 2);
   }
   assertEndState(sw_->getState(), overflowPrefixes);
-  auto newConsolidator = makeResourceMgrWithEcmpLimit(
-      cfib(state_)->size() +
-      FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  auto higherEcmpGroupLimit = cfib(state_)->size() +
+      FLAGS_ecmp_resource_manager_make_before_break_buffer;
+  XLOG(INFO) << " Creating new ERM with higher ECMP limit of : "
+             << higherEcmpGroupLimit << " all overflow should get reclaimed";
+  auto newConsolidator = makeResourceMgrWithEcmpLimit(higherEcmpGroupLimit);
   auto replayDeltas = newConsolidator->reconstructFromSwitchState(state_);
   ASSERT_EQ(replayDeltas.size(), 1);
   // No overflow, since we increased the limit to cover all the prefixes

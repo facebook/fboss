@@ -13,7 +13,6 @@ namespace facebook::fboss {
 
 bool Jericho3Asic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::HOSTTABLE:
@@ -192,6 +191,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::PORT_EYE_VALUES:
@@ -234,6 +234,12 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
+      /*
+       * J3 does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect is
+       * achieved by configuring to forward TTL0 packets by enabling
+       * SAI_TTL0_PACKET_FORWARD_ENABLE.
+       */
+    case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
       return false;
   }
   return false;
@@ -358,7 +364,8 @@ Jericho3Asic::desiredLoopbackModes() const {
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::PHY},
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE},
-      {cfg::PortType::EVENTOR_PORT, cfg::PortLoopbackMode::NONE}};
+      {cfg::PortType::EVENTOR_PORT, cfg::PortLoopbackMode::NONE},
+      {cfg::PortType::HYPER_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMode;
 }
 
@@ -413,7 +420,7 @@ std::vector<std::pair<int, int>> Jericho3Asic::getPortGroups() const {
   for (auto g = 0; g < kNumPortGroups; ++g) {
     auto portGroupStart = kPortGroupStart + g * kPortGroupSize;
     auto portGroupEnd = portGroupStart + kPortGroupSize - 1;
-    portGroups.push_back(std::make_pair(portGroupStart, portGroupEnd));
+    portGroups.emplace_back(portGroupStart, portGroupEnd);
   }
   return portGroups;
 }

@@ -9,7 +9,11 @@
  */
 
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AlpmUtils.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -24,6 +28,25 @@ const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
     const std::shared_ptr<SwitchState>& newState) {
   return newState->getFibs()->getNode(RouterID(0))->getFibV4();
 }
+
+std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupId>
+getNhops2IdSansMergedOnlyGroups(const EcmpResourceManager& resourceMgr) {
+  const auto& nhops2Id = resourceMgr.getNhopsToId();
+  auto nonMergedNhops2Id = nhops2Id;
+  std::for_each(
+      nhops2Id.begin(),
+      nhops2Id.end(),
+      [&resourceMgr, &nonMergedNhops2Id](const auto& nhopsAndId) {
+        auto grpInfo = resourceMgr.getGroupInfo(nhopsAndId.second);
+        ASSERT_NE(grpInfo, nullptr);
+        if (grpInfo->getState() ==
+            NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY) {
+          nonMergedNhops2Id.erase(nhopsAndId.first);
+        }
+      });
+  return nonMergedNhops2Id;
+}
+
 } // namespace
 
 std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
@@ -96,6 +119,7 @@ void assertGroupsAreUnMerged(
       unmergedGroups.begin(),
       unmergedGroups.end(),
       [&resourceMgr, expectedCandidateMergeForEachUnmerged](auto gid) {
+        XLOG(DBG2) << " Checking candidate merges for unmerged group: " << gid;
         auto candidateMergeToConsolidationInfo =
             resourceMgr.getCandidateMergeConsolidationInfo(gid);
         EXPECT_EQ(
@@ -185,7 +209,7 @@ void assertAllGidsClaimed(
   auto allMergedAndUnmergedGids = resourceMgr.getMergedGids();
   allMergedAndUnmergedGids.insert(
       allUnmergedGids.begin(), allUnmergedGids.end());
-  auto nhops2Id = resourceMgr.getNhopsToId();
+  auto nhops2Id = getNhops2IdSansMergedOnlyGroups(resourceMgr);
   EcmpResourceManager::NextHopGroupIds allGids;
   std::for_each(
       nhops2Id.begin(), nhops2Id.end(), [&allGids](const auto& nhopsAndId) {
@@ -200,7 +224,7 @@ void assertAllGidsClaimed(
 void assertFibAndGroupsMatch(
     const EcmpResourceManager& resourceMgr,
     const std::shared_ptr<SwitchState>& state) {
-  auto nhops2Id = resourceMgr.getNhopsToId();
+  auto nhops2Id = getNhops2IdSansMergedOnlyGroups(resourceMgr);
   auto nhopsToMergedGroups = getNhopsToMergedGroups(resourceMgr);
   std::map<EcmpResourceManager::NextHopGroupId, int> unmergedGroupToRouteRef;
   std::map<EcmpResourceManager::NextHopGroupIds, int> mergedGroupToRouteRef;
@@ -284,5 +308,186 @@ void assertResourceMgrCorrectness(
       resourceMgr.getPrimaryEcmpAndMemberCounts();
   EXPECT_EQ(mgrPrimaryEcmpGroups, primaryEcmpTypeGroups2RefCnt.size());
   EXPECT_EQ(mgrEcmpMembers, ecmpMembers);
+}
+
+void assertNumRoutesWithNhopOverrides(
+    const std::shared_ptr<SwitchState>& state,
+    int expectedNumOverrides) {
+  auto getRouteOverrideCount = [&](auto inFib) {
+    int count{0};
+    for (auto [_, route] : std::as_const(*inFib)) {
+      if (!route->isResolved()) {
+        // Some tests deliberately add unresolved routes to
+        // FIB and run them through local consolidator_ state
+        continue;
+      }
+      CHECK(route);
+      bool isEcmpRoute = route->isResolved() &&
+          route->getForwardInfo().normalizedNextHops().size() > 1;
+      if (!isEcmpRoute) {
+        continue;
+      }
+      count += route->getForwardInfo().hasOverrideNextHops() ? 1 : 0;
+    }
+    return count;
+  };
+  auto overrideCount =
+      getRouteOverrideCount(cfib(state)) + getRouteOverrideCount(cfib4(state));
+  EXPECT_EQ(overrideCount, expectedNumOverrides);
+}
+
+std::set<RouteV6::Prefix> getPrefixesForGroups(
+    const EcmpResourceManager& resourceMgr,
+    const EcmpResourceManager::NextHopGroupIds& grpIds) {
+  auto grpId2Prefixes = resourceMgr.getGroupIdToPrefix();
+  std::set<RouteV6::Prefix> prefixes;
+  for (auto grpId : grpIds) {
+    for (const auto& [_, pfx] : grpId2Prefixes.at(grpId)) {
+      prefixes.insert(RouteV6::Prefix(pfx.first.asV6(), pfx.second));
+    }
+  }
+  return prefixes;
+}
+
+void assertDeltasForOverflow(
+    const EcmpResourceManager& resourceManager,
+    const std::vector<StateDelta>& deltas) {
+  auto primaryEcmpTypeGroups2RefCnt =
+      getPrimaryEcmpTypeGroups2RefCnt(deltas.begin()->oldState());
+  XLOG(DBG2) << " Primary ECMP groups : "
+             << primaryEcmpTypeGroups2RefCnt.size();
+  // ECMP groups should not exceed the limit.
+  EXPECT_LE(
+      primaryEcmpTypeGroups2RefCnt.size(),
+      resourceManager.getMaxPrimaryEcmpGroups());
+  auto routeDeleted = [&primaryEcmpTypeGroups2RefCnt](const auto& oldRoute) {
+    XLOG(DBG2) << " Route deleted: " << oldRoute->str();
+    if (!oldRoute->isResolved() ||
+        oldRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+      return;
+    }
+    if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+      return;
+    }
+    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
+        oldRoute->getForwardInfo().normalizedNextHops());
+    ASSERT_NE(pitr, primaryEcmpTypeGroups2RefCnt.end());
+    EXPECT_GE(pitr->second, 1);
+    --pitr->second;
+    if (pitr->second == 0) {
+      primaryEcmpTypeGroups2RefCnt.erase(pitr);
+      XLOG(DBG2) << " Primary ECMP group count decremented to: "
+                 << primaryEcmpTypeGroups2RefCnt.size()
+                 << " on pfx: " << oldRoute->str();
+    }
+  };
+  auto routeAdded = [&primaryEcmpTypeGroups2RefCnt,
+                     &resourceManager](const auto& newRoute) {
+    XLOG(DBG2) << " Route added: " << newRoute->str();
+    if (!newRoute->isResolved() ||
+        newRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+      return;
+    }
+    if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
+      return;
+    }
+    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
+        newRoute->getForwardInfo().normalizedNextHops());
+    if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
+      ++pitr->second;
+    } else {
+      bool inserted{false};
+      std::tie(pitr, inserted) = primaryEcmpTypeGroups2RefCnt.insert(
+          {newRoute->getForwardInfo().normalizedNextHops(), 1});
+      EXPECT_TRUE(inserted);
+      XLOG(DBG2) << " Primary ECMP group count incremented to: "
+                 << primaryEcmpTypeGroups2RefCnt.size()
+                 << " on pfx: " << newRoute->str();
+    }
+    // Transiently we can exceed consolidator maxPrimaryEcmpGroups,
+    // but we should never exceed
+    // maxPrimaryEcmpGroups +
+    // FLAGS_ecmp_resource_manager_make_before_break_buffer We deliberately set
+    // consolidator's maxPrimaryEcmpGroups to be Actual limit -
+    // FLAGS_ecmp_resource_manager_make_before_break_buffer
+    EXPECT_LE(
+        primaryEcmpTypeGroups2RefCnt.size(),
+        resourceManager.getMaxPrimaryEcmpGroups() +
+            FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  };
+
+  auto idx = 1;
+  for (const auto& delta : deltas) {
+    XLOG(DBG2) << " Processing delta #" << idx++;
+    processFibsDeltaInHwSwitchOrder(
+        delta,
+        [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
+          if (!oldRoute->isResolved() && !newRoute->isResolved()) {
+            return;
+          }
+          if (oldRoute->isResolved() && !newRoute->isResolved()) {
+            routeDeleted(oldRoute);
+            return;
+          }
+          if (!oldRoute->isResolved() && newRoute->isResolved()) {
+            routeAdded(newRoute);
+            return;
+          }
+          // Both old and new are resolved
+          CHECK(oldRoute->isResolved() && newRoute->isResolved());
+          if (oldRoute->getForwardInfo() != newRoute->getForwardInfo()) {
+            // First process as a add route, since ECMP is make before break
+            routeAdded(newRoute);
+            routeDeleted(oldRoute);
+          }
+        },
+        [=](RouterID /*rid*/, const auto& newRoute) {
+          if (newRoute->isResolved()) {
+            routeAdded(newRoute);
+          }
+        },
+        [=](RouterID /*rid*/, const auto& oldRoute) {
+          if (oldRoute->isResolved()) {
+            routeDeleted(oldRoute);
+          }
+        });
+    EXPECT_LE(
+        primaryEcmpTypeGroups2RefCnt.size(),
+        resourceManager.getMaxPrimaryEcmpGroups());
+  }
+}
+
+void assertRollbacks(
+    EcmpResourceManager& newEcmpResourceMgr,
+    const std::shared_ptr<SwitchState>& startState,
+    const std::shared_ptr<SwitchState>& endState) {
+  auto applyDelta = [&newEcmpResourceMgr](
+                        const StateDelta& delta, bool failUpdate = false) {
+    auto deltas = newEcmpResourceMgr.consolidate(delta);
+    facebook::fboss::assertDeltasForOverflow(newEcmpResourceMgr, deltas);
+    assertResourceMgrCorrectness(newEcmpResourceMgr, deltas.back().newState());
+    if (failUpdate) {
+      newEcmpResourceMgr.updateFailed(delta.oldState());
+      assertResourceMgrCorrectness(newEcmpResourceMgr, delta.oldState());
+    } else {
+      newEcmpResourceMgr.updateDone();
+    }
+    return deltas;
+  };
+  auto emptyState = std::make_shared<SwitchState>();
+  addSwitchInfo(emptyState);
+  emptyState = setupMinAlpmRouteState(emptyState);
+
+  // Get to the startState - essentially the state post ::SetUp
+  applyDelta(StateDelta(emptyState, startState));
+  // Get to the current test state, assert no overflow and mgr correctness
+  // Now mark the latest update as failed and assert that resourceMgr reverts
+  // to setup state
+  applyDelta(StateDelta(startState, endState), true /*failUpdate*/);
+  // Now once again goto current state, and then revert back to
+  // startState. This time assert that deltas for this revert did not cause a
+  // overflow
+  auto deltas = applyDelta(StateDelta(startState, endState));
+  applyDelta(StateDelta(deltas.back().newState(), startState));
 }
 } // namespace facebook::fboss

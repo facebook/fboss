@@ -177,20 +177,26 @@ struct PathVisitOptions {
   }
 
   static PathVisitOptions visitLeaf(
-      bool skipOptionalOrImmutablePrimitiveNode = false) {
+      bool skipOptionalOrImmutablePrimitiveNode = false,
+      bool visitContainerForPrimitiveNode = false) {
     return PathVisitOptions(
-        PathVisitMode::LEAF, skipOptionalOrImmutablePrimitiveNode);
+        PathVisitMode::LEAF,
+        skipOptionalOrImmutablePrimitiveNode,
+        visitContainerForPrimitiveNode);
   }
 
   explicit PathVisitOptions(
       PathVisitMode mode,
-      bool skipOptionalOrImmutablePrimitiveNode = false)
+      bool skipOptionalOrImmutablePrimitiveNode = false,
+      bool visitContainerForPrimitiveNode = false)
       : mode(mode),
         skipOptionalOrImmutablePrimitiveNode(
-            skipOptionalOrImmutablePrimitiveNode) {}
+            skipOptionalOrImmutablePrimitiveNode),
+        visitContainerForPrimitiveNode(visitContainerForPrimitiveNode) {}
 
   PathVisitMode mode;
   bool skipOptionalOrImmutablePrimitiveNode;
+  bool visitContainerForPrimitiveNode;
 };
 
 namespace pv_detail {
@@ -246,12 +252,17 @@ struct LambdaPathVisitorOperator {
 };
 
 template <typename TC, typename Node, typename Op>
-ThriftTraverseResult
-visitNode(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
+ThriftTraverseResult visitNode(
+    Node& node,
+    const VisitImplParams<Op>& params,
+    PathIter cursor,
+    bool isContainerNode)
     // only enable for Node types
   requires(std::is_same_v<typename Node::CowType, NodeType>)
 {
-  if (params.options.mode == PathVisitMode::FULL || cursor == params.end) {
+  if (params.options.mode == PathVisitMode::FULL ||
+      ((cursor == params.end) &&
+       !params.options.visitContainerForPrimitiveNode)) {
     try {
       params.op.template visitTyped<TC, Node>(node, cursor, params.end);
       if (cursor == params.end) {
@@ -270,11 +281,34 @@ visitNode(Node& node, const VisitImplParams<Op>& params, PathIter cursor)
     }
   }
 
+  std::optional<ThriftTraverseResult> result;
   if constexpr (std::is_const_v<Node>) {
-    return PathVisitorImpl<TC>::visit(*node.getFields(), params, cursor);
+    result = PathVisitorImpl<TC>::visit(*node.getFields(), params, cursor);
   } else {
-    return PathVisitorImpl<TC>::visit(*node.writableFields(), params, cursor);
+    result = PathVisitorImpl<TC>::visit(*node.writableFields(), params, cursor);
   }
+  if (params.options.visitContainerForPrimitiveNode && isContainerNode) {
+    // if this container node had skipped primitive node,
+    // visit node and update result
+    if (result.value().code() ==
+        ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE) {
+      try {
+        params.op.template visitTyped<TC, Node>(node, cursor, params.end);
+        result = ThriftTraverseResult();
+      } catch (const std::exception& ex) {
+        std::string message = folly::to<std::string>(
+            "path: ",
+            folly::join("/", params.begin, params.end),
+            " at: ",
+            (cursor == params.end ? "(end)" : *cursor),
+            ", visitNode(Cow) exception: ",
+            ex.what());
+        return ThriftTraverseResult(
+            ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
+      }
+    }
+  }
+  return result.value();
 }
 
 /**
@@ -290,7 +324,7 @@ struct PathVisitorImpl<apache::thrift::type_class::set<ValueTypeClass>> {
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    return pv_detail::visitNode<TC>(node, params, cursor);
+    return pv_detail::visitNode<TC>(node, params, cursor, true);
   }
 
   template <typename Obj, typename Op>
@@ -453,7 +487,7 @@ struct PathVisitorImpl<apache::thrift::type_class::list<ValueTypeClass>> {
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    return pv_detail::visitNode<TC>(node, params, cursor);
+    return pv_detail::visitNode<TC>(node, params, cursor, true);
   }
 
   template <typename Obj, typename Op>
@@ -580,7 +614,7 @@ struct PathVisitorImpl<
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    return pv_detail::visitNode<TC>(node, params, cursor);
+    return pv_detail::visitNode<TC>(node, params, cursor, true);
   }
 
   template <typename Obj, typename Op>
@@ -740,7 +774,7 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    return pv_detail::visitNode<TC>(node, params, cursor);
+    return pv_detail::visitNode<TC>(node, params, cursor, false);
   }
 
   template <typename Node, typename Op>
@@ -898,7 +932,7 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       // only enable for Node types
     requires(std::is_same_v<typename Node::CowType, NodeType>)
   {
-    return pv_detail::visitNode<TC>(node, params, cursor);
+    return pv_detail::visitNode<TC>(node, params, cursor, false);
   }
 
   template <typename Node, typename Op>
@@ -946,14 +980,14 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
               folly::join("/", params.begin, params.end),
               " at: ",
               (cursor == params.end ? "(end)" : *cursor));
-          *result = ThriftTraverseResult(
+          result = ThriftTraverseResult(
               ThriftTraverseResult::Code::NON_EXISTENT_NODE, message);
           return;
         }
       }
       // Recurse further
       auto& child = getter{}(tObj);
-      *result = PathVisitorImpl<tc>::visit(child, params, cursor);
+      result = PathVisitorImpl<tc>::visit(child, params, cursor);
     });
 
     if (!result.has_value()) {
@@ -1118,6 +1152,11 @@ struct PathVisitorImpl {
   template <typename Node, typename Op>
   static ThriftTraverseResult
   visit(Node& node, const VisitImplParams<Op>& params, PathIter cursor) {
+    if (params.options.visitContainerForPrimitiveNode) {
+      return ThriftTraverseResult(
+          ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
+    }
+
     if constexpr (optional_field<folly::remove_cvref_t<Node>>::value) {
       if (params.options.skipOptionalOrImmutablePrimitiveNode) {
         return ThriftTraverseResult();

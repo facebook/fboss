@@ -2,8 +2,10 @@
 
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -241,9 +243,47 @@ bool HwTestThriftHandler::isPortSampled(
 }
 
 bool HwTestThriftHandler::isAclEntryMirrored(
-    std::unique_ptr<std::string> /*aclEntry*/,
-    std::unique_ptr<std::string> /*mirror*/,
-    bool /*ingress*/) {
-  throw FbossError("isAclEntryMirrored not implemented");
+    std::unique_ptr<std::string> aclEntry,
+    std::unique_ptr<std::string> mirror,
+    bool ingress) {
+  auto saiSwitch = static_cast<SaiSwitch*>(hwSwitch_);
+
+  // Get the ACL entry from the state
+  auto state = hwSwitch_->getProgrammedState();
+  auto aclEntry_ptr = utility::getAclEntryByName(state, *aclEntry);
+  if (!aclEntry_ptr) {
+    return false;
+  }
+
+  // Get the ACL table name that contains this ACL entry
+  auto aclTableNameOpt =
+      utility::getAclTableNameForEntry(state, aclEntry_ptr->getID());
+  if (!aclTableNameOpt) {
+    return false;
+  }
+  std::string aclTableName = *aclTableNameOpt;
+
+  // Get the ACL table handle and entry handle from SAI manager
+  const auto& aclTableManager = saiSwitch->managerTable()->aclTableManager();
+  auto aclTableHandle = aclTableManager.getAclTableHandle(aclTableName);
+  if (!aclTableHandle) {
+    return false;
+  }
+
+  auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+      aclTableHandle, aclEntry_ptr->getPriority());
+  if (!aclEntryHandle) {
+    return false;
+  }
+
+  // Check if the ACL entry has the expected mirror
+  const auto& expectedMirror = *mirror;
+  if (ingress) {
+    auto actualMirror = aclEntryHandle->ingressMirror;
+    return actualMirror && *actualMirror == expectedMirror;
+  } else {
+    auto actualMirror = aclEntryHandle->egressMirror;
+    return actualMirror && *actualMirror == expectedMirror;
+  }
 }
 } // namespace facebook::fboss::utility

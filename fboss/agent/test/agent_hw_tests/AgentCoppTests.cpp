@@ -1620,7 +1620,7 @@ class AgentCoppQosTest : public AgentHwTest {
     }
     if (addQueueRate) {
       queue0.portQueueRate() =
-          utility::setPortQueueRate(hwAsic, utility::kCoppLowPriQueueId);
+          utility::getPortQueueRate(hwAsic, utility::kCoppLowPriQueueId);
     }
     utility::setPortQueueMaxDynamicSharedBytes(queue0, hwAsic);
     cpuQueues.push_back(queue0);
@@ -1717,7 +1717,17 @@ TEST_F(AgentCoppQueueStuckTest, CpuQueueHighRateTraffic) {
     const double kVariance = 0.30; // i.e. + or -30%
     uint64_t kDurationInSecs = 12;
     uint64_t pktSize = EthHdr::SIZE + IPv6Hdr::size() + 256;
-    uint64_t expectedRate = utility::kCoppDnxLowPriKbitsPerSec * 1024;
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto portQueueRate =
+        utility::getPortQueueRate(asic, utility::kCoppLowPriQueueId);
+    uint64_t expectedRate;
+    if (portQueueRate.getType() == cfg::PortQueueRate::Type::kbitsPerSec) {
+      expectedRate = portQueueRate.get_kbitsPerSec().maximum().value() * 1024;
+    } else {
+      // pktsPerSec
+      expectedRate =
+          portQueueRate.get_pktsPerSec().maximum().value() * pktSize * 8;
+    }
     auto expectedRateLow = expectedRate * (1 - kVariance);
     auto expectedRateHigh = expectedRate * (1 + kVariance);
     WITH_RETRIES({

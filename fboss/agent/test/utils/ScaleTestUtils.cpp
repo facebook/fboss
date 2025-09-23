@@ -121,8 +121,8 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
           currCombination.begin(),
           currCombination.begin() + remainingGrp);
       if (remainingMem % i > 0) {
-        allCombinations.push_back(std::vector<PortDescriptor>(
-            inputs.begin(), inputs.begin() + (remainingMem % i)));
+        allCombinations.emplace_back(
+            inputs.begin(), inputs.begin() + (remainingMem % i));
       }
       membersGenerated += remainingMem;
       break;

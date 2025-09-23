@@ -13,7 +13,11 @@
 namespace facebook::fboss {
 
 BENCHMARK(HwStatsCollection) {
-  runStatsCollectionBenchmark();
+  runStatsCollectionBenchmark(false /* alwaysCollectVoqStats */);
+}
+
+BENCHMARK(HwVoqStatsCollection) {
+  runStatsCollectionBenchmark(true /* alwaysCollectVoqStats */);
 }
 
 } // namespace facebook::fboss

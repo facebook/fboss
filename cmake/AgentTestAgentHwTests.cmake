@@ -153,6 +153,7 @@ target_link_libraries(multi_switch_agent_hw_test
   multi_switch_agent_ensemble
   olympic_qos_utils
   network_ai_qos_utils
+  setup_thrift_prod
   trunk_utils
   traffic_policy_utils
   Folly::folly
@@ -184,6 +185,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     network_ai_qos_utils
     traffic_policy_utils
     sai_traced_api
+    setup_thrift_prod
     -Wl,--no-whole-archive
   )
 
@@ -227,6 +229,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_acl_utils
     mono_agent_ensemble
     agent_hw_test_thrift_handler
+    setup_thrift_prod
     -Wl,--no-whole-archive
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}

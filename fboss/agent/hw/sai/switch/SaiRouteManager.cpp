@@ -295,6 +295,19 @@ void SaiRouteManager::addOrUpdateRoute(
                   fwd.getOverrideEcmpSwitchingMode()));
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
+
+      // Read ARS class ID from next hop group metadata and set it in route
+      // metadata
+      auto arsClassId =
+          managerTable_->nextHopGroupManager().getNextHopGroupArsClassId(
+              nextHopGroupHandle);
+      if (arsClassId != 0) {
+        // Override the existing metadata with ARS class ID if it's non-zero
+        metadata = arsClassId;
+        XLOG(DBG3) << "Route with ECMP: " << newRoute->str()
+                   << " setting metadata to ARS class ID: " << arsClassId;
+      }
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, nextHopGroupId, metadata, counterID};

@@ -502,6 +502,8 @@ enum AclLookupClass {
   // will be replaced by DST_CLASS_L3_LOCAL_1 and DST_CLASS_L3_LOCAL_2
   DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
   DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF = 22,
+
+  ARS_ALTERNATE_MEMBERS_CLASS = 32,
 }
 
 enum PacketLookupResultType {
@@ -641,6 +643,7 @@ enum AclTableActionType {
   SET_USER_DEFINED_TRAP = 6,
   DISABLE_ARS_FORWARDING = 7,
   SET_ARS_OBJECT = 8,
+  L3_SWITCH_CANCEL = 9,
 }
 
 enum AclTableQualifier {
@@ -797,6 +800,7 @@ struct MatchAction {
   11: optional UserDefinedTrapAction userDefinedTrap;
   12: optional FlowletAction flowletAction;
   13: optional SetEcmpHashAction ecmpHashAction;
+  14: optional bool enableAlternateArsMembers;
 }
 
 struct MatchToAction {
@@ -1291,6 +1295,12 @@ struct Port {
    * Inter-packet gap configuration in bits.
    */
   36: optional i32 interPacketGapBits;
+
+  /*
+   * AM (Alignment Marker) idles configuration.
+   * Controls whether AM idles are enabled on the port.
+   */
+  37: optional bool amIdles;
 }
 
 enum LacpPortRate {
@@ -1304,6 +1314,11 @@ enum LacpPortActivity {
 }
 
 const i16 DEFAULT_LACP_HOLD_TIMER_MULTIPLIER = 3;
+
+enum AggregatePortType {
+  LAG_PORT = 0,
+  HYPER_PORT = 1,
+}
 
 struct AggregatePortMember {
   /**
@@ -1336,6 +1351,16 @@ struct AggregatePort {
    * pre-aggregated ODS counters
    */
   6: optional list<string> counterTags;
+  7: AggregatePortType aggregatePortType = LAG_PORT;
+  /*
+   * If minimumCapacityToUp is provided, it will be used with minimumCapacity to
+   * provide a flap-resistant way to decide AggregatePort Up/Down.
+   * a. If active link count < minimumCapacity, bring AggregatePort down.
+   * b. If active link count >= minimumCapacityToUp, bring AggregatePort up.
+   * c. If minimumCapacity <= active link count < minimumCapacityToUp,
+   * keep AggregatePort current oper state.
+   */
+  8: optional MinimumCapacity minimumCapacityToUp;
 }
 
 struct Lacp {
@@ -2189,6 +2214,12 @@ struct FlowletSwitchingConfig {
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
   // fall back switching mode if DLB groups are exhausted
   13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
+  // primary path quality threshold
+  14: optional i32 primaryPathQualityThreshold;
+  // alternate path cost
+  15: optional i32 alternatePathCost;
+  // alternate path bias
+  16: optional i32 alternatePathBias;
 }
 
 /**

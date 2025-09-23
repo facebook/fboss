@@ -442,7 +442,7 @@ class SaiObject {
     if (isOwnedByAdapter() || skipRemove_) {
       return;
     }
-    if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
+    if constexpr (!IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
       auto& api = SaiApiTable::getInstance()
                       ->getApi<typename SaiObjectTraits::SaiApiT>();
       try {

@@ -277,6 +277,29 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
+#if defined(SAI_VERSION_11_7_0_0_ODP) || defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeResetQueueCreditBalance::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  // The initial credit in VoQ switch ports allows a lot of packets to egress
+  // after TX is disabled on the port. This results in inaccuracies in some
+  // tests which need TX to be disabled before specific sequence is done. This
+  // new SAI attribute provides an option to reset the credit balance on a per
+  // port basis which will stop TX on a port after ~400+ 256B packets.
+  return SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
   return SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS;

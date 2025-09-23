@@ -707,6 +707,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<bool> getResetQueueCreditBalance() const {
+    if (auto value = cref<switch_state_tags::resetQueueCreditBalance>()) {
+      return value->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setResetQueueCreditBalance(std::optional<bool> resetQueueCreditBalance) {
+    if (resetQueueCreditBalance.has_value()) {
+      set<switch_state_tags::resetQueueCreditBalance>(*resetQueueCreditBalance);
+    } else {
+      ref<switch_state_tags::resetQueueCreditBalance>().reset();
+    }
+  }
+
   std::vector<PortError> getActiveErrors() const {
     return safe_cref<switch_state_tags::activeErrors>()->toThrift();
   }
@@ -816,6 +831,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       ref<switch_state_tags::interPacketGapBits>().reset();
     } else {
       set<switch_state_tags::interPacketGapBits>(interPacketGapBits.value());
+    }
+  }
+
+  /** @brief Get AM idles state */
+  std::optional<bool> getAmIdles() const {
+    if (auto amIdles = cref<switch_state_tags::amIdles>()) {
+      return amIdles->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set AM idles state */
+  void setAmIdles(std::optional<bool> amIdles) {
+    if (!amIdles.has_value()) {
+      ref<switch_state_tags::amIdles>().reset();
+    } else {
+      set<switch_state_tags::amIdles>(amIdles.value());
     }
   }
 

@@ -56,6 +56,8 @@ const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
 long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
   if (platform == facebook::fboss::PlatformType::PLATFORM_MERU800BIA) {
     return 6 * 1000 * 1000 * 1000L; // 6GB
+  } else if (platform == facebook::fboss::PlatformType::PLATFORM_MONTBLANC) {
+    return 4 * 1000 * 1000 * 1000L; // 4GB
   }
   return 3 * 1000 * 1000 * 1000L; // 3GB
 }
@@ -181,9 +183,9 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
     if (!(*port.expectedLLDPValues()).empty() ||
         !(*port.expectedNeighborReachability()).empty()) {
       auto portID = *port.logicalID();
-      cabledPorts_.push_back(PortID(portID));
+      cabledPorts_.emplace_back(portID);
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
-        cabledFabricPorts_.push_back(PortID(portID));
+        cabledFabricPorts_.emplace_back(portID);
       }
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
@@ -603,7 +605,7 @@ AgentEnsembleLinkTest::getPortPairsForFecErrInj() const {
           "FEC different on both ends of the link: ", fecPort1, fecPort2);
     }
     if (supportedFecs.find(fecPort1) != supportedFecs.end()) {
-      supportedPorts.push_back({port1, port2});
+      supportedPorts.emplace_back(port1, port2);
     }
   }
   return supportedPorts;

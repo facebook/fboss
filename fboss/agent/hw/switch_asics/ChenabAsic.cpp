@@ -229,6 +229,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
       return false;
   }
@@ -430,9 +431,6 @@ std::optional<uint32_t> ChenabAsic::getMaxEcmpGroups() const {
 std::optional<uint32_t> ChenabAsic::getMaxEcmpMembers() const {
   return 32000;
 }
-std::optional<uint32_t> ChenabAsic::getMaxDlbEcmpGroups() const {
-  return 256;
-}
 uint32_t ChenabAsic::getNumCores() const {
   return 1;
 }
@@ -467,6 +465,14 @@ uint32_t ChenabAsic::getThresholdGranularity() const {
 std::vector<prbs::PrbsPolynomial> ChenabAsic::getSupportedPrbsPolynomials()
     const {
   return {prbs::PrbsPolynomial::PRBS13};
+}
+
+std::optional<uint32_t> ChenabAsic::getMaxArsGroups() const {
+  return 256;
+}
+
+std::optional<uint32_t> ChenabAsic::getArsBaseIndex() const {
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

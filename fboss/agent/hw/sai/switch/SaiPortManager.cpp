@@ -1102,7 +1102,7 @@ void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
   auto prbsStatsTable = PrbsStatsTable();
   // Dump cumulative PRBS stats on first PrbsStatsEntry because there is no
   // per-lane PRBS counter available in SAI.
-  prbsStatsTable.push_back(PrbsStatsEntry(portId, rate));
+  prbsStatsTable.emplace_back(portId, rate);
   portAsicPrbsStats_[portId] = std::move(prbsStatsTable);
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1) && defined(BRCM_SAI_SDK_XGS_AND_DNX)
   // Trigger initial read of PrbsRxState to help clear any initial lock
@@ -1561,12 +1561,16 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   auto port = std::make_shared<Port>(std::move(portFields));
 
   switch (portType.value()) {
-    case SAI_PORT_TYPE_LOGICAL:
-      port->setPortType(derivePortTypeOfLogicalPort(portSaiId));
-      break;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+    case SAI_PORT_TYPE_LOGICAL:
+      port->setPortType(cfg::PortType::INTERFACE_PORT);
+      break;
     case SAI_PORT_TYPE_MGMT:
       port->setPortType(cfg::PortType::MANAGEMENT_PORT);
+      break;
+#else
+    case SAI_PORT_TYPE_LOGICAL:
+      port->setPortType(derivePortTypeOfLogicalPort(portSaiId));
       break;
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
@@ -2337,17 +2341,17 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
   auto nullObjId = QosMapSaiId(SAI_NULL_OBJECT_ID);
   if (!globalQosMapSupported_) {
-    qosMaps.push_back({SAI_QOS_MAP_TYPE_DSCP_TO_TC, nullObjId});
-    qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_QUEUE, nullObjId});
+    qosMaps.emplace_back(SAI_QOS_MAP_TYPE_DSCP_TO_TC, nullObjId);
+    qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_QUEUE, nullObjId);
   }
 
   auto qosMapHandle = managerTable_->qosMapManager().getQosMap();
   if (qosMapHandle) {
     if (qosMapHandle->tcToPgMap) {
-      qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId});
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId);
     }
     if (qosMapHandle->pfcPriorityToQueueMap) {
-      qosMaps.push_back({SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId});
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId);
     }
   }
 
@@ -2358,21 +2362,20 @@ std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
 SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
   if (!globalQosMapSupported_) {
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_DSCP_TO_TC, qosMapHandle->dscpToTcMap->adapterKey()});
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_TC_TO_QUEUE,
-         qosMapHandle->tcToQueueMap->adapterKey()});
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_DSCP_TO_TC, qosMapHandle->dscpToTcMap->adapterKey());
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_TC_TO_QUEUE, qosMapHandle->tcToQueueMap->adapterKey());
   }
   if (qosMapHandle->tcToPgMap) {
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
-         qosMapHandle->tcToPgMap->adapterKey()});
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
+        qosMapHandle->tcToPgMap->adapterKey());
   }
   if (qosMapHandle->pfcPriorityToQueueMap) {
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
-         qosMapHandle->pfcPriorityToQueueMap->adapterKey()});
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
+        qosMapHandle->pfcPriorityToQueueMap->adapterKey());
   }
   return qosMaps;
 }
@@ -3329,6 +3332,27 @@ void SaiPortManager::changeTxEnable(
         SaiPortTraits::Attributes::PktTxEnable{
             newPort->getTxEnable().has_value() ? newPort->getTxEnable().value()
                                                : false});
+  }
+}
+
+void SaiPortManager::changeResetQueueCreditBalance(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getResetQueueCreditBalance() !=
+      newPort->getResetQueueCreditBalance()) {
+    auto portHandle = getPortHandle(newPort->getID());
+    if (!portHandle) {
+      throw FbossError(
+          "Cannot change enable initial credit on non existent port: ",
+          newPort->getID());
+    }
+    // Set the attribute only if its explicitly specified
+    if (newPort->getResetQueueCreditBalance().has_value()) {
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->port->adapterKey(),
+          SaiPortTraits::Attributes::ResetQueueCreditBalance{
+              newPort->getResetQueueCreditBalance().value()});
+    }
   }
 }
 

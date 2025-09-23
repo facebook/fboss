@@ -130,7 +130,7 @@ def read_port_profile_mapping(
 ) -> PortProfileMapping:
     PORT_PROFILE_MAPPING_SUFFIX = "_port_profile_mapping.csv"
     Column = column_int_enum_generator(
-        "GLOBAL_PORT_ID LOGICAL_PORT_ID PORT_NAME SUPPORTED_PROFILES ATTACHED_COREID ATTACHED_CORE_PORTID VIRTUAL_DEVICE_ID PORT_TYPE SCOPE",
+        "GLOBAL_PORT_ID LOGICAL_PORT_ID PORT_NAME SUPPORTED_PROFILES ATTACHED_COREID ATTACHED_CORE_PORTID VIRTUAL_DEVICE_ID PORT_TYPE SCOPE PARENT_PORT",
     )
     ports = {}
     for index, line in enumerate(
@@ -170,6 +170,10 @@ def read_port_profile_mapping(
         if int(port_type) not in PortType._VALUES_TO_NAMES:
             raise Exception("Don't understand port type", port_type)
         scope = row[Column.SCOPE]
+        if Column.PARENT_PORT < len(row) and row[Column.PARENT_PORT]:
+            parent_port_id = int(row[Column.PARENT_PORT])
+        else:
+            parent_port_id = None
         ports[global_port_id] = Port(
             global_port_id=global_port_id,
             logical_port_id=logical_port_id,
@@ -182,6 +186,7 @@ def read_port_profile_mapping(
             port_type=int(port_type),
             # pyre-fixme[6]: Expected `Scope` for 8th param but got `int`.
             scope=int(scope),
+            parent_port_id=parent_port_id,
         )
     return PortProfileMapping(ports=ports)
 

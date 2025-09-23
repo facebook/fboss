@@ -1172,7 +1172,7 @@ TYPED_TEST(ArpTest, FlushEntryWithConcurrentUpdate) {
   VlanID vlanID(1);
   std::vector<IPAddressV4> targetIPs;
   for (uint32_t i = 1; i <= 255; i++) {
-    targetIPs.push_back(IPAddressV4("10.0.0." + std::to_string(i)));
+    targetIPs.emplace_back("10.0.0." + std::to_string(i));
   }
 
   // populate arp entries first before flush

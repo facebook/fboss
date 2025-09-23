@@ -536,7 +536,7 @@ std::vector<PortID> getPortsForInterface(
       auto vlan = state->getVlans()->getNodeIf(vlanId);
       if (vlan) {
         for (const auto& memberPort : vlan->getPorts()) {
-          ports.push_back(PortID(memberPort.first));
+          ports.emplace_back(memberPort.first);
         }
       }
     } break;

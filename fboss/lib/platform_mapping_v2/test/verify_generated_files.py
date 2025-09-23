@@ -32,6 +32,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "meru800bia_dual_stage_edsw",
             "meru800bia_100g_nif_port_breakout",
             "meru800bia_800g",
+            "meru800bia_800g_hyperport",
             "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
             "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
             "janga800bic_dctype1_prod",

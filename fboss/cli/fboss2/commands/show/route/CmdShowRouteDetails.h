@@ -330,6 +330,8 @@ class CmdShowRouteDetails
         return fmt::format("CLASS_UNRESOLVED_ROUTE_TO_CPU({})", classId);
       case cfg::AclLookupClass::DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF:
         return fmt::format("CLASS_CONNECTED_ROUTE_TO_INTF({})", classId);
+      case cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS:
+        return fmt::format("ARS_ALTERNATE_MEMBERS_CLASS({})", classId);
     }
     throw std::runtime_error(
         "Unsupported ClassID: " + std::to_string(static_cast<int>(classID)));

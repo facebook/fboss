@@ -26,7 +26,7 @@ BENCHMARK(fsdbClientIdParse) {
 } // namespace facebook::fboss::fsdb::test
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv);
+  const folly::Init init(&argc, &argv);
   FLAGS_bm_max_iters = 1000;
   folly::runBenchmarks();
   return 0;

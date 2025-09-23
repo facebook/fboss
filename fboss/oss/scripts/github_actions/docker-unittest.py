@@ -18,6 +18,7 @@ FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 
 TEST_PATH_REGEX = re.compile(".*tests?$")
 HW_TEST_PATH_REGEX = re.compile(".*hw_tests?$")
+CONTAINER_WORKDIR = "/var/FBOSS/fboss"
 
 
 # TODO: paulcruz74 - deduplicate this from docker-build.py
@@ -27,6 +28,28 @@ def get_docker_path():
     oss_dir_path = Path(scripts_path).parent.absolute()
     docker_dir_path = os.path.join(oss_dir_path, "docker")
     return docker_dir_path
+
+
+def get_repo_path():
+    github_actions_path = os.path.dirname(__file__)
+    scripts_path = Path(github_actions_path).parent.absolute()
+    return Path(scripts_path).parent.parent.parent.absolute()
+
+
+def use_stable_hashes():
+    cwd = os.getcwd()
+    os.chdir(get_repo_path())
+    cmd = [
+        "rm",
+        "-rf",
+        "build/deps/github_hashes/",
+        "&&",
+        "tar",
+        "xvzf",
+        "fboss/oss/stable_commits/latest_stable_hashes.tar.gz",
+    ]
+    subprocess.run(cmd)
+    os.chdir(cwd)
 
 
 def build_docker_image(docker_dir_path: str):
@@ -102,9 +125,12 @@ def is_hw_test(path: str) -> bool:
 
 
 def run_test(test: str, output_dir: str) -> bool:
+    use_stable_hashes()
     cmd_args = ["sudo", "docker", "run"]
     lib_path = os.path.join(output_dir, "lib")
     cmd_args.extend(["-e", f"LD_LIBRARY_PATH={lib_path}"])
+    # Mount fboss repository in container
+    cmd_args.extend(["-v", f"{get_repo_path()}:{CONTAINER_WORKDIR}:z"])
     cmd_args.extend(["-v", f"{output_dir}:{output_dir}:z"])
     # Add required capability for sudo permissions
     cmd_args.append("--cap-add=CAP_AUDIT_WRITE")
