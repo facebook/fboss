@@ -35,7 +35,10 @@
       TunManagerRuleProcessorTest, BuildIfIndexToTableIdMapFromRulesEmpty); \
   FRIEND_TEST(                                                              \
       TunManagerRuleProcessorTest,                                          \
-      BuildIfIndexToTableIdMapFromRulesSingleInterface);
+      BuildIfIndexToTableIdMapFromRulesSingleInterface);                    \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesMultipleInterfaces);
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -372,6 +375,42 @@ TEST_F(
 
   ASSERT_EQ(1, result.size());
   EXPECT_EQ(101, result[10]); // ifIndex 10 -> tableId 101
+}
+
+/**
+ * @brief Test multiple interfaces mapping for buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules correctly maps multiple
+ * interfaces to their respective table IDs based on matching source routing
+ * rules.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesMultipleInterfaces) {
+  // Create first mock interface
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+  Interface::Addresses addrs1 = {{folly::IPAddress("192.168.1.100"), 24}};
+  mockIntf1->setTestAddresses(addrs1);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+
+  // Create second mock interface
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 11, 1500);
+  Interface::Addresses addrs2 = {{folly::IPAddress("192.168.2.100"), 24}};
+  mockIntf2->setTestAddresses(addrs2);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+
+  // Add matching probed rules
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "192.168.1.100/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET, 102, "192.168.2.100/32");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  ASSERT_EQ(2, result.size());
+  EXPECT_EQ(101, result[10]); // ifIndex 10 -> tableId 101
+  EXPECT_EQ(102, result[11]); // ifIndex 11 -> tableId 102
 }
 
 } // namespace facebook::fboss
