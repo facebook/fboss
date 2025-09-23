@@ -44,7 +44,10 @@
       BuildIfIndexToTableIdMapFromRulesSkipLinkLocal);                      \
   FRIEND_TEST(                                                              \
       TunManagerRuleProcessorTest,                                          \
-      BuildIfIndexToTableIdMapFromRulesNoMatchingRules);
+      BuildIfIndexToTableIdMapFromRulesNoMatchingRules);                    \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesFirstMatchOnly);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -478,6 +481,41 @@ TEST_F(
   auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
 
   EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @brief Test interface with multiple addresses for
+ * buildIfIndexToTableIdMapFromRules - only first matching address used
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules uses the first matching
+ * address for mapping creation,  since all addresses on an interface should
+ * normally have the same table ID in production.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesFirstMatchOnly) {
+  // Create a mock interface with multiple addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+
+  Interface::Addresses addrs = {
+      {folly::IPAddress("192.168.1.100"), 24},
+      {folly::IPAddress("192.168.1.101"), 24},
+      {folly::IPAddress("2001:db8::100"), 64}};
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // Add multiple matching probed rules - should use the first match
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "192.168.1.100/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET, 102, "192.168.1.101/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET6, 103, "2001:db8::100/128");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  ASSERT_EQ(1, result.size());
+  // Should map to the first matching rule (tableId 101)
+  EXPECT_EQ(101, result[10]);
 }
 
 } // namespace facebook::fboss
