@@ -118,12 +118,15 @@ void TransceiverStateMachineController::applyUpdate(
   auto postState = *lockedStateMachine->current_state();
   if (preState != postState) {
     // We only log successful state changes.
-    XLOG_IF(INFO, preState && postState)
-        << "Successfully applied state update for " << getUpdateString(event)
-        << " from "
-        << apache::thrift::util::enumNameSafe(getStateByOrder(preState))
-        << " to "
-        << apache::thrift::util::enumNameSafe(getStateByOrder(postState));
+    XLOG(INFO) << "Successfully applied state update for "
+               << getUpdateString(event) << " from "
+               << apache::thrift::util::enumNameSafe(getStateByOrder(preState))
+               << " to "
+               << apache::thrift::util::enumNameSafe(
+                      getStateByOrder(postState));
+  } else {
+    XLOG(ERR) << "Failed to apply TransceiverStateMachineUpdate "
+              << getUpdateString(event);
   }
 };
 

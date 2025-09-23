@@ -286,6 +286,13 @@ class PortManager {
     return tcvrToInitializedPorts_;
   }
 
+  // This function is responsible for trigger IPHY programming and XPHY
+  // programming events for all port state machines. It's also responsible for
+  // telling port state machines to upgrade to TCVRS_PROGRAMMED when necessary.
+  void triggerProgrammingEvents();
+
+  bool arePortTcvrsProgrammed(PortID portId) const;
+
  protected:
   /*
    * function to initialize all the Phy in the system

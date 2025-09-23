@@ -43,31 +43,60 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     resetManagers();
   }
 
+  void setMockCmisPresence(bool isPresent) {
+    MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+    auto xcvrImpl = mockXcvr->getTransceiverImpl();
+    EXPECT_CALL(*xcvrImpl, detectTransceiver())
+        .WillRepeatedly(::testing::Return(isPresent));
+  }
+
+  void setMockCmisTransceiverReady(bool isReady) {
+    MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+    EXPECT_CALL(*mockXcvr, ensureTransceiverReadyLocked())
+        .WillRepeatedly(::testing::Return(isReady));
+  }
+
   // We default to CMIS module for testing.
-  QsfpModule* overrideTransceiver(bool multiPort) {
+  QsfpModule* overrideTransceiver(bool multiPort, bool isMock = false) {
     // Set port status to DOWN so that we can remove the transceiver correctly
-    auto overrideCmisModule = [this, multiPort]() {
+    auto overrideCmisModule = [this, multiPort, isMock]() {
       // This override function use ids starting from 1
       transceiverManager_->overrideMgmtInterface(
           static_cast<int>(tcvrId_) + 1,
           uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
-      XLOG(INFO) << "Making CMIS QSFP for " << tcvrId_;
-      std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
-      if (multiPort) {
-        qsfpImpls_.push_back(std::make_unique<Cmis400GFr4MultiPortTransceiver>(
+      if (isMock) {
+        XLOG(INFO) << "Making Mock CMIS QSFP for " << tcvrId_;
+        cmisQsfpImpls_.push_back(std::make_unique<MockCmisTransceiverImpl>(
             tcvrId_, transceiverManager_.get()));
+        EXPECT_CALL(*cmisQsfpImpls_.back().get(), detectTransceiver())
+            .WillRepeatedly(::testing::Return(true));
+        return transceiverManager_->overrideTransceiverForTesting(
+            tcvrId_,
+            std::make_unique<MockCmisModule>(
+                transceiverManager_->getPortNames(tcvrId_),
+                cmisQsfpImpls_.back().get(),
+                tcvrConfig_,
+                transceiverManager_->getTransceiverName(tcvrId_)));
       } else {
-        qsfpImpls_.push_back(std::make_unique<Cmis200GTransceiver>(
-            tcvrId_, transceiverManager_.get()));
+        XLOG(INFO) << "Making CMIS QSFP for " << tcvrId_;
+        std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
+        if (multiPort) {
+          qsfpImpls_.push_back(
+              std::make_unique<Cmis400GFr4MultiPortTransceiver>(
+                  tcvrId_, transceiverManager_.get()));
+        } else {
+          qsfpImpls_.push_back(std::make_unique<Cmis200GTransceiver>(
+              tcvrId_, transceiverManager_.get()));
+        }
+        return transceiverManager_->overrideTransceiverForTesting(
+            tcvrId_,
+            std::make_unique<CmisModule>(
+                transceiverManager_->getPortNames(tcvrId_),
+                qsfpImpls_.back().get(),
+                tcvrConfig_,
+                true /*supportRemediate*/,
+                transceiverManager_->getTransceiverName(tcvrId_)));
       }
-      return transceiverManager_->overrideTransceiverForTesting(
-          tcvrId_,
-          std::make_unique<CmisModule>(
-              transceiverManager_->getPortNames(tcvrId_),
-              qsfpImpls_.back().get(),
-              tcvrConfig_,
-              true /*supportRemediate*/,
-              transceiverManager_->getTransceiverName(tcvrId_)));
     };
 
     Transceiver* xcvr = overrideCmisModule();
@@ -127,6 +156,13 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     portManager_->updateTransceiverPortStatus();
   }
 
+  void refreshAndTriggerProgramming() {
+    portManager_->updateTransceiverPortStatus();
+    transceiverManager_->refreshTransceivers();
+    portManager_->triggerProgrammingEvents();
+    transceiverManager_->triggerProgrammingEvents();
+  }
+
   void setState(
       TransceiverStateMachineState tcvrState,
       PortStates portStates,
@@ -182,7 +218,8 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       PRE_UPDATE_FN preUpdate,
       STATE_UPDATE_FN stateUpdate,
       VERIFY_FN verify,
-      const std::string& updateStr) {
+      const std::string& updateStr,
+      bool isMock = false) {
     for (const auto& tcvrPortStatePair : supportedStates) {
       auto multiPort = isMultiPort(tcvrPortStatePair);
       XLOG(INFO) << "Verifying Transceiver=0 state CHANGED by " << updateStr
@@ -191,7 +228,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
 
       // Always create a new transceiver so that we can make sure the state
       // can go back to the beginning state
-      xcvr_ = overrideTransceiver(multiPort);
+      xcvr_ = overrideTransceiver(multiPort, isMock);
       setState(tcvrPortStatePair.first, tcvrPortStatePair.second, multiPort);
 
       // Call preUpdate() before actual stateUpdate()
@@ -228,7 +265,8 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       std::optional<PortStateMachineEvent> portEvent3,
       PRE_UPDATE_FN preUpdate,
       VERIFY_FN verify,
-      bool holdTransceiversLockWhileUpdating = false) {
+      bool holdTransceiversLockWhileUpdating = false,
+      bool isMock = false) {
     auto stateUpdateFn = [this,
                           event,
                           portEvent1,
@@ -254,7 +292,8 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         preUpdate,
         stateUpdateFn,
         verify,
-        stateUpdateFnStr);
+        stateUpdateFnStr,
+        isMock);
   }
 
   template <
@@ -266,7 +305,8 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       PRE_UPDATE_FN preUpdate,
       STATE_UPDATE_FN stateUpdate,
       VERIFY_FN verify,
-      const std::string& updateStr) {
+      const std::string& updateStr,
+      bool isMock = false) {
     for (const auto& tcvrPortStatePair : supportedStates) {
       auto multiPort = isMultiPort(tcvrPortStatePair);
       XLOG(INFO) << "Verifying Transceiver=0 state UNCHANGED by " << updateStr
@@ -274,7 +314,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
                  << ", multiPort=" << multiPort;
       // Always create a new transceiver so that we can make sure the state
       // can go back to the beginning state
-      xcvr_ = overrideTransceiver(multiPort);
+      xcvr_ = overrideTransceiver(multiPort, isMock);
       setState(tcvrPortStatePair.first, tcvrPortStatePair.second, multiPort);
 
       // Call preUpdate() before actual stateUpdate()
@@ -308,7 +348,8 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       std::optional<PortStateMachineEvent> portEvent3,
       const std::vector<TcvrPortStatePair>& supportedStates,
       PRE_UPDATE_FN preUpdate,
-      VERIFY_FN verify) {
+      VERIFY_FN verify,
+      bool isMock = false) {
     if (supportedStates.empty()) {
       return;
     }
@@ -322,7 +363,12 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     auto stateUpdateFnStr = folly::to<std::string>(
         "Event=", apache::thrift::util::enumNameSafe(tcvrEvent));
     verifyStateUnchanged(
-        supportedStates, preUpdate, stateUpdateFn, verify, stateUpdateFnStr);
+        supportedStates,
+        preUpdate,
+        stateUpdateFn,
+        verify,
+        stateUpdateFnStr,
+        isMock);
   }
 
   // Manager Attributes
@@ -469,7 +515,7 @@ TEST_F(
         /* expected
         state */
         ,
-        [this]() {} /* preUpdate */,
+        []() {} /* preUpdate */,
         [this]() {
           for (auto i = 0; i < 10; ++i) {
             transceiverManager_->triggerProgrammingEvents();
@@ -477,6 +523,89 @@ TEST_F(
         } /* stateUpdate */,
         []() {} /* verify */,
         "triggerTcvrProgramming");
+    // Prepare for testing with next multiPort value
+    resetManagers();
+  }
+}
+
+TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotPresent) {
+  initManagers();
+  XLOG(INFO) << "Verifying furthestStatesWhenTransceiverNotPresent";
+
+  verifyStateMachine(
+      {
+          TcvrPortStatePair{
+              TransceiverStateMachineState::NOT_PRESENT,
+              {PortStateMachineState::INITIALIZED, std::nullopt}},
+      },
+      TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+          {PortStateMachineState::PORT_UP, std::nullopt}} /* expected state */,
+      [this]() {
+        setMockCmisPresence(false);
+        xcvr_->detectPresence();
+      } /* preUpdate */,
+      [this]() {
+        for (int i = 0; i < 5; ++i) {
+          refreshAndTriggerProgramming();
+        }
+      } /* stateUpdate */,
+      []() {} /* verify */,
+      "furthestStatesWhenTransceiverNotReady",
+      true /* isMock */);
+}
+
+TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotReady) {
+  initManagers();
+  XLOG(INFO) << "Verifying furthestStatesWhenTransceiverNotReady";
+
+  verifyStateMachine(
+      {
+          TcvrPortStatePair{
+              TransceiverStateMachineState::NOT_PRESENT,
+              {PortStateMachineState::INITIALIZED, std::nullopt}},
+      },
+      TcvrPortStatePair{
+          TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+          {PortStateMachineState::XPHY_PORTS_PROGRAMMED,
+           std::nullopt}} /* expected state */,
+      [this]() { setMockCmisTransceiverReady(false); } /* preUpdate */,
+      [this]() {
+        for (int i = 0; i < 5; ++i) {
+          refreshAndTriggerProgramming();
+        }
+      } /* stateUpdate */,
+      []() {} /* verify */,
+      "furthestStatesWhenTransceiverNotReady",
+      true /* isMock */);
+}
+
+TEST_F(PortStateMachineTest, fullSimpleRefreshCycle) {
+  for (auto multiPort : {false, true}) {
+    initManagers();
+    XLOG(INFO) << "Verifying fullSimpleRefreshCycle = " << multiPort;
+
+    verifyStateMachine(
+        {TcvrPortStatePair{
+            TransceiverStateMachineState::NOT_PRESENT,
+            {PortStateMachineState::UNINITIALIZED,
+             optionalPortState(
+                 multiPort, PortStateMachineState::UNINITIALIZED)}}},
+        TcvrPortStatePair{
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            {PortStateMachineState::PORT_UP,
+             optionalPortState(
+                 multiPort,
+                 PortStateMachineState::PORT_UP)}} /* expected state */,
+        []() {} /* preUpdate */,
+        [this]() {
+          for (int i = 0; i < 5; ++i) {
+            refreshAndTriggerProgramming();
+          }
+        } /* stateUpdate */,
+        []() {} /* verify */,
+        "allProgramming completes");
+
     // Prepare for testing with next multiPort value
     resetManagers();
   }

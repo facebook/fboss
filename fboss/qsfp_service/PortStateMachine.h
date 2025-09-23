@@ -202,17 +202,7 @@ if (!portMgr) {
   return false;
 }
 
-for (auto tcvrId : portMgr->getTransceiverIdsForPort(portId)) {
-  if (portMgr->getTransceiverState(tcvrId) !=
-      TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-    XLOG(INFO) << "[PortID: " << portId << "] Assigned Transceiver " << tcvrId
-               << " state is not TRANSCEIVER_PROGRAMMED: "
-               << apache::thrift::util::enumNameSafe(
-                      portMgr->getTransceiverState(tcvrId));
-    return false;
-  }
-}
-return true;
+return portMgr->arePortTcvrsProgrammed(portId);
 }
 }
 ;

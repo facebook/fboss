@@ -313,7 +313,7 @@ bool PortManager::hasPortFinishedXphyProgramming(PortID portId) const {
 
 TransceiverStateMachineState PortManager::getTransceiverState(
     TransceiverID tcvrId) const {
-  return TransceiverStateMachineState::NOT_PRESENT;
+  return transceiverManager_->getCurrentState(tcvrId);
 }
 
 void PortManager::programInternalPhyPorts(TransceiverID id) {
@@ -922,6 +922,72 @@ PortManager::PortNameIdMap PortManager::setupPortNameToPortIDMap() {
   }
 
   return portNameToPortID;
+}
+
+void PortManager::triggerProgrammingEvents() {
+  int32_t numProgramIphy{0}, numProgramXphy{0}, numCheckTcvrsProgrammed{0};
+  BlockingStateUpdateResultList results;
+  steady_clock::time_point begin = steady_clock::now();
+
+  for (const auto& [tcvrId, lockedPortSetPtr] : tcvrToInitializedPorts_) {
+    auto portSet = *lockedPortSetPtr->rlock();
+    for (auto portId : portSet) {
+      const auto currentState = getPortState(portId);
+      bool xphyEnabled = phyManager_ != nullptr;
+      bool needProgramIphy = currentState == PortStateMachineState::INITIALIZED;
+      bool needProgramXphy =
+          currentState == PortStateMachineState::IPHY_PORTS_PROGRAMMED &&
+          xphyEnabled;
+      bool needCheckTcvrsProgrammed =
+          currentState == PortStateMachineState::XPHY_PORTS_PROGRAMMED ||
+          (currentState == PortStateMachineState::IPHY_PORTS_PROGRAMMED &&
+           !xphyEnabled);
+      if (needProgramIphy) {
+        if (auto result = updateStateBlockingWithoutWait(
+                portId, PortStateMachineEvent::PORT_EV_PROGRAM_IPHY)) {
+          ++numProgramIphy;
+          results.push_back(result);
+        }
+      } else if (needProgramXphy && xphyEnabled) {
+        if (auto result = updateStateBlockingWithoutWait(
+                portId, PortStateMachineEvent::PORT_EV_PROGRAM_XPHY)) {
+          ++numProgramXphy;
+          results.push_back(result);
+        }
+      } else if (needCheckTcvrsProgrammed) {
+        if (auto result = updateStateBlockingWithoutWait(
+                portId,
+                PortStateMachineEvent::PORT_EV_CHECK_TCVRS_PROGRAMMED)) {
+          results.push_back(result);
+        }
+      }
+    }
+  }
+  waitForAllBlockingStateUpdateDone(results);
+  XLOG_IF(DBG2, !results.empty())
+      << "triggerProgrammingEvents has " << numProgramIphy
+      << " IPHY programming, " << numProgramXphy << " XPHY programming, "
+      << numCheckTcvrsProgrammed
+      << " check tcvrs programmed. Total execute time(ms):"
+      << duration_cast<std::chrono::milliseconds>(steady_clock::now() - begin)
+             .count();
+}
+
+bool PortManager::arePortTcvrsProgrammed(PortID portId) const {
+  for (const auto& tcvrId : getTransceiverIdsForPort(portId)) {
+    if (transceiverManager_->getCurrentState(tcvrId) !=
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+      auto portNameStr = getPortNameByPortIdOrThrow(portId);
+      SW_PORT_LOG(INFO, "[SM]", portNameStr, portId)
+          << "Assigned Transceiver " << tcvrId
+          << " state is not TRANSCEIVER_PROGRAMMED: "
+          << apache::thrift::util::enumNameSafe(getTransceiverState(tcvrId))
+          << ". Not advancing PortStateMachine to TRANSCEIVERS_PROGRAMMED.";
+      return false;
+    }
+  }
+
+  return true;
 }
 
 } // namespace facebook::fboss
