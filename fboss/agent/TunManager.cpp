@@ -18,6 +18,7 @@ extern "C" {
 #include <sys/ioctl.h>
 }
 
+#include <fb303/ServiceData.h>
 #include <folly/MapUtil.h>
 #include <folly/lang/CString.h>
 #include <folly/logging/xlog.h>
@@ -846,6 +847,7 @@ void TunManager::performInitialCleanup(std::shared_ptr<SwitchState> state) {
   if (requiresProbedDataCleanup(ifIdToTableId, probedIfIdToTableId)) {
     deleteAllProbedData();
     probedStateCleanedUp_ = true;
+    sw_->stats()->probedStateCleanedUp();
   }
   initialCleanupDone_ = true;
 }

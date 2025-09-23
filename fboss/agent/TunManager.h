@@ -16,6 +16,7 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <fb303/ThreadCachedServiceData.h>
 
 extern "C" {
 #include <netlink/object.h>
