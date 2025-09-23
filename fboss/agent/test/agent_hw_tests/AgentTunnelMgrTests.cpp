@@ -751,6 +751,40 @@ class AgentTunnelMgrTest : public AgentHwTest {
     }
   }
 
+  void printProbedInterfaceDetails() {
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+
+    XLOG(INFO) << "=== Probed Interface Details ===";
+
+    for (const auto& [interfaceId, intf] : tunMgr_->intfs_) {
+      std::vector<std::string> intfIPv4s;
+      std::vector<std::string> intfIPv6s;
+
+      // Categorize addresses by IP version
+      for (const auto& [addr, mask] : intf->getAddresses()) {
+        if (addr.isV6()) {
+          intfIPv6s.push_back(addr.str());
+        } else {
+          intfIPv4s.push_back(addr.str());
+        }
+      }
+
+      // Convert vectors to comma-separated strings for logging
+      std::string ipv4List = folly::join(", ", intfIPv4s);
+      std::string ipv6List = folly::join(", ", intfIPv6s);
+
+      XLOG(INFO) << "Interface ID: " << interfaceId
+                 << ", Name: " << intf->getName()
+                 << ", IfIndex: " << intf->getIfIndex()
+                 << ", Status: " << (intf->getStatus() ? "UP" : "DOWN")
+                 << ", IPv4: [" << ipv4List << "]" << ", IPv6: [" << ipv6List
+                 << "]";
+    }
+
+    XLOG(INFO) << "=== End Probed Interface Details ===";
+  }
+
   void checkKernelIpEntriesRemoved(
       const InterfaceID& ifId,
       const std::string& intfIP,
