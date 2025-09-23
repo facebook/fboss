@@ -713,8 +713,7 @@ void PortManager::updateTransceiverPortStatus() noexcept {
     }
   }
 
-  // Update Enabled Ports Cache
-  setPortsEnabledStatusInCache(newPortEnabledStatusForCache);
+  waitForAllBlockingStateUpdateDone(results);
 
   // Clear any stale port data in TransceiverManager.
   transceiverManager_->resetProgrammedIphyPortToPortInfoForPorts(portsForReset);
@@ -723,8 +722,6 @@ void PortManager::updateTransceiverPortStatus() noexcept {
   // transceivers that have all their enabled ports in this list.
   transceiverManager_->triggerResetEvents(
       getTransceiversWithAllPortsInSet(portsForReset));
-
-  waitForAllBlockingStateUpdateDone(results);
 
   XLOG_IF(
       DBG2,
@@ -919,23 +916,20 @@ PortManager::setupTcvrToSynchronizedPortSet() {
   return tcvrToPortSet;
 }
 
-void PortManager::setPortsEnabledStatusInCache(
-    const std::vector<std::pair<PortID, bool>>& portStatuses) {
-  for (const auto& [portId, enabled] : portStatuses) {
-    auto tcvrId = getLowestIndexedTransceiverForPort(portId);
-    auto tcvrToInitializedPortsItr = tcvrToInitializedPorts_.find(tcvrId);
-    if (tcvrToInitializedPortsItr == tcvrToInitializedPorts_.end()) {
-      throw FbossError(
-          "No transceiver id found in initialized ports cache for transceiver ",
-          tcvrId);
-    }
+void PortManager::setPortEnabledStatusInCache(PortID portId, bool enabled) {
+  auto tcvrId = getLowestIndexedTransceiverForPort(portId);
+  auto tcvrToInitializedPortsItr = tcvrToInitializedPorts_.find(tcvrId);
+  if (tcvrToInitializedPortsItr == tcvrToInitializedPorts_.end()) {
+    throw FbossError(
+        "No transceiver id found in initialized ports cache for transceiver ",
+        tcvrId);
+  }
 
-    auto lockedEnabledPorts = tcvrToInitializedPortsItr->second->wlock();
-    if (enabled) {
-      lockedEnabledPorts->insert(portId);
-    } else {
-      lockedEnabledPorts->erase(portId);
-    }
+  auto lockedEnabledPorts = tcvrToInitializedPortsItr->second->wlock();
+  if (enabled) {
+    lockedEnabledPorts->insert(portId);
+  } else {
+    lockedEnabledPorts->erase(portId);
   }
 }
 

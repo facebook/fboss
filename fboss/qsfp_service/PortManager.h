@@ -295,6 +295,9 @@ class PortManager {
 
   bool arePortTcvrsProgrammed(PortID portId) const;
 
+  // Made public for PortManager access.
+  void setPortEnabledStatusInCache(PortID portId, bool enabled);
+
  protected:
   /*
    * function to initialize all the Phy in the system
@@ -302,9 +305,6 @@ class PortManager {
   bool initExternalPhyMap(bool forceWarmboot = false);
 
   void publishLinkSnapshots(PortID portId);
-
-  void setPortsEnabledStatusInCache(
-      const std::vector<std::pair<PortID, bool>>& portStatuses);
 
   std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(
       const std::unordered_set<PortID>& ports) const;

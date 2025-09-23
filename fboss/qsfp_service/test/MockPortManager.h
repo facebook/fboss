@@ -35,11 +35,6 @@ class MockPortManager : public PortManager {
   MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
 
   // Wrapper functions for protected methods to enable direct testing
-  void setPortsEnabledStatusInCache(
-      const std::vector<std::pair<PortID, bool>>& portStatuses) {
-    PortManager::setPortsEnabledStatusInCache(portStatuses);
-  }
-
   std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(
       const std::unordered_set<PortID>& ports) const {
     return PortManager::getTransceiversWithAllPortsInSet(ports);

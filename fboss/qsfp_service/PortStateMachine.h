@@ -47,9 +47,25 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(std::string, portName)
 // agent coldboot and reset the iphy.
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, xphyNeedResetDataPath)
 
+BOOST_MSM_EUML_ACTION(updatePortCache){
+    template <class Event, class Fsm, class State>
+    void
+    operator()(const Event& /* event */, Fsm& fsm, State& currState)
+        const {auto portId = fsm.get_attribute(portID);
+auto portMgr = fsm.get_attribute(portMgrPtr);
+auto newState = portStateToStateEnum(currState);
+bool isEnabled = newState == PortStateMachineState::INITIALIZED;
+XLOG(DBG2) << "[Port:" << portId << "] State changed to "
+           << apache::thrift::util::enumNameSafe(newState);
+
+portMgr->setPortEnabledStatusInCache(portId, isEnabled);
+} // namespace facebook::fboss
+}
+;
+
 // Port State Machine States
-BOOST_MSM_EUML_STATE((), PORT_STATE_UNINITIALIZED)
-BOOST_MSM_EUML_STATE((), PORT_STATE_INITIALIZED)
+BOOST_MSM_EUML_STATE((updatePortCache), PORT_STATE_UNINITIALIZED)
+BOOST_MSM_EUML_STATE((updatePortCache), PORT_STATE_INITIALIZED)
 BOOST_MSM_EUML_STATE((), PORT_STATE_IPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), PORT_STATE_XPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), PORT_STATE_TRANSCEIVERS_PROGRAMMED)
