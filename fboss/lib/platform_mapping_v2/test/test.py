@@ -21,6 +21,7 @@ from neteng.fboss.phy.ttypes import (
     PortPinConfig,
     PortProfileConfig,
     ProfileSideConfig,
+    TxSettings,
 )
 from neteng.fboss.platform_config.ttypes import (
     PlatformPortConfig,
@@ -68,20 +69,55 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             ),
             supportedProfiles={
                 PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL: PlatformPortConfig(
-                    subsumedPorts=[2],
                     pins=PortPinConfig(
                         iphy=[
                             PinConfig(
-                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=0)
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=0),
+                                tx=TxSettings(
+                                    pre=-12,
+                                    pre2=0,
+                                    main=144,
+                                    post=-8,
+                                    post2=0,
+                                    post3=0,
+                                    pre3=0,
+                                ),
                             ),
                             PinConfig(
-                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=1)
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=1),
+                                tx=TxSettings(
+                                    pre=-12,
+                                    pre2=0,
+                                    main=144,
+                                    post=-8,
+                                    post2=0,
+                                    post3=0,
+                                    pre3=0,
+                                ),
                             ),
                             PinConfig(
-                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=2)
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=2),
+                                tx=TxSettings(
+                                    pre=-12,
+                                    pre2=0,
+                                    main=144,
+                                    post=-8,
+                                    post2=0,
+                                    post3=0,
+                                    pre3=0,
+                                ),
                             ),
                             PinConfig(
-                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=3)
+                                id=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=3),
+                                tx=TxSettings(
+                                    pre=-12,
+                                    pre2=0,
+                                    main=144,
+                                    post=-8,
+                                    post2=0,
+                                    post3=0,
+                                    pre3=0,
+                                ),
                             ),
                         ],
                         transceiver=[
@@ -120,7 +156,7 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             mapping=PlatformPortMapping(
                 id=2,
                 name="eth1/2/2",
-                controllingPort=1,
+                controllingPort=2,
                 pins=[
                     PinConnection(
                         a=PinID(chip="NPU-TH5_NIF-slot1/chip1/core0", lane=1),
