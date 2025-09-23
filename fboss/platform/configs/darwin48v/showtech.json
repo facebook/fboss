@@ -11,7 +11,10 @@
     }
   ],
   "psus": [
-    "/run/devmap/sensors/PSU_PMBUS"
+    {
+      "path": "/run/devmap/sensors/PSU_PMBUS",
+      "isI2cDevice": true
+    }
   ],
   "gpios": [
     {

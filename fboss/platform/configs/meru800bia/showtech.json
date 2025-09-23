@@ -9,8 +9,14 @@
     }
   ],
   "psus": [
-    "/run/devmap/sensors/PSU1_PMBUS",
-    "/run/devmap/sensors/PSU2_PMBUS"
+    {
+      "path": "/run/devmap/sensors/PSU1_PMBUS",
+      "isI2cDevice": true
+    },
+    {
+      "path": "/run/devmap/sensors/PSU2_PMBUS",
+      "isI2cDevice": true
+    }
   ],
   "gpios": [
     {
