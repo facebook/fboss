@@ -84,7 +84,10 @@
       BuildProbedIfIdToTableIdMapWithRulesAugmentation);                       \
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest,                                            \
-      BuildProbedIfIdToTableIdMapRulesOnlyFallback);
+      BuildProbedIfIdToTableIdMapRulesOnlyFallback);                           \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapRoutesHavePriority);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1367,6 +1370,47 @@ TEST_F(
   // Should include mapping from rules only
   EXPECT_EQ(1, probedMapping.size());
   EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap routes have priority over rules
+ *
+ * Verifies that when both probed routes and probed rules exist for the same
+ * interface, the mapping from probed routes takes priority and rules do not
+ * overwrite it. This will not happen in production, but adding test to verify
+ * the code.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapRoutesHavePriority) {
+  // Add mock interface with addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+
+  Interface::Addresses addrs = {{folly::IPAddress("192.168.1.100"), 24}};
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto differentTableId = tableId2000 + 10; // Different table ID
+
+  // Add probed route
+  addProbedRoute(tunMgr_, AF_INET, tableId2000, "0.0.0.0/0", 42);
+
+  // Add probed rules with different table ID (should not overwrite route
+  // mapping)
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET, differentTableId, "192.168.1.100/32");
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should use mapping from route, not rule
+  EXPECT_EQ(1, probedMapping.size());
+  EXPECT_EQ(
+      tableId2000, probedMapping[InterfaceID(2000)]); // From route, not rule
+  EXPECT_NE(differentTableId, probedMapping[InterfaceID(2000)]);
 }
 
 } // namespace facebook::fboss
