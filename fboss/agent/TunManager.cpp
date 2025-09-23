@@ -1451,19 +1451,13 @@ void TunManager::deleteProbedAddressesAndRules(
 
     // If this rule wasn't already deleted during address cleanup, delete it now
     if (deletedRules.find(ruleKey) == deletedRules.end()) {
-      try {
-        // Parse the address from the rule's srcAddr (e.g., "10.0.0.1/32" ->
-        // "10.0.0.1")
-        auto ipAddr =
-            IPAddress::createNetwork(probedRule.srcAddr, -1, false).first;
-        addRemoveSourceRouteRule(probedRule.tableId, ipAddr, false);
-        XLOG(DBG2) << "Deleted remaining probed rule: " << probedRule.srcAddr
-                   << " -> table " << probedRule.tableId;
-      } catch (const std::exception& ex) {
-        XLOG(WARNING) << "Failed to delete probed rule " << probedRule.srcAddr
-                      << " -> table " << probedRule.tableId << ": "
-                      << ex.what();
-      }
+      // Parse the address from the rule's srcAddr (e.g., "10.0.0.1/32" ->
+      // "10.0.0.1")
+      auto ipAddr =
+          IPAddress::createNetwork(probedRule.srcAddr, -1, false).first;
+      addRemoveSourceRouteRule(probedRule.tableId, ipAddr, false);
+      XLOG(DBG2) << "Deleted remaining probed rule: " << probedRule.srcAddr
+                 << " -> table " << probedRule.tableId;
     }
   }
 
