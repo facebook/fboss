@@ -579,6 +579,51 @@ void PortManager::syncNpuPortStatusUpdate(
   updateTransceiverPortStatus();
 }
 
+/*
+ * detectTransceiverDiscoveredAndReinitializeCorrespondingPorts
+ *
+ * This function is called within the context of the normal refresh cycle. With
+ * SW ports now being separately managed entitites from transceivers, we need to
+ * make sure we re-initialize ports when transceivers are re-discovered.
+ */
+
+void PortManager::
+    detectTransceiverDiscoveredAndReinitializeCorrespondingPorts() {
+  BlockingStateUpdateResultList results;
+
+  for (auto& [tcvrId, lockedPortSetPtr] : tcvrToInitializedPorts_) {
+    // Check if transceiver is in a non-programmed state. If so, programming
+    // needs to be retriggered.
+    bool shouldReinitPorts{false};
+    auto currTcvrState = getTransceiverState(tcvrId);
+    auto previousTcvrStateIt = lastTcvrStates_.find(tcvrId);
+    if (previousTcvrStateIt != lastTcvrStates_.end()) {
+      shouldReinitPorts = currTcvrState != previousTcvrStateIt->second &&
+          currTcvrState == TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED;
+    }
+
+    auto portSet = *lockedPortSetPtr->rlock();
+    for (auto portId : portSet) {
+      if (shouldReinitPorts) {
+        if (auto result = updateStateBlockingWithoutWait(
+                portId, PortStateMachineEvent::PORT_EV_RESET_TO_INITIALIZED)) {
+          XLOG(ERR) << "Reset port " << portId << " to initialized";
+          results.push_back(result);
+        }
+      }
+    }
+
+    lastTcvrStates_[tcvrId] = currTcvrState;
+  }
+
+  int numResults = results.size();
+  waitForAllBlockingStateUpdateDone(results);
+
+  XLOG_IF(DBG2, numResults > 0)
+      << "detectTransceiverDiscoveredAndReinitializeCorrespondingPorts has "
+      << numResults << " ports need to reset status.";
+}
+
 void PortManager::publishLinkSnapshots(PortID portId) {}
 
 void PortManager::restoreWarmBootPhyState() {}

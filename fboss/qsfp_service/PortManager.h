@@ -291,6 +291,8 @@ class PortManager {
   // telling port state machines to upgrade to TCVRS_PROGRAMMED when necessary.
   void triggerProgrammingEvents();
 
+  void detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
+
   bool arePortTcvrsProgrammed(PortID portId) const;
 
  protected:
@@ -416,6 +418,9 @@ class PortManager {
   const PortToStateMachineControllerMap stateMachineControllers_;
 
   const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
+
+  std::unordered_map<TransceiverID, TransceiverStateMachineState>
+      lastTcvrStates_;
 };
 
 } // namespace facebook::fboss

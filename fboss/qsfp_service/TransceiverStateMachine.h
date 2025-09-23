@@ -402,8 +402,8 @@ bool operator()(
               << "] No enabled ports. Safe to remove";
     result = true;
   } else {
-    // TODO(smenta): Modify areAllPortsDown logic to use PortManager status when Port Manager mode is enabled.
-    result = xcvrMgr->areAllPortsDown(tcvrID).first;
+    // If Port Manager mode is enabled, transceiver can come down and we have other mechanisms to ensure no port flaps from transceiver programming / upgrading.
+    result = FLAGS_port_manager_mode || xcvrMgr->areAllPortsDown(tcvrID).first;
     XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
                           << "] Not all ports down. Not Safe to remove";
   }
