@@ -845,6 +845,7 @@ void TunManager::performInitialCleanup(std::shared_ptr<SwitchState> state) {
   // Only delete probed data if there's a difference between the maps
   if (requiresProbedDataCleanup(ifIdToTableId, probedIfIdToTableId)) {
     deleteAllProbedData();
+    probedStateCleanedUp_ = true;
   }
   initialCleanupDone_ = true;
 }

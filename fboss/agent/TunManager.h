@@ -441,6 +441,9 @@ class TunManager : public StateObserver {
   // Initial cleanup done
   bool initialCleanupDone_{false};
 
+  // Was probed state cleaned up?
+  bool probedStateCleanedUp_{false};
+
   uint64_t numSyncs_{0};
 
   /*< Container to store probed routes from kernel */

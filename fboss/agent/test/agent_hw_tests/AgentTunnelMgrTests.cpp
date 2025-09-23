@@ -1059,6 +1059,16 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
     auto socketExists = tunMgr_->isValidNlSocket();
 
     if (socketExists) {
+      // Verify probe data is not cleaned up during warmboot, since interfaces
+      // in kernel and switchState are same. During the coldboot case for tests,
+      // the kernel will have nothing, while switchState will have the
+      // interfacs, so cleanup will run.
+      // BUG: Tests cleanup all state in setup.
+      if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+      } else {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+      }
       // Set probeDone_ to false before calling probe()
       tunMgr_->probeDone_ = false;
 
@@ -1069,6 +1079,7 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       tunMgr_->deleteAllProbedData();
       // Verify probe data is cleaned up after cleanup
       EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+      EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
       // Check that the kernel entries are removed after probe
@@ -1128,6 +1139,16 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
     auto socketExists = tunMgr_->isValidNlSocket();
 
     if (socketExists) {
+      // Verify probe data is not cleaned up during warmboot, since interfaces
+      // in kernel and switchState are same. During the coldboot case for tests,
+      // the kernel will have nothing, while switchState will have the
+      // BUG: Tests cleanup all state in setup.
+      // interfacs, so cleanup will run.
+      if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+      } else {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+      }
       // Set probeDone_ to false before calling probe()
       tunMgr_->probeDone_ = false;
 
@@ -1141,6 +1162,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       tunMgr_->deleteAllProbedData();
       // Verify probe data is cleaned up after cleanup
       EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+      EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
       // Check that the kernel entries are removed after probe
