@@ -342,10 +342,8 @@ std::unordered_map<int, int> TunManager::buildIfIndexToTableIdMapFromRules()
   return ifIndexToTableId;
 }
 
-std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
+std::unordered_map<int, int> TunManager::buildIfIndextoTableMapFromProbedData()
     const {
-  std::unordered_map<InterfaceID, int> probedIfIdToTableId;
-
   // Build a map of interface index to table ID from probed routes
   auto ifIndexToTableId = buildIfIndexToTableIdMapFromProbedRoutes();
 
@@ -359,6 +357,16 @@ std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
                  << " -> tableId " << tableId;
     }
   }
+
+  return ifIndexToTableId;
+}
+
+std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
+    const {
+  std::unordered_map<InterfaceID, int> probedIfIdToTableId;
+
+  // Build a map of interface index to table ID from probed data
+  auto ifIndexToTableId = buildIfIndextoTableMapFromProbedData();
 
   // Map interface IDs to table IDs using probed data
   for (const auto& intf : intfs_) {
