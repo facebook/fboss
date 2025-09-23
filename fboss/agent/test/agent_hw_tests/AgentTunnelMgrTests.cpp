@@ -1082,8 +1082,10 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       // interfacs, so cleanup will run.
       if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
+        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 0);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 1);
       }
       EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
 
@@ -1213,8 +1215,10 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       // the kernel will have nothing, while switchState will have the
       if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
+        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 0);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 1);
       }
       EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
 
