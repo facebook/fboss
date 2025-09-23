@@ -38,7 +38,10 @@
       BuildIfIndexToTableIdMapFromRulesSingleInterface);                    \
   FRIEND_TEST(                                                              \
       TunManagerRuleProcessorTest,                                          \
-      BuildIfIndexToTableIdMapFromRulesMultipleInterfaces);
+      BuildIfIndexToTableIdMapFromRulesMultipleInterfaces);                 \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesSkipLinkLocal);
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -413,4 +416,36 @@ TEST_F(
   EXPECT_EQ(102, result[11]); // ifIndex 11 -> tableId 102
 }
 
+/**
+ * @brief Test skipping link-local addresses for
+ * buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules correctly skips link-local
+ * addresses and creates no mapping when an interface only has link-local
+ * addresses.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesSkipLinkLocal) {
+  // Create a mock interface with ONLY link-local addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+
+  Interface::Addresses addrs = {
+      {folly::IPAddress("169.254.1.1"), 16}, // IPv4 link-local
+      {folly::IPAddress("fe80::1"), 64} // IPv6 link-local
+  };
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // Add probed rules that would match if they weren't link-local
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "169.254.1.1/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET6, 102, "fe80::1/128");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  // Should be empty because all addresses are link-local and thus skipped
+  EXPECT_TRUE(result.empty());
+}
 } // namespace facebook::fboss
