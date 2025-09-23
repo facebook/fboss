@@ -349,6 +349,17 @@ std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
   // Build a map of interface index to table ID from probed routes
   auto ifIndexToTableId = buildIfIndexToTableIdMapFromProbedRoutes();
 
+  // Augment ifIndexToTableId with buildIfIndexToTableIdMapFromRules
+  auto ifIndexToTableIdFromRules = buildIfIndexToTableIdMapFromRules();
+  for (const auto& [ifIndex, tableId] : ifIndexToTableIdFromRules) {
+    // Add whatever was not there from probed routes
+    if (ifIndexToTableId.find(ifIndex) == ifIndexToTableId.end()) {
+      ifIndexToTableId[ifIndex] = tableId;
+      XLOG(DBG2) << "Augmented mapping from source rules: ifIndex " << ifIndex
+                 << " -> tableId " << tableId;
+    }
+  }
+
   // Map interface IDs to table IDs using probed data
   for (const auto& intf : intfs_) {
     auto ifId = intf.first; // InterfaceID from map key
