@@ -2,6 +2,7 @@
 #include "fboss/qsfp_service/PortManager.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include <folly/json/DynamicConverter.h>
 #include "fboss/agent/Utils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
@@ -466,7 +467,9 @@ void PortManager::setOverrideAgentPortStatusForTesting(
 }
 
 void PortManager::setOverrideAgentConfigAppliedInfoForTesting(
-    std::optional<ConfigAppliedInfo> configAppliedInfo) {}
+    std::optional<ConfigAppliedInfo> configAppliedInfo) {
+  overrideAgentConfigAppliedInfoForTesting_ = configAppliedInfo;
+}
 
 void PortManager::getAllPortSupportedProfiles(
     std::map<std::string, std::vector<cfg::PortProfileID>>&
@@ -630,7 +633,93 @@ void PortManager::
 
 void PortManager::publishLinkSnapshots(PortID portId) {}
 
-void PortManager::triggerAgentConfigChangeEvent() {}
+void PortManager::triggerAgentConfigChangeEvent() {
+  auto wedgeAgentClient = utils::createWedgeAgentClient();
+  ConfigAppliedInfo newConfigAppliedInfo;
+  try {
+    wedgeAgentClient->sync_getConfigAppliedInfo(newConfigAppliedInfo);
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "Failed to call wedge_agent getConfigAppliedInfo(). "
+               << folly::exceptionStr(ex);
+
+    // For testing only, if overrideAgentConfigAppliedInfoForTesting_ is set,
+    // use it directly; otherwise return without trigger any config changed
+    // events
+    if (overrideAgentConfigAppliedInfoForTesting_) {
+      XLOG(INFO)
+          << "triggerAgentConfigChangeEvent is using override ConfigAppliedInfo"
+          << ", lastAppliedInMs="
+          << *overrideAgentConfigAppliedInfoForTesting_->lastAppliedInMs()
+          << ", lastColdbootAppliedInMs="
+          << (overrideAgentConfigAppliedInfoForTesting_
+                      ->lastColdbootAppliedInMs()
+                  ? *overrideAgentConfigAppliedInfoForTesting_
+                         ->lastColdbootAppliedInMs()
+                  : 0);
+      newConfigAppliedInfo = *overrideAgentConfigAppliedInfoForTesting_;
+    } else {
+      return;
+    }
+  }
+
+  // Now check if the new timestamp is later than the cached one.
+  if (*newConfigAppliedInfo.lastAppliedInMs() <=
+      *configAppliedInfo_.lastAppliedInMs()) {
+    return;
+  }
+
+  // Only need to reset data path if there's a new coldboot
+  bool resetDataPath = false;
+  std::string resetDataPathLog;
+  if (auto lastColdbootAppliedInMs =
+          newConfigAppliedInfo.lastColdbootAppliedInMs()) {
+    if (auto oldLastColdbootAppliedInMs =
+            configAppliedInfo_.lastColdbootAppliedInMs()) {
+      resetDataPath = (*lastColdbootAppliedInMs > *oldLastColdbootAppliedInMs);
+      if (resetDataPath) {
+        resetDataPathLog = folly::to<std::string>(
+            "Need reset data path. [Old Coldboot time:",
+            *oldLastColdbootAppliedInMs,
+            ", New Coldboot time:",
+            *lastColdbootAppliedInMs,
+            "]");
+      }
+    } else {
+      // Always reset data path the cached info doesn't have coldboot config
+      // applied time
+      resetDataPath = true;
+      resetDataPathLog = folly::to<std::string>(
+          "Need reset data path. [Old Coldboot time:0, New Coldboot time:",
+          *lastColdbootAppliedInMs,
+          "]");
+    }
+  }
+
+  XLOG(INFO) << "New Agent config applied time:"
+             << *newConfigAppliedInfo.lastAppliedInMs()
+             << " and last cached time:"
+             << *configAppliedInfo_.lastAppliedInMs()
+             << ". Issue all ports reprogramming events. " << resetDataPathLog;
+
+  BlockingStateUpdateResultList results;
+  for (const auto& [tcvrId, enabledPorts] : tcvrToInitializedPorts_) {
+    auto lockedEnabledPorts = enabledPorts->rlock();
+    for (auto portId : *lockedEnabledPorts) {
+      if (auto result = updateStateBlockingWithoutWait(
+              portId, PortStateMachineEvent::PORT_EV_RESET_TO_UNINITIALIZED)) {
+        XLOG(ERR) << "Reset port " << portId << " to uninitialized";
+        results.push_back(result);
+      }
+    }
+  }
+  waitForAllBlockingStateUpdateDone(results);
+
+  transceiverManager_->triggerTransceiverEventsForAgentConfigChangeEvent(
+      resetDataPath, newConfigAppliedInfo);
+
+  configAppliedInfo_ = newConfigAppliedInfo;
+}
 
 void PortManager::updateTransceiverPortStatus() noexcept {
   steady_clock::time_point begin = steady_clock::now();
@@ -735,7 +824,36 @@ void PortManager::updateTransceiverPortStatus() noexcept {
              .count();
 }
 
-void PortManager::restoreAgentConfigAppliedInfo() {}
+void PortManager::restoreAgentConfigAppliedInfo() {
+  auto warmbootState = transceiverManager_->getWarmBootState();
+  if (warmbootState.isNull()) {
+    return;
+  }
+  if (const auto& agentConfigAppliedIt = warmbootState.find(
+          TransceiverManager::kAgentConfigAppliedInfoStateKey);
+      agentConfigAppliedIt != warmbootState.items().end()) {
+    auto agentConfigAppliedInfo = agentConfigAppliedIt->second;
+    ConfigAppliedInfo wbConfigAppliedInfo;
+    // Restore the last agent config applied timestamp from warm boot state if
+    // it exists
+    if (const auto& lastAppliedIt = agentConfigAppliedInfo.find(
+            TransceiverManager::kAgentConfigLastAppliedInMsKey);
+        lastAppliedIt != agentConfigAppliedInfo.items().end()) {
+      wbConfigAppliedInfo.lastAppliedInMs() =
+          folly::convertTo<long>(lastAppliedIt->second);
+    }
+    // Restore the last agent coldboot timestamp from warm boot state if
+    // it exists
+    if (const auto& lastColdBootIt = agentConfigAppliedInfo.find(
+            TransceiverManager::kAgentConfigLastColdbootAppliedInMsKey);
+        lastColdBootIt != agentConfigAppliedInfo.items().end()) {
+      wbConfigAppliedInfo.lastColdbootAppliedInMs() =
+          folly::convertTo<long>(lastColdBootIt->second);
+    }
+
+    configAppliedInfo_ = wbConfigAppliedInfo;
+  }
+}
 
 void PortManager::updateNpuPortStatusCache(
     std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {

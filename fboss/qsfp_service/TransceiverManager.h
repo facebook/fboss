@@ -90,6 +90,12 @@ class TransceiverManager {
 
  public:
   static constexpr const char* kPhyStateKey = "phy";
+  static constexpr const char* kAgentConfigAppliedInfoStateKey =
+      "agentConfigAppliedInfo";
+  static constexpr const char* kAgentConfigLastAppliedInMsKey =
+      "agentConfigLastAppliedInMs";
+  static constexpr const char* kAgentConfigLastColdbootAppliedInMsKey =
+      "agentConfigLastColdbootAppliedInMs";
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
@@ -684,6 +690,9 @@ class TransceiverManager {
   TcvrIdToTcvrNameMap getTcvrIdToTcvrNameMap() const {
     return tcvrIdToTcvrName_;
   }
+  void triggerTransceiverEventsForAgentConfigChangeEvent(
+      bool resetDataPath,
+      ConfigAppliedInfo newConfigAppliedInfo);
 
   static bool opticalOrActiveCmisCable(const TcvrState& tcvrState);
   static bool opticalOrActiveCable(const TcvrState& tcvrState);

@@ -156,6 +156,21 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     portManager_->updateTransceiverPortStatus();
   }
 
+  void triggerAgentConfigChanged(bool isAgentColdBoot) {
+    // Override ConfigAppliedInfo
+    ConfigAppliedInfo configAppliedInfo;
+    auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    configAppliedInfo.lastAppliedInMs() = currentInMs.count();
+    if (isAgentColdBoot) {
+      configAppliedInfo.lastColdbootAppliedInMs() = currentInMs.count();
+    }
+    portManager_->setOverrideAgentConfigAppliedInfoForTesting(
+        configAppliedInfo);
+
+    portManager_->triggerAgentConfigChangeEvent();
+  }
+
   void refreshAndTriggerProgramming() {
     transceiverManager_->refreshTransceivers();
     portManager_
@@ -729,6 +744,136 @@ TEST_F(
       TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED, // Not present
                                                             // workflow
       {PortStateMachineState::PORT_UP, std::nullopt}});
+}
+
+TEST_F(PortStateMachineTest, agentConfigChangedColdBoot) {
+  for (auto multiPort : {false, true}) {
+    initManagers();
+    XLOG(INFO) << "Verifying agentConfigChangedColdBoot = " << multiPort;
+
+    verifyStateMachine(
+        {TcvrPortStatePair{
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            {PortStateMachineState::PORT_UP,
+             optionalPortState(multiPort, PortStateMachineState::PORT_UP)}}},
+        TcvrPortStatePair{
+            TransceiverStateMachineState::DISCOVERED,
+            {PortStateMachineState::UNINITIALIZED,
+             optionalPortState(
+                 multiPort,
+                 PortStateMachineState::UNINITIALIZED)}} /* expected state */,
+        []() {} /* preUpdate */,
+        [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
+        [this]() {
+          const auto& stateMachine =
+              transceiverManager_->getStateMachineForTesting(tcvrId_);
+          EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+          EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        } /* verify */,
+        "agentConfigChanged ColdBoot");
+
+    resetManagers();
+  }
+}
+
+TEST_F(PortStateMachineTest, agentConfigChangedWarmBoot) {
+  for (auto multiPort : {false, true}) {
+    initManagers();
+    XLOG(INFO) << "Verifying agentConfigChangedWarmBoot = " << multiPort;
+
+    verifyStateMachine(
+        {TcvrPortStatePair{
+            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+            {PortStateMachineState::PORT_UP,
+             optionalPortState(multiPort, PortStateMachineState::PORT_UP)}}},
+        TcvrPortStatePair{
+            TransceiverStateMachineState::DISCOVERED,
+            {PortStateMachineState::UNINITIALIZED,
+             optionalPortState(
+                 multiPort, PortStateMachineState::UNINITIALIZED)}}
+        /* expected state
+         */
+        ,
+        []() {} /* preUpdate */,
+        [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
+        [this]() {
+          // Enter DISCOVERED will also call `resetProgrammingAttributes`
+          const auto& stateMachine =
+              transceiverManager_->getStateMachineForTesting(tcvrId_);
+          EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+          EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+          EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+          EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        } /* verify */,
+        "agentConfigChanged WarmBoot");
+
+    resetManagers();
+  }
+}
+
+TEST_F(PortStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
+  initManagers();
+  XLOG(INFO) << "Verifying agentConfigChangedColdBoot = ";
+
+  verifyStateMachine(
+      {TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+          {PortStateMachineState::PORT_UP, std::nullopt}}},
+      TcvrPortStatePair{
+          TransceiverStateMachineState::NOT_PRESENT,
+          {PortStateMachineState::UNINITIALIZED, std::nullopt}}
+      /* expected state
+       */
+      ,
+      [this]() {
+        setMockCmisPresence(false);
+        xcvr_->detectPresence();
+      } /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+      } /* verify */,
+      "agentConfigChanged ColdBoot",
+      true /* isMock */);
+
+  resetManagers();
+}
+
+TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
+  initManagers();
+  XLOG(INFO) << "Verifying agentConfigChangedWarmBootOnAbsentXcvr = ";
+
+  verifyStateMachine(
+      {TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+          {PortStateMachineState::PORT_UP, std::nullopt}}},
+      TcvrPortStatePair{
+          TransceiverStateMachineState::NOT_PRESENT,
+          {PortStateMachineState::UNINITIALIZED, std::nullopt}}
+      /* expected state
+       */
+      ,
+      [this]() {
+        setMockCmisPresence(false);
+        xcvr_->detectPresence();
+      } /* preUpdate */,
+      [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
+      [this]() {
+        // Enter DISCOVERED will also call `resetProgrammingAttributes`
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+      } /* verify */,
+      "agentConfigChanged ColdBoot",
+      true /* isMock */);
+
+  resetManagers();
 }
 
 } // namespace facebook::fboss

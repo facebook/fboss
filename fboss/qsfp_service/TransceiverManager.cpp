@@ -79,10 +79,6 @@ constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/(\\d+)";
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
 constexpr auto kWarmbootStateFileName = "qsfp_service_state";
-constexpr auto kAgentConfigAppliedInfoStateKey = "agentConfigAppliedInfo";
-constexpr auto kAgentConfigLastAppliedInMsKey = "agentConfigLastAppliedInMs";
-constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
-    "agentConfigLastColdbootAppliedInMs";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
 constexpr int kSecAfterModuleOutOfReset = 2;
@@ -323,23 +319,23 @@ void TransceiverManager::restoreAgentConfigAppliedInfo() {
   if (warmBootState_.isNull()) {
     return;
   }
-  if (const auto& agentConfigAppliedIt =
-          warmBootState_.find(kAgentConfigAppliedInfoStateKey);
+  if (const auto& agentConfigAppliedIt = warmBootState_.find(
+          TransceiverManager::kAgentConfigAppliedInfoStateKey);
       agentConfigAppliedIt != warmBootState_.items().end()) {
     auto agentConfigAppliedInfo = agentConfigAppliedIt->second;
     ConfigAppliedInfo wbConfigAppliedInfo;
     // Restore the last agent config applied timestamp from warm boot state if
     // it exists
-    if (const auto& lastAppliedIt =
-            agentConfigAppliedInfo.find(kAgentConfigLastAppliedInMsKey);
+    if (const auto& lastAppliedIt = agentConfigAppliedInfo.find(
+            TransceiverManager::kAgentConfigLastAppliedInMsKey);
         lastAppliedIt != agentConfigAppliedInfo.items().end()) {
       wbConfigAppliedInfo.lastAppliedInMs() =
           folly::convertTo<long>(lastAppliedIt->second);
     }
     // Restore the last agent coldboot timestamp from warm boot state if
     // it exists
-    if (const auto& lastColdBootIt =
-            agentConfigAppliedInfo.find(kAgentConfigLastColdbootAppliedInMsKey);
+    if (const auto& lastColdBootIt = agentConfigAppliedInfo.find(
+            TransceiverManager::kAgentConfigLastColdbootAppliedInMsKey);
         lastColdBootIt != agentConfigAppliedInfo.items().end()) {
       wbConfigAppliedInfo.lastColdbootAppliedInMs() =
           folly::convertTo<long>(lastColdBootIt->second);
@@ -838,6 +834,44 @@ void TransceiverManager::getPortMediaInterface(
       }
     }
   }
+}
+
+void TransceiverManager::triggerTransceiverEventsForAgentConfigChangeEvent(
+    bool resetDataPath,
+    ConfigAppliedInfo newConfigAppliedInfo) {
+  int numResetToDiscovered{0}, numResetToNotPresent{0};
+  const auto& presentTransceivers = getPresentTransceivers();
+  BlockingStateUpdateResultList results;
+  for (auto& stateMachine : stateMachineControllers_) {
+    // Only need to set true to `needResetDataPath` attribute here. And leave
+    // the state machine to change it to false once it finishes
+    // programTransceiver
+    if (resetDataPath) {
+      stateMachine.second->getStateMachine().wlock()->get_attribute(
+          needResetDataPath) = true;
+    }
+    auto tcvrID = stateMachine.first;
+    if (presentTransceivers.find(tcvrID) != presentTransceivers.end()) {
+      if (auto result = updateStateBlockingWithoutWait(
+              tcvrID,
+              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_DISCOVERED)) {
+        ++numResetToDiscovered;
+        results.push_back(result);
+      }
+    } else {
+      if (auto result = updateStateBlockingWithoutWait(
+              tcvrID,
+              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT)) {
+        ++numResetToNotPresent;
+        results.push_back(result);
+      }
+    }
+  }
+  waitForAllBlockingStateUpdateDone(results);
+  XLOG(INFO) << "triggerAgentConfigChangeEvent has " << numResetToDiscovered
+             << " transceivers state machines set back to discovered, "
+             << numResetToNotPresent << " set back to not_present";
+  configAppliedInfo_ = newConfigAppliedInfo;
 }
 
 TransceiverManager::TransceiverToStateMachineControllerMap
@@ -2280,41 +2314,8 @@ void TransceiverManager::triggerAgentConfigChangeEvent() {
              << *configAppliedInfo_.lastAppliedInMs()
              << ". Issue all ports reprogramming events. " << resetDataPathLog;
 
-  // Update present transceiver state machine back to DISCOVERED
-  // and absent transeiver state machine back to NOT_PRESENT
-  int numResetToDiscovered{0}, numResetToNotPresent{0};
-  const auto& presentTransceivers = getPresentTransceivers();
-  BlockingStateUpdateResultList results;
-  for (auto& stateMachine : stateMachineControllers_) {
-    // Only need to set true to `needResetDataPath` attribute here. And leave
-    // the state machine to change it to false once it finishes
-    // programTransceiver
-    if (resetDataPath) {
-      stateMachine.second->getStateMachine().wlock()->get_attribute(
-          needResetDataPath) = true;
-    }
-    auto tcvrID = stateMachine.first;
-    if (presentTransceivers.find(tcvrID) != presentTransceivers.end()) {
-      if (auto result = updateStateBlockingWithoutWait(
-              tcvrID,
-              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_DISCOVERED)) {
-        ++numResetToDiscovered;
-        results.push_back(result);
-      }
-    } else {
-      if (auto result = updateStateBlockingWithoutWait(
-              tcvrID,
-              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT)) {
-        ++numResetToNotPresent;
-        results.push_back(result);
-      }
-    }
-  }
-  waitForAllBlockingStateUpdateDone(results);
-  XLOG(INFO) << "triggerAgentConfigChangeEvent has " << numResetToDiscovered
-             << " transceivers state machines set back to discovered, "
-             << numResetToNotPresent << " set back to not_present";
-  configAppliedInfo_ = newConfigAppliedInfo;
+  triggerTransceiverEventsForAgentConfigChangeEvent(
+      resetDataPath, newConfigAppliedInfo);
 }
 
 void TransceiverManager::waitForAllBlockingStateUpdateDone(
@@ -2667,14 +2668,17 @@ void TransceiverManager::setWarmBootState() {
   }
 
   folly::dynamic agentConfigAppliedWbState = folly::dynamic::object;
-  agentConfigAppliedWbState[kAgentConfigLastAppliedInMsKey] =
-      *configAppliedInfo_.lastAppliedInMs();
+  agentConfigAppliedWbState
+      [TransceiverManager::kAgentConfigLastAppliedInMsKey] =
+          *configAppliedInfo_.lastAppliedInMs();
   if (auto lastAgentColdBootTime =
           configAppliedInfo_.lastColdbootAppliedInMs()) {
-    agentConfigAppliedWbState[kAgentConfigLastColdbootAppliedInMsKey] =
-        *lastAgentColdBootTime;
+    agentConfigAppliedWbState
+        [TransceiverManager::kAgentConfigLastColdbootAppliedInMsKey] =
+            *lastAgentColdBootTime;
   }
-  qsfpServiceState[kAgentConfigAppliedInfoStateKey] = agentConfigAppliedWbState;
+  qsfpServiceState[TransceiverManager::kAgentConfigAppliedInfoStateKey] =
+      agentConfigAppliedWbState;
 
   std::string currentState = folly::toPrettyJson(qsfpServiceState);
   // If there is a state change, write it to the warm boot state file.
