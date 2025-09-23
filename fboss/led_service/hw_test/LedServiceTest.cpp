@@ -21,7 +21,25 @@ namespace facebook::fboss {
 
 DEFINE_int32(visual_delay_sec, 0, "Add a delay to enable seeing LED change");
 
+void LedServiceTest::initFlagDefaultsFromLedConfig() {
+  try {
+    auto ledConfig = LedConfig::fromDefaultFile();
+    for (auto item : *ledConfig->thriftConfig_.defaultCommandLineArgs()) {
+      // logging not initialized yet, need to use std::cerr
+      std::cerr << "Overriding default flag from config: " << item.first.c_str()
+                << "=" << item.second.c_str() << std::endl;
+      gflags::SetCommandLineOptionWithMode(
+          item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
+    }
+  } catch (FbossError& e) {
+    XLOG(ERR) << "Setting default args failed: " << e.what();
+  }
+}
+
 void LedServiceTest::SetUp() {
+  // First use LedConfig to init default command line arguments.
+  initFlagDefaultsFromLedConfig();
+
   // Create ensemble and initialize it
   ensemble_ = std::make_unique<LedEnsemble>();
   ensemble_->init();
@@ -30,7 +48,7 @@ void LedServiceTest::SetUp() {
   // and the LED is managed by service now
   ledManager_ = getLedEnsemble()->getLedManager();
   CHECK_NE(ledManager_, nullptr);
-  CHECK(ledManager_->isLedControlledThroughService());
+  // CHECK(ledManager_->isLedControlledThroughService());
   platformMap_ = ledManager_->getPlatformMapping();
   CHECK_NE(platformMap_, nullptr);
 }

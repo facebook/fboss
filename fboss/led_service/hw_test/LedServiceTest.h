@@ -29,6 +29,7 @@ class LedServiceTest : public ::testing::Test {
   std::vector<TransceiverID> getAllTransceivers(
       const PlatformMapping* platformMapping) const;
 
+  void initFlagDefaultsFromLedConfig();
   void SetUp() override;
   void TearDown() override;
   // Check the LED color.
