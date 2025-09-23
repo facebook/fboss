@@ -1935,21 +1935,29 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
       auto neighbors =
           computeNeighborsForRdsw(rdsw, 2 /* number of neighbors */);
       CHECK_EQ(neighbors.size(), 2);
+      auto firstNeighbor = neighbors[0];
+      auto secondNeighbor = neighbors[1];
 
       for (const auto& neighbor : neighbors) {
-        // Add a neighbor and verify it is added/sync'ed to every RDSW
         addNeighbor(
             rdsw, neighbor.intfID, neighbor.ip, neighbor.mac, neighbor.portID);
       }
+      // Verify every neighbor is added/sync'ed to every RDSW
       if (!verifyNeighborsPresent(rdsw, neighbors)) {
         XLOG(DBG2) << "Neighbor add verification failed: " << rdsw;
         return false;
       }
 
       // Remove first neighbor and verify it is removed from every RDSW
-      auto firstNeighbor = neighbors[0];
       removeNeighbor(rdsw, firstNeighbor.intfID, firstNeighbor.ip);
       if (!verifyNeighborsAbsent({firstNeighbor})) {
+        XLOG(DBG2) << "Neighbor remove verification failed: " << rdsw;
+        return false;
+      }
+
+      // Disable second neighbor port and verify it is removed from every RDSW
+      adminDisablePort(rdsw, secondNeighbor.portID);
+      if (!verifyNeighborLocalPresentRemoteAbsent({secondNeighbor}, rdsw)) {
         XLOG(DBG2) << "Neighbor remove verification failed: " << rdsw;
         return false;
       }
