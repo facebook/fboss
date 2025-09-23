@@ -127,9 +127,14 @@ void Utils::printI2cDumpDetails() {
     auto i2cInfo = getI2cInfoForDevice(device);
     if (i2cInfo) {
       auto [bus, devAddr] = *i2cInfo;
-      auto cmd = fmt::format("i2cdump -f -y {} {} b", bus, devAddr);
+      auto cmd = fmt::format("timeout 15 i2cdump -f -y {} {} b", bus, devAddr);
+
       std::cout << fmt::format("Running `{}`", cmd) << std::endl;
-      std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+      auto [ret, output] = platformUtils_.execCommand(cmd);
+      std::cout << output << std::endl;
+      if (ret == 124) {
+        std::cout << "Error: command timed out after 15 seconds" << std::endl;
+      }
     }
   }
 }
