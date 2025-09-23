@@ -81,7 +81,10 @@
       TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys);     \
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest,                                            \
-      BuildProbedIfIdToTableIdMapWithRulesAugmentation);
+      BuildProbedIfIdToTableIdMapWithRulesAugmentation);                       \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapRulesOnlyFallback);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1332,6 +1335,38 @@ TEST_F(
   EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]); // From route
   EXPECT_EQ(
       tableId2001, probedMapping[InterfaceID(2001)]); // From rule (augmented)
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with rules-only fallback
+ *
+ * Verifies that buildProbedIfIdToTableIdMap falls back to using only
+ * source rules when no probed routes exist (example interface down).
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapRulesOnlyFallback) {
+  // Add mock interface with addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+
+  Interface::Addresses addrs = {{folly::IPAddress("192.168.1.100"), 24}};
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // No probed routes added (probedRoutes_ is empty)
+
+  // Add probed rules only
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, tableId2000, "192.168.1.100/32");
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should include mapping from rules only
+  EXPECT_EQ(1, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
 }
 
 } // namespace facebook::fboss
