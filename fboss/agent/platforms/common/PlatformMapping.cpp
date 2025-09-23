@@ -124,11 +124,11 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
     }
     // compare only the name and part number of the current optics to the
     // override factor.
-    if (portConfigOverrideFactor_->vendor()->name() != overrideVendor->name() ||
-        portConfigOverrideFactor_->vendor()->partNumber() !=
-            overrideVendor->partNumber()) {
-      return false;
-    }
+    return isTransceiverVendorOverrideMatch(
+        overrideVendor->name().value(),
+        overrideVendor->partNumber().value(),
+        portConfigOverrideFactor_->vendor()->name().value(),
+        portConfigOverrideFactor_->vendor()->partNumber().value());
   }
   return true;
 }
