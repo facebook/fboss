@@ -327,6 +327,7 @@ class TestPlatformMappingGeneration(unittest.TestCase):
     def _verify_single_npu_platform_mapping(
         self,
         platform_mapping: PlatformMappingV2,
+        overrides: Optional[List[PlatformPortConfigOverride]],
     ) -> None:
         # Verify ports
         self.assertEqual(
@@ -355,10 +356,16 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             ),
             "Supported profiles do not match.",
         )
+        self.assertEqual(
+            platform_mapping.get_override_factors(),
+            overrides,
+            "Override factors not equal",
+        )
 
     def _verify_multi_npu_platform_mapping(
         self,
         platform_mapping: PlatformMappingV2,
+        overrides: Optional[List[PlatformPortConfigOverride]],
     ) -> None:
         # Verify ports
         self.assertEqual(
@@ -387,18 +394,23 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             ),
             "Supported profiles do not match.",
         )
+        self.assertEqual(
+            platform_mapping.get_override_factors(),
+            overrides,
+            "Override factors not equal",
+        )
 
     def test_get_platform_mapping_single_npu(self) -> None:
         platform_mapping = PlatformMappingV2(
             self._get_test_vendor_data(), "test", multi_npu=False
         )
-        self._verify_single_npu_platform_mapping(platform_mapping)
+        self._verify_single_npu_platform_mapping(platform_mapping, None)
 
     def test_get_platform_mapping_multi_npu(self) -> None:
         platform_mapping = PlatformMappingV2(
             self._get_test_vendor_data(), "test", multi_npu=True
         )
-        self._verify_multi_npu_platform_mapping(platform_mapping)
+        self._verify_multi_npu_platform_mapping(platform_mapping, None)
 
 
 def run_tests() -> None:

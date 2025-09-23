@@ -213,6 +213,9 @@ class PlatformMappingV2:
     def get_chips(self) -> List[DataPlanePhyChip]:
         return self.platform_mapping.chips
 
+    def get_override_factors(self) -> Optional[List[PlatformPortConfigOverride]]:
+        return self.platform_mapping.portConfigOverrides
+
     # Sort unique_factors by:
     # ports[0], then profiles[0], then vendor.name then vendor.partNumber
     def _sort_key(
