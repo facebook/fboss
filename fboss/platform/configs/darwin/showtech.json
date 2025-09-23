@@ -2,12 +2,10 @@
   "i2cBusIgnore": [],
   "i2cDumpDevices": [
     {
-      "path": "/run/devmap/cplds/BLACKHAWK_CPLD",
-      "isI2cDevice": true
+      "path": "/run/devmap/cplds/BLACKHAWK_CPLD"
     },
     {
-      "path": "/run/devmap/cplds/FAN_CPLD",
-      "isI2cDevice": true
+      "path": "/run/devmap/cplds/FAN_CPLD"
     }
   ],
   "psus": [],
@@ -85,7 +83,6 @@
   "fanspinners": [
     {
       "path": "/run/devmap/sensors/FS_FAN_SLG4F4527",
-      "isI2cDevice": true,
       "sysfsAttributes": [
         {
           "name": "pwm",

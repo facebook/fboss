@@ -289,10 +289,6 @@ void Utils::printSysfsAttribute(
 
 std::optional<std::tuple<int, int>> Utils::getI2cInfoForDevice(
     const showtech_config::Device& device) {
-  if (!*device.isI2cDevice()) {
-    return std::nullopt;
-  }
-
   std::string i2cPath{};
   try {
     i2cPath = std::filesystem::read_symlink(*device.path()).string();

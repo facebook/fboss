@@ -4,38 +4,30 @@
   ],
   "i2cDumpDevices": [
     {
-      "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD",
-      "isI2cDevice": true
+      "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD"
     },
     {
-      "path": "/run/devmap/cplds/FAN0_CPLD",
-      "isI2cDevice": true
+      "path": "/run/devmap/cplds/FAN0_CPLD"
     },
     {
-      "path": "/run/devmap/cplds/FAN1_CPLD",
-      "isI2cDevice": true
+      "path": "/run/devmap/cplds/FAN1_CPLD"
     },
     {
-      "path": "/run/devmap/cplds/FAN2_CPLD",
-      "isI2cDevice": true
+      "path": "/run/devmap/cplds/FAN2_CPLD"
     }
   ],
   "psus": [
     {
-      "path": "/run/devmap/sensors/PSU1_PMBUS",
-      "isI2cDevice": true
+      "path": "/run/devmap/sensors/PSU1_PMBUS"
     },
     {
-      "path": "/run/devmap/sensors/PSU2_PMBUS",
-      "isI2cDevice": true
+      "path": "/run/devmap/sensors/PSU2_PMBUS"
     },
     {
-      "path": "/run/devmap/sensors/PSU3_PMBUS",
-      "isI2cDevice": true
+      "path": "/run/devmap/sensors/PSU3_PMBUS"
     },
     {
-      "path": "/run/devmap/sensors/PSU4_PMBUS",
-      "isI2cDevice": true
+      "path": "/run/devmap/sensors/PSU4_PMBUS"
     }
   ],
   "gpios": [],

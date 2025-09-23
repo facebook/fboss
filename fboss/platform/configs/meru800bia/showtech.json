@@ -4,18 +4,15 @@
   ],
   "i2cDumpDevices": [
     {
-      "path": "/run/devmap/cplds/FAN_CPLD",
-      "isI2cDevice": true
+      "path": "/run/devmap/cplds/FAN_CPLD"
     }
   ],
   "psus": [
     {
-      "path": "/run/devmap/sensors/PSU1_PMBUS",
-      "isI2cDevice": true
+      "path": "/run/devmap/sensors/PSU1_PMBUS"
     },
     {
-      "path": "/run/devmap/sensors/PSU2_PMBUS",
-      "isI2cDevice": true
+      "path": "/run/devmap/sensors/PSU2_PMBUS"
     }
   ],
   "gpios": [

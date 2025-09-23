@@ -29,8 +29,7 @@ struct Pem {
 
 struct Device {
   1: string path;
-  2: bool isI2cDevice;
-  3: optional list<SysfsAttribute> sysfsAttributes;
+  2: optional list<SysfsAttribute> sysfsAttributes;
 }
 
 struct SysfsAttribute {
