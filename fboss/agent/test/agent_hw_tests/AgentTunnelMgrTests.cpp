@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -38,9 +39,24 @@ class AgentTunnelMgrTest : public AgentHwTest {
     FLAGS_cleanup_probed_kernel_data = true;
   }
 
+ public:
   void SetUp() override {
-    // clear all kernel entries before starting the test
-    clearAllKernelEntries();
+    // Check for warmboot flag before any processing using the helper function
+    bool isWarmbootSetup = isWarmbootSetupRequested();
+
+    XLOG(INFO) << "Setup requested for "
+               << (isWarmbootSetup ? "warmboot" : "coldboot");
+
+    // Clear kernel entries for coldboot only, BEFORE agent initialization
+    if (isWarmbootSetup) {
+      XLOG(INFO)
+          << "Coldboot detected: clearing all kernel entries before agent initialization";
+      clearAllKernelEntries();
+    } else {
+      XLOG(INFO) << "Warmboot detected: skipping kernel entries cleanup";
+    }
+
+    // Now call parent SetUp to initialize the agent
     AgentHwTest::SetUp();
   }
 
@@ -1011,6 +1027,7 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
     auto config = initialConfig(*getAgentEnsemble());
 
     printInterfaceDetails(config);
+    printKernelInformation();
 
     // Apply the config
     applyNewConfig(config);
@@ -1063,12 +1080,13 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       // in kernel and switchState are same. During the coldboot case for tests,
       // the kernel will have nothing, while switchState will have the
       // interfacs, so cleanup will run.
-      // BUG: Tests cleanup all state in setup.
       if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
-        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
       }
+      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+
       // Set probeDone_ to false before calling probe()
       tunMgr_->probeDone_ = false;
 
@@ -1077,9 +1095,7 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       // Force cleanup by calling deleteAllProbedData directly to ensure it
       // happens regardless of interface mapping comparison
       tunMgr_->deleteAllProbedData();
-      // Verify probe data is cleaned up after cleanup
-      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
-      EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
       // Check that the kernel entries are removed after probe
@@ -1099,7 +1115,22 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       XLOG(INFO) << "Socket does not exist";
     }
 
+    // Recreate interfaces after deleting probed data
+    printProbedInterfaceDetails();
     printInterfaceDetails(config);
+    printKernelInformation();
+    // Set probeDone_ to false before calling probe()
+    tunMgr_->probeDone_ = false;
+
+    XLOG(INFO) << "Recreate kernel data";
+    tunMgr_->probe();
+
+    auto state = getAgentEnsemble()->getSw()->getState();
+    tunMgr_->evb_->runInFbossEventBaseThread(
+        [tunMgr_, state]() { tunMgr_->sync(state); });
+    printProbedInterfaceDetails();
+    printInterfaceDetails(config);
+    printKernelInformation();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1142,13 +1173,13 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       // Verify probe data is not cleaned up during warmboot, since interfaces
       // in kernel and switchState are same. During the coldboot case for tests,
       // the kernel will have nothing, while switchState will have the
-      // BUG: Tests cleanup all state in setup.
-      // interfacs, so cleanup will run.
       if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
-        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
       }
+      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+
       // Set probeDone_ to false before calling probe()
       tunMgr_->probeDone_ = false;
 
@@ -1160,9 +1191,6 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       // Force cleanup by calling deleteAllProbedData directly to ensure it
       // happens regardless of interface mapping comparison
       tunMgr_->deleteAllProbedData();
-      // Verify probe data is cleaned up after cleanup
-      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
-      EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
 
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
@@ -1183,7 +1211,22 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       XLOG(INFO) << "Socket does not exist";
     }
 
+    // Recreate interfaces after deleting probed data
+    printProbedInterfaceDetails();
     printInterfaceDetails(config);
+    printKernelInformation();
+    // Set probeDone_ to false before calling probe()
+    tunMgr_->probeDone_ = false;
+
+    XLOG(INFO) << "Recreate kernel data";
+    tunMgr_->probe();
+
+    auto state = getAgentEnsemble()->getSw()->getState();
+    tunMgr_->evb_->runInFbossEventBaseThread(
+        [tunMgr_, state]() { tunMgr_->sync(state); });
+    printProbedInterfaceDetails();
+    printInterfaceDetails(config);
+    printKernelInformation();
   };
 
   verifyAcrossWarmBoots(setup, verify);

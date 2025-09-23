@@ -641,6 +641,13 @@ void AgentHwTest::populateNdpNeighborsToCache(
   }
 }
 
+bool isWarmbootSetupRequested() {
+  // Parse gflags to read the setup_for_warmboot flag
+  // The false parameter means don't remove parsed flags from argc/argv
+  gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
+  return FLAGS_setup_for_warmboot;
+}
+
 void initAgentHwTest(
     int argc,
     char* argv[],
