@@ -1154,6 +1154,44 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
     printInterfaceDetails(config);
     printKernelInformation();
 
+    std::string intfIPv4;
+    std::string intfIPv6;
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+
+        if (intfIP.find("::") != std::string::npos) {
+          intfIPv6 = std::move(intfIP);
+        } else {
+          intfIPv4 = std::move(intfIP);
+        }
+      }
+
+      // Get TunManager pointer
+      auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+      auto status = tunMgr_->getIntfStatus(
+          getProgrammedState(),
+          (InterfaceID)config.interfaces()[i].intfID().value());
+
+      XLOG(INFO) << "Interface ID: "
+                 << (InterfaceID)config.interfaces()[i].intfID().value()
+                 << ", Status: " << (status ? "UP" : "DOWN")
+                 << ", IPv4: " << intfIPv4 << ", IPv6: " << intfIPv6;
+      // There could be a race condition where the interface is up, but the
+      // socket is not created. So, checking for the socket existence.
+      auto socketExists = tunMgr_->isValidNlSocket();
+
+      // There is a known limitation in the kernel that the source route rule
+      // entries are not created if the interface is not up. So, checking for
+      // the kernel entries if the interface is  up
+      if (status && socketExists) {
+        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+      }
+    }
+
     for (int i = 0; i < config.ports()->size(); i++) {
       XLOG(DBG2) << "Disabling port at index: " << i;
       config.ports()[i].state() = cfg::PortState::DISABLED;
