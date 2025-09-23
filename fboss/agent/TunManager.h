@@ -229,6 +229,11 @@ class TunManager : public StateObserver {
   std::unordered_map<int, int> buildIfIndexToTableIdMapFromProbedRoutes() const;
 
   /**
+   * Build a mapping from interface index to table ID from source rules.
+   */
+  std::unordered_map<int, int> buildIfIndexToTableIdMapFromRules() const;
+
+  /**
    * Build a mapping from interface ID to table ID from probed interfaces.
    */
   std::unordered_map<InterfaceID, int> buildProbedIfIdToTableIdMap() const;

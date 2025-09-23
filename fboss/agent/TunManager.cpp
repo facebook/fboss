@@ -294,6 +294,54 @@ TunManager::buildIfIndexToTableIdMapFromProbedRoutes() const {
   return ifIndexToTableId;
 }
 
+std::unordered_map<int, int> TunManager::buildIfIndexToTableIdMapFromRules()
+    const {
+  std::unordered_map<int, int> ifIndexToTableId;
+
+  // For each interface, find matching source rules to determine table ID
+  for (const auto& intf : intfs_) {
+    auto ifIndex = intf.second->getIfIndex();
+    auto ifID = intf.first;
+    const auto& addresses = intf.second->getAddresses();
+
+    bool foundMapping = false;
+
+    // Look for source rules matching this interface's addresses
+    for (const auto& addr : addresses) {
+      if (addr.first.isLinkLocal()) {
+        continue; // Skip link-local addresses
+      }
+
+      for (const auto& rule : probedRules_) {
+        // Parse the rule source address to extract just the IP part
+        auto ipaddr = IPAddress::createNetwork(rule.srcAddr, -1, false).first;
+        std::string ruleAddrOnly = ipaddr.str();
+
+        // Compare the IP address parts
+        if (ruleAddrOnly == addr.first.str()) {
+          ifIndexToTableId[ifIndex] = rule.tableId;
+          XLOG(DBG2) << "Mapped ifIndex " << ifIndex << " to tableId "
+                     << rule.tableId << " via address " << addr.first.str()
+                     << " (rule: " << rule.srcAddr << ")";
+          foundMapping = true;
+          break; // Found mapping for this interface
+        }
+      }
+
+      if (foundMapping) {
+        break; // Found mapping for this interface
+      }
+    }
+
+    if (!foundMapping) {
+      XLOG(DBG2) << "No source rule found for interface " << ifID
+                 << " @ ifIndex " << ifIndex;
+    }
+  }
+
+  return ifIndexToTableId;
+}
+
 std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
     const {
   std::unordered_map<InterfaceID, int> probedIfIdToTableId;
