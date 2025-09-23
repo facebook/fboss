@@ -10,9 +10,10 @@
  * This macro contains friend class declarations needed to access private
  * members of TunManager for testing.
  */
-#define AGENT_TUNNEL_MGR_FRIEND_TESTS \
-  friend class AgentTunnelMgrTest;    \
-  FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanup);
+#define AGENT_TUNNEL_MGR_FRIEND_TESTS                      \
+  friend class AgentTunnelMgrTest;                         \
+  FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanup); \
+  FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown);
 
 #include <sstream>
 #include <string>
@@ -1067,6 +1068,78 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
         // Get IPv6 address for this interface
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
         checkKernelIpEntriesRemoved(intfID, ipv6Addr.str(), false);
+      }
+    } else {
+      XLOG(INFO) << "Socket does not exist";
+    }
+
+    printInterfaceDetails(config);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+/**
+ * Test verifies tunnel manager's probe and cleanup functionality for DOWN
+ * interfaces:
+ * - Creates state (interfaces, addresses, source rules, default routes) for 2
+ * interfaces with ports disabled (interfaces DOWN)
+ * - Verifies state exists in kernel
+ * - Verifies kernel has clean state after cleanup, skipping source rule
+ * validation for down interfaces (source rules persist for down interfaces
+ * per kernel limitation)
+ */
+TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    printInterfaceDetails(config);
+    printKernelInformation();
+
+    for (int i = 0; i < config.ports()->size(); i++) {
+      XLOG(DBG2) << "Disabling port at index: " << i;
+      config.ports()[i].state() = cfg::PortState::DISABLED;
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    printInterfaceDetails(config);
+
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto socketExists = tunMgr_->isValidNlSocket();
+
+    if (socketExists) {
+      // Set probeDone_ to false before calling probe()
+      tunMgr_->probeDone_ = false;
+
+      XLOG(INFO) << "Starting probe and cleanup of kernel data";
+      tunMgr_->probe();
+      printProbedInterfaceDetails();
+      printKernelInformation();
+
+      // Force cleanup by calling deleteAllProbedData directly to ensure it
+      // happens regardless of interface mapping comparison
+      tunMgr_->deleteAllProbedData();
+      // Verify probe data is cleaned up after cleanup
+      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+      XLOG(INFO) << "Stopping probe and clean up of probe data";
+
+      // Check that the kernel entries are removed after probe
+      for (int i = 0; i < config.interfaces()->size(); i++) {
+        InterfaceID intfID =
+            InterfaceID(config.interfaces()[i].intfID().value());
+
+        // Get IPv4 address for this interface
+        auto ipv4Addr = getSwitchIntfIP(getProgrammedState(), intfID);
+        checkKernelIpEntriesRemovedStrict(intfID, ipv4Addr.str(), true);
+
+        // Get IPv6 address for this interface
+        auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
+        checkKernelIpEntriesRemovedStrict(intfID, ipv6Addr.str(), false);
       }
     } else {
       XLOG(INFO) << "Socket does not exist";
