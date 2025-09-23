@@ -13,7 +13,6 @@ namespace facebook::fboss {
 
 bool Jericho3Asic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::HOSTTABLE:
@@ -235,6 +234,12 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
+      /*
+       * J3 does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect is
+       * achieved by configuring to forward TTL0 packets by enabling
+       * SAI_TTL0_PACKET_FORWARD_ENABLE.
+       */
+    case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
       return false;
   }
   return false;
