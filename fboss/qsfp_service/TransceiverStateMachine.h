@@ -21,6 +21,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 DECLARE_bool(use_new_state_machine);
+DECLARE_bool(port_manager_mode);
 
 namespace facebook::fboss {
 
@@ -401,12 +402,13 @@ bool operator()(
               << "] No enabled ports. Safe to remove";
     result = true;
   } else {
+    // TODO(smenta): Modify areAllPortsDown logic to use PortManager status when Port Manager mode is enabled.
     result = xcvrMgr->areAllPortsDown(tcvrID).first;
     XLOG_IF(WARN, !result) << "[Transceiver:" << tcvrID
                           << "] Not all ports down. Not Safe to remove";
   }
 
-  // If the state machine can proceed (result=true) we reset transceiver associated 
+  // If the state machine can proceed (result=true) we reset transceiver associated
   // port states in FSDB.
   if (result) {
     xcvrMgr->resetPortState(tcvrID);
@@ -452,6 +454,19 @@ bool operator()(
   return fsm.get_attribute(transceiverMgrPtr)->firmwareUpgradeRequired(tcvrID);
 }
 };
+
+
+BOOST_MSM_EUML_ACTION(isPortManagerMode) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& /* fsm */,
+    Source& /* src */,
+    Target& /* trg */) {
+      return FLAGS_port_manager_mode;
+}
+};
+
 // clang-format on
 
 // Transceiver State Machine State transition table
@@ -523,7 +538,10 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     XPHY_PORTS_PROGRAMMED  + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
     TRANSCEIVER_READY      + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
     TRANSCEIVER_PROGRAMMED + UPGRADE_FIRMWARE [firmwareUpgradeRequired]        / logStateChanged == UPGRADING,
-    UPGRADING              + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED
+    UPGRADING              + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
+    // For non-present transceiver, we still want to call transceiver programming in case optic is actually present.
+    // In Port Manager mode, transceiver will skip PHY programming and proced directly to tcvr programming.
+    NOT_PRESENT           + PREPARE_TRANSCEIVER     [isPortManagerMode]        / logStateChanged == TRANSCEIVER_READY
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

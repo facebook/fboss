@@ -69,6 +69,11 @@ DEFINE_bool(
     false,
     "Set to true to automatically upgrade firmware when a transceiver is inserted");
 
+DEFINE_bool(
+    port_manager_mode,
+    false,
+    "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
+
 namespace {
 constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/(\\d+)";
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
@@ -312,6 +317,10 @@ QsfpServiceRunState TransceiverManager::getRunState() const {
 }
 
 void TransceiverManager::restoreAgentConfigAppliedInfo() {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("restoreAgentConfigAppliedInfo");
+    return;
+  }
   if (warmBootState_.isNull()) {
     return;
   }
@@ -450,7 +459,7 @@ void TransceiverManager::gracefulExit() {
   setWarmBootState();
 
   // Do a graceful shutdown of the phy.
-  if (phyManager_) {
+  if (phyManager_ && !FLAGS_port_manager_mode) {
     phyManager_->gracefulExit();
   }
 
@@ -1087,14 +1096,20 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
       numPrepareTcvr{0};
   BlockingStateUpdateResultList results;
   steady_clock::time_point begin = steady_clock::now();
+
+  // PHY programming is managed by PortManager when Port Manager mode is
+  // enabled.
+  bool shouldProgramPhy = !FLAGS_port_manager_mode;
   for (auto& stateMachine : stateMachineControllers_) {
     bool needProgramIphy{false}, needProgramXphy{false}, needProgramTcvr{false},
         moduleStateReady{false};
     {
       const auto& lockedStateMachine =
           stateMachine.second->getStateMachine().rlock();
-      needProgramIphy = !lockedStateMachine->get_attribute(isIphyProgrammed);
-      needProgramXphy = !lockedStateMachine->get_attribute(isXphyProgrammed);
+      needProgramIphy = !lockedStateMachine->get_attribute(isIphyProgrammed) &&
+          shouldProgramPhy;
+      needProgramXphy = !lockedStateMachine->get_attribute(isXphyProgrammed) &&
+          shouldProgramPhy;
       needProgramTcvr =
           !lockedStateMachine->get_attribute(isTransceiverProgrammed);
       moduleStateReady =
@@ -1149,6 +1164,11 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
 }
 
 void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("programInternalPhyPorts");
+    return;
+  }
+
   std::map<int32_t, cfg::PortProfileID> programmedIphyPorts;
   if (auto overridePortAndProfileIt =
           overrideTcvrToPortAndProfileForTest_.find(id);
@@ -1228,6 +1248,11 @@ TransceiverManager::getOverrideProgrammedIphyPortAndProfileForTest(
 void TransceiverManager::programExternalPhyPorts(
     TransceiverID id,
     bool needResetDataPath) {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("programExternalPhyPorts");
+    return;
+  }
+
   auto phyManager = getPhyManager();
   if (!phyManager) {
     return;
@@ -1529,6 +1554,10 @@ bool TransceiverManager::supportRemediateTransceiver(TransceiverID id) {
 
 void TransceiverManager::syncNpuPortStatusUpdate(
     std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("syncNpuPortStatusUpdate");
+    return;
+  }
   XLOG(INFO) << "Syncing NPU port status update";
   updateNpuPortStatusCache(portStatus);
   // Update state machine after receiving a new port status update
@@ -1541,6 +1570,10 @@ void TransceiverManager::updateNpuPortStatusCache(
 }
 
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("updateTransceiverPortStatus");
+    return;
+  }
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
   std::unordered_set<TransceiverID> tcvrsForFwUpgrade;
@@ -1743,6 +1776,10 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
 void TransceiverManager::updateTransceiverActiveState(
     const std::set<TransceiverID>& tcvrs,
     const std::map<int32_t, PortStatus>& portStatus) noexcept {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("updateTransceiverActiveState");
+    return;
+  }
   std::map<int32_t, NpuPortStatus> npuPortStatus = getNpuPortStatus(portStatus);
   int numPortStatusChanged{0};
   BlockingStateUpdateResultList results;
@@ -2100,6 +2137,10 @@ void TransceiverManager::refreshStateMachines() {
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("triggerAgentConfigChangeEvent");
+    return;
+  }
   auto wedgeAgentClient = utils::createWedgeAgentClient();
   ConfigAppliedInfo newConfigAppliedInfo;
   try {

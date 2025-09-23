@@ -53,9 +53,13 @@
 
 #define SM_LOG(level, tcvrID) MODULE_LOG(level, "[SM]", tcvrID)
 
+#define PORT_MGR_SKIP_LOG(func) \
+  XLOG(DBG2) << func << " called in Port Manager mode. Skipping."
+
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
 DECLARE_bool(enable_tcvr_validation);
+DECLARE_bool(port_manager_mode);
 
 namespace facebook::fboss {
 struct TransceiverConfig;
@@ -190,6 +194,11 @@ class TransceiverManager {
   virtual void publishI2cTransactionStats() = 0;
 
   void publishPhyIOStats() const {
+    if (FLAGS_port_manager_mode) {
+      PORT_MGR_SKIP_LOG("publishPhyIOStats");
+      return;
+    }
+
     if (!phyManager_) {
       return;
     }

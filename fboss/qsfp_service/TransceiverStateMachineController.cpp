@@ -69,6 +69,13 @@ void TransceiverStateMachineController::applyUpdate(
       break;
     case TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM:
       lockedStateMachine->process_event(READ_EEPROM);
+      if (FLAGS_port_manager_mode) {
+        XLOG(DBG2)
+            << "Skip programming IPHY and XPHY in Port Manager mode. Advancing state to XPHY_PORTS_PROGRAMMED for "
+            << getUpdateString(event);
+        lockedStateMachine->process_event(PROGRAM_IPHY);
+        lockedStateMachine->process_event(PROGRAM_XPHY);
+      }
       break;
     case TransceiverStateMachineEvent::TCVR_EV_PROGRAM_IPHY:
       lockedStateMachine->process_event(PROGRAM_IPHY);
