@@ -163,6 +163,7 @@ struct TransceiverSpecFields {
   2: optional double cableLength;
   3: optional transceiver.MediaInterfaceCode mediaInterface;
   4: optional transceiver.TransceiverManagementInterface managementInterface;
+  5: optional transceiver.Vendor vendor;
 }
 
 struct AclTtl {
