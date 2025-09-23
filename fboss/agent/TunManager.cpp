@@ -1406,6 +1406,9 @@ void TunManager::deleteProbedAddressesAndRules(
     const std::unordered_map<int, int>& ifIndexToTableId) {
   XLOG(DBG2) << "Deleting probed addresses and source routing rules";
 
+  // Track which rules were deleted during address cleanup
+  std::set<std::pair<int, std::string>> deletedRules;
+
   for (const auto& intf : intfs_) {
     const auto& addresses = intf.second->getAddresses();
     const auto& ifName = intf.second->getName();
@@ -1423,6 +1426,11 @@ void TunManager::deleteProbedAddressesAndRules(
         addRemoveSourceRouteRule(tableId, addr.first, false);
         XLOG(DBG2) << "Deleted source rule for address " << addr.first.str()
                    << " table " << tableId;
+
+        // Track that we deleted this rule (by tableId and address)
+        std::string addrStr =
+            addr.first.str() + "/" + std::to_string(addr.first.bitCount());
+        deletedRules.insert({tableId, addrStr});
       }
 
       // Delete address directly
@@ -1432,6 +1440,32 @@ void TunManager::deleteProbedAddressesAndRules(
                  << ifName;
     }
   }
+
+  // Delete remaining probed rules that weren't already deleted
+  for (const auto& probedRule : probedRules_) {
+    std::pair<int, std::string> ruleKey = {
+        probedRule.tableId, probedRule.srcAddr};
+
+    // If this rule wasn't already deleted during address cleanup, delete it now
+    if (deletedRules.find(ruleKey) == deletedRules.end()) {
+      try {
+        // Parse the address from the rule's srcAddr (e.g., "10.0.0.1/32" ->
+        // "10.0.0.1")
+        auto ipAddr =
+            IPAddress::createNetwork(probedRule.srcAddr, -1, false).first;
+        addRemoveSourceRouteRule(probedRule.tableId, ipAddr, false);
+        XLOG(DBG2) << "Deleted remaining probed rule: " << probedRule.srcAddr
+                   << " -> table " << probedRule.tableId;
+      } catch (const std::exception& ex) {
+        XLOG(WARNING) << "Failed to delete probed rule " << probedRule.srcAddr
+                      << " -> table " << probedRule.tableId << ": "
+                      << ex.what();
+      }
+    }
+  }
+
+  // Clear the probed rules after processing
+  probedRules_.clear();
 }
 
 /**
