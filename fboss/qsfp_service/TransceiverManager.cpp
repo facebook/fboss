@@ -2087,21 +2087,8 @@ void TransceiverManager::updateValidationCache(TransceiverID id, bool isValid) {
   }
 }
 
-void TransceiverManager::refreshStateMachines() {
-  XLOG(INFO) << "refreshStateMachines started";
-  // Clear the map that tracks the firmware upgrades in progress per evb
-  evbsRunningFirmwareUpgrade_.wlock()->clear();
-
-  // Step1: Fetch current port status from wedge_agent.
-  // Since the following steps, like refreshTransceivers() might need to use
-  // port status to decide whether it's safe to reset a transceiver.
-  // Therefore, always do port status update first.
-  updateTransceiverPortStatus();
-
-  // Step2: Refresh all transceivers so that we can get an update
-  // TransceiverInfo
-  const auto& presentXcvrIds = refreshTransceivers();
-
+void TransceiverManager::findAndTriggerPotentialFirmwareUpgradeEvents(
+    const std::vector<TransceiverID>& presentXcvrIds) {
   bool firstRefreshAfterColdboot = !canWarmBoot_ && !isFullyInitialized();
   std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
   for (auto tcvrID : presentXcvrIds) {
@@ -2109,7 +2096,7 @@ void TransceiverManager::refreshStateMachines() {
     if (curState == TransceiverStateMachineState::INACTIVE &&
         FLAGS_firmware_upgrade_on_link_down) {
       // Anytime a module is in inactive state (link down), it's a candidate for
-      // fw upgrade
+      // fw upgrade.
       XLOG(INFO)
           << "Transceiver " << static_cast<int>(tcvrID)
           << " is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
@@ -2146,6 +2133,35 @@ void TransceiverManager::refreshStateMachines() {
   if (!potentialTcvrsForFwUpgrade.empty()) {
     triggerFirmwareUpgradeEvents(potentialTcvrsForFwUpgrade);
   }
+}
+
+void TransceiverManager::resetTcvrMgrStateAfterFirmwareUpgrade() {
+  // Resume heartbeats at the end of refresh loop in case they were paused by
+  // any of the operations above
+  for (auto& threadHelper : *threads_) {
+    heartbeatWatchdog_->resumeMonitoringHeartbeat(
+        threadHelper.second.getThreadHeartbeat());
+  }
+  heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
+  isUpgradingFirmware_ = false;
+}
+
+void TransceiverManager::refreshStateMachines() {
+  XLOG(INFO) << "refreshStateMachines started";
+  clearEvbsRunningFirmwareUpgrade();
+
+  // Step1: Fetch current port status from wedge_agent.
+  // Since the following steps, like refreshTransceivers() might need to use
+  // port status to decide whether it's safe to reset a transceiver.
+  // Therefore, always do port status update first.
+  if (!FLAGS_port_manager_mode) {
+    updateTransceiverPortStatus();
+  }
+
+  // Step2: Refresh all transceivers so that we can get an update
+  // TransceiverInfo
+  const auto& presentXcvrIds = refreshTransceivers();
+  findAndTriggerPotentialFirmwareUpgradeEvents(presentXcvrIds);
 
   // Step3: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();
@@ -2167,13 +2183,7 @@ void TransceiverManager::refreshStateMachines() {
   }
   triggerRemediateEvents(stableTcvrs);
 
-  // Resume heartbeats at the end of refresh loop in case they were paused by
-  // any of the operations above
-  for (auto& threadHelper : *threads_) {
-    heartbeatWatchdog_->resumeMonitoringHeartbeat(
-        threadHelper.second.getThreadHeartbeat());
-  }
-  heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
+  resetTcvrMgrStateAfterFirmwareUpgrade();
 
   if (!isFullyInitialized_) {
     isFullyInitialized_ = true;
@@ -2191,8 +2201,6 @@ void TransceiverManager::refreshStateMachines() {
   }
 
   publishPimStatesToFsdb();
-
-  isUpgradingFirmware_ = false;
 
   // Update the warmboot state if there is a change.
   setWarmBootState();

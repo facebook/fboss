@@ -697,12 +697,22 @@ class TransceiverManager {
   void triggerFirmwareUpgradeEvents(
       const std::unordered_set<TransceiverID>& tcvrs);
 
-  void markTransceiverReadyForProgramming(TransceiverID tcvrId, bool ready);
-
   // Check whether iphy/xphy/transceiver programmed is done. If not, then
   // trigger the corresponding program event to program the component.
   // Return the list of transceivers that have programming events
   std::vector<TransceiverID> triggerProgrammingEvents();
+
+  void findAndTriggerPotentialFirmwareUpgradeEvents(
+      const std::vector<TransceiverID>& presentXcvrIds);
+
+  void resetTcvrMgrStateAfterFirmwareUpgrade();
+
+  void clearEvbsRunningFirmwareUpgrade() {
+    // Clear the map that tracks the firmware upgrades in progress per evb
+    evbsRunningFirmwareUpgrade_.wlock()->clear();
+  }
+
+  void markTransceiverReadyForProgramming(TransceiverID tcvrId, bool ready);
 
  protected:
   /*
