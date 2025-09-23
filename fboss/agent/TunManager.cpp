@@ -827,6 +827,20 @@ void TunManager::addressProcessor(struct nl_object* obj, void* data) {
       rtnl_addr_get_ifindex(addr), ipaddr, nl_addr_get_prefixlen(localaddr));
 }
 
+void TunManager::performInitialCleanup(std::shared_ptr<SwitchState> state) {
+  // Build a map of interface ID to table ID from state interfaces
+  auto ifIdToTableId = this->buildIfIdToTableIdMap(state);
+
+  // Build a map of interface ID to table ID from probed interfaces
+  auto probedIfIdToTableId = this->buildProbedIfIdToTableIdMap();
+
+  // Only delete probed data if there's a difference between the maps
+  if (requiresProbedDataCleanup(ifIdToTableId, probedIfIdToTableId)) {
+    deleteAllProbedData();
+  }
+  initialCleanupDone_ = true;
+}
+
 void TunManager::probe() {
   std::lock_guard<std::mutex> lock(mutex_);
   doProbe(lock);

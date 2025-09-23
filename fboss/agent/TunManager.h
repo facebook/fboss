@@ -92,6 +92,11 @@ class TunManager : public StateObserver {
    */
   virtual void probe();
 
+  /*
+   * Perform initial cleanup of probed data if required
+   */
+  void performInitialCleanup(std::shared_ptr<SwitchState> state);
+
   void stopProcessing();
 
   /**
@@ -424,6 +429,9 @@ class TunManager : public StateObserver {
 
   // Initial probe done
   bool probeDone_{false};
+
+  // Initial cleanup done
+  bool initialCleanupDone_{false};
 
   uint64_t numSyncs_{0};
 
