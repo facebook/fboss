@@ -30,10 +30,15 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SiSettingPinConnection,
     SiSettingRow,
     SpeedSetting,
+    TransceiverOverrideSetting,
 )
 
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed, PortType
-from neteng.fboss.transceiver.ttypes import TransmitterTechnology
+from neteng.fboss.transceiver.ttypes import (
+    MediaInterfaceCode,
+    TransmitterTechnology,
+    Vendor,
+)
 
 
 def get_content(directory: Dict[str, str], filename: str) -> str:
@@ -292,11 +297,37 @@ def read_si_settings(
         if row[Column.CABLE_LENGTH]:
             cable_length = float(row[Column.MEDIA_TYPE])
 
+        # Add optics settings if present in the csv file.
+        tcvr_setting = None
+        tcvr_vendor = row[Column.TCVR_VENDOR]
+        if tcvr_vendor:
+            tcvr_media = row[Column.TCVR_MEDIA]
+            if not tcvr_media:
+                raise Exception(
+                    "Invalid media media type not populated ", row[Column.TCVR_VENDOR]
+                )
+            if tcvr_media not in MediaInterfaceCode._NAMES_TO_VALUES:
+                raise Exception("Invalid module media type ", tcvr_media)
+
+            tcvr_part_num = row[Column.TCVR_PART_NUM]
+            if not tcvr_media:
+                raise Exception(
+                    "Invalid transceiver part number type not populated ",
+                    row[Column.TCVR_PART_NUM],
+                )
+            tcvr_media_type = MediaInterfaceCode._NAMES_TO_VALUES[tcvr_media]
+            vendor = Vendor(
+                name=str(row[Column.TCVR_VENDOR]), partNumber=str(tcvr_part_num)
+            )
+            tcvr_setting = TransceiverOverrideSetting(
+                vendor=vendor, media_interface_code=tcvr_media_type
+            )
         si_setting_factor = SiSettingFactor(
             # pyre-fixme[6]: Expected `Optional[PortSpeed]` for 1st param but got `Optional[int]`.
             lane_speed=lane_speed,
             media_type=media_type,
             cable_length=cable_length,
+            tcvr_override_setting=tcvr_setting,
         )
 
         tx_setting = TxSettings()
