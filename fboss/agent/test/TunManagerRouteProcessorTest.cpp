@@ -78,7 +78,10 @@
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest, RequiresProbedDataCleanupSizeDiff);        \
   FRIEND_TEST(                                                                 \
-      TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys);
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys);     \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapWithRulesAugmentation);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1284,6 +1287,51 @@ TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys) {
 
   // Should return true since keys differ
   EXPECT_TRUE(requiresCleanup);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with rules augmentation
+ *
+ * Verifies that buildProbedIfIdToTableIdMap correctly augments the mapping
+ * from probed routes with mappings from probed rules when interfaces have
+ * no probed routes but have matching source rules.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapWithRulesAugmentation) {
+  // Add mock interfaces with addresses
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 43, 1500);
+
+  Interface::Addresses addrs1 = {{folly::IPAddress("192.168.1.100"), 24}};
+  Interface::Addresses addrs2 = {{folly::IPAddress("192.168.2.100"), 24}};
+
+  mockIntf1->setTestAddresses(addrs1);
+  mockIntf2->setTestAddresses(addrs2);
+
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+
+  // Add probed route only for first interface
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  addProbedRoute(tunMgr_, AF_INET, tableId2000, "0.0.0.0/0", 42);
+
+  // Add probed rules for both interfaces (second one will augment)
+  auto tableId2001 = tunMgr_->getTableId(InterfaceID(2001));
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, tableId2000, "192.168.1.100/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET, tableId2001, "192.168.2.100/32");
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should include mapping from both routes and rules
+  EXPECT_EQ(2, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]); // From route
+  EXPECT_EQ(
+      tableId2001, probedMapping[InterfaceID(2001)]); // From rule (augmented)
 }
 
 } // namespace facebook::fboss
