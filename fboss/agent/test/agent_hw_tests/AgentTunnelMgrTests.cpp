@@ -406,8 +406,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
   void checkKernelEntriesNotExist(
       const std::string& intfIp,
       bool isIPv4 = true,
-      bool checkRouteEntry = true,
-      bool sourceRuleCleared = true) {
+      bool checkRouteEntry = true) {
     // Check that the source route rule entries are present in the kernel
 
     std::string cmd;
@@ -423,15 +422,8 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
     XLOG(DBG2) << "checkKernelEntriesNotExist Output: \n" << output;
 
-    if (sourceRuleCleared) {
-      EXPECT_TRUE(
-          output.find(folly::to<std::string>(searchIntfIp)) ==
-          std::string::npos);
-    } else {
-      EXPECT_FALSE(
-          output.find(folly::to<std::string>(searchIntfIp)) ==
-          std::string::npos);
-    }
+    EXPECT_TRUE(
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
 
     if (isIPv4) {
       // Check that the tunnel address entries are present in the kernel
@@ -854,30 +846,21 @@ class AgentTunnelMgrTest : public AgentHwTest {
   }
 
   /**
-   * Check kernel entries are removed, for interfaces that are down.
-   *
-   * This method can be called for interfaces that are down and will not
-   * enforce that source route rules are removed for down interfaces, see
-   * https://fburl.com/code/b0am2ok2
-   * Unlike existing checkKernelEntriesNotExist, which is selectively called for
-   * interfaces that are up, this method can be check that all kernel entries
-   * (interfaces, addresses and routes)  other than source rule are cleaned up.
+   * Check kernel entries are removed, irrespective of interace status.
    *
    * @param ifId Interface ID to check
    * @param intfIP Interface IP address to check
    * @param isIPv4 True for IPv4, false for IPv6
    */
-  void checkKernelIpEntriesRemovedSkipSourceRule(
+  void checkKernelIpEntriesRemovedStrict(
       const InterfaceID& ifId,
       const std::string& intfIP,
       bool isIPv4) {
     // Check kernel entries regardless of interface status
     if (isIPv4) {
-      checkKernelEntriesNotExist(
-          folly::to<std::string>(intfIP), true, true, false);
+      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), true, true);
     } else {
-      checkKernelEntriesNotExist(
-          folly::to<std::string>(intfIP), false, true, false);
+      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), false, true);
     }
   }
 };
