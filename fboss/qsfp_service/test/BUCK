@@ -210,7 +210,6 @@ cpp_unittest(
         ":transceiver_manager_test_helper",
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
         "//fboss/lib/config:fboss_config_utils",
-        "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service:slot-thread-helper",
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/tests:fake-transceiver-impl",

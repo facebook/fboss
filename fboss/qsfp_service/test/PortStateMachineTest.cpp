@@ -204,9 +204,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       auto curState = TcvrPortStatePair{
           transceiverManager_->getCurrentState(tcvrId_),
           {portManager_->getPortState(portId1_),
-           multiPort ? std::make_optional<PortStateMachineState>(
-                           portManager_->getPortState(portId3_))
-                     : std::nullopt}};
+           optionalPortState(multiPort, portManager_->getPortState(portId3_))}};
       EXPECT_EQ(curState, expectedState)
           << "Transceiver=0 state doesn't match after " << updateStr
           << ", preState=" << logState(tcvrPortStatePair)
@@ -289,9 +287,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       auto curState = TcvrPortStatePair{
           transceiverManager_->getCurrentState(tcvrId_),
           {portManager_->getPortState(portId1_),
-           multiPort ? std::make_optional<PortStateMachineState>(
-                           portManager_->getPortState(portId3_))
-                     : std::nullopt}};
+           optionalPortState(multiPort, portManager_->getPortState(portId3_))}};
       EXPECT_EQ(curState, tcvrPortStatePair)
           << "Transceiver=0 state changed unexpectedly after " << updateStr
           << ", expected unchanged state=" << logState(tcvrPortStatePair)
@@ -447,6 +443,40 @@ TEST_F(PortStateMachineTest, disablePorts) {
         [this]() { disablePortsThroughRefresh(); } /* stateUpdate */,
         []() {} /* verify */,
         "portsDisabled");
+    // Prepare for testing with next multiPort value
+    resetManagers();
+  }
+}
+
+TEST_F(
+    PortStateMachineTest,
+    tryProgrammingTransceiverWithoutPhyProgrammingComplete) {
+  for (auto multiPort : {false, true}) {
+    initManagers();
+    XLOG(INFO)
+        << "Verifying tryProgrammingTransceiverWithoutPhyProgrammingComplete for multiPort = "
+        << multiPort;
+    verifyStateMachine(
+        {TcvrPortStatePair{
+            TransceiverStateMachineState::DISCOVERED,
+            {PortStateMachineState::INITIALIZED,
+             optionalPortState(
+                 multiPort, PortStateMachineState::INITIALIZED)}}},
+        TcvrPortStatePair{
+            TransceiverStateMachineState::TRANSCEIVER_READY,
+            {PortStateMachineState::INITIALIZED,
+             optionalPortState(multiPort, PortStateMachineState::INITIALIZED)}}
+        /* expected
+        state */
+        ,
+        [this]() {} /* preUpdate */,
+        [this]() {
+          for (auto i = 0; i < 10; ++i) {
+            transceiverManager_->triggerProgrammingEvents();
+          }
+        } /* stateUpdate */,
+        []() {} /* verify */,
+        "triggerTcvrProgramming");
     // Prepare for testing with next multiPort value
     resetManagers();
   }

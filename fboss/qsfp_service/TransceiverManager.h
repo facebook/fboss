@@ -697,6 +697,13 @@ class TransceiverManager {
   void triggerFirmwareUpgradeEvents(
       const std::unordered_set<TransceiverID>& tcvrs);
 
+  void markTransceiverReadyForProgramming(TransceiverID tcvrId, bool ready);
+
+  // Check whether iphy/xphy/transceiver programmed is done. If not, then
+  // trigger the corresponding program event to program the component.
+  // Return the list of transceivers that have programming events
+  std::vector<TransceiverID> triggerProgrammingEvents();
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -881,11 +888,6 @@ class TransceiverManager {
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
 
-  // Check whether iphy/xphy/transceiver programmed is done. If not, then
-  // trigger the corresponding program event to program the component.
-  // Return the list of transceivers that have programming events
-  std::vector<TransceiverID> triggerProgrammingEvents();
-
   void triggerAgentConfigChangeEvent();
 
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
@@ -933,6 +935,8 @@ class TransceiverManager {
   void ensureTransceiversMapLocked(std::string message) const;
 
   void drainAllStateMachineUpdates();
+
+  std::unordered_set<TransceiverID> getTcvrsReadyForProgramming() const;
 
   // Store the QSFP service state for warm boots.
   // Updated on every refresh of the state machine as well as during graceful
@@ -1073,6 +1077,9 @@ class TransceiverManager {
    * state machine and queue of updates to execute.
    */
   const TransceiverToStateMachineControllerMap stateMachineControllers_;
+
+  folly::Synchronized<std::unordered_set<TransceiverID>>
+      tcvrsReadyForProgramming_;
 
   friend class TransceiverStateMachineTest;
 };

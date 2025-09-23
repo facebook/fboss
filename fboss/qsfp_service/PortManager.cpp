@@ -363,54 +363,63 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
     portInfo.profile = profileID;
     portToPortInfoWithLock->emplace(PortID(portId), portInfo);
   }
+
+  if (!phyManager_) {
+    // If phyManager_ doesn't exist, this means that all PHY programming is
+    // complete.
+    transceiverManager_->markTransceiverReadyForProgramming(id, true);
+  }
 }
 
 void PortManager::programExternalPhyPorts(
     TransceiverID tcvrId,
     bool xPhyNeedResetDataPath) {
   // This is used solely through internal state machine.
-  if (!phyManager_) {
-    return;
-  }
-
-  const auto& tcvrToInitializedPorts_It = tcvrToInitializedPorts_.find(tcvrId);
-  if (tcvrToInitializedPorts_It == tcvrToInitializedPorts_.end()) {
-    return;
-  }
-
-  const auto initializedPorts = *tcvrToInitializedPorts_It->second->rlock();
-  const auto& portToPortInfoIt =
-      transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(tcvrId);
-  if (!portToPortInfoIt) {
-    // This is due to the iphy ports are disabled. So no need to program
-    // xphy
-    XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << tcvrId
-               << ". Can't find programmed iphy port and port info";
-    return;
-  }
-
-  const auto& programmedPortToPortInfo = portToPortInfoIt->rlock();
-  const auto& transceiverInfo = transceiverManager_->getTransceiverInfo(tcvrId);
-
-  for (const auto& portId : initializedPorts) {
-    if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
-      XLOG(DBG2) << "Skip programming xphy port for Port=" << portId;
-      continue;
+  if (phyManager_) {
+    const auto& tcvrToInitializedPorts_It =
+        tcvrToInitializedPorts_.find(tcvrId);
+    if (tcvrToInitializedPorts_It == tcvrToInitializedPorts_.end()) {
+      return;
     }
 
-    auto portToPortInfoItr = programmedPortToPortInfo->find(portId);
-    if (portToPortInfoItr == programmedPortToPortInfo->end()) {
-      continue;
+    const auto initializedPorts = *tcvrToInitializedPorts_It->second->rlock();
+    const auto& portToPortInfoIt =
+        transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
+            tcvrId);
+    if (!portToPortInfoIt) {
+      // This is due to the iphy ports are disabled. So no need to program
+      // xphy
+      XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << tcvrId
+                 << ". Can't find programmed iphy port and port info";
+      return;
     }
 
-    auto portProfile = portToPortInfoItr->second.profile;
-    phyManager_->programOnePort(
-        portId, portProfile, transceiverInfo, xPhyNeedResetDataPath);
-    XLOG(INFO) << "Programmed XPHY port for Transceiver=" << tcvrId
-               << ", Port=" << portId << ", Profile="
-               << apache::thrift::util::enumNameSafe(portProfile)
-               << ", needResetDataPath=" << xPhyNeedResetDataPath;
+    const auto& programmedPortToPortInfo = portToPortInfoIt->rlock();
+    const auto& transceiverInfo =
+        transceiverManager_->getTransceiverInfo(tcvrId);
+
+    for (const auto& portId : initializedPorts) {
+      if (cachedXphyPorts_.find(portId) == cachedXphyPorts_.end()) {
+        XLOG(DBG2) << "Skip programming xphy port for Port=" << portId;
+        continue;
+      }
+
+      auto portToPortInfoItr = programmedPortToPortInfo->find(portId);
+      if (portToPortInfoItr == programmedPortToPortInfo->end()) {
+        continue;
+      }
+
+      auto portProfile = portToPortInfoItr->second.profile;
+      phyManager_->programOnePort(
+          portId, portProfile, transceiverInfo, xPhyNeedResetDataPath);
+      XLOG(INFO) << "Programmed XPHY port for Transceiver=" << tcvrId
+                 << ", Port=" << portId << ", Profile="
+                 << apache::thrift::util::enumNameSafe(portProfile)
+                 << ", needResetDataPath=" << xPhyNeedResetDataPath;
+    }
   }
+
+  transceiverManager_->markTransceiverReadyForProgramming(tcvrId, true);
 }
 
 phy::PhyInfo PortManager::getPhyInfo(const std::string& portNameStr) {

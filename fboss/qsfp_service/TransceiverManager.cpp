@@ -1097,6 +1097,13 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
   BlockingStateUpdateResultList results;
   steady_clock::time_point begin = steady_clock::now();
 
+  // If Port Manager mode is enabled, fetch the programReady status of all
+  // transceivers. Create a copy of the map so we don't have to hold the lock on
+  // tcvrsReadyForProgramming for the duration of the function.
+  const auto tcvrsReadyForProgramming = FLAGS_port_manager_mode
+      ? getTcvrsReadyForProgramming()
+      : std::unordered_set<TransceiverID>{};
+
   // PHY programming is managed by PortManager when Port Manager mode is
   // enabled.
   bool shouldProgramPhy = !FLAGS_port_manager_mode;
@@ -1135,6 +1142,16 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
       std::shared_ptr<BlockingStateMachineUpdateResult> result{nullptr};
 
       if (moduleStateReady) {
+        if (FLAGS_port_manager_mode) {
+          // If Port Manager mode is enabled, check if the transceiver is
+          // marked ready for programming by Port Manager. If not, skip
+          // programming the transceiver.
+          if (tcvrsReadyForProgramming.find(tcvrID) ==
+              tcvrsReadyForProgramming.end()) {
+            continue;
+          }
+        }
+
         result = updateStateBlockingWithoutWait(
             tcvrID, TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER);
         if (result) {
@@ -1500,6 +1517,12 @@ void TransceiverManager::programTransceiver(
   XLOG(INFO) << "Programmed Transceiver for Transceiver=" << id
              << (needResetDataPath ? " with" : " without")
              << " resetting data path";
+
+  // We also want to remove this transceiver from tcvrsReadyForProgramming_ to
+  // avoid programming with old settings received from PortManager.
+  if (FLAGS_port_manager_mode) {
+    markTransceiverReadyForProgramming(id, false);
+  }
 }
 
 /*
@@ -3416,4 +3439,19 @@ bool TransceiverManager::activeCable(const TcvrState& tcvrState) {
   return false;
 }
 
+void TransceiverManager::markTransceiverReadyForProgramming(
+    TransceiverID tcvrId,
+    bool ready) {
+  auto lockedTcvrsReadyForProgramming = tcvrsReadyForProgramming_.wlock();
+  if (ready) {
+    lockedTcvrsReadyForProgramming->insert(tcvrId);
+  } else {
+    lockedTcvrsReadyForProgramming->erase(tcvrId);
+  }
+}
+
+std::unordered_set<TransceiverID>
+TransceiverManager::getTcvrsReadyForProgramming() const {
+  return *tcvrsReadyForProgramming_.rlock();
+}
 } // namespace facebook::fboss
