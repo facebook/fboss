@@ -1843,11 +1843,10 @@ bool MultiNodeUtil::verifyNeighborsPresent(
 
 bool MultiNodeUtil::verifyNeighborLocalPresent(
     const std::string& rdsw,
-    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
-    const std::set<std::string>& types) const {
-  auto verifyNeighborLocalPresentHelper = [this, rdsw, neighbors, types]() {
-    auto isLocalNeighborPresent = [this, rdsw, types](const auto& neighbor) {
-      auto ndpEntries = getNdpEntriesOfType(rdsw, types);
+    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const {
+  auto verifyNeighborLocalPresentHelper = [this, rdsw, neighbors]() {
+    auto isLocalNeighborPresent = [this, rdsw](const auto& neighbor) {
+      auto ndpEntries = getNdpEntries(rdsw);
 
       for (const auto& ndpEntry : ndpEntries) {
         auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
