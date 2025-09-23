@@ -79,7 +79,6 @@ constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/(\\d+)";
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
 constexpr auto kWarmbootStateFileName = "qsfp_service_state";
-constexpr auto kPhyStateKey = "phy";
 constexpr auto kAgentConfigAppliedInfoStateKey = "agentConfigAppliedInfo";
 constexpr auto kAgentConfigLastAppliedInMsKey = "agentConfigLastAppliedInMs";
 constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
@@ -2711,7 +2710,8 @@ void TransceiverManager::restoreWarmBootPhyState() {
     return;
   }
 
-  if (const auto& phyStateIt = warmBootState_.find(kPhyStateKey);
+  if (const auto& phyStateIt =
+          warmBootState_.find(TransceiverManager::kPhyStateKey);
       phyManager_ && phyStateIt != warmBootState_.items().end()) {
     phyManager_->restoreFromWarmbootState(phyStateIt->second);
   }

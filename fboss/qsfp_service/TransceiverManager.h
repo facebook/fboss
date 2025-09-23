@@ -89,6 +89,7 @@ class TransceiverManager {
       BlockingStateMachineUpdate<TransceiverStateMachineEvent>;
 
  public:
+  static constexpr const char* kPhyStateKey = "phy";
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
@@ -544,10 +545,6 @@ class TransceiverManager {
 
   static std::string warmBootFlagFileName();
 
-  bool canWarmBoot() const {
-    return canWarmBoot_;
-  }
-
   void setPortPrbs(
       PortID portId,
       phy::PortComponent component,
@@ -713,6 +710,26 @@ class TransceiverManager {
   }
 
   void markTransceiverReadyForProgramming(TransceiverID tcvrId, bool ready);
+
+  // Set the can_warm_boot flag for qsfp service. Done after successful
+  // initialization to avoid cold booting non-XPhy systems in case of a
+  // non-graceful exit and also set during graceful exit.
+  void setCanWarmBoot();
+
+  // Store the warmboot state for qsfp_service. This will be updated
+  // periodically after Transceiver State machine updates to maintain
+  // the state if graceful shutdown did not happen.
+  // Will also be called during graceful exit for qsfp_service once the state
+  // machine stops.
+  void setWarmBootState();
+
+  bool canWarmBoot() const {
+    return canWarmBoot_;
+  }
+
+  folly::dynamic getWarmBootState() const {
+    return warmBootState_;
+  }
 
  protected:
   /*
@@ -916,18 +933,6 @@ class TransceiverManager {
    * ONLY REMOVE can_warm_boot flag file if there's a cold_boot
    */
   void removeWarmBootFlag();
-
-  // Store the warmboot state for qsfp_service. This will be updated
-  // periodically after Transceiver State machine updates to maintain
-  // the state if graceful shutdown did not happen.
-  // Will also be called during graceful exit for qsfp_service once the state
-  // machine stops.
-  void setWarmBootState();
-
-  // Set the can_warm_boot flag for qsfp service. Done after successful
-  // initialization to avoid cold booting non-XPhy systems in case of a
-  // non-graceful exit and also set during graceful exit.
-  void setCanWarmBoot();
 
   void readWarmBootStateFile();
   void restoreAgentConfigAppliedInfo();

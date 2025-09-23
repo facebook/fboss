@@ -122,6 +122,10 @@ void PortManager::init() {
       FLAGS_state_machine_update_thread_heartbeat_ms,
       heartbeatStatsFunc);
 
+  if (transceiverManager_->canWarmBoot()) {
+    restoreAgentConfigAppliedInfo();
+  }
+
   initExternalPhyMap();
 }
 
@@ -626,8 +630,6 @@ void PortManager::
 
 void PortManager::publishLinkSnapshots(PortID portId) {}
 
-void PortManager::restoreWarmBootPhyState() {}
-
 void PortManager::triggerAgentConfigChangeEvent() {}
 
 void PortManager::updateTransceiverPortStatus() noexcept {
@@ -1033,6 +1035,21 @@ bool PortManager::arePortTcvrsProgrammed(PortID portId) const {
   }
 
   return true;
+}
+
+void PortManager::restoreWarmBootPhyState() {
+  // Only need to restore warm boot state if this is a warm boot
+  if (!transceiverManager_->canWarmBoot()) {
+    XLOG(INFO) << "[Cold Boot] No need to restore warm boot state";
+    return;
+  }
+
+  const auto& warmBootState = transceiverManager_->getWarmBootState();
+  if (const auto& phyStateIt =
+          warmBootState.find(TransceiverManager::kPhyStateKey);
+      phyManager_ && phyStateIt != warmBootState.items().end()) {
+    phyManager_->restoreFromWarmbootState(phyStateIt->second);
+  }
 }
 
 } // namespace facebook::fboss

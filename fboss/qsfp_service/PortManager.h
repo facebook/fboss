@@ -303,10 +303,6 @@ class PortManager {
 
   void publishLinkSnapshots(PortID portId);
 
-  // Restore phy state from the last cached warm boot qsfp_service state
-  // Called this after initializing all the xphys during warm boot
-  void restoreWarmBootPhyState();
-
   void setPortsEnabledStatusInCache(
       const std::vector<std::pair<PortID, bool>>& portStatuses);
 
@@ -330,6 +326,10 @@ class PortManager {
   const std::unordered_set<PortID> getXphyPortsCache();
 
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
+  // Restore phy state from the last cached warm boot qsfp_service state
+  // Called this after initializing all the xphys during warm boot
+  void restoreWarmBootPhyState();
 
   void restoreAgentConfigAppliedInfo();
 
