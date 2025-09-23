@@ -5,6 +5,15 @@
   "i2cDumpDevices": [
     {
       "path": "/run/devmap/cplds/FAN_CPLD"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_J3"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_OPTICS"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_RAA228926_J3"
     }
   ],
   "psus": [

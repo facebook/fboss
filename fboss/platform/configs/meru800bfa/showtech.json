@@ -14,6 +14,36 @@
     },
     {
       "path": "/run/devmap/cplds/FAN2_CPLD"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_TL"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_TR"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_BL"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_BR"
     }
   ],
   "psus": [
