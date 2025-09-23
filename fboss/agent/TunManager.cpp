@@ -902,10 +902,6 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
 
   start();
   probeDone_ = true;
-  if (FLAGS_cleanup_probed_kernel_data) {
-    // Delete all probed data from kernel.
-    deleteAllProbedData();
-  }
 }
 
 /**
@@ -1026,6 +1022,13 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!probeDone_) {
     doProbe(lock);
+  }
+  if (FLAGS_cleanup_probed_kernel_data) {
+    if (!initialCleanupDone_) {
+      performInitialCleanup(state);
+    } else {
+      XLOG(DBG2) << "Initial cleanup already completed, skipping cleanup";
+    }
   }
 
   // prepare old addresses

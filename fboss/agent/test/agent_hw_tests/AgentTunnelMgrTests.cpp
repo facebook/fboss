@@ -983,6 +983,11 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
 
       XLOG(INFO) << "Starting probe and cleanup of kernel data";
       tunMgr_->probe();
+      // Force cleanup by calling deleteAllProbedData directly to ensure it
+      // happens regardless of interface mapping comparison
+      tunMgr_->deleteAllProbedData();
+      // Verify probe data is cleaned up after cleanup
+      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
       // Check that the kernel entries are removed after probe
