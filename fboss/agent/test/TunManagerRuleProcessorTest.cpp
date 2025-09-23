@@ -30,8 +30,9 @@
   FRIEND_TEST(TunManagerRuleProcessorTest, SkipUnsupportedFamily);  \
   FRIEND_TEST(TunManagerRuleProcessorTest, SkipInvalidTableId);     \
   FRIEND_TEST(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr); \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipLinkLocalAddress);
-
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipLinkLocalAddress);   \
+  FRIEND_TEST(                                                      \
+      TunManagerRuleProcessorTest, BuildIfIndexToTableIdMapFromRulesEmpty);
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -46,6 +47,7 @@ extern "C" {
 
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/agent/test/MockTunIntf.h"
 #include "fboss/agent/test/MockTunManager.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -318,6 +320,22 @@ TEST_F(TunManagerRuleProcessorTest, SkipLinkLocalAddress) {
   EXPECT_EQ(0, tunMgr_->probedRules_.size());
 
   rtnl_rule_put(ipv6Rule);
+}
+
+/**
+ * @brief Test empty interfaces map for buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules returns an empty map when
+ * there are no interfaces configured.
+ */
+TEST_F(TunManagerRuleProcessorTest, BuildIfIndexToTableIdMapFromRulesEmpty) {
+  // Clear any existing interfaces and rules
+  tunMgr_->intfs_.clear();
+  tunMgr_->probedRules_.clear();
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  EXPECT_TRUE(result.empty());
 }
 
 } // namespace facebook::fboss
