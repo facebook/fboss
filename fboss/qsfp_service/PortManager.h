@@ -16,6 +16,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/PortStateMachine.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
@@ -35,6 +36,12 @@
 namespace facebook::fboss {
 
 class PortManager {
+ public:
+  using TcvrToSynchronizedPortSet = std::unordered_map<
+      TransceiverID,
+      std::unique_ptr<folly::Synchronized<std::unordered_set<PortID>>>>;
+
+ private:
   using TcvrToPortMap = std::unordered_map<TransceiverID, std::vector<PortID>>;
   using PortToTcvrMap = std::unordered_map<PortID, std::vector<TransceiverID>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
@@ -269,6 +276,13 @@ class PortManager {
     return cachedXphyPorts_;
   }
 
+  void updateTransceiverPortStatus() noexcept;
+
+  // For testing purposes only - direct access to tcvrToInitializedPorts_ cache
+  const TcvrToSynchronizedPortSet& getTcvrToInitializedPortsForTest() const {
+    return tcvrToInitializedPorts_;
+  }
+
  protected:
   /*
    * function to initialize all the Phy in the system
@@ -280,6 +294,12 @@ class PortManager {
   // Restore phy state from the last cached warm boot qsfp_service state
   // Called this after initializing all the xphys during warm boot
   void restoreWarmBootPhyState();
+
+  void setPortsEnabledStatusInCache(
+      const std::vector<std::pair<PortID, bool>>& portStatuses);
+
+  std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(
+      const std::unordered_set<PortID>& ports) const;
 
   const std::shared_ptr<const PlatformMapping> platformMapping_;
 
@@ -296,8 +316,6 @@ class PortManager {
   PortManager& operator=(PortManager&&) = delete;
 
   const std::unordered_set<PortID> getXphyPortsCache();
-
-  void updateTransceiverPortStatus() noexcept;
 
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
 
@@ -324,6 +342,8 @@ class PortManager {
   void handlePendingUpdates();
 
   PortNameIdMap setupPortNameToPortIDMap();
+
+  TcvrToSynchronizedPortSet setupTcvrToSynchronizedPortSet();
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
@@ -384,6 +404,8 @@ class PortManager {
       std::unordered_map<PortID, std::unique_ptr<PortStateMachineController>>;
   PortToStateMachineControllerMap setupPortToStateMachineControllerMap();
   const PortToStateMachineControllerMap stateMachineControllers_;
+
+  const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
 };
 
 } // namespace facebook::fboss

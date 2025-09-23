@@ -1235,6 +1235,21 @@ void TransceiverManager::resetProgrammedIphyPortToPortInfo(TransceiverID id) {
   }
 }
 
+void TransceiverManager::resetProgrammedIphyPortToPortInfoForPorts(
+    const std::unordered_set<PortID>& portIds) {
+  for (auto& [_, portToPortInfo] : tcvrToPortInfo_) {
+    auto lockedPortToPortInfo = portToPortInfo->wlock();
+    for (auto it = lockedPortToPortInfo->begin();
+         it != lockedPortToPortInfo->end();) {
+      if (portIds.find(it->first) != portIds.end()) {
+        it = lockedPortToPortInfo->erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+}
+
 std::unordered_map<PortID, cfg::PortProfileID>
 TransceiverManager::getOverrideProgrammedIphyPortAndProfileForTest(
     TransceiverID id) const {
@@ -1743,6 +1758,32 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
 
   if (FLAGS_firmware_upgrade_on_link_down) {
     triggerFirmwareUpgradeEvents(tcvrsForFwUpgrade);
+  }
+}
+
+void TransceiverManager::triggerResetEvents(
+    const std::unordered_set<TransceiverID>& tcvrs) {
+  if (tcvrs.empty()) {
+    return;
+  }
+  const auto& presentTransceivers = getPresentTransceivers();
+
+  BlockingStateUpdateResultList results;
+  for (auto tcvrID : tcvrs) {
+    bool isTcvrPresent =
+        (presentTransceivers.find(tcvrID) != presentTransceivers.end());
+    auto event = isTcvrPresent
+        ? TransceiverStateMachineEvent::TCVR_EV_RESET_TO_DISCOVERED
+        : TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT;
+    if (auto result =
+            enqueueStateUpdateForTcvrWithoutExecuting(tcvrID, event)) {
+      results.push_back(result);
+    }
+  }
+
+  if (!results.empty()) {
+    executeStateUpdates();
+    waitForAllBlockingStateUpdateDone(results);
   }
 }
 

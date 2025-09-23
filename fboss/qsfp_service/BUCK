@@ -245,6 +245,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/fsdb/common:flags",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",

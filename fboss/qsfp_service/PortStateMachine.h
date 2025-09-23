@@ -232,6 +232,7 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     PORT_STATE_IPHY_PORTS_PROGRAMMED      + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
     PORT_STATE_XPHY_PORTS_PROGRAMMED      + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
     PORT_STATE_TRANSCEIVERS_PROGRAMMED    + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
+    PORT_STATE_PORT_UP                    + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
     PORT_STATE_PORT_DOWN                  + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
 
     // When we reset transceiver, remove transceiver, firmware upgrade, etc., port needs to be reset to initialized

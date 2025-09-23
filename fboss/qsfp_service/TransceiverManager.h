@@ -60,6 +60,7 @@ DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
 DECLARE_bool(enable_tcvr_validation);
 DECLARE_bool(port_manager_mode);
+DECLARE_bool(firmware_upgrade_on_link_down);
 
 namespace facebook::fboss {
 struct TransceiverConfig;
@@ -428,6 +429,9 @@ class TransceiverManager {
 
   void resetProgrammedIphyPortToPortInfo(TransceiverID id);
 
+  void resetProgrammedIphyPortToPortInfoForPorts(
+      const std::unordered_set<PortID>& portIds);
+
   std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
@@ -688,6 +692,11 @@ class TransceiverManager {
   static bool opticalOrActiveCable(const TcvrState& tcvrState);
   static bool activeCable(const TcvrState& tcvrState);
 
+  void triggerResetEvents(const std::unordered_set<TransceiverID>& tcvrs);
+
+  void triggerFirmwareUpgradeEvents(
+      const std::unordered_set<TransceiverID>& tcvrs);
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -814,9 +823,9 @@ class TransceiverManager {
    * This is the private class to capture all information a
    * TransceiverStateMachine needs
    * A Synchronized state_machine to keep track of the state
-   * thread and EventBase so that we can operate multiple different transceivers
-   * StateMachine update at the same time and also better starting and
-   * terminating these threads.
+   * thread and EventBase so that we can operate multiple different
+   * transceivers StateMachine update at the same time and also better
+   * starting and terminating these threads.
    */
   class TransceiverThreadHelper {
    public:
@@ -878,9 +887,6 @@ class TransceiverManager {
   std::vector<TransceiverID> triggerProgrammingEvents();
 
   void triggerAgentConfigChangeEvent();
-
-  void triggerFirmwareUpgradeEvents(
-      const std::unordered_set<TransceiverID>& tcvrs);
 
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
@@ -1063,8 +1069,8 @@ class TransceiverManager {
   setupTransceiverToStateMachineControllerMap();
 
   /*
-   * Map of TransceiverID to StateMachineController object, which contains state
-   * machine and queue of updates to execute.
+   * Map of TransceiverID to StateMachineController object, which contains
+   * state machine and queue of updates to execute.
    */
   const TransceiverToStateMachineControllerMap stateMachineControllers_;
 

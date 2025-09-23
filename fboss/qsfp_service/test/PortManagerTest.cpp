@@ -409,4 +409,235 @@ TEST_F(PortManagerTest, initAndExit) {
   portManager_->gracefulExit();
 }
 
+TEST_F(PortManagerTest, tcvrToInitializedPortsCacheValidation) {
+  initManagers(2, 4); // 2 transceivers, 4 ports each
+
+  // Initially, the cache should be empty for all transceivers
+  EXPECT_TRUE(portManager_->hasTransceiverInCache(TransceiverID(0)));
+  EXPECT_TRUE(portManager_->hasTransceiverInCache(TransceiverID(1)));
+  EXPECT_EQ(
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(0)).size(),
+      0);
+  EXPECT_EQ(
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(1)).size(),
+      0);
+
+  // Test Case 1: Enable some ports for transceivers
+  std::vector<std::pair<PortID, bool>> portStatuses = {
+      {PortID(1), true}, // TransceiverID(0) port
+      {PortID(2), true}, // TransceiverID(0) port
+      {PortID(5), true}, // TransceiverID(1) port
+  };
+
+  portManager_->setPortsEnabledStatusInCache(portStatuses);
+
+  // Verify cache updates
+  auto tcvr0Ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  auto tcvr1Ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(1));
+
+  EXPECT_EQ(tcvr0Ports.size(), 2);
+  EXPECT_TRUE(tcvr0Ports.count(PortID(1)));
+  EXPECT_TRUE(tcvr0Ports.count(PortID(2)));
+
+  EXPECT_EQ(tcvr1Ports.size(), 1);
+  EXPECT_TRUE(tcvr1Ports.count(PortID(5)));
+
+  // Test Case 2: Disable some ports
+  std::vector<std::pair<PortID, bool>> disablePortStatuses = {
+      {PortID(1), false}, // Disable port 1
+      {PortID(6), true}, // Enable port 6 for TransceiverID(1)
+  };
+
+  portManager_->setPortsEnabledStatusInCache(disablePortStatuses);
+
+  // Verify cache updates after disabling
+  tcvr0Ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  tcvr1Ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(1));
+
+  EXPECT_EQ(tcvr0Ports.size(), 1);
+  EXPECT_FALSE(tcvr0Ports.count(PortID(1))); // Should be removed
+  EXPECT_TRUE(tcvr0Ports.count(PortID(2))); // Should still be there
+
+  EXPECT_EQ(tcvr1Ports.size(), 2);
+  EXPECT_TRUE(tcvr1Ports.count(PortID(5))); // Should still be there
+  EXPECT_TRUE(tcvr1Ports.count(PortID(6))); // Should be added
+
+  // Test Case 3: Test getTransceiversWithAllPortsInSet function
+  std::unordered_set<PortID> testSet1 = {PortID(2), PortID(5), PortID(6)};
+  auto transceivers1 = portManager_->getTransceiversWithAllPortsInSet(testSet1);
+
+  // TransceiverID(0) has only port 2, which is in testSet1 → should be included
+  // TransceiverID(1) has ports 5,6, both are in testSet1 → should be included
+  EXPECT_EQ(transceivers1.size(), 2);
+  EXPECT_TRUE(transceivers1.count(TransceiverID(0)));
+  EXPECT_TRUE(transceivers1.count(TransceiverID(1)));
+
+  // Test Case 4: Test with partial match
+  std::unordered_set<PortID> testSet2 = {PortID(2), PortID(5)};
+  auto transceivers2 = portManager_->getTransceiversWithAllPortsInSet(testSet2);
+
+  // TransceiverID(0) has only port 2, which is in testSet2 → should be included
+  // TransceiverID(1) has ports 5,6, but 6 is not in testSet2 → should NOT be
+  // included
+  EXPECT_EQ(transceivers2.size(), 1);
+  EXPECT_TRUE(transceivers2.count(TransceiverID(0)));
+  EXPECT_FALSE(transceivers2.count(TransceiverID(1)));
+
+  // Test Case 5: Test with empty set
+  std::unordered_set<PortID> emptySet;
+  auto transceivers3 = portManager_->getTransceiversWithAllPortsInSet(emptySet);
+
+  // No transceiver should match an empty set (since they all have some ports)
+  EXPECT_EQ(transceivers3.size(), 0);
+
+  // Test Case 6: Test with superset
+  std::unordered_set<PortID> superSet = {
+      PortID(1),
+      PortID(2),
+      PortID(3),
+      PortID(4),
+      PortID(5),
+      PortID(6),
+      PortID(7),
+      PortID(8)};
+  auto transceivers4 = portManager_->getTransceiversWithAllPortsInSet(superSet);
+
+  // Both transceivers should match since all their ports are in the superset
+  EXPECT_EQ(transceivers4.size(), 2);
+  EXPECT_TRUE(transceivers4.count(TransceiverID(0)));
+  EXPECT_TRUE(transceivers4.count(TransceiverID(1)));
+
+  // Test Case 7: Clear all ports for one transceiver
+  std::vector<std::pair<PortID, bool>> clearPorts = {
+      {PortID(2), false}, // Clear last port from TransceiverID(0)
+  };
+
+  portManager_->setPortsEnabledStatusInCache(clearPorts);
+
+  tcvr0Ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  EXPECT_EQ(tcvr0Ports.size(), 0);
+
+  // Test with empty transceiver
+  std::unordered_set<PortID> testSetEmpty = {PortID(5), PortID(6)};
+  auto transceivers5 =
+      portManager_->getTransceiversWithAllPortsInSet(testSetEmpty);
+
+  // TransceiverID(0) has no ports → should be included (empty set matches
+  // anything) TransceiverID(1) has ports 5,6, both are in testSetEmpty →
+  // should be included
+  EXPECT_EQ(transceivers5.size(), 2);
+  EXPECT_TRUE(transceivers5.count(TransceiverID(0)));
+  EXPECT_TRUE(transceivers5.count(TransceiverID(1)));
+}
+
+TEST_F(PortManagerTest, tcvrToInitializedPortsCacheEdgeCases) {
+  initManagers(1, 4); // 1 transceiver, 4 ports - valid configuration
+
+  // Test Case 1: Enable and disable the same port multiple times
+  std::vector<std::pair<PortID, bool>> togglePort = {
+      {PortID(1), true},
+  };
+  portManager_->setPortsEnabledStatusInCache(togglePort);
+
+  auto ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  EXPECT_EQ(ports.size(), 1);
+  EXPECT_TRUE(ports.count(PortID(1)));
+
+  // Disable it
+  togglePort[0].second = false;
+  portManager_->setPortsEnabledStatusInCache(togglePort);
+
+  ports = portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  EXPECT_EQ(ports.size(), 0);
+
+  // Enable it again
+  togglePort[0].second = true;
+  portManager_->setPortsEnabledStatusInCache(togglePort);
+
+  ports = portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  EXPECT_EQ(ports.size(), 1);
+  EXPECT_TRUE(ports.count(PortID(1)));
+
+  // Test Case 2: Test invalid transceiver ID handling
+  // This should throw an exception since we only have TransceiverID(0) in our
+  // setup
+  std::vector<std::pair<PortID, bool>> invalidTcvrPort = {
+      {PortID(999), true}, // This port doesn't map to any known transceiver
+  };
+
+  EXPECT_THROW(
+      portManager_->setPortsEnabledStatusInCache(invalidTcvrPort), FbossError);
+
+  // Test Case 3: Batch operations
+  std::vector<std::pair<PortID, bool>> batchOperations = {
+      {PortID(1), true},
+      {PortID(2), true},
+      {PortID(1), false}, // This should override the first entry
+  };
+
+  portManager_->setPortsEnabledStatusInCache(batchOperations);
+
+  ports = portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  EXPECT_EQ(ports.size(), 1);
+  EXPECT_FALSE(ports.count(PortID(1))); // Should be false due to last operation
+  EXPECT_TRUE(ports.count(PortID(2))); // Should be true
+}
+
+TEST_F(PortManagerTest, tcvrToInitializedPortsCacheConsistency) {
+  initManagers(2, 4); // 2 transceivers, 4 ports each - valid configuration
+
+  // Test that the cache correctly handles multiple transceivers
+  std::vector<std::pair<PortID, bool>> multiTcvrPorts = {
+      {PortID(1), true}, // TransceiverID(0)
+      {PortID(2), true}, // TransceiverID(0)
+      {PortID(5), true}, // TransceiverID(1)
+      {PortID(6), true}, // TransceiverID(1)
+  };
+
+  portManager_->setPortsEnabledStatusInCache(multiTcvrPorts);
+
+  // Verify each transceiver's cache independently
+  auto tcvr0Ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
+  auto tcvr1Ports =
+      portManager_->getInitializedPortsForTransceiver(TransceiverID(1));
+
+  EXPECT_EQ(tcvr0Ports.size(), 2);
+  EXPECT_TRUE(tcvr0Ports.count(PortID(1)));
+  EXPECT_TRUE(tcvr0Ports.count(PortID(2)));
+
+  EXPECT_EQ(tcvr1Ports.size(), 2);
+  EXPECT_TRUE(tcvr1Ports.count(PortID(5)));
+  EXPECT_TRUE(tcvr1Ports.count(PortID(6)));
+
+  // Test getTransceiversWithAllPortsInSet with various combinations
+  std::unordered_set<PortID> testCombination1 = {PortID(1), PortID(2)};
+  auto result1 =
+      portManager_->getTransceiversWithAllPortsInSet(testCombination1);
+  EXPECT_EQ(result1.size(), 1); // Only TransceiverID(0)
+  EXPECT_TRUE(result1.count(TransceiverID(0)));
+  EXPECT_FALSE(result1.count(TransceiverID(1)));
+
+  std::unordered_set<PortID> testCombination2 = {PortID(5), PortID(6)};
+  auto result2 =
+      portManager_->getTransceiversWithAllPortsInSet(testCombination2);
+  EXPECT_EQ(result2.size(), 1); // Only TransceiverID(1)
+  EXPECT_TRUE(result2.count(TransceiverID(1)));
+  EXPECT_FALSE(result2.count(TransceiverID(0)));
+
+  // Test with a combination that matches all
+  std::unordered_set<PortID> allPorts = {
+      PortID(1), PortID(2), PortID(5), PortID(6)};
+  auto resultAll = portManager_->getTransceiversWithAllPortsInSet(allPorts);
+  EXPECT_EQ(resultAll.size(), 2); // Both transceivers
+  EXPECT_TRUE(resultAll.count(TransceiverID(0)));
+  EXPECT_TRUE(resultAll.count(TransceiverID(1)));
+}
+
 } // namespace facebook::fboss

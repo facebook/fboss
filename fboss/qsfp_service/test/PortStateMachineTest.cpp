@@ -19,7 +19,6 @@
 #include "fboss/qsfp_service/test/MockPhyManager.h"
 #include "fboss/qsfp_service/test/MockPortManager.h"
 
-#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/test/MockManagerConstructorArgs.h"
 #include "fboss/qsfp_service/test/MockTransceivers.h"
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
@@ -32,9 +31,9 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
   // <Port(1) State, Port(3) States>
   using PortStates =
       std::pair<PortStateMachineState, std::optional<PortStateMachineState>>;
-  using TcvrPortStatePair = std::pair<TransceiverStateMachineState, PortStates>;
 
  public:
+  using TcvrPortStatePair = std::pair<TransceiverStateMachineState, PortStates>;
   void SetUp() override {
     TransceiverManagerTestHelper::SetUp();
     // Setup GFlags for Full Port Manager Functionality
@@ -117,10 +116,38 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     portManager_->init();
   }
 
+  void initializePortsThroughRefresh() {
+    transceiverManager_->refreshTransceivers();
+    portManager_->updateTransceiverPortStatus();
+  }
+
+  void disablePortsThroughRefresh() {
+    portManager_->setOverrideAgentPortStatusForTesting({}, {});
+    transceiverManager_->refreshTransceivers();
+    portManager_->updateTransceiverPortStatus();
+  }
+
   void setState(
-      TransceiverStateMachineState /* tcvrState */,
-      PortStates /* portStates */) {
-    // TODO(smenta): Implement.
+      TransceiverStateMachineState tcvrState,
+      PortStates portStates,
+      bool multiPort) {
+    if (multiPort) {
+      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+          overrideMultiPortTcvrToPortAndProfile_);
+      portManager_->setOverrideAgentPortStatusForTesting(
+          {portId1_, portId3_}, {portId1_, portId3_});
+    } else {
+      transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+          overrideTcvrToPortAndProfile_);
+      portManager_->setOverrideAgentPortStatusForTesting(
+          {portId1_}, {portId1_});
+    }
+    if (tcvrState == TransceiverStateMachineState::DISCOVERED &&
+        portStates.first == PortStateMachineState::INITIALIZED &&
+        portStates.second ==
+            optionalPortState(multiPort, PortStateMachineState::INITIALIZED)) {
+      initializePortsThroughRefresh();
+    }
   }
 
   bool isMultiPort(const TcvrPortStatePair& tcvrPortStatePair) {
@@ -137,6 +164,12 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
                  apache::thrift::util::enumNameSafe(
                      tcvrPortStatePair.second.second.value())
              : "");
+  }
+
+  std::optional<PortStateMachineState> optionalPortState(
+      bool condition,
+      PortStateMachineState state) {
+    return condition ? std::optional{state} : std::nullopt;
   }
 
   template <
@@ -159,7 +192,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       // Always create a new transceiver so that we can make sure the state
       // can go back to the beginning state
       xcvr_ = overrideTransceiver(multiPort);
-      setState(tcvrPortStatePair.first, tcvrPortStatePair.second);
+      setState(tcvrPortStatePair.first, tcvrPortStatePair.second, multiPort);
 
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
@@ -244,7 +277,7 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       // Always create a new transceiver so that we can make sure the state
       // can go back to the beginning state
       xcvr_ = overrideTransceiver(multiPort);
-      setState(tcvrPortStatePair.first, tcvrPortStatePair.second);
+      setState(tcvrPortStatePair.first, tcvrPortStatePair.second, multiPort);
 
       // Call preUpdate() before actual stateUpdate()
       preUpdate();
@@ -366,6 +399,57 @@ TEST_F(PortStateMachineTest, defaultStateAfterInit) {
   ASSERT_EQ(
       portManager_->getPortState(portId3_),
       PortStateMachineState::UNINITIALIZED);
+}
+
+TEST_F(PortStateMachineTest, enablePorts) {
+  for (auto multiPort : {false, true}) {
+    initManagers();
+    XLOG(INFO) << "Verifying portsInitialized for multiPort = " << multiPort;
+    verifyStateMachine(
+        {TcvrPortStatePair{
+            TransceiverStateMachineState::NOT_PRESENT,
+            {PortStateMachineState::UNINITIALIZED,
+             optionalPortState(
+                 multiPort, PortStateMachineState::UNINITIALIZED)}}},
+        TcvrPortStatePair{
+            TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+            {PortStateMachineState::INITIALIZED,
+             optionalPortState(
+                 multiPort,
+                 PortStateMachineState::INITIALIZED)}} /* expected state */,
+        []() {} /* preUpdate */,
+        [this]() { initializePortsThroughRefresh(); } /* stateUpdate */,
+        []() {} /* verify */,
+        "portsInitialized");
+    // Prepare for testing with next multiPort value
+    resetManagers();
+  }
+}
+
+TEST_F(PortStateMachineTest, disablePorts) {
+  for (auto multiPort : {false, true}) {
+    initManagers();
+    XLOG(INFO) << "Verifying disablePorts for multiPort = " << multiPort;
+    verifyStateMachine(
+        {TcvrPortStatePair{
+            TransceiverStateMachineState::DISCOVERED,
+            {PortStateMachineState::INITIALIZED,
+             optionalPortState(
+                 multiPort, PortStateMachineState::INITIALIZED)}}},
+        TcvrPortStatePair{
+            TransceiverStateMachineState::DISCOVERED,
+            {PortStateMachineState::UNINITIALIZED,
+             optionalPortState(
+                 multiPort, PortStateMachineState::UNINITIALIZED)}} /* expected
+                                                                  state */
+        ,
+        []() {} /* preUpdate */,
+        [this]() { disablePortsThroughRefresh(); } /* stateUpdate */,
+        []() {} /* verify */,
+        "portsDisabled");
+    // Prepare for testing with next multiPort value
+    resetManagers();
+  }
 }
 
 } // namespace facebook::fboss
