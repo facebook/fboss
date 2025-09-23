@@ -919,8 +919,8 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
 void TunManager::deleteAllProbedData() {
   XLOG(INFO) << "Starting to delete all probed data from kernel";
 
-  // Build a map of interface index to table ID from probed routes
-  auto ifIndexToTableId = buildIfIndexToTableIdMapFromProbedRoutes();
+  // Build a map of interface index to table ID from probed data
+  auto ifIndexToTableId = buildIfIndextoTableMapFromProbedData();
 
   deleteProbedRoutes(ifIndexToTableId);
   deleteProbedAddressesAndRules(ifIndexToTableId);
