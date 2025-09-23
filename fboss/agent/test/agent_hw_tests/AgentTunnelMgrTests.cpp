@@ -785,6 +785,54 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(INFO) << "=== End Probed Interface Details ===";
   }
 
+  void printKernelInformation() {
+    XLOG(INFO) << "=== Kernel Network Information ===";
+
+    // IPv4 route table (all tables)
+    XLOG(INFO) << "--- IPv4 Routes (All Tables) ---";
+    std::string cmd = "ip route show table all";
+    auto output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv6 route table (all tables)
+    XLOG(INFO) << "--- IPv6 Routes (All Tables) ---";
+    cmd = "ip -6 route show table all";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv4 rule table
+    XLOG(INFO) << "--- IPv4 Rules ---";
+    cmd = "ip rule";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv6 rule table
+    XLOG(INFO) << "--- IPv6 Rules ---";
+    cmd = "ip -6 rule";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv4 addresses
+    XLOG(INFO) << "--- IPv4 Addresses ---";
+    cmd = "ip -4 a";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv6 addresses
+    XLOG(INFO) << "--- IPv6 Addresses ---";
+    cmd = "ip -6 a";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    XLOG(INFO) << "=== End Kernel Network Information ===";
+  }
+
   void checkKernelIpEntriesRemoved(
       const InterfaceID& ifId,
       const std::string& intfIP,
