@@ -38,6 +38,9 @@ std::shared_ptr<TransceiverSpec> TransceiverSpec::createPresentTransceiver(
             tcvrInfo.tcvrState()->transceiverManagementInterface()) {
       newTransceiver->setManagementInterface(*interface);
     }
+    if (auto vendor = tcvrInfo.tcvrState()->vendor()) {
+      newTransceiver->setVendor(*vendor);
+    }
   }
   return newTransceiver;
 }
@@ -53,6 +56,9 @@ TransceiverSpec::toPlatformPortConfigOverrideFactor() const {
   }
   if (auto managerInterface = getManagementInterface()) {
     factor.transceiverManagementInterface() = *managerInterface;
+  }
+  if (auto vendor = getVendor(); vendor.has_value()) {
+    factor.vendor() = std::move(vendor.value());
   }
   return factor;
 }

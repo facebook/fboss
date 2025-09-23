@@ -92,6 +92,7 @@ class PlatformMapping {
       PlatformPortProfileConfigMatcher matcher,
       phy::Side side) const;
 
+  // Match the PinConfig for a PlatformPortProfileConfigMatcher
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PlatformPortProfileConfigMatcher matcher) const;
 

@@ -40,20 +40,22 @@ namespace facebook::fboss {
 cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
     const TransceiverInfo& transceiverInfo) {
   cfg::PlatformPortConfigOverrideFactor factor;
-  if (auto cable = transceiverInfo.tcvrState()->cable();
-      cable && cable->length()) {
+  const auto& state = transceiverInfo.tcvrState();
+  if (auto cable = state->cable(); cable && cable->length()) {
     factor.cableLengths() = {*cable->length()};
   }
-  if (auto settings = transceiverInfo.tcvrState()->settings()) {
+  if (auto settings = state->settings()) {
     if (auto mediaInterfaces = settings->mediaInterface();
         mediaInterfaces && !mediaInterfaces->empty()) {
       // Use the first lane mediaInterface
       factor.mediaInterfaceCode() = *(*mediaInterfaces)[0].code();
     }
   }
-  if (auto interface =
-          transceiverInfo.tcvrState()->transceiverManagementInterface()) {
+  if (auto interface = state->transceiverManagementInterface()) {
     factor.transceiverManagementInterface() = *interface;
+  }
+  if (auto vendor = state->vendor(); vendor.has_value()) {
+    factor.vendor() = vendor.value();
   }
   return factor;
 }
@@ -114,6 +116,18 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
           overrideChips->end()) {
         return false;
       }
+    }
+  }
+  if (auto overrideVendor = factor.vendor()) {
+    if (!portConfigOverrideFactor_ || !portConfigOverrideFactor_->vendor()) {
+      return false;
+    }
+    // compare only the name and part number of the current optics to the
+    // override factor.
+    if (portConfigOverrideFactor_->vendor()->name() != overrideVendor->name() ||
+        portConfigOverrideFactor_->vendor()->partNumber() !=
+            overrideVendor->partNumber()) {
+      return false;
     }
   }
   return true;
@@ -618,7 +632,8 @@ void PlatformMapping::mergePortConfigOverrides(
               curOverride.factor()->cableLengths() ||
           portOverrides.factor()->mediaInterfaceCode() !=
               curOverride.factor()->mediaInterfaceCode() ||
-          portOverrides.factor()->chips() != curOverride.factor()->chips()) {
+          portOverrides.factor()->chips() != curOverride.factor()->chips() ||
+          portOverrides.factor()->vendor() != curOverride.factor()->vendor()) {
         numMismatch++;
         continue;
       }
