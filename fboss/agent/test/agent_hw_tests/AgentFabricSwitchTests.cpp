@@ -181,7 +181,7 @@ TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    for (auto [switchId, fabricPortId] : switchId2FabricPortId) {
+    for (const auto& [switchId, fabricPortId] : switchId2FabricPortId) {
       utility::checkPortFabricReachability(
           getAgentEnsemble(), switchId, fabricPortId);
     }
