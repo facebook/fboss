@@ -251,6 +251,9 @@ class MultiNodeUtil {
   bool verifyNeighborsAbsent(
       const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
       const std::optional<std::string>& rdswToExclude = std::nullopt) const;
+  bool verifyNeighborLocalPresentRemoteAbsent(
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+      const std::string& rdsw) const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;

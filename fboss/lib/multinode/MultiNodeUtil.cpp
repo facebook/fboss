@@ -1909,6 +1909,18 @@ bool MultiNodeUtil::verifyNeighborsAbsent(
       true /* retry on exception */);
 }
 
+bool MultiNodeUtil::verifyNeighborLocalPresentRemoteAbsent(
+    const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+    const std::string& rdsw) const {
+  // verify neighbor entry is present on local RDSW, but absent
+  // from all remote RDSWs
+  if (verifyNeighborLocalPresent(rdsw, neighbors)) {
+    return verifyNeighborsAbsent(neighbors, rdsw /* rdsw to exclude */);
+  }
+
+  return false;
+}
+
 bool MultiNodeUtil::verifyNeighborAddRemove() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
