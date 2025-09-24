@@ -35,12 +35,22 @@ class FabricLinkMonitoring {
       const SwitchID& nodeSwitchId,
       const int fabricLevel);
 
+  // Link counting and validation
+  void updateLinkCounts(
+      const cfg::SwitchConfig* config,
+      const SwitchID& neighborSwitchId);
+  void validateLinkLimits() const;
+
   // Basic member variables
   std::map<std::string, SwitchID> switchName2SwitchId_;
   SwitchID lowestLeafSwitchId_{SHRT_MAX};
   SwitchID lowestL1SwitchId_{SHRT_MAX};
   SwitchID lowestL2SwitchId_{SHRT_MAX};
   bool isVoqSwitch_;
+
+  // Link counting variables
+  int numLeafToL1Links_{0};
+  int numL1ToL2Links_{0};
 };
 
 } // namespace facebook::fboss

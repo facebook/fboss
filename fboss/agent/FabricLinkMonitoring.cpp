@@ -3,6 +3,7 @@
 #include "fboss/agent/FabricLinkMonitoring.h"
 
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -69,7 +70,35 @@ void FabricLinkMonitoring::updateLowestSwitchIds(
 
 void FabricLinkMonitoring::processLinkInfo(
     const cfg::SwitchConfig* /*config*/) {
-  // Stub - to be implemented in later diff
+  // Stub - will be implemented in later diff, but add validation call
+  validateLinkLimits();
+}
+
+// Keep track of the number of links between leaf and L1 and
+// also between L1 and L2 in the network.
+void FabricLinkMonitoring::updateLinkCounts(
+    const cfg::SwitchConfig* config,
+    const SwitchID& neighborSwitchId) {
+  if (isVoqSwitch_ || isConnectedToVoqSwitch(config, neighborSwitchId)) {
+    ++numLeafToL1Links_;
+  } else {
+    ++numL1ToL2Links_;
+  }
+}
+
+// Switch IDs for links are limited and hence need to ensure that the
+// num links between leaf-L1 and L1-L2 are within the expected bounds.
+void FabricLinkMonitoring::validateLinkLimits() const {
+  if (numLeafToL1Links_ > kFabricLinkMonitoringMaxLeafSwitchIds) {
+    throw FbossError(
+        "Too many leaf to L1 links, max expected ",
+        kFabricLinkMonitoringMaxLeafSwitchIds);
+  }
+  if (numL1ToL2Links_ > kFabricLinkMonitoringMaxLevel2SwitchIds) {
+    throw FbossError(
+        "Too many L1 to L2 links, max expected ",
+        kFabricLinkMonitoringMaxLevel2SwitchIds);
+  }
 }
 
 } // namespace facebook::fboss
