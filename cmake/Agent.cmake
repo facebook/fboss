@@ -255,6 +255,7 @@ add_library(core
   fboss/agent/DsfSubscription.cpp
   fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
+  fboss/agent/FabricLinkMonitoring.cpp
   fboss/agent/EncapIndexAllocator.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
