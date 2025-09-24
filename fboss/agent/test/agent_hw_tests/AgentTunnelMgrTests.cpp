@@ -1082,10 +1082,20 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       // interfacs, so cleanup will run.
       if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
-        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 0);
+        // Access thread local status from appropriate thread.
+        int64_t statsValue = 0;
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 0);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
-        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 1);
+        // Access thread local status from appropriate thread.
+        int64_t statsValue = 0;
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 1);
       }
       EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
 
@@ -1215,10 +1225,20 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       // the kernel will have nothing, while switchState will have the
       if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
-        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 0);
+        int64_t statsValue = 0;
+        // Access thread local status from appropriate thread.
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 0);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
-        EXPECT_EQ(getSw()->stats()->getProbedStateCleanupStatus(), 1);
+        int64_t statsValue = 0;
+        // Access thread local status from appropriate thread.
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 1);
       }
       EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
 
