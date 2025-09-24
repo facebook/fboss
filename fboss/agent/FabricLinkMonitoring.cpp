@@ -101,4 +101,43 @@ void FabricLinkMonitoring::validateLinkLimits() const {
   }
 }
 
+// Find the virtual device ID for port. VD is determined as below:
+// 1. VoQ switches dont have VD, so use the VD associated with
+//    the remote fabric port on the link.
+// 2. For non-VoQ switch, each fabric port is associated with a VD.
+//    These switch links are such that VD0 connects to VD0, VD1 to
+//    VD1 etc., so both side of a link are guaranteed to be in the
+//    same VD.
+int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
+    const cfg::SwitchConfig* config,
+    const cfg::Port& port,
+    const SwitchID& neighborSwitchId) {
+  CHECK(config->switchSettings()->switchId().has_value())
+      << "Local switch ID missing in switch settings!";
+  CHECK(*port.portType() == cfg::PortType::FABRIC_PORT)
+      << "Virtual device is applicable only for fabric ports, "
+      << "not for port with ID " << *port.logicalID() << " of type "
+      << apache::thrift::util::enumNameSafe(*port.portType());
+  auto dsfNodeIter = isVoqSwitch_
+      ? config->dsfNodes()->find(neighborSwitchId)
+      : config->dsfNodes()->find(*config->switchSettings()->switchId());
+  CHECK(port.name().has_value())
+      << "Missing port name for port with ID: " << *port.logicalID();
+  std::string portName =
+      isVoqSwitch_ ? getExpectedNeighborAndPortName(port).second : *port.name();
+
+  auto platformType = *dsfNodeIter->second.platformType();
+  const auto platformMapping = getPlatformMappingForPlatformType(platformType);
+  if (!platformMapping) {
+    throw FbossError("Unable to find platform mapping!");
+  }
+
+  auto virtualDeviceId = platformMapping->getVirtualDeviceID(portName);
+  if (!virtualDeviceId.has_value()) {
+    throw FbossError("Unable to find virtual device id for port: ", portName);
+  }
+
+  return *virtualDeviceId;
+}
+
 } // namespace facebook::fboss

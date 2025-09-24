@@ -41,6 +41,12 @@ class FabricLinkMonitoring {
       const SwitchID& neighborSwitchId);
   void validateLinkLimits() const;
 
+  // Virtual device handling
+  int32_t getVirtualDeviceIdForLink(
+      const cfg::SwitchConfig* config,
+      const cfg::Port& port,
+      const SwitchID& neighborSwitchId);
+
   // Basic member variables
   std::map<std::string, SwitchID> switchName2SwitchId_;
   SwitchID lowestLeafSwitchId_{SHRT_MAX};
@@ -51,6 +57,9 @@ class FabricLinkMonitoring {
   // Link counting variables
   int numLeafToL1Links_{0};
   int numL1ToL2Links_{0};
+
+  // Virtual device variables
+  std::map<PortID, int32_t> portId2Vd_;
 };
 
 } // namespace facebook::fboss
