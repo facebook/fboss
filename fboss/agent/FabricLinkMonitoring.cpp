@@ -23,9 +23,48 @@ std::map<PortID, SwitchID> FabricLinkMonitoring::getPort2SwitchIdMapping() {
   return std::map<PortID, SwitchID>();
 }
 
-void FabricLinkMonitoring::processDsfNodes(
-    const cfg::SwitchConfig* /*config*/) {
-  // Stub - to be implemented in next diff
+void FabricLinkMonitoring::processDsfNodes(const cfg::SwitchConfig* config) {
+  switchName2SwitchId_.clear();
+  for (const auto& [_, dsfNode] : *config->dsfNodes()) {
+    auto fabricLevel = dsfNode.fabricLevel().value_or(0);
+    auto nodeSwitchId = SwitchID(*dsfNode.switchId());
+
+    updateSwitchNameMapping(dsfNode, nodeSwitchId);
+    updateLowestSwitchIds(dsfNode, nodeSwitchId, fabricLevel);
+  }
+}
+
+// Populate the switch name to switch ID mapping. If multiple names map to the
+// same switchID, cache just the lowest switch ID available.
+void FabricLinkMonitoring::updateSwitchNameMapping(
+    const auto& dsfNode,
+    const SwitchID& nodeSwitchId) {
+  const auto& nodeName = *dsfNode.name();
+  auto [it, inserted] =
+      switchName2SwitchId_.try_emplace(nodeName, nodeSwitchId);
+  if (!inserted && nodeSwitchId < it->second) {
+    it->second = nodeSwitchId;
+  }
+}
+
+// Keep track of the lowest switch IDs for leaf / L1 and L2, which is needed to
+// find the offset of switch ID of a specific layer.
+void FabricLinkMonitoring::updateLowestSwitchIds(
+    const auto& dsfNode,
+    const SwitchID& nodeSwitchId,
+    const int fabricLevel) {
+  if (*dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
+    lowestLeafSwitchId_ = std::min(nodeSwitchId, lowestLeafSwitchId_);
+  } else {
+    if (fabricLevel == 1) {
+      lowestL1SwitchId_ = std::min(nodeSwitchId, lowestL1SwitchId_);
+    } else if (fabricLevel == 2) {
+      lowestL2SwitchId_ = std::min(nodeSwitchId, lowestL2SwitchId_);
+    } else {
+      throw FbossError(
+          "DSF node should be one of interface node, l1 or l2 fabric switch!");
+    }
+  }
 }
 
 void FabricLinkMonitoring::processLinkInfo(

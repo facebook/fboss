@@ -26,6 +26,15 @@ class FabricLinkMonitoring {
   void processDsfNodes(const cfg::SwitchConfig* config);
   void processLinkInfo(const cfg::SwitchConfig* config);
 
+  // DSF node processing helpers
+  void updateSwitchNameMapping(
+      const auto& dsfNode,
+      const SwitchID& nodeSwitchId);
+  void updateLowestSwitchIds(
+      const auto& dsfNode,
+      const SwitchID& nodeSwitchId,
+      const int fabricLevel);
+
   // Basic member variables
   std::map<std::string, SwitchID> switchName2SwitchId_;
   SwitchID lowestLeafSwitchId_{SHRT_MAX};
