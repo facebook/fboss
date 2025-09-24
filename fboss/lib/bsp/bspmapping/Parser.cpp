@@ -115,8 +115,8 @@ BspPlatformMappingThrift Parser::getBspPlatformMappingFromCsv(
   }
 
   std::map<int, BspTransceiverMapping> tcvrMap;
-  for (auto& [tcvrId, tcrList] : tcrMap) {
-    auto first = tcrList[0];
+  for (auto& [tcvrId, tcvrConfigRows] : tcrMap) {
+    auto first = tcvrConfigRows[0];
     BspResetPinInfo resetPinInfo;
     resetPinInfo.sysfsPath() = first.resetPath().value();
     resetPinInfo.mask() = folly::copy(first.resetMask().value());
@@ -141,7 +141,7 @@ BspPlatformMappingThrift Parser::getBspPlatformMappingFromCsv(
     ioControlInfo.type() = folly::copy(first.ioCtrlType().value());
     ioControlInfo.devicePath() = first.ioPath().value();
     std::map<int, int> laneToLedMap;
-    for (auto& ledLine : tcrList) {
+    for (auto& ledLine : tcvrConfigRows) {
       if (apache::thrift::get_pointer(ledLine.tcvrLaneIdList()) == nullptr) {
         continue;
       }
