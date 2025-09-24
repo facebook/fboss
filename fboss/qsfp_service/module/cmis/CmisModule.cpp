@@ -169,6 +169,35 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::TX_BIAS_THRESH, {CmisPages::PAGE02, 184, 8}},
     {CmisField::RX_PWR_THRESH, {CmisPages::PAGE02, 192, 8}},
     {CmisField::PAGE2_CSUM, {CmisPages::PAGE02, 255, 1}},
+    // Page 04h
+    {CmisField::PAGE_UPPER04H, {CmisPages::PAGE04, 128, 128}},
+    {CmisField::LASER_GRIDS_ADVER, {CmisPages::PAGE04, 128, 1}},
+    {CmisField::FINE_TUNING_ADVER, {CmisPages::PAGE04, 129, 1}},
+    {CmisField::LASER_3P125_GHZ_LO_CHAN, {CmisPages::PAGE04, 130, 2}},
+    {CmisField::LASER_3P125_GHZ_HI_CHAN, {CmisPages::PAGE04, 132, 2}},
+    {CmisField::LASER_6P25_GHZ_LO_CHAN, {CmisPages::PAGE04, 134, 2}},
+    {CmisField::LASER_6P25_GHZ_HI_CHAN, {CmisPages::PAGE04, 136, 2}},
+    {CmisField::LASER_12P5_GHZ_LO_CHAN, {CmisPages::PAGE04, 138, 2}},
+    {CmisField::LASER_12P5_GHZ_HI_CHAN, {CmisPages::PAGE04, 140, 2}},
+    {CmisField::LASER_25_GHZ_LO_CHAN, {CmisPages::PAGE04, 142, 2}},
+    {CmisField::LASER_25_GHZ_HI_CHAN, {CmisPages::PAGE04, 144, 2}},
+    {CmisField::LASER_50_GHZ_LO_CHAN, {CmisPages::PAGE04, 146, 2}},
+    {CmisField::LASER_50_GHZ_HI_CHAN, {CmisPages::PAGE04, 148, 2}},
+    {CmisField::LASER_100_GHZ_LO_CHAN, {CmisPages::PAGE04, 150, 2}},
+    {CmisField::LASER_100_GHZ_HI_CHAN, {CmisPages::PAGE04, 152, 2}},
+    {CmisField::LASER_33_GHZ_LO_CHAN, {CmisPages::PAGE04, 154, 2}},
+    {CmisField::LASER_33_GHZ_HI_CHAN, {CmisPages::PAGE04, 156, 2}},
+    {CmisField::LASER_75_GHZ_LO_CHAN, {CmisPages::PAGE04, 158, 2}},
+    {CmisField::LASER_75_GHZ_HI_CHAN, {CmisPages::PAGE04, 160, 2}},
+    {CmisField::LASER_150_GHZ_LO_CHAN, {CmisPages::PAGE04, 162, 2}},
+    {CmisField::LASER_150_GHZ_HI_CHAN, {CmisPages::PAGE04, 164, 2}},
+    {CmisField::LASER_FINE_TUNE_RES, {CmisPages::PAGE04, 190, 2}},
+    {CmisField::LASER_FINE_TUNE_LO_OFFSET, {CmisPages::PAGE04, 192, 2}},
+    {CmisField::LASER_FINE_TUNE_HI_OFFSET, {CmisPages::PAGE04, 194, 2}},
+    {CmisField::MEDIA_TX_PROG_OUT_PWR_ADVER, {CmisPages::PAGE04, 196, 1}},
+    {CmisField::MEDIA_MIN_TX_PROG_OUT_PWR, {CmisPages::PAGE04, 198, 2}},
+    {CmisField::MEDIA_MAX_TX_PROG_OUT_PWR, {CmisPages::PAGE04, 200, 2}},
+    {CmisField::PAGE4_CSUM, {CmisPages::PAGE04, 255, 1}},
     // Page 10h
     {CmisField::PAGE_UPPER10H, {CmisPages::PAGE10, 128, 128}},
     {CmisField::DATA_PATH_DEINIT, {CmisPages::PAGE10, 128, 1}},
@@ -225,6 +254,17 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_OUT_PRE_CURSOR, {CmisPages::PAGE11, 223, 4}},
     {CmisField::RX_OUT_POST_CURSOR, {CmisPages::PAGE11, 227, 4}},
     {CmisField::RX_OUT_MAIN, {CmisPages::PAGE11, 231, 4}},
+    // Page 12h
+    {CmisField::PAGE_UPPER12H, {CmisPages::PAGE12, 128, 128}},
+    {CmisField::MEDIA_TX_1_GRID_AND_FINE_TUNE_ENA, {CmisPages::PAGE12, 128, 1}},
+    {CmisField::MEDIA_TX_1_CHAN_NBR_SEL, {CmisPages::PAGE12, 136, 2}},
+    {CmisField::MEDIA_TX_1_FINE_TUNE_FREQ_OFFSET, {CmisPages::PAGE12, 152, 2}},
+    {CmisField::MEDIA_TX_1_CURR_LAS_FREQ, {CmisPages::PAGE12, 168, 4}},
+    {CmisField::MEDIA_TX_1_TGT_OUTPUT_PWR, {CmisPages::PAGE12, 200, 2}},
+    {CmisField::MEDIA_TX_1_LAS_STAT, {CmisPages::PAGE12, 222, 1}},
+    {CmisField::MEDIA_TX_LAS_TUNE_SUM, {CmisPages::PAGE12, 230, 1}},
+    {CmisField::MEDIA_TX_1_LAS_STAT_FLAGS, {CmisPages::PAGE12, 231, 1}},
+    {CmisField::MEDIA_TX_1_LAS_STAT_MASKS, {CmisPages::PAGE12, 239, 1}},
     // Page 13h
     {CmisField::PAGE_UPPER13H, {CmisPages::PAGE13, 128, 128}},
     {CmisField::LOOPBACK_CAPABILITY, {CmisPages::PAGE13, 128, 1}},
@@ -1939,12 +1979,18 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE02:
         CHECK_LE(offset + length, sizeof(page02_));
         return (page02_ + offset);
+      case CmisPages::PAGE04:
+        CHECK_LE(offset + length, sizeof(page04_));
+        return (page04_ + offset);
       case CmisPages::PAGE10:
         CHECK_LE(offset + length, sizeof(page10_));
         return (page10_ + offset);
       case CmisPages::PAGE11:
         CHECK_LE(offset + length, sizeof(page11_));
         return (page11_ + offset);
+      case CmisPages::PAGE12:
+        CHECK_LE(offset + length, sizeof(page12_));
+        return (page12_ + offset);
       case CmisPages::PAGE13:
         CHECK_LE(offset + length, sizeof(page13_));
         return (page13_ + offset);
