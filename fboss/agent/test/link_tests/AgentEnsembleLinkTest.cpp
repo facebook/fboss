@@ -298,7 +298,12 @@ void AgentEnsembleLinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), getSw()->needL2EntryForNeighbor(), dstMac);
+      getSw()->getState(),
+      getSw()->needL2EntryForNeighbor(),
+      dstMac,
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
