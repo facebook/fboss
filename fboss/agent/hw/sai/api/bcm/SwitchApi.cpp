@@ -706,7 +706,7 @@ SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeLocalSystemPortIdRangeList::operator()() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
   return SAI_SWITCH_ATTR_LOCAL_SYSTEM_PORT_ID_RANGE_LIST;
 #endif
   return std::nullopt;

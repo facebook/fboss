@@ -756,7 +756,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
   if (isDualStage3Q2QMode()) {
     maxSystemPortId = 32694;
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
 #else
     maxLocalSystemPortId = 184;
@@ -803,7 +803,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     //  [7483-7500: One for each of the 16 x 800G NIF ports
     maxSystemPortId = 8120;
     maxSystemPorts = 8121;
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
 #else
     maxLocalSystemPortId = 184;
@@ -817,7 +817,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSystemPortId = 6143;
       maxSystemPorts = 6144;
     }
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
 #else
     maxLocalSystemPortId = -1;
