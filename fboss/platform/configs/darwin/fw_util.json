@@ -59,7 +59,7 @@
         "versionType": "full_command",
         "getVersionCmd": "cat /sys/devices/virtual/dmi/id/bios_version"
       },
-      "priority": 1
+      "priority": 7
     },
     "CPU_CPLD": {
       "preUpgrade": [
@@ -108,7 +108,7 @@
         "versionType": "full_command",
         "getVersionCmd": "cpu_cpld_ver=$((`cat /sys/bus/pci/devices/0000:ff:0b.3/fpga_ver`));cpu_cpld_subver=$((`cat /sys/bus/pci/devices/0000:ff:0b.3/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver"
       },
-      "priority": 2
+      "priority": 5
     },
     "SC_CPLD": {
       "preUpgrade": [
@@ -157,7 +157,7 @@
         "versionType": "full_command",
         "getVersionCmd": "sc_cpld_ver=$((`cat /sys/bus/i2c/drivers/blackhawk-cpld/*/cpld_ver | head -1`));sc_cpld_subver=$((`cat /sys/bus/i2c/drivers/blackhawk-cpld/*/cpld_sub_ver | head -1`));echo $sc_cpld_ver'.'$sc_cpld_subver"
       },
-      "priority": 7
+      "priority": 6
     },
     "SC_SCD": {
       "upgrade": [
@@ -178,7 +178,7 @@
         "versionType": "full_command",
         "getVersionCmd": "sc_fpga_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/fpga_ver`));sc_fpga_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/fpga_sub_ver`));echo $sc_fpga_ver'.'$sc_fpga_subver"
       },
-      "priority": 3
+      "priority": 4
     },
     "SC_SAT_CPLD0": {
       "preUpgrade": [
@@ -227,7 +227,7 @@
         "versionType": "full_command",
         "getVersionCmd": "sat0_cpld_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat0_cpld_ver`));sat0_cpld_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat0_cpld_sub_ver`));echo $sat0_cpld_ver'.'$sat0_cpld_subver"
       },
-      "priority": 4
+      "priority": 3
     },
     "SC_SAT_CPLD1": {
       "preUpgrade": [
@@ -276,14 +276,14 @@
         "versionType": "full_command",
         "getVersionCmd": "sat1_cpld_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat1_cpld_ver`));sat1_cpld_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat1_cpld_sub_ver`));echo $sat1_cpld_ver'.'$sat1_cpld_subver"
       },
-      "priority": 5
+      "priority": 2
     },
     "FAN_CPLD": {
       "version": {
         "versionType": "full_command",
         "getVersionCmd": "fanCpld_ver=$((`cat /sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/cpld_ver`));fanCpld_subver=$((`cat /sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/cpld_sub_ver`));echo $fanCpld_ver'.'$fanCpld_subver"
       },
-      "priority": 6
+      "priority": 1
     }
   }
 }
