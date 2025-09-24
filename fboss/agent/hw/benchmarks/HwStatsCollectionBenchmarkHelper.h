@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AgentFeatures.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentEnsemble.h"
@@ -126,6 +127,13 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
     // VOQs). This is >10x of local ports on NPU platforms. Therefore, only run
     // 100 iterations.
     iterations = 100;
+  } else if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches()) {
+    if (checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
+            ->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      // TODO(Chenab): 10'000 iterations take 30 minutes on Chenab. Debug this
+      // slowness
+      iterations = 1000;
+    }
   }
 
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
