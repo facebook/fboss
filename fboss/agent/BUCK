@@ -727,17 +727,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "fsdb_adapted_sub_manager_types",
-    headers = [
-        "FsdbAdaptedSubManagerTypes.h",
-    ],
-    exported_deps = [
-        "//fboss/agent/state:state",
-        "//fboss/fsdb/if:fsdb_model",
-    ],
-)
-
-cpp_library(
     name = "fsdb_adapted_sub_manager",
     srcs = [
         "FsdbAdaptedSubManager.cpp",
@@ -746,8 +735,10 @@ cpp_library(
         "FsdbAdaptedSubManager.h",
     ],
     exported_deps = [
+        "//fboss/agent/state:state",
         "//fboss/fsdb/client:fsdb_sub_manager",
-        "//fboss/fsdb/oper/instantiations:fsdb_adapted_cow_storage",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/storage:cow_storage",
     ],
 )
 

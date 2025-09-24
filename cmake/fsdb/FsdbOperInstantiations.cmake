@@ -136,15 +136,6 @@ target_link_libraries(fsdb_cow_state_sub_mgr
   fsdb_sub_mgr
 )
 
-add_library(fsdb_adapted_cow_storage
-  fboss/fsdb/oper/instantiations/FsdbAdaptedCowStorage.cpp
-)
-
-target_link_libraries(fsdb_adapted_cow_storage
-  state
-  cow_storage
-)
-
 add_library(fsdb_cow_stats_sub_mgr
   fboss/fsdb/client/instantiations/FsdbCowStatsSubManager.cpp
 )

@@ -237,8 +237,10 @@ add_library(fsdb_adapted_sub_manager
 )
 
 target_link_libraries(fsdb_adapted_sub_manager
-  fsdb_adapted_cow_storage
+  state
   fsdb_sub_mgr
+  fsdb_model
+  cow_storage
 )
 
 add_library(core

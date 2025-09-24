@@ -79,20 +79,6 @@ cpp_library(
 )
 
 cpp_library(
-    name = "fsdb_adapted_cow_storage",
-    srcs = [
-        "FsdbAdaptedCowStorage.cpp",
-    ],
-    headers = [
-        "FsdbAdaptedCowStorage.h",
-    ],
-    exported_deps = [
-        "//fboss/agent:fsdb_adapted_sub_manager_types",
-        "//fboss/thrift_cow/storage:cow_storage",
-    ],
-)
-
-cpp_library(
     name = "fsdb_naive_periodic_subscribable_storage",
     srcs = [
         "FsdbNaivePeriodicSubscribableStateStorage.cpp",
