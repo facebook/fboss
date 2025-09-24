@@ -456,6 +456,10 @@ class CmisModule : public QsfpModule {
   void resetDataPath() override;
 
   /*
+   * returns whether optics frequency is tunable or not
+   */
+  bool isTunableOptics() const;
+  /*
    * Returns the ApplicationAdvertisingField corresponding to the application or
    * nullopt if it doesn't exist
    */

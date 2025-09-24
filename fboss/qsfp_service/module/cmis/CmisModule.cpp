@@ -2969,6 +2969,21 @@ void CmisModule::configureModule(uint8_t startHostLane) {
       << "Rx Equalizer configuration not specified in the QSFP config";
 }
 
+bool CmisModule::isTunableOptics() const {
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, CmisField::MEDIA_INTERFACE_TECHNOLOGY);
+  const uint8_t* data =
+      getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+
+  uint8_t transTech = *data;
+  if ((transTech == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS) ||
+      (transTech == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
   // Return the MediaInterfaceCode based on the first application
   auto moduleMediaInterface = MediaInterfaceCode::UNKNOWN;
