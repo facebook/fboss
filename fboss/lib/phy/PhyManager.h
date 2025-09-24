@@ -214,7 +214,7 @@ class PhyManager {
   // The following two functions return whether the future job of xphy or prbs
   // stats collection is done.
   // NOTE: The following two functions are only used in testing.
-  bool isXphyStatsCollectionDone(PortID portID) const;
+  virtual bool isXphyStatsCollectionDone(PortID portID) const;
   bool isPrbsStatsCollectionDone(PortID portID) const;
 
   void publishXphyInfoSnapshots(PortID portID) const;
