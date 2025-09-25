@@ -371,9 +371,6 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::LR4_2x400G_10KM:
     case MediaInterfaceCode::DR4_2x800G:
     case MediaInterfaceCode::ZR_800G:
-    case MediaInterfaceCode::DR2_4x400G:
-    case MediaInterfaceCode::DR1_8x200G:
-    case MediaInterfaceCode::DR1_8x100G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;
@@ -414,9 +411,6 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::CR8_800G:
     case MediaInterfaceCode::LR4_2x400G_10KM:
     case MediaInterfaceCode::DR4_2x800G:
-    case MediaInterfaceCode::DR2_4x400G:
-    case MediaInterfaceCode::DR1_8x200G:
-    case MediaInterfaceCode::DR1_8x100G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
       return 0;

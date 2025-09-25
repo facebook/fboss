@@ -3021,18 +3021,6 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
         smfCode == SMFMediaInterfaceCode::DR4_800G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::DR4_2x800G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR2_400G &&
-        firstModuleCapability->hostStartLanes.size() == 4) {
-      moduleMediaInterface = MediaInterfaceCode::DR2_4x400G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR1_200G &&
-        firstModuleCapability->hostStartLanes.size() == 8) {
-      moduleMediaInterface = MediaInterfaceCode::DR1_8x200G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR1_100G &&
-        firstModuleCapability->hostStartLanes.size() == 8) {
-      moduleMediaInterface = MediaInterfaceCode::DR1_8x100G;
     } else {
       moduleMediaInterface =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(

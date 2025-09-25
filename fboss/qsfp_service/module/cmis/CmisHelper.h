@@ -228,7 +228,6 @@ class CmisHelper final {
             SMFMediaInterfaceCode::LR4_10_400G,
             SMFMediaInterfaceCode::LR4_10_400G,
         },
-        /* new requirement not supoort the two combinations
         {
             // 800G-DR4 + 400G-DR4
             SMFMediaInterfaceCode::DR4_800G,
@@ -251,7 +250,6 @@ class CmisHelper final {
             SMFMediaInterfaceCode::DR4_800G,
             SMFMediaInterfaceCode::DR4_800G,
         },
-        */
         {
             // 800G-DR4 + 800G-DR4
             SMFMediaInterfaceCode::DR4_800G,
