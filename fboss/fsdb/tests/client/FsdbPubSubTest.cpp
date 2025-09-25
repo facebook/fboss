@@ -268,12 +268,12 @@ class FsdbPubSubTest : public ::testing::Test {
     } else if constexpr (std::is_same_v<TestParam, PatchPubSubForState>) {
       auto req = std::make_unique<SubRequestT>(reqIn);
       return folly::coro::blockingWait(
-          this->fsdbTestServer_->serviceHandler().co_subscribeState(
+          this->fsdbTestServer_->serviceHandler().co_subscribeStateExtended(
               std::move(req)));
     } else if constexpr (std::is_same_v<TestParam, PatchPubSubForStats>) {
       auto req = std::make_unique<SubRequestT>(reqIn);
       return folly::coro::blockingWait(
-          this->fsdbTestServer_->serviceHandler().co_subscribeStats(
+          this->fsdbTestServer_->serviceHandler().co_subscribeStatsExtended(
               std::move(req)));
     }
   }
@@ -795,9 +795,6 @@ TYPED_TEST(FsdbPubSubTest, verifyExtendedSubAllowed) {
 }
 
 TYPED_TEST(FsdbPubSubTest, verifyWildcardSubDenied) {
-  if (this->isPatch()) {
-    return; // patch extended subs not implemented yet
-  }
   FLAGS_checkSubscriberConfig = true;
   FLAGS_enforceSubscriberConfig = true;
   std::vector<ExtendedOperPath> paths;
@@ -808,9 +805,6 @@ TYPED_TEST(FsdbPubSubTest, verifyWildcardSubDenied) {
 }
 
 TYPED_TEST(FsdbPubSubTest, verifyExtendedSubRestricted) {
-  if (this->isPatch()) {
-    return; // patch extended subs not implemented yet
-  }
   FLAGS_checkSubscriberConfig = true;
   FLAGS_enforceSubscriberConfig = true;
   std::vector<ExtendedOperPath> paths;

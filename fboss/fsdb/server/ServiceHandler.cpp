@@ -1311,22 +1311,18 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
 ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
-  if (!request->paths()->empty() && !request->extPaths()->empty()) {
+  if (!request->extPaths()->empty()) {
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
-        "Request with mix of Paths and ExtendedPaths from: ",
+        "Invalid Subscription request with ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
-  } else if (request->paths()->empty() && request->extPaths()->empty()) {
+  } else if (request->paths()->empty()) {
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
-        "Request without either Paths or ExtendedPaths from: ",
+        "Request without Paths from: ",
         clientIdToString(*request->clientId()));
-  } else if (!request->paths()->empty()) {
-    validatePaths(*request->paths(), false);
   } else {
-    for (const auto& kv : *request->extPaths()) {
-      PathValidator::validateExtendedStatePath(kv.second);
-    }
+    validatePaths(*request->paths(), false);
   }
 
   auto subscriberInfo = makeSubscriberInfo(
@@ -1355,22 +1351,104 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
 ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
-  if (!request->paths()->empty() && !request->extPaths()->empty()) {
+  if (!request->extPaths()->empty()) {
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
-        "Request with mix of Paths and ExtendedPaths from: ",
+        "Invalid Subscription request with ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
-  } else if (request->paths()->empty() && request->extPaths()->empty()) {
+  } else if (request->paths()->empty()) {
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
-        "Request without either Paths or ExtendedPaths from: ",
+        "Request without Paths from: ",
+        clientIdToString(*request->clientId()));
+  } else {
+    validatePaths(*request->paths(), true);
+  }
+
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
+  auto cleanupSubscriber =
+      folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
+        unregisterSubscription(subscriberInfo);
+      });
+
+  auto stream = folly::coro::co_invoke(
+      [this,
+       request = std::move(request),
+       subId = std::move(subId),
+       cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
+      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        return makePatchStreamGenerator(
+            std::move(request), true, std::move(subId));
+      });
+  co_return {{}, std::move(stream)};
+}
+
+folly::coro::Task<apache::thrift::ResponseAndServerStream<
+    OperSubInitResponse,
+    SubscriberMessage>>
+ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+
+  if (request->extPaths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStateExtended request without ExtendedPaths from: ",
         clientIdToString(*request->clientId()));
   } else if (!request->paths()->empty()) {
-    validatePaths(*request->paths(), true);
-  } else {
-    for (const auto& kv : *request->extPaths()) {
-      PathValidator::validateExtendedStatsPath(kv.second);
-    }
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStateExtended request with Paths from: ",
+        clientIdToString(*request->clientId()));
+  }
+
+  for (const auto& kv : *request->extPaths()) {
+    PathValidator::validateExtendedStatePath(kv.second);
+  }
+
+  auto subscriberInfo = makeSubscriberInfo(
+      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+  auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  registerSubscription(subscriberInfo, *request->forceSubscribe());
+  auto cleanupSubscriber =
+      folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
+        unregisterSubscription(subscriberInfo);
+      });
+
+  auto stream = folly::coro::co_invoke(
+      [this,
+       request = std::move(request),
+       subId = std::move(subId),
+       cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
+      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+        return makePatchStreamGenerator(
+            std::move(request), false, std::move(subId));
+      });
+  co_return {{}, std::move(stream)};
+}
+
+folly::coro::Task<apache::thrift::ResponseAndServerStream<
+    OperSubInitResponse,
+    SubscriberMessage>>
+ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
+
+  if (request->extPaths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStatsExtended request without ExtendedPaths from: ",
+        clientIdToString(*request->clientId()));
+  } else if (!request->paths()->empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "subscribeStatsExtended request with Paths from: ",
+        clientIdToString(*request->clientId()));
+  }
+
+  for (const auto& kv : *request->extPaths()) {
+    PathValidator::validateExtendedStatsPath(kv.second);
   }
 
   auto subscriberInfo = makeSubscriberInfo(
