@@ -181,10 +181,12 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
       if (origRoute->isResolved()) {
         EXPECT_EQ(
             newRoute->getForwardInfo().getOverrideEcmpSwitchingMode(),
-            origRoute->getForwardInfo().getOverrideEcmpSwitchingMode());
+            origRoute->getForwardInfo().getOverrideEcmpSwitchingMode())
+            << " Failed for : " << newRoute->str();
         EXPECT_EQ(
             newRoute->getForwardInfo().getOverrideNextHops(),
-            origRoute->getForwardInfo().getOverrideNextHops());
+            origRoute->getForwardInfo().getOverrideNextHops())
+            << " Failed for : " << newRoute->str();
       }
     }
   }
