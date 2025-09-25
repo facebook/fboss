@@ -1269,6 +1269,10 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
     const std::shared_ptr<Route<AddrT>>& newRoute,
     bool ecmpLimitReached,
     InputOutputState* inOutState) {
+  // Should only be called when using EcmpResourceManager for
+  // ECMP compression
+  CHECK(getEcmpCompressionThresholdPct());
+  DCHECK(!newRoute->getForwardInfo().getOverrideNextHops().has_value());
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
@@ -1278,10 +1282,17 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
     // Ecmp limit reached and we did not find a existing group,
     if (ecmpLimitReached) {
       XLOG(DBG2) << " Exceeded ECMP limit for route: " << newRoute->str();
+      // This will trigger a merge of 2 or more groups, followed by
+      // updating adding the new route to set of deltas in inOutState.
       grpInfo = updateForwardingInfoAndInsertDelta(
           rid, newRoute, grpInfo, ecmpLimitReached, inOutState);
     } else {
-      XLOG(DBG2) << "Did not exceed EMCP limit for route: " << newRoute->str();
+      XLOG(DBG4) << "Did not exceed EMCP limit for route: " << newRoute->str();
+      // New group did not exceed limits. Just add the route as is. Note
+      // that since this is a new group, we don't have to worry about
+      // any override nhops being set (for that group must have existed
+      // in our data structures before, and would have had to have its
+      // override nhops set).
       inOutState->addOrUpdateRoute(
           rid, newRoute, false /* ecmpDemandExceeded*/);
     }
@@ -1292,25 +1303,23 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
   } else {
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to existing group: " << *grpInfo;
-    if (grpInfo->hasOverrides() !=
-        newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops()) {
-      // overrides do not match
+    if (grpInfo->hasOverrideNextHops()) {
+      // We know that route did not have override nhops. If group has
+      // override next hops we need to reconcile these.
       auto mitr = grpInfo->getMergedGroupInfoItr();
+      CHECK(mitr);
       if (inOutState->rollingBack) {
         // Group has overrides but prefix does not. If we are rolling
-        // back, prefer the setting from the group
-        if (mitr) {
-          updateMergedGroups(
-              {(*mitr)->first},
-              MergeGroupUpdateOp::RECLAIM_GROUPS,
-              {grpInfo->getID()},
-              inOutState);
-        } else {
-          grpInfo->setIsBackupEcmpGroupType(false);
-        }
+        // back, prefer the setting from the prefix. Reclaim this
+        // group from the merge set.
+        updateMergedGroups(
+            {(*mitr)->first},
+            MergeGroupUpdateOp::RECLAIM_GROUPS,
+            {grpInfo->getID()},
+            inOutState);
       } else {
         // Not rolling back. Prefer group's override info
-        if (mitr && !(*mitr)->first.contains(grpInfo->getID())) {
+        if (!(*mitr)->first.contains(grpInfo->getID())) {
           // If group is not part of the merge set pointed to by
           // the merge iterator, make it a part of it and update
           // prefixes accordingly.

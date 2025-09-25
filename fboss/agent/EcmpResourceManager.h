@@ -291,9 +291,19 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       MergeGroupUpdateOp op,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
+  /*
+   * Merge a set of groups to make a larger set.
+   * Update the corresponding prefixes to
+   * point to the new merged next hops
+   */
   void mergeGroupAndMigratePrefixes(
       const NextHopGroupIds& mergeSet,
       InputOutputState* inOutState);
+  /*
+   * Pick a optimal set of groups to merge (based on cost).
+   * Merge them and update prefixes to point to the new
+   * merged next hops
+   */
   void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
 
   void reclaimEcmpGroups(InputOutputState* inOutState);
