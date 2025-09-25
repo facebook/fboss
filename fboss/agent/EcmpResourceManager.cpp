@@ -1592,6 +1592,41 @@ EcmpResourceManager::appendToOrCreateMergeGroup(
   return mitr;
 }
 
+std::optional<EcmpResourceManager::GroupIds2ConsolidationInfoItr>
+EcmpResourceManager::pruneMergeGroupMembers(
+    NextHopGroupId toPrune,
+    GroupIds2ConsolidationInfoItr existingMitr,
+    const InputOutputState& inOutState) {
+  // Only expected to be called during rollback
+  CHECK(inOutState.rollingBack);
+  XLOG(DBG2) << " Will prune: " << toPrune << " from: " << existingMitr->first;
+  auto newMergeSet = existingMitr->first;
+  if (!newMergeSet.erase(toPrune)) {
+    return existingMitr;
+  }
+
+  auto toPruneGrpInfo = nextHopGroupIdToInfo_.ref(toPrune);
+  if (toPruneGrpInfo) {
+    toPruneGrpInfo->setMergedGroupInfoItr(std::nullopt);
+  }
+
+  auto consolidationInfo = existingMitr->second;
+  consolidationInfo.groupId2Penalty.erase(toPrune);
+  mergedGroups_.erase(existingMitr->first);
+
+  if (newMergeSet.empty()) {
+    return std::nullopt;
+  }
+  auto [newMitr, newMergeGrpInserted] =
+      mergedGroups_.insert({newMergeSet, consolidationInfo});
+  DCHECK(newMergeGrpInserted);
+  fixMergeItreators(newMergeSet, newMitr, {});
+  if (toPruneGrpInfo) {
+    computeCandidateMergesForNewUnmergedGroups({toPrune});
+  }
+  return newMitr;
+}
+
 void EcmpResourceManager::fixMergeItreators(
     const NextHopGroupIds& newMergeSet,
     GroupIds2ConsolidationInfoItr mitr,

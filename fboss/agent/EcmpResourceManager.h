@@ -260,12 +260,21 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     return mergedNhops ? getMergeGroupItr(*mergedNhops) : std::nullopt;
   }
   /*
-   * Make new merge group and get its iterator
+   * Append to or create new merge group and get its iterator.
+   * Only updates internal data structures, no delta update
    */
   GroupIds2ConsolidationInfoItr appendToOrCreateMergeGroup(
       NextHopGroupIds newMemberGroups,
       const RouteNextHopSet& mergedNhops,
       std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
+      const InputOutputState& inOutState);
+  /*
+   * Prune from a exidting merge group and gets iterator.
+   * Only updates internal data structures, no delta update
+   */
+  std::optional<GroupIds2ConsolidationInfoItr> pruneMergeGroupMembers(
+      NextHopGroupId toPrune,
+      GroupIds2ConsolidationInfoItr existingMitr,
       const InputOutputState& inOutState);
   /*
    * Update merge itertor for a set of groups
