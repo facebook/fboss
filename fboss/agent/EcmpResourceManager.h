@@ -284,6 +284,11 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       GroupIds2ConsolidationInfoItr mitr,
       const NextHopGroupIds& toIgnore);
   /*
+   * Reclaim any single member merge groups that may be left over
+   * during rollbacks
+   */
+  void reclaimSingleMemberMergeGroups(InputOutputState* inOutState);
+  /*
    * Unmerge and reclaim a set of merge groups
    */
   void reclaimMergeGroups(
