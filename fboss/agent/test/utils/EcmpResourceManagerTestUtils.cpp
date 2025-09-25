@@ -453,8 +453,12 @@ void assertDeltasForOverflow(
         });
     EXPECT_LE(
         primaryEcmpTypeGroups2RefCnt.size(),
-        resourceManager.getMaxPrimaryEcmpGroups());
+        resourceManager.getMaxPrimaryEcmpGroups() +
+            FLAGS_ecmp_resource_manager_make_before_break_buffer);
   }
+  EXPECT_LE(
+      primaryEcmpTypeGroups2RefCnt.size(),
+      resourceManager.getMaxPrimaryEcmpGroups());
 }
 
 void assertRollbacks(
