@@ -218,7 +218,8 @@ std::vector<cfg::PortProfileID> PlatformPort::getAllProfileIDsForSpeed(
     auto profileID = profile.first;
     if (auto profileCfg = platform_->getPortProfileConfig(
             PlatformPortProfileConfigMatcher(profileID, getPortID()))) {
-      if (*profileCfg->speed() == speed) {
+      if (*profileCfg->speed() == speed ||
+          profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
         profiles.push_back(profileID);
       }
     } else {

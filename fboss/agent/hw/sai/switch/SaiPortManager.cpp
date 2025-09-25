@@ -1586,6 +1586,11 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
       port->setPortType(cfg::PortType::RECYCLE_PORT);
       break;
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    case SAI_PORT_TYPE_HYPERPORT:
+      port->setPortType(cfg::PortType::HYPER_PORT);
+      break;
+#endif
     case SAI_PORT_TYPE_CPU:
       XLOG(FATAL) << " Unexpected port type, CPU";
       break;
