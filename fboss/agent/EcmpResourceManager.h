@@ -262,7 +262,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   /*
    * Make new merge group and get its iterator
    */
-  GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
+  GroupIds2ConsolidationInfoItr appendToOrCreateMergeGroup(
       NextHopGroupIds newMemberGroups,
       const RouteNextHopSet& mergedNhops,
       std::optional<GroupIds2ConsolidationInfoItr> existingMitr,

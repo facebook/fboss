@@ -1371,7 +1371,7 @@ EcmpResourceManager::routeAddedWithOverrideNhops(
       // If merge itr is not null, we will just update the existing merge
       // group. Else we will create a new one
       auto newMergeGrpCreated = !mergeGrpItr.has_value();
-      mergeGrpItr = fixAndGetMergeGroupItr(
+      mergeGrpItr = appendToOrCreateMergeGroup(
           {grpInfo->getID()}, *overrideNhops, mergeGrpItr, *inOutState);
       grpInfo->setMergedGroupInfoItr(mergeGrpItr);
       inOutState->addOrUpdateRoute(
@@ -1516,14 +1516,9 @@ EcmpResourceManager::getMergeGroupItr(const RouteNextHopSet& mergedNhops) {
  * 2. Update merge group iterator in G1 to point to new position in
  * mergeGroups_ map.
  *
- * FIXME:
- * We compare against existing merge group nhops when selecting a merge
- * group. However we don't do so when deciding to choose a new merge group.
- * So its possible, that reconstruction ends up with a more optimal (lower)
- * set of merge groups than in the forward pass. Will fix this.
  */
 EcmpResourceManager::GroupIds2ConsolidationInfoItr
-EcmpResourceManager::fixAndGetMergeGroupItr(
+EcmpResourceManager::appendToOrCreateMergeGroup(
     NextHopGroupIds newMemberGroupIds,
     const RouteNextHopSet& mergedNhops,
     std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
