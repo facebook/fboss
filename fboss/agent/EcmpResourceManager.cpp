@@ -1494,24 +1494,36 @@ EcmpResourceManager::getMergeGroupItr(const RouteNextHopSet& mergedNhops) {
  */
 EcmpResourceManager::GroupIds2ConsolidationInfoItr
 EcmpResourceManager::fixAndGetMergeGroupItr(
-    const NextHopGroupIds& newMemberGroupIds,
+    NextHopGroupIds newMemberGroupIds,
     const RouteNextHopSet& mergedNhops,
     std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
     const InputOutputState& inOutState) {
   GroupIds2ConsolidationInfoItr mitr;
   if (!existingMitr) {
     XLOG(DBG2) << " Group ID : " << newMemberGroupIds
-               << " merged nhops not found, creating new merged group entry";
+               << " merged nhops not found, creating new merged group entry : "
+               << newMemberGroupIds;
+    DCHECK(!mergedGroups_.contains(newMemberGroupIds));
+    pruneFromCandidateMerges(newMemberGroupIds);
     ConsolidationInfo info{mergedNhops, {}};
     std::tie(mitr, std::ignore) =
         mergedGroups_.insert({newMemberGroupIds, std::move(info)});
   } else {
     mitr = *existingMitr;
-    NextHopGroupIds newMergeSet = mitr->first;
+    std::for_each(
+        mitr->first.begin(),
+        mitr->first.end(),
+        [&newMemberGroupIds](auto existingGid) {
+          newMemberGroupIds.erase(existingGid);
+        });
+    if (newMemberGroupIds.empty()) {
+      return mitr;
+    }
     XLOG(DBG2) << " Group ID : " << newMemberGroupIds
                << " found existing merged nhops, merging with: " << mitr->first;
     auto info = std::move(mitr->second);
     pruneFromCandidateMerges(mitr->first);
+    NextHopGroupIds newMergeSet = mitr->first;
     mergedGroups_.erase(mitr);
     newMergeSet.insert(newMemberGroupIds.begin(), newMemberGroupIds.end());
     bool inserted{false};
@@ -1538,7 +1550,9 @@ EcmpResourceManager::fixAndGetMergeGroupItr(
             grpInfo->getRouteUsageCount());
         auto [_, insertedPenalty] =
             mitr->second.groupId2Penalty.insert({newMemberGroupId, penalty});
-        CHECK(insertedPenalty);
+        CHECK(insertedPenalty)
+            << " Group ID: " << newMemberGroupId
+            << " already has a computed penalty in: " << mitr->first;
       });
   computeCandidateMergesForNewMergedGroup(mitr->first);
   return mitr;
@@ -2044,9 +2058,10 @@ void EcmpResourceManager::computeCandidateMergesForNewMergedGroup(
     const NextHopGroupIds& newMergeSet) {
   for (auto grpToMergeWith : getUnMergedGids()) {
     NextHopGroupIds candidateMerge{newMergeSet};
-    candidateMerge.insert(grpToMergeWith);
-    DCHECK(!mergedGroups_.contains(candidateMerge));
-    addCandidateMerge(candidateMerge);
+    auto [_, inserted] = candidateMerge.insert(grpToMergeWith);
+    if (inserted && !candidateMergeGroups_.contains(candidateMerge)) {
+      addCandidateMerge(candidateMerge);
+    }
   }
 }
 
