@@ -28,6 +28,25 @@ const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
     const std::shared_ptr<SwitchState>& newState) {
   return newState->getFibs()->getNode(RouterID(0))->getFibV4();
 }
+
+std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupId>
+getNhops2IdSansMergedOnlyGroups(const EcmpResourceManager& resourceMgr) {
+  const auto& nhops2Id = resourceMgr.getNhopsToId();
+  auto nonMergedNhops2Id = nhops2Id;
+  std::for_each(
+      nhops2Id.begin(),
+      nhops2Id.end(),
+      [&resourceMgr, &nonMergedNhops2Id](const auto& nhopsAndId) {
+        auto grpInfo = resourceMgr.getGroupInfo(nhopsAndId.second);
+        ASSERT_NE(grpInfo, nullptr);
+        if (grpInfo->getState() ==
+            NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY) {
+          nonMergedNhops2Id.erase(nhopsAndId.first);
+        }
+      });
+  return nonMergedNhops2Id;
+}
+
 } // namespace
 
 std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
@@ -190,7 +209,7 @@ void assertAllGidsClaimed(
   auto allMergedAndUnmergedGids = resourceMgr.getMergedGids();
   allMergedAndUnmergedGids.insert(
       allUnmergedGids.begin(), allUnmergedGids.end());
-  auto nhops2Id = resourceMgr.getNhopsToId();
+  auto nhops2Id = getNhops2IdSansMergedOnlyGroups(resourceMgr);
   EcmpResourceManager::NextHopGroupIds allGids;
   std::for_each(
       nhops2Id.begin(), nhops2Id.end(), [&allGids](const auto& nhopsAndId) {
@@ -205,7 +224,7 @@ void assertAllGidsClaimed(
 void assertFibAndGroupsMatch(
     const EcmpResourceManager& resourceMgr,
     const std::shared_ptr<SwitchState>& state) {
-  auto nhops2Id = resourceMgr.getNhopsToId();
+  auto nhops2Id = getNhops2IdSansMergedOnlyGroups(resourceMgr);
   auto nhopsToMergedGroups = getNhopsToMergedGroups(resourceMgr);
   std::map<EcmpResourceManager::NextHopGroupId, int> unmergedGroupToRouteRef;
   std::map<EcmpResourceManager::NextHopGroupIds, int> mergedGroupToRouteRef;

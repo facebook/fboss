@@ -314,9 +314,9 @@ class ThriftConfigApplier {
   }
 
   // Interface route prefix. IPAddress has mask applied
-  typedef std::pair<InterfaceID, folly::IPAddress> IntfAddress;
-  typedef boost::container::flat_map<folly::CIDRNetwork, IntfAddress> IntfRoute;
-  typedef boost::container::flat_map<RouterID, IntfRoute> IntfRouteTable;
+  using IntfAddress = std::pair<InterfaceID, folly::IPAddress>;
+  using IntfRoute = boost::container::flat_map<folly::CIDRNetwork, IntfAddress>;
+  using IntfRouteTable = boost::container::flat_map<RouterID, IntfRoute>;
   IntfRouteTable intfRouteTables_;
 
   /* The ThriftConfigApplier object exposes a single, top-level method "run()".
@@ -3692,7 +3692,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
           throw FbossError("Mirror ", egMirror->cref(), " is undefined");
         }
       }
-      entries.push_back(std::make_pair(acl->getID(), acl));
+      entries.emplace_back(acl->getID(), acl);
     }
     return entries;
   };
@@ -4213,7 +4213,12 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       : IPAddressV6("::");
   intf->setDhcpV4Relay(dhcpV4Relay);
   intf->setDhcpV6Relay(dhcpV6Relay);
-
+  if (config->desiredPeerName().has_value()) {
+    intf->setDesiredPeerName(config->desiredPeerName().value());
+  }
+  if (config->desiredPeerAddressIPv6().has_value()) {
+    intf->setDesiredPeerAddressIPv6(config->desiredPeerAddressIPv6().value());
+  }
   return intf;
 }
 

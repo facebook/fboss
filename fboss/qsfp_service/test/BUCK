@@ -82,14 +82,17 @@ cpp_unittest(
     srcs = [
         "TransceiverStateMachineTest.cpp",
     ],
+    headers = [
+        "MockTransceivers.h",
+    ],
     deps = [
-        ":mock_transceivers",
         ":transceiver_manager_test_helper",
         "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
         "//fboss/qsfp_service/module/tests:mock-headers",
         "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+        "//folly/testing:test_util",
     ],
 )
 
@@ -188,6 +191,31 @@ cpp_unittest(
         ":mock_port_manager",
         "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service/platforms/wedge/tests:mock-wedge-manager",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "port_state_machine_test",
+    srcs = [
+        "PortStateMachineTest.cpp",
+    ],
+    headers = [
+        "MockManagerConstructorArgs.h",
+        "MockTransceivers.h",
+    ],
+    deps = [
+        ":mock_phy_manager",
+        ":mock_port_manager",
+        ":transceiver_manager_test_helper",
+        "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
+        "//fboss/lib/config:fboss_config_utils",
+        "//fboss/qsfp_service:slot-thread-helper",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+        "//folly/logging:logging",
         "//folly/testing:test_util",
     ],
 )

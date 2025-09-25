@@ -7,6 +7,7 @@ cpp_library(
     srcs = [
         "MultiPimPlatformMapping.cpp",
         "PlatformMapping.cpp",
+        "facebook/PlatformMapping.cpp",
     ],
     exported_deps = [
         "//fboss/agent:fboss-error",

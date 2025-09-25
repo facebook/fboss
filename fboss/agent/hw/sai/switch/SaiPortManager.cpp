@@ -1102,7 +1102,7 @@ void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
   auto prbsStatsTable = PrbsStatsTable();
   // Dump cumulative PRBS stats on first PrbsStatsEntry because there is no
   // per-lane PRBS counter available in SAI.
-  prbsStatsTable.push_back(PrbsStatsEntry(portId, rate));
+  prbsStatsTable.emplace_back(portId, rate);
   portAsicPrbsStats_[portId] = std::move(prbsStatsTable);
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1) && defined(BRCM_SAI_SDK_XGS_AND_DNX)
   // Trigger initial read of PrbsRxState to help clear any initial lock
@@ -2341,17 +2341,17 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
   auto nullObjId = QosMapSaiId(SAI_NULL_OBJECT_ID);
   if (!globalQosMapSupported_) {
-    qosMaps.push_back({SAI_QOS_MAP_TYPE_DSCP_TO_TC, nullObjId});
-    qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_QUEUE, nullObjId});
+    qosMaps.emplace_back(SAI_QOS_MAP_TYPE_DSCP_TO_TC, nullObjId);
+    qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_QUEUE, nullObjId);
   }
 
   auto qosMapHandle = managerTable_->qosMapManager().getQosMap();
   if (qosMapHandle) {
     if (qosMapHandle->tcToPgMap) {
-      qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId});
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId);
     }
     if (qosMapHandle->pfcPriorityToQueueMap) {
-      qosMaps.push_back({SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId});
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId);
     }
   }
 
@@ -2362,21 +2362,20 @@ std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
 SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
   if (!globalQosMapSupported_) {
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_DSCP_TO_TC, qosMapHandle->dscpToTcMap->adapterKey()});
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_TC_TO_QUEUE,
-         qosMapHandle->tcToQueueMap->adapterKey()});
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_DSCP_TO_TC, qosMapHandle->dscpToTcMap->adapterKey());
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_TC_TO_QUEUE, qosMapHandle->tcToQueueMap->adapterKey());
   }
   if (qosMapHandle->tcToPgMap) {
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
-         qosMapHandle->tcToPgMap->adapterKey()});
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
+        qosMapHandle->tcToPgMap->adapterKey());
   }
   if (qosMapHandle->pfcPriorityToQueueMap) {
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
-         qosMapHandle->pfcPriorityToQueueMap->adapterKey()});
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
+        qosMapHandle->pfcPriorityToQueueMap->adapterKey());
   }
   return qosMaps;
 }

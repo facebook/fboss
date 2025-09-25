@@ -259,8 +259,8 @@ TEST(PacketUtilTest, TxMPLSv4UDP) {
   EthHdr ethHdr;
   ethHdr.srcAddr = folly::MacAddress("0a:0b:0c:0d:0e:0f");
   ethHdr.dstAddr = folly::MacAddress("01:02:03:04:05:06");
-  ethHdr.vlanTags.push_back(
-      VlanTag(1, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  ethHdr.vlanTags.emplace_back(
+      1, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
 
   MPLSHdr mplsHdr{{
       MPLSHdr::Label(301, 0, false, 128),
@@ -299,8 +299,8 @@ TEST(PacketUtilTest, TxMPLSv6UDP) {
   EthHdr ethHdr;
   ethHdr.srcAddr = folly::MacAddress("0a:0b:0c:0d:0e:0f");
   ethHdr.dstAddr = folly::MacAddress("01:02:03:04:05:06");
-  ethHdr.vlanTags.push_back(
-      VlanTag(1, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  ethHdr.vlanTags.emplace_back(
+      1, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
 
   MPLSHdr mplsHdr{{
       MPLSHdr::Label(301, 0, false, 128),

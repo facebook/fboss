@@ -45,7 +45,7 @@ HwExternalPhyPortTest::findAvailableXphyPorts() {
       }
     }
     if (isSupported) {
-      xphyPortAndProfiles.push_back(std::make_pair(port, profile));
+      xphyPortAndProfiles.emplace_back(port, profile);
     }
   }
   CHECK(!xphyPortAndProfiles.empty())

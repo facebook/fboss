@@ -95,7 +95,7 @@ static const std::vector<PfcPriority> allPfcPriorities() {
   if (priorities.empty()) {
     for (int i = 0; i <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
          i++) {
-      priorities.push_back(PfcPriority(i));
+      priorities.emplace_back(i);
     }
   }
   return priorities;

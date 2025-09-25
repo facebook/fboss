@@ -23531,10 +23531,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -23617,10 +23617,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -23703,10 +23703,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -23789,10 +23789,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -23875,10 +23875,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -23961,10 +23961,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24047,10 +24047,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24133,10 +24133,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24219,10 +24219,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24308,10 +24308,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24391,10 +24391,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24474,10 +24474,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24557,10 +24557,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24640,10 +24640,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24723,10 +24723,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24806,10 +24806,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24889,10 +24889,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -24972,10 +24972,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25055,10 +25055,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25138,10 +25138,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25221,10 +25221,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25304,10 +25304,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25387,10 +25387,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25470,10 +25470,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25553,10 +25553,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25636,10 +25636,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -25719,10 +25719,10 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
+          "test_name_regex": "Prbs.*ASIC.*TCVR_S.*CR8_800G.*$"
         },
         {
-          "test_name_regex": "Prbs.*TCVR_L.*CR4_400G.*$"
+          "test_name_regex": "Prbs.*TCVR_L.*CR8_800G.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -27254,9 +27254,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -27335,9 +27332,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -27420,9 +27414,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -27501,9 +27492,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -27586,9 +27574,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -27667,9 +27652,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -27752,9 +27734,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -27835,9 +27814,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -27916,9 +27892,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -28004,9 +27977,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -28082,9 +28052,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -28164,9 +28131,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -28242,9 +28206,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -28324,9 +28285,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -28402,9 +28360,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -28484,9 +28439,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -28562,9 +28514,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -28644,9 +28593,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -28722,9 +28668,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -28804,9 +28747,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -28882,9 +28822,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -28964,9 +28901,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -29042,9 +28976,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -29124,9 +29055,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -29202,9 +29130,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
@@ -29284,9 +29209,6 @@
           "test_name_regex": "OpenBmcUpgradeTest.*$"
         },
         {
-          "test_name_regex": "Prbs.*ASIC.*$"
-        },
-        {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"
         },
         {
@@ -29362,9 +29284,6 @@
         },
         {
           "test_name_regex": "OpenBmcUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
           "test_name_regex": "Prbs.*TCVR_L.*DR4_400G.*$"

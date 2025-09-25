@@ -45,6 +45,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 
   using CmisModule::getApplicationField;
+  using CmisModule::isTunableOptics;
 
  private:
   uint8_t moduleStateChangedReadTimes_{0};
@@ -1201,6 +1202,9 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   for (auto portState : {badPortState1, badPortState2, badPortState3}) {
     EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
+
+  // tunable optics check
+  EXPECT_TRUE(xcvr->isTunableOptics());
 }
 
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {

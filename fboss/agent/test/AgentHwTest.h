@@ -278,6 +278,8 @@ class AgentHwTest : public ::testing::Test {
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 
+bool isWarmbootSetupRequested();
+
 void initAgentHwTest(
     int argc,
     char* argv[],

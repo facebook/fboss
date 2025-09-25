@@ -16,6 +16,7 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <fb303/ThreadCachedServiceData.h>
 
 extern "C" {
 #include <netlink/object.h>
@@ -91,6 +92,11 @@ class TunManager : public StateObserver {
    * Probe linux for tun interfaces already configured
    */
   virtual void probe();
+
+  /*
+   * Perform initial cleanup of probed data if required
+   */
+  void performInitialCleanup(std::shared_ptr<SwitchState> state);
 
   void stopProcessing();
 
@@ -222,6 +228,24 @@ class TunManager : public StateObserver {
    */
   std::unordered_map<InterfaceID, int> buildIfIdToTableIdMap(
       std::shared_ptr<SwitchState> state) const;
+
+  /**
+   * Build a mapping from interface index to table ID from probed routes.
+   */
+  std::unordered_map<int, int> buildIfIndexToTableIdMapFromProbedRoutes() const;
+
+  /**
+   * Build a mapping from interface index to table ID from source rules.
+   */
+  std::unordered_map<int, int> buildIfIndexToTableIdMapFromRules() const;
+
+  /**
+   * Build a mapping from interface index to table ID from probed data.
+   *
+   * Combines data from probed routes and rules to create a comprehensive
+   * mapping of interface indices to routing table IDs.
+   */
+  std::unordered_map<int, int> buildIfIndextoTableMapFromProbedData() const;
 
   /**
    * Build a mapping from interface ID to table ID from probed interfaces.
@@ -414,6 +438,12 @@ class TunManager : public StateObserver {
 
   // Initial probe done
   bool probeDone_{false};
+
+  // Initial cleanup done
+  bool initialCleanupDone_{false};
+
+  // Was probed state cleaned up?
+  bool probedStateCleanedUp_{false};
 
   uint64_t numSyncs_{0};
 

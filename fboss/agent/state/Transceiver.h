@@ -70,6 +70,17 @@ class TransceiverSpec
     set<switch_state_tags::managementInterface>(managementInterface);
   }
 
+  std::optional<Vendor> getVendor() const {
+    if (auto vendor = get<switch_state_tags::vendor>()) {
+      return vendor->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setVendor(const Vendor& vendor) {
+    set<switch_state_tags::vendor>(vendor);
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

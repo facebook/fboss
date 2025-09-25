@@ -169,6 +169,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
   {
     // Assert restoration from current state results in no
     // overflow and the route backup group state matches
+    XLOG(DBG2) << " Asserting for reconstructing from switch state";
     auto newConsolidator = makeResourceMgr();
     auto restoreDeltas = newConsolidator->reconstructFromSwitchState(state_);
     EXPECT_EQ(restoreDeltas.size(), 1);

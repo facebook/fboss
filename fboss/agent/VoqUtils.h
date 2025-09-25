@@ -72,4 +72,7 @@ void processRemoteInterfaceRoutes(
     IntfRouteTable& remoteIntfRoutesToAdd,
     RouterIDToPrefixes& remoteIntfRoutesToDel);
 
+bool isConnectedToVoqSwitch(
+    const cfg::SwitchConfig* config,
+    const SwitchID& remoteSwitchId);
 } // namespace facebook::fboss

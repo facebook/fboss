@@ -431,6 +431,11 @@ std::pair<size_t, size_t> WedgeManager::dumpTransceiverI2cLog(
 void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("syncPorts");
+    return;
+  }
+
   std::set<TransceiverID> tcvrIDs;
   for (const auto& [portID, portStatus] : *ports) {
     if (auto tcvrIdx = portStatus.transceiverIdx()) {
@@ -712,7 +717,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 tcvrConfig,
                 cmisSupportRemediate,
                 tcvrName));
-        retVal.push_back(TransceiverID(idx));
+        retVal.emplace_back(idx);
       } else if (mgmtIf == TransceiverManagementInterface::SFF) {
         XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
@@ -722,14 +727,14 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 qsfpImpls_[idx].get(),
                 tcvrConfig,
                 tcvrName));
-        retVal.push_back(TransceiverID(idx));
+        retVal.emplace_back(idx);
       } else if (mgmtIf == TransceiverManagementInterface::SFF8472) {
         XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             tcvrID,
             std::make_unique<Sff8472Module>(
                 getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrName));
-        retVal.push_back(TransceiverID(idx));
+        retVal.emplace_back(idx);
       } else {
         XLOG(ERR) << "Unknown Transceiver interface: "
                   << static_cast<int>(futInterfaces[idx].value())
@@ -956,6 +961,11 @@ phy::PhyInfo WedgeManager::getXphyInfo(PortID portID) {
 void WedgeManager::programXphyPort(
     PortID portId,
     cfg::PortProfileID portProfileId) {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("programXphyPort");
+    return;
+  }
+
   if (phyManager_ == nullptr) {
     throw FbossError("Unable to program xphy port when PhyManager is not set");
   }
@@ -979,6 +989,11 @@ void WedgeManager::programXphyPort(
 }
 
 bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("initExternalPhyMap");
+    return true;
+  }
+
   if (!phyManager_) {
     // If there's no PhyManager for such platform, skip init xphy map
     return true;
@@ -1040,6 +1055,10 @@ void WedgeManager::programXphyPortPrbs(
     PortID portID,
     phy::Side side,
     const phy::PortPrbsState& prbs) {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("programXphyPortPrbs");
+    return;
+  }
   phyManager_->setPortPrbs(portID, side, prbs);
 }
 
@@ -1050,6 +1069,11 @@ phy::PortPrbsState WedgeManager::getXphyPortPrbs(
 }
 
 void WedgeManager::updateAllXphyPortsStats() {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("updateAllXphyPortsStats");
+    return;
+  }
+
   if (!phyManager_) {
     // If there's no PhyManager for such platform, skip updating xphy stats
     return;

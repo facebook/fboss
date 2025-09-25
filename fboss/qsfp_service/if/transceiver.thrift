@@ -372,6 +372,19 @@ enum CmisLaneState {
   DATAPATH_INITIALIZED = 0x7,
 }
 
+// Supported frequency grids for tunable optics as per the CMIS spec
+enum FrequencyGrid {
+  LASER_3P125GHZ = 0,
+  LASER_6P25GHZ = 1,
+  LASER_12P5GHZ = 2,
+  LASER_25GHZ = 3,
+  LASER_33GHZ = 4,
+  LASER_50GHZ = 5,
+  LASER_75GHZ = 6,
+  LASER_100GHZ = 7,
+  LASER_150GHZ = 8,
+}
+
 struct FirmwareStatus {
   1: optional string version;
   2: optional i32 fwFault;

@@ -2,6 +2,19 @@
 
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+# sample usage:
+# To run script and create output json file
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
+# To run script, send email and create task for user
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba --user  --send_email --create_task
+# in stack diff
+# sample usage:
+# To run script and create output json file
+#        $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
+# To run script, send email and create task for fboss_agent_push oncall
+#        $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --send_email --create_task
+
+
 # pyre-unsafe
 
 import argparse
@@ -457,6 +470,18 @@ def main() -> Optional[int]:
         help="Create json file with test data",
     )
 
+    parser.add_argument(
+        "--get_monthly_stats",
+        action="store_true",
+        help="Get monthly stats for sai_agent_known_bad_test",
+    )
+
+    parser.add_argument(
+        "--date",
+        type=str,
+        help="Time to query for. Format: YYYY-MM-DD. Default is today's date.",
+    )
+
     args = parser.parse_args()
 
     if args.query_scuba:
@@ -541,8 +566,6 @@ def main() -> Optional[int]:
 
     return 0
 
-
-# No code to edit in the selected snippet.
 
 if __name__ == "__main__":
     sys.exit(main())

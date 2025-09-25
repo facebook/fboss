@@ -44,7 +44,7 @@ class AgentEcmpTest : public AgentHwTest {
     std::vector<PortDescriptor> portDescriptorIds;
     portDescriptorIds.reserve(portIds.size());
     for (const auto& portId : portIds) {
-      portDescriptorIds.push_back(PortDescriptor(portId));
+      portDescriptorIds.emplace_back(portId);
     }
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());

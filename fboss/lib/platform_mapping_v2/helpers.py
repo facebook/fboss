@@ -1,4 +1,5 @@
 # pyre-strict
+import copy
 import re
 from typing import List, Optional
 
@@ -20,6 +21,8 @@ from neteng.fboss.phy.ttypes import (
 
 from neteng.fboss.platform_config.ttypes import (
     PlatformPortConfigFactor,
+    PlatformPortConfigOverride,
+    PlatformPortConfigOverrideFactor,
     PlatformPortProfileConfigEntry,
 )
 from neteng.fboss.platform_mapping_config.ttypes import (
@@ -314,9 +317,12 @@ def get_pins_from_connections(
     si_settings: SiSettings,
     profile: PortProfileID,
     lane_speed: PortSpeed,
-) -> PortPinConfig:
+    port_id: int,
+) -> tuple[PortPinConfig, List[PlatformPortConfigOverride]]:
     port_pin_config_iphy = []
     port_pin_config_tcvr = []
+    port_pin_config_overrides = []
+
     for connection_pair in connections:
         for connection in [
             connection_pair.a,
@@ -330,24 +336,55 @@ def get_pins_from_connections(
                     chip=connection.chip,
                     logical_lane_id=connection.lane.logical_id,
                 )
-                si_setting_and_factor = si_settings.get_factor_and_setting(
+                si_setting_and_factor_list = si_settings.get_factor_and_setting(
                     pin_connection=pin_connection,
                     lane_speed=lane_speed,
                     media_type=transmitter_tech_from_profile(profile),
                 )
-                if si_setting_and_factor and si_setting_and_factor.factor is None:
-                    # TODO: FIXME Address additional factors
-                    # If there is an additional factor, the SI setting will be added as a port override later
-                    if si_setting_and_factor.tx_setting != TxSettings():
-                        pin_config.tx = si_setting_and_factor.tx_setting
-                    if si_setting_and_factor.rx_setting != RxSettings():
-                        pin_config.rx = si_setting_and_factor.rx_setting
-                port_pin_config_iphy.append(pin_config)
 
-    return PortPinConfig(
+                if len(si_setting_and_factor_list) == 0:
+                    port_pin_config_iphy.append(pin_config)
+
+                else:
+                    for si_setting_and_factor in si_setting_and_factor_list:
+                        pin_conf = copy.deepcopy(pin_config)
+                        if si_setting_and_factor.factor is None:
+                            if si_setting_and_factor.tx_setting != TxSettings():
+                                pin_conf.tx = si_setting_and_factor.tx_setting
+                            if si_setting_and_factor.rx_setting != RxSettings():
+                                pin_conf.rx = si_setting_and_factor.rx_setting
+                            port_pin_config_iphy.append(pin_conf)
+                        elif si_setting_and_factor.factor.tcvr_override_setting:
+                            override_factor = PlatformPortConfigOverrideFactor(
+                                ports=[port_id],
+                                profiles=[profile],
+                                transceiverManagementInterface=None,
+                                mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
+                                vendor=si_setting_and_factor.factor.tcvr_override_setting.vendor,
+                            )
+
+                            if si_setting_and_factor.tx_setting != TxSettings():
+                                pin_conf.tx = si_setting_and_factor.tx_setting
+                            if si_setting_and_factor.rx_setting != RxSettings():
+                                pin_conf.rx = si_setting_and_factor.rx_setting
+
+                            port_pin_config = PortPinConfig(
+                                iphy=[pin_conf],
+                                transceiver=None,
+                            )
+                            platformPortConfigOverride = PlatformPortConfigOverride(
+                                factor=override_factor, pins=port_pin_config
+                            )
+                            port_pin_config_overrides.append(platformPortConfigOverride)
+            # else connection is transceiver.
+            # if there are override factors for specific to transceiver, add them here.
+            # E.g. Driver Peaking.
+
+    port_pin_config_ret = PortPinConfig(
         iphy=port_pin_config_iphy,
         transceiver=port_pin_config_tcvr or None,
     )
+    return port_pin_config_ret, port_pin_config_overrides
 
 
 # Helper function that creates a list of PinConnections that go into platform mapping

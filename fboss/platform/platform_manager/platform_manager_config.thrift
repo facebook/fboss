@@ -350,6 +350,46 @@ struct LedCtrlConfig {
   3: i32 ledId;
 }
 
+// Defines generic LED Controller block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: LED_CTRL, the expanded form would be
+//  LED_CTRL_PORT_1_LED_1, LED_CTRL_PORT_1_LED_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address, port, a starting port number
+//  or index, and a led number. Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x4"
+//  portNum=1, ledNum=1, startPort=1:
+//    csrOffsetCalc: "0x1000 + (1 - 1)*0x8 + (1 - 1)*0x4"
+//    csrOffsetCalc: "0x1000"
+//  portNum=1, ledNum=2, startPort=1::
+//    csrOffsetCalc: "0x1000 + (1 - 1)*0x8 + (2 - 1)*0x4"
+//    csrOffsetCalc: "0x1004"
+//  portNum=2, ledNum=2, startPort=1:
+//    csrOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
+//    csrOffsetCalc: "0x100c"
+//
+//
+// `numPorts`: Number of ports for this block config
+//
+// `ledPerPort`: Number of LEDs per port
+//
+// `startPort`: Starting port for calculation for each block config
+struct LedCtrlBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 numPorts;
+  5: i32 ledPerPort;
+  6: i32 startPort;
+}
+
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
 // for each unique combination of <vendorId, deviceId, subSystemVendorId,
 // subSystemDeviceId>.
@@ -404,6 +444,7 @@ struct PciDeviceConfig {
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
   15: optional string desiredDriver;
+  16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and

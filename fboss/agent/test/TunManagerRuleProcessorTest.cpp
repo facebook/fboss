@@ -23,14 +23,31 @@
  * to access private members of TunManager for testing the ruleProcessor
  * functionality.
  */
-#define TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS                      \
-  friend class TunManagerRuleProcessorTest;                         \
-  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule);  \
-  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule);  \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipUnsupportedFamily);  \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipInvalidTableId);     \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr); \
-  FRIEND_TEST(TunManagerRuleProcessorTest, SkipLinkLocalAddress);
+#define TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS                              \
+  friend class TunManagerRuleProcessorTest;                                 \
+  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv4SourceRule);          \
+  FRIEND_TEST(TunManagerRuleProcessorTest, ProcessIPv6SourceRule);          \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipUnsupportedFamily);          \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipInvalidTableId);             \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipRuleWithoutSrcAddr);         \
+  FRIEND_TEST(TunManagerRuleProcessorTest, SkipLinkLocalAddress);           \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest, BuildIfIndexToTableIdMapFromRulesEmpty); \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesSingleInterface);                    \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesMultipleInterfaces);                 \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesSkipLinkLocal);                      \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesNoMatchingRules);                    \
+  FRIEND_TEST(                                                              \
+      TunManagerRuleProcessorTest,                                          \
+      BuildIfIndexToTableIdMapFromRulesFirstMatchOnly);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -46,6 +63,7 @@ extern "C" {
 
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TunManager.h"
+#include "fboss/agent/test/MockTunIntf.h"
 #include "fboss/agent/test/MockTunManager.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -318,6 +336,186 @@ TEST_F(TunManagerRuleProcessorTest, SkipLinkLocalAddress) {
   EXPECT_EQ(0, tunMgr_->probedRules_.size());
 
   rtnl_rule_put(ipv6Rule);
+}
+
+/**
+ * @brief Test empty interfaces map for buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules returns an empty map when
+ * there are no interfaces configured.
+ */
+TEST_F(TunManagerRuleProcessorTest, BuildIfIndexToTableIdMapFromRulesEmpty) {
+  // Clear any existing interfaces and rules
+  tunMgr_->intfs_.clear();
+  tunMgr_->probedRules_.clear();
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @brief Test single interface mapping for buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules correctly maps a single
+ * interface to its table ID based on matching source routing rules.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesSingleInterface) {
+  // Create a mock interface
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+
+  // Set up addresses on the interface
+  Interface::Addresses addrs = {
+      {folly::IPAddress("192.168.1.100"), 24},
+      {folly::IPAddress("2001:db8::100"), 64}};
+  mockIntf->setTestAddresses(addrs);
+
+  // Add interface to the map
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // Add matching probed rules
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "192.168.1.100/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET6, 101, "2001:db8::100/128");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  ASSERT_EQ(1, result.size());
+  EXPECT_EQ(101, result[10]); // ifIndex 10 -> tableId 101
+}
+
+/**
+ * @brief Test multiple interfaces mapping for buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules correctly maps multiple
+ * interfaces to their respective table IDs based on matching source routing
+ * rules.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesMultipleInterfaces) {
+  // Create first mock interface
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+  Interface::Addresses addrs1 = {{folly::IPAddress("192.168.1.100"), 24}};
+  mockIntf1->setTestAddresses(addrs1);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+
+  // Create second mock interface
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 11, 1500);
+  Interface::Addresses addrs2 = {{folly::IPAddress("192.168.2.100"), 24}};
+  mockIntf2->setTestAddresses(addrs2);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+
+  // Add matching probed rules
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "192.168.1.100/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET, 102, "192.168.2.100/32");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  ASSERT_EQ(2, result.size());
+  EXPECT_EQ(101, result[10]); // ifIndex 10 -> tableId 101
+  EXPECT_EQ(102, result[11]); // ifIndex 11 -> tableId 102
+}
+
+/**
+ * @brief Test skipping link-local addresses for
+ * buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules correctly skips link-local
+ * addresses and creates no mapping when an interface only has link-local
+ * addresses.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesSkipLinkLocal) {
+  // Create a mock interface with ONLY link-local addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+
+  Interface::Addresses addrs = {
+      {folly::IPAddress("169.254.1.1"), 16}, // IPv4 link-local
+      {folly::IPAddress("fe80::1"), 64} // IPv6 link-local
+  };
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // Add probed rules that would match if they weren't link-local
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "169.254.1.1/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET6, 102, "fe80::1/128");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  // Should be empty because all addresses are link-local and thus skipped
+  EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @brief Test no matching rules for buildIfIndexToTableIdMapFromRules
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules returns an empty map when
+ * there are no matching rules for any interface addresses.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesNoMatchingRules) {
+  // Create a mock interface
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+
+  Interface::Addresses addrs = {{folly::IPAddress("192.168.1.100"), 24}};
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // Add probed rules that don't match any interface addresses
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "10.0.0.1/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET6, 102, "2001:db8::1/128");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @brief Test interface with multiple addresses for
+ * buildIfIndexToTableIdMapFromRules - only first matching address used
+ *
+ * Verifies that buildIfIndexToTableIdMapFromRules uses the first matching
+ * address for mapping creation,  since all addresses on an interface should
+ * normally have the same table ID in production.
+ */
+TEST_F(
+    TunManagerRuleProcessorTest,
+    BuildIfIndexToTableIdMapFromRulesFirstMatchOnly) {
+  // Create a mock interface with multiple addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 10, 1500);
+
+  Interface::Addresses addrs = {
+      {folly::IPAddress("192.168.1.100"), 24},
+      {folly::IPAddress("192.168.1.101"), 24},
+      {folly::IPAddress("2001:db8::100"), 64}};
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // Add multiple matching probed rules - should use the first match
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, 101, "192.168.1.100/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET, 102, "192.168.1.101/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET6, 103, "2001:db8::100/128");
+
+  auto result = tunMgr_->buildIfIndexToTableIdMapFromRules();
+
+  ASSERT_EQ(1, result.size());
+  // Should map to the first matching rule (tableId 101)
+  EXPECT_EQ(101, result[10]);
 }
 
 } // namespace facebook::fboss

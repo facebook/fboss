@@ -78,7 +78,19 @@
   FRIEND_TEST(                                                                 \
       TunManagerRouteProcessorTest, RequiresProbedDataCleanupSizeDiff);        \
   FRIEND_TEST(                                                                 \
-      TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys);
+      TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys);     \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapWithRulesAugmentation);                       \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapRulesOnlyFallback);                           \
+  FRIEND_TEST(                                                                 \
+      TunManagerRouteProcessorTest,                                            \
+      BuildProbedIfIdToTableIdMapRoutesHavePriority);                          \
+  FRIEND_TEST(                                                                 \
+      TunManagerAddressRuleTest,                                               \
+      DeleteProbedAddressesAndRulesWithRemainingRules);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1284,6 +1296,195 @@ TEST_F(TunManagerRouteProcessorTest, RequiresProbedDataCleanupMissingKeys) {
 
   // Should return true since keys differ
   EXPECT_TRUE(requiresCleanup);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with rules augmentation
+ *
+ * Verifies that buildProbedIfIdToTableIdMap correctly augments the mapping
+ * from probed routes with mappings from probed rules when interfaces have
+ * no probed routes but have matching source rules.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapWithRulesAugmentation) {
+  // Add mock interfaces with addresses
+  auto mockIntf1 =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+  auto mockIntf2 =
+      std::make_unique<MockTunIntf>(InterfaceID(2001), "fboss2001", 43, 1500);
+
+  Interface::Addresses addrs1 = {{folly::IPAddress("192.168.1.100"), 24}};
+  Interface::Addresses addrs2 = {{folly::IPAddress("192.168.2.100"), 24}};
+
+  mockIntf1->setTestAddresses(addrs1);
+  mockIntf2->setTestAddresses(addrs2);
+
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf1);
+  tunMgr_->intfs_[InterfaceID(2001)] = std::move(mockIntf2);
+
+  // Add probed route only for first interface
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  addProbedRoute(tunMgr_, AF_INET, tableId2000, "0.0.0.0/0", 42);
+
+  // Add probed rules for both interfaces (second one will augment)
+  auto tableId2001 = tunMgr_->getTableId(InterfaceID(2001));
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, tableId2000, "192.168.1.100/32");
+  tunMgr_->probedRules_.emplace_back(AF_INET, tableId2001, "192.168.2.100/32");
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should include mapping from both routes and rules
+  EXPECT_EQ(2, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]); // From route
+  EXPECT_EQ(
+      tableId2001, probedMapping[InterfaceID(2001)]); // From rule (augmented)
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap with rules-only fallback
+ *
+ * Verifies that buildProbedIfIdToTableIdMap falls back to using only
+ * source rules when no probed routes exist (example interface down).
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapRulesOnlyFallback) {
+  // Add mock interface with addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+
+  Interface::Addresses addrs = {{folly::IPAddress("192.168.1.100"), 24}};
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  // No probed routes added (probedRoutes_ is empty)
+
+  // Add probed rules only
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(AF_INET, tableId2000, "192.168.1.100/32");
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should include mapping from rules only
+  EXPECT_EQ(1, probedMapping.size());
+  EXPECT_EQ(tableId2000, probedMapping[InterfaceID(2000)]);
+}
+
+/**
+ * @brief Test buildProbedIfIdToTableIdMap routes have priority over rules
+ *
+ * Verifies that when both probed routes and probed rules exist for the same
+ * interface, the mapping from probed routes takes priority and rules do not
+ * overwrite it. This will not happen in production, but adding test to verify
+ * the code.
+ */
+TEST_F(
+    TunManagerRouteProcessorTest,
+    BuildProbedIfIdToTableIdMapRoutesHavePriority) {
+  // Add mock interface with addresses
+  auto mockIntf =
+      std::make_unique<MockTunIntf>(InterfaceID(2000), "fboss2000", 42, 1500);
+
+  Interface::Addresses addrs = {{folly::IPAddress("192.168.1.100"), 24}};
+  mockIntf->setTestAddresses(addrs);
+  tunMgr_->intfs_[InterfaceID(2000)] = std::move(mockIntf);
+
+  auto tableId2000 = tunMgr_->getTableId(InterfaceID(2000));
+  auto differentTableId = tableId2000 + 10; // Different table ID
+
+  // Add probed route
+  addProbedRoute(tunMgr_, AF_INET, tableId2000, "0.0.0.0/0", 42);
+
+  // Add probed rules with different table ID (should not overwrite route
+  // mapping)
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET, differentTableId, "192.168.1.100/32");
+
+  // Call buildProbedIfIdToTableIdMap
+  auto probedMapping = tunMgr_->buildProbedIfIdToTableIdMap();
+
+  // Should use mapping from route, not rule
+  EXPECT_EQ(1, probedMapping.size());
+  EXPECT_EQ(
+      tableId2000, probedMapping[InterfaceID(2000)]); // From route, not rule
+  EXPECT_NE(differentTableId, probedMapping[InterfaceID(2000)]);
+}
+
+/**
+ * @brief Test deletion of remaining probed rules that aren't associated
+ * with current interfaces
+ *
+ * This test verifies the specific logic in deleteProbedAddressesAndRules
+ * that handles probed rules which exist in probedRules_ but don't correspond
+ * to any current interface addresses. These rules need to be deleted
+ * separately after processing interface addresses.
+ */
+TEST_F(
+    TunManagerAddressRuleTest,
+    DeleteProbedAddressesAndRulesWithRemainingRules) {
+  // Add a mock interface with one address
+  std::vector<std::pair<folly::IPAddress, uint8_t>> addresses = {
+      {folly::IPAddress("10.1.1.1"), 24}};
+
+  addMockInterface(InterfaceID(2000), 42, "fboss2000", addresses);
+
+  // Add probed rules: one that matches interface address, one that doesn't
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET, 100, "10.1.1.1/32"); // Matches interface address
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET, 101, "10.2.2.2/32"); // No corresponding interface
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET6, 102, "2001:db8::1/128"); // No corresponding interface
+
+  // Create ifIndexToTableId map
+  auto ifIndexToTableId = createIfIndexToTableIdMap({{42, 100}});
+
+  // Expect calls for interface address cleanup
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          100,
+          folly::IPAddress("10.1.1.1"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2000", 42, folly::IPAddress("10.1.1.1"), 24, false))
+      .Times(1);
+
+  // Expect calls for remaining probed rules (the ones not matched by interface
+  // addresses)
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          101,
+          folly::IPAddress("10.2.2.2"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          102,
+          folly::IPAddress("2001:db8::1"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+
+  // Call deleteProbedAddressesAndRules
+  tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId);
+
+  // Verify probed rules are cleared
+  EXPECT_EQ(0, tunMgr_->probedRules_.size());
 }
 
 } // namespace facebook::fboss

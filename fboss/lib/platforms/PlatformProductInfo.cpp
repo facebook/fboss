@@ -287,18 +287,21 @@ std::string PlatformProductInfo::getField(
 void PlatformProductInfo::parse(std::string data) {
   dynamic info;
   try {
-    info = parseJson(data).at(kInfo);
-  } catch (const std::exception& err) {
-    XLOG(ERR) << err.what();
-    // Handle fruid data present outside of "Information" i.e.
+    // Fruid data can be in two formats.
+    // old format (deprecated). If used, it is probably in old BMC Classic
+    // hardware
     // {
     //   "Information" : fruid json
     // }
-    // vs
+    // new format (BMC Lite Devices)
     // {
     //  Fruid json
     // }
-    info = parseJson(data);
+    info = data.find(kInfo) != std::string::npos ? parseJson(data).at(kInfo)
+                                                 : parseJson(data);
+  } catch (const std::exception& err) {
+    XLOG(ERR) << err.what();
+    throw;
   }
 
   productInfo_.product() = getField(info, {kProdName});

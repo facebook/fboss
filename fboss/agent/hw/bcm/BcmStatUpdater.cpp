@@ -530,8 +530,7 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
              lane++) {
           bcm_gport_t gport;
           BCM_PHY_GPORT_LANE_PORT_SET(gport, lane, newPort->getID());
-          prbsStatsTable.push_back(
-              PrbsStatsEntry(lane, gport, calculateLaneRate(newPort)));
+          prbsStatsTable.emplace_back(lane, gport, calculateLaneRate(newPort));
         }
         (*lockedPortAsicPrbsStats)[newPort->getID()] =
             std::move(prbsStatsTable);

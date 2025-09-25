@@ -49,6 +49,7 @@ target_link_libraries(sai_tracer
   fboss_types
   async_logger
   sai_version
+  sai_api
   function_call_time_reporter
   tuple_utils
   switch_config_cpp2

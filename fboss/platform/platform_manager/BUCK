@@ -193,6 +193,7 @@ cpp_library(
         "Utils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/exprtk:exprtk",
         "//fboss/lib:gpiod_line",
         "//folly/logging:logging",
     ],

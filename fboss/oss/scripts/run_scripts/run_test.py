@@ -485,7 +485,11 @@ class TestRunner(abc.ABC):
 
     def _list_tests_to_run(self, filter, should_print=True):
         output = subprocess.check_output(
-            [self._get_test_binary_name(), "--gtest_list_tests", filter]
+            [
+                self._get_test_binary_name(),
+                "--gtest_list_tests",
+                f"--gtest_filter={filter}",
+            ]
         )
         # Print all the matching tests
         if should_print:
@@ -523,29 +527,29 @@ class TestRunner(abc.ABC):
         # 2. Tests by filter with known bad
         # 3. All tests with known bad
         # 4. All tests without known bad
-        regexes = []
+        test_names = []
         if args.filter or args.filter_file:
             if args.filter_file:
                 with open(args.filter_file) as file:
-                    regexes = [
+                    gtest_regexes = [
                         line.strip()
                         for line in file
-                        if not line.strip().startswith("#")
+                        if line.strip() and not line.strip().startswith("#")
                     ]
+                    test_names = self._list_tests_to_run(":".join(gtest_regexes), False)
             elif args.filter:
-                regexes = args.filter.split(":")
+                test_names = self._list_tests_to_run(args.filter, False)
         else:
-            regexes = self._list_tests_to_run("*", False)
+            test_names = self._list_tests_to_run("*", False)
         filter = ""
-        for regex in regexes:
-            if "-" in regex:
-                break
-            if self._is_known_bad_test(regex) or self._is_unsupported_test(regex):
+        for test_name in test_names:
+            if self._is_known_bad_test(test_name) or self._is_unsupported_test(
+                test_name
+            ):
                 continue
-            filter += f"{regex}:"
+            filter += f"{test_name}:"
         if not filter:
             return []
-        filter = "--gtest_filter=" + filter
         return self._list_tests_to_run(filter)
 
     def _restart_bcmsim(self, asic):

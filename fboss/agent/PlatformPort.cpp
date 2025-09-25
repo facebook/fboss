@@ -343,6 +343,9 @@ PlatformPort::buildPlatformPortConfigOverrideFactorBySpec(
       interface.has_value()) {
     factor.transceiverManagementInterface() = interface.value();
   }
+  if (auto vendor = transceiverSpec.getVendor(); vendor.has_value()) {
+    factor.vendor() = std::move(vendor.value());
+  }
   return factor;
 }
 

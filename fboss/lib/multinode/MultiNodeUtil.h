@@ -13,6 +13,8 @@
 #include <string>
 #include "fboss/agent/state/DsfNodeMap.h"
 
+#include <folly/MacAddress.h>
+
 namespace facebook::fboss::utility {
 
 class MultiNodeUtil {
@@ -39,6 +41,8 @@ class MultiNodeUtil {
   bool verifyGracefulFsdbDownUp() const;
   bool verifyUngracefulFsdbDownUp() const;
 
+  bool verifyNeighborAddRemove() const;
+
  private:
   enum class SwitchType : uint8_t {
     RDSW = 0,
@@ -56,6 +60,33 @@ class MultiNodeUtil {
         return "SDSW";
     }
   }
+
+  void logNdpEntry(
+      const std::string& rdsw,
+      const facebook::fboss::NdpEntryThrift& ndpEntry) const {
+    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+        folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+    XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
+               << " state: " << ndpEntry.state().value()
+               << " switchId: " << ndpEntry.switchId().value_or(-1);
+  }
+
+  void logRdswToNdpEntries(
+      const std::map<std::string, std::vector<NdpEntryThrift>>&
+          rdswToNdpEntries) const {
+    for (const auto& [rdsw, ndpEntries] : rdswToNdpEntries) {
+      for (const auto& ndpEntry : ndpEntries) {
+        auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
+            folly::StringPiece(ndpEntry.ip().value().addr().value())));
+        XLOG(DBG2) << "RDSW:: " << rdsw
+                   << " NDP Entry to verify:: port: " << ndpEntry.port().value()
+                   << " interfaceID: " << ndpEntry.interfaceID().value()
+                   << " IP: " << ndpEntryIp;
+      }
+    }
+  }
+
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
@@ -108,6 +139,8 @@ class MultiNodeUtil {
       const std::string& switchName) const;
   std::map<std::string, PortInfoThrift> getFabricPortNameToPortInfo(
       const std::string& switchName) const;
+  std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
+      const std::string& switchName) const;
 
   bool verifyPortActiveStateForSwitch(
       SwitchType switchType,
@@ -133,7 +166,7 @@ class MultiNodeUtil {
       const std::set<RemoteInterfaceType>& types) const;
   bool verifyRifsForRdsw(const std::string& rdswToVerify) const;
 
-  std::set<std::pair<std::string, std::string>> getNdpEntriesAndSwitchOfType(
+  std::vector<NdpEntryThrift> getNdpEntriesOfType(
       const std::string& rdsw,
       const std::set<std::string>& types) const;
 
@@ -178,6 +211,50 @@ class MultiNodeUtil {
 
   bool verifyFsdbDownUpForRemoteRdswsHelper(bool triggerGraceFulRestart) const;
 
+  struct NeighborInfo {
+    int32_t portID = 0;
+    int32_t intfID = 0;
+    folly::IPAddress ip = folly::IPAddress("::");
+    folly::MacAddress mac = folly::MacAddress("00:00:00:00:00:00");
+
+    std::string str() const {
+      return folly::to<std::string>(
+          "portID: ",
+          portID,
+          ", intfID: ",
+          intfID,
+          ", ip: ",
+          ip.str(),
+          ", mac: ",
+          mac.toString());
+    }
+  };
+  std::vector<NeighborInfo> computeNeighborsForRdsw(
+      const std::string& rdsw,
+      const int& numNeighbors) const;
+
+  // if allNeighborsMustBePresent is true, then all neighbors must be present
+  // for every rdsw in rdswToNdpEntries.
+  // if allNeighborsMustBePresent is false, then all neighbors must be absent
+  // for every rdsw in rdswToNdpEntries.
+  bool verifyNeighborHelper(
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+      const std::map<std::string, std::vector<NdpEntryThrift>>&
+          rdswToNdpEntries,
+      bool allNeighborsMustBePresent) const;
+  bool verifyNeighborsPresent(
+      const std::string& rdswToVerify,
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const;
+  bool verifyNeighborLocalPresent(
+      const std::string& rdsw,
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors) const;
+  bool verifyNeighborsAbsent(
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+      const std::optional<std::string>& rdswToExclude = std::nullopt) const;
+  bool verifyNeighborLocalPresentRemoteAbsent(
+      const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
+      const std::string& rdsw) const;
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;
@@ -185,6 +262,7 @@ class MultiNodeUtil {
   std::set<std::string> allRdsws_;
   std::set<std::string> allFdsws_;
   std::map<SwitchID, std::string> switchIdToSwitchName_;
+  std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
 };
 
 } // namespace facebook::fboss::utility

@@ -6,6 +6,7 @@
 add_library(platform_mapping
   fboss/agent/platforms/common/MultiPimPlatformMapping.cpp
   fboss/agent/platforms/common/PlatformMapping.cpp
+  fboss/agent/platforms/common/oss/PlatformMapping.cpp
 )
 
 target_link_libraries(platform_mapping

@@ -183,9 +183,9 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
     if (!(*port.expectedLLDPValues()).empty() ||
         !(*port.expectedNeighborReachability()).empty()) {
       auto portID = *port.logicalID();
-      cabledPorts_.push_back(PortID(portID));
+      cabledPorts_.emplace_back(portID);
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
-        cabledFabricPorts_.push_back(PortID(portID));
+        cabledFabricPorts_.emplace_back(portID);
       }
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
@@ -298,7 +298,12 @@ void AgentEnsembleLinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
     std::optional<folly::MacAddress> dstMac) {
   utility::EcmpSetupTargetedPorts6 ecmp6(
-      getSw()->getState(), getSw()->needL2EntryForNeighbor(), dstMac);
+      getSw()->getState(),
+      getSw()->needL2EntryForNeighbor(),
+      dstMac,
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
 }
 
@@ -605,7 +610,7 @@ AgentEnsembleLinkTest::getPortPairsForFecErrInj() const {
           "FEC different on both ends of the link: ", fecPort1, fecPort2);
     }
     if (supportedFecs.find(fecPort1) != supportedFecs.end()) {
-      supportedPorts.push_back({port1, port2});
+      supportedPorts.emplace_back(port1, port2);
     }
   }
   return supportedPorts;

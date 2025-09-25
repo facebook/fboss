@@ -35,7 +35,7 @@ EthHdr::EthHdr(Cursor& cursor) {
       cursor.pull(buf, 4);
       uint32_t tag = (static_cast<uint32_t>(etherType) << 16) |
           (static_cast<uint32_t>(buf[0]) << 8) | static_cast<uint32_t>(buf[1]);
-      vlanTags.push_back(VlanTag(tag));
+      vlanTags.emplace_back(tag);
       etherType =
           (static_cast<uint16_t>(buf[2]) << 8) | static_cast<uint16_t>(buf[3]);
     }
@@ -47,7 +47,7 @@ EthHdr::EthHdr(Cursor& cursor) {
 void EthHdr::addVlans(const std::vector<VlanID>& vlans, ETHERTYPE ether) {
   for (auto vlan : vlans) {
     vlanTags.emplace_back(
-        VlanTag(static_cast<uint16_t>(vlan), static_cast<uint16_t>(ether)));
+        static_cast<uint16_t>(vlan), static_cast<uint16_t>(ether));
   }
 }
 

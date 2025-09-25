@@ -163,6 +163,7 @@ struct TransceiverSpecFields {
   2: optional double cableLength;
   3: optional transceiver.MediaInterfaceCode mediaInterface;
   4: optional transceiver.TransceiverManagementInterface managementInterface;
+  5: optional transceiver.Vendor vendor;
 }
 
 struct AclTtl {
@@ -584,7 +585,6 @@ struct InterfaceFields {
   17: optional string dhcpV6Relay;
   18: map<string, string> dhcpRelayOverridesV4;
   19: map<string, string> dhcpRelayOverridesV6;
-
   /*
    * Set only on Remote Interfaces of VOQ switches.
    */
@@ -598,6 +598,9 @@ struct InterfaceFields {
 
   /* applicable only for port type of interface */
   23: optional i32 portId;
+  /* These fields contains information of remote GPU */
+  24: optional string desiredPeerName;
+  25: optional string desiredPeerAddressIPv6;
 }
 
 enum LacpState {
