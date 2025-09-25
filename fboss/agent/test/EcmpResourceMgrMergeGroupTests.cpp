@@ -545,11 +545,6 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
             continue;
           }
           auto route = fib6->getRouteIf(origRoute->prefix())->clone();
-          // Clear any overrides. This test mimics routes
-          // coming over thrift (say on FibSync) which would
-          // come w/o any overrides set.
-          route->setResolved(RouteNextHopEntry(
-              route->getForwardInfo().getNextHopSet(), kDefaultAdminDistance));
           route->publish();
           fib6->updateNode(route);
         }
