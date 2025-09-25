@@ -56,6 +56,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   using Prefix = std::pair<RouterID, folly::CIDRNetwork>;
   using PrefixToGroupInfo =
       std::unordered_map<Prefix, std::shared_ptr<NextHopGroupInfo>>;
+  using NextHopGroupIdToPrefixes =
+      std::unordered_map<NextHopGroupId, std::vector<Prefix>>;
 
   std::vector<StateDelta> modifyState(
       const std::vector<StateDelta>& deltas) override;
@@ -186,24 +188,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     PreUpdateState groupIdCache;
     bool updated{false};
   };
-  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
-      const RouteNextHopSet& mergedNhops);
-  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
-      const std::optional<RouteNextHopSet>& mergedNhops) {
-    return mergedNhops ? getMergeGroupItr(*mergedNhops) : std::nullopt;
-  }
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState);
-  GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
-      NextHopGroupIds newMemberGroups,
-      const RouteNextHopSet& mergedNhops,
-      std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
-      const InputOutputState& inOutState);
-  void fixMergeItreators(
-      const NextHopGroupIds& newMergeSet,
-      GroupIds2ConsolidationInfoItr mitr,
-      const NextHopGroupIds& toIgnore);
   bool pruneFromCandidateMerges(const NextHopGroupIds& groupIds);
   template <typename AddrT>
   bool routeFwdEqual(
@@ -223,23 +210,65 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       InputOutputState* inOutState);
   std::vector<std::shared_ptr<NextHopGroupInfo>> getGroupsToReclaimOrdered(
       uint32_t canReclaim) const;
-  void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
   void reclaimBackupGroups(
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const NextHopGroupIds& groupIdsToReclaimIn,
       InputOutputState* inOutState);
+
+  /*
+   * Migrate groups and prefixes to new merge info
+   */
+
+  void updateMergeInfo(
+      const NextHopGroupIdToPrefixes& gid2Prefix,
+      const NextHopGroupIds& newMergeSet,
+      std::optional<GroupIds2ConsolidationInfoItr> newMergeItr,
+      std::shared_ptr<SwitchState>& newState);
+
+  /*
+   * Lookup merge iterator for a set of next hops
+   */
+  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
+      const RouteNextHopSet& mergedNhops);
+  std::optional<GroupIds2ConsolidationInfoItr> getMergeGroupItr(
+      const std::optional<RouteNextHopSet>& mergedNhops) {
+    return mergedNhops ? getMergeGroupItr(*mergedNhops) : std::nullopt;
+  }
+  /*
+   * Make new merge group and get its iterator
+   */
+  GroupIds2ConsolidationInfoItr fixAndGetMergeGroupItr(
+      NextHopGroupIds newMemberGroups,
+      const RouteNextHopSet& mergedNhops,
+      std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
+      const InputOutputState& inOutState);
+  /*
+   * Update merge itertor for a set of groups
+   */
+  void fixMergeItreators(
+      const NextHopGroupIds& newMergeSet,
+      GroupIds2ConsolidationInfoItr mitr,
+      const NextHopGroupIds& toIgnore);
+  /*
+   * Unmerge and reclaim a set of merge groups
+   */
   void reclaimMergeGroups(
       const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
   enum class MergeGroupUpdateOp { RECLAIM_GROUPS, DELETE_GROUPS };
+  /*
+   * Reclaim or delete a set of groups from existing merged
+   * groups.
+   */
   void updateMergedGroups(
       const std::set<NextHopGroupIds>& mergeSetsToUpdate,
       MergeGroupUpdateOp op,
       const NextHopGroupIds& groupIdsToReclaim,
       InputOutputState* inOutState);
-  std::unordered_map<NextHopGroupId, std::vector<Prefix>> getGidToPrefixes()
-      const;
+  void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
+
+  NextHopGroupIdToPrefixes getGidToPrefixes() const;
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(
@@ -349,6 +378,7 @@ class NextHopGroupInfo {
   using NextHopGroupItr = EcmpResourceManager::NextHops2GroupId::iterator;
   using GroupIds2ConsolidationInfoItr =
       EcmpResourceManager::GroupIds2ConsolidationInfo::iterator;
+
   enum class NextHopGroupState {
     UNINITIALIZED,
     UNMERGED_NHOPS_ONLY,

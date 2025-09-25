@@ -492,9 +492,7 @@ void EcmpResourceManager::reclaimBackupGroups(
              << " ECMP member count: " << inOutState->ecmpMemberCnt;
 }
 
-std::unordered_map<
-    EcmpResourceManager::NextHopGroupId,
-    std::vector<EcmpResourceManager::Prefix>>
+EcmpResourceManager::NextHopGroupIdToPrefixes
 EcmpResourceManager::getGidToPrefixes() const {
   std::unordered_map<NextHopGroupId, std::vector<Prefix>> gid2Prefix;
   std::for_each(
@@ -505,6 +503,21 @@ EcmpResourceManager::getGidToPrefixes() const {
             pfxAndGroupInfo.first);
       });
   return gid2Prefix;
+}
+
+void EcmpResourceManager::updateMergeInfo(
+    const NextHopGroupIdToPrefixes& gid2Prefix,
+    const NextHopGroupIds& groups2Update,
+    std::optional<GroupIds2ConsolidationInfoItr> newMergeInfoItr,
+    std::shared_ptr<SwitchState>& newState) {
+  for (auto gid : groups2Update) {
+    for (const auto& pfx : gid2Prefix.find(gid)->second) {
+      updateRouteOverrides(pfx, newState, std::nullopt, newMergeInfoItr);
+    }
+    if (auto grpInfo = nextHopGroupIdToInfo_.ref(gid)) {
+      grpInfo->setMergedGroupInfoItr(newMergeInfoItr);
+    }
+  }
 }
 /*
  * Reclaim sub cases
@@ -547,22 +560,6 @@ void EcmpResourceManager::updateMergedGroups(
     CHECK_EQ(groupIdsToReclaimOrPrune.size(), 1);
   }
 
-  auto gid2Prefix = getGidToPrefixes();
-  auto updateMergeInfo =
-      [&gid2Prefix, this](
-          const NextHopGroupIds& groups2Update,
-          std::optional<GroupIds2ConsolidationInfoItr> newMergeInfoItr,
-          std::shared_ptr<SwitchState>& newState) {
-        for (auto gid : groups2Update) {
-          for (const auto& pfx : gid2Prefix[gid]) {
-            updateRouteOverrides(pfx, newState, std::nullopt, newMergeInfoItr);
-          }
-          if (auto grpInfo = nextHopGroupIdToInfo_.ref(gid)) {
-            CHECK(grpInfo->getMergedGroupInfoItr().has_value());
-            grpInfo->setMergedGroupInfoItr(newMergeInfoItr);
-          }
-        }
-      };
   for (const auto& curMergeSet : mergeSetsToUpdate) {
     CHECK_GT(curMergeSet.size(), 1);
     XLOG(DBG2) << " Updating merged group: " << curMergeSet;
@@ -576,6 +573,7 @@ void EcmpResourceManager::updateMergedGroups(
         nhopGroupIdsDifference(curMergeSet, groupIdsToReclaimOrPrune);
     auto oldState = inOutState->out.back().newState();
     auto newState = oldState->clone();
+    auto gid2Prefix = getGidToPrefixes();
     if (op == MergeGroupUpdateOp::RECLAIM_GROUPS) {
       /*
        * If we are reclaiming (not deleting)
@@ -585,7 +583,7 @@ void EcmpResourceManager::updateMergedGroups(
        * - Clear override nhops for prefixes pointing to such groups
        */
       auto reclaimedGroups = nhopGroupIdsDifference(curMergeSet, newMergeSet);
-      updateMergeInfo(reclaimedGroups, std::nullopt, newState);
+      updateMergeInfo(gid2Prefix, reclaimedGroups, std::nullopt, newState);
       // Each of these unmerged groups will create 1 primary
       // ECMP group
       inOutState->primaryEcmpGroupsCnt += reclaimedGroups.size();
@@ -646,7 +644,7 @@ void EcmpResourceManager::updateMergedGroups(
     }
     // Now update the groups and prefixes corresponding to the
     // newMergeSet
-    updateMergeInfo(newMergeSet, newMergeItr, newState);
+    updateMergeInfo(gid2Prefix, newMergeSet, newMergeItr, newState);
 
     newState->publish();
     // We put each unmerge on a new delta, to ensure that all
