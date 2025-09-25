@@ -1296,14 +1296,33 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
         newRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops()) {
       // overrides do not match
       auto mitr = grpInfo->getMergedGroupInfoItr();
-      if (mitr && !(*mitr)->first.contains(grpInfo->getID())) {
-        auto newMergeSet = (*mitr)->first;
-        newMergeSet.insert(grpInfo->getID());
-        mergeGroupAndMigratePrefixes(newMergeSet, inOutState);
+      if (inOutState->rollingBack) {
+        // Group has overrides but prefix does not. If we are rolling
+        // back, prefer the setting from the group
+        if (mitr) {
+          updateMergedGroups(
+              {(*mitr)->first},
+              MergeGroupUpdateOp::RECLAIM_GROUPS,
+              {grpInfo->getID()},
+              inOutState);
+        } else {
+          grpInfo->setIsBackupEcmpGroupType(false);
+        }
       } else {
-        auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
-            rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
-        CHECK_EQ(existingGrpInfo, grpInfo);
+        // Not rolling back. Prefer group's override info
+        if (mitr && !(*mitr)->first.contains(grpInfo->getID())) {
+          // If group is not part of the merge set pointed to by
+          // the merge iterator, make it a part of it and update
+          // prefixes accordingly.
+          auto newMergeSet = (*mitr)->first;
+          newMergeSet.insert(grpInfo->getID());
+          mergeGroupAndMigratePrefixes(newMergeSet, inOutState);
+        } else {
+          // Update the route's override info from the group.
+          auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
+              rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
+          CHECK_EQ(existingGrpInfo, grpInfo);
+        }
       }
     } else {
       // Everything matches just add the route to current delta
