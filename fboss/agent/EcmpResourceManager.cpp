@@ -930,8 +930,15 @@ EcmpResourceManager::getOrCreateGroupInfo(
 void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     InputOutputState* inOutState) {
   auto mergeSet = getOptimalMergeGroupSet();
-  CHECK(!mergeSet.empty())
+  mergeGroupAndMigratePrefixes(mergeSet, inOutState);
+}
+
+void EcmpResourceManager::mergeGroupAndMigratePrefixes(
+    const NextHopGroupIds& mergeSetIn,
+    InputOutputState* inOutState) {
+  CHECK(!mergeSetIn.empty())
       << "Ecmp overflow, but no candidates available for merge";
+  auto mergeSet = mergeSetIn;
   auto citr = candidateMergeGroups_.find(mergeSet);
   CHECK(citr != candidateMergeGroups_.end());
   auto [newMergeGrpInfo, mergeGrpNhopsInserted] =
@@ -1284,14 +1291,14 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
       // overrides do not match
       auto mitr = grpInfo->getMergedGroupInfoItr();
       if (mitr && !(*mitr)->first.contains(grpInfo->getID())) {
-        // Merge group does not contain this group ID, update merge group
-        mitr = fixAndGetMergeGroupItr(
-            {grpInfo->getID()}, grpInfo->getNhops(), mitr, *inOutState);
-        grpInfo->setMergedGroupInfoItr(mitr);
+        auto newMergeSet = (*mitr)->first;
+        newMergeSet.insert(grpInfo->getID());
+        mergeGroupAndMigratePrefixes(newMergeSet, inOutState);
+      } else {
+        auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
+            rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
+        CHECK_EQ(existingGrpInfo, grpInfo);
       }
-      auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
-          rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
-      CHECK_EQ(existingGrpInfo, grpInfo);
     } else {
       // Everything matches just add the route to current delta
       inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
