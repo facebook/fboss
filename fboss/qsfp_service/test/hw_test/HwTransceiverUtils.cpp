@@ -227,11 +227,10 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::DR2_400G:
       case MediaInterfaceCode::DR4_800G:
       case MediaInterfaceCode::DR1_200G:
-      case MediaInterfaceCode::DR1_100G:
-      {
+      case MediaInterfaceCode::DR1_100G: {
         throw FbossError(
-                "Unsupported moduleMediaInterface ",
-                apache::thrift::util::enumNameSafe(moduleMediaInterface));
+            "Unsupported moduleMediaInterface ",
+            apache::thrift::util::enumNameSafe(moduleMediaInterface));
       }
     }
 
