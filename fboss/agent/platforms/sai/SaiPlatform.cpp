@@ -804,7 +804,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPortId = 8120;
     maxSystemPorts = 8121;
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+    if (FLAGS_hyper_port) {
+      localSystemPortIdRangeList =
+          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+    } else {
+      localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+    }
 #else
     maxLocalSystemPortId = 184;
 #endif
@@ -818,7 +823,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSystemPorts = 6144;
     }
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+    if (FLAGS_hyper_port) {
+      localSystemPortIdRangeList =
+          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+    } else {
+      localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+    }
 #else
     maxLocalSystemPortId = -1;
 #endif
