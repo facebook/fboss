@@ -617,15 +617,19 @@ void EcmpResourceManager::updateMergedGroups(
      */
     std::optional<GroupIds2ConsolidationInfoItr> newMergeItr;
     if (newMergeSet.size() > 1) {
+      // If newMergeSet.size() > 1 we will create one new merged
+      // group and then delete the curMergeSet. Transiently we
+      // will create one extra ECMP group but at the end of update
+      // we will end up with exactly the same number of ECMP groups
       XLOG(DBG2) << " Replacing merge group: " << curMergeSet << std::endl
                  << " with: " << newMergeSet;
       std::tie(newMergeItr, std::ignore) = mergedGroups_.insert(
           {newMergeSet, computeConsolidationInfo(newMergeSet)});
       computeCandidateMergesForNewMergedGroup(newMergeSet);
-      // If newMergeSet.size() > 1 we will create one new merged
-      // group and then delete the curMergeSet. Transiently we
-      // will create one extra ECMP group but at the end of update
-      // we will end up with exactly the same number of ECMP groups
+      auto [mergeGroupInfo, _] =
+          getOrCreateGroupInfo((*newMergeItr)->second.mergedNhops, *inOutState);
+      mergeGroupInfo->setMergedGroupInfoItr(newMergeItr);
+      (*newMergeItr)->second.mergedGroupInfo = mergeGroupInfo;
     } else if (newMergeSet.size() == 1) {
       XLOG(DBG2) << " Reclaiming merge group: " << curMergeSet
                  << " since it has only one member group remaining: "
@@ -1234,7 +1238,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
   }
   auto nhopSet = newRoute->getForwardInfo().nonOverrideNormalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
-  if (grpInserted) {
+  if (grpInserted ||
+      grpInfo->getState() ==
+          NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY) {
     const auto& overrideNhops =
         newRoute->getForwardInfo().getOverrideNextHops();
     auto mergeGrpItr = getMergeGroupItr(overrideNhops);
@@ -1277,7 +1283,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
         // group. Else we will create a new one
         newMergeGrpCreated = !mergeGrpItr.has_value();
         mergeGrpItr = fixAndGetMergeGroupItr(
-            {grpInfo->getID()}, *overrideNhops, mergeGrpItr);
+            {grpInfo->getID()}, *overrideNhops, mergeGrpItr, *inOutState);
       }
       grpInfo->setIsBackupEcmpGroupType(newRoute->getForwardInfo()
                                             .getOverrideEcmpSwitchingMode()
@@ -1398,7 +1404,8 @@ EcmpResourceManager::GroupIds2ConsolidationInfoItr
 EcmpResourceManager::fixAndGetMergeGroupItr(
     const NextHopGroupIds& newMemberGroupIds,
     const RouteNextHopSet& mergedNhops,
-    std::optional<GroupIds2ConsolidationInfoItr> existingMitr) {
+    std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
+    const InputOutputState& inOutState) {
   GroupIds2ConsolidationInfoItr mitr;
   if (!existingMitr) {
     XLOG(DBG2) << " Group ID : " << newMemberGroupIds
@@ -1422,6 +1429,11 @@ EcmpResourceManager::fixAndGetMergeGroupItr(
     // Fix up iterators
     fixMergeItreators(newMergeSet, mitr, newMemberGroupIds);
   }
+  auto [mergeGroupInfo, _] =
+      getOrCreateGroupInfo(mitr->second.mergedNhops, inOutState);
+  mergeGroupInfo->setMergedGroupInfoItr(mitr);
+  mitr->second.mergedGroupInfo = mergeGroupInfo;
+
   std::for_each(
       newMemberGroupIds.begin(),
       newMemberGroupIds.end(),
