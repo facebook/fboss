@@ -306,3 +306,49 @@ TEST(RibRouteWeightNormalizerTest, verifySpineFailureStepCountFunctionality) {
       2, // numSpineFailuresToSkip = 2
       3); // spinePruneStepCount = 3
 }
+
+// Test for parameter validation in getNumPathsToPrune method
+TEST(RibRouteWeightNormalizerTest, verifyParameterValidation) {
+  RibRouteWeightNormalizerTest normalizer(6, 6);
+
+  // Test invalid dstRack
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, 0, 1), FbossError); // dstRack == 0
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, 7, 1), FbossError); // dstRack > numRacks
+
+  // Test invalid srcRack
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, 1, 0), FbossError); // srcRack == 0
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, 1, 7), FbossError); // srcRack > numRacks
+
+  // Test invalid numFailures
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(-1, 1, 1), FbossError); // negative failures
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(1000, 1, 1),
+      FbossError); // too large failures
+
+  // Valid parameter tests - these should not throw
+
+  // Constructor valid parameters
+  EXPECT_NO_THROW(
+      RibRouteWeightNormalizerTest(1, 1, 1, 0, 1)); // minimum values
+  EXPECT_NO_THROW(RibRouteWeightNormalizerTest(6, 6, 1, 0, 1)); // min rack ID
+  EXPECT_NO_THROW(RibRouteWeightNormalizerTest(6, 6, 6, 0, 1)); // max rack ID
+  EXPECT_NO_THROW(
+      RibRouteWeightNormalizerTest(100, 50, 50, 10, 5)); // large values
+
+  // getNumPathsToPrune valid parameters
+  EXPECT_NO_THROW(
+      normalizer.getNumPathsToPrune(0, 1, 1)); // min rack IDs and zero failures
+  EXPECT_NO_THROW(
+      normalizer.getNumPathsToPrune(0, 6, 6)); // max rack IDs and zero failures
+  EXPECT_NO_THROW(
+      normalizer.getNumPathsToPrune(10, 3, 4)); // moderate failure count
+
+  // Test edge cases that should work
+  EXPECT_NO_THROW(
+      normalizer.getNumPathsToPrune(36, 1, 1)); // max valid failures (6*6)
+}
