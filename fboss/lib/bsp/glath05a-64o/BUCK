@@ -1,0 +1,19 @@
+# @autodeps
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "glath05a-64o_bsp",
+    srcs = [
+        "Glath05a-64oBspPlatformMapping.cpp",
+    ],
+    headers = [
+        "Glath05a-64oBspPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
+        "//fboss/lib/bsp:bsp_platform_mapping_lib",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
