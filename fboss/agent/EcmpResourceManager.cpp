@@ -243,7 +243,8 @@ EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
-    const StateDelta& delta) {
+    const StateDelta& delta,
+    bool rollingBack) {
   CHECK(!preUpdateState_.has_value());
   std::optional<InputOutputState> inOutState;
   StopWatch timeIt("EcmpResourceManager::consolidate", false /*json*/);
@@ -271,7 +272,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
       PreUpdateState(nextHopGroup2Id_, getBackupEcmpSwitchingMode());
 
   handleSwitchSettingsDelta(delta);
-  auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
+  auto switchingModeChangeResult =
+      handleFlowletSwitchConfigDelta(delta, rollingBack);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     if (switchingModeChangeResult.has_value()) {
       return std::move(switchingModeChangeResult->out);
@@ -283,7 +285,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
 
   auto [primaryEcmpGroupsCnt, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
-    inOutState = InputOutputState(primaryEcmpGroupsCnt, ecmpMemberCnt, delta);
+    inOutState = InputOutputState(
+        primaryEcmpGroupsCnt, ecmpMemberCnt, delta, rollingBack);
   } else {
     inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
     inOutState->ecmpMemberCnt = ecmpMemberCnt;
@@ -787,9 +790,11 @@ EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
     const StateDelta& _in,
+    bool _rollingBack,
     const PreUpdateState& _groupIdCache)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
       ecmpMemberCnt(_ecmpMemberCnt),
+      rollingBack(_rollingBack),
       groupIdCache(_groupIdCache) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
@@ -1179,7 +1184,8 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
    * except that we will now be able to reclaim some of the backup nhop groups.
    * */
   StateDelta delta(std::make_shared<SwitchState>(), curState);
-  InputOutputState inOutState(0, 0, delta, *preUpdateState_);
+  InputOutputState inOutState(
+      0, 0, delta, false /*rollingBack*/, *preUpdateState_);
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!getEcmpCompressionThresholdPct()) {
     // For getBackupEcmpSwitchingMode() reclaim is completed on
@@ -1911,7 +1917,9 @@ void EcmpResourceManager::updateFailed(
 }
 
 std::optional<EcmpResourceManager::InputOutputState>
-EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
+EcmpResourceManager::handleFlowletSwitchConfigDelta(
+    const StateDelta& delta,
+    bool rollingBack) {
   auto oldBackupEcmpMode = getBackupEcmpSwitchingMode();
   config_.handleFlowletSwitchConfigDelta(delta);
   if (!oldBackupEcmpMode.has_value()) {
@@ -1920,7 +1928,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
     return std::nullopt;
   }
   InputOutputState inOutState(
-      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta);
+      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta, rollingBack);
   CHECK_EQ(inOutState.out.size(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue
