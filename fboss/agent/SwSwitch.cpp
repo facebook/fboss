@@ -1392,16 +1392,16 @@ void SwSwitch::init(
   auto origInitialState = initialState;
   emptyState->publish();
   auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
 
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
   notifyStateModifierUpdateDone();
@@ -1476,22 +1476,21 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   auto origInitialState = initialState;
   auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   // Do not send cold boot state to hwswitch. This is to avoid
   // deleting any cold boot state entries that hwswitch has learned from sdk
   if (bootType_ == BootType::WARM_BOOT) {
     try {
-      getHwSwitchHandler()->stateChanged(
-          initialStateDelta, false, hwWriteBehavior);
+      getHwSwitchHandler()->stateChanged(deltas, false, hwWriteBehavior);
     } catch (const std::exception& ex) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }
