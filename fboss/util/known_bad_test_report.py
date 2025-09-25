@@ -13,6 +13,9 @@
 #        $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
 # To run script, send email and create task for fboss_agent_push oncall
 #        $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --send_email --create_task
+#
+# To run script to create monthly report of known bad tests
+#        $buck run fbcode//fboss/util:known_bad_test_report -- --get_monthly_stats
 
 
 # pyre-unsafe
@@ -471,6 +474,17 @@ def analyze_monthly_improvements(monthly_results: Dict[str, Dict[str, int]]) -> 
         )
 
 
+def get_monthly_stats(args) -> None:
+    """Get monthly stats for sai_agent_known_bad_test comparing today vs 1st of month."""
+    logger.info("Getting monthly stats for sai_agent_known_bad_test")
+
+    # Query job data for both time periods
+    monthly_results = query_monthly_job_data(args)
+
+    # Analyze and display percentage improvements
+    analyze_monthly_improvements(monthly_results)
+
+
 class ChronosJobExtractor:
     """Main class to extract data from Chronos jobs."""
 
@@ -714,6 +728,10 @@ def main() -> Optional[int]:
             logger.info(f"Task created successfully: T{task.task_number}")
         else:
             logger.info("No task created")
+
+    # Get monthly stats for sai_agent_known_bad_test comparing today vs 1st of month.
+    if args.get_monthly_stats:
+        get_monthly_stats(args)
 
     return 0
 
