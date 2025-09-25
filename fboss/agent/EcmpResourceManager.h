@@ -282,6 +282,30 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const std::shared_ptr<Route<AddrT>>& oldRoute,
       const std::shared_ptr<Route<AddrT>>& added,
       InputOutputState* inOutState);
+
+  template <typename AddrT>
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
+  routeAddedNoCompressionThreshold(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& added,
+      bool ecmpLimitReached,
+      InputOutputState* inOutState);
+
+  template <typename AddrT>
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool> routeAddedNoOverrideNhops(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& added,
+      bool ecmpLimitReached,
+      InputOutputState* inOutState);
+
+  template <typename AddrT>
+  std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
+  routeAddedWithOverrideNhops(
+      RouterID rid,
+      const std::shared_ptr<Route<AddrT>>& added,
+      bool ecmpLimitReached,
+      InputOutputState* inOutState);
+
   template <typename AddrT>
   void routeDeleted(
       RouterID rid,
