@@ -246,7 +246,9 @@ class FsdbPubSubTest : public ::testing::Test {
               std::move(req)));
     }
   }
-  auto subscribeExtended(const OperSubRequestExtended& reqIn) {
+
+  template <typename SubRequestT>
+  auto subscribeExtended(const SubRequestT& reqIn) {
     if constexpr (std::is_same_v<TestParam, DeltaPubSubForState>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->getClient()
@@ -259,11 +261,20 @@ class FsdbPubSubTest : public ::testing::Test {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->getClient()
               ->co_subscribeOperStatsDeltaExtended(reqIn));
-
     } else if constexpr (std::is_same_v<TestParam, StatePubSubForStats>) {
       return folly::coro::blockingWait(
           this->fsdbTestServer_->getClient()->co_subscribeOperStatsPathExtended(
               reqIn));
+    } else if constexpr (std::is_same_v<TestParam, PatchPubSubForState>) {
+      auto req = std::make_unique<SubRequestT>(reqIn);
+      return folly::coro::blockingWait(
+          this->fsdbTestServer_->serviceHandler().co_subscribeState(
+              std::move(req)));
+    } else if constexpr (std::is_same_v<TestParam, PatchPubSubForStats>) {
+      auto req = std::make_unique<SubRequestT>(reqIn);
+      return folly::coro::blockingWait(
+          this->fsdbTestServer_->serviceHandler().co_subscribeStats(
+              std::move(req)));
     }
   }
 
@@ -295,6 +306,29 @@ class FsdbPubSubTest : public ::testing::Test {
       OperSubRequest req;
       req.subscriberId() = std::move(id);
       req.path()->raw() = std::move(path);
+      return req;
+    }
+  }
+
+  auto makeExtendedSubRequest(
+      std::string id,
+      const std::vector<ExtendedOperPath>& paths) {
+    if constexpr (std::is_same_v<PubUnitT, Patch>) {
+      SubRequest req;
+      req.clientId()->client() = FsdbClient::ADHOC;
+      req.clientId()->instanceId() = std::move(id);
+      req.extPaths() = {};
+      int idx = 0;
+      std::map<SubscriptionKey, ExtendedOperPath> subPaths;
+      for (auto& path : paths) {
+        req.extPaths()[idx] = path;
+        idx++;
+      }
+      return req;
+    } else {
+      OperSubRequestExtended req;
+      req.subscriberId() = std::move(id);
+      req.paths() = paths;
       return req;
     }
   }
@@ -747,9 +781,7 @@ TYPED_TEST(FsdbPubSubTest, verifyExtendedSubRestrictionNotEnforced) {
   FLAGS_enforceSubscriberConfig = false;
   std::vector<ExtendedOperPath> paths;
   paths.emplace_back(ext_path_builder::raw("agent").get());
-  auto req = OperSubRequestExtended();
-  req.paths() = paths;
-  req.subscriberId() = "TestSub:ExtSub_disallowed";
+  auto req = this->makeExtendedSubRequest("TestSub:ExtSub_disallowed", paths);
   EXPECT_NO_THROW(this->subscribeExtended(req));
 }
 
@@ -758,9 +790,7 @@ TYPED_TEST(FsdbPubSubTest, verifyExtendedSubAllowed) {
   FLAGS_enforceSubscriberConfig = true;
   std::vector<ExtendedOperPath> paths;
   paths.emplace_back(ext_path_builder::raw("agent").get());
-  auto req = OperSubRequestExtended();
-  req.paths() = paths;
-  req.subscriberId() = "TestSub:ExtSub_allowed";
+  auto req = this->makeExtendedSubRequest("TestSub:ExtSub_allowed", paths);
   EXPECT_NO_THROW(this->subscribeExtended(req));
 }
 
@@ -773,9 +803,7 @@ TYPED_TEST(FsdbPubSubTest, verifyWildcardSubDenied) {
   std::vector<ExtendedOperPath> paths;
   paths.emplace_back(
       ext_path_builder::raw("agent").raw("switchState").regex("port.*").get());
-  auto req = OperSubRequestExtended();
-  req.paths() = paths;
-  req.subscriberId() = "TestSub:ExtSub_allowed";
+  auto req = this->makeExtendedSubRequest("TestSub:ExtSub_allowed", paths);
   EXPECT_THROW(this->subscribeExtended(req), FsdbException);
 }
 
@@ -787,9 +815,7 @@ TYPED_TEST(FsdbPubSubTest, verifyExtendedSubRestricted) {
   FLAGS_enforceSubscriberConfig = true;
   std::vector<ExtendedOperPath> paths;
   paths.emplace_back(ext_path_builder::raw("agent").get());
-  auto req = OperSubRequestExtended();
-  req.paths() = paths;
-  req.subscriberId() = "TestSub:ExtSub_disallowed";
+  auto req = this->makeExtendedSubRequest("TestSub:ExtSub_disallowed", paths);
   EXPECT_THROW(this->subscribeExtended(req), FsdbException);
 }
 
