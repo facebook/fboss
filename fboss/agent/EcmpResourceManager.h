@@ -437,4 +437,6 @@ std::ostream& operator<<(
 std::ostream& operator<<(
     std::ostream& os,
     NextHopGroupInfo::NextHopGroupState state);
+
+std::ostream& operator<<(std::ostream& os, const NextHopGroupInfo& grpInfo);
 } // namespace facebook::fboss

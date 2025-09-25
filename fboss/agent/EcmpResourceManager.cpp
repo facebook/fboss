@@ -2028,6 +2028,16 @@ std::ostream& operator<<(
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os, const NextHopGroupInfo& grpInfo) {
+  os << "Group ID: " << grpInfo.getID() << " state: " << grpInfo.getState()
+     << " override switching mode set: " << grpInfo.isBackupEcmpGroupType()
+     << " override nhops points to merge grp: "
+     << (grpInfo.getMergedGroupInfoItr()
+             ? toStr((*grpInfo.getMergedGroupInfoItr())->first)
+             : "none");
+  return os;
+}
+
 void NextHopGroupInfo::routeUsageCountChanged(
     int prevRouteUsageCount,
     int curRouteUsageCount) {
