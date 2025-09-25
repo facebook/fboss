@@ -349,6 +349,40 @@ TEST(ConfigValidatorTest, XcvrCtrlConfig) {
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
+TEST(ConfigValidatorTest, PciDeviceConfigWithLedCtrlBlockConfigs) {
+  auto pciDevConfig = getValidPciDeviceConfig();
+
+  // Test case: Invalid LedCtrlBlockConfig in PciDeviceConfig
+  LedCtrlBlockConfig invalidLedConfig;
+  invalidLedConfig.pmUnitScopedNamePrefix() = ""; // This will make it invalid
+  invalidLedConfig.deviceName() = "port_led";
+  invalidLedConfig.csrOffsetCalc() = "0x1000";
+  invalidLedConfig.numPorts() = 1;
+  invalidLedConfig.ledPerPort() = 1;
+  invalidLedConfig.startPort() = 1;
+  pciDevConfig.ledCtrlBlockConfigs() = {invalidLedConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+
+  // Test case: Invalid port ranges in LedCtrlBlockConfigs
+  LedCtrlBlockConfig config1, config2;
+  config1.pmUnitScopedNamePrefix() = "MCB_LED";
+  config1.deviceName() = "port_led";
+  config1.csrOffsetCalc() = "0x1000";
+  config1.numPorts() = 8;
+  config1.ledPerPort() = 2;
+  config1.startPort() = 1;
+
+  config2.pmUnitScopedNamePrefix() = "MCB_LED";
+  config2.deviceName() = "port_led";
+  config2.csrOffsetCalc() = "0x1000";
+  config2.numPorts() = 8;
+  config2.ledPerPort() = 2;
+  config2.startPort() = 5; // This creates an overlap with config1 (1-8)
+
+  pciDevConfig.ledCtrlBlockConfigs() = {config1, config2};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
 TEST(ConfigValidator, InfoRomConfig) {
   auto pciDevConfig = getValidPciDeviceConfig();
   auto fpgaIpBlockConfig = FpgaIpBlockConfig{};
@@ -613,6 +647,12 @@ TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
   config.deviceName() = "port_led";
 
+  // Test case: Empty csrOffsetCalc
+  config.csrOffsetCalc() = "";
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.csrOffsetCalc() =
+      "0x1000 + ({portNum} - {startPort})*0x100 + ({ledNum}-1)*0x10";
+
   // Test case: Zero numPorts
   config.numPorts() = 0;
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
@@ -630,6 +670,11 @@ TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
 
   // Test case: Negative ledPerPort
   config.ledPerPort() = -1;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.ledPerPort() = 2;
+
+  // Test case: ledPerPort > 4
+  config.ledPerPort() = 5;
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
   config.ledPerPort() = 2;
 
@@ -670,6 +715,13 @@ TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
   config.startPort() = 1;
   validator.numXcvrs_ = 31;
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: startPort + numPorts - 1 > numXcvrs (different scenario)
+  config.startPort() = 2; // 2 + 32 - 1 = 33 > 32
+  config.numPorts() = 32;
+  validator.numXcvrs_ = 32;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.startPort() = 1;
 }
 
 TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
