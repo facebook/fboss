@@ -18,6 +18,7 @@
 #include <sstream>
 #include <string>
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -1090,6 +1091,9 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
         EXPECT_EQ(statsValue, 0);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        // Flush thread-local stats to make them immediately available
+        ThriftHandler handler(getSw());
+        handler.flushCountersNow();
         // Access thread local status from appropriate thread.
         int64_t statsValue = 0;
         tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
@@ -1102,11 +1106,19 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       // Set probeDone_ to false before calling probe()
       tunMgr_->probeDone_ = false;
 
+      // Temporarily unregister TunManager from state observation to eliminate
+      // interfaces being created.
+      if (tunMgr_->observingState_) {
+        getSw()->unregisterStateObserver(tunMgr_);
+      }
+
       XLOG(INFO) << "Starting probe and cleanup of kernel data";
-      tunMgr_->probe();
-      // Force cleanup by calling deleteAllProbedData directly to ensure it
-      // happens regardless of interface mapping comparison
-      tunMgr_->deleteAllProbedData();
+      tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+        tunMgr_->probe();
+        // Force cleanup by calling deleteAllProbedData directly to ensure it
+        // happens regardless of interface mapping comparison
+        tunMgr_->deleteAllProbedData();
+      });
 
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
@@ -1123,6 +1135,11 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
         checkKernelIpEntriesRemoved(intfID, ipv6Addr.str(), false);
       }
+
+      // Re-register TunManager for state observation after test verification
+      if (tunMgr_->observingState_) {
+        getSw()->registerStateObserver(tunMgr_, "TunManager");
+      }
     } else {
       XLOG(INFO) << "Socket does not exist";
     }
@@ -1135,7 +1152,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
     tunMgr_->probeDone_ = false;
 
     XLOG(INFO) << "Recreate kernel data";
-    tunMgr_->probe();
+    tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+        [&]() { tunMgr_->probe(); });
 
     auto state = getAgentEnsemble()->getSw()->getState();
     tunMgr_->evb_->runInFbossEventBaseThread(
@@ -1233,6 +1251,9 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
         EXPECT_EQ(statsValue, 0);
       } else {
         EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        // Flush thread-local stats to make them immediately available
+        ThriftHandler handler(getSw());
+        handler.flushCountersNow();
         int64_t statsValue = 0;
         // Access thread local status from appropriate thread.
         tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
@@ -1241,18 +1262,25 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
         EXPECT_EQ(statsValue, 1);
       }
       EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+      // Unregister TunManager from state observation to eliminate interfaces
+      // from being created.
+      if (tunMgr_->observingState_) {
+        getSw()->unregisterStateObserver(tunMgr_);
+      }
 
       // Set probeDone_ to false before calling probe()
       tunMgr_->probeDone_ = false;
 
       XLOG(INFO) << "Starting probe and cleanup of kernel data";
-      tunMgr_->probe();
+      tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+          [&]() { tunMgr_->probe(); });
       printProbedInterfaceDetails();
       printKernelInformation();
 
       // Force cleanup by calling deleteAllProbedData directly to ensure it
       // happens regardless of interface mapping comparison
-      tunMgr_->deleteAllProbedData();
+      tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+          [&]() { tunMgr_->deleteAllProbedData(); });
 
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
@@ -1269,6 +1297,11 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
         checkKernelIpEntriesRemovedStrict(intfID, ipv6Addr.str(), false);
       }
+
+      // Re-register TunManager for cleanup
+      if (tunMgr_->observingState_) {
+        getSw()->registerStateObserver(tunMgr_, "TunManager");
+      }
     } else {
       XLOG(INFO) << "Socket does not exist";
     }
@@ -1281,7 +1314,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
     tunMgr_->probeDone_ = false;
 
     XLOG(INFO) << "Recreate kernel data";
-    tunMgr_->probe();
+    tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+        [&]() { tunMgr_->probe(); });
 
     auto state = getAgentEnsemble()->getSw()->getState();
     tunMgr_->evb_->runInFbossEventBaseThread(
