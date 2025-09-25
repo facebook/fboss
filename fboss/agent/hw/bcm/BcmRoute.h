@@ -71,6 +71,8 @@ class BcmRoute {
   // no copy or assign
   BcmRoute(const BcmRoute&) = delete;
   BcmRoute& operator=(const BcmRoute&) = delete;
+  BcmRoute(BcmRoute&&) = delete;
+  BcmRoute& operator=(BcmRoute&&) = delete;
   BcmSwitch* hw_;
   bcm_vrf_t vrf_;
   folly::IPAddress prefix_;
@@ -101,6 +103,8 @@ class BcmHostRoute : public BcmHostIf {
   // no copy or assignment
   BcmHostRoute(BcmHostRoute const&) = delete;
   BcmHostRoute& operator=(BcmHostRoute const&) = delete;
+  BcmHostRoute(BcmHostRoute&&) = delete;
+  BcmHostRoute& operator=(BcmHostRoute&&) = delete;
 };
 
 // inherit and implement program host related APIs from BcmHostTableIf,
