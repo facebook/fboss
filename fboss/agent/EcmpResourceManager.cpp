@@ -1990,6 +1990,19 @@ void EcmpResourceManager::handleSwitchSettingsDelta(const StateDelta& delta) {
   }
 }
 
+RouteNextHopSet EcmpResourceManager::getCommonNextHops(
+    const NextHopGroupIds& grpIds) const {
+  std::vector<const RouteNextHopSet*> unmergedNhopSets;
+  std::for_each(
+      grpIds.begin(), grpIds.end(), [&unmergedNhopSets, this](auto grpId) {
+        auto nhopsInfo = nextHopGroupIdToInfo_.ref(grpId);
+        CHECK(nhopsInfo);
+        unmergedNhopSets.emplace_back(&nhopsInfo->getNhops());
+      });
+
+  return computeCommonNextHops(unmergedNhopSets);
+}
+
 EcmpResourceManager::ConsolidationInfo
 EcmpResourceManager::computeConsolidationInfo(
     const NextHopGroupIds& grpIds) const {

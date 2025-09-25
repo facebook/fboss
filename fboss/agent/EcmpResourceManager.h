@@ -126,6 +126,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   /* Test helper API end */
 
  private:
+  RouteNextHopSet getCommonNextHops(const NextHopGroupIds& grpIds) const;
   struct PreUpdateState {
     std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
@@ -421,6 +422,14 @@ class NextHopGroupInfo {
 
   bool isUnitialized() const {
     return state_ == NextHopGroupState::UNINITIALIZED;
+  }
+  bool hasUnmergedNhops() const {
+    return state_ == NextHopGroupState::UNMERGED_NHOPS_ONLY ||
+        state_ == NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
+  }
+  bool hasMergedNhops() const {
+    return state_ == NextHopGroupState::MERGED_NHOPS_ONLY ||
+        state_ == NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
   }
   NextHopGroupId getID() const {
     return id_;
