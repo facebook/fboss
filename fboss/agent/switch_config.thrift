@@ -116,6 +116,7 @@ enum PortSpeed {
   TWOHUNDREDG = 200000, // 200G
   FOURHUNDREDG = 400000, // 400G
   EIGHTHUNDREDG = 800000, // 800G
+  THREEPOINTTWOT = 3200000, // 3.2T
 }
 
 // <speed>_<num_lanes>_<modulation>_<fec>

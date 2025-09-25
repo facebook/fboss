@@ -640,7 +640,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>
       linkTrainingEnable;
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING) &&
+      (swPort->getPortType() != cfg::PortType::HYPER_PORT)) {
     linkTrainingEnable = false;
   }
 
@@ -925,7 +926,8 @@ void SaiPortManager::programSerdes(
       !platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING) ||
       swPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
-      swPort->getPortType() == cfg::PortType::EVENTOR_PORT) {
+      swPort->getPortType() == cfg::PortType::EVENTOR_PORT ||
+      swPort->getPortType() == cfg::PortType::HYPER_PORT) {
     return;
   }
 

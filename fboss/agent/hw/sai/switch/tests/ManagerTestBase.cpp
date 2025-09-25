@@ -251,7 +251,8 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
       break;
     case cfg::PortSpeed::GIGE:
-      throw FbossError("profile gig ethernet is not available");
+    case cfg::PortSpeed::THREEPOINTTWOT:
+      throw FbossError("profile gig and 3.2T ethernet is not available");
       break;
     case cfg::PortSpeed::XG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL);
