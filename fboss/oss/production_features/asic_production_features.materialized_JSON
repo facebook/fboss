@@ -130,9 +130,6 @@
         76,
         77
     ],
-    "ramon": [
-        1
-    ],
     "ramon3": [
         1,
         7
@@ -599,9 +596,6 @@
         "GLOBAL_TC_RATE_LIMIT",
         "COPP_SHAPER",
         "COPP_SCHEDULER"
-    ],
-    "ramon": [
-        "FABRIC"
     ],
     "ramon3": [
         "FABRIC",
