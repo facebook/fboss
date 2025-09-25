@@ -873,7 +873,7 @@ class SaiTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
@@ -1021,7 +1021,7 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return "sai_link_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
@@ -1029,8 +1029,7 @@ class LinkTestRunner(TestRunner):
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
-        # N/A
-        return []
+        return ["--enable_sai_log", sai_logging]
 
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
@@ -1102,7 +1101,7 @@ class SaiAgentTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_agent_hw_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_agent_hw_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
@@ -1226,9 +1225,9 @@ if __name__ == "__main__":
         OPT_ARG_QSFP_CONFIG_FILE,
         type=str,
         help=(
-            "run tests with specified qsfp config e.g. "
+            "run tests with specified qsfp config with the absolute path e.g. "
             + OPT_ARG_QSFP_CONFIG_FILE
-            + "=./share/qsfp_test_configs/meru400bfu.materialized_JSON"
+            + "=/opt/fboss/share/qsfp_test_configs/meru400bfu.materialized_JSON"
         ),
     )
     ap.add_argument(
