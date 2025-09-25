@@ -594,7 +594,7 @@ RouteNextHopSet BaseEcmpResourceManagerTest::getNextHops(
 EcmpResourceManager::NextHopGroupIds
 BaseEcmpResourceManagerTest::getGroupsWithoutOverrides() const {
   EcmpResourceManager::NextHopGroupIds nonOverrideGids;
-  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGroupIdToPrefix();
+  auto grpId2Prefixes = sw_->getEcmpResourceManager()->getGidToPrefixes();
   for (const auto& [_, pfxs] : grpId2Prefixes) {
     auto grpInfo = sw_->getEcmpResourceManager()->getGroupInfo(
         pfxs.begin()->first, pfxs.begin()->second);

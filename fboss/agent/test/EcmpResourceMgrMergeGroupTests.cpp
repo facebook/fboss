@@ -165,8 +165,7 @@ TEST_F(EcmpResourceMgrMergeGroupTest, incReferenceToMergedGroup) {
   auto gid = *optimalMergeSet.begin();
   auto beforeConsolidationInfo =
       sw_->getEcmpResourceManager()->getMergeGroupConsolidationInfo(gid);
-  auto gidPfx =
-      *sw_->getEcmpResourceManager()->getGroupIdToPrefix()[gid].begin();
+  auto gidPfx = *sw_->getEcmpResourceManager()->getGidToPrefixes()[gid].begin();
   auto newPrefix = nextPrefix();
   deltas = addRoute(
       newPrefix,

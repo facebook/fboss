@@ -104,6 +104,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   NextHopGroupIds getMergedGids() const;
   std::vector<NextHopGroupIds> getMergedGroups() const;
   std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
+  NextHopGroupIdToPrefixes getGidToPrefixes() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
    * non test code.
@@ -113,7 +114,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   GroupIds2ConsolidationInfo getCandidateMergeConsolidationInfo(
       NextHopGroupId grpId) const;
   std::set<NextHopGroupId> getOptimalMergeGroupSet() const;
-  std::map<NextHopGroupId, std::set<Prefix>> getGroupIdToPrefix() const;
   const NextHopGroupInfo* getGroupInfo(
       RouterID rid,
       const folly::CIDRNetwork& nw) const;
@@ -268,7 +268,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       InputOutputState* inOutState);
   void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
 
-  NextHopGroupIdToPrefixes getGidToPrefixes() const;
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>
   std::shared_ptr<NextHopGroupInfo> updateForwardingInfoAndInsertDelta(

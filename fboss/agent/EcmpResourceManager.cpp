@@ -2072,20 +2072,6 @@ void EcmpResourceManager::addCandidateMerge(
   XLOG(DBG3) << " Added candidate merge group: " << candidateMerge;
 }
 
-std::map<
-    EcmpResourceManager::NextHopGroupId,
-    std::set<EcmpResourceManager::Prefix>>
-EcmpResourceManager::getGroupIdToPrefix() const {
-  std::map<NextHopGroupId, std::set<Prefix>> toRet;
-  std::for_each(
-      prefixToGroupInfo_.begin(),
-      prefixToGroupInfo_.end(),
-      [&toRet](const auto& prefixAndGrpInfo) {
-        toRet[prefixAndGrpInfo.second->getID()].insert(prefixAndGrpInfo.first);
-      });
-  return toRet;
-}
-
 NextHopGroupInfo::NextHopGroupInfo(
     NextHopGroupId id,
     NextHopGroupItr ngItr,
