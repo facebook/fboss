@@ -90,7 +90,10 @@
       BuildProbedIfIdToTableIdMapRoutesHavePriority);                          \
   FRIEND_TEST(                                                                 \
       TunManagerAddressRuleTest,                                               \
-      DeleteProbedAddressesAndRulesWithRemainingRules);
+      DeleteProbedAddressesAndRulesWithRemainingRules);                        \
+  FRIEND_TEST(                                                                 \
+      TunManagerAddressRuleTest,                                               \
+      DeleteProbedAddressesAndRulesRemainingRulesException);
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -1487,4 +1490,76 @@ TEST_F(
   EXPECT_EQ(0, tunMgr_->probedRules_.size());
 }
 
+/**
+ * @brief Test exception handling when deleting remaining probed rules
+ *
+ * This test verifies that exceptions thrown during the deletion of remaining
+ * probed rules are now propagated (no try-catch block), stopping processing
+ * when an exception occurs.
+ */
+TEST_F(
+    TunManagerAddressRuleTest,
+    DeleteProbedAddressesAndRulesRemainingRulesException) {
+  // Add a mock interface with one address
+  std::vector<std::pair<folly::IPAddress, uint8_t>> addresses = {
+      {folly::IPAddress("10.1.1.1"), 24}};
+
+  addMockInterface(InterfaceID(2000), 42, "fboss2000", addresses);
+
+  // Add probed rules: one that matches interface, two that don't
+  tunMgr_->probedRules_.clear();
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET, 100, "10.1.1.1/32"); // Matches interface address
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET, 101, "10.2.2.2/32"); // Will throw exception
+  tunMgr_->probedRules_.emplace_back(
+      AF_INET, 102, "10.3.3.3/32"); // Won't be processed due to exception
+
+  // Create ifIndexToTableId map
+  auto ifIndexToTableId = createIfIndexToTableIdMap({{42, 100}});
+
+  // Expect calls for interface address cleanup
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          100,
+          folly::IPAddress("10.1.1.1"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1);
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveTunAddress(
+          "fboss2000", 42, folly::IPAddress("10.1.1.1"), 24, false))
+      .Times(1);
+
+  // Expect call for first remaining rule - this will throw exception
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          101,
+          folly::IPAddress("10.2.2.2"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(1)
+      .WillOnce(::testing::Throw(std::runtime_error("Mock netlink error")));
+
+  // No call expected for second remaining rule since exception stops processing
+  EXPECT_CALL(
+      *tunMgr_,
+      addRemoveSourceRouteRule(
+          102,
+          folly::IPAddress("10.3.3.3"),
+          false,
+          ::testing::Eq(std::nullopt)))
+      .Times(0);
+
+  // Call deleteProbedAddressesAndRules - should throw exception
+  EXPECT_THROW(
+      tunMgr_->deleteProbedAddressesAndRules(ifIndexToTableId),
+      std::runtime_error);
+
+  // Verify probed rules are not cleared due to exception
+  EXPECT_EQ(3, tunMgr_->probedRules_.size());
+}
 } // namespace facebook::fboss
