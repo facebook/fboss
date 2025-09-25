@@ -403,11 +403,12 @@ class NextHopGroupInfo {
     return overrideNhops;
   }
 
- private:
   bool mergedAndUnmergedNhopsMatch() const {
     return mergedGroupsToInfoItr_ &&
         (*mergedGroupsToInfoItr_)->second.mergedNhops == getNhops();
   }
+
+ private:
   void routeUsageCountChanged(int prevRouteUsageCount, int curRouteUsageCount);
   void mergeInfoItrChanged();
   NextHopGroupId id_;

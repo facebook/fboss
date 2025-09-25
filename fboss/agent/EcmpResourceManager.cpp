@@ -1366,10 +1366,23 @@ void EcmpResourceManager::routeAddedOrUpdated(
 
 std::optional<EcmpResourceManager::GroupIds2ConsolidationInfoItr>
 EcmpResourceManager::getMergeGroupItr(const RouteNextHopSet& mergedNhops) {
-  for (auto mitr = mergedGroups_.begin(); mitr != mergedGroups_.end(); ++mitr) {
-    if (mitr->second.mergedNhops == mergedNhops) {
-      return mitr;
-    }
+  auto nitr = nextHopGroup2Id_.find(mergedNhops);
+  if (nitr == nextHopGroup2Id_.end()) {
+    return std::nullopt;
+  }
+  auto grpInfo = nextHopGroupIdToInfo_.ref(nitr->second);
+  auto grpState = grpInfo->getState();
+  if (grpState == NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY ||
+      grpState ==
+          NextHopGroupInfo::NextHopGroupState::UNMERGED_AND_MERGED_NHOPS) {
+    // The above 2 states represent the case where nhops pointed to by
+    // group's merge info itr match the indexed nhops (in nextHopGroup2Id_).
+    // If so we can return the mergeInfo itr.
+    // Its not sufficient to blindly return the mergeGroupInfoItr for group
+    // corresponding to these nhops. Since the merge iterator maybe pointing
+    // to a different set of merged nhops
+    DCHECK(grpInfo->mergedAndUnmergedNhopsMatch());
+    return grpInfo->getMergedGroupInfoItr();
   }
   return std::nullopt;
 }
