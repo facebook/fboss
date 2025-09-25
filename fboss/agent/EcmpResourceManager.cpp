@@ -1433,20 +1433,12 @@ void EcmpResourceManager::routeAddedOrUpdated(
        */
       updateConsolidationPenalty(*pitr->second);
     }
-    if (grpInserted) {
-      if (auto nmitr = pitr->second->getMergedGroupInfoItr()) {
-        /*
-         * New merged group added, compute candidate merges
-         * for it
-         */
-        computeCandidateMergesForNewMergedGroup((*nmitr)->first);
-      } else {
-        /*
-         * New unmerged group added, compute candidate merges
-         * for it
-         */
-        computeCandidateMergesForNewUnmergedGroups({grpInfo->getID()});
-      }
+    if (grpInserted && !pitr->second->getMergedGroupInfoItr()) {
+      /*
+       * New unmerged group added, compute candidate merges
+       * for it
+       */
+      computeCandidateMergesForNewUnmergedGroups({grpInfo->getID()});
     }
   }
 }
@@ -1548,6 +1540,7 @@ EcmpResourceManager::fixAndGetMergeGroupItr(
             mitr->second.groupId2Penalty.insert({newMemberGroupId, penalty});
         CHECK(insertedPenalty);
       });
+  computeCandidateMergesForNewMergedGroup(mitr->first);
   return mitr;
 }
 
