@@ -13,6 +13,7 @@
 #include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/I2cAddr.h"
+#include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_validators_constants.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -210,6 +211,75 @@ bool ConfigValidator::isValidFpgaIpBlockConfig(
   return true;
 }
 
+bool ConfigValidator::isValidLedCtrlBlockConfig(
+    const LedCtrlBlockConfig& ledCtrlBlockConfig) {
+  if (ledCtrlBlockConfig.pmUnitScopedNamePrefix()->empty()) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must be a non-empty string";
+    return false;
+  }
+  if (ledCtrlBlockConfig.pmUnitScopedNamePrefix()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must not end with an underscore";
+    return false;
+  }
+  if (ledCtrlBlockConfig.deviceName()->empty()) {
+    XLOG(ERR) << "deviceName must be a non-empty string";
+    return false;
+  }
+  if (ledCtrlBlockConfig.csrOffsetCalc()->empty()) {
+    XLOG(ERR) << "csrOffsetCalc must be a non-empty string";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.numPorts() <= 0) {
+    XLOG(ERR) << "numPorts must be a value greater than 0";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.ledPerPort() <= 0) {
+    XLOG(ERR) << "ledPerPort must be a value greater than 0";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.ledPerPort() > 4) {
+    XLOG(ERR) << "ledPerPort must be a value less than or equal to 4";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.startPort() <= 0) {
+    XLOG(ERR) << "startPort must be a value greater than 0";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.numPorts() > numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "numPorts must be less than or equal to {}", numXcvrs_);
+    return false;
+  }
+  if (*ledCtrlBlockConfig.startPort() > numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "startPort must be less than or equal to {}", numXcvrs_);
+    return false;
+  }
+  if (*ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts() - 1 >
+      numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "startPort + numPorts - 1 must be must be less than or equal to {}",
+        numXcvrs_);
+    return false;
+  }
+
+  for (int16_t port = *ledCtrlBlockConfig.startPort();
+       port < *ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts();
+       port++) {
+    for (int16_t led = 1; led <= *ledCtrlBlockConfig.ledPerPort(); led++) {
+      if (!isValidCsrOffsetCalc(
+              *ledCtrlBlockConfig.csrOffsetCalc(),
+              port,
+              led,
+              *ledCtrlBlockConfig.startPort())) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 bool ConfigValidator::isValidPciDeviceConfig(
     const PciDeviceConfig& pciDeviceConfig) {
   if (pciDeviceConfig.pmUnitScopedName()->empty()) {
@@ -301,6 +371,16 @@ bool ConfigValidator::isValidPciDeviceConfig(
     }
   }
 
+  for (const auto& config : *pciDeviceConfig.ledCtrlBlockConfigs()) {
+    if (!isValidLedCtrlBlockConfig(config)) {
+      return false;
+    }
+  }
+
+  if (!isValidPortRanges(*pciDeviceConfig.ledCtrlBlockConfigs())) {
+    return false;
+  }
+
   return true;
 }
 
@@ -385,7 +465,8 @@ bool ConfigValidator::isValidSlotPath(
       return false;
     }
     // Find next SlotType from the found PmUnits' outgoingSlotConfig of
-    // nextSlotName to verify that PmUnit sits between CurrSlot and NextSlot.
+    // nextSlotName to verify that PmUnit sits between CurrSlot and
+    // NextSlot.
     auto nextSlotType =
         pmUnitConfigs | ranges::views::filter([&](const auto& pmUnitConfig) {
           return pmUnitConfig.outgoingSlotConfigs()->contains(nextSlotName);
@@ -469,6 +550,9 @@ bool ConfigValidator::isValidDeviceName(
 
 bool ConfigValidator::isValid(const PlatformConfig& config) {
   XLOG(INFO) << "Validating platform_manager config";
+
+  // Store numXcvrs for use by other validation methods
+  numXcvrs_ = *config.numXcvrs();
 
   // Verify presence of platform name
   if (config.platformName()->empty()) {
@@ -831,6 +915,93 @@ bool ConfigValidator::isValidXcvrSymlinks(
       return false;
     }
   }
+  return true;
+}
+
+bool ConfigValidator::isValidCsrOffsetCalc(
+    const std::string& csrOffsetCalc,
+    const int16_t& portNum,
+    const int16_t& ledNum,
+    const int16_t& startPort) {
+  // Test the expression with sample values to see if it's computable
+  try {
+    // Use Utils to test if the expression can be compiled and evaluated
+    auto result =
+        Utils().computeHexExpression(csrOffsetCalc, portNum, ledNum, startPort);
+
+    // Validate the resulting hex value
+    if (result.empty()) {
+      XLOG(ERR) << "csrOffsetCalc expression resulted in empty value";
+      return false;
+    }
+    if (!result.starts_with("0x")) {
+      XLOG(ERR)
+          << "csrOffsetCalc expression result is not in valid hex format: "
+          << result;
+      return false;
+    }
+    return true;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "csrOffsetCalc expression validation failed: " << e.what();
+    return false;
+  }
+}
+
+bool ConfigValidator::isValidPortRanges(
+    const std::vector<LedCtrlBlockConfig>& ledCtrlBlockConfigs) {
+  if (ledCtrlBlockConfigs.empty()) {
+    return true; // Empty list is valid
+  }
+
+  // Create a vector of port ranges (startPort, endPort) for sorting
+  std::vector<std::pair<int, int>> portRanges;
+  for (const auto& config : ledCtrlBlockConfigs) {
+    int startPort = *config.startPort();
+    int endPort = startPort + *config.numPorts() - 1;
+    portRanges.emplace_back(startPort, endPort);
+  }
+
+  if (portRanges.begin()->first != 1) {
+    XLOG(ERR) << fmt::format(
+        "Port ranges must start at 1, but the first port starts at {}",
+        portRanges.begin()->first);
+    return false;
+  }
+
+  // Check for sorting, overlaps and gaps
+  for (size_t i = 1; i < portRanges.size(); i++) {
+    int prevStart = portRanges[i - 1].first;
+    int prevEnd = portRanges[i - 1].second;
+    int currStart = portRanges[i].first;
+
+    // Check if port ranges are sorted by start port in ascending order
+    if (currStart < prevStart) {
+      XLOG(ERR) << fmt::format(
+          "Port ranges are not sorted by start port: found port {} after port {}",
+          currStart,
+          prevStart);
+      return false;
+    }
+
+    // Check for overlap
+    if (currStart <= prevEnd) {
+      XLOG(ERR) << fmt::format(
+          "Overlapping port ranges detected: previous range ends at port {}, current range starts at port {}",
+          prevEnd,
+          currStart);
+      return false;
+    }
+
+    // Check for gap (missing ports)
+    if (currStart != prevEnd + 1) {
+      XLOG(ERR) << fmt::format(
+          "Missing ports detected between LedCtrlBlockConfigs: gap between ports {} and {}",
+          prevEnd,
+          currStart);
+      return false;
+    }
+  }
+
   return true;
 }
 

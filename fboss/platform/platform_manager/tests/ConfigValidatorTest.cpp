@@ -582,3 +582,278 @@ TEST(ConfigValidatorTest, XcvrSymlinks) {
       "/run/devmap/xcvrs/xcvr_io_2"};
   EXPECT_FALSE(validator.isValidXcvrSymlinks(numXcvrs, symlinks));
 }
+
+TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
+  ConfigValidator validator;
+  LedCtrlBlockConfig config;
+
+  // Test case: Valid config
+  config.pmUnitScopedNamePrefix() = "MCB_LED";
+  config.deviceName() = "port_led";
+  config.csrOffsetCalc() =
+      "0x1000 + ({portNum} - {startPort})*0x100 + ({ledNum}-1)*0x10";
+  config.numPorts() = 32;
+  config.ledPerPort() = 2;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 32;
+  EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: Empty pmUnitScopedNamePrefix
+  config.pmUnitScopedNamePrefix() = "";
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "MCB_LED";
+
+  // Test case: pmUnitScopedNamePrefix ends with _
+  config.pmUnitScopedNamePrefix() = "MCB_LED_";
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "MCB_LED";
+
+  // Test case: Empty deviceName
+  config.deviceName() = "";
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.deviceName() = "port_led";
+
+  // Test case: Zero numPorts
+  config.numPorts() = 0;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.numPorts() = 32;
+
+  // Test case: Negative numPorts
+  config.numPorts() = -1;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.numPorts() = 32;
+
+  // Test case: Zero ledPerPort
+  config.ledPerPort() = 0;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.ledPerPort() = 2;
+
+  // Test case: Negative ledPerPort
+  config.ledPerPort() = -1;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.ledPerPort() = 2;
+
+  // Test case: Negative startPort
+  config.startPort() = -1;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.startPort() = 0;
+
+  // Test case: Zero startPort
+  config.startPort() = 0;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.startPort() = 1;
+
+  // Test case: Large valid values
+  config.numPorts() = 128;
+  config.ledPerPort() = 2;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 128;
+  EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: More ports than numXcvrs
+  config.numPorts() = 128;
+  config.ledPerPort() = 4;
+  config.startPort() = 10;
+  validator.numXcvrs_ = 64;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: startNum greater than numXcvrs
+  config.numPorts() = 32;
+  config.ledPerPort() = 2;
+  config.startPort() = 33;
+  validator.numXcvrs_ = 32;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: startNum + numPorts - 1 greater than numXcvrs
+  config.numPorts() = 32;
+  config.ledPerPort() = 2;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 31;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+}
+
+TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
+  ConfigValidator validator;
+  std::vector<LedCtrlBlockConfig> configs;
+
+  // Helper to create a LedCtrlBlockConfig with specific port range
+  auto createLedCtrlBlockConfig = [](int startPort, int numPorts) {
+    LedCtrlBlockConfig config;
+    config.pmUnitScopedNamePrefix() = "MCB_LED";
+    config.deviceName() = "port_led";
+    config.csrOffsetCalc() =
+        "0x1000 + ({portNum} - {startPort})*0x100 + ({ledNum}-1)*0x10";
+    config.startPort() = startPort;
+    config.numPorts() = numPorts;
+    config.ledPerPort() = 2;
+    return config;
+  };
+
+  // Test case: Empty config list (should be valid)
+  EXPECT_TRUE(validator.isValidPortRanges({}));
+
+  // Test case: Single config (should be valid)
+  configs = {createLedCtrlBlockConfig(1, 8)};
+  EXPECT_TRUE(validator.isValidPortRanges(configs));
+
+  // Test case: Valid non-overlapping sequential ranges
+  configs = {
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(9, 16), // ports 9-24
+      createLedCtrlBlockConfig(25, 8) // ports 25-32
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(configs));
+
+  // Test case: Non-vaild non-overlapping sequential ranges (unsorted input)
+  configs = {
+      createLedCtrlBlockConfig(25, 8), // ports 25-32
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(9, 16) // ports 9-24
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Overlapping ranges - same start port
+  configs = {
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(1, 4) // ports 1-4 (overlaps)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Overlapping ranges - partial overlap
+  configs = {
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(5, 8) // ports 5-12 (overlaps 5-8)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Overlapping ranges - second range completely inside first
+  configs = {
+      createLedCtrlBlockConfig(1, 16), // ports 1-16
+      createLedCtrlBlockConfig(5, 4) // ports 5-8 (inside first range)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Overlapping ranges - first range completely inside second
+  configs = {
+      createLedCtrlBlockConfig(5, 4), // ports 5-8
+      createLedCtrlBlockConfig(1, 16) // ports 1-16 (contains first range)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Adjacent ranges touching exactly (should be valid)
+  configs = {
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(9, 8) // ports 9-16 (touches exactly)
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(configs));
+
+  // Test case: Overlapping by one port
+  configs = {
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(8, 8) // ports 8-15 (overlaps at port 8)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Gap between ranges
+  configs = {
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(11, 8) // ports 11-18 (gap: missing ports 9-10)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Multiple overlapping ranges
+  configs = {
+      createLedCtrlBlockConfig(1, 8), // ports 1-8
+      createLedCtrlBlockConfig(5, 8), // ports 5-12 (overlaps with first)
+      createLedCtrlBlockConfig(10, 8) // ports 10-17 (overlaps with second)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Complex valid scenario with multiple ranges
+  configs = {
+      createLedCtrlBlockConfig(1, 16), // ports 1-16
+      createLedCtrlBlockConfig(17, 16), // ports 17-32
+      createLedCtrlBlockConfig(33, 16), // ports 33-48
+      createLedCtrlBlockConfig(49, 16) // ports 49-64
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(configs));
+
+  // Test case: Complex invalid scenario with one overlap in the middle
+  configs = {
+      createLedCtrlBlockConfig(1, 16), // ports 1-16
+      createLedCtrlBlockConfig(17, 16), // ports 17-32
+      createLedCtrlBlockConfig(
+          30, 16), // ports 30-45 (overlaps with previous: 30-32)
+      createLedCtrlBlockConfig(46, 16) // ports 46-61
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Single port ranges (valid)
+  configs = {
+      createLedCtrlBlockConfig(1, 1), // port 1
+      createLedCtrlBlockConfig(2, 1), // port 2
+      createLedCtrlBlockConfig(3, 1) // port 3
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(configs));
+
+  // Test case: Single port ranges with overlap
+  configs = {
+      createLedCtrlBlockConfig(1, 1), // port 1
+      createLedCtrlBlockConfig(1, 1) // port 1 (duplicate)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+
+  // Test case: Single port ranges with gap
+  configs = {
+      createLedCtrlBlockConfig(1, 1), // port 1
+      createLedCtrlBlockConfig(3, 1) // port 3 (missing port 2)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(configs));
+}
+
+TEST(ConfigValidatorTest, CsrOffsetCalc) {
+  ConfigValidator validator;
+
+  // Test case: Valid  LED control expressions
+  EXPECT_TRUE(validator.isValidCsrOffsetCalc(
+      "0x40410 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4", 2, 1, 1));
+  EXPECT_TRUE(validator.isValidCsrOffsetCalc(
+      "0x48410 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+      45,
+      2,
+      33));
+  EXPECT_TRUE(validator.isValidCsrOffsetCalc(
+      "0x65c0 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x10",
+      39,
+      3,
+      39));
+
+  // Test case: Valid expressions with zero values
+  EXPECT_TRUE(validator.isValidCsrOffsetCalc(
+      "{portNum} + {ledNum} + {startPort}", 0, 0, 0));
+
+  // Test case: Valid expression
+  EXPECT_TRUE(validator.isValidCsrOffsetCalc("12345", 1, 1, 1));
+
+  // Test case: Invalid expressions - syntax errors
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("invalid_expression", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("0x1000 +", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("0x1000 + * 0x100", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("0x + 1000", 1, 1, 1));
+
+  // Test case: Invalid expressions - unbalanced parentheses
+  EXPECT_FALSE(
+      validator.isValidCsrOffsetCalc("({portNum} + {ledNum}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidCsrOffsetCalc("{portNum} + {ledNum})", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("((({portNum}))", 1, 1, 1));
+
+  // Test case: Invalid expressions - unknown variables
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("{unknownVar}", 1, 1, 1));
+  EXPECT_FALSE(
+      validator.isValidCsrOffsetCalc("0x1000 + {portNumber}", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
+  EXPECT_FALSE(validator.isValidCsrOffsetCalc("{ledNum} * 5 abcd 10", 1, 1, 1));
+}
