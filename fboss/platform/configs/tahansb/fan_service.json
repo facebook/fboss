@@ -2,10 +2,10 @@
   "pwmBoostOnNumDeadFan": 3,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 0,
-  "pwmBoostValue": 70,
-  "pwmTransitionValue": 45,
+  "pwmBoostValue": 100,
+  "pwmTransitionValue": 50,
   "pwmLowerThreshold": 25,
-  "pwmUpperThreshold": 70,
+  "pwmUpperThreshold": 100,
   "watchdog": {
     "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
     "value": 0
@@ -25,9 +25,9 @@
         "kp": 2,
         "ki": 0.6,
         "kd": 0,
-        "setPoint": 97.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
+        "setPoint": 95,
+        "posHysteresis": 2,
+        "negHysteresis": 0
       }
     },
     {
@@ -40,9 +40,9 @@
         "kp": 2,
         "ki": 0.6,
         "kd": 0,
-        "setPoint": 105.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
+        "setPoint": 102,
+        "posHysteresis": 3,
+        "negHysteresis": 3
       }
     },
     {
@@ -55,309 +55,9 @@
         "kp": 2,
         "ki": 0.6,
         "kd": 0,
-        "setPoint": 105.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU2978_XP0R8V_TH6_VDDC_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1342_XP0R8V_PT_VDDC_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1342_XP1R5V_TH6_RVDD_0_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1497_XP0R9V_TH6_TRVDD_0_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1497_XP0R72V_PB_TRVDD_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1502_XP0R75V_TH6_TRVDD_0_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1502_XP0R8V_PT_VDDC_2_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1745_XP0R8V_PT_VDDC_7_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1745_XP0R72V_PB_TRVDD_2_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1746_XP0R9V_TH6_TRVDD_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1746_XP0R72V_TH6_TRVDD_3_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1937_XP0R75V_TH6_TRVDD_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU1937_XP0R8V_PT_VDDC_5_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU2052_XP0R8V_PT_VDDC_6_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU2052_XP1R5V_TH6_RVDD_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU2056_XP0R8V_PT_VDDC_3_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU2056_XP0R8V_PT_VDDC_4_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU2203_XP0R8V_PT_VDDC_0_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "SMB_PU2203_XP0R72V_PB_TRVDD_0_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
-      }
-    },
-    {
-      "sensorName": "MCB_PU1497_XP3R3V_OSFP_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
-      "pidSetting": {
-        "kp": 2,
-        "ki": 0.6,
-        "kd": 0,
-        "setPoint": 116.0,
-        "posHysteresis": 3.0,
-        "negHysteresis": 3.0
+        "setPoint": 102,
+        "posHysteresis": 3,
+        "negHysteresis": 3
       }
     },
     {
@@ -459,7 +159,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     },
     {
       "fanName": "FAN_1_R",
@@ -472,7 +172,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     },
     {
       "fanName": "FAN_2_F",
@@ -485,7 +185,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     },
     {
       "fanName": "FAN_2_R",
@@ -498,7 +198,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     },
     {
       "fanName": "FAN_3_F",
@@ -511,7 +211,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     },
     {
       "fanName": "FAN_3_R",
@@ -524,7 +224,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     },
     {
       "fanName": "FAN_4_F",
@@ -537,7 +237,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     },
     {
       "fanName": "FAN_4_R",
@@ -550,7 +250,7 @@
       "fanMissingVal": 0,
       "fanGoodLedVal": 1,
       "fanFailLedVal": 2,
-      "rpmMin": 1500
+      "rpmMin": 3105
     }
   ],
   "zones": [
@@ -561,26 +261,6 @@
         "NETLAKE_U1_CPU_UNCORE_TEMP",
         "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
         "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
-        "SMB_PU2978_XP0R8V_TH6_VDDC_TEMP",
-        "SMB_PU1342_XP0R8V_PT_VDDC_1_TEMP",
-        "SMB_PU1342_XP1R5V_TH6_RVDD_0_TEMP",
-        "SMB_PU1497_XP0R9V_TH6_TRVDD_0_TEMP",
-        "SMB_PU1497_XP0R72V_PB_TRVDD_1_TEMP",
-        "SMB_PU1502_XP0R75V_TH6_TRVDD_0_TEMP",
-        "SMB_PU1502_XP0R8V_PT_VDDC_2_TEMP",
-        "SMB_PU1745_XP0R8V_PT_VDDC_7_TEMP",
-        "SMB_PU1745_XP0R72V_PB_TRVDD_2_TEMP",
-        "SMB_PU1746_XP0R9V_TH6_TRVDD_1_TEMP",
-        "SMB_PU1746_XP0R72V_TH6_TRVDD_3_TEMP",
-        "SMB_PU1937_XP0R75V_TH6_TRVDD_1_TEMP",
-        "SMB_PU1937_XP0R8V_PT_VDDC_5_TEMP",
-        "SMB_PU2052_XP0R8V_PT_VDDC_6_TEMP",
-        "SMB_PU2052_XP1R5V_TH6_RVDD_1_TEMP",
-        "SMB_PU2056_XP0R8V_PT_VDDC_3_TEMP",
-        "SMB_PU2056_XP0R8V_PT_VDDC_4_TEMP",
-        "SMB_PU2203_XP0R8V_PT_VDDC_0_TEMP",
-        "SMB_PU2203_XP0R72V_PB_TRVDD_0_TEMP",
-        "MCB_PU1497_XP3R3V_OSFP_TEMP",
         "MCB_U61_MCB_COME_INLET_TSENSOR",
         "MCB_U62_PB_INLET_TSENSOR"
       ],
