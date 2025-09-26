@@ -6,585 +6,67 @@
 # NOTE: All the benchmark executables need to link in ${SAI_IMPL_ARG}
 # using '--whole-archive' flag in order to ensure SAI_IMPL symbols are included
 
+function (BUILD_SAI_BENCHMARK NAME SAI_IMPL_NAME SAI_IMPL_ARG)
+  add_executable(sai_${NAME}-${SAI_IMPL_NAME} /dev/null)
+
+  target_link_libraries(sai_${NAME}-${SAI_IMPL_NAME}
+    -Wl,--whole-archive
+    mono_sai_agent_benchmarks_main
+    hw_${NAME}
+    route_scale_gen
+    setup_thrift_prod
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+  )
+  set_target_properties(sai_${NAME}-${SAI_IMPL_NAME}
+    PROPERTIES COMPILE_FLAGS
+    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+  )
+endfunction()
+
+set(SAI_BENCHMARKS "")
+list(APPEND SAI_BENCHMARKS fsw_scale_route_add_speed)
+list(APPEND SAI_BENCHMARKS fsw_scale_route_del_speed)
+list(APPEND SAI_BENCHMARKS th_alpm_scale_route_add_speed)
+list(APPEND SAI_BENCHMARKS th_alpm_scale_route_del_speed)
+list(APPEND SAI_BENCHMARKS hgrid_du_scale_route_add_speed)
+list(APPEND SAI_BENCHMARKS hgrid_du_scale_route_del_speed)
+list(APPEND SAI_BENCHMARKS hgrid_uu_scale_route_add_speed)
+list(APPEND SAI_BENCHMARKS hgrid_uu_scale_route_del_speed)
+list(APPEND SAI_BENCHMARKS anticipated_scale_route_add_speed)
+list(APPEND SAI_BENCHMARKS anticipated_scale_route_del_speed)
+list(APPEND SAI_BENCHMARKS stats_collection_speed)
+list(APPEND SAI_BENCHMARKS tx_slow_path_rate)
+list(APPEND SAI_BENCHMARKS ecmp_shrink_speed)
+list(APPEND SAI_BENCHMARKS ecmp_shrink_with_competing_route_updates_speed)
+list(APPEND SAI_BENCHMARKS rx_slow_path_rate)
+list(APPEND SAI_BENCHMARKS init_and_exit_40Gx10G)
+list(APPEND SAI_BENCHMARKS init_and_exit_100Gx10G)
+list(APPEND SAI_BENCHMARKS init_and_exit_100Gx25G)
+list(APPEND SAI_BENCHMARKS init_and_exit_100Gx50G)
+list(APPEND SAI_BENCHMARKS init_and_exit_100Gx100G)
+list(APPEND SAI_BENCHMARKS init_and_exit_400Gx400G)
+list(APPEND SAI_BENCHMARKS rib_resolution_speed)
+list(APPEND SAI_BENCHMARKS rib_sync_fib_speed)
+list(APPEND SAI_BENCHMARKS ucmp_scale_benchmark)
+if (SAI_BRCM_IMPL OR BUILD_SAI_FAKE)
+  list(APPEND SAI_BENCHMARKS init_and_exit_voq)
+  list(APPEND SAI_BENCHMARKS init_and_exit_fabric)
+  list(APPEND SAI_BENCHMARKS voq_scale_route_add_speed)
+  list(APPEND SAI_BENCHMARKS voq_scale_route_del_speed)
+  list(APPEND SAI_BENCHMARKS switch_reachability_change_speed)
+  list(APPEND SAI_BENCHMARKS voq_sys_port_programming)
+  list(APPEND SAI_BENCHMARKS voq_remote_entity_programming)
+endif()
+
+
 function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
-
   message(STATUS "Building SAI benchmarks SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
-
-  add_executable(sai_fsw_scale_route_add_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_fsw_scale_route_add_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_fsw_scale_route_add_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_fsw_scale_route_add_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_fsw_scale_route_del_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_fsw_scale_route_del_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_fsw_scale_route_del_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_fsw_scale_route_del_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_th_alpm_scale_route_add_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_th_alpm_scale_route_add_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_th_alpm_scale_route_add_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_th_alpm_scale_route_add_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_th_alpm_scale_route_del_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_th_alpm_scale_route_del_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_th_alpm_scale_route_del_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_th_alpm_scale_route_del_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_hgrid_du_scale_route_add_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_hgrid_du_scale_route_add_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_hgrid_du_scale_route_add_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_hgrid_du_scale_route_add_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_hgrid_du_scale_route_del_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_hgrid_du_scale_route_del_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_hgrid_du_scale_route_del_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_hgrid_du_scale_route_del_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_hgrid_uu_scale_route_add_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_hgrid_uu_scale_route_add_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_hgrid_uu_scale_route_add_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_hgrid_uu_scale_route_add_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_hgrid_uu_scale_route_del_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_hgrid_uu_scale_route_del_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_hgrid_uu_scale_route_del_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_hgrid_uu_scale_route_del_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_anticipated_scale_route_add_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_anticipated_scale_route_add_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_anticipated_scale_route_add_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_anticipated_scale_route_add_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_anticipated_scale_route_del_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_anticipated_scale_route_del_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_anticipated_scale_route_del_speed
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_anticipated_scale_route_del_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-  add_executable(sai_stats_collection_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_stats_collection_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_stats_collection_speed
-    mono_sai_agent_benchmarks_main
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_stats_collection_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_tx_slow_path_rate-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_tx_slow_path_rate-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_tx_slow_path_rate
-    mono_sai_agent_benchmarks_main
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_tx_slow_path_rate-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_ecmp_shrink_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_ecmp_shrink_speed
-    mono_sai_agent_benchmarks_main
-    sai_ecmp_utils
-    sai_port_utils
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_ecmp_shrink_with_competing_route_updates_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_ecmp_shrink_with_competing_route_updates_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_ecmp_shrink_with_competing_route_updates_speed
-    sai_ecmp_utils
-    sai_port_utils
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_ecmp_shrink_with_competing_route_updates_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_rx_slow_path_rate-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_rx_slow_path_rate-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    mono_sai_agent_benchmarks_main
-    hw_rx_slow_path_rate
-    sai_copp_utils
-    sai_acl_utils
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_rx_slow_path_rate-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_40Gx10G-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_40Gx10G-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_40Gx10G
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_40Gx10G-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_100Gx10G-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_100Gx10G-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_100Gx10G
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_100Gx10G-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_100Gx25G-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_100Gx25G-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_100Gx25G
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_100Gx25G-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_100Gx50G-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_100Gx50G-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_100Gx50G
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_100Gx50G-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_100Gx100G-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_100Gx100G-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_100Gx100G
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_100Gx100G-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_400Gx400G-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_400Gx400G-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_400Gx400G
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_400Gx400G-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_voq-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_voq-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_voq
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_voq-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_init_and_exit_fabric-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_init_and_exit_fabric-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    sai_copp_utils
-    hw_init_and_exit_fabric
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_init_and_exit_fabric-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_rib_resolution_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_rib_resolution_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_rib_resolution_speed
-    mono_sai_agent_benchmarks_main
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_rib_resolution_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_rib_sync_fib_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_rib_sync_fib_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_rib_sync_fib_speed
-    mono_sai_agent_benchmarks_main
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_rib_sync_fib_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_voq_scale_route_add_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_voq_scale_route_add_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_voq_scale_route_add_speed
-    mono_sai_agent_benchmarks_main
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_voq_scale_route_add_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_voq_scale_route_del_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_voq_scale_route_del_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_voq_scale_route_del_speed
-    mono_sai_agent_benchmarks_main
-    route_scale_gen
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_voq_scale_route_del_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_switch_reachability_change_speed-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_switch_reachability_change_speed-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_switch_reachability_change_speed
-    mono_sai_agent_benchmarks_main
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_switch_reachability_change_speed-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_voq_sys_port_programming-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_voq_sys_port_programming-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_voq_sys_port_programming
-    mono_sai_agent_benchmarks_main
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_voq_sys_port_programming-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-
-  add_executable(sai_voq_remote_entity_programming-${SAI_IMPL_NAME} /dev/null)
-
-  target_link_libraries(sai_voq_remote_entity_programming-${SAI_IMPL_NAME}
-    -Wl,--whole-archive
-    hw_voq_remote_entity_programming
-    mono_sai_agent_benchmarks_main
-    setup_thrift_prod
-    ${SAI_IMPL_ARG}
-    -Wl,--no-whole-archive
-  )
-
-  set_target_properties(sai_voq_remote_entity_programming-${SAI_IMPL_NAME}
-    PROPERTIES COMPILE_FLAGS
-    "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-    -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-    -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-  )
-   add_executable(sai_ucmp_scale_benchmark-${SAI_IMPL_NAME} /dev/null)
-
-    target_link_libraries(sai_ucmp_scale_benchmark-${SAI_IMPL_NAME}
-      -Wl,--whole-archive
-      hw_ucmp_scale_benchmark
-      mono_sai_agent_benchmarks_main
-      setup_thrift_prod
-      ${SAI_IMPL_ARG}
-      -Wl,--no-whole-archive
-    )
-
-    set_target_properties(sai_ucmp_scale_benchmark-${SAI_IMPL_NAME}
-      PROPERTIES COMPILE_FLAGS
-      "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-      -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-      -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-    )
-
+  foreach(SAI_BENCHMARK IN LISTS SAI_BENCHMARKS)
+    BUILD_SAI_BENCHMARK(${SAI_BENCHMARK} ${SAI_IMPL_NAME} ${SAI_IMPL_ARG})
+  endforeach()
 endfunction()
 
 if(BUILD_SAI_FAKE AND BUILD_SAI_FAKE_BENCHMARKS)
@@ -603,65 +85,7 @@ endif()
 
 if(SAI_IMPL AND BENCHMARK_INSTALL)
   BUILD_SAI_BENCHMARKS("sai_impl" ${SAI_IMPL})
-
-  install(
-    TARGETS
-    sai_fsw_scale_route_add_speed-sai_impl)
-  install(
-    TARGETS
-    sai_hgrid_du_scale_route_add_speed-sai_impl)
-  install(
-    TARGETS
-    sai_hgrid_uu_scale_route_del_speed-sai_impl)
-  install(
-    TARGETS
-    sai_th_alpm_scale_route_add_speed-sai_impl)
-  install(
-    TARGETS
-    sai_fsw_scale_route_del_speed-sai_impl)
-  install(
-    TARGETS
-    sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl)
-  install(
-    TARGETS
-    sai_th_alpm_scale_route_del_speed-sai_impl)
-  install(
-    TARGETS
-    sai_ecmp_shrink_speed-sai_impl)
-  install(
-    TARGETS
-    sai_hgrid_uu_scale_route_add_speed-sai_impl)
-  install(
-    TARGETS
-    sai_hgrid_du_scale_route_del_speed-sai_impl)
-  install(
-    TARGETS
-    sai_stats_collection_speed-sai_impl)
-  install(
-    TARGETS
-    sai_tx_slow_path_rate-sai_impl)
-  install(
-    TARGETS
-    sai_rx_slow_path_rate-sai_impl)
-  install(
-    TARGETS
-    sai_init_and_exit_40Gx10G-sai_impl)
-  install(
-    TARGETS
-    sai_init_and_exit_100Gx10G-sai_impl)
-  install(
-    TARGETS
-    sai_init_and_exit_100Gx25G-sai_impl)
-  install(
-    TARGETS
-    sai_init_and_exit_100Gx50G-sai_impl)
-  install(
-    TARGETS
-    sai_init_and_exit_100Gx100G-sai_impl)
-  install(
-    TARGETS
-    sai_rib_resolution_speed-sai_impl)
-  install(
-    TARGETS
-    sai_switch_reachability_change_speed-sai_impl)
+  foreach(SAI_BENCHMARK IN LISTS SAI_BENCHMARKS)
+    install(TARGETS sai_${SAI_BENCHMARK}-sai_impl)
+  endforeach()
 endif()
