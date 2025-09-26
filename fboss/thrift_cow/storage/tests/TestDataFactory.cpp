@@ -12,6 +12,9 @@
 #include "fboss/lib/if/gen-cpp2/io_stats_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
+// Include StateGenerator for remote system ports and interfaces
+#include "fboss/fsdb/benchmarks/StateGenerator.h"
+
 namespace facebook::fboss::test_data {
 
 TaggedOperState TestDataFactory::getStateUpdate(int version, bool minimal) {
@@ -127,12 +130,15 @@ SwitchState FsdbStateDataFactory::buildSwitchState() {
   FibsMap[0] = std::move(fibsData);
   switchState.fibsMap()[switchIdList] = std::move(FibsMap);
 
+  // Populate remote system ports and interfaces for RDSW and EDSW roles
+  populateRemoteSystemPortsAndInterfaces(switchState);
+
   return switchState;
 }
 
 FibContainerFields FsdbStateDataFactory::buildFibData(void) {
   FibContainerFields fibContainer;
-  FibScale scale = getRoleScale(selector_);
+  SwitchStateScale scale = getRoleScale(selector_);
 
   fibContainer.vrf() = 0; // Default VRF
 
@@ -251,33 +257,69 @@ BinaryAddress FsdbStateDataFactory::createBinaryAddress(
 
   if (addr.isV4()) {
     auto v4 = addr.asV4();
-    binaryAddr.addr() =
-        std::string(reinterpret_cast<const char*>(v4.bytes()), 4);
+    std::string addrStr = v4.str();
+    binaryAddr.addr() = addrStr;
   } else {
     auto v6 = addr.asV6();
-    binaryAddr.addr() =
-        std::string(reinterpret_cast<const char*>(v6.bytes()), 16);
+    std::string addrStr = v6.str();
+    binaryAddr.addr() = addrStr;
   }
 
   return binaryAddr;
 }
 
-FibScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
-  // Data scale based on role.
-  static const std::map<RoleSelector, FibScale> roleScales = {
-      // Role, FIBv4 size,	FIBv6 size,	v4 nexthops,	v6 nexthops
-      {RTSW, {1, 3500, 0, 32}},
-      {FTSW, {1, 2000, 0, 32}},
-      {STSW, {1, 2000, 0, 8}},
-      {RSW, {150, 2000, 8, 8}},
-      {FSW, {150, 1000, 50, 100}},
-      {SSW, {150, 1064, 50, 64}},
-      {XSW, {150, 512, 40, 128}},
-      {MA, {13000, 16000, 50, 50}},
-      {FA, {13000, 20000, 100, 100}},
+void FsdbStateDataFactory::populateRemoteSystemPortsAndInterfaces(
+    SwitchState& switchState) {
+  SwitchStateScale scale = getRoleScale(selector_);
+  int numDsfNbrAddresses = 3;
+
+  // Only populate for RDSW and EDSW roles
+  if (scale.remoteSystemPortMapSize == 0) {
+    return;
+  }
+
+  std::string switchIdList = "Id:648";
+
+  // Create remote system port map
+  std::map<int64_t, state::SystemPortFields> remoteSystemPortMap;
+  for (int i = 0; i < scale.remoteSystemPortMapSize; i++) {
+    auto sysPortFields = facebook::fboss::fsdb::test::fillSystemPortMap(648, i);
+    remoteSystemPortMap.emplace(i, std::move(sysPortFields));
+  }
+
+  // Create remote interface map
+  std::map<int32_t, state::InterfaceFields> remoteInterfaceMap;
+  for (int i = 0; i < scale.remoteInterfaceMapSize; i++) {
+    auto interfaceFields =
+        facebook::fboss::fsdb::test::fillInterfaceMap(i, numDsfNbrAddresses);
+    remoteInterfaceMap.emplace(i, std::move(interfaceFields));
+  }
+
+  // Populate the maps in switchState
+  switchState.remoteSystemPortMaps()[switchIdList] =
+      std::move(remoteSystemPortMap);
+  switchState.remoteInterfaceMaps()[switchIdList] =
+      std::move(remoteInterfaceMap);
+}
+// Scale configurations for different deployment roles
+SwitchStateScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
+  static const std::map<RoleSelector, SwitchStateScale> roleScales = {
+      // Role, fibV4Size, fibV6Size, v4Nexthops, v6Nexthops,
+      // remoteSystemPortMapSize, remoteInterfaceMapSize
+      {RTSW, {1, 3500, 0, 32, 0, 0}},
+      {FTSW, {1, 2000, 0, 32, 0, 0}},
+      {STSW, {1, 2000, 0, 8, 0, 0}},
+      {RSW, {150, 2000, 8, 8, 0, 0}},
+      {FSW, {150, 1000, 50, 100, 0, 0}},
+      {SSW, {875, 4200, 50, 64, 0, 0}},
+      {XSW, {150, 512, 40, 128, 0, 0}},
+      {MA, {13000, 16000, 50, 50, 0, 0}},
+      {FA, {13000, 20000, 100, 100, 0, 0}},
+      {RDSW, {1, 22000, 0, 2, 21750, 21750}},
+      {EDSW, {1, 22000, 0, 1, 21750, 21750}},
       // Default fallback
-      {Minimal, {1, 1, 1, 1}},
-      {MaxScale, {100, 100, 10, 10}},
+      {Minimal, {1, 1, 1, 1, 0, 0}},
+      {MaxScale, {100, 100, 10, 10, 0, 0}},
   };
 
   auto it = roleScales.find(role);
@@ -285,7 +327,7 @@ FibScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
     return it->second;
   }
 
-  return {1, 1, 1, 1};
+  return {1, 1, 1, 1, 0, 0};
 }
 
 // AgentStatsDataFactory Implementation
