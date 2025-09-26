@@ -1013,7 +1013,7 @@ std::unordered_set<TransceiverID> PortManager::getTransceiversWithAllPortsInSet(
     if (std::all_of(
             lockedEnabledPorts->begin(),
             lockedEnabledPorts->end(),
-            [&](const PortID& portId) { return ports.count(portId) > 0; })) {
+            [&](const PortID& portId) { return ports.contains(portId); })) {
       transceivers.insert(tcvrID);
     }
   }
