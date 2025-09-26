@@ -827,6 +827,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // AmIdles
         std::nullopt, // FabricSystemPort
         std::nullopt, // StaticModuleId
+        std::nullopt, // IsHyperPortMember
+        std::nullopt, // HyperPortMemberList
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -916,6 +918,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       amIdles, // AmIdles
       std::nullopt, // FabricSystemPort
       std::nullopt, // StaticModuleId
+      std::nullopt, // IsHyperPortMember
+      std::nullopt, // HyperPortMemberList
   };
 }
 

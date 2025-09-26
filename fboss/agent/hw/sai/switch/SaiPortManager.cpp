@@ -1560,10 +1560,18 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   portFields.portName() = folly::to<std::string>(portID);
   auto port = std::make_shared<Port>(std::move(portFields));
 
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  bool isHyperPortMember = GET_OPT_ATTR(Port, IsHyperPortMember, attributes);
+#elif defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  bool isHyperPortMember = false;
+#endif
+
   switch (portType.value()) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
     case SAI_PORT_TYPE_LOGICAL:
-      port->setPortType(cfg::PortType::INTERFACE_PORT);
+      port->setPortType(
+          isHyperPortMember ? cfg::PortType::HYPER_PORT_MEMBER
+                            : cfg::PortType::INTERFACE_PORT);
       break;
     case SAI_PORT_TYPE_MGMT:
       port->setPortType(cfg::PortType::MANAGEMENT_PORT);
