@@ -1607,7 +1607,8 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
         } break;
         case cfg::PortType::FABRIC_PORT:
         case cfg::PortType::CPU_PORT:
-          // no interface for fabric/cpu port
+        case cfg::PortType::HYPER_PORT_MEMBER:
+          // no interface for fabric/cpu/hyper member port
           break;
       }
     }
@@ -1771,7 +1772,9 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
       cfg::PortType::MANAGEMENT_PORT,
-      cfg::PortType::EVENTOR_PORT};
+      cfg::PortType::EVENTOR_PORT,
+      cfg::PortType::HYPER_PORT,
+      cfg::PortType::HYPER_PORT_MEMBER};
   auto sysPorts = std::make_shared<SystemPortMap>();
 
   for (const auto& [matcherString, portMap] : std::as_const(*ports)) {

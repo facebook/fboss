@@ -1098,6 +1098,7 @@ enum PortType {
   MANAGEMENT_PORT = 4,
   EVENTOR_PORT = 5,
   HYPER_PORT = 6,
+  HYPER_PORT_MEMBER = 7,
 }
 
 struct PortNeighbor {

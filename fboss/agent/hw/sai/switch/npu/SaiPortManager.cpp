@@ -55,6 +55,7 @@ sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
       return SAI_PORT_TYPE_EVENTOR;
 #endif
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       return SAI_PORT_TYPE_LOGICAL;
     case cfg::PortType::FABRIC_PORT:
       return SAI_PORT_TYPE_FABRIC;

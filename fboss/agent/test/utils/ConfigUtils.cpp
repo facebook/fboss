@@ -258,6 +258,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         case cfg::PortType::EVENTOR_PORT:
         case cfg::PortType::CPU_PORT:
         case cfg::PortType::HYPER_PORT:
+        case cfg::PortType::HYPER_PORT_MEMBER:
           break;
       }
     } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
@@ -740,7 +741,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         cfg::PortType::INTERFACE_PORT,
         cfg::PortType::RECYCLE_PORT,
         cfg::PortType::MANAGEMENT_PORT,
-        cfg::PortType::EVENTOR_PORT};
+        cfg::PortType::EVENTOR_PORT,
+        cfg::PortType::HYPER_PORT};
     for (const auto& port : *config.ports()) {
       if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
         continue;

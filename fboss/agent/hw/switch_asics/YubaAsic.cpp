@@ -275,6 +275,7 @@ std::set<cfg::StreamType> YubaAsic::getQueueStreamTypes(
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
     case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       // TODO: handle when we start modeling
       // recycle port for Ebro ASIC
       break;
