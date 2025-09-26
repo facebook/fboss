@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
@@ -185,9 +186,11 @@ void addFlowletAcl(
   if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
     acl.etherType() = cfg::EtherType::IPv6;
   }
-  acl.lookupClassRoute() = enableAlternateArsMembers
-      ? cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS
-      : cfg::AclLookupClass(0);
+  if (FLAGS_enable_th5_ars_scale_mode) {
+    acl.lookupClassRoute() = enableAlternateArsMembers
+        ? cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS
+        : cfg::AclLookupClass(0);
+  }
   if (udfFlowlet) {
     if (isSai) {
       utility::addUdfTableToAcl(
