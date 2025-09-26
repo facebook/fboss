@@ -230,9 +230,11 @@ void addFlowletConfigs(
   cfg::FlowletSwitchingConfig flowletCfg =
       utility::getDefaultFlowletSwitchingConfig(
           isSai, switchingMode, backupSwitchingMode);
-  flowletCfg.primaryPathQualityThreshold() = 7;
-  flowletCfg.alternatePathCost() = 0;
-  flowletCfg.alternatePathBias() = 7;
+  if (FLAGS_enable_th5_ars_scale_mode) {
+    flowletCfg.primaryPathQualityThreshold() = 7;
+    flowletCfg.alternatePathCost() = 0;
+    flowletCfg.alternatePathBias() = 7;
+  }
   cfg.flowletSwitchingConfig() = flowletCfg;
 
   std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
