@@ -587,10 +587,10 @@ AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
       {FA, {108, 108, 0}},
       {RSW, {24, 24, 0}},
       {RTSW, {64, 64, 0}},
-      {RDSW, {203, 197, 683}},
+      {RDSW, {203, 197, 21766}},
       {FDSW, {1024, 1024, 0}},
       {SDSW, {800, 800, 0}},
-      {EDSW, {183, 177, 663}},
+      {EDSW, {183, 177, 21766}},
       // Default fallback
       {Minimal, {1, 1, 1}},
       {MaxScale, {10, 10, 10}},
