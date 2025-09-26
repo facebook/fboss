@@ -13,4 +13,6 @@
 namespace facebook::fboss {
 
 UCMP_SCALE_BENCHMARK(HwUcmp128WidthScaleBenchmark, 128);
+UCMP_SCALE_BENCHMARK(HwUcmp512WidthScaleBenchmark, 512);
+
 } // namespace facebook::fboss
