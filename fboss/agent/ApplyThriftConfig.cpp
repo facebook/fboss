@@ -111,6 +111,7 @@ namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
 constexpr auto kMcQueueScalingFactor = cfg::MMUScalingFactor::ONE_8TH;
+constexpr auto kHyperPortSpeed = cfg::PortSpeed::THREEPOINTTWOT;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
@@ -2695,7 +2696,12 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setAdminState(*portConf->state());
   newPort->setIngressVlan(VlanID(*portConf->ingressVlan()));
   newPort->setVlans(vlans);
-  newPort->setSpeed(*portConf->speed());
+  if (portConf->portType() == cfg::PortType::HYPER_PORT &&
+      *portConf->speed() == cfg::PortSpeed::DEFAULT) {
+    newPort->setSpeed(kHyperPortSpeed);
+  } else {
+    newPort->setSpeed(*portConf->speed());
+  }
   newPort->setProfileId(*portConf->profileID());
   newPort->setPause(*portConf->pause());
   newPort->setSflowIngressRate(*portConf->sFlowIngressRate());
