@@ -26,6 +26,7 @@ class Utils {
   void printPemDetails();
   void printFanDetails();
   void printFanspinnerDetails();
+  void printPowerGoodDetails();
 
  private:
   const showtech_config::ShowtechConfig& config_;
@@ -33,6 +34,10 @@ class Utils {
   I2cHelper i2cHelper_{};
   void runFbossCliCmd(const std::string& cmd);
   void printSysfsAttribute(const std::string& label, const std::string& path);
+  void printGpioAttribute(
+      const std::string& label,
+      const std::string& gpioPath,
+      int gpioLineIndex);
 };
 
 } // namespace facebook::fboss::platform

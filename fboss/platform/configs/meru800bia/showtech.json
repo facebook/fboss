@@ -62,5 +62,12 @@
     }
   ],
   "pems": [],
-  "fanspinners": []
+  "fanspinners": [],
+  "sc_powergood": {
+    "gpioAttribute": {
+      "name": "SMB_POWERGOOD",
+      "path": "/run/devmap/gpiochips/SMB_PCA",
+      "lineIndex": 2
+    }
+  }
 }

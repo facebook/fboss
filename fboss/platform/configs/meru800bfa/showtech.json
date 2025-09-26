@@ -10,5 +10,11 @@
   ],
   "gpios": [],
   "pems": [],
-  "fanspinners": []
+  "fanspinners": [],
+  "sc_powergood": {
+    "sysfsAttribute": {
+      "name": "SMB_POWERGOOD",
+      "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD/switch_card_pwr_status"
+    }
+  }
 }
