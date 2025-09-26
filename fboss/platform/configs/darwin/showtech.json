@@ -1,5 +1,13 @@
 {
   "i2cBusIgnore": [],
+  "i2cDumpDevices": [
+    {
+      "path": "/run/devmap/cplds/BLACKHAWK_CPLD"
+    },
+    {
+      "path": "/run/devmap/cplds/FAN_CPLD"
+    }
+  ],
   "psus": [],
   "gpios": [
     {

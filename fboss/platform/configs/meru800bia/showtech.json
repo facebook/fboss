@@ -2,9 +2,27 @@
   "i2cBusIgnore": [
     "SMBus iSMT adapter at 911c1000"
   ],
+  "i2cDumpDevices": [
+    {
+      "path": "/run/devmap/cplds/FAN_CPLD"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_J3"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_ISL68226_OPTICS"
+    },
+    {
+      "path": "/run/devmap/sensors/SMB_RAA228926_J3"
+    }
+  ],
   "psus": [
-    "/run/devmap/sensors/PSU1_PMBUS",
-    "/run/devmap/sensors/PSU2_PMBUS"
+    {
+      "path": "/run/devmap/sensors/PSU1_PMBUS"
+    },
+    {
+      "path": "/run/devmap/sensors/PSU2_PMBUS"
+    }
   ],
   "gpios": [
     {

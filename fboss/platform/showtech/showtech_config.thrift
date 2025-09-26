@@ -3,10 +3,11 @@ namespace cpp2 facebook.fboss.platform.showtech_config
 // Configuration for the showtech utility
 struct ShowtechConfig {
   1: set<string> i2cBusIgnore;
-  2: list<string> psus;
+  2: list<Device> psus;
   3: list<Gpio> gpios;
   4: list<Pem> pems;
-  5: list<FanSpinnerDevice> fanspinners;
+  5: list<Device> fanspinners;
+  6: list<Device> i2cDumpDevices;
 }
 
 struct Gpio {
@@ -26,9 +27,9 @@ struct Pem {
   4: string statusSysfsPath;
 }
 
-struct FanSpinnerDevice {
+struct Device {
   1: string path;
-  2: list<SysfsAttribute> sysfsAttributes;
+  2: optional list<SysfsAttribute> sysfsAttributes;
 }
 
 struct SysfsAttribute {
