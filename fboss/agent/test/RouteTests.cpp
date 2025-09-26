@@ -1528,10 +1528,10 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, v4Fwd.getAction());
   EXPECT_EQ(1, v4Fwd.getNextHopSet().size());
   for (auto& nexthop : v4Fwd.getNextHopSet()) {
-    auto action = nexthop.labelForwardingAction();
-    EXPECT_TRUE(action.has_value());
-    EXPECT_EQ(action->type(), MplsActionCode::PUSH);
-    EXPECT_EQ(action->pushStack(), MplsLabelStack({101, 102}));
+    auto labelAction = nexthop.labelForwardingAction();
+    EXPECT_TRUE(labelAction.has_value());
+    EXPECT_EQ(labelAction->type(), MplsActionCode::PUSH);
+    EXPECT_EQ(labelAction->pushStack(), MplsLabelStack({101, 102}));
   }
 
   // v6 route
@@ -1546,10 +1546,10 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
   EXPECT_EQ(1, v6Fwd.getNextHopSet().size());
 
   for (auto& nexthop : v6Fwd.getNextHopSet()) {
-    auto action = nexthop.labelForwardingAction();
-    EXPECT_TRUE(action.has_value());
-    EXPECT_EQ(action->type(), MplsActionCode::PUSH);
-    EXPECT_EQ(action->pushStack(), MplsLabelStack({101, 102}));
+    auto labelAction = nexthop.labelForwardingAction();
+    EXPECT_TRUE(labelAction.has_value());
+    EXPECT_EQ(labelAction->type(), MplsActionCode::PUSH);
+    EXPECT_EQ(labelAction->pushStack(), MplsLabelStack({101, 102}));
   }
 }
 
