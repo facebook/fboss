@@ -488,3 +488,12 @@ cpp_library(
         "//folly/logging:logging",
     ],
 )
+
+agent_benchmark_lib(
+    name = "hw_ucmp_scale_benchmark",
+    srcs = ["HwUcmpScaleBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/benchmarks:hw_ucmp_group_scale_helper",
+        "//fboss/agent/hw/test:config_factory",
+    ],
+)

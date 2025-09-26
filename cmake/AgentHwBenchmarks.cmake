@@ -489,3 +489,20 @@ target_link_libraries(hw_clear_interface_counters_phy_benchmark
   port_flap_helper
   mac_learning_flood_helper
 )
+
+add_library(hw_ucmp_scale_benchmark
+  fboss/agent/hw/benchmarks/HwUcmpScaleBenchmark.cpp
+)
+
+target_link_libraries(hw_ucmp_scale_benchmark
+  fib_helpers
+  agent_ensemble
+  ecmp_helper
+  config_utils
+  scale_test_utils
+  config_factory
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  Folly::folly
+  Folly::follybenchmark
+)

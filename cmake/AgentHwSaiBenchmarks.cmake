@@ -567,6 +567,23 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
   )
+   add_executable(sai_ucmp_scale_benchmark-${SAI_IMPL_NAME} /dev/null)
+
+    target_link_libraries(sai_ucmp_scale_benchmark-${SAI_IMPL_NAME}
+      -Wl,--whole-archive
+      hw_ucmp_scale_benchmark
+      mono_sai_agent_benchmarks_main
+      setup_thrift_prod
+      ${SAI_IMPL_ARG}
+      -Wl,--no-whole-archive
+    )
+
+    set_target_properties(sai_ucmp_scale_benchmark-${SAI_IMPL_NAME}
+      PROPERTIES COMPILE_FLAGS
+      "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+      -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+      -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+    )
 
 endfunction()
 
