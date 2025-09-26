@@ -9,6 +9,8 @@
 function (BUILD_SAI_BENCHMARK NAME SAI_IMPL_NAME SAI_IMPL_ARG)
   add_executable(sai_${NAME}-${SAI_IMPL_NAME} /dev/null)
 
+  add_sai_sdk_dependencies(sai_${NAME}-${SAI_IMPL_NAME})
+
   target_link_libraries(sai_${NAME}-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     mono_sai_agent_benchmarks_main
