@@ -228,16 +228,26 @@ void fillHwPortStats(
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+          // XGS GTE 13 has cumulative errors reported
+          hwPortStats.fecCorrectableErrors() = value;
+#else
           hwPortStats.fecCorrectableErrors() =
               *hwPortStats.fecCorrectableErrors() + value;
+#endif
         }
         break;
       case SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES:
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+          // XGS GTE 13 has cumulative errors reported
+          hwPortStats.fecUncorrectableErrors() = value;
+#else
           hwPortStats.fecUncorrectableErrors() =
               *hwPortStats.fecUncorrectableErrors() + value;
+#endif
         }
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
