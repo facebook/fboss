@@ -629,6 +629,7 @@ add_library(split_agent_thrift_syncer
   fboss/agent/mnpu/SplitAgentThriftSyncer.cpp
   fboss/agent/mnpu/SplitAgentThriftSyncerClient.cpp
   fboss/agent/mnpu/TxPktEventSyncer.cpp
+  fboss/agent/mnpu/IpcHealthMonitor.cpp
 )
 
 target_link_libraries(split_agent_thrift_syncer

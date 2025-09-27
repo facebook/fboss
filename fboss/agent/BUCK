@@ -1604,6 +1604,7 @@ cpp_library(
     srcs = [
         "mnpu/FdbEventSyncer.cpp",
         "mnpu/HwSwitchStatsSinkClient.cpp",
+        "mnpu/IpcHealthMonitor.cpp",
         "mnpu/LinkChangeEventSyncer.cpp",
         "mnpu/OperDeltaSyncer.cpp",
         "mnpu/RxPktEventSyncer.cpp",
@@ -1615,6 +1616,7 @@ cpp_library(
     headers = [
         "mnpu/FdbEventSyncer.h",
         "mnpu/HwSwitchStatsSinkClient.h",
+        "mnpu/IpcHealthMonitor.h",
         "mnpu/OperDeltaSyncer.h",
         "mnpu/RxPktEventSyncer.h",
         "mnpu/SplitAgentThriftSyncer.h",
@@ -1628,6 +1630,7 @@ cpp_library(
         ":hwswitchcallback",
         ":multiswitch_service",
         ":packet",
+        "//fb303:service_data",
         "//fboss/agent/state:state",
         "//fboss/lib:common_thrift_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
@@ -1639,6 +1642,7 @@ cpp_library(
         "//folly/coro:unbounded_queue",
         "//folly/io/async:async_base",
         "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
         "//thrift/lib/cpp2/async:pooled_request_channel",
         "//thrift/lib/cpp2/async:reconnecting_request_channel",
         "//thrift/lib/cpp2/async:retrying_request_channel",
