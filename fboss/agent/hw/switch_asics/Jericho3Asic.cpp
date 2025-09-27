@@ -364,6 +364,7 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>&
 Jericho3Asic::desiredLoopbackModes() const {
   static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::PHY},
+      {cfg::PortType::HYPER_PORT_MEMBER, cfg::PortLoopbackMode::PHY},
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::PHY},
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE},

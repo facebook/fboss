@@ -1819,10 +1819,12 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           static_cast<int>(platformPort.mapping()->scope().value()),
           static_cast<int>(port.second->getScope()));
       sysPort->setScope(port.second->getScope());
-      sysPort->setShelDestinationEnabled(
-          cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
-          port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
-          port.second->getScope() == cfg::Scope::GLOBAL);
+      if (port.second->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+        sysPort->setShelDestinationEnabled(
+            cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value() &&
+            port.second->getPortType() == cfg::PortType::RECYCLE_PORT &&
+            port.second->getScope() == cfg::Scope::GLOBAL);
+      }
       sysPort->setPortType(port.second->getPortType());
       sysPorts->addSystemPort(std::move(sysPort));
     }
