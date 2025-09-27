@@ -915,4 +915,23 @@ TEST_F(
   rmRoute(*toBeMergedPrefixes.begin());
   assertEndState(sw_->getState(), {});
 }
+
+TEST_F(EcmpResourceMgrMergeGroupTest, updateRouteToTriggerUnmerge) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  addNextRoute();
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertMergedGroup(optimalMergeSet);
+  auto unmergedGid = *sw_->getEcmpResourceManager()->getUnMergedGids().begin();
+  // Move one of the merged routes to a unmerged
+  updateRoute(
+      *overflowPrefixes.begin(),
+      sw_->getEcmpResourceManager()->getGroupInfo(unmergedGid)->getNhops());
+  // The first route remove should cause unmerge of the group
+  assertEndState(sw_->getState(), {});
+  EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGids().size(), 0);
+  EXPECT_EQ(getAllGroups(), getGroupsWithoutOverrides());
+}
 } // namespace facebook::fboss
