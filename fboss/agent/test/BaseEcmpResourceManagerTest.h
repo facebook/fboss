@@ -162,7 +162,13 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
  private:
   std::vector<StateDelta> addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
-      const RouteNextHopSet& nhops);
+      const RouteNextHopSet& nhops) {
+    std::map<RoutePrefixV6, RouteNextHopSet> prefix2Nhops;
+    prefix2Nhops.insert({prefix6, nhops});
+    return addOrUpdateRoutes(prefix2Nhops);
+  }
+  std::vector<StateDelta> addOrUpdateRoutes(
+      const std::map<RoutePrefixV6, RouteNextHopSet>& prefix2Nhops);
   virtual void setupFlags() const;
 
  public:

@@ -934,4 +934,5 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateRouteToTriggerUnmerge) {
   EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGids().size(), 0);
   EXPECT_EQ(getAllGroups(), getGroupsWithoutOverrides());
 }
+
 } // namespace facebook::fboss

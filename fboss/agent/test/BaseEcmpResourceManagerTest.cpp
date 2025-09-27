@@ -544,16 +544,17 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   }
 }
 
-std::vector<StateDelta> BaseEcmpResourceManagerTest::addOrUpdateRoute(
-    const RoutePrefixV6& prefix6,
-    const RouteNextHopSet& nhops) {
-  auto newRoute = makeRoute(prefix6, nhops);
+std::vector<StateDelta> BaseEcmpResourceManagerTest::addOrUpdateRoutes(
+    const std::map<RoutePrefixV6, RouteNextHopSet>& prefix2Nhops) {
   auto newState = state_->clone();
   auto fib6 = fib(newState);
-  if (fib6->getNodeIf(prefix6.str())) {
-    fib6->updateNode(prefix6.str(), std::move(newRoute));
-  } else {
-    fib6->addNode(prefix6.str(), std::move(newRoute));
+  for (const auto& [prefix6, nhops] : prefix2Nhops) {
+    auto newRoute = makeRoute(prefix6, nhops);
+    if (fib6->getNodeIf(prefix6.str())) {
+      fib6->updateNode(prefix6.str(), std::move(newRoute));
+    } else {
+      fib6->addNode(prefix6.str(), std::move(newRoute));
+    }
   }
   newState->publish();
   return consolidate(newState);
