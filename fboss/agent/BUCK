@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
@@ -1631,6 +1632,7 @@ cpp_library(
         ":multiswitch_service",
         ":packet",
         "//fb303:service_data",
+        "//fb303:thread_cached_service_data",
         "//fboss/agent/state:state",
         "//fboss/lib:common_thrift_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
@@ -1982,6 +1984,20 @@ cpp_library(
     ],
 )
 
+cpp_unittest(
+    name = "ipc_health_monitor_test",
+    srcs = [
+        "mnpu/test/IpcHealthMonitorTest.cpp",
+    ],
+    deps = [
+        ":ipc_health_monitor",
+        "//fb303:service_data",
+        "//folly/io/async:async_base",
+        "//folly/io/async/test:event_base_test_lib",
+        "//folly/logging:logging",
+    ],
+)
+
 ci_sandcastle(
     name = "build_fboss_fbpkg",
     alias = "build_fboss_fbpkg_ci",
@@ -2004,6 +2020,24 @@ ci_sandcastle(
     ],
     command = "SandcastleUniversalCommand",
     oncall = "fboss_agent",
+)
+
+cpp_library(
+    name = "ipc_health_monitor",
+    srcs = [
+        "mnpu/IpcHealthMonitor.cpp",
+    ],
+    headers = [
+        "mnpu/IpcHealthMonitor.h",
+    ],
+    exported_deps = [
+        "//fb303:service_data",
+        "//fb303:thread_cached_service_data",
+        "//folly:cancellation_token",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
 )
 
 export_file(name = "Main.cpp")
