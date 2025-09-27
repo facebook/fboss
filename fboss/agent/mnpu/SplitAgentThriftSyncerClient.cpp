@@ -41,11 +41,26 @@ SplitAgentThriftClient::SplitAgentThriftClient(
           connRetryEvb,
           counterPrefix,
           "multi_switch_streams",
-          stateChangeCb,
+          [this, stateChangeCb](State oldState, State newState) {
+            // Track state transitions in health monitor
+            if (ipcHealthMonitor_) {
+              IpcConnectionState oldIpcState =
+                  mapToIpcConnectionState(oldState);
+              IpcConnectionState newIpcState =
+                  mapToIpcConnectionState(newState);
+              ipcHealthMonitor_->trackStateTransition(oldIpcState, newIpcState);
+            }
+            // Call the original callback if provided
+            if (stateChangeCb) {
+              stateChangeCb(oldState, newState);
+            }
+          },
           FLAGS_hwagent_reconnect_ms),
       streamEvbThread_(streamEvbThread),
       serverPort_(serverPort),
-      switchId_(switchId) {
+      switchId_(switchId),
+      ipcHealthMonitor_(
+          std::make_unique<IpcHealthMonitor>(clientId, counterPrefix)) {
   counterPrefix_ = counterPrefix;
   auto thriftClientHeartbeatFunc = [](int /* unused */, int /* unused */) {};
 
@@ -57,9 +72,19 @@ SplitAgentThriftClient::SplitAgentThriftClient(
 
   setConnectionOptions(utils::ConnectionOptions("::1", serverPort_));
   scheduleTimeout();
+
+  // Start IPC health monitoring
+  if (ipcHealthMonitor_) {
+    ipcHealthMonitor_->start();
+  }
 }
 
-SplitAgentThriftClient::~SplitAgentThriftClient() {}
+SplitAgentThriftClient::~SplitAgentThriftClient() {
+  // Stop IPC health monitoring
+  if (ipcHealthMonitor_) {
+    ipcHealthMonitor_->stop();
+  }
+}
 
 std::shared_ptr<ThreadHeartbeat>
 SplitAgentThriftClient::getThriftClientHeartbeat() {
@@ -137,6 +162,22 @@ void SplitAgentThriftClient::resetClient() {
   multiSwitchClient_.reset();
 }
 
+IpcConnectionState SplitAgentThriftClient::mapToIpcConnectionState(
+    State state) {
+  switch (state) {
+    case State::CONNECTED:
+      return IpcConnectionState::CONNECTED;
+    case State::DISCONNECTED:
+      return IpcConnectionState::DISCONNECTED;
+    case State::CONNECTING:
+      return IpcConnectionState::CONNECTING;
+    case State::CANCELLED:
+      return IpcConnectionState::CANCELLED;
+    default:
+      return IpcConnectionState::UNKNOWN;
+  }
+}
+
 template <typename CallbackObjectT, typename EventQueueT>
 ThriftSinkClient<CallbackObjectT, EventQueueT>::ThriftSinkClient(
     folly::StringPiece name,
@@ -192,7 +233,12 @@ void ThriftSinkClient<CallbackObjectT, EventQueueT>::disconnected() {
 #if FOLLY_HAS_COROUTINES
   while (!eventsQueue_.empty()) {
     eventsQueue_.try_dequeue();
+    // TODO: remove this once ipcHealthMonitor is rolled out
     eventsDroppedCount_.add(1);
+    // Track dropped event in health monitor
+    if (getHealthMonitor()) {
+      getHealthMonitor()->trackEventDropped();
+    }
   }
   XLOG(DBG2) << "Discarded events from queue for " << clientId()
              << " on sw agent disconnect";
@@ -308,9 +354,16 @@ folly::coro::Task<void> ThriftStreamClient<StreamObjectT>::serveStream() {
     if (isCancelled()) {
       co_return;
     }
+
     auto eventObj = *event;
     eventHandlerFn_(eventObj, hw_);
+
     eventReceivedCount_.add(1);
+
+    // Track received event in health monitor
+    if (getHealthMonitor()) {
+      getHealthMonitor()->trackEventReceived();
+    }
   }
   co_return;
 }

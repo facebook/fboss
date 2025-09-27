@@ -16,11 +16,9 @@ namespace facebook::fboss {
 
 IpcHealthMonitor::IpcHealthMonitor(
     const std::string& clientId,
-    const std::string& counterPrefix,
-    folly::EventBase* evb)
+    const std::string& counterPrefix)
     : clientId_(clientId),
       counterPrefix_(counterPrefix),
-      evb_(evb),
       // Initialize fb303 TimeseriesWrapper objects for efficient metric
       // tracking
       eventsSent_(counterPrefix + ".ipc.events_sent", fb303::SUM, fb303::RATE),

@@ -51,8 +51,7 @@ class IpcHealthMonitor {
  public:
   IpcHealthMonitor(
       const std::string& clientId,
-      const std::string& counterPrefix,
-      folly::EventBase* evb);
+      const std::string& counterPrefix);
   ~IpcHealthMonitor();
 
   // Start monitoring IPC health
@@ -89,7 +88,6 @@ class IpcHealthMonitor {
 
   std::string clientId_;
   std::string counterPrefix_;
-  folly::EventBase* evb_;
 
   std::atomic<bool> running_{false};
 
