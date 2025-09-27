@@ -974,4 +974,56 @@ TEST_F(
   EXPECT_EQ(mergedGroups.begin()->size(), 3);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, mergeThenUnmerge) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto mergedPfxOne = *overflowPrefixes.begin();
+  auto mergedPfxTwo = *(++overflowPrefixes.begin());
+  std::map<RoutePrefixV6, RouteNextHopSet> origPfxToNhops{
+      {mergedPfxOne,
+       sw_->getEcmpResourceManager()
+           ->getGroupInfo(RouterID(0), mergedPfxOne.toCidrNetwork())
+           ->getNhops()},
+      {mergedPfxTwo,
+       sw_->getEcmpResourceManager()
+           ->getGroupInfo(RouterID(0), mergedPfxTwo.toCidrNetwork())
+           ->getNhops()}};
+
+  auto mergeTriggerPfx = nextPrefix();
+  auto triggerMerge = [&]() {
+    addRoute(mergeTriggerPfx, *nextNhopSets(1).begin());
+    assertEndState(sw_->getState(), overflowPrefixes);
+    assertMergedGroup(optimalMergeSet);
+  };
+  auto restoreToOrigState = [&]() {
+    rmRoute(mergeTriggerPfx);
+    updateRoute(mergedPfxOne, origPfxToNhops[mergedPfxOne]);
+    updateRoute(mergedPfxTwo, origPfxToNhops[mergedPfxTwo]);
+    assertEndState(sw_->getState(), {});
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGids().size(), 0);
+    EXPECT_EQ(getAllGroups(), getGroupsWithoutOverrides());
+  };
+  {
+    triggerMerge();
+    // Migrate routeOne to routeTwo's nhops. This should trigger a unmerge
+    updateRoute(mergedPfxOne, origPfxToNhops[mergedPfxTwo]);
+    assertEndState(sw_->getState(), {});
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGids().size(), 0);
+    EXPECT_EQ(getAllGroups(), getGroupsWithoutOverrides());
+    restoreToOrigState();
+  };
+  // Do the reverse now.
+  // Migrate routeTwo to routeOne's nhops. This should trigger a unmerge
+  {
+    triggerMerge();
+    // Migrate routeOne to routeTwo's nhops. This should trigger a unmerge
+    updateRoute(mergedPfxTwo, origPfxToNhops[mergedPfxOne]);
+    assertEndState(sw_->getState(), {});
+    EXPECT_EQ(sw_->getEcmpResourceManager()->getMergedGids().size(), 0);
+    EXPECT_EQ(getAllGroups(), getGroupsWithoutOverrides());
+    restoreToOrigState();
+  };
+}
 } // namespace facebook::fboss
