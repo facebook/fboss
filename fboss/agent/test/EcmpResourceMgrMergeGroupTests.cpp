@@ -458,8 +458,9 @@ TEST_F(
   assertMergedGroup(optimalMergeSet);
   for (auto pfx : overflowPrefixes) {
     rmRoute(pfx);
+    // The first route remove should cause unmerge of the group
+    assertEndState(sw_->getState(), {});
   }
-  assertEndState(sw_->getState(), {});
   assertGroupsAreRemoved(optimalMergeSet);
 }
 
