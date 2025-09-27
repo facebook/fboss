@@ -1202,6 +1202,8 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
 
 std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
     const std::shared_ptr<SwitchState>& curState) {
+  StopWatch timeIt(
+      "EcmpResourceManager::reconstructFromSwitchState", false /*json*/);
   if (!preUpdateState_.has_value()) {
     preUpdateState_ = PreUpdateState();
   }
