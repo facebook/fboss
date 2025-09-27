@@ -70,6 +70,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiWedge800caPlatform.cpp
+  fboss/agent/platforms/sai/SaiWedge800caPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
@@ -111,6 +113,7 @@ target_link_libraries(sai_platform
   led_structs_types_cpp2
   led_mapping_cpp2
   wedge800ba_platform_mapping
+  wedge800ca_platform_mapping
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS
