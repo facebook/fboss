@@ -837,4 +837,81 @@ TEST_F(EcmpResourceMgrMergeGroupTest, newGroupPointsToExistingMergeSet) {
   assertEndState(sw_->getState(), toBeMergedPrefixes);
 }
 
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    newGroupPointsToExistingMergeSetThenRemoveOne) {
+  // remove 2 routes to make space for new unmerged groups.
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  auto nextNhops = *nextNhopSets(1).begin();
+  CHECK(nextNhops.size());
+  auto toAppend =
+      makeNextHops(kNumIntfs, 1 /*numNhopsPerIntf*/, 1 /*startOffset*/);
+  auto commonNextHops = nextNhops;
+  commonNextHops.insert(toAppend.begin(), toAppend.end());
+  ASSERT_EQ(commonNextHops.size(), nextNhops.size() + toAppend.size());
+  auto routeOneNhops = commonNextHops;
+  routeOneNhops.insert(
+      *makeNextHops(1, 1 /*numNhopsPerIntf*/, 2 /*startOffset*/).begin());
+  auto routeTwoNhops = commonNextHops;
+  routeTwoNhops.insert(
+      *makeNextHops(1, 1 /*numNhopsPerIntf*/, 3 /*startOffset*/).begin());
+  std::set<RoutePrefixV6> addedPrefixes;
+  addedPrefixes.insert(nextPrefix());
+  addRoute(nextPrefix(), routeOneNhops);
+  addedPrefixes.insert(nextPrefix());
+  addRoute(nextPrefix(), routeTwoNhops);
+  auto toBeMergedPrefixes = getPrefixesForGroups(
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet());
+  EXPECT_EQ(toBeMergedPrefixes, addedPrefixes);
+  addRoute(nextPrefix(), nextNhops);
+  assertEndState(sw_->getState(), toBeMergedPrefixes);
+  auto prefixToAdd = nextPrefix();
+  toBeMergedPrefixes.insert(prefixToAdd);
+  addRoute(prefixToAdd, commonNextHops);
+  assertEndState(sw_->getState(), toBeMergedPrefixes);
+  rmRoute(prefixToAdd);
+  toBeMergedPrefixes.erase(prefixToAdd);
+  assertEndState(sw_->getState(), toBeMergedPrefixes);
+}
+
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    newGroupPointsToExistingMergeSetThenRemoveAllMerged) {
+  // remove 2 routes to make space for new unmerged groups.
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  auto nextNhops = *nextNhopSets(1).begin();
+  CHECK(nextNhops.size());
+  auto toAppend =
+      makeNextHops(kNumIntfs, 1 /*numNhopsPerIntf*/, 1 /*startOffset*/);
+  auto commonNextHops = nextNhops;
+  commonNextHops.insert(toAppend.begin(), toAppend.end());
+  ASSERT_EQ(commonNextHops.size(), nextNhops.size() + toAppend.size());
+  auto routeOneNhops = commonNextHops;
+  routeOneNhops.insert(
+      *makeNextHops(1, 1 /*numNhopsPerIntf*/, 2 /*startOffset*/).begin());
+  auto routeTwoNhops = commonNextHops;
+  routeTwoNhops.insert(
+      *makeNextHops(1, 1 /*numNhopsPerIntf*/, 3 /*startOffset*/).begin());
+  std::set<RoutePrefixV6> addedPrefixes;
+  addedPrefixes.insert(nextPrefix());
+  addRoute(nextPrefix(), routeOneNhops);
+  addedPrefixes.insert(nextPrefix());
+  addRoute(nextPrefix(), routeTwoNhops);
+  auto toBeMergedPrefixes = getPrefixesForGroups(
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet());
+  EXPECT_EQ(toBeMergedPrefixes, addedPrefixes);
+  addRoute(nextPrefix(), nextNhops);
+  assertEndState(sw_->getState(), toBeMergedPrefixes);
+  auto prefixToAdd = nextPrefix();
+  toBeMergedPrefixes.insert(prefixToAdd);
+  addRoute(prefixToAdd, commonNextHops);
+  assertEndState(sw_->getState(), toBeMergedPrefixes);
+  rmRoute(prefixToAdd);
+  toBeMergedPrefixes.erase(prefixToAdd);
+  assertEndState(sw_->getState(), toBeMergedPrefixes);
+  rmRoute(*toBeMergedPrefixes.begin());
+  assertEndState(sw_->getState(), {});
+}
 } // namespace facebook::fboss
