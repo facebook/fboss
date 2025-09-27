@@ -2406,7 +2406,8 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
 void SaiPortManager::setQosPolicy(
     PortID portID,
     const std::optional<std::string>& qosPolicy) {
-  if (getPortType(portID) == cfg::PortType::FABRIC_PORT) {
+  if (getPortType(portID) == cfg::PortType::FABRIC_PORT ||
+      getPortType(portID) == cfg::PortType::HYPER_PORT_MEMBER) {
     return;
   }
   XLOG(DBG2) << "set QoS policy " << (qosPolicy ? qosPolicy.value() : "null")
@@ -2441,7 +2442,8 @@ void SaiPortManager::setQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy) {
 }
 
 void SaiPortManager::clearQosPolicy(PortID portID) {
-  if (getPortType(portID) == cfg::PortType::FABRIC_PORT) {
+  if (getPortType(portID) == cfg::PortType::FABRIC_PORT ||
+      getPortType(portID) == cfg::PortType::HYPER_PORT_MEMBER) {
     return;
   }
   auto handle = getPortHandle(portID);
