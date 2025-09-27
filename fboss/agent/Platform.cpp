@@ -222,6 +222,7 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_NOFEC_COPPER:
     case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
       return 1;
@@ -237,6 +238,8 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
       return 2;
 
