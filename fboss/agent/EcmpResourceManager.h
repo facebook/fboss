@@ -444,7 +444,7 @@ class NextHopGroupInfo {
       std::optional<GroupIds2ConsolidationInfoItr> mergedGroupsToInfoItr =
           std::nullopt);
 
-  bool isUnitialized() const {
+  bool isUninitialized() const {
     return state_ == NextHopGroupState::UNINITIALIZED;
   }
   bool hasUnmergedNhops() const {

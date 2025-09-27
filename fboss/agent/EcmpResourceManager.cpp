@@ -347,7 +347,7 @@ bool EcmpResourceManager::checkNoUnitializedGroups() const {
       nextHopGroupIdToInfo_.begin(),
       nextHopGroupIdToInfo_.end(),
       [](const auto& idAndInfo) {
-        return !idAndInfo.second.lock()->isUnitialized();
+        return !idAndInfo.second.lock()->isUninitialized();
       });
 }
 std::vector<std::shared_ptr<NextHopGroupInfo>>
@@ -832,7 +832,7 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
       [&gids](const auto& gidAndGroup) {
         auto grpInfo = gidAndGroup.second.lock();
         CHECK(grpInfo);
-        if (!(grpInfo->isUnitialized() || grpInfo->getMergedGroupInfoItr())) {
+        if (!(grpInfo->isUninitialized() || grpInfo->getMergedGroupInfoItr())) {
           gids.insert(gidAndGroup.first);
         }
       });
@@ -1279,7 +1279,7 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
-    CHECK(grpInfo->isUnitialized());
+    CHECK(grpInfo->isUninitialized());
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to new group: " << *grpInfo;
     // Ecmp limit reached and we did not find a existing group,
@@ -1354,7 +1354,7 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
-    CHECK(grpInfo->isUnitialized());
+    CHECK(grpInfo->isUninitialized());
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to new group: " << *grpInfo;
     // Ecmp limit reached and we did not find a existing group,
@@ -1471,7 +1471,7 @@ EcmpResourceManager::routeAddedWithOverrideNhops(
              << " created: " << grpInserted;
   if (overrideGrpInserted) {
     if (ecmpLimitReached) {
-      CHECK(overrideGrpInfo->isUnitialized());
+      CHECK(overrideGrpInfo->isUninitialized());
       XLOG(DBG2) << " Exceeded ECMP limit for route: " << newRoute->str();
       mergeGroupAndMigratePrefixes(inOutState);
     } else {
