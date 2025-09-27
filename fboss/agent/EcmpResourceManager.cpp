@@ -1315,6 +1315,31 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
   return {grpInfo, grpInserted};
 }
 
+/*
+ * routeAddedNoOverrideNhops algo is as follows
+ * Algo here is
+ * - Lookup the group for route's normalized nhops
+ *    - If this is a new group, we have 3 subcases
+ *      i) We are ECMP limit,
+ *      - Trigger a merge of some existing groups to make space.
+ *      - Add the route with this group's nhops
+ *     ii) We are not at ECMP limit
+ *      - Add the route with it current nhops.
+ *   - If we match a existing group. There are 2 subcases
+ *    i) Group has override nhop. This further has 2 subcases
+ *     - We are doing rollback. In which case we must prefer
+ *     the prefix's override settings. So we clear this group's
+ *     overrides and reclaim the group from its merge set
+ *     - We are not doing rollback. We must prefer the group's override
+ *     settings. We look at this group's merge itr, for the merge set
+ *     membership. If this group ID is not part of that merge
+ *     group, add it. Note this is a data structure update only.
+ *     We don't need to update any of the other prefixes in
+ *     switch state, since none of their nhops were affected.
+ *     Now add the route into current delta with group's nhops.
+ *   ii) Group does not have override nhops and was already present.
+ *   Just update the delta with the current route.
+ */
 template <typename AddrT>
 std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
 EcmpResourceManager::routeAddedNoOverrideNhops(
@@ -1373,21 +1398,26 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
       } else {
         // Not rolling back. Prefer group's override info
         if (!(*mitr)->first.contains(grpInfo->getID())) {
+          // This group's nhops point to a merged group, but
+          // the group itself is not part of the merged group,
+          // then state could only be MERGED_NHOPS_ONLY
+          DCHECK(grpInfo->hasMergedNhopsOnly());
           // If group is not part of the merge set pointed to by
           // the merge iterator, make it a part of it and update
           // prefixes accordingly.
           auto newMergeSet = (*mitr)->first;
           newMergeSet.insert(grpInfo->getID());
-          mergeGroupAndMigratePrefixes(newMergeSet, inOutState);
-        } else {
-          // Update the route's override info from the group.
-          auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
-              rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
-          CHECK_EQ(existingGrpInfo, grpInfo);
+          mitr = appendToOrCreateMergeGroup(
+              newMergeSet, (*mitr)->second.mergedNhops, mitr, *inOutState);
+          grpInfo->setMergedGroupInfoItr(mitr);
         }
+        auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
+            rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
+        CHECK_EQ(existingGrpInfo, grpInfo);
       }
     } else {
-      // Everything matches just add the route to current delta
+      // No override nhops in group, and group already existed. Just add the
+      // route.
       inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
     }
   }

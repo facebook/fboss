@@ -455,6 +455,9 @@ class NextHopGroupInfo {
     return state_ == NextHopGroupState::MERGED_NHOPS_ONLY ||
         state_ == NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
   }
+  bool hasMergedNhopsOnly() const {
+    return state_ == NextHopGroupState::MERGED_NHOPS_ONLY;
+  }
   NextHopGroupId getID() const {
     return id_;
   }
