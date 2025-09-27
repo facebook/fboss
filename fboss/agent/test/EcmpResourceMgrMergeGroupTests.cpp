@@ -79,6 +79,44 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   assertCost(optimalMergeSet);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, swapNhopsForToBeMergedGroupsAndOverflow) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  // Main motivation of swapping these nhops is to have the prefixes
+  // come in reverse order than in addRouteAboveEcmpLimit during
+  // state reconstruction, rollback passes.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  ASSERT_EQ(optimalMergeSet.size(), 2);
+  ASSERT_EQ(overflowPrefixes.size(), 2);
+  auto gid2Prefixes = sw_->getEcmpResourceManager()->getGidToPrefixes();
+  XLOG(DBG2) << " Overflow gids : " << folly::join(",", optimalMergeSet);
+  std::map<RoutePrefixV6, RouteNextHopSet> toUpdate;
+  for (const auto& pfx : overflowPrefixes) {
+    auto overflowPfxGrps = optimalMergeSet;
+    auto pfxGid = sw_->getEcmpResourceManager()
+                      ->getGroupInfo(RouterID(0), pfx.toCidrNetwork())
+                      ->getID();
+    XLOG(DBG2) << " For : " << pfx.str() << " got group: " << pfxGid;
+    overflowPfxGrps.erase(pfxGid);
+    auto otherGid = *overflowPfxGrps.begin();
+    XLOG(DBG2) << "Getting nhops for : " << otherGid;
+    auto otherGrpNhops = getNextHops(otherGid);
+    toUpdate.insert({pfx, otherGrpNhops});
+  }
+  for (const auto& [pfx, nhops] : toUpdate) {
+    updateRoute(pfx, nhops);
+  }
+  // Optimal merge set, overflow prefixes etc should remain the same
+  auto deltas = addNextRoute();
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertMergedGroup(optimalMergeSet);
+  assertCost(optimalMergeSet);
+}
+
 TEST_F(EcmpResourceMgrMergeGroupTest, addV4RouteAboveEcmpLimit) {
   // Cache prefixes to be affected by optimal merge grp selection.
   // We will later assert that these start pointing to merged groups.
