@@ -1007,9 +1007,7 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
     // New merge group nothing to do
     XLOG(DBG2) << " Merge set : " << mergeSet
                << " nhops, did not match any existing nhops";
-  } else if (
-      newMergeGrpInfo->getState() ==
-      NextHopGroupInfo::NextHopGroupState::UNMERGED_NHOPS_ONLY) {
+  } else if (!newMergeGrpInfo->hasMergedNhops()) {
     // mergeSet nhops matches a existing unmerged group. Add that
     // to the mergeSet. But check for case where merge set already
     // contained the existing group ID. For e.g. a new merge set

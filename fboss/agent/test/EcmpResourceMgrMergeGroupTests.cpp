@@ -935,4 +935,43 @@ TEST_F(EcmpResourceMgrMergeGroupTest, updateRouteToTriggerUnmerge) {
   EXPECT_EQ(getAllGroups(), getGroupsWithoutOverrides());
 }
 
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    addNewRouteWithSameNhopsAsTheMergeItTriggersInSingleUpdate) {
+  // remove 2 routes to make space for new unmerged groups.
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  rmRoute((*getPostConfigResolvedRoutes(state_).begin())->prefix());
+  auto nextNhops = *nextNhopSets(1).begin();
+  CHECK(nextNhops.size());
+  auto toAppend =
+      makeNextHops(kNumIntfs, 1 /*numNhopsPerIntf*/, 1 /*startOffset*/);
+  auto commonNextHops = nextNhops;
+  commonNextHops.insert(toAppend.begin(), toAppend.end());
+  ASSERT_EQ(commonNextHops.size(), nextNhops.size() + toAppend.size());
+  auto routeOneNhops = commonNextHops;
+  routeOneNhops.insert(
+      *makeNextHops(1, 1 /*numNhopsPerIntf*/, 2 /*startOffset*/).begin());
+  auto routeTwoNhops = commonNextHops;
+  routeTwoNhops.insert(
+      *makeNextHops(1, 1 /*numNhopsPerIntf*/, 3 /*startOffset*/).begin());
+  std::map<RoutePrefixV6, RouteNextHopSet> toAddRoute2Nhops{
+      {makePrefix(cfib(state_)->size()), routeOneNhops},
+      {makePrefix(cfib(state_)->size() + 1), routeTwoNhops},
+      {makePrefix(cfib(state_)->size() + 2), commonNextHops}};
+
+  addRoutes(toAddRoute2Nhops);
+  std::set<RoutePrefixV6> addedPrefixes;
+  std::for_each(
+      toAddRoute2Nhops.begin(),
+      toAddRoute2Nhops.end(),
+      [&addedPrefixes](const auto& pfxAndNhops) {
+        addedPrefixes.insert(pfxAndNhops.first);
+      });
+  assertEndState(sw_->getState(), addedPrefixes);
+  auto mergedGroups = sw_->getEcmpResourceManager()->getMergedGroups();
+  EXPECT_EQ(mergedGroups.size(), 1);
+  // gids for routeOneNhops, routeTwoNhops and commonNextHops
+  EXPECT_EQ(mergedGroups.begin()->size(), 3);
+}
+
 } // namespace facebook::fboss
