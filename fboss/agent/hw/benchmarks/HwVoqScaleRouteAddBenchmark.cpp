@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/benchmarks/HwRouteScaleBenchmarkHelpers.h"
 
+#include "fboss/agent/AgentFeatures.h"
+
 namespace facebook::fboss {
 
 BENCHMARK(HwVoqScaleRouteAddBenchmark) {
@@ -20,5 +22,12 @@ BENCHMARK(HwVoqScaleRouteAddBenchmark) {
 BENCHMARK(HwVoqScale2kWideEcmpRouteAddBenchmark) {
   // Measure 16x2048 ECMP route add
   voqRouteBenchmark(true /* add */, 16 /* ecmpGroup */, 2048 /* ecmpWidth */);
+}
+
+BENCHMARK(HwVoqScale2kWideEcmpCompressionRouteAddBenchmark) {
+  // Measure 50x2048 ECMP route add, which will cause EcmpResourceManager to
+  // kick in and compress ecmp groups
+  FLAGS_enable_ecmp_resource_manager = true;
+  voqRouteBenchmark(true /* add */, 50 /* ecmpGroup */, 2048 /* ecmpWidth */);
 }
 } // namespace facebook::fboss

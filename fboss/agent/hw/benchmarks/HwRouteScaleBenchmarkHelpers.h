@@ -199,6 +199,9 @@ voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth) {
         utility::populatePortExpectedNeighborsToSelf(
             ensemble.masterLogicalPortIds(), config);
         config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
+        if (FLAGS_enable_ecmp_resource_manager) {
+          config.switchSettings()->ecmpCompressionThresholdPct() = 100;
+        }
         return config;
       };
   auto ensemble =
