@@ -125,6 +125,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:agent_features",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:sw_agent_initializer",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/test:agent_ensemble",
