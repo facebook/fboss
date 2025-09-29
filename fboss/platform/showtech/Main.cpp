@@ -36,6 +36,7 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
         {"fanspinner", [](Utils& util) { util.printFanspinnerDetails(); }},
         {"gpio", [](Utils& util) { util.printGpioDetails(); }},
         {"i2c", [](Utils& util) { util.printI2cDetails(); }},
+        {"i2cdump", [](Utils& util) { util.printI2cDumpDetails(); }},
 };
 
 std::unordered_set<std::string> getValidDetailNames() {

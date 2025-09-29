@@ -7,6 +7,7 @@ struct ShowtechConfig {
   3: list<Gpio> gpios;
   4: list<Pem> pems;
   5: list<FanSpinnerDevice> fanspinners;
+  6: list<string> i2cDumpDevices;
 }
 
 struct Gpio {
