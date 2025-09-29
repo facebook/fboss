@@ -1845,7 +1845,45 @@
           "busName": "SMB_MUX@1",
           "address": "0x4c",
           "kernelDeviceName": "tmp432",
-          "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1"
+          "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1",
+          "initRegSettings": [
+            {
+              "regOffset": 13,
+              "ioBuf": [
+                105
+              ]
+            },
+            {
+              "regOffset": 19,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "regOffset": 21,
+              "ioBuf": [
+                105
+              ]
+            },
+            {
+              "regOffset": 23,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "regOffset": 39,
+              "ioBuf": [
+                5
+              ]
+            },
+            {
+              "regOffset": 40,
+              "ioBuf": [
+                5
+              ]
+            }
+          ]
         },
         {
           "busName": "SMB_MUX@2",
@@ -1869,7 +1907,33 @@
           "busName": "SMB_MUX@3",
           "address": "0x4c",
           "kernelDeviceName": "tmp432",
-          "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2"
+          "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2",
+          "initRegSettings": [
+            {
+              "regOffset": 13,
+              "ioBuf": [
+                105
+              ]
+            },
+            {
+              "regOffset": 19,
+              "ioBuf": [
+                0
+              ]
+            },
+            {
+              "regOffset": 39,
+              "ioBuf": [
+                5
+              ]
+            },
+            {
+              "regOffset": 40,
+              "ioBuf": [
+                5
+              ]
+            }
+          ]
         },
         {
           "busName": "SMB_MUX@4",
