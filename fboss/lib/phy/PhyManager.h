@@ -419,7 +419,7 @@ class PhyManager {
   const PortToCacheInfo portToCacheInfo_;
   const PortToStatsInfo portToStatsInfo_;
 
-  static constexpr auto kXphySnapshotIntervalSeconds = 60;
+  static constexpr auto kXphySnapshotIntervalSeconds = 10;
   std::unique_ptr<PhySnapshotManager> xphySnapshotManager_;
 
   PublishPhyCb publishPhyCb_;
