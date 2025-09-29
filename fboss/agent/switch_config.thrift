@@ -1693,6 +1693,7 @@ struct TrafficCounter {
 enum L2LearningMode {
   HARDWARE = 0,
   SOFTWARE = 1,
+  DISABLED = 2,
 }
 
 enum SwitchDrainState {
