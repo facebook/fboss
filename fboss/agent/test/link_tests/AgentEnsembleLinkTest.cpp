@@ -58,6 +58,8 @@ long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
     return 6 * 1000 * 1000 * 1000L; // 6GB
   } else if (platform == facebook::fboss::PlatformType::PLATFORM_MONTBLANC) {
     return 4 * 1000 * 1000 * 1000L; // 4GB
+  } else if (platform == facebook::fboss::PlatformType::PLATFORM_MORGAN800CC) {
+    return 5 * 1000 * 1000 * 1000L; // 5GB
   }
   return 3 * 1000 * 1000 * 1000L; // 3GB
 }
