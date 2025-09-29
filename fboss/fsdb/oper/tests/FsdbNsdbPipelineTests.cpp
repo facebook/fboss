@@ -14,7 +14,6 @@
 #include <folly/coro/Collect.h>
 #include <folly/coro/Task.h>
 #include <folly/coro/Timeout.h>
-#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/fsdb/oper/tests/TestHelpers.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
