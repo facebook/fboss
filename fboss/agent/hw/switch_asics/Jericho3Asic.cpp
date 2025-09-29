@@ -240,6 +240,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
        * SAI_TTL0_PACKET_FORWARD_ENABLE.
        */
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
       return false;
   }
   return false;
