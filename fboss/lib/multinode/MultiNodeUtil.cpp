@@ -32,6 +32,9 @@ using facebook::fboss::fsdb::FsdbService;
 using facebook::fboss::fsdb::SubscriberIdToOperSubscriberInfos;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
+using facebook::fboss::ClientID;
+using facebook::fboss::IpPrefix;
+using facebook::fboss::UnicastRoute;
 using facebook::fboss::cfg::DsfNode;
 
 std::unique_ptr<apache::thrift::Client<TestCtrl>> getSwAgentThriftClient(
@@ -160,6 +163,24 @@ void removeNeighbor(
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_flushNeighborEntry(
       facebook::network::toBinaryAddress(neighborIP), interfaceID);
+}
+
+void addRoute(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength,
+    const std::vector<folly::IPAddress>& nexthops) {
+  UnicastRoute route;
+  route.dest()->ip() = facebook::network::toBinaryAddress(destPrefix);
+  route.dest()->prefixLength() = prefixLength;
+  for (const auto& nexthop : nexthops) {
+    route.nextHopAddrs()->push_back(
+        facebook::network::toBinaryAddress(nexthop));
+  }
+
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_addUnicastRoutes(
+      static_cast<int16_t>(ClientID::STATIC_ROUTE), {std::move(route)});
 }
 
 std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
