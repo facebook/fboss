@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <vector>
+
 #include <folly/ExceptionString.h>
 #include <folly/IPAddress.h>
 #include <folly/io/Cursor.h>
@@ -53,6 +55,15 @@ struct FlowRecord {
   DataFormat flowFormat;
   uint32_t flowDataLen;
   byte* flowData;
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  uint32_t size() const;
+};
+
+/* Self-contained version of FlowRecord that owns its data */
+struct FlowRecordOwned {
+  DataFormat flowFormat;
+  std::vector<uint8_t> flowData;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;

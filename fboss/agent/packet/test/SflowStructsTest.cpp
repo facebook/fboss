@@ -7,14 +7,19 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <folly/IPAddress.h>
-#include <folly/container/Array.h>
-
 #include "fboss/agent/packet/SflowStructs.h"
 
+#include <cstdint>
+#include <vector>
+
+#include <folly/IPAddress.h>
+#include <folly/container/Array.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-using namespace facebook::fboss;
+namespace facebook::fboss::sflow {
+using ::testing::ContainerEq;
+using ::testing::ElementsAre;
 
 TEST(SflowStructsTest, Serialize) {
   folly::IPAddress agentIP("2401:db00:116:3016::1b");
@@ -220,3 +225,60 @@ TEST(SflowStructsTest, Serialize) {
     EXPECT_EQ(b.at(i), data[i]);
   }
 }
+
+TEST(SflowStructsTest, FlowRecordOwned) {
+  // Test basic functionality of FlowRecordOwned
+  sflow::FlowRecordOwned ownedFlowRecord;
+  ownedFlowRecord.flowFormat = 1;
+  ownedFlowRecord.flowData = {0x01, 0x02, 0x03, 0x04, 0x05};
+
+  // Test size calculation - now includes XDR padding
+  // 5 bytes data needs 3 bytes padding to align to 4-byte boundary
+  uint32_t expectedSize = 4 /* flowFormat */ + 4 /* flowDataLen */ +
+      8; /* 5 data bytes + 3 padding bytes */
+  EXPECT_EQ(ownedFlowRecord.size(), expectedSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  ownedFlowRecord.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify serialized size matches expected (with XDR padding)
+  // 5 bytes data + 3 bytes padding = 8 bytes aligned to 4-byte boundary
+  uint32_t expectedSerializedSize = 4 /* flowFormat */ + 4 /* flowDataLen */ +
+      8; /* 5 data bytes + 3 padding */
+  EXPECT_EQ(serializedSize, expectedSerializedSize);
+
+  // Verify the serialized content using ElementsAre matcher
+  std::vector<uint8_t> actualData(
+      buffer.begin(), buffer.begin() + serializedSize);
+  EXPECT_THAT(
+      actualData,
+      ElementsAre(
+          // flowFormat (42) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // flowDataLen (5) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x05,
+          // data content
+          0x01,
+          0x02,
+          0x03,
+          0x04,
+          0x05,
+          // padding bytes (zero)
+          0x00,
+          0x00,
+          0x00));
+}
+
+} // namespace facebook::fboss::sflow

@@ -10,6 +10,11 @@
 
 #include "fboss/agent/packet/SflowStructs.h"
 
+#include <cstdint>
+#include <vector>
+
+#include <folly/io/Cursor.h>
+
 using namespace folly;
 using namespace folly::io;
 
@@ -53,6 +58,28 @@ void FlowRecord::serialize(RWPrivateCursor* cursor) const {
 
 uint32_t FlowRecord::size() const {
   return 4 /* flowFormat */ + 4 /* flowDataLen */ + this->flowDataLen;
+}
+
+void FlowRecordOwned::serialize(RWPrivateCursor* cursor) const {
+  serializeDataFormat(cursor, this->flowFormat);
+  // serialize XDR opaque sFlow flow_data
+  cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->flowData.size()));
+  cursor->push(this->flowData.data(), this->flowData.size());
+  if (this->flowData.size() % XDR_BASIC_BLOCK_SIZE != 0) {
+    int fillCnt =
+        XDR_BASIC_BLOCK_SIZE - this->flowData.size() % XDR_BASIC_BLOCK_SIZE;
+    std::vector<byte> crud(XDR_BASIC_BLOCK_SIZE, 0);
+    cursor->push(crud.data(), fillCnt);
+  }
+}
+
+uint32_t FlowRecordOwned::size() const {
+  uint32_t dataSize = this->flowData.size();
+  // Add XDR padding to align to 4-byte boundary (same as serialization does)
+  if (dataSize % XDR_BASIC_BLOCK_SIZE != 0) {
+    dataSize += XDR_BASIC_BLOCK_SIZE - (dataSize % XDR_BASIC_BLOCK_SIZE);
+  }
+  return 4 /* flowFormat */ + 4 /* flowDataLen */ + dataSize;
 }
 
 void FlowSample::serialize(RWPrivateCursor* cursor) const {
