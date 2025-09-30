@@ -1960,6 +1960,13 @@ SaiSwitch::getRouterInterfaceStatsLocked(
   auto state = getProgrammedState();
   for (const auto& entry : statsMap) {
     auto intf = state->getInterfaces()->getNodeIf(entry.first);
+    if (!intf) {
+      // rif will get added into sai switch but programmed state is reflecting
+      // old state until the entire switch state is fully applied.
+      XLOG(WARNING) << "interface with id " << entry.first
+                    << " not yet in programmed state";
+      continue;
+    }
     rifStatsMap.emplace(intf->getName(), entry.second);
   }
   return rifStatsMap;
