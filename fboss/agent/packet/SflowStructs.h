@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <variant>
 #include <vector>
 
 #include <folly/ExceptionString.h>
@@ -134,6 +135,18 @@ struct SampleRecord {
   DataFormat sampleType;
   uint32_t sampleDataLen;
   byte* sampleData;
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  uint32_t size() const;
+};
+
+/* Sample data variant - supports different types of sample data */
+using SampleData = std::variant<FlowSampleOwned>;
+
+/* Self-contained version of SampleRecord that owns its data */
+struct SampleRecordOwned {
+  DataFormat sampleType;
+  std::vector<SampleData> sampleData;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;

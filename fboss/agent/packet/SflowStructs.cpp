@@ -145,6 +145,50 @@ uint32_t SampleRecord::size() const {
   return 4 /* sampleType */ + 4 /* sampleDataLen */ + this->sampleDataLen;
 }
 
+void SampleRecordOwned::serialize(RWPrivateCursor* cursor) const {
+  serializeDataFormat(cursor, this->sampleType);
+
+  // Calculate total data size for all sample data
+  uint32_t totalDataSize = 0;
+  for (const auto& sampleDatum : this->sampleData) {
+    std::visit(
+        [&totalDataSize](const auto& data) { totalDataSize += data.size(); },
+        sampleDatum);
+  }
+
+  cursor->writeBE<uint32_t>(totalDataSize);
+
+  // Serialize each sample data
+  for (const auto& sampleDatum : this->sampleData) {
+    std::visit(
+        [cursor](const auto& data) { data.serialize(cursor); }, sampleDatum);
+  }
+
+  // Add XDR padding if needed
+  if (totalDataSize % XDR_BASIC_BLOCK_SIZE > 0) {
+    int fillCnt = XDR_BASIC_BLOCK_SIZE - totalDataSize % XDR_BASIC_BLOCK_SIZE;
+    std::vector<byte> crud(XDR_BASIC_BLOCK_SIZE, 0);
+    cursor->push(crud.data(), fillCnt);
+  }
+}
+
+uint32_t SampleRecordOwned::size() const {
+  uint32_t totalDataSize = 0;
+  for (const auto& sampleDatum : this->sampleData) {
+    std::visit(
+        [&totalDataSize](const auto& data) { totalDataSize += data.size(); },
+        sampleDatum);
+  }
+
+  // Add XDR padding to align to 4-byte boundary (same as serialization does)
+  if (totalDataSize % XDR_BASIC_BLOCK_SIZE > 0) {
+    totalDataSize +=
+        XDR_BASIC_BLOCK_SIZE - (totalDataSize % XDR_BASIC_BLOCK_SIZE);
+  }
+
+  return 4 /* sampleType */ + 4 /* sampleDataLen */ + totalDataSize;
+}
+
 void SampleDatagramV5::serialize(RWPrivateCursor* cursor) const {
   serializeIP(cursor, this->agentAddress);
 

@@ -442,4 +442,253 @@ TEST(SflowStructsTest, FlowSampleOwnedSizeCalculation) {
   EXPECT_EQ(sample.size(), 32 + record1.size() + record2.size());
 }
 
+TEST(SflowStructsTest, SampleRecordOwned) {
+  // Test comprehensive functionality of SampleRecordOwned with detailed
+  // serialization verification
+  sflow::SampleRecordOwned ownedRecord;
+  ownedRecord.sampleType = 1; // Flow sample type
+
+  // Create a FlowSampleOwned to add to the sample data
+  sflow::FlowSampleOwned flowSample;
+  flowSample.sequenceNumber = 98765; // 0x181CD
+  flowSample.sourceID = 54321; // 0xD431
+  flowSample.samplingRate = 1000; // 0x3E8
+  flowSample.samplePool = 2000; // 0x7D0
+  flowSample.drops = 10; // 0xA
+  flowSample.input = 123; // 0x7B
+  flowSample.output = 456; // 0x1C8
+
+  // Add FlowRecords to the FlowSample
+  sflow::FlowRecordOwned record1;
+  record1.flowFormat = 1;
+  record1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding needed
+
+  sflow::FlowRecordOwned record2;
+  record2.flowFormat = 1;
+  record2.flowData = {0xCA, 0xFE}; // 2 bytes, will need 2 bytes padding
+
+  flowSample.flowRecords = {record1, record2};
+
+  // Add the FlowSample to the SampleRecord
+  ownedRecord.sampleData.push_back(flowSample);
+
+  uint32_t expectedSize = 4 /* sampleType */ + 4 /* sampleDataLen */ +
+      std::get<FlowSampleOwned>(ownedRecord.sampleData[0]).size();
+  EXPECT_EQ(ownedRecord.size(), expectedSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  ownedRecord.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify basic structure - should include sample type, data length, and the
+  // flow sample data
+  EXPECT_GT(serializedSize, 8); // At least the sample type + data length
+
+  // Verify the complete serialized buffer content
+  std::vector<uint8_t> actualData(
+      buffer.begin(), buffer.begin() + serializedSize);
+  EXPECT_THAT(
+      actualData,
+      ElementsAre(
+          // sampleType (1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // sampleDataLen - the size of the FlowSample data (56 bytes)
+          0x00,
+          0x00,
+          0x00,
+          0x38,
+
+          // FlowSample data:
+          // sequenceNumber (98765 = 0x181CD) as big-endian
+          0x00,
+          0x01,
+          0x81,
+          0xCD,
+          // sourceID (54321 = 0xD431) as big-endian
+          0x00,
+          0x00,
+          0xD4,
+          0x31,
+          // samplingRate (1000 = 0x3E8) as big-endian
+          0x00,
+          0x00,
+          0x03,
+          0xE8,
+          // samplePool (2000 = 0x7D0) as big-endian
+          0x00,
+          0x00,
+          0x07,
+          0xD0,
+          // drops (10 = 0xA) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          // input (123 = 0x7B) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x7B,
+          // output (456 = 0x1C8) as big-endian
+          0x00,
+          0x00,
+          0x01,
+          0xC8,
+          // flowRecordsCnt (2) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x02,
+
+          // First FlowRecord:
+          // flowFormat (1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // flowDataLen (4) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x04,
+          // flowData: 0xDE, 0xAD, 0xBE, 0xEF (4 bytes, no padding needed)
+          0xDE,
+          0xAD,
+          0xBE,
+          0xEF,
+
+          // Second FlowRecord:
+          // flowFormat (1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // flowDataLen (2) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x02,
+          // flowData: 0xCA, 0xFE + 2 bytes padding for XDR alignment
+          0xCA,
+          0xFE,
+          0x00,
+          0x00));
+
+  // Verify that the size calculation matches the actual serialized size
+  EXPECT_EQ(ownedRecord.size(), serializedSize);
+}
+
+TEST(SflowStructsTest, SampleRecordOwnedMultipleFlowSamples) {
+  // Test SampleRecordOwned with multiple FlowSample data
+  sflow::SampleRecordOwned ownedRecord;
+  ownedRecord.sampleType = 1;
+
+  // Create first FlowSample
+  sflow::FlowSampleOwned flowSample1;
+  flowSample1.sequenceNumber = 1111;
+  flowSample1.sourceID = 2222;
+  flowSample1.samplingRate = 3333;
+  flowSample1.samplePool = 4444;
+  flowSample1.drops = 5555;
+  flowSample1.input = 6666;
+  flowSample1.output = 7777;
+
+  sflow::FlowRecordOwned record1;
+  record1.flowFormat = 1;
+  record1.flowData = {0x11, 0x22}; // 2 bytes + 2 padding = 4 aligned
+  flowSample1.flowRecords = {record1};
+
+  // Create second FlowSample
+  sflow::FlowSampleOwned flowSample2;
+  flowSample2.sequenceNumber = 8888;
+  flowSample2.sourceID = 9999;
+  flowSample2.samplingRate = 1010;
+  flowSample2.samplePool = 2020;
+  flowSample2.drops = 3030;
+  flowSample2.input = 4040;
+  flowSample2.output = 5050;
+
+  sflow::FlowRecordOwned record2;
+  record2.flowFormat = 1;
+  record2.flowData = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding = 4 aligned
+  flowSample2.flowRecords = {record2};
+
+  // Add both FlowSamples to the SampleRecord
+  ownedRecord.sampleData.push_back(flowSample1);
+  ownedRecord.sampleData.push_back(flowSample2);
+
+  // Test size calculation - should include both FlowSamples
+  uint32_t expectedFlowSample1Size = 32 + 12; // 32 fixed + 12 for record1
+  uint32_t expectedFlowSample2Size = 32 + 12; // 32 fixed + 12 for record2
+  uint32_t expectedTotalSize = 4 /* sampleType */ + 4 /* sampleDataLen */ +
+      expectedFlowSample1Size + expectedFlowSample2Size;
+  EXPECT_EQ(ownedRecord.size(), expectedTotalSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  ownedRecord.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify that serialization size matches calculated size
+  EXPECT_EQ(ownedRecord.size(), serializedSize);
+  EXPECT_EQ(ownedRecord.sampleData.size(), 2);
+}
+
+TEST(SflowStructsTest, SampleRecordOwnedSizeCalculation) {
+  // Test size calculation with various configurations
+  sflow::SampleRecordOwned record;
+  record.sampleType = 1;
+
+  // Test empty sample data
+  EXPECT_EQ(record.size(), 8); // 4 + 4 + 0
+
+  // Add one FlowSample
+  sflow::FlowSampleOwned flowSample1;
+  flowSample1.sequenceNumber = 1;
+  flowSample1.sourceID = 2;
+  flowSample1.samplingRate = 3;
+  flowSample1.samplePool = 4;
+  flowSample1.drops = 5;
+  flowSample1.input = 6;
+  flowSample1.output = 7;
+  // Empty flow records
+
+  record.sampleData.emplace_back(flowSample1);
+  uint32_t expectedSize1 = 8 + flowSample1.size();
+  EXPECT_EQ(record.size(), expectedSize1);
+
+  // Add another FlowSample
+  sflow::FlowSampleOwned flowSample2;
+  flowSample2.sequenceNumber = 10;
+  flowSample2.sourceID = 20;
+  flowSample2.samplingRate = 30;
+  flowSample2.samplePool = 40;
+  flowSample2.drops = 50;
+  flowSample2.input = 60;
+  flowSample2.output = 70;
+
+  // Add a FlowRecord to the second sample
+  sflow::FlowRecordOwned flowRecord;
+  flowRecord.flowFormat = 1;
+  flowRecord.flowData = {
+      0x01, 0x02, 0x03, 0x04, 0x05}; // 5 bytes + 3 padding = 8
+  flowSample2.flowRecords = {flowRecord};
+
+  record.sampleData.emplace_back(flowSample2);
+  uint32_t expectedSize2 = 8 + flowSample1.size() + flowSample2.size();
+  EXPECT_EQ(record.size(), expectedSize2);
+}
+
 } // namespace facebook::fboss::sflow
