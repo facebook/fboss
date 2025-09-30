@@ -126,8 +126,6 @@ class MultiNodeUtil {
 
   std::map<std::string, FabricEndpoint> getFabricEndpoints(
       const std::string& switchName) const;
-  std::set<std::string> getConnectedFabricPorts(
-      const std::string& switchName) const;
   std::map<std::string, FabricEndpoint> getConnectedFabricPortToFabricEndpoint(
       const std::string& switchName) const;
   bool verifyFabricConnectedSwitchesHelper(

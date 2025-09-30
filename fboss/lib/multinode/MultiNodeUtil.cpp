@@ -368,20 +368,6 @@ std::map<std::string, FabricEndpoint> MultiNodeUtil::getFabricEndpoints(
   return fabricEndpoints;
 }
 
-std::set<std::string> MultiNodeUtil::getConnectedFabricPorts(
-    const std::string& switchName) const {
-  auto fabricEndpoints = getFabricEndpoints(switchName);
-
-  std::set<std::string> connectedPorts;
-  for (const auto& [localPort, fabricEndpoint] : fabricEndpoints) {
-    if (fabricEndpoint.isAttached().value()) {
-      connectedPorts.insert(localPort);
-    }
-  }
-
-  return connectedPorts;
-}
-
 std::map<std::string, FabricEndpoint>
 MultiNodeUtil::getConnectedFabricPortToFabricEndpoint(
     const std::string& switchName) const {
