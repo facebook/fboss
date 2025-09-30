@@ -1958,6 +1958,12 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
 bool MultiNodeUtil::verifyTrafficSpray() const {
   XLOG(DBG2) << __func__;
 
+  auto logAddRoute =
+      [](const auto& rdsw, const auto& prefix, const auto& neighbor) {
+        XLOG(DBG2) << "Adding route:: " << " prefix: " << prefix.str()
+                   << " nexthop: " << neighbor.str() << " to " << rdsw;
+      };
+
   auto static kPrefix = folly::IPAddressV6("2001:0db8:85a3::");
   auto static constexpr kPrefixLength = 64;
   std::optional<std::string> prevRdsw{std::nullopt};
@@ -1982,6 +1988,7 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
     if (!prevRdsw.has_value()) { // first RDSW
       firstRdswNeighbor = neighbor;
     } else {
+      logAddRoute(prevRdsw.value(), kPrefix, neighbor);
       addRoute(prevRdsw.value(), kPrefix, kPrefixLength, {neighbor.ip});
     }
     prevRdsw = rdsw;
@@ -1990,6 +1997,7 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   // Add route for first RDSW to complete the loop
   CHECK(!allRdsws_.empty());
   auto lastRdsw = std::prev(allRdsws_.end());
+  logAddRoute(*lastRdsw, kPrefix, firstRdswNeighbor);
   addRoute(*lastRdsw, kPrefix, kPrefixLength, {firstRdswNeighbor.ip});
 
   return true;
