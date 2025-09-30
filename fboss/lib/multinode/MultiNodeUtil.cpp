@@ -170,6 +170,14 @@ std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
   return intfIdToIntf;
 }
 
+std::map<int64_t, facebook::fboss::SystemPortThrift>
+getSystemPortdIdToSystemPort(const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortIdToSystemPort;
+  swAgentClient->sync_getSystemPorts(systemPortIdToSystemPort);
+  return systemPortIdToSystemPort;
+}
+
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
