@@ -710,7 +710,7 @@ MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) const {
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) const {
-  auto matchesPortType =
+  auto matchesSystemPortType =
       [&types](const facebook::fboss::SystemPortThrift& systemPort) {
         if (systemPort.remoteSystemPortType().has_value()) {
           return types.find(systemPort.remoteSystemPortType().value()) !=
@@ -721,16 +721,12 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
       };
 
   std::set<std::string> systemPortsOfType;
-  auto peerToSystemPorts = getPeerToSystemPorts(rdsw);
-  for (const auto& [_, systemPorts] : peerToSystemPorts) {
-    for (const auto& systemPort : systemPorts) {
-      if (*systemPort.scope() == cfg::Scope::GLOBAL &&
-          matchesPortType(systemPort)) {
-        systemPortsOfType.insert(systemPort.portName().value());
-      }
+  for (const auto& [_, systemPort] : getSystemPortdIdToSystemPort(rdsw)) {
+    if (*systemPort.scope() == cfg::Scope::GLOBAL &&
+        matchesSystemPortType(systemPort)) {
+      systemPortsOfType.insert(systemPort.portName().value());
     }
   }
-
   return systemPortsOfType;
 }
 
