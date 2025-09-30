@@ -1958,7 +1958,18 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
 bool MultiNodeUtil::verifyTrafficSpray() const {
   XLOG(DBG2) << __func__;
 
+  auto static kPrefix = folly::IPAddressV6("2001:0db8:85a3::");
+  auto static constexpr kPrefixLength = 64;
+  std::optional<std::string> prevRdsw{std::nullopt};
+  MultiNodeUtil::NeighborInfo firstRdswNeighbor{};
+
   // Add a neighbor for every RDSW in the cluster
+  // Also, add routes for every RDSW to create a loop i.e.:
+  //    - RDSW A has route with nexthop as RDSW B's neighbor
+  //    - RDSW B has route with nexthop as RDSW C's neighbor
+  //    ...
+  //    - RDSW Z has route with nexthop as RDSW A's neighbor
+  //      so the packet loops around
   for (const auto& rdsw : allRdsws_) {
     auto neighbors = computeNeighborsForRdsw(rdsw, 1 /* number of neighbors */);
     CHECK_EQ(neighbors.size(), 1);
@@ -1967,7 +1978,19 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
     XLOG(DBG2) << "Adding neighbor: " << neighbor.str() << " to " << rdsw;
     addNeighbor(
         rdsw, neighbor.intfID, neighbor.ip, neighbor.mac, neighbor.portID);
+
+    if (!prevRdsw.has_value()) { // first RDSW
+      firstRdswNeighbor = neighbor;
+    } else {
+      addRoute(prevRdsw.value(), kPrefix, kPrefixLength, {neighbor.ip});
+    }
+    prevRdsw = rdsw;
   }
+
+  // Add route for first RDSW to complete the loop
+  CHECK(!allRdsws_.empty());
+  auto lastRdsw = std::prev(allRdsws_.end());
+  addRoute(*lastRdsw, kPrefix, kPrefixLength, {firstRdswNeighbor.ip});
 
   return true;
 }
