@@ -276,6 +276,7 @@ struct MacEntryFields {
   2: switch_config.PortDescriptor portId;
   3: optional switch_config.AclLookupClass classID;
   4: MacEntryType type = MacEntryType.DYNAMIC_ENTRY;
+  5: optional bool configured;
 }
 
 struct NeighborResponseEntryFields {
