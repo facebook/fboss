@@ -298,7 +298,12 @@ void HwTransceiverUtils::verifyOpticsSettings(
     // TODO: T236126124 - Disable checking this in Molex AEC cables
     // until we get EEPROM fix.
     auto vendor = apache::thrift::can_throw(*tcvrState.vendor());
-    if (!(vendor.name() == "Molex" && vendor.partNumber() == "2253611207")) {
+    bool isMolex =
+        (vendor.name() == "Molex" && vendor.partNumber() == "2253611207");
+
+    // LPO Modules dont have a DSP, so we dont need to check for CDR.
+    bool isLpoModule = tcvrState.lpoModule().value();
+    if (!(isMolex || isLpoModule)) {
       EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
       EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
     }
