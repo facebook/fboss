@@ -100,6 +100,23 @@ class MultiNodeUtil {
         << apache::thrift::util::enumNameSafe(rif.scope().value());
   }
 
+  void logSystemPort(
+      const std::string& rdsw,
+      const facebook::fboss::SystemPortThrift& systemPort) {
+    XLOG(DBG2) << "From " << rdsw << " portId: " << systemPort.portId().value()
+               << " switchId: " << systemPort.switchId().value()
+               << " portName: " << systemPort.portName().value()
+               << " remoteSystemPortType: "
+               << apache::thrift::util::enumNameSafe(
+                      systemPort.remoteSystemPortType().value_or(-1))
+               << " remoteSystemPortLivenessStatus: "
+               << apache::thrift::util::enumNameSafe(
+                      systemPort.remoteSystemPortLivenessStatus().value_or(-1))
+               << " scope: "
+               << apache::thrift::util::enumNameSafe(
+                      systemPort.scope().value());
+  }
+
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
