@@ -46,6 +46,7 @@ enum ModbusDeviceType {
   ORV3_HPR_PMM_BBU = 8,
   ORV3_HPR_CBU = 9,
   ORV3_HPR_PMM_CBU = 10,
+  MINIUPS = 11,
 }
 
 /*
