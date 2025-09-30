@@ -165,6 +165,18 @@ struct SampleDatagramV5 {
   uint32_t size(const uint32_t recordsSize) const;
 };
 
+/* Self-contained version of SampleDatagramV5 that owns its data */
+struct SampleDatagramV5Owned {
+  folly::IPAddress agentAddress;
+  uint32_t subAgentID;
+  uint32_t sequenceNumber; // for sub-agent
+  uint32_t uptime;
+  std::vector<SampleRecordOwned> samples;
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  uint32_t size() const;
+};
+
 // Here we skip sample_datagram_type, since only v5 is used
 struct SampleDatagram {
   // We only consider sFlowV5

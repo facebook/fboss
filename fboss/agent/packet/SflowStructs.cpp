@@ -207,6 +207,27 @@ uint32_t SampleDatagramV5::size(const uint32_t recordsSize) const {
       + 4 /*samplesCnt */ + recordsSize;
 }
 
+void SampleDatagramV5Owned::serialize(RWPrivateCursor* cursor) const {
+  serializeIP(cursor, this->agentAddress);
+  cursor->writeBE<uint32_t>(this->subAgentID);
+  cursor->writeBE<uint32_t>(this->sequenceNumber);
+  cursor->writeBE<uint32_t>(this->uptime);
+  cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->samples.size()));
+  for (const SampleRecordOwned& sample : this->samples) {
+    sample.serialize(cursor);
+  }
+}
+
+uint32_t SampleDatagramV5Owned::size() const {
+  uint32_t samplesSize = 0;
+  for (const auto& sample : this->samples) {
+    samplesSize += sample.size();
+  }
+  return 4 /* IP address type */ + this->agentAddress.byteCount() +
+      4 /* subAgentID */ + 4 /*sequenceNumber */ + 4 /*uptime*/ +
+      4 /*samplesCnt */ + samplesSize;
+}
+
 void SampleDatagram::serialize(RWPrivateCursor* cursor) const {
   cursor->writeBE<uint32_t>(SampleDatagram::VERSION5);
   this->datagramV5.serialize(cursor);

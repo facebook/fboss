@@ -691,4 +691,345 @@ TEST(SflowStructsTest, SampleRecordOwnedSizeCalculation) {
   EXPECT_EQ(record.size(), expectedSize2);
 }
 
+TEST(SflowStructsTest, SampleDatagramV5Owned) {
+  // Test comprehensive functionality of SampleDatagramV5Owned with detailed
+  // serialization verification
+  sflow::SampleDatagramV5Owned ownedDatagram;
+  ownedDatagram.agentAddress = folly::IPAddress("2401:db00:116:3016::1b");
+  ownedDatagram.subAgentID = 12345; // 0x3039
+  ownedDatagram.sequenceNumber = 67890; // 0x10932
+  ownedDatagram.uptime = 9876543; // 0x96B34F
+
+  // Create a SampleRecordOwned with FlowSampleOwned data
+  sflow::SampleRecordOwned sampleRecord;
+  sampleRecord.sampleType = 1; // Flow sample type
+
+  // Create a FlowSampleOwned
+  sflow::FlowSampleOwned flowSample;
+  flowSample.sequenceNumber = 111; // 0x6F
+  flowSample.sourceID = 222; // 0xDE
+  flowSample.samplingRate = 333; // 0x14D
+  flowSample.samplePool = 444; // 0x1BC
+  flowSample.drops = 555; // 0x22B
+  flowSample.input = 666; // 0x29A
+  flowSample.output = 777; // 0x309
+
+  // Add FlowRecords to the FlowSample
+  sflow::FlowRecordOwned record1;
+  record1.flowFormat = 1;
+  record1.flowData = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding needed
+
+  sflow::FlowRecordOwned record2;
+  record2.flowFormat = 1;
+  record2.flowData = {0xAA, 0xBB}; // 2 bytes, will need 2 bytes padding
+
+  flowSample.flowRecords = {record1, record2};
+
+  // Add FlowSample to SampleRecord
+  sampleRecord.sampleData.push_back(flowSample);
+
+  // Add SampleRecord to SampleDatagramV5Owned
+  ownedDatagram.samples.push_back(std::move(sampleRecord));
+
+  // Test size calculation
+  // Calculate expected size: IP address + subAgentID + sequenceNumber + uptime
+  // + samplesCnt + sample size
+  uint32_t expectedSize = 4 /* IP address type */ +
+      ownedDatagram.agentAddress.byteCount() + 4 /* subAgentID */ +
+      4 /* sequenceNumber */ + 4 /* uptime */ + 4 /* samplesCnt */ +
+      ownedDatagram.samples[0].size();
+  EXPECT_EQ(ownedDatagram.size(), expectedSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  ownedDatagram.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify the complete serialized buffer content byte by byte
+  std::vector<uint8_t> actualData(
+      buffer.begin(), buffer.begin() + serializedSize);
+  EXPECT_THAT(
+      actualData,
+      ElementsAre(
+          // IP address type (IPv6 = 2) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x02,
+          // IPv6 address: 2401:db00:116:3016::1b (16 bytes)
+          0x24,
+          0x01,
+          0xdb,
+          0x00,
+          0x01,
+          0x16,
+          0x30,
+          0x16,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x1b,
+          // subAgentID (12345 = 0x3039) as big-endian
+          0x00,
+          0x00,
+          0x30,
+          0x39,
+          // sequenceNumber (67890 = 0x10932) as big-endian
+          0x00,
+          0x01,
+          0x09,
+          0x32,
+          // uptime (9876543 = 0x96B34F) as big-endian
+          0x00,
+          0x96,
+          0xB4,
+          0x3F,
+          // samplesCnt (1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+
+          // SampleRecord:
+          // sampleType (1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // sampleDataLen (56 bytes) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x38,
+
+          // FlowSample data:
+          // sequenceNumber (111 = 0x6F) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x6F,
+          // sourceID (222 = 0xDE) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0xDE,
+          // samplingRate (333 = 0x14D) as big-endian
+          0x00,
+          0x00,
+          0x01,
+          0x4D,
+          // samplePool (444 = 0x1BC) as big-endian
+          0x00,
+          0x00,
+          0x01,
+          0xBC,
+          // drops (555 = 0x22B) as big-endian
+          0x00,
+          0x00,
+          0x02,
+          0x2B,
+          // input (666 = 0x29A) as big-endian
+          0x00,
+          0x00,
+          0x02,
+          0x9A,
+          // output (777 = 0x309) as big-endian
+          0x00,
+          0x00,
+          0x03,
+          0x09,
+          // flowRecordsCnt (2) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x02,
+
+          // First FlowRecord:
+          // flowFormat (1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // flowDataLen (4) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x04,
+          // flowData: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
+          0x11,
+          0x22,
+          0x33,
+          0x44,
+
+          // Second FlowRecord:
+          // flowFormat (1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // flowDataLen (2) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x02,
+          // flowData: 0xAA, 0xBB + 2 bytes padding for XDR alignment
+          0xAA,
+          0xBB,
+          0x00,
+          0x00));
+
+  // Verify that the size calculation matches the actual serialized size
+  EXPECT_EQ(ownedDatagram.size(), serializedSize);
+}
+
+TEST(SflowStructsTest, SampleDatagramV5OwnedSizeCalculation) {
+  // Test size calculation with various numbers of sample records
+  sflow::SampleDatagramV5Owned datagram;
+  datagram.agentAddress = folly::IPAddress("192.168.1.100");
+  datagram.subAgentID = 1;
+  datagram.sequenceNumber = 2;
+  datagram.uptime = 3;
+
+  // Test empty samples
+  uint32_t baseSize = 4 /* IP address type */ +
+      datagram.agentAddress.byteCount() + 4 + 4 + 4 + 4;
+  EXPECT_EQ(datagram.size(), baseSize);
+
+  // Add one sample record
+  sflow::SampleRecordOwned record1;
+  record1.sampleType = 1;
+
+  // Add a FlowSampleOwned with FlowRecords
+  sflow::FlowSampleOwned flowSample1;
+  flowSample1.sequenceNumber = 100;
+  flowSample1.sourceID = 200;
+  flowSample1.samplingRate = 300;
+  flowSample1.samplePool = 400;
+  flowSample1.drops = 500;
+  flowSample1.input = 600;
+  flowSample1.output = 700;
+
+  sflow::FlowRecordOwned flowRecord1;
+  flowRecord1.flowFormat = 1;
+  flowRecord1.flowData = {0x01, 0x02, 0x03}; // 3 bytes + 1 padding = 4
+  flowSample1.flowRecords = {flowRecord1};
+
+  record1.sampleData.push_back(flowSample1);
+  datagram.samples.push_back(std::move(record1));
+
+  uint32_t expectedSize1 = baseSize + datagram.samples[0].size();
+  EXPECT_EQ(datagram.size(), expectedSize1);
+
+  // Add another sample record
+  sflow::SampleRecordOwned record2;
+  record2.sampleType = 2;
+
+  sflow::FlowSampleOwned flowSample2;
+  flowSample2.sequenceNumber = 1000;
+  flowSample2.sourceID = 2000;
+  flowSample2.samplingRate = 3000;
+  flowSample2.samplePool = 4000;
+  flowSample2.drops = 5000;
+  flowSample2.input = 6000;
+  flowSample2.output = 7000;
+
+  sflow::FlowRecordOwned flowRecord2;
+  flowRecord2.flowFormat = 1;
+  flowRecord2.flowData = {
+      0x04, 0x05, 0x06, 0x07, 0x08, 0x09}; // 6 bytes + 2 padding = 8
+  flowSample2.flowRecords = {flowRecord2};
+
+  record2.sampleData.push_back(flowSample2);
+  datagram.samples.push_back(std::move(record2));
+
+  uint32_t expectedSize2 =
+      baseSize + datagram.samples[0].size() + datagram.samples[1].size();
+  EXPECT_EQ(datagram.size(), expectedSize2);
+}
+
+TEST(SflowStructsTest, SampleDatagramV5OwnedMultipleSamples) {
+  // Test SampleDatagramV5Owned with multiple sample records
+  sflow::SampleDatagramV5Owned datagram;
+  datagram.agentAddress = folly::IPAddress("10.0.0.1");
+  datagram.subAgentID = 11111;
+  datagram.sequenceNumber = 22222;
+  datagram.uptime = 33333;
+
+  // Create first sample record
+  sflow::SampleRecordOwned record1;
+  record1.sampleType = 1;
+
+  sflow::FlowSampleOwned flowSample1;
+  flowSample1.sequenceNumber = 111;
+  flowSample1.sourceID = 222;
+  flowSample1.samplingRate = 333;
+  flowSample1.samplePool = 444;
+  flowSample1.drops = 555;
+  flowSample1.input = 666;
+  flowSample1.output = 777;
+
+  sflow::FlowRecordOwned flowRecord1;
+  flowRecord1.flowFormat = 1;
+  flowRecord1.flowData = {0x11, 0x22}; // 2 bytes + 2 padding = 4
+  flowSample1.flowRecords = {flowRecord1};
+
+  record1.sampleData.push_back(flowSample1);
+
+  // Create second sample record
+  sflow::SampleRecordOwned record2;
+  record2.sampleType = 2;
+
+  sflow::FlowSampleOwned flowSample2;
+  flowSample2.sequenceNumber = 888;
+  flowSample2.sourceID = 999;
+  flowSample2.samplingRate = 1010;
+  flowSample2.samplePool = 2020;
+  flowSample2.drops = 3030;
+  flowSample2.input = 4040;
+  flowSample2.output = 5050;
+
+  sflow::FlowRecordOwned flowRecord2;
+  flowRecord2.flowFormat = 1;
+  flowRecord2.flowData = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding = 4
+  flowSample2.flowRecords = {flowRecord2};
+
+  record2.sampleData.push_back(flowSample2);
+
+  // Add both records to datagram
+  datagram.samples.push_back(std::move(record1));
+  datagram.samples.push_back(std::move(record2));
+
+  // Test size calculation - should include both sample records
+  uint32_t baseSize = 4 /* IP address type */ +
+      datagram.agentAddress.byteCount() + 4 + 4 + 4 + 4;
+  uint32_t expectedTotalSize =
+      baseSize + datagram.samples[0].size() + datagram.samples[1].size();
+  EXPECT_EQ(datagram.size(), expectedTotalSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  datagram.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify that serialization size matches calculated size
+  EXPECT_EQ(datagram.size(), serializedSize);
+  EXPECT_EQ(datagram.samples.size(), 2);
+
+  // Verify basic structure integrity
+  EXPECT_GT(
+      serializedSize, 50); // Should be a substantial size with all the data
+}
+
 } // namespace facebook::fboss::sflow
