@@ -330,8 +330,6 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
       transceiverIdSet.begin(), transceiverIdSet.end());
   auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
 
-  transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-
   std::time_t startTime = std::time(nullptr);
   // 2. Wait for a VDM interval to begin starting now and a transceiverInfo
   // update to finish after the start of VDM interval. This skips any noise from
