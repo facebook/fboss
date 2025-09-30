@@ -1956,6 +1956,19 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
 }
 
 bool MultiNodeUtil::verifyTrafficSpray() const {
+  XLOG(DBG2) << __func__;
+
+  // Add a neighbor for every RDSW in the cluster
+  for (const auto& rdsw : allRdsws_) {
+    auto neighbors = computeNeighborsForRdsw(rdsw, 1 /* number of neighbors */);
+    CHECK_EQ(neighbors.size(), 1);
+    auto neighbor = neighbors[0];
+
+    XLOG(DBG2) << "Adding neighbor: " << neighbor.str() << " to " << rdsw;
+    addNeighbor(
+        rdsw, neighbor.intfID, neighbor.ip, neighbor.mac, neighbor.portID);
+  }
+
   return true;
 }
 
