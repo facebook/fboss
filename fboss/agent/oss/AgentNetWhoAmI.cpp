@@ -12,7 +12,7 @@ bool AgentNetWhoAmI::isBcmSaiPlatform() const {
   return false;
 }
 
-bool AgentNetWhoAmI::isCiscoSaiPlatform() const {
+bool AgentNetWhoAmI::isTajoSaiPlatform() const {
   return false;
 }
 
@@ -20,11 +20,15 @@ bool AgentNetWhoAmI::isBcmPlatform() const {
   return false;
 }
 
-bool AgentNetWhoAmI::isCiscoPlatform() const {
+bool AgentNetWhoAmI::isTajoPlatform() const {
   return false;
 }
 
 bool AgentNetWhoAmI::isBcmVoqPlatform() const {
+  return false;
+}
+
+bool AgentNetWhoAmI::isTajoMorgan800ccPlatform() const {
   return false;
 }
 
