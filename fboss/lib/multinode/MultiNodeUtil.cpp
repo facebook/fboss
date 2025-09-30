@@ -162,6 +162,14 @@ void removeNeighbor(
       facebook::network::toBinaryAddress(neighborIP), interfaceID);
 }
 
+std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<int32_t, facebook::fboss::InterfaceDetail> intfIdToIntf;
+  swAgentClient->sync_getAllInterfaces(intfIdToIntf);
+  return intfIdToIntf;
+}
+
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
