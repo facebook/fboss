@@ -767,29 +767,19 @@ bool MultiNodeUtil::verifySystemPorts() const {
 }
 
 std::map<std::string, std::vector<InterfaceDetail>>
-MultiNodeUtil::getPeerToRifs(const std::string& rdsw) const {
-  auto logRif = [rdsw](const facebook::fboss::InterfaceDetail& rif) {
-    XLOG(DBG2)
-        << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
-        << " interfaceId: " << rif.interfaceId().value() << " remoteIntfType: "
-        << apache::thrift::util::enumNameSafe(rif.remoteIntfType().value_or(-1))
-        << " remoteIntfLivenessStatus: "
-        << folly::to<std::string>(rif.remoteIntfLivenessStatus().value_or(-1))
-        << " scope: "
-        << apache::thrift::util::enumNameSafe(rif.scope().value());
-  };
+MultiNodeUtil::getRdswToRifs() const {
+  std::map<std::string, std::vector<InterfaceDetail>> rdswToRifs;
+  for (const auto& rdsw : allRdsws_) {
+    auto intfIdToIntf = getIntfIdToIntf(rdsw);
 
-  auto swAgentClient = getSwAgentThriftClient(rdsw);
-  std::map<int32_t, facebook::fboss::InterfaceDetail> rifs;
-  swAgentClient->sync_getAllInterfaces(rifs);
-
-  std::map<std::string, std::vector<InterfaceDetail>> peerToRifs;
-  for (const auto& [_, rif] : rifs) {
-    logRif(rif);
-    peerToRifs[rdsw].push_back(rif);
+    std::transform(
+        intfIdToIntf.begin(),
+        intfIdToIntf.end(),
+        std::back_inserter(rdswToRifs[rdsw]),
+        [](const auto& pair) { return pair.second; });
   }
 
-  return peerToRifs;
+  return rdswToRifs;
 }
 
 std::set<int> MultiNodeUtil::getGlobalRifsOfType(
@@ -1355,15 +1345,11 @@ bool MultiNodeUtil::verifyStaleSystemPorts(
 
 bool MultiNodeUtil::verifyStaleRifs(
     const std::set<std::string>& restartedRdsws) const {
-  auto myHostname = network::NetworkUtil::getLocalHost(
-      true /* stripFbDomain */, true /* stripTFbDomain */);
-
-  auto staleRifs = [this, myHostname, restartedRdsws] {
+  auto staleRifs = [this, restartedRdsws] {
     // Verify rifs for restarted RDSWs are STALE
     // Verify rifs for non-restarted RDSWs are LIVE
-    auto peerToRifs = getPeerToRifs(myHostname);
-    for (const auto& [peer, rifs] : peerToRifs) {
-      bool isRestarted = restartedRdsws.find(peer) != restartedRdsws.end();
+    for (const auto& [rdsw, rifs] : getRdswToRifs()) {
+      bool isRestarted = restartedRdsws.find(rdsw) != restartedRdsws.end();
 
       for (const auto& rif : rifs) {
         auto livenessStatus = rif.remoteIntfLivenessStatus();
@@ -1427,12 +1413,8 @@ bool MultiNodeUtil::verifyLiveSystemPorts() const {
 }
 
 bool MultiNodeUtil::verifyLiveRifs() const {
-  auto myHostname = network::NetworkUtil::getLocalHost(
-      true /* stripFbDomain */, true /* stripTFbDomain */);
-
-  auto liveRifs = [this, myHostname] {
-    auto peerToRifs = getPeerToRifs(myHostname);
-    for (const auto& [peer, rifs] : peerToRifs) {
+  auto liveRifs = [this] {
+    for (const auto& [_, rifs] : getRdswToRifs()) {
       for (const auto& rif : rifs) {
         auto livenessStatus = rif.remoteIntfLivenessStatus();
         if (!livenessStatus.has_value()) {

@@ -172,8 +172,7 @@ class MultiNodeUtil {
       const std::set<RemoteSystemPortType>& types) const;
   bool verifySystemPortsForRdsw(const std::string& rdswToVerify) const;
 
-  std::map<std::string, std::vector<InterfaceDetail>> getPeerToRifs(
-      const std::string& rdsw) const;
+  std::map<std::string, std::vector<InterfaceDetail>> getRdswToRifs() const;
   std::set<int> getGlobalRifsOfType(
       const std::string& rdsw,
       const std::set<RemoteInterfaceType>& types) const;
