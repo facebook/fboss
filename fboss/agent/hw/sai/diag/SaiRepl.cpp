@@ -73,8 +73,8 @@ std::string SaiRepl::getPrompt() const {
 std::vector<folly::File> SaiRepl::getStreams() const {
   std::vector<folly::File> ret;
   ret.reserve(2);
-  ret.emplace_back(folly::File(STDIN_FILENO));
-  ret.emplace_back(folly::File(STDOUT_FILENO));
+  ret.emplace_back(STDIN_FILENO);
+  ret.emplace_back(STDOUT_FILENO);
   return ret;
 }
 

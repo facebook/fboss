@@ -16,6 +16,7 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <fb303/ThreadCachedServiceData.h>
 
 extern "C" {
 #include <netlink/object.h>
@@ -36,6 +37,10 @@ class TunManager : public StateObserver {
 
 #ifdef TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS
   TUNMANAGER_ROUTE_PROCESSOR_FRIEND_TESTS
+#endif
+
+#ifdef TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS
+  TUNMANAGER_RULE_PROCESSOR_FRIEND_TESTS
 #endif
 
 #ifdef AGENT_TUNNEL_MGR_FRIEND_TESTS
@@ -88,6 +93,11 @@ class TunManager : public StateObserver {
    */
   virtual void probe();
 
+  /*
+   * Perform initial cleanup of probed data if required
+   */
+  void performInitialCleanup(std::shared_ptr<SwitchState> state);
+
   void stopProcessing();
 
   /**
@@ -128,6 +138,33 @@ class TunManager : public StateObserver {
      * @brief Default constructor.
      */
     ProbedRoute() = default;
+  };
+
+  /**
+   * @brief Probed rule from the kernel.
+   */
+  struct ProbedRule {
+    /*< Address family (AF_INET for IPv4, AF_INET6 for IPv6) */
+    int family{};
+    /*< Routing table identifier */
+    int tableId{};
+    /*< Source address as string */
+    std::string srcAddr;
+
+    /**
+     * @brief Constructor for initializing family, tableId, and srcAddr.
+     *
+     * @param family Address family (AF_INET for IPv4, AF_INET6 for IPv6)
+     * @param tableId Routing table identifier
+     * @param srcAddr Source address as string
+     */
+    ProbedRule(int family, int tableId, const std::string& srcAddr)
+        : family(family), tableId(tableId), srcAddr(srcAddr) {}
+
+    /**
+     * @brief Default constructor.
+     */
+    ProbedRule() = default;
   };
 
   // no copy to assign
@@ -191,6 +228,24 @@ class TunManager : public StateObserver {
    */
   std::unordered_map<InterfaceID, int> buildIfIdToTableIdMap(
       std::shared_ptr<SwitchState> state) const;
+
+  /**
+   * Build a mapping from interface index to table ID from probed routes.
+   */
+  std::unordered_map<int, int> buildIfIndexToTableIdMapFromProbedRoutes() const;
+
+  /**
+   * Build a mapping from interface index to table ID from source rules.
+   */
+  std::unordered_map<int, int> buildIfIndexToTableIdMapFromRules() const;
+
+  /**
+   * Build a mapping from interface index to table ID from probed data.
+   *
+   * Combines data from probed routes and rules to create a comprehensive
+   * mapping of interface indices to routing table IDs.
+   */
+  std::unordered_map<int, int> buildIfIndextoTableMapFromProbedData() const;
 
   /**
    * Build a mapping from interface ID to table ID from probed interfaces.
@@ -277,6 +332,19 @@ class TunManager : public StateObserver {
    * @param data Pointer to TunManager instance for storing probed routes
    */
   static void routeProcessor(struct nl_object* obj, void* data);
+
+  /**
+   * Netlink callback for processing source routing rules read from kernel.
+   *
+   * Process source routing rules discovered during kernel probing and stores
+   * them for later cleanup. It filters rules based on address family
+   * (IPv4/IPv6 only), table ID (1-253 range), and extracts source address
+   * and table information.
+   *
+   * @param obj Netlink rule object to process
+   * @param data Pointer to TunManager instance for storing probed rules
+   */
+  static void ruleProcessor(struct nl_object* obj, void* data);
 
   /**
    * Delete probed routes from kernel routing tables.
@@ -371,10 +439,19 @@ class TunManager : public StateObserver {
   // Initial probe done
   bool probeDone_{false};
 
+  // Initial cleanup done
+  bool initialCleanupDone_{false};
+
+  // Was probed state cleaned up?
+  bool probedStateCleanedUp_{false};
+
   uint64_t numSyncs_{0};
 
   /*< Container to store probed routes from kernel */
   std::vector<ProbedRoute> probedRoutes_;
+
+  /*< Container to store probed rules from kernel */
+  std::vector<ProbedRule> probedRules_;
 
   enum : uint8_t {
     /**

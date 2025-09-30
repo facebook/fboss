@@ -71,6 +71,9 @@ sai_bridge_port_fdb_learning_mode_t SaiBridgeManager::getFdbLearningMode(
         fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
       }
       break;
+    case cfg::L2LearningMode::DISABLED:
+      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_DISABLE;
+      break;
   }
   return fdbLearningMode;
 }

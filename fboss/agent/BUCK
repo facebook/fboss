@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
@@ -805,6 +806,7 @@ cpp_library(
         "DsfUpdateValidator.cpp",
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
+        "FabricLinkMonitoring.cpp",
         "FsdbSyncer.cpp",
         "HwAsicTable.cpp",
         "HwSwitchConnectionStatusTable.cpp",
@@ -1099,6 +1101,7 @@ cpp_library(
         "TestThriftHandler.h",
     ],
     exported_deps = [
+        ":core",
         ":handler",
         ":utils",
         "//fboss/agent/if:test_ctrl-cpp2-services",
@@ -1602,6 +1605,7 @@ cpp_library(
     srcs = [
         "mnpu/FdbEventSyncer.cpp",
         "mnpu/HwSwitchStatsSinkClient.cpp",
+        "mnpu/IpcHealthMonitor.cpp",
         "mnpu/LinkChangeEventSyncer.cpp",
         "mnpu/OperDeltaSyncer.cpp",
         "mnpu/RxPktEventSyncer.cpp",
@@ -1613,6 +1617,7 @@ cpp_library(
     headers = [
         "mnpu/FdbEventSyncer.h",
         "mnpu/HwSwitchStatsSinkClient.h",
+        "mnpu/IpcHealthMonitor.h",
         "mnpu/OperDeltaSyncer.h",
         "mnpu/RxPktEventSyncer.h",
         "mnpu/SplitAgentThriftSyncer.h",
@@ -1626,6 +1631,8 @@ cpp_library(
         ":hwswitchcallback",
         ":multiswitch_service",
         ":packet",
+        "//fb303:service_data",
+        "//fb303:thread_cached_service_data",
         "//fboss/agent/state:state",
         "//fboss/lib:common_thrift_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
@@ -1637,6 +1644,7 @@ cpp_library(
         "//folly/coro:unbounded_queue",
         "//folly/io/async:async_base",
         "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
         "//thrift/lib/cpp2/async:pooled_request_channel",
         "//thrift/lib/cpp2/async:reconnecting_request_channel",
         "//thrift/lib/cpp2/async:retrying_request_channel",
@@ -1976,6 +1984,20 @@ cpp_library(
     ],
 )
 
+cpp_unittest(
+    name = "ipc_health_monitor_test",
+    srcs = [
+        "mnpu/test/IpcHealthMonitorTest.cpp",
+    ],
+    deps = [
+        ":ipc_health_monitor",
+        "//fb303:service_data",
+        "//folly/io/async:async_base",
+        "//folly/io/async/test:event_base_test_lib",
+        "//folly/logging:logging",
+    ],
+)
+
 ci_sandcastle(
     name = "build_fboss_fbpkg",
     alias = "build_fboss_fbpkg_ci",
@@ -1998,6 +2020,24 @@ ci_sandcastle(
     ],
     command = "SandcastleUniversalCommand",
     oncall = "fboss_agent",
+)
+
+cpp_library(
+    name = "ipc_health_monitor",
+    srcs = [
+        "mnpu/IpcHealthMonitor.cpp",
+    ],
+    headers = [
+        "mnpu/IpcHealthMonitor.h",
+    ],
+    exported_deps = [
+        "//fb303:service_data",
+        "//fb303:thread_cached_service_data",
+        "//folly:cancellation_token",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
 )
 
 export_file(name = "Main.cpp")

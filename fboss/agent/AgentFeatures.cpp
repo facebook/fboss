@@ -356,7 +356,19 @@ DEFINE_bool(
     false,
     "Allow upto 8K system ports on single stage DSF (default=6144)");
 
+DEFINE_bool(
+    dsf_single_stage_r128_f40_e16_local_offset_0,
+    false,
+    "Use local system port offset of 0 for single stage DSF");
+
 DEFINE_uint32(
     ecmp_width,
     64,
     "Max ecmp width. Also implies ucmp normalization factor");
+
+DEFINE_bool(enable_th5_ars_scale_mode, false, "Enable ARS scale mode");
+
+DEFINE_bool(
+    check_wb_handles,
+    false,
+    "Fail if any warm boot handles are left unclaimed.");

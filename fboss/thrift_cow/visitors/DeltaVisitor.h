@@ -90,19 +90,16 @@ struct DeltaVisitOptions {
       DeltaVisitMode mode,
       DeltaVisitOrder order = DeltaVisitOrder::PARENTS_FIRST,
       bool outputIdPaths = false,
-      bool hybridNodeShallowTraversal = true,
-      bool hybridNodeDeepTraversal = false)
+      bool hybridNodeShallowTraversal = true)
       : mode(mode),
         order(order),
         outputIdPaths(outputIdPaths),
-        hybridNodeShallowTraversal(hybridNodeShallowTraversal),
-        hybridNodeDeepTraversal(hybridNodeDeepTraversal) {}
+        hybridNodeShallowTraversal(hybridNodeShallowTraversal) {}
 
   DeltaVisitMode mode;
   DeltaVisitOrder order;
   bool outputIdPaths;
   bool hybridNodeShallowTraversal;
-  bool hybridNodeDeepTraversal;
 };
 
 namespace dv_detail {
@@ -228,8 +225,7 @@ void visitAddedOrRemovedNode(
             RecurseVisitMode::FULL,
             subtreeVisitOrder,
             options.outputIdPaths,
-            options.hybridNodeShallowTraversal,
-            options.hybridNodeDeepTraversal),
+            options.hybridNodeShallowTraversal),
         std::move(processChange));
   }
 
@@ -253,17 +249,12 @@ void visitAddedOrRemovedNode(
     // only enable for HybridNode types
   requires(std::is_same_v<typename Node::CowType, HybridNodeType>)
 {
-  if (!options.hybridNodeDeepTraversal) {
-    invokeVisitorFnHelper(
-        traverser,
-        oldNode,
-        newNode,
-        DeltaElemTag::MINIMAL,
-        std::forward<Func>(f));
-  } else {
-    throw std::runtime_error(folly::to<std::string>(
-        "DeltaVisitor support for hybridNodeDeepTraversal not implemented"));
-  }
+  invokeVisitorFnHelper(
+      traverser,
+      oldNode,
+      newNode,
+      DeltaElemTag::MINIMAL,
+      std::forward<Func>(f));
 }
 
 template <typename TC, typename Node, typename TraverseHelper, typename Func>
@@ -367,16 +358,12 @@ struct DeltaVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       // only enable for HybridNode types
     requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "DeltaVisitor support for hybridNodeDeepTraversal of Set not implemented"));
-    }
     bool hasDifferences{false};
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
       std::set_symmetric_difference(
           oldRef.begin(),
           oldRef.end(),
@@ -493,16 +480,12 @@ struct DeltaVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       // only enable for HybridNode types
     requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "DeltaVisitor support for hybridNodeDeepTraversal of List not implemented"));
-    }
     bool hasDifferences{false};
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
 
       int minSize = std::min(oldRef.size(), newRef.size());
 
@@ -606,18 +589,13 @@ struct DeltaVisitor<
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "DeltaVisitor support for hybridNodeDeepTraversal of Map not implemented"));
-    }
-
     if (traverser.shouldShortCircuit(VisitorType::DELTA)) {
       return false;
     }
 
     bool hasDifferences{false};
-    const auto& oldRef = oldFields->ref();
-    const auto& newRef = newFields->ref();
+    const auto& oldRef = oldFields->cref();
+    const auto& newRef = newFields->cref();
 
     for (const auto& [key, val] : oldRef) {
       auto it = newRef.find(key);
@@ -821,16 +799,12 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "DeltaVisitor support for hybridNodeDeepTraversal of Variant not implemented"));
-    }
     bool hasDifferences{false};
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
       if (oldRef != newRef) {
         hasDifferences = true;
       }
@@ -939,16 +913,12 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, HybridNodeType>)
   {
-    if (options.hybridNodeDeepTraversal) {
-      throw std::runtime_error(folly::to<std::string>(
-          "DeltaVisitor support for hybridNodeDeepTraversal of Struct not implemented"));
-    }
     bool hasDifferences{false};
     // if both old and new are non-null, compare contents
     if ((oldFields != newFields) &&
         (static_cast<bool>(oldFields) && static_cast<bool>(newFields))) {
-      const auto& oldRef = oldFields->ref();
-      const auto& newRef = newFields->ref();
+      const auto& oldRef = oldFields->cref();
+      const auto& newRef = newFields->cref();
       if (oldRef != newRef) {
         hasDifferences = true;
       }

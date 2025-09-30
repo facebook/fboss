@@ -96,6 +96,7 @@ struct PlatformPortConfigOverrideFactor {
   5: optional transceiver.TransceiverManagementInterface transceiverManagementInterface;
   6: optional list<phy.DataPlanePhyChip> chips;
   7: optional transceiver.MediaInterfaceCode mediaInterfaceCode;
+  8: optional transceiver.Vendor vendor;
 }
 
 struct PlatformPortConfigOverride {

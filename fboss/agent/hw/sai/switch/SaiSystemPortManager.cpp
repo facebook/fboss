@@ -369,7 +369,9 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
       cfg::PortType::MANAGEMENT_PORT,
-      cfg::PortType::EVENTOR_PORT};
+      cfg::PortType::EVENTOR_PORT,
+      cfg::PortType::HYPER_PORT,
+      cfg::PortType::HYPER_PORT_MEMBER};
   for (const auto& portMap : std::as_const(*ports)) {
     for (const auto& port : std::as_const(*portMap.second)) {
       if (kCreateSysPortsFor.find(port.second->getPortType()) ==

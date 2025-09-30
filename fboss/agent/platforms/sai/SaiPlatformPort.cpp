@@ -56,18 +56,34 @@ bool SaiPlatformPort::checkSupportsTransceiver() const {
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
     cfg::PortProfileID profileID) const {
   const auto& platformPortEntry = getPlatformPortEntry();
-  auto& dataPlanePhyChips = getPlatform()->getDataPlanePhyChips();
-  auto iphys = utility::getOrderedIphyLanes(
-      platformPortEntry, dataPlanePhyChips, profileID);
   std::vector<uint32_t> hwLaneList;
-  for (auto iphy : iphys) {
-    auto chipIter = dataPlanePhyChips.find(*iphy.chip());
-    if (chipIter == dataPlanePhyChips.end()) {
-      throw FbossError(
-          "dataplane chip does not exist for chip: ", *iphy.chip());
+  if (getPortType() == cfg::PortType::HYPER_PORT) {
+    CHECK(profileID == cfg::PortProfileID::PROFILE_DEFAULT);
+    auto portCfg =
+        platformPortEntry.supportedProfiles()->find(profileID)->second;
+    CHECK(portCfg.subsumedPorts());
+    for (const auto& subsumedPortId : *portCfg.subsumedPorts()) {
+      SaiPlatformPort* subsumedPort = (static_cast<SaiPlatform*>(getPlatform()))
+                                          ->getPort(PortID(subsumedPortId));
+      std::vector<uint32_t> subsumedPortLanes =
+          subsumedPort->getHwPortLanes(profileID);
+      hwLaneList.insert(
+          hwLaneList.end(), subsumedPortLanes.begin(), subsumedPortLanes.end());
     }
-    hwLaneList.push_back(
-        getPhysicalLaneId(*chipIter->second.physicalID(), *iphy.lane()));
+    std::sort(hwLaneList.begin(), hwLaneList.end());
+  } else {
+    auto& dataPlanePhyChips = getPlatform()->getDataPlanePhyChips();
+    auto iphys = utility::getOrderedIphyLanes(
+        platformPortEntry, dataPlanePhyChips, profileID);
+    for (auto iphy : iphys) {
+      auto chipIter = dataPlanePhyChips.find(*iphy.chip());
+      if (chipIter == dataPlanePhyChips.end()) {
+        throw FbossError(
+            "dataplane chip does not exist for chip: ", *iphy.chip());
+      }
+      hwLaneList.push_back(
+          getPhysicalLaneId(*chipIter->second.physicalID(), *iphy.lane()));
+    }
   }
   return hwLaneList;
 }

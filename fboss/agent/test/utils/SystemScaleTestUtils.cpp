@@ -290,7 +290,7 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
     folly::IPAddressV6 ip(ipStream.str());
     uint64_t macBytes = kBaseMac;
     folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes + i);
-    macIPv6Pairs.push_back(std::make_pair(ip, mac));
+    macIPv6Pairs.emplace_back(ip, mac);
   }
   const int srcPort = 47231;
   const int dstPort = 277;
@@ -364,7 +364,7 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
   std::vector<PortDescriptor> portDescriptorIds;
 
   for (const auto& portId : portIds) {
-    portDescriptorIds.push_back(PortDescriptor(portId));
+    portDescriptorIds.emplace_back(portId);
   }
 
   std::vector<std::vector<PortDescriptor>> allCombinations =

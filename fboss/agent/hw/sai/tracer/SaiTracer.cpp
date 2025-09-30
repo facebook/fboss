@@ -583,7 +583,7 @@ void SaiTracer::logApiInitialize(
     }
   }
 
-  lines.push_back("sai_api_initialize(0, &kSaiServiceMethodTable)");
+  lines.emplace_back("sai_api_initialize(0, &kSaiServiceMethodTable)");
   writeToFile(lines);
 }
 
@@ -1202,7 +1202,7 @@ void SaiTracer::logSendHostifPacketFn(
 
   // packet_buffer is declared in local space for each send packet call
   // Therefore, we open the bracket here and then declare the buffer
-  lines.push_back({"{"});
+  lines.emplace_back("{");
 
   std::ostringstream outStringStream;
   outStringStream << "uint8_t packet_buffer[" << buffer_size << "] = {";
@@ -1234,7 +1234,7 @@ void SaiTracer::logSendHostifPacketFn(
       ",s_a)"));
 
   // Close bracket for local scope
-  lines.push_back({"}"});
+  lines.emplace_back("}");
 
   lines.push_back(rvCheck(rv));
   writeToFile(lines);
@@ -1313,6 +1313,27 @@ void SaiTracer::logClearStatsFn(
   lines.push_back(rvCheck(rv));
 
   writeToFile(lines);
+}
+
+void SaiTracer::logShellCommand(const std::string& command) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  if (!asyncLogger_) {
+    XLOG(ERR) << "SaiTracer: AsyncLogger is null!";
+    return;
+  }
+
+  try {
+    // Log shell command as a C comment with a timestamp
+    std::string timestampLine = "\n" + logTimeAndRv(0);
+    std::string commentLine = "\n// Shell command: " + command;
+    asyncLogger_->appendLog(timestampLine.c_str(), timestampLine.size());
+    asyncLogger_->appendLog(commentLine.c_str(), commentLine.size());
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "SaiTracer: ERROR writing to asyncLogger: " << e.what();
+  }
 }
 
 std::tuple<string, string> SaiTracer::declareVariable(
@@ -1619,7 +1640,7 @@ void SaiTracer::setFdbEntry(
   lines.push_back(to<string>("f_e.bv_id=", getVariable(fdb_entry->bv_id)));
 
   // The underlying type of sai_mac_t is uint8_t[6]
-  lines.push_back("mac=f_e.mac_address");
+  lines.emplace_back("mac=f_e.mac_address");
   for (int i = 0; i < 6; ++i) {
     lines.push_back(to<string>("mac[", i, "]=", fdb_entry->mac_address[i]));
   }
@@ -1646,17 +1667,17 @@ void SaiTracer::setNeighborEntry(
   lines.push_back(to<string>("// ", ipAddress.str()));
 
   if (neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
-    lines.push_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
+    lines.emplace_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
     lines.push_back(to<string>(
         "n_e.ip_address.addr.ip4=", neighbor_entry->ip_address.addr.ip4));
 
   } else if (
       neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
-    lines.push_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV6");
+    lines.emplace_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV6");
 
     // Underlying type of sai_ip6_t is uint8_t[16]
-    lines.push_back("u=n_e.ip_address.addr.ip6");
-    lines.push_back("memset(u,0,16)");
+    lines.emplace_back("u=n_e.ip_address.addr.ip6");
+    lines.emplace_back("memset(u,0,16)");
     std::ostringstream addrOutStringStream;
     for (int i = 0; i < 16; ++i) {
       if (neighbor_entry->ip_address.addr.ip6[i] != 0) {
@@ -1681,17 +1702,17 @@ void SaiTracer::setRouteEntry(
   lines.push_back(to<string>("// ", ipAddr.str(), "/", mask));
 
   if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
-    lines.push_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
+    lines.emplace_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
     lines.push_back(to<string>(
         "r_e.destination.addr.ip4=", route_entry->destination.addr.ip4));
     lines.push_back(to<string>(
         "r_e.destination.mask.ip4=", route_entry->destination.mask.ip4));
   } else if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
-    lines.push_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV6");
+    lines.emplace_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV6");
 
     // Underlying type of sai_ip6_t is uint8_t[16]
-    lines.push_back("u=r_e.destination.addr.ip6");
-    lines.push_back("memset(u,0,16)");
+    lines.emplace_back("u=r_e.destination.addr.ip6");
+    lines.emplace_back("memset(u,0,16)");
     std::ostringstream addrOutStringStream;
     for (int i = 0; i < 16; ++i) {
       if (route_entry->destination.addr.ip6[i] != 0) {
@@ -1702,8 +1723,8 @@ void SaiTracer::setRouteEntry(
     }
     lines.push_back(addrOutStringStream.str());
 
-    lines.push_back("u=r_e.destination.mask.ip6");
-    lines.push_back("memset(u,0,16)");
+    lines.emplace_back("u=r_e.destination.mask.ip6");
+    lines.emplace_back("memset(u,0,16)");
     std::ostringstream maskOutStringStream;
     for (int i = 0; i < 16; ++i) {
       if (route_entry->destination.mask.ip6[i] != 0) {
@@ -1842,16 +1863,16 @@ void SaiTracer::setupGlobals() {
         "[[maybe_unused]] int list_", i, "[", FLAGS_default_list_size, "]"));
   }
 
-  globalVar.push_back("[[maybe_unused]] uint8_t* mac");
-  globalVar.push_back("[[maybe_unused]] uint8_t* u");
-  globalVar.push_back("[[maybe_unused]] sai_status_t rv");
-  globalVar.push_back("[[maybe_unused]] sai_route_entry_t r_e");
-  globalVar.push_back("[[maybe_unused]] sai_neighbor_entry_t n_e");
-  globalVar.push_back("[[maybe_unused]] sai_fdb_entry_t f_e");
-  globalVar.push_back("[[maybe_unused]] sai_inseg_entry_t i_e");
-  globalVar.push_back("[[maybe_unused]] uint32_t expected_object_count");
-  globalVar.push_back("[[maybe_unused]] uint32_t object_count");
-  globalVar.push_back(
+  globalVar.emplace_back("[[maybe_unused]] uint8_t* mac");
+  globalVar.emplace_back("[[maybe_unused]] uint8_t* u");
+  globalVar.emplace_back("[[maybe_unused]] sai_status_t rv");
+  globalVar.emplace_back("[[maybe_unused]] sai_route_entry_t r_e");
+  globalVar.emplace_back("[[maybe_unused]] sai_neighbor_entry_t n_e");
+  globalVar.emplace_back("[[maybe_unused]] sai_fdb_entry_t f_e");
+  globalVar.emplace_back("[[maybe_unused]] sai_inseg_entry_t i_e");
+  globalVar.emplace_back("[[maybe_unused]] uint32_t expected_object_count");
+  globalVar.emplace_back("[[maybe_unused]] uint32_t object_count");
+  globalVar.emplace_back(
       "[[maybe_unused]] std::vector<sai_object_key_t> object_list");
   globalVar.push_back(to<string>(
       "[[maybe_unused]] sai_status_t object_statuses[",

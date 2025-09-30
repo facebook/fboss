@@ -3,7 +3,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 oncall("fboss_platform")
 
 cpp_binary(
-    name = "weutil_test",
+    name = "weutil_hw_test",
     srcs = [
         "WeutilTest.cpp",
     ],

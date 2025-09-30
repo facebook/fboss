@@ -32,6 +32,16 @@
 #include <cstdint>
 #include <memory>
 
+extern "C" {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+#ifndef IS_OSS_BRCM_SAI
+#include <experimental/saiaclextensions.h>
+#else
+#include <saiaclextensions.h>
+#endif
+#endif
+}
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -415,6 +425,11 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         saiActionType = SAI_ACL_ACTION_TYPE_DISABLE_ARS_FORWARDING;
         break;
 #endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+      case cfg::AclTableActionType::L3_SWITCH_CANCEL:
+        saiActionType = SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL;
+        break;
+#endif
       default:
         // should return in one of the cases
         throw FbossError("Unsupported Acl Table action type");
@@ -504,7 +519,7 @@ SaiAclTableManager::addAclCounter(
 
     auto statName =
         folly::to<std::string>(*trafficCount.name(), ".", statSuffix);
-    aclCounterTypeAndName.push_back(std::make_pair(counterType, statName));
+    aclCounterTypeAndName.emplace_back(counterType, statName);
     if (aclCounterRefMap.find(statName) == aclCounterRefMap.end()) {
       // Create fb303 counter since stat is being added/readded again
       aclStats_.reinitStat(statName, std::nullopt);
@@ -1032,15 +1047,19 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionSetUserTrap{std::nullopt};
 #endif
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionSetArsObject>
       aclActionSetArsObject{std::nullopt};
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionDisableArsForwarding>
       aclActionDisableArsForwarding{std::nullopt};
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm>
       aclActionSetEcmpHashAlgorithm{std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::ActionL3SwitchCancel>
+      aclActionL3SwitchCancel{std::nullopt};
 #endif
 
   auto action = addedAclEntry->getAclAction();
@@ -1170,15 +1189,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     }
 
     if (matchAction.getEgressMirror().has_value()) {
+      egressMirror = matchAction.getEgressMirror().value();
       std::vector<sai_object_id_t> aclEntryMirrorEgressOidList;
       auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
           matchAction.getEgressMirror().value());
       if (mirrorHandle) {
         aclEntryMirrorEgressOidList.push_back(mirrorHandle->adapterKey());
+        aclActionMirrorEgress =
+            SaiAclEntryTraits::Attributes::ActionMirrorEgress{
+                AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
       }
-      egressMirror = matchAction.getEgressMirror().value();
-      aclActionMirrorEgress = SaiAclEntryTraits::Attributes::ActionMirrorEgress{
-          AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
     }
 
     if (matchAction.getSetDscp()) {
@@ -1251,6 +1271,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         switch (flowletAction) {
           case cfg::FlowletAction::FORWARD: {
 #if defined(CHENAB_SAI_SDK)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
             auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
             if (arsHandlePtr->ars) {
               aclActionSetArsObject =
@@ -1258,6 +1279,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                       AclEntryActionSaiObjectIdT(
                           arsHandlePtr->ars->adapterKey())};
             }
+#endif
 #else
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
@@ -1270,6 +1292,20 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             break;
         }
       }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      if (matchAction.getEnableAlternateArsMembers().has_value()) {
+        auto alternateMemberArsHandlePtr =
+            managerTable_->arsManager().getAlternateMemberArsHandle();
+        if (alternateMemberArsHandlePtr->ars) {
+          aclActionSetArsObject =
+              SaiAclEntryTraits::Attributes::ActionSetArsObject{
+                  AclEntryActionSaiObjectIdT(
+                      alternateMemberArsHandlePtr->ars->adapterKey())};
+        }
+        aclActionL3SwitchCancel =
+            SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
+      }
+#endif
     }
 #endif
   }
@@ -1322,11 +1358,12 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        || aclActionSetUserTrap.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-       || aclActionSetArsObject.has_value() ||
-       aclActionDisableArsForwarding.has_value()
+       || aclActionDisableArsForwarding.has_value()
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-       || aclActionSetEcmpHashAlgorithm.has_value()
+       || aclActionSetArsObject.has_value() ||
+       aclActionSetEcmpHashAlgorithm.has_value() ||
+       aclActionL3SwitchCancel.has_value()
 #endif
       );
 
@@ -1395,12 +1432,15 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if !defined(TAJO_SDK)
       aclActionSetUserTrap,
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetArsObject,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       aclActionDisableArsForwarding,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       aclActionSetEcmpHashAlgorithm,
+      aclActionL3SwitchCancel,
 #endif
   };
 

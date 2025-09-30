@@ -148,6 +148,7 @@ cpp_library(
         ":voq_test_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
+        "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
@@ -626,8 +627,12 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:agent_features",
         "//fboss/agent:ecmp_resource_manager",
+        "//fboss/agent:fib_helpers",
+        "//fboss/agent:utils",
         "//fboss/agent/state:state",
+        "//fboss/agent/test:utils",
     ],
 )
 

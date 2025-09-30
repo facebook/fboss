@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Copyright 2004-present Facebook. All Rights Reserved.
+# @noautodeps
+# Copyright Meta Platforms, Inc. and affiliates.
 
 import abc
 import csv
@@ -12,6 +13,8 @@ import time
 from argparse import ArgumentParser
 from datetime import datetime
 from typing import List
+
+from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_service
 
 # Helper to run HwTests
 #
@@ -202,35 +205,10 @@ ASIC_PRODUCTION_FEATURES = (
 SAI_UNSUPPORTED_TESTS = (
     "./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON"
 )
-QSFP_SERVICE_FOR_TESTING = "qsfp_service_for_testing"
+
 QSFP_SERVICE_DIR = "/dev/shm/fboss/qsfp_service"
-QSFP_SERVICE_COLD_BOOT_FILE = "cold_boot_once_qsfp_service"
+QSFP_WARMBOOT_CHECK_FILE = f"{QSFP_SERVICE_DIR}/can_warm_boot"
 AGENT_WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
-QSFP_WARMBOOT_CHECK_FILE = rf"{QSFP_SERVICE_DIR}/can_warm_boot"
-CLEANUP_QSFP_SERVICE_CMD = rf"""systemctl stop qsfp_service; systemctl stop {QSFP_SERVICE_FOR_TESTING}; systemctl disable {QSFP_SERVICE_FOR_TESTING}; systemctl daemon-reload; pkill -f qsfp_service; rm /etc/rsyslog.d/{QSFP_SERVICE_FOR_TESTING}.conf; systemctl restart rsyslog"""
-SETUP_QSFP_SERVICE_COLDBOOT_CMD = rf"""mkdir -p {QSFP_SERVICE_DIR}; touch {QSFP_SERVICE_DIR}/{QSFP_SERVICE_COLD_BOOT_FILE}"""
-START_QSFP_SERVICE_CMD = rf"""systemctl enable {{qsfp_service_file}}; systemctl daemon-reload; systemctl start {QSFP_SERVICE_FOR_TESTING}; sleep 10"""
-QSFP_SERVICE_FILE_TEMPLATE = rf"""
-[Unit]
-Description=QSFP Service For Testing
-
-[Service]
-LimitNOFILE=10000000
-LimitCORE=32G
-
-Environment=TSAN_OPTIONS="die_after_fork=0 halt_on_error=1
-Environment=LD_LIBRARY_PATH=/opt/fboss/lib
-ExecStart=/opt/fboss/bin/qsfp_service --qsfp-config {{qsfp_config}} --can-qsfp-service-warm-boot {{is_warm_boot}} {{optional_flags}}
-SyslogIdentifier={QSFP_SERVICE_FOR_TESTING}
-Restart=no
-
-[Install]
-WantedBy=multi-user.target
-"""
-QSFP_SERVICE_LOG_TEMPLATE = rf"""
-if $programname == "{QSFP_SERVICE_FOR_TESTING}" then {{qsfp_service_log}}
-& stop
-"""
 
 XGS_SIMULATOR_ASICS = ["th3", "th4", "th4_b0", "th5"]
 DNX_SIMULATOR_ASICS = ["j3"]
@@ -347,42 +325,6 @@ class TestRunner(abc.ABC):
     def _filter_tests(self, tests: List[str]) -> List[str]:
         pass
 
-    def setup_qsfp_service(self, is_warm_boot):
-        subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
-        qsfp_service_file = f"/tmp/{QSFP_SERVICE_FOR_TESTING}.service"
-        optional_flags = ""
-        if args.platform_mapping_override_path is not None:
-            optional_flags += f"{OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH} {args.platform_mapping_override_path} "
-        if args.bsp_platform_mapping_override_path is not None:
-            optional_flags += f"{OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH} {args.bsp_platform_mapping_override_path} "
-        with open(qsfp_service_file, "w") as f:
-            f.write(
-                QSFP_SERVICE_FILE_TEMPLATE.format(
-                    qsfp_config=args.qsfp_config,
-                    is_warm_boot=is_warm_boot,
-                    optional_flags=optional_flags,
-                )
-            )
-            f.flush()
-        if not is_warm_boot:
-            subprocess.run(SETUP_QSFP_SERVICE_COLDBOOT_CMD, shell=True)
-        return qsfp_service_file
-
-    def setup_qsfp_service_log(self):
-        qsfp_service_log = f"/etc/rsyslog.d/{QSFP_SERVICE_FOR_TESTING}.conf"
-        with open(qsfp_service_log, "w") as f:
-            f.write(QSFP_SERVICE_LOG_TEMPLATE.format(qsfp_service_log=qsfp_service_log))
-            f.flush()
-        subprocess.run("systemctl restart rsyslog; sleep 5", shell=True)
-
-    def start_qsfp_service(self, is_warm_boot):
-        qsfp_service_file = self.setup_qsfp_service(is_warm_boot)
-        self.setup_qsfp_service_log()
-        start_qsfp_service_cmd = START_QSFP_SERVICE_CMD.format(
-            qsfp_service_file=qsfp_service_file
-        )
-        subprocess.run(start_qsfp_service_cmd, shell=True)
-
     def _get_test_run_cmd(self, conf_file, test_to_run, flags):
         test_binary_name = self._get_test_binary_name()
         run_cmd = [
@@ -485,7 +427,11 @@ class TestRunner(abc.ABC):
 
     def _list_tests_to_run(self, filter, should_print=True):
         output = subprocess.check_output(
-            [self._get_test_binary_name(), "--gtest_list_tests", filter]
+            [
+                self._get_test_binary_name(),
+                "--gtest_list_tests",
+                f"--gtest_filter={filter}",
+            ]
         )
         # Print all the matching tests
         if should_print:
@@ -523,29 +469,29 @@ class TestRunner(abc.ABC):
         # 2. Tests by filter with known bad
         # 3. All tests with known bad
         # 4. All tests without known bad
-        regexes = []
+        test_names = []
         if args.filter or args.filter_file:
             if args.filter_file:
                 with open(args.filter_file) as file:
-                    regexes = [
+                    gtest_regexes = [
                         line.strip()
                         for line in file
-                        if not line.strip().startswith("#")
+                        if line.strip() and not line.strip().startswith("#")
                     ]
+                    test_names = self._list_tests_to_run(":".join(gtest_regexes), False)
             elif args.filter:
-                regexes = args.filter.split(":")
+                test_names = self._list_tests_to_run(args.filter, False)
         else:
-            regexes = self._list_tests_to_run("*", False)
+            test_names = self._list_tests_to_run("*", False)
         filter = ""
-        for regex in regexes:
-            if "-" in regex:
-                break
-            if self._is_known_bad_test(regex) or self._is_unsupported_test(regex):
+        for test_name in test_names:
+            if self._is_known_bad_test(test_name) or self._is_unsupported_test(
+                test_name
+            ):
                 continue
-            filter += f"{regex}:"
+            filter += f"{test_name}:"
         if not filter:
             return []
-        filter = "--gtest_filter=" + filter
         return self._list_tests_to_run(filter)
 
     def _restart_bcmsim(self, asic):
@@ -869,7 +815,7 @@ class SaiTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
@@ -1017,7 +963,7 @@ class LinkTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return "sai_link_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
@@ -1025,8 +971,7 @@ class LinkTestRunner(TestRunner):
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
-        # N/A
-        return []
+        return ["--enable_sai_log", sai_logging]
 
     def _get_warmboot_check_file(self):
         return AGENT_WARMBOOT_CHECK_FILE
@@ -1044,13 +989,23 @@ class LinkTestRunner(TestRunner):
         return arg_list
 
     def _setup_coldboot_test(self):
-        self.start_qsfp_service(False)
+        setup_and_start_qsfp_service(
+            qsfp_service_config_path=args.qsfp_config,
+            platform_mapping_override_path=args.platform_mapping_override_path,
+            bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_warm_boot=False,
+        )
 
     def _setup_warmboot_test(self):
-        self.start_qsfp_service(True)
+        setup_and_start_qsfp_service(
+            qsfp_service_config_path=args.qsfp_config,
+            platform_mapping_override_path=args.platform_mapping_override_path,
+            bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_warm_boot=True,
+        )
 
     def _end_run(self):
-        subprocess.run(CLEANUP_QSFP_SERVICE_CMD, shell=True)
+        cleanup_qsfp_service()
 
     def _filter_tests(self, tests: List[str]) -> List[str]:
         return tests
@@ -1098,7 +1053,7 @@ class SaiAgentTestRunner(TestRunner):
         return args.unsupported_tests_file
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_agent_hw_test-sai_impl-1.13.0"
+        return args.sai_bin if args.sai_bin else "sai_agent_hw_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_logging_dir, test_prefix, test_to_run
@@ -1222,9 +1177,9 @@ if __name__ == "__main__":
         OPT_ARG_QSFP_CONFIG_FILE,
         type=str,
         help=(
-            "run tests with specified qsfp config e.g. "
+            "run tests with specified qsfp config with the absolute path e.g. "
             + OPT_ARG_QSFP_CONFIG_FILE
-            + "=./share/qsfp_test_configs/meru400bfu.materialized_JSON"
+            + "=/opt/fboss/share/qsfp_test_configs/meru400bfu.materialized_JSON"
         ),
     )
     ap.add_argument(

@@ -233,7 +233,7 @@ std::vector<std::pair<std::string, std::string>> getCabledPairs(
   for (const auto& cabledTestPairs : *qsfpTestConfig->cabledPortPairs()) {
     auto& aPortName = *cabledTestPairs.aPortName();
     auto& zPortName = *cabledTestPairs.zPortName();
-    cabledPairs.push_back({aPortName, zPortName});
+    cabledPairs.emplace_back(aPortName, zPortName);
   }
   return cabledPairs;
 }

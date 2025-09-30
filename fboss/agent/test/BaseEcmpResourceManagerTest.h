@@ -131,6 +131,10 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const RouteNextHopSet& nhops) {
     return addOrUpdateRoute(prefix6, nhops);
   }
+  std::vector<StateDelta> addRoutes(
+      const std::map<RoutePrefixV6, RouteNextHopSet>& route2Nhops) {
+    return addOrUpdateRoutes(route2Nhops);
+  }
   std::vector<StateDelta> updateRoute(
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops) {
@@ -162,7 +166,13 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
  private:
   std::vector<StateDelta> addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
-      const RouteNextHopSet& nhops);
+      const RouteNextHopSet& nhops) {
+    std::map<RoutePrefixV6, RouteNextHopSet> prefix2Nhops;
+    prefix2Nhops.insert({prefix6, nhops});
+    return addOrUpdateRoutes(prefix2Nhops);
+  }
+  std::vector<StateDelta> addOrUpdateRoutes(
+      const std::map<RoutePrefixV6, RouteNextHopSet>& prefix2Nhops);
   virtual void setupFlags() const;
 
  public:

@@ -34,15 +34,16 @@ struct ExtractValueTypeClass<apache::thrift::type_class::list<ValueTypeClass>> {
 
 } // namespace list_helpers
 
-template <typename TypeClass, typename TType>
+template <typename TypeClass, typename TType, bool EnableHybridStorage = false>
 struct ThriftListFields : public FieldBaseType {
-  using Self = ThriftListFields<TypeClass, TType>;
+  using Self = ThriftListFields<TypeClass, TType, EnableHybridStorage>;
   using CowType = FieldsType;
   using ThriftType = TType;
   using ChildTypeClass =
       typename list_helpers::ExtractValueTypeClass<TypeClass>::type;
   using ChildTType = typename TType::value_type;
-  using ChildTraits = ConvertToNodeTraits<false, ChildTypeClass, ChildTType>;
+  using ChildTraits =
+      ConvertToNodeTraits<EnableHybridStorage, ChildTypeClass, ChildTType>;
   using value_type = typename ChildTraits::type;
   using StorageType = std::vector<value_type>;
   using iterator = typename StorageType::iterator;
@@ -223,17 +224,19 @@ struct ThriftListFields : public FieldBaseType {
   StorageType storage_;
 };
 
-template <typename TypeClass, typename TType>
-class ThriftListNode : public NodeBaseT<
-                           ThriftListNode<TypeClass, TType>,
-                           ThriftListFields<TypeClass, TType>>,
-                       public thrift_cow::Serializable {
+template <typename TypeClass, typename TType, bool EnableHybridStorage = false>
+class ThriftListNode
+    : public NodeBaseT<
+          ThriftListNode<TypeClass, TType, EnableHybridStorage>,
+          ThriftListFields<TypeClass, TType, EnableHybridStorage>>,
+      public thrift_cow::Serializable {
  public:
   using TC = TypeClass;
-  using Self = ThriftListNode<TypeClass, TType>;
-  using Fields = ThriftListFields<TypeClass, TType>;
+  using Self = ThriftListNode<TypeClass, TType, EnableHybridStorage>;
+  using Fields = ThriftListFields<TypeClass, TType, EnableHybridStorage>;
   using ThriftType = typename Fields::ThriftType;
-  using BaseT = NodeBaseT<ThriftListNode<TypeClass, TType>, Fields>;
+  using BaseT =
+      NodeBaseT<ThriftListNode<TypeClass, TType, EnableHybridStorage>, Fields>;
   using CowType = NodeType;
   using value_type = typename Fields::value_type;
   using PathIter = typename std::vector<std::string>::const_iterator;

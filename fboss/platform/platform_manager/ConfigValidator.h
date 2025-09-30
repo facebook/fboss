@@ -16,6 +16,7 @@ class ConfigValidator {
   bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
   bool isValidSlotConfig(const SlotConfig& slotConfig);
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
+  bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidDevicePath(
@@ -33,6 +34,13 @@ class ConfigValidator {
   bool isValidXcvrSymlinks(
       int16_t numXcvrs,
       const std::vector<std::string>& symlinks);
+  bool isValidCsrOffsetCalc(
+      const std::string& csrOffsetCalc,
+      const int16_t& portNum,
+      const int16_t& ledNum,
+      const int16_t& startPort);
+  bool isValidPortRanges(
+      const std::vector<LedCtrlBlockConfig>& ledCtrlBlockConfigs);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(
@@ -46,6 +54,7 @@ class ConfigValidator {
       const PlatformConfig& platformConfig,
       const std::string& slotPath,
       const std::string& pmUnitName);
+  int16_t numXcvrs_ = 0;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

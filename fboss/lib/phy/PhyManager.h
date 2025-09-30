@@ -214,7 +214,7 @@ class PhyManager {
   // The following two functions return whether the future job of xphy or prbs
   // stats collection is done.
   // NOTE: The following two functions are only used in testing.
-  bool isXphyStatsCollectionDone(PortID portID) const;
+  virtual bool isXphyStatsCollectionDone(PortID portID) const;
   bool isPrbsStatsCollectionDone(PortID portID) const;
 
   void publishXphyInfoSnapshots(PortID portID) const;
@@ -419,7 +419,7 @@ class PhyManager {
   const PortToCacheInfo portToCacheInfo_;
   const PortToStatsInfo portToStatsInfo_;
 
-  static constexpr auto kXphySnapshotIntervalSeconds = 60;
+  static constexpr auto kXphySnapshotIntervalSeconds = 10;
   std::unique_ptr<PhySnapshotManager> xphySnapshotManager_;
 
   PublishPhyCb publishPhyCb_;

@@ -21,4 +21,11 @@ BENCHMARK(HwVoqScale2kWideEcmpRouteDelBenchmark) {
   // Measure 16x2048 ECMP route del
   voqRouteBenchmark(false /* add */, 16 /* ecmpGroup */, 2048 /* ecmpWidth */);
 }
+
+BENCHMARK(HwVoqScale2kWideEcmpCompressionRouteDelBenchmark) {
+  // Measure 50x2048 ECMP route del, which will cause EcmpResourceManager to
+  // kick in and uncompress ecmp groups
+  FLAGS_enable_ecmp_resource_manager = true;
+  voqRouteBenchmark(false /* add */, 50 /* ecmpGroup */, 2048 /* ecmpWidth */);
+}
 } // namespace facebook::fboss

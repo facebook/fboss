@@ -152,21 +152,25 @@ class CmdShowRouteDetails
       auto printNextHops = [this, &out](
                                const std::string& header,
                                const auto& nextHops,
-                               bool isOverride) {
-        std::map<int, int> planeIdToPathCount;
+                               bool isOverride,
+                               const auto& nhToTopoInfo) {
         out << fmt::format("  {}\n", header);
         std::string overrideStr = (isOverride ? "(override) :" : "");
+        std::map<int, int> planeIdToPathCount;
         for (const auto& nextHop : nextHops) {
           out << fmt::format(
               "  {}  {}\n",
               overrideStr,
               show::route::utils::getNextHopInfoStr(
                   nextHop, vlanAggregatePortMap, vlanPortMap));
-          auto topologyInfo =
-              apache::thrift::get_pointer(nextHop.topologyInfo());
-          if (topologyInfo) {
-            CHECK(topologyInfo->plane_id().has_value());
-            planeIdToPathCount[topologyInfo->plane_id().value()]++;
+
+          auto it = nhToTopoInfo.find(nextHop.addr().value());
+          if (it != nhToTopoInfo.end()) {
+            const auto& topologyInfo = it->second;
+            if (topologyInfo.plane_id().has_value()) {
+              int planeId = topologyInfo.plane_id().value();
+              planeIdToPathCount[planeId]++;
+            }
           }
         }
         if (planeIdToPathCount.size() > 0) {
@@ -177,17 +181,19 @@ class CmdShowRouteDetails
         }
       };
       auto& nextHops = entry.get_nextHops();
+      auto& nhToTopoInfo = entry.get_nhAddressToTopologyInfo();
       if (nextHops.size() > 0) {
         std::string header =
             (entry.overridenNextHops() ? "Original next hops:"
                                        : "Forwarding via:");
-        printNextHops(header, nextHops, false /*isOverride*/);
+        printNextHops(header, nextHops, false /*isOverride*/, nhToTopoInfo);
       } else if (!entry.overridenNextHops().has_value()) {
         out << "  No Forwarding Info\n";
       }
       if (entry.overridenNextHops()) {
         if (entry.overridenNextHops()->size()) {
-          printNextHops("Forwarding via:", nextHops, true /*isOverride*/);
+          printNextHops(
+              "Forwarding via:", nextHops, true /*isOverride*/, nhToTopoInfo);
         } else if (!entry.overridenNextHops().has_value()) {
           out << "  No Forwarding Info\n";
         }
@@ -221,6 +227,9 @@ class CmdShowRouteDetails
         routeDetails.prefixLength() = *entry.dest()->prefixLength();
         routeDetails.action() = *entry.action();
         routeDetails.isConnected() = *entry.isConnected();
+        // Map to hold address to topologyInfo from client (NextHopsMulti
+        // fields)
+        std::map<std::string, NetworkTopologyInformation> nhToTopoInfo;
 
         auto& nextHopMulti = entry.get_nextHopMulti();
         for (const auto& clAndNxthops : nextHopMulti) {
@@ -239,13 +248,22 @@ class CmdShowRouteDetails
               cli::NextHopInfo nextHopInfo;
               show::route::utils::getNextHopInfoThrift(nextHop, nextHopInfo);
               clAndNxthopsCli.nextHops()->emplace_back(nextHopInfo);
+              auto topologyInfo =
+                  apache::thrift::get_pointer(nextHop.topologyInfo());
+              if (topologyInfo) {
+                nhToTopoInfo[facebook::network::toIPAddress(*nextHop.address())
+                                 .str()] = *topologyInfo;
+              }
             }
           }
           routeDetails.nextHopMulti()->emplace_back(clAndNxthopsCli);
         }
 
+        routeDetails.nhAddressToTopologyInfo() = nhToTopoInfo;
+
         auto& fwdInfo = *entry.fwdInfo();
         auto& nextHops = entry.get_nextHops();
+
         if (nextHops.size() > 0) {
           for (const auto& nextHop : nextHops) {
             cli::NextHopInfo nextHopInfo;
@@ -330,6 +348,8 @@ class CmdShowRouteDetails
         return fmt::format("CLASS_UNRESOLVED_ROUTE_TO_CPU({})", classId);
       case cfg::AclLookupClass::DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF:
         return fmt::format("CLASS_CONNECTED_ROUTE_TO_INTF({})", classId);
+      case cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS:
+        return fmt::format("ARS_ALTERNATE_MEMBERS_CLASS({})", classId);
     }
     throw std::runtime_error(
         "Unsupported ClassID: " + std::to_string(static_cast<int>(classID)));

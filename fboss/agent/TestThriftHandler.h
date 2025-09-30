@@ -30,6 +30,12 @@ class TestThriftHandler : public ThriftHandler,
       std::unique_ptr<std::string> serviceName,
       int32_t delayInSeconds) override;
 
+  void addNeighbor(
+      int32_t interfaceID,
+      std::unique_ptr<BinaryAddress> ip,
+      std::unique_ptr<std::string> mac,
+      int32_t portID) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   TestThriftHandler(TestThriftHandler const&) = delete;

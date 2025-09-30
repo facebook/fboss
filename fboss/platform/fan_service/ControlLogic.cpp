@@ -26,6 +26,7 @@ auto constexpr kFanReadRpmFailure = "{}.rpm_read.failure";
 auto constexpr kFanReadRpmValue = "{}.rpm_read.value";
 auto constexpr kSensorReadFailure = "{}.sensor_read.failure";
 auto constexpr kSensorReadValue = "{}.sensor_read.value";
+auto constexpr kLedWriteFailure = "{}.led_write.failure";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
@@ -461,12 +462,20 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
   if (!fan.ledSysfsPath()->empty()) {
     unsigned int valueToWrite =
         (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-    pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
     XLOG(INFO) << fmt::format(
         "{}: Setting LED to {} (value: {})",
         *fan.fanName(),
         (fanFailed ? "Fail" : "Good"),
         valueToWrite);
+    bool ret = pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
+    if (!ret) {
+      XLOG(ERR) << fmt::format(
+          "{}: Failed to set LED sysfs path {}",
+          *fan.fanName(),
+          *fan.ledSysfsPath());
+    }
+    fb303::fbData->setCounter(
+        fmt::format(kLedWriteFailure, *fan.fanName()), !ret);
   } else {
     XLOG(INFO) << fmt::format(
         "{}: FAN LED sysfs path is empty. It's likely that FAN LED is controlled by hardware.",

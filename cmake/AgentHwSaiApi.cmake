@@ -89,7 +89,7 @@ set(SAI_API_SRC
 
 if (SAI_TAJO_IMPL)
   list(APPEND SAI_API_SRC
-    fboss/agent/hw/sai/api/oss/ArsProfileApi.cpp
+    fboss/agent/hw/sai/api/tajo/ArsProfileApi.cpp
     fboss/agent/hw/sai/api/tajo/PortApi.cpp
     fboss/agent/hw/sai/api/tajo/TamApi.cpp
     fboss/agent/hw/sai/api/tajo/SwitchApi.cpp
@@ -98,6 +98,8 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/api/tajo/QueueApi.cpp
     fboss/agent/hw/sai/api/tajo/MirrorApi.cpp
     fboss/agent/hw/sai/api/tajo/SystemPortApi.cpp
+    fboss/agent/hw/sai/api/tajo/NextHopGroupApi.cpp
+    fboss/agent/hw/sai/api/tajo/AclApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -114,6 +116,8 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/api/bcm/QueueApi.cpp
     fboss/agent/hw/sai/api/bcm/MirrorApi.cpp
     fboss/agent/hw/sai/api/bcm/SystemPortApi.cpp
+    fboss/agent/hw/sai/api/bcm/NextHopGroupApi.cpp
+    fboss/agent/hw/sai/api/bcm/AclApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -130,6 +134,8 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/api/oss/QueueApi.cpp
     fboss/agent/hw/sai/api/oss/MirrorApi.cpp
     fboss/agent/hw/sai/api/oss/SystemPortApi.cpp
+    fboss/agent/hw/sai/api/oss/NextHopGroupApi.cpp
+    fboss/agent/hw/sai/api/oss/AclApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)

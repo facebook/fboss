@@ -16,6 +16,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/PortStateMachine.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
@@ -35,6 +36,12 @@
 namespace facebook::fboss {
 
 class PortManager {
+ public:
+  using TcvrToSynchronizedPortSet = std::unordered_map<
+      TransceiverID,
+      std::unique_ptr<folly::Synchronized<std::unordered_set<PortID>>>>;
+
+ private:
   using TcvrToPortMap = std::unordered_map<TransceiverID, std::vector<PortID>>;
   using PortToTcvrMap = std::unordered_map<PortID, std::vector<TransceiverID>>;
   using PortNameIdMap = boost::bimap<std::string, PortID>;
@@ -173,11 +180,14 @@ class PortManager {
   std::vector<TransceiverID> getTransceiverIdsForPort(PortID portId) const;
 
   bool hasPortFinishedIphyProgramming(PortID portId) const;
+  bool hasPortFinishedXphyProgramming(PortID portId) const;
 
   void programInternalPhyPorts(TransceiverID id);
 
   // Marked virtual for MockPortManager testing.
-  void programExternalPhyPort(PortID portId, bool xPhyNeedResetDataPath);
+  void programExternalPhyPorts(
+      TransceiverID tcvrId,
+      bool xPhyNeedResetDataPath);
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
 
@@ -262,10 +272,31 @@ class PortManager {
 
   void triggerAgentConfigChangeEvent();
 
+  void updateStateBlocking(PortID id, PortStateMachineEvent event);
+
   // For testing purposes only.
   const std::unordered_set<PortID>& getCachedXphyPortsForTest() const {
     return cachedXphyPorts_;
   }
+
+  void updateTransceiverPortStatus() noexcept;
+
+  // For testing purposes only - direct access to tcvrToInitializedPorts_ cache
+  const TcvrToSynchronizedPortSet& getTcvrToInitializedPortsForTest() const {
+    return tcvrToInitializedPorts_;
+  }
+
+  // This function is responsible for trigger IPHY programming and XPHY
+  // programming events for all port state machines. It's also responsible for
+  // telling port state machines to upgrade to TCVRS_PROGRAMMED when necessary.
+  void triggerProgrammingEvents();
+
+  void detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
+
+  bool arePortTcvrsProgrammed(PortID portId) const;
+
+  // Made public for PortManager access.
+  void setPortEnabledStatusInCache(PortID portId, bool enabled);
 
  protected:
   /*
@@ -275,9 +306,8 @@ class PortManager {
 
   void publishLinkSnapshots(PortID portId);
 
-  // Restore phy state from the last cached warm boot qsfp_service state
-  // Called this after initializing all the xphys during warm boot
-  void restoreWarmBootPhyState();
+  std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(
+      const std::unordered_set<PortID>& ports) const;
 
   const std::shared_ptr<const PlatformMapping> platformMapping_;
 
@@ -295,16 +325,17 @@ class PortManager {
 
   const std::unordered_set<PortID> getXphyPortsCache();
 
-  void updateTransceiverPortStatus() noexcept;
-
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
+
+  // Restore phy state from the last cached warm boot qsfp_service state
+  // Called this after initializing all the xphys during warm boot
+  void restoreWarmBootPhyState();
 
   void restoreAgentConfigAppliedInfo();
 
   // All Functions Required for Updating State Machines
   void waitForAllBlockingStateUpdateDone(
       const BlockingStateUpdateResultList& results);
-  void updateStateBlocking(PortID id, PortStateMachineEvent event);
   std::shared_ptr<BlockingStateMachineUpdateResult>
   updateStateBlockingWithoutWait(PortID id, PortStateMachineEvent event);
   std::shared_ptr<BlockingStateMachineUpdateResult>
@@ -323,6 +354,8 @@ class PortManager {
   void handlePendingUpdates();
 
   PortNameIdMap setupPortNameToPortIDMap();
+
+  TcvrToSynchronizedPortSet setupTcvrToSynchronizedPortSet();
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
@@ -383,6 +416,11 @@ class PortManager {
       std::unordered_map<PortID, std::unique_ptr<PortStateMachineController>>;
   PortToStateMachineControllerMap setupPortToStateMachineControllerMap();
   const PortToStateMachineControllerMap stateMachineControllers_;
+
+  const TcvrToSynchronizedPortSet tcvrToInitializedPorts_;
+
+  std::unordered_map<TransceiverID, TransceiverStateMachineState>
+      lastTcvrStates_;
 };
 
 } // namespace facebook::fboss

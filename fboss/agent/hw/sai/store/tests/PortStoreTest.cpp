@@ -81,6 +81,8 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // AmIdles
         std::nullopt, // FabricSystemPort
         std::nullopt, // StaticModuleId
+        std::nullopt, // IsHyperPortMember
+        std::nullopt, // HyperPortMemberList
     };
   }
 
@@ -371,4 +373,34 @@ TEST_F(PortStoreTest, portSetStaticModuleId) {
   apiStaticModuleId = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::StaticModuleId{});
   EXPECT_EQ(apiStaticModuleId, moduleId);
+}
+
+TEST_F(PortStoreTest, portSetResetQueueCreditBalance) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+
+  // Check default value
+  auto apiResetQueueCreditBalance = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::ResetQueueCreditBalance{});
+  EXPECT_EQ(apiResetQueueCreditBalance, false);
+
+  // Set reset queue credit balance to true
+  SaiPortTraits::Attributes::ResetQueueCreditBalance resetQueueCreditBalance(
+      true);
+  saiApiTable->portApi().setAttribute(portId, resetQueueCreditBalance);
+
+  // Verify the attribute was set correctly
+  apiResetQueueCreditBalance = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::ResetQueueCreditBalance{});
+  EXPECT_EQ(apiResetQueueCreditBalance, true);
+
+  // Set it back to false
+  resetQueueCreditBalance =
+      SaiPortTraits::Attributes::ResetQueueCreditBalance(false);
+  saiApiTable->portApi().setAttribute(portId, resetQueueCreditBalance);
+
+  // Verify the attribute was set correctly
+  apiResetQueueCreditBalance = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::ResetQueueCreditBalance{});
+  EXPECT_EQ(apiResetQueueCreditBalance, false);
 }

@@ -60,6 +60,7 @@ add_library(fsdb_sub_mgr
 target_link_libraries(fsdb_sub_mgr
   fsdb_pub_sub
   fsdb_model
+  oper_path_helpers
 )
 
 add_library(fsdb_syncer

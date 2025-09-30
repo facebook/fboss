@@ -230,7 +230,8 @@ void addFlowletAcl(
     bool isSai,
     const std::string& aclName = kFlowletAclName,
     const std::string& aclCounterName = kFlowletAclCounterName,
-    bool udfFlowlet = true);
+    bool udfFlowlet = true,
+    bool enableAlternateArsMembers = false);
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,

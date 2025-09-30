@@ -61,11 +61,7 @@ class HwArsTest : public HwLinkStateDependentTest {
   }
 
   int kMaxDlbGroups() {
-    return getHwSwitch()
-        ->getPlatform()
-        ->getAsic()
-        ->getMaxDlbEcmpGroups()
-        .value();
+    return getHwSwitch()->getPlatform()->getAsic()->getMaxArsGroups().value();
   }
 
   // native BCM has access to BRCM IDs >=200128 cannot be configured as DLB
@@ -129,7 +125,7 @@ class HwArsTest : public HwLinkStateDependentTest {
     std::vector<PortDescriptor> portDescriptorIds;
     for (auto& portId : masterLogicalPortsIds) {
       this->resolveNextHop(PortDescriptor(portId));
-      portDescriptorIds.push_back(PortDescriptor(portId));
+      portDescriptorIds.emplace_back(portId);
     }
     this->addRoute(addr, 64, portDescriptorIds);
   }

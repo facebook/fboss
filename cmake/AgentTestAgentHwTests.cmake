@@ -229,6 +229,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_acl_utils
     mono_agent_ensemble
     agent_hw_test_thrift_handler
+    setup_thrift_prod
     -Wl,--no-whole-archive
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}

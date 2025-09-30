@@ -2,6 +2,7 @@
 
 #include "fboss/platform/platform_manager/Utils.h"
 
+#include <exprtk.hpp>
 #include <gpiod.h>
 #include <filesystem>
 #include <stdexcept>
@@ -141,4 +142,62 @@ int Utils::getGpioLineValue(const std::string& charDevPath, int lineIndex)
   gpiod_chip_close(chip);
   return value;
 };
+
+std::string Utils::computeHexExpression(
+    const std::string& expression,
+    int port,
+    int led,
+    int startPort) {
+  // Handle mathematical expressions
+  std::string result = fmt::format(
+      fmt::runtime(expression),
+      fmt::arg("portNum", port),
+      fmt::arg("ledNum", led),
+      fmt::arg("startPort", startPort));
+
+  // Convert hexadecimal literals to decimal since exprtk doesn't support hex
+  result = convertHexLiteralsToDecimal(result);
+  exprtk::symbol_table<double> symbolTable;
+  exprtk::expression<double> expr;
+  expr.register_symbol_table(symbolTable);
+  exprtk::parser<double> parser;
+
+  if (!parser.compile(result, expr)) {
+    throw std::runtime_error(
+        fmt::format("Failed to parse csrOffset expression: {}", result));
+  }
+
+  // Convert the result back to hexadecimal format since downstream code
+  // expects hex
+  uint64_t value = static_cast<uint64_t>(expr.value());
+  return fmt::format("0x{:x}", value);
+}
+
+std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
+  std::string result = expression;
+
+  // Convert hexadecimal literals to decimal since exprtk doesn't support hex
+  static const re2::RE2 hexRegex("(0x[0-9a-fA-F]+)");
+  std::string hexMatch;
+  std::string::size_type pos = 0;
+
+  while (re2::RE2::PartialMatch(result.substr(pos), hexRegex, &hexMatch)) {
+    // Find the position of this hex pattern
+    std::string::size_type hexPos = result.find(hexMatch, pos);
+
+    if (hexPos != std::string::npos) {
+      // Convert hex string to decimal using our utility function
+      uint64_t decimalValue = std::stoi(hexMatch, nullptr, 16);
+      std::string decimalStr = std::to_string(decimalValue);
+
+      // Replace the hex pattern with decimal value
+      result.replace(hexPos, hexMatch.length(), decimalStr);
+      pos = hexPos + decimalStr.length();
+    } else {
+      break;
+    }
+  }
+
+  return result;
+}
 } // namespace facebook::fboss::platform::platform_manager

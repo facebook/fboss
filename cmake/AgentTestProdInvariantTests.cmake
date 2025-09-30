@@ -18,6 +18,7 @@ function(BUILD_SAI_INVARIANT_AGENT_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     invariant_agent_tests
     mono_agent_ensemble
     agent_hw_test_thrift_handler
+    setup_thrift_prod
     sai_acl_utils
     sai_copp_utils
     sai_platform

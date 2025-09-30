@@ -121,6 +121,19 @@ void aclEntryActionU8Attr(
       prefix, "parameter.u8=", attr_list[i].value.aclaction.parameter.u8));
 }
 
+void aclEntryActionBoolAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
+  attrLines.push_back(
+      to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
+  attrLines.push_back(to<string>(
+      prefix,
+      "parameter.booldata=",
+      attr_list[i].value.aclaction.parameter.booldata));
+}
+
 void aclEntryActionU32Attr(
     const sai_attribute_t* attr_list,
     int i,

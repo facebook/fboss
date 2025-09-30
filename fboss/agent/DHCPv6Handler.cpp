@@ -61,8 +61,8 @@ void sendDHCPv6Packet(
   // construct EthHdr,
   VlanTags_t vlanTags;
   if (vlanID.has_value()) {
-    vlanTags.push_back(VlanTag(
-        vlanID.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+    vlanTags.emplace_back(
+        vlanID.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
   }
 
   EthHdr ethHdr(

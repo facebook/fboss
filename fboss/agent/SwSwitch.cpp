@@ -1392,16 +1392,16 @@ void SwSwitch::init(
   auto origInitialState = initialState;
   emptyState->publish();
   auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
 
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
   notifyStateModifierUpdateDone();
@@ -1476,22 +1476,21 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   auto origInitialState = initialState;
   auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   // Do not send cold boot state to hwswitch. This is to avoid
   // deleting any cold boot state entries that hwswitch has learned from sdk
   if (bootType_ == BootType::WARM_BOOT) {
     try {
-      getHwSwitchHandler()->stateChanged(
-          initialStateDelta, false, hwWriteBehavior);
+      getHwSwitchHandler()->stateChanged(deltas, false, hwWriteBehavior);
     } catch (const std::exception& ex) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }
@@ -2561,9 +2560,9 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
           setPortActiveStatusCounter(portID, isActive);
           portStats(portID)->linkActiveStateChange(isActive);
 
-          auto getActiveStr = [](std::optional<bool> isActive) {
-            return isActive.has_value()
-                ? (isActive.value() ? "ACTIVE" : "INACTIVE")
+          auto getActiveStr = [](std::optional<bool> activeState) {
+            return activeState.has_value()
+                ? (activeState.value() ? "ACTIVE" : "INACTIVE")
                 : "NONE";
           };
           XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
@@ -2730,13 +2729,13 @@ void SwSwitch::validateSwitchReachabilityInformation(
       inactivePortsWithSwitchReachability) {
     // Increment the number of switch reachability inconsistency seen!
     stats()->switchReachabilityInconsistencyDetected(switchIndex);
-    XLOG(WARN) << "Switch reachability inconsistency seen on switch"
+    XLOG(WARN) << "Switch reachability inconsistency seen on switch index"
                << switchIndex << ", active ports w/o reachability: "
                << activePortsWithoutSwitchReachability
                << ", inactive ports w/ reachability: "
                << inactivePortsWithSwitchReachability;
   } else {
-    XLOG(DBG2) << "No switch reachability inconsistency seen for switch"
+    XLOG(DBG2) << "No switch reachability inconsistency seen for switch index"
                << switchIndex;
   }
 }

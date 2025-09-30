@@ -40,7 +40,7 @@ struct ExtractTypeClass<
 
 } // namespace map_helpers
 
-template <typename Traits>
+template <typename Traits, bool EnableHybridStorage = false>
 struct ThriftMapFields : public FieldBaseType {
   using TypeClass = typename Traits::TC;
   using TType = typename Traits::Type;
@@ -52,8 +52,10 @@ struct ThriftMapFields : public FieldBaseType {
   using ValueTypeClass =
       typename map_helpers::ExtractTypeClass<TypeClass>::value_type;
   using ValueTType = typename TType::mapped_type;
-  using ValueTraits = typename Traits::
-      template ConvertToNodeTraits<std::false_type, ValueTypeClass, ValueTType>;
+  using ValueTraits = typename Traits::template ConvertToNodeTraits<
+      bool_constant<EnableHybridStorage>,
+      ValueTypeClass,
+      ValueTType>;
   using key_type = typename TType::key_type;
   using value_type = typename ValueTraits::type;
   using StorageType =
@@ -275,16 +277,20 @@ struct ThriftMapFields : public FieldBaseType {
   StorageType storage_;
 };
 
-template <typename Traits, typename Resolver = ThriftMapResolver<Traits>>
-class ThriftMapNode
-    : public NodeBaseT<typename Resolver::type, ThriftMapFields<Traits>>,
-      public thrift_cow::Serializable {
+template <
+    typename Traits,
+    typename Resolver = ThriftMapResolver<Traits>,
+    bool EnableHybridStorage = false>
+class ThriftMapNode : public NodeBaseT<
+                          typename Resolver::type,
+                          ThriftMapFields<Traits, EnableHybridStorage>>,
+                      public thrift_cow::Serializable {
  public:
   using TC = typename Traits::TC;
   using TType = typename Traits::Type;
 
-  using Self = ThriftMapNode<Traits, Resolver>;
-  using Fields = ThriftMapFields<Traits>;
+  using Self = ThriftMapNode<Traits, Resolver, EnableHybridStorage>;
+  using Fields = ThriftMapFields<Traits, EnableHybridStorage>;
   using ThriftType = typename Fields::ThriftType;
   using Derived = typename Resolver::type;
   using BaseT = NodeBaseT<Derived, Fields>;

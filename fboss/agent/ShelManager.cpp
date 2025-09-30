@@ -15,6 +15,7 @@ std::vector<StateDelta> ShelManager::modifyState(
 
 std::vector<StateDelta> ShelManager::reconstructFromSwitchState(
     const std::shared_ptr<SwitchState>& curState) {
+  StopWatch timeIt("ShelManager::reconstructFromSwitchState", false /*json*/);
   XLOG(DBG2) << "ShelManager reconstructing from switch state";
   intf2RefCnt_.wlock()->clear();
   std::vector<StateDelta> deltas;
@@ -167,6 +168,7 @@ std::shared_ptr<SwitchState> ShelManager::processDelta(
 
 std::vector<StateDelta> ShelManager::modifyStateImpl(
     const std::vector<StateDelta>& deltas) {
+  StopWatch timeIt("ShelManager::modifyStateImpl", false /*json*/);
   std::vector<StateDelta> retDeltas;
   retDeltas.reserve(deltas.size());
   auto oldState = deltas.begin()->oldState();

@@ -78,6 +78,7 @@ class FakeAsic : public HwAsic {
       case cfg::PortType::RECYCLE_PORT:
       case cfg::PortType::EVENTOR_PORT:
       case cfg::PortType::HYPER_PORT:
+      case cfg::PortType::HYPER_PORT_MEMBER:
         return {cfg::StreamType::UNICAST};
       case cfg::PortType::FABRIC_PORT:
         return {cfg::StreamType::FABRIC_TX};
@@ -154,9 +155,6 @@ class FakeAsic : public HwAsic {
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 128;
   }
-  std::optional<uint32_t> getMaxDlbEcmpGroups() const override {
-    return 4;
-  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8192;
   }
@@ -232,6 +230,12 @@ class FakeAsic : public HwAsic {
   }
   int getHiPriCpuQueueId() const override {
     throw FbossError("Fake ASIC does not support cpu queue");
+  }
+  std::optional<uint32_t> getMaxArsGroups() const override {
+    return 4;
+  }
+  std::optional<uint32_t> getArsBaseIndex() const override {
+    return std::nullopt;
   }
 };
 } // namespace facebook::fboss

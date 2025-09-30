@@ -110,6 +110,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_DEFAULT_CPU_EGRESS_BUFFER_POOL,
   SAI_SWITCH_ATTR_TECH_SUPPORT_TYPE,
   SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST,
+  SAI_SWITCH_ATTR_LOCAL_SYSTEM_PORT_ID_RANGE_LIST,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {
@@ -133,9 +134,32 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT,
   SAI_PORT_ATTR_PORT_PG_PKT_DROP_STATUS,
   SAI_PORT_ATTR_FABRIC_SYSTEM_PORT,
+  SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE,
 } sai_port_extensions_attr_t;
 
 typedef enum _sai_ingress_priority_group_extensions_attr_t {
   SAI_INGRESS_PRIORITY_GROUP_ATTR_LOSSLESS_ENABLE =
       SAI_INGRESS_PRIORITY_GROUP_ATTR_CUSTOM_RANGE_START,
 } sai_ingress_priority_group_extensions_attr_t;
+
+typedef enum _sai_next_hop_group_extensions_attr_t {
+  SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA =
+      SAI_NEXT_HOP_GROUP_ATTR_CUSTOM_RANGE_START,
+} sai_next_hop_group_extensions_attr_t;
+
+typedef enum _sai_ars_profile_extensions_attr_t {
+  SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS =
+      SAI_ARS_PROFILE_ATTR_CUSTOM_RANGE_START,
+  SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX,
+  SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA,
+  SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK,
+  SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA,
+} sai_ars_profile_extensions_attr_t;
+
+typedef enum _sai_acl_entry_extensions_attr_t {
+  SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL =
+      SAI_ACL_ENTRY_ATTR_CUSTOM_RANGE_START,
+} sai_acl_entry_extensions_attr_t;
+
+#define SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL \
+  SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL

@@ -210,6 +210,7 @@ struct SaiNextHopGroupHandle {
   uint32_t maxVariableWidthEcmpSize;
   std::optional<cfg::SwitchingMode> desiredArsMode_;
   SaiStore* saiStore_;
+  uint32_t arsClassId{0};
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -261,6 +262,9 @@ class SaiNextHopGroupManager {
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
+  uint32_t getNextHopGroupArsClassId(
+      const std::shared_ptr<SaiNextHopGroupHandle>& handle);
+
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;
@@ -271,7 +275,7 @@ class SaiNextHopGroupManager {
   // support the next hop group use case correctly, rather than this
   // abomination of multiple levels of RefMaps :(
   FlatRefMap<SaiNextHopGroupKey, SaiNextHopGroupHandle> handles_;
-  FlatRefMap<
+  UnorderedRefMap<
       std::pair<typename SaiNextHopGroupTraits::AdapterKey, ResolvedNextHop>,
       NextHopGroupMember>
       nextHopGroupMembers_;

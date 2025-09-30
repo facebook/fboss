@@ -82,8 +82,8 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
     });
   }
 
-  void verifyWithGracefulOperationHelper(
-      const std::function<bool(MultiNodeUtil*)>& verifyFn) {
+  void verifySetupRunTestVerifyAgain(
+      const std::function<bool(const MultiNodeUtil*)>& verifyFn) {
     if (!isTestDriver()) {
       return;
     }
@@ -136,7 +136,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFabricLinkDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulFabricLinkDownUp();
     });
   };
@@ -148,7 +148,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulDeviceDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulDeviceDownUp();
     });
   };
@@ -160,7 +160,7 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulDeviceDownUp) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyUngracefulDeviceDownUp();
     });
   };
@@ -172,8 +172,67 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulRestartTimeoutRecovery) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    verifyWithGracefulOperationHelper([](MultiNodeUtil* multiNodeUtil) {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyGracefulRestartTimeoutRecovery();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulQsfpDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulQsfpDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulQsfpDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulQsfpDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyGracefulFsdbDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyGracefulFsdbDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyUngracefulFsdbDownUp) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyUngracefulFsdbDownUp();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNeighborAddRemove) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNeighborAddRemove();
     });
   };
 

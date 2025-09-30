@@ -30,12 +30,21 @@ class ArsApiTest : public ::testing::Test {
         SAI_ARS_MODE_FLOWLET_QUALITY};
     SaiArsTraits::Attributes::IdleTime arsIdleTimeAttribute{kIdleTime()};
     SaiArsTraits::Attributes::MaxFlows arsMaxFlowsAttribute{kMaxFlows()};
+    SaiArsTraits::Attributes::PrimaryPathQualityThreshold
+        primaryPathQualityThresholdAttribute{kPrimaryPathQualityThreshold()};
+    SaiArsTraits::Attributes::AlternatePathCost alternatePathCostAttribute{
+        kAlternatePathCost()};
+    SaiArsTraits::Attributes::AlternatePathBias alternatePathBiasAttribute{
+        kAlternatePathBias()};
 
     return arsApi->create<SaiArsTraits>(
         {
             arsModeAttribute,
             arsIdleTimeAttribute,
             arsMaxFlowsAttribute,
+            primaryPathQualityThresholdAttribute,
+            alternatePathCostAttribute,
+            alternatePathBiasAttribute,
         },
         0);
   }
@@ -50,6 +59,18 @@ class ArsApiTest : public ::testing::Test {
 
   sai_uint32_t kMaxFlows() const {
     return 2000;
+  }
+
+  sai_uint32_t kPrimaryPathQualityThreshold() const {
+    return 100;
+  }
+
+  sai_uint32_t kAlternatePathCost() const {
+    return 50;
+  }
+
+  sai_uint32_t kAlternatePathBias() const {
+    return 25;
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -85,10 +106,19 @@ TEST_F(ArsApiTest, getArsAttribute) {
       arsApi->getAttribute(arsId, SaiArsTraits::Attributes::IdleTime());
   auto arsMaxFlowsGot =
       arsApi->getAttribute(arsId, SaiArsTraits::Attributes::MaxFlows());
+  auto primaryPathQualityThresholdGot = arsApi->getAttribute(
+      arsId, SaiArsTraits::Attributes::PrimaryPathQualityThreshold());
+  auto alternatePathCostGot = arsApi->getAttribute(
+      arsId, SaiArsTraits::Attributes::AlternatePathCost());
+  auto alternatePathBiasGot = arsApi->getAttribute(
+      arsId, SaiArsTraits::Attributes::AlternatePathBias());
 
   EXPECT_EQ(arsModeGot, SAI_ARS_MODE_FLOWLET_QUALITY);
   EXPECT_EQ(arsIdleTimeGot, kIdleTime());
   EXPECT_EQ(arsMaxFlowsGot, kMaxFlows());
+  EXPECT_EQ(primaryPathQualityThresholdGot, kPrimaryPathQualityThreshold());
+  EXPECT_EQ(alternatePathCostGot, kAlternatePathCost());
+  EXPECT_EQ(alternatePathBiasGot, kAlternatePathBias());
 }
 
 TEST_F(ArsApiTest, setArsAttribute) {
@@ -98,10 +128,17 @@ TEST_F(ArsApiTest, setArsAttribute) {
   SaiArsTraits::Attributes::Mode arsModeAttribute{SAI_ARS_MODE_FLOWLET_QUALITY};
   SaiArsTraits::Attributes::IdleTime arsIdleTimeAttribute{20000};
   SaiArsTraits::Attributes::MaxFlows arsMaxFlowsAttribute{1000};
+  SaiArsTraits::Attributes::PrimaryPathQualityThreshold
+      primaryPathQualityThresholdAttribute{200};
+  SaiArsTraits::Attributes::AlternatePathCost alternatePathCostAttribute{75};
+  SaiArsTraits::Attributes::AlternatePathBias alternatePathBiasAttribute{40};
 
   arsApi->setAttribute(arsId, arsModeAttribute);
   arsApi->setAttribute(arsId, arsIdleTimeAttribute);
   arsApi->setAttribute(arsId, arsMaxFlowsAttribute);
+  arsApi->setAttribute(arsId, primaryPathQualityThresholdAttribute);
+  arsApi->setAttribute(arsId, alternatePathCostAttribute);
+  arsApi->setAttribute(arsId, alternatePathBiasAttribute);
 
   auto arsModeGot =
       arsApi->getAttribute(arsId, SaiArsTraits::Attributes::Mode());
@@ -109,8 +146,17 @@ TEST_F(ArsApiTest, setArsAttribute) {
       arsApi->getAttribute(arsId, SaiArsTraits::Attributes::IdleTime());
   auto arsMaxFlowsGot =
       arsApi->getAttribute(arsId, SaiArsTraits::Attributes::MaxFlows());
+  auto primaryPathQualityThresholdGot = arsApi->getAttribute(
+      arsId, SaiArsTraits::Attributes::PrimaryPathQualityThreshold());
+  auto alternatePathCostGot = arsApi->getAttribute(
+      arsId, SaiArsTraits::Attributes::AlternatePathCost());
+  auto alternatePathBiasGot = arsApi->getAttribute(
+      arsId, SaiArsTraits::Attributes::AlternatePathBias());
 
   EXPECT_EQ(arsModeGot, SAI_ARS_MODE_FLOWLET_QUALITY);
   EXPECT_EQ(arsIdleTimeGot, 20000);
   EXPECT_EQ(arsMaxFlowsGot, 1000);
+  EXPECT_EQ(primaryPathQualityThresholdGot, 200);
+  EXPECT_EQ(alternatePathCostGot, 75);
+  EXPECT_EQ(alternatePathBiasGot, 40);
 }

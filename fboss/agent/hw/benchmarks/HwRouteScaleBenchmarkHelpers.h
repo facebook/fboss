@@ -199,6 +199,9 @@ voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth) {
         utility::populatePortExpectedNeighborsToSelf(
             ensemble.masterLogicalPortIds(), config);
         config.dsfNodes() = *utility::addRemoteIntfNodeCfg(*config.dsfNodes());
+        if (FLAGS_enable_ecmp_resource_manager) {
+          config.switchSettings()->ecmpCompressionThresholdPct() = 100;
+        }
         return config;
       };
   auto ensemble =
@@ -235,13 +238,15 @@ voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth) {
   std::vector<RoutePrefixV6> prefixes;
   std::vector<flat_set<PortDescriptor>> nhopSets;
   CHECK_GE(portDescriptor.size(), ecmpWidth + ecmpGroup - 1);
+  auto kNhopOffset = 4;
   for (int i = 0; i < ecmpGroup; i++) {
-    prefixes.push_back(RoutePrefixV6{
-        folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
-        static_cast<uint8_t>(i == 0 ? 0 : 128)});
-    nhopSets.push_back(flat_set<PortDescriptor>(
-        std::make_move_iterator(portDescriptor.begin() + i),
-        std::make_move_iterator(portDescriptor.begin() + i + ecmpWidth)));
+    prefixes.emplace_back(
+        folly::IPAddressV6(folly::sformat("2401:db00:23{}::", i + 1)), 48);
+    auto sysPortStart = (i * kNhopOffset);
+    nhopSets.emplace_back(
+        std::make_move_iterator(portDescriptor.begin() + sysPortStart),
+        std::make_move_iterator(
+            portDescriptor.begin() + sysPortStart + ecmpWidth));
   }
 
   auto programRoutes = [&]() {

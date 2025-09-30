@@ -267,6 +267,7 @@ bcm_agent_benchmark(
     name = "bcm_bench_test",
     srcs = [],
     extra_deps = [
+        "//fboss/agent:setup_thrift_prod",
         "//fboss/agent/hw/bcm/tests:bcm_acl_utils",
         "//fboss/agent/hw/bcm/tests:bcm_copp_utils",
         "//fboss/agent/hw/bcm/tests:bcm_ecmp_utils",

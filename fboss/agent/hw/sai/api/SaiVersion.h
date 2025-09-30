@@ -96,6 +96,10 @@
 #define BRCM_SAI_SDK_DNX_GTE_13_0
 #endif
 
+#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_14_0_EA_ODP)
+#define BRCM_SAI_SDK_XGS_GTE_13_0
+#endif
+
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0) ||   \
     defined(SAI_VERSION_12_0_EA_DNX_ODP) || \
     defined(SAI_VERSION_12_2_0_0_DNX_ODP)

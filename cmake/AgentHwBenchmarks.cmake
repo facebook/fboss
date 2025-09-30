@@ -455,11 +455,11 @@ target_link_libraries(hw_voq_sys_port_programming
   Folly::follybenchmark
 )
 
-add_library(hw_voq_remote_neighbor_programming
-  fboss/agent/hw/benchmarks/HwVoqRemoteNeighborProgrammingBenchmark.cpp
+add_library(hw_voq_remote_entity_programming
+  fboss/agent/hw/benchmarks/HwVoqRemoteEntityProgrammingBenchmark.cpp
 )
 
-target_link_libraries(hw_voq_remote_neighbor_programming
+target_link_libraries(hw_voq_remote_entity_programming
   voq_test_utils
   dsf_config_utils
   Folly::folly
@@ -488,4 +488,21 @@ target_link_libraries(hw_clear_interface_counters_phy_benchmark
   Folly::follybenchmark
   port_flap_helper
   mac_learning_flood_helper
+)
+
+add_library(hw_ucmp_scale_benchmark
+  fboss/agent/hw/benchmarks/HwUcmpScaleBenchmark.cpp
+)
+
+target_link_libraries(hw_ucmp_scale_benchmark
+  fib_helpers
+  agent_ensemble
+  ecmp_helper
+  config_utils
+  scale_test_utils
+  config_factory
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  Folly::folly
+  Folly::follybenchmark
 )

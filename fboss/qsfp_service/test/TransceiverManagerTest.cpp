@@ -203,4 +203,102 @@ TEST_F(TransceiverManagerTest, getTransceiverInfoOptionalNonExistent) {
   EXPECT_FALSE(result.has_value());
 }
 
+TEST_F(TransceiverManagerTest, resetProgrammedIPhyPortToPortInfoForPorts) {
+  // Set up test data using the override mechanism
+  TransceiverManager::OverrideTcvrToPortAndProfile testOverride = {
+      {TransceiverID(0),
+       {{PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+        {PortID(2), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL}}},
+      {TransceiverID(1),
+       {{PortID(9), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+        {PortID(10), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL}}}};
+
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(testOverride);
+
+  // Program internal PHY ports to populate tcvrToPortInfo_
+  transceiverManager_->programInternalPhyPorts(TransceiverID(0));
+  transceiverManager_->programInternalPhyPorts(TransceiverID(1));
+
+  // Verify initial state - both transceivers should have populated port info
+  auto tcvr0PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(0));
+  auto tcvr1PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(1));
+
+  EXPECT_EQ(tcvr0PortInfo.size(), 2);
+  EXPECT_TRUE(tcvr0PortInfo.count(PortID(1)));
+  EXPECT_TRUE(tcvr0PortInfo.count(PortID(2)));
+
+  EXPECT_EQ(tcvr1PortInfo.size(), 2);
+  EXPECT_TRUE(tcvr1PortInfo.count(PortID(9)));
+  EXPECT_TRUE(tcvr1PortInfo.count(PortID(10)));
+
+  // Test Case 1: Reset specific ports across multiple transceivers
+  std::unordered_set<PortID> portsToReset = {PortID(1), PortID(9)};
+  transceiverManager_->resetProgrammedIphyPortToPortInfoForPorts(portsToReset);
+
+  // Verify that only specified ports were removed
+  tcvr0PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(0));
+  tcvr1PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(1));
+
+  // TransceiverID(0) should have only PortID(2), PortID(1) should be removed
+  EXPECT_EQ(tcvr0PortInfo.size(), 1);
+  EXPECT_FALSE(tcvr0PortInfo.count(PortID(1)));
+  EXPECT_TRUE(tcvr0PortInfo.count(PortID(2)));
+
+  // TransceiverID(1) should have only PortID(10), PortID(9) should be removed
+  EXPECT_EQ(tcvr1PortInfo.size(), 1);
+  EXPECT_FALSE(tcvr1PortInfo.count(PortID(9)));
+  EXPECT_TRUE(tcvr1PortInfo.count(PortID(10)));
+
+  // Test Case 2: Reset non-existent ports (should be no-op)
+  std::unordered_set<PortID> nonExistentPorts = {PortID(999), PortID(1000)};
+  transceiverManager_->resetProgrammedIphyPortToPortInfoForPorts(
+      nonExistentPorts);
+
+  // Verify state remains the same
+  auto tcvr0PortInfoAfter =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(0));
+  auto tcvr1PortInfoAfter =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(1));
+
+  EXPECT_EQ(tcvr0PortInfoAfter.size(), 1);
+  EXPECT_TRUE(tcvr0PortInfoAfter.count(PortID(2)));
+
+  EXPECT_EQ(tcvr1PortInfoAfter.size(), 1);
+  EXPECT_TRUE(tcvr1PortInfoAfter.count(PortID(10)));
+
+  // Test Case 3: Reset remaining ports
+  std::unordered_set<PortID> remainingPorts = {PortID(2), PortID(10)};
+  transceiverManager_->resetProgrammedIphyPortToPortInfoForPorts(
+      remainingPorts);
+
+  // Verify all specified ports are removed
+  tcvr0PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(0));
+  tcvr1PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(1));
+
+  EXPECT_EQ(tcvr0PortInfo.size(), 0);
+  EXPECT_EQ(tcvr1PortInfo.size(), 0);
+
+  // Test Case 4: Reset empty set (should be no-op)
+  std::unordered_set<PortID> emptySet;
+  transceiverManager_->resetProgrammedIphyPortToPortInfoForPorts(emptySet);
+
+  // Verify state remains empty
+  tcvr0PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(0));
+  tcvr1PortInfo =
+      transceiverManager_->getProgrammedIphyPortToPortInfo(TransceiverID(1));
+
+  EXPECT_EQ(tcvr0PortInfo.size(), 0);
+  EXPECT_EQ(tcvr1PortInfo.size(), 0);
+
+  // Clean up override
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(std::nullopt);
+}
+
 } // namespace facebook::fboss

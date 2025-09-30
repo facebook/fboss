@@ -55,7 +55,7 @@ void HwTestLearningUpdateObserver::l2LearningUpdateReceived(
         this->applyStateUpdateHelper(l2Entry, l2EntryUpdateType);
       });
 
-  data_.push_back(std::make_pair(l2Entry, l2EntryUpdateType));
+  data_.emplace_back(l2Entry, l2EntryUpdateType);
 
   cv_.notify_all();
 }

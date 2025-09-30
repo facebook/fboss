@@ -2,6 +2,22 @@
 
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+# sample usage:
+# To run script and create output json file
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
+# To run script, send email and create task for user
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba --user  --send_email --create_task
+# in stack diff
+# sample usage:
+# To run script and create output json file
+#        $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
+# To run script, send email and create task for fboss_agent_push oncall
+#        $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --send_email --create_task
+#
+# To run script to create monthly report of known bad tests
+#        $buck run fbcode//fboss/util:known_bad_test_report -- --get_monthly_stats
+
+
 # pyre-unsafe
 
 import argparse
@@ -13,7 +29,7 @@ import re
 import sys
 import time
 import typing as t
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 import libfb.py.asyncio.tasks as task_api
@@ -208,10 +224,14 @@ class ScubaQueryBuilder:
         excluded_reasons: Optional[List[str]] = None,
         limit: str = DEFAULT_MAX_RECORDS,
         queue: Optional[str] = None,
+        consider_results_since: Optional[int] = None,
+        query_time: Optional[int] = None,
     ) -> str:
         """Build a Scuba query for Chronos jobs."""
-        current_time = int(time.time())
-        consider_results_since = str(current_time - 60 * 60 * 24)  # Last 24 hours
+        if not query_time:
+            query_time = int(time.time())
+        if not consider_results_since:
+            consider_results_since = query_time - 60 * 60 * 24  # Last 24 hours
 
         sql_base = f"""
             SELECT
@@ -224,7 +244,7 @@ class ScubaQueryBuilder:
             FROM `chronos_job_instance_states`
             WHERE
                 {consider_results_since} <= `time`
-                AND `time` <= {current_time}
+                AND `time` <= {query_time}
                 AND (CONTAINS(cluster_name + '/' + jobname, ARRAY('{job_name_prefix}')))
             """
 
@@ -305,6 +325,164 @@ class SandcastleClient:
             tests = int(match.group(1))
 
         return tests
+
+
+def query_monthly_job_data(args) -> Dict[str, Dict[str, int]]:
+    """Query and process job data for monthly statistics comparison.
+
+    Args:
+        args: Command line arguments containing date information
+
+    Returns:
+        Dictionary containing job data for both time periods:
+        {
+            "today": {job_name: job_count, ...},
+            "current_month_first": {job_name: job_count, ...}
+        }
+    """
+    logger.info("Querying monthly job data for sai_agent_known_bad_test")
+
+    # Calculate today and 1st of current month
+    # Use --date if provided, otherwise use today's date
+    if args.date:
+        base_date = datetime.strptime(args.date, "%Y-%m-%d").date()
+    else:
+        base_date = date.today()
+
+    current_month_first = datetime(base_date.year, base_date.month, 2)
+    today_date = datetime(base_date.year, base_date.month, base_date.day)
+
+    dates_to_query = [
+        ("today", today_date),
+        ("current_month_first", current_month_first),
+    ]
+    print("today:", today_date.strftime("%Y-%m-%d"))
+    print("current_month_first:", current_month_first.strftime("%Y-%m-%d"))
+
+    # Store results for both time periods
+    monthly_results = {}
+
+    for month_label, query_date in dates_to_query:
+        logger.info(f"Processing {month_label}: {query_date.strftime('%Y-%m-%d')}")
+
+        start_timestamp = int(time.mktime(query_date.timetuple()))
+
+        sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
+            job_name_prefix="sai_agent_known_bad_test", query_time=start_timestamp
+        )
+        df = ScubaQueryBuilder().execute_query(sql_query)
+        if df is None:
+            logger.error(f"Error: Could not execute Scuba query for {month_label}")
+            continue
+
+        print(f"Total jobs running for {month_label}: {len(df)}")
+
+        known_bad_jobs = {}
+        for _i, (job_id, job_name, instance_id) in enumerate(
+            zip(df["jobId"], df["jobname"], df["job_instance_id"])
+        ):
+            logger.info(
+                f"job id: {job_id}, job name: {job_name} instance id: {instance_id}"
+            )
+            known_bad_jobs[job_name] = asyncio.run(
+                ChronosJobExtractor().process_instance(int(instance_id), job_name)
+            )
+
+        # Store results for this time period
+        monthly_results[month_label] = known_bad_jobs
+
+        print(f"\nResults for {month_label} ({query_date.strftime('%Y-%m-%d')}):")
+        for job_name, job_count in known_bad_jobs.items():
+            logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
+        print("-" * 50)
+
+    return monthly_results
+
+
+def analyze_monthly_improvements(monthly_results: Dict[str, Dict[str, int]]) -> None:
+    """Analyze and display percentage improvements between monthly job data.
+
+    Args:
+        monthly_results: Dictionary containing job data for both time periods
+    """
+    if "current_month_first" not in monthly_results or "today" not in monthly_results:
+        logger.warning(
+            "Could not calculate percentage improvement - missing data for one or both time periods"
+        )
+        return
+
+    print("\n" + "=" * 80)
+    print("PERCENTAGE IMPROVEMENT (DECREASE) ANALYSIS")
+    print("=" * 80)
+
+    month_start_jobs = monthly_results["current_month_first"]
+    today_jobs = monthly_results["today"]
+
+    # Get all unique job names from both time periods
+    all_job_names = set(month_start_jobs.keys()) | set(today_jobs.keys())
+
+    print(f"{'Job Name':<50} {'Month Start':<12} {'Today':<10} {'% Decrease':<12}")
+    print("-" * 84)
+
+    for job_name in sorted(all_job_names):
+        month_start_count = month_start_jobs.get(job_name, 0)
+        today_count = today_jobs.get(job_name, 0)
+
+        if month_start_count > 0:
+            # Calculate percentage decrease: ((month_start - today) / month_start) * 100
+            percentage_decrease = (
+                (month_start_count - today_count) / month_start_count
+            ) * 100
+            status = (
+                "IMPROVEMENT"
+                if percentage_decrease > 0
+                else "REGRESSION"
+                if percentage_decrease < 0
+                else "NO CHANGE"
+            )
+
+            print(
+                f"{job_name:<50} {month_start_count:<12} {today_count:<10} {percentage_decrease:+7.1f}% ({status})"
+            )
+        elif today_count > 0:
+            # New job appeared since month start
+            print(
+                f"{job_name:<50} {month_start_count:<12} {today_count:<10} {'NEW JOB':<12}"
+            )
+        else:
+            # Job had 0 counts in both periods
+            print(
+                f"{job_name:<50} {month_start_count:<12} {today_count:<10} {'NO DATA':<12}"
+            )
+
+    print("-" * 84)
+
+    # Summary statistics
+    total_month_start = sum(month_start_jobs.values())
+    total_today = sum(today_jobs.values())
+
+    if total_month_start > 0:
+        overall_percentage = (
+            (total_month_start - total_today) / total_month_start
+        ) * 100
+        print(
+            f"{'OVERALL TOTALS':<50} {total_month_start:<12} {total_today:<10} {overall_percentage:+7.1f}%"
+        )
+    else:
+        print(
+            f"{'OVERALL TOTALS':<50} {total_month_start:<12} {total_today:<10} {'N/A':<12}"
+        )
+
+
+def get_monthly_stats(args) -> None:
+    """Get monthly stats for sai_agent_known_bad_test comparing today vs 1st of month."""
+    logger.info("Getting monthly stats for sai_agent_known_bad_test")
+
+    # Query job data for both time periods
+    monthly_results = query_monthly_job_data(args)
+
+    # Analyze and display percentage improvements
+    analyze_monthly_improvements(monthly_results)
 
 
 class ChronosJobExtractor:
@@ -457,6 +635,18 @@ def main() -> Optional[int]:
         help="Create json file with test data",
     )
 
+    parser.add_argument(
+        "--get_monthly_stats",
+        action="store_true",
+        help="Get monthly stats for sai_agent_known_bad_test",
+    )
+
+    parser.add_argument(
+        "--date",
+        type=str,
+        help="Time to query for. Format: YYYY-MM-DD. Default is today's date.",
+    )
+
     args = parser.parse_args()
 
     if args.query_scuba:
@@ -539,10 +729,12 @@ def main() -> Optional[int]:
         else:
             logger.info("No task created")
 
+    # Get monthly stats for sai_agent_known_bad_test comparing today vs 1st of month.
+    if args.get_monthly_stats:
+        get_monthly_stats(args)
+
     return 0
 
-
-# No code to edit in the selected snippet.
 
 if __name__ == "__main__":
     sys.exit(main())

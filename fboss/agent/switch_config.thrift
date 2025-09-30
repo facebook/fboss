@@ -116,6 +116,7 @@ enum PortSpeed {
   TWOHUNDREDG = 200000, // 200G
   FOURHUNDREDG = 400000, // 400G
   EIGHTHUNDREDG = 800000, // 800G
+  THREEPOINTTWOT = 3200000, // 3.2T
 }
 
 // <speed>_<num_lanes>_<modulation>_<fec>
@@ -502,6 +503,8 @@ enum AclLookupClass {
   // will be replaced by DST_CLASS_L3_LOCAL_1 and DST_CLASS_L3_LOCAL_2
   DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
   DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF = 22,
+
+  ARS_ALTERNATE_MEMBERS_CLASS = 32,
 }
 
 enum PacketLookupResultType {
@@ -641,6 +644,7 @@ enum AclTableActionType {
   SET_USER_DEFINED_TRAP = 6,
   DISABLE_ARS_FORWARDING = 7,
   SET_ARS_OBJECT = 8,
+  L3_SWITCH_CANCEL = 9,
 }
 
 enum AclTableQualifier {
@@ -797,6 +801,7 @@ struct MatchAction {
   11: optional UserDefinedTrapAction userDefinedTrap;
   12: optional FlowletAction flowletAction;
   13: optional SetEcmpHashAction ecmpHashAction;
+  14: optional bool enableAlternateArsMembers;
 }
 
 struct MatchToAction {
@@ -1093,6 +1098,7 @@ enum PortType {
   MANAGEMENT_PORT = 4,
   EVENTOR_PORT = 5,
   HYPER_PORT = 6,
+  HYPER_PORT_MEMBER = 7,
 }
 
 struct PortNeighbor {
@@ -1348,6 +1354,15 @@ struct AggregatePort {
    */
   6: optional list<string> counterTags;
   7: AggregatePortType aggregatePortType = LAG_PORT;
+  /*
+   * If minimumCapacityToUp is provided, it will be used with minimumCapacity to
+   * provide a flap-resistant way to decide AggregatePort Up/Down.
+   * a. If active link count < minimumCapacity, bring AggregatePort down.
+   * b. If active link count >= minimumCapacityToUp, bring AggregatePort up.
+   * c. If minimumCapacity <= active link count < minimumCapacityToUp,
+   * keep AggregatePort current oper state.
+   */
+  8: optional MinimumCapacity minimumCapacityToUp;
 }
 
 struct Lacp {
@@ -1678,6 +1693,7 @@ struct TrafficCounter {
 enum L2LearningMode {
   HARDWARE = 0,
   SOFTWARE = 1,
+  DISABLED = 2,
 }
 
 enum SwitchDrainState {
@@ -2201,6 +2217,12 @@ struct FlowletSwitchingConfig {
   12: SwitchingMode switchingMode = FLOWLET_QUALITY;
   // fall back switching mode if DLB groups are exhausted
   13: SwitchingMode backupSwitchingMode = FIXED_ASSIGNMENT;
+  // primary path quality threshold
+  14: optional i32 primaryPathQualityThreshold;
+  // alternate path cost
+  15: optional i32 alternatePathCost;
+  // alternate path bias
+  16: optional i32 alternatePathBias;
 }
 
 /**

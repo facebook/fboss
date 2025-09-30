@@ -97,6 +97,10 @@ bool writeSysfs(const std::string& path, const std::string& val) {
     std::ofstream out(path);
     if (out.is_open()) {
       out << val;
+      out.flush();
+      if (out.fail()) {
+        success = false;
+      }
       out.close();
     } else {
       success = false;

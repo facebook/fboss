@@ -247,10 +247,22 @@ void SaiBufferManager::setupIngressBufferPool(
   ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
 
-  // Pool size is the sum of (shared + headroom) * number of memory buffers
-  auto poolSize =
-      (*bufferPoolCfg.sharedBytes() + *bufferPoolCfg.headroomBytes()) *
-      platform_->getAsic()->getNumMemoryBuffers();
+  // Pool size is the sum of (shared + headroom + reserved) * number of buffers
+  // When programming the shared limit in HW, XGS excludes any reserved
+  // space from the size configured. Reserved bytes will ensure we configure
+  // this additional buffer so the shared limit programmed is actually what we
+  // want to program.
+  // TODO(ravi) This reserved size is currently statically computed in CFGR. A
+  // better way would be dynamically, based on pg/q min, compute it from config
+  // in SwSwitch.
+  auto poolSize = *bufferPoolCfg.sharedBytes();
+  if (auto headroomBytes = bufferPoolCfg.headroomBytes()) {
+    poolSize += *headroomBytes;
+  }
+  if (auto reservedBytes = bufferPoolCfg.reservedBytes()) {
+    poolSize += *reservedBytes;
+  }
+  poolSize *= platform_->getAsic()->getNumMemoryBuffers();
   // XoffSize configuration is needed only when PFC is supported
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
@@ -642,14 +654,6 @@ BufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     std::optional<
         typename BufferProfileTraits::Attributes::SharedStaticThreshold>
         staticThresh{*queue.getSharedBytes()};
-#if defined(BRCM_SAI_SDK_GTE_11_0) && not defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-    // TODO(maxgg): Temp workaround for CS00012420573
-    if (platform_->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
-        portType == cfg::PortType::INTERFACE_PORT) {
-      *staticThresh = staticThresh.value().value() * 2;
-    }
-#endif
     return typename BufferProfileTraits::CreateAttributes{
         pool,
         reservedBytes,

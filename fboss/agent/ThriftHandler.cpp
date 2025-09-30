@@ -462,6 +462,10 @@ void populateAggregatePortThrift(
   *aggregatePortThrift.minimumLinkCount() =
       aggregatePort->getMinimumLinkCount();
   *aggregatePortThrift.isUp() = aggregatePort->isUp();
+  if (aggregatePort->getMinimumLinkCountToUp().has_value()) {
+    aggregatePortThrift.minimumLinkCountToUp() =
+        aggregatePort->getMinimumLinkCountToUp().value();
+  }
 
   // Since aggregatePortThrift.memberPorts is being push_back'ed to, but is an
   // out parameter, make sure it's clear() first
@@ -1711,7 +1715,7 @@ void ThriftHandler::programInternalPhyPorts(
     std::map<int32_t, cfg::PortProfileID>& programmedPorts,
     std::unique_ptr<TransceiverInfo> transceiver,
     bool force) {
-  int32_t id = *transceiver->tcvrState()->port();
+  const int32_t id = *transceiver->tcvrState()->port();
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats(), id, force);
   ensureConfigured(__func__);
 

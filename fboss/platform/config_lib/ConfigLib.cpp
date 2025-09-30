@@ -24,7 +24,7 @@ std::string getPlatformName(const std::optional<std::string>& platformName) {
       : *helpers::PlatformNameLib().getPlatformName();
   std::transform(
       platformStr.begin(), platformStr.end(), platformStr.begin(), ::tolower);
-  XLOG(INFO) << "The inferred platform is " << platformStr;
+  XLOG(DBG1) << "The inferred platform is " << platformStr;
   return platformStr;
 }
 

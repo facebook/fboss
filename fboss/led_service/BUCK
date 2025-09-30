@@ -30,7 +30,13 @@ cpp_library(
         "LedUtils.cpp",
     ],
     exported_deps = [
+        ":led-config",
+        "//fboss/agent:fboss-error",
         "//fboss/led_service/if:led_structs-cpp2-types",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
@@ -51,6 +57,7 @@ cpp_library(
         "MontblancLedManager.cpp",
         "Morgan800ccLedManager.cpp",
         "Tahan800bcLedManager.cpp",
+        "Tahansb800bcLedManager.cpp",
         "facebook/DarwinLedManager.cpp",
         "facebook/ElbertLedManager.cpp",
         "facebook/FsdbSwitchStateSubscriber.cpp",
@@ -80,6 +87,7 @@ cpp_library(
         "MontblancLedManager.h",
         "Morgan800ccLedManager.h",
         "Tahan800bcLedManager.h",
+        "Tahansb800bcLedManager.h",
         "Wedge400BaseLedManager.h",
         "Wedge400CLedManager.h",
         "Wedge400LedManager.h",
@@ -106,6 +114,7 @@ cpp_library(
         "//fboss/agent/platforms/common/montblanc:montblanc_platform_mapping",
         "//fboss/agent/platforms/common/morgan800cc:morgan800cc_platform_mapping",
         "//fboss/agent/platforms/common/tahan800bc:tahan800bc_platform_mapping",
+        "//fboss/agent/platforms/common/tahansb800bc:tahansb800bc_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/wedge400c:wedge400c_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
@@ -125,6 +134,7 @@ cpp_library(
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/morgan800cc:morgan800cc_bsp",
         "//fboss/lib/bsp/tahan800bc:tahan800bc_bsp",
+        "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
         "//fboss/lib/fpga:minipack_base_container",
         "//fboss/lib/fpga:minipack_container",
         "//fboss/lib/fpga:wedge400_fpga",
@@ -152,6 +162,7 @@ cpp_binary(
     headers = [],
     deps = [
         ":led_core",
+        ":led_utils",
         "//fb303:logging",
         "//fboss/platform/helpers:init",
         "//folly/logging:init",

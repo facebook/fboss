@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/EnumUtils.h"
 #include "fboss/led_service/LedManager.h"
+#include "fboss/led_service/LedUtils.h"
 #include "fboss/led_service/hw_test/LedServiceTest.h"
 
 namespace facebook::fboss {
@@ -22,6 +23,9 @@ namespace facebook::fboss {
 DEFINE_int32(visual_delay_sec, 0, "Add a delay to enable seeing LED change");
 
 void LedServiceTest::SetUp() {
+  // First use LedConfig to init default command line arguments.
+  facebook::fboss::utility::initFlagDefaults(0, nullptr);
+
   // Create ensemble and initialize it
   ensemble_ = std::make_unique<LedEnsemble>();
   ensemble_->init();

@@ -7,6 +7,7 @@
 #include <memory>
 
 #include <folly/String.h>
+#include <folly/json/json.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 
@@ -98,7 +99,8 @@ int main(int argc, char* argv[]) {
   if (weutilInstance) {
     try {
       if (FLAGS_json) {
-        weutilInstance->printInfoJson();
+        std::cout << folly::toPrettyJson(weutilInstance->getInfoJson())
+                  << std::endl;
       } else {
         weutilInstance->printInfo();
       }

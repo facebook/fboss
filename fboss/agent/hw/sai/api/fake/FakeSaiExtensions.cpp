@@ -1,9 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/QueueApi.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -277,6 +279,11 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeResetQueueCreditBalance::operator()() {
+  return SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE;
 }
 
 std::optional<sai_attr_id_t>
@@ -929,4 +936,41 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
   return SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST;
 }
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_MAX_GROUPS;
+}
+
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeArsAlternateMembersRouteMetaData::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeArsRouteMetaDataMask::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK;
+}
+
+std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
+    AttributeArsPrimaryMembersRouteMetaData::operator()() {
+  return SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;
+}
+
+std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
+    AttributeArsNextHopGroupMetaData::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
+  return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
+}
+#endif
+
 } // namespace facebook::fboss

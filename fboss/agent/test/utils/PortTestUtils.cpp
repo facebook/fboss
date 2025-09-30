@@ -194,7 +194,7 @@ void setCreditWatchdogAndPortTx(
     TestEnsembleIf* ensemble,
     PortID port,
     bool enable) {
-  bool setCreditWatchdog =
+  bool isVoqSwitch =
       ensemble->getHwAsicTable()
           ->getHwAsic(ensemble->scopeResolver().scope(port).switchId())
           ->getSwitchType() == cfg::SwitchType::VOQ;
@@ -204,8 +204,14 @@ void setCreditWatchdogAndPortTx(
         auto newPort =
             switchState->getPorts()->getNodeIf(port)->modify(&switchState);
         newPort->setTxEnable(enable);
-
-        if (setCreditWatchdog) {
+        // VoQ switch specific handling
+        if (isVoqSwitch) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+          // For VoQ switches, TX disable should be accompanied by the
+          // port initial credits being reset to avoid leaking of data
+          // due to the residual credit.
+          newPort->setResetQueueCreditBalance(!enable);
+#endif
           for (const auto& [_, switchSetting] :
                std::as_const(*switchState->getSwitchSettings())) {
             auto newSwitchSettings = switchSetting->modify(&switchState);
@@ -235,8 +241,35 @@ void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable) {
     auto newPort =
         switchState->getPorts()->getNodeIf(port)->modify(&switchState);
     newPort->setTxEnable(enable);
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    // For VoQ switches, TX disable should be accompanied by the
+    // port initial credits being reset to avoid leaking of data
+    // due to the residual credit.
+    if (ensemble->getHwAsicTable()
+            ->getHwAsic(ensemble->scopeResolver().scope(port).switchId())
+            ->getSwitchType() == cfg::SwitchType::VOQ) {
+      newPort->setResetQueueCreditBalance(!enable);
+    }
+#endif
     return switchState;
   };
   ensemble->applyNewState(updatePortTx);
+}
+
+void resetQueueCreditBalance(
+    TestEnsembleIf* ensemble,
+    PortID port,
+    bool enable) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  auto updateResetQueueCreditBalance =
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto switchState = in->clone();
+        auto newPort =
+            switchState->getPorts()->getNodeIf(port)->modify(&switchState);
+        newPort->setResetQueueCreditBalance(enable);
+        return switchState;
+      };
+  ensemble->applyNewState(updateResetQueueCreditBalance);
+#endif
 }
 } // namespace facebook::fboss::utility

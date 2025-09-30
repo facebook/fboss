@@ -152,6 +152,8 @@ struct PortFields {
   60: optional i32 interPacketGapBits;
   // AM (Alignment Marker) idles configuration for this port
   61: optional bool amIdles;
+  // Option to reset the initial credits for a port, primarily for tests
+  62: optional bool resetQueueCreditBalance;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -161,6 +163,7 @@ struct TransceiverSpecFields {
   2: optional double cableLength;
   3: optional transceiver.MediaInterfaceCode mediaInterface;
   4: optional transceiver.TransceiverManagementInterface managementInterface;
+  5: optional transceiver.Vendor vendor;
 }
 
 struct AclTtl {
@@ -196,6 +199,7 @@ struct MatchAction {
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
   11: optional switch_config.FlowletAction flowletAction;
   12: optional switch_config.SetEcmpHashAction ecmpHashAction;
+  13: optional bool enableAlternateArsMembers;
 }
 
 struct AclEntryFields {
@@ -581,7 +585,6 @@ struct InterfaceFields {
   17: optional string dhcpV6Relay;
   18: map<string, string> dhcpRelayOverridesV4;
   19: map<string, string> dhcpRelayOverridesV6;
-
   /*
    * Set only on Remote Interfaces of VOQ switches.
    */
@@ -595,6 +598,9 @@ struct InterfaceFields {
 
   /* applicable only for port type of interface */
   23: optional i32 portId;
+  /* These fields contains information of remote GPU */
+  24: optional string desiredPeerName;
+  25: optional string desiredPeerAddressIPv6;
 }
 
 enum LacpState {
@@ -633,6 +639,9 @@ struct AggregatePortFields {
   4: i32 systemPriority;
   // network byte order
   5: i64 systemID;
+  // Minimum active link count to bring up/down the aggregate port
+  // If minimumLinkCountToUp is set, minimumLinkCount will be used as
+  // the lower bound to bring down the aggregate port
   6: i16 minimumLinkCount;
   7: list<Subport> ports;
   // portId to forwarding {ture -> enabled; false -> disabled};
@@ -641,6 +650,8 @@ struct AggregatePortFields {
   9: map<i32, ParticipantInfo> portToPartnerState;
   // List of interfaces for given aggregate port
   10: list<i32> interfaceIDs;
+  // Used as the upper bound to bring up the aggregate port
+  11: optional i16 minimumLinkCountToUp;
 }
 
 struct TeFlowEntryFields {

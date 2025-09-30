@@ -8,17 +8,11 @@
  *
  */
 
-#include "fboss/agent/hw/benchmarks/HwVoqRemoteNeighborBenchmarkHelper.h"
-
-#include <folly/Benchmark.h>
+#include "fboss/agent/hw/benchmarks/HwUcmpScaleBenchmarkHelper.h"
 
 namespace facebook::fboss {
 
-BENCHMARK(HwVoqRemoteNeighborAdd) {
-  remoteNeighborBenchmark(true /*add*/);
-}
+UCMP_SCALE_BENCHMARK(HwUcmp128WidthScaleBenchmark, 128);
+UCMP_SCALE_BENCHMARK(HwUcmp512WidthScaleBenchmark, 512);
 
-BENCHMARK(HwVoqRemoteNeighborDel) {
-  remoteNeighborBenchmark(false /*add*/);
-}
 } // namespace facebook::fboss

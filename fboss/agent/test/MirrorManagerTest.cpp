@@ -379,12 +379,13 @@ TYPED_TEST(MirrorManagerTest, CanNotUpdateMirrors) {
   auto params = this->getParamsHelper();
 
   this->updateState(
-      "CanNotUpdateMirrors", [=](const std::shared_ptr<SwitchState>& state) {
+      "CanNotUpdateMirrors",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addErspanMirror(
             state, kMirrorName, params.mirrorDestination);
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -396,7 +397,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
   auto params = this->getParamsHelper();
   this->updateState(
       "ResolveNoMirrorWithoutRoutes",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         return this->addNeighbor(
@@ -407,7 +408,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutRoutes) {
             params.neighborPorts[0]);
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -419,14 +420,14 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutArpEntry) {
   auto params = this->getParamsHelper();
   this->updateState(
       "ResolveNoMirrorWithoutArpEntry",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addErspanMirror(
             state, kMirrorName, params.mirrorDestination);
       });
   RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -437,11 +438,11 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithoutArpEntry) {
 TYPED_TEST(MirrorManagerTest, LocalMirrorAlreadyResolved) {
   this->updateState(
       "LocalMirrorAlreadyResolved",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addSpanMirror(state, kMirrorName, kMirrorEgressPort);
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -454,7 +455,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
 
   this->updateState(
       "ResolveMirrorWithoutEgressPort",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         return this->addNeighbor(
@@ -467,7 +468,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
   RouteNextHopSet nextHops = {params.nextHop(0)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -493,7 +494,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
 
   this->updateState(
       "ResolveMirrorWithEgressPort",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state,
             kMirrorName,
@@ -517,7 +518,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
   RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -546,7 +547,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
 
   this->updateState(
       "ResolveNoMirrorWithEgressPort",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state, kMirrorName, params.mirrorDestination, PortID(9));
         updatedState = this->addNeighbor(
@@ -567,7 +568,7 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithEgressPort) {
   RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -583,7 +584,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
 
   this->updateState(
       "ResolveMirrorWithDirectlyConnectedRoute",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.neighborIPs[0]);
         return this->addNeighbor(
@@ -593,7 +594,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
             params.neighborMACs[0],
             params.neighborPorts[0]);
       });
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -621,11 +622,11 @@ TYPED_TEST(MirrorManagerTest, ResolveNoMirrorWithDirectlyConnectedRoute) {
   const auto params = this->getParamsHelper();
   this->updateState(
       "ResolveNoMirrorWithDirectlyConnectedRoute",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addErspanMirror(state, kMirrorName, params.neighborIPs[0]);
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     EXPECT_NE(state, nullptr);
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
@@ -640,7 +641,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
   const auto params = this->getParamsHelper();
   this->updateState(
       "UpdateMirrorOnRouteDelete: addNode",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         updatedState = this->addNeighbor(
@@ -663,7 +664,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
   RouteNextHopSet nextHopsShorter = {params.nextHop(1)};
   this->addRoute(params.shorterPrefix, nextHopsShorter);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -688,7 +689,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 
   this->delRoute(params.longerPrefix);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -716,7 +717,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
   const auto params = this->getParamsHelper();
   this->updateState(
       "UpdateMirrorOnRouteAdd: addNode",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         return this->addNeighbor(
@@ -730,7 +731,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
   RouteNextHopSet nextHopsShorter = {params.nextHop(1)};
   this->addRoute(params.shorterPrefix, nextHopsShorter);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -755,7 +756,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
 
   this->updateState(
       "UpdateMirrorOnRouteAdd: addRoute",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->addNeighbor(
             state,
             params.interfaces[0],
@@ -767,7 +768,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
   RouteNextHopSet nextHopsLonger = {params.nextHop(0)};
   this->addRoute(params.longerPrefix, nextHopsLonger);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -796,7 +797,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
 
   this->updateState(
       "UpdateNoMirrorWithEgressPortOnRouteDel",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state,
             kMirrorName,
@@ -820,7 +821,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
   RouteNextHopSet nextHopsLonger = {params.nextHop(0), params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHopsLonger);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -845,7 +846,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
 
   this->delRoute(params.longerPrefix);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -863,7 +864,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
 
   this->updateState(
       "UpdateNoMirrorWithEgressPortOnRouteAdd",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addErspanMirror(
             state,
             kMirrorName,
@@ -887,7 +888,7 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteAdd) {
   RouteNextHopSet nextHopsLonger = {params.nextHop(0), params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHopsLonger);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -903,7 +904,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
   const auto params = this->getParamsHelper();
   this->updateState(
       "UpdateMirrorOnNeighborChange: addNode",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState =
             this->addErspanMirror(state, kMirrorName, params.mirrorDestination);
         updatedState = this->addNeighbor(
@@ -925,7 +926,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
   RouteNextHopSet nextHopsShorter = {params.nextHop(1)};
   this->addRoute(params.shorterPrefix, nextHopsShorter);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -950,7 +951,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
 
   this->updateState(
       "UpdateMirrorOnNeighborChange: delNeighbor",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->delNeighbor(
             state, params.interfaces[0], params.neighborIPs[0]);
         updatedState = this->delNeighbor(
@@ -970,7 +971,7 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
             params.neighborPorts[0]);
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1010,7 +1011,7 @@ TYPED_TEST(MirrorManagerTest, EmptyDelta) {
       params.interfaces[1],
       params.neighborPorts[1]);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     const auto newState = this->sw_->getState();
     StateDelta delta(oldState, newState);
     EXPECT_FALSE(DeltaFunctions::isEmpty(delta.getVlansDelta()));
@@ -1022,7 +1023,8 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
   const auto params = this->getParamsHelper();
 
   this->updateState(
-      "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
+      "GreMirrorWithSrcIp",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
@@ -1044,7 +1046,7 @@ TYPED_TEST(MirrorManagerTest, GreMirrorWithSrcIp) {
   RouteNextHopSet nextHops = {params.nextHop(0)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1065,7 +1067,8 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
   const auto params = this->getParamsHelper();
 
   this->updateState(
-      "GreMirrorWithSrcIp", [=](const std::shared_ptr<SwitchState>& state) {
+      "GreMirrorWithSrcIp",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
@@ -1088,7 +1091,7 @@ TYPED_TEST(MirrorManagerTest, SflowMirrorWithSrcIp) {
   RouteNextHopSet nextHops = {params.nextHop(0)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1111,7 +1114,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
   const auto params = this->getParamsHelper();
 
   this->updateState(
-      "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+      "add sflowMirror", [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = state->clone();
         updatedState = this->addSflowMirror(
             updatedState, kMirrorName, params.mirrorDestination, 10101, 20202);
@@ -1119,7 +1122,8 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
       });
 
   this->updateState(
-      "resolve sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+      "resolve sflowMirror",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
@@ -1134,7 +1138,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
 
   this->updateState(
       "update sflow mirror config",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = state->clone();
         auto oldMirror = state->getMirrors()->getNodeIf(kMirrorName);
 
@@ -1150,7 +1154,7 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorOnMirrorUpdate) {
         return this->updateMirror(updatedState, mirror);
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1173,13 +1177,13 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
   const auto params = this->getParamsHelper();
 
   this->updateState(
-      "add sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+      "add sflowMirror", [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addSflowMirror(
             state, kMirrorName, params.mirrorDestination, 10101, 20202);
         return updatedState;
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1187,7 +1191,8 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
   });
 
   this->updateState(
-      "resolve sflowMirror", [=](const std::shared_ptr<SwitchState>& state) {
+      "resolve sflowMirror",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
@@ -1200,7 +1205,7 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
   RouteNextHopSet nextHops = {params.nextHop(0)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1210,13 +1215,13 @@ TYPED_TEST(MirrorManagerTest, ConfigHasEgressPort) {
 
   this->updateState(
       "remove neighbor and route",
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return this->delNeighbor(
             state, params.interfaces[0], params.neighborIPs[0]);
       });
   this->delRoute(params.longerPrefix);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1229,13 +1234,14 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
   const auto params = this->getParamsHelper();
 
   this->updateState(
-      "GreMirrorWithOutPort-0", [=](const std::shared_ptr<SwitchState>& state) {
+      "GreMirrorWithOutPort-0",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addSflowMirror(
             state, kMirrorName, params.mirrorDestination, 10101, 20202);
         return updatedState;
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1243,7 +1249,8 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
   });
 
   this->updateState(
-      "resolve sflowMirror-0", [=](const std::shared_ptr<SwitchState>& state) {
+      "resolve sflowMirror-0",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
@@ -1262,7 +1269,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
   RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1273,13 +1280,13 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
   });
 
   this->updateState(
-      "remove nbr 0", [=](const std::shared_ptr<SwitchState>& state) {
+      "remove nbr 0", [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->delNeighbor(
             state, params.interfaces[0], params.neighborIPs[0]);
         return updatedState;
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1290,7 +1297,8 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
   });
 
   this->updateState(
-      "remove nbr 1,add nbr 0", [=](const std::shared_ptr<SwitchState>& state) {
+      "remove nbr 1,add nbr 0",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->delNeighbor(
             state, params.interfaces[1], params.neighborIPs[1]);
         updatedState = this->addNeighbor(
@@ -1302,7 +1310,7 @@ TYPED_TEST(MirrorManagerTest, NeighborUpdates) {
         return updatedState;
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1317,13 +1325,13 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
   const auto params = this->getParamsHelper();
 
   this->updateState(
-      "add mirror", [=](const std::shared_ptr<SwitchState>& state) {
+      "add mirror", [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addSflowMirror(
             state, kMirrorName, params.mirrorDestination, 10101, 20202);
         return updatedState;
       });
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1331,7 +1339,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
   });
 
   this->updateState(
-      "resolve mirror", [=](const std::shared_ptr<SwitchState>& state) {
+      "resolve mirror", [=, this](const std::shared_ptr<SwitchState>& state) {
         auto updatedState = this->addNeighbor(
             state,
             params.interfaces[0],
@@ -1350,7 +1358,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
   RouteNextHopSet nextHops = {params.nextHop(0), params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1365,7 +1373,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
   nextHops = {params.nextHop(1)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);
@@ -1380,7 +1388,7 @@ TYPED_TEST(MirrorManagerTest, UpdateRoute) {
   nextHops = {params.nextHop(0)};
   this->addRoute(params.longerPrefix, nextHops);
 
-  this->verifyStateUpdate([=]() {
+  this->verifyStateUpdate([=, this]() {
     auto state = this->sw_->getState();
     auto mirror = state->getMirrors()->getNodeIf(kMirrorName);
     EXPECT_NE(mirror, nullptr);

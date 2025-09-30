@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentArsBase.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FibHelpers.h"
@@ -25,8 +26,6 @@
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-DECLARE_bool(flowletSwitchingEnable);
-
 namespace facebook::fboss {
 
 class AgentFlowletSwitchingTest : public AgentArsBase {
@@ -40,12 +39,15 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentArsBase::initialConfig(ensemble);
+    auto backupSwitchingMode = isChenab(ensemble)
+        ? cfg::SwitchingMode::FIXED_ASSIGNMENT
+        : cfg::SwitchingMode::PER_PACKET_RANDOM;
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY,
-        cfg::SwitchingMode::PER_PACKET_RANDOM);
+        backupSwitchingMode);
     return cfg;
   }
 
@@ -295,7 +297,7 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
     // 200000 - 2000126 - DLB ECMP groups we don't care
     // 200127 - DLB ECMP group under test
     // 200128 - Random spray ECMP group under test
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups() - 1;
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups() - 1;
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes128 = {
         prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};
@@ -564,6 +566,140 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentFlowletSwitchingEnhancedScaleTest
+    : public AgentFlowletSwitchingTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::DLB,
+        ProductionFeature::ALTERNATE_ARS_MEMBERS,
+        ProductionFeature::SINGLE_ACL_TABLE};
+  }
+  void setCmdLineFlagOverrides() const override {
+    AgentFlowletSwitchingTest::setCmdLineFlagOverrides();
+    FLAGS_enable_th5_ars_scale_mode = true;
+    FLAGS_dlbResourceCheckEnable = false;
+  }
+};
+
+TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
+  auto setup = [this]() {
+    this->setup(32);
+    generateApplyConfig(AclType::FLOWLET);
+
+    generatePrefixes();
+
+    auto wrapper = getSw()->getRouteUpdater();
+
+    const int maxGroups = 254;
+    std::vector<RoutePrefixV6> testPrefixes(
+        prefixes.begin(),
+        prefixes.begin() + std::min(maxGroups, (int)prefixes.size()));
+    std::vector<flat_set<PortDescriptor>> testNhopSets(
+        nhopSets.begin(),
+        nhopSets.begin() + std::min(maxGroups, (int)nhopSets.size()));
+
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+
+    // Set default route to use ports [0,1,2,3] combination
+    flat_set<PortDescriptor> trafficNhopSet;
+    std::vector<PortDescriptor> tempPortDescs = {
+        helper_->ecmpPortDescriptorAt(0),
+        helper_->ecmpPortDescriptorAt(1),
+        helper_->ecmpPortDescriptorAt(2),
+        helper_->ecmpPortDescriptorAt(3)};
+    trafficNhopSet.insert(
+        std::make_move_iterator(tempPortDescs.begin()),
+        std::make_move_iterator(tempPortDescs.end()));
+
+    auto defaultPrefix = RoutePrefixV6{folly::IPAddressV6("::"), 0};
+    std::vector<RoutePrefixV6> defaultPrefixes = {defaultPrefix};
+    std::vector<flat_set<PortDescriptor>> defaultNhopSets = {trafficNhopSet};
+    helper_->programRoutes(&wrapper, defaultNhopSets, defaultPrefixes);
+  };
+
+  auto verify = [this]() {
+    auto verifyCounts = [this](int destPort, bool bumpOnHit) {
+      const int kEcmpGroupSize = 4;
+      std::vector<PortID> ecmpPorts;
+      std::vector<uint64_t> pktsBefore, pktsAfter;
+
+      // Collect port IDs and before stats
+      for (int i = 0; i < kEcmpGroupSize; ++i) {
+        ecmpPorts.push_back(helper_->ecmpPortDescriptorAt(i).phyPortID());
+        pktsBefore.push_back(
+            *getNextUpdatedPortStats(ecmpPorts[i]).outUnicastPkts_());
+      }
+
+      uint64_t pktsBeforeTotal =
+          std::accumulate(pktsBefore.begin(), pktsBefore.end(), 0ULL);
+      auto aclPktCountBefore = utility::getAclInOutPackets(
+          getSw(), getCounterName(AclType::FLOWLET));
+
+      std::vector<uint8_t> rethHdr(16);
+      rethHdr[15] = 0xFF;
+      auto egressPort =
+          helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
+      sendRoceTraffic(
+          egressPort,
+          utility::kUdfRoceOpcodeWriteImmediate,
+          rethHdr,
+          1000,
+          destPort);
+
+      WITH_RETRIES({
+        auto aclPktCountAfter = utility::getAclInOutPackets(
+            getSw(), getCounterName(AclType::FLOWLET));
+
+        // Collect after stats
+        pktsAfter.clear();
+        for (int i = 0; i < kEcmpGroupSize; ++i) {
+          pktsAfter.push_back(
+              *getNextUpdatedPortStats(ecmpPorts[i]).outUnicastPkts_());
+          XLOG(DBG2) << "Ecmp egress Port " << i << ": " << ecmpPorts[i]
+                     << ", Count: " << pktsBefore[i] << " -> " << pktsAfter[i];
+        }
+
+        uint64_t pktsAfterTotal =
+            std::accumulate(pktsAfter.begin(), pktsAfter.end(), 0ULL);
+        XLOG(DBG2) << "Total packets: " << pktsBeforeTotal << " -> "
+                   << pktsAfterTotal;
+        XLOG(DBG2) << "ACL count: " << aclPktCountBefore << " -> "
+                   << aclPktCountAfter;
+
+        // Check total packets across all four ports in the ECMP group
+        EXPECT_EVENTUALLY_GE(pktsAfterTotal, pktsBeforeTotal + 1000);
+
+        // Count ports with traffic using vector comparison
+        int portsWithTraffic = 0;
+        for (int i = 0; i < kEcmpGroupSize; ++i) {
+          if (pktsAfter[i] > pktsBefore[i]) {
+            portsWithTraffic++;
+          }
+        }
+
+        if (bumpOnHit) {
+          EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1000);
+          // Verify that traffic is distributed across all four ports when DLB
+          // is enabled
+          EXPECT_EVENTUALLY_EQ(portsWithTraffic, 4);
+        } else {
+          EXPECT_EVENTUALLY_EQ(aclPktCountAfter, aclPktCountBefore);
+          // When DLB is disabled, traffic should use traditional ECMP hashing
+          // and go to exactly one port for a consistent flow
+          EXPECT_EVENTUALLY_EQ(portsWithTraffic, 1);
+        }
+      });
+    };
+
+    verifyCounts(4791, true); // DLB enabled
+    verifyCounts(1024, false); // DLB disabled
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // UDF A to empty
 TEST_F(AgentFlowletSwitchingTest, VerifyUdfFlowletToFlowlet) {
   flowletSwitchingAclHitHelper(AclType::UDF_FLOWLET, AclType::FLOWLET);
@@ -754,7 +890,7 @@ TEST_F(AgentFlowletAclPriorityTest, VerifyUdfAclPriorityWB) {
 TEST_F(AgentFlowletSwitchingTest, CreateMaxDlbGroups) {
   auto verify = [this] {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups();
     // install 60% of max DLB ecmp groups
     {
       int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
@@ -825,7 +961,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
   // Start with 60% ECMP groups
   auto setup = [this]() {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups();
     int count = static_cast<int>(0.6 * kMaxDlbEcmpGroup);
     auto wrapper = getSw()->getRouteUpdater();
     std::vector<RoutePrefixV6> prefixes60 = {
@@ -837,7 +973,7 @@ TEST_F(AgentFlowletSwitchingTest, ApplyDlbResourceCheck) {
   // Post warmboot, dlb resource check is enforced since >75%
   auto setupPostWarmboot = [this]() {
     generatePrefixes();
-    const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+    const auto kMaxDlbEcmpGroup = getMaxArsGroups();
     {
       auto wrapper = getSw()->getRouteUpdater();
       std::vector<RoutePrefixV6> prefixes128 = {
@@ -895,7 +1031,7 @@ class AgentFlowletBcmTest : public AgentFlowletSwitchingTest {
 
 TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
   generatePrefixes();
-  const auto kMaxDlbEcmpGroup = getMaxDlbEcmpGroups();
+  const auto kMaxDlbEcmpGroup = getMaxArsGroups();
   // Create two test prefix vectors
   std::vector<RoutePrefixV6> testPrefixes1 = {
       prefixes.begin(), prefixes.begin() + kMaxDlbEcmpGroup};

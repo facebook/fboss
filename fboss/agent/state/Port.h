@@ -707,6 +707,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<bool> getResetQueueCreditBalance() const {
+    if (auto value = cref<switch_state_tags::resetQueueCreditBalance>()) {
+      return value->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setResetQueueCreditBalance(std::optional<bool> resetQueueCreditBalance) {
+    if (resetQueueCreditBalance.has_value()) {
+      set<switch_state_tags::resetQueueCreditBalance>(*resetQueueCreditBalance);
+    } else {
+      ref<switch_state_tags::resetQueueCreditBalance>().reset();
+    }
+  }
+
   std::vector<PortError> getActiveErrors() const {
     return safe_cref<switch_state_tags::activeErrors>()->toThrift();
   }

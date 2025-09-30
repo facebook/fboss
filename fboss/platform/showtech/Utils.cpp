@@ -2,12 +2,23 @@
 
 #include "fboss/platform/showtech/Utils.h"
 
+#include <gpiod.h>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <optional>
+#include <thread>
+#include <tuple>
 
 #include <fmt/core.h>
 #include <re2/re2.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/GpiodLine.h"
+#include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
+#include "fboss/platform/showtech/FanImpl.h"
 #include "fboss/platform/showtech/PsuHelper.h"
 
 using namespace facebook::fboss::platform::showtech_config;
@@ -85,7 +96,7 @@ void Utils::printSensorDetails() {
 }
 
 void Utils::printI2cDetails() {
-  std::cout << "##### I2C Information #####" << std::endl;
+  std::cout << "##### I2C Scan Information #####" << std::endl;
   auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
   std::cout << output << std::endl;
 
@@ -103,49 +114,159 @@ void Utils::printI2cDetails() {
   }
 }
 
+void Utils::printI2cDumpDetails() {
+  std::cout << "##### I2C Dump Information #####" << std::endl;
+  if (config_.i2cDumpDevices()->empty()) {
+    std::cout << "No device to i2cdump found from configs\n" << std::endl;
+    return;
+  }
+
+  for (const auto& path : *config_.i2cDumpDevices()) {
+    std::cout << fmt::format("#### i2cdump for {} ####", path) << std::endl;
+    auto i2cInfo = getI2cInfoForDevice(path);
+    if (i2cInfo) {
+      auto [bus, devAddr] = *i2cInfo;
+      auto cmd = fmt::format("timeout 15 i2cdump -f -y {} {} b", bus, devAddr);
+
+      std::cout << fmt::format("Running `{}`", cmd) << std::endl;
+      auto [ret, output] = platformUtils_.execCommand(cmd);
+      std::cout << output << std::endl;
+      if (ret == 124) {
+        std::cout << "Error: command timed out after 15 seconds" << std::endl;
+      }
+    }
+  }
+}
+
 void Utils::printPsuDetails() {
   std::cout << "##### PSU Information #####" << std::endl;
 
   for (const auto& psu : *config_.psus()) {
     std::cout << fmt::format("#### PSU Details {} ####", psu) << std::endl;
 
-    std::string psuPmbusI2cPath{};
-    try {
-      // Resolve the symlink to get the actual i2c device path
-      psuPmbusI2cPath = std::filesystem::read_symlink(psu).string();
-      std::cout << fmt::format("Resolved path: {}", psuPmbusI2cPath)
-                << std::endl;
-    } catch (const std::filesystem::filesystem_error& ex) {
-      std::cout << "Error: failed to resolve symlink " << psu << ": "
-                << ex.what() << std::endl;
-      continue;
+    auto i2cInfo = getI2cInfoForDevice(psu);
+    if (i2cInfo) {
+      auto [busNum, deviceAddr] = *i2cInfo;
+      try {
+        PsuHelper(busNum, deviceAddr).dumpRegisters();
+      } catch (const std::exception& e) {
+        std::cout << fmt::format(
+                         "Error: failed to dump registers: {}", e.what())
+                  << std::endl;
+      }
     }
+    std::cout << std::endl;
+  }
+}
 
-    int busNum;
-    int deviceAddr;
-    RE2 i2cPattern(R"(/sys/bus/i2c/devices/(\d+)-([0-9a-fA-F]+)/)");
+void Utils::printGpioDetails() {
+  std::cout << "##### GPIO Information #####" << std::endl;
 
-    if (!RE2::PartialMatch(
-            psuPmbusI2cPath, i2cPattern, &busNum, RE2::Hex(&deviceAddr))) {
-      std::cout << "Error: Could not extract i2c bus and address from path: "
-                << psuPmbusI2cPath << std::endl;
-      continue;
-    }
+  if (config_.gpios()->empty()) {
+    std::cout << "No GPIO chip found from configs\n" << std::endl;
+    return;
+  }
 
-    std::cout << fmt::format(
-                     "Extracted i2c bus: {}, device address: 0x{:04x}",
-                     busNum,
-                     deviceAddr)
+  for (const auto& gpio : *config_.gpios()) {
+    std::cout << fmt::format("#### GPIO Chip Details {} ####", *gpio.path())
               << std::endl;
+    struct gpiod_chip* chip = gpiod_chip_open(gpio.path()->c_str());
+    for (const auto& line : *gpio.lines()) {
+      std::cout << fmt::format(
+          "line {:>3}:   {:<15} -> ", *line.lineIndex(), *line.name());
+      try {
+        std::cout << GpiodLine(chip, *line.lineIndex(), *line.name()).getValue()
+                  << std::endl;
+      } catch (const std::exception& e) {
+        std::cout << fmt::format(
+                         "Error: failed to read gpio line: {}", e.what())
+                  << std::endl;
+      }
+    }
+    gpiod_chip_close(chip);
+    std::cout << std::endl;
+  }
+}
 
-    try {
-      PsuHelper(busNum, deviceAddr).dumpRegisters();
-    } catch (const std::exception& e) {
-      std::cout << fmt::format("Error: failed to dump registers: {}", e.what())
+void Utils::printPemDetails() {
+  std::cout << "##### PEM Information #####" << std::endl;
+  if (config_.pems()->empty()) {
+    std::cout << "No PEM found found from config\n" << std::endl;
+    return;
+  }
+  for (const auto& pem : *config_.pems()) {
+    std::cout << fmt::format("#### {} ####", *pem.name()) << std::endl;
+    printSysfsAttribute("present", *pem.presenceSysfsPath());
+    printSysfsAttribute("input_ok", *pem.inputOkSysfsPath());
+    printSysfsAttribute("status", *pem.statusSysfsPath());
+  }
+  std::cout << std::endl;
+}
+
+void Utils::printFanDetails() {
+  std::cout << "##### Fan Information #####" << std::endl;
+  std::string fanServiceConfJson = ConfigLib().getFanServiceConfig();
+  auto fanServiceConfig = apache::thrift::SimpleJSONSerializer::deserialize<
+      fan_service::FanServiceConfig>(fanServiceConfJson);
+  if (fanServiceConfig.fans()->empty()) {
+    std::cout << "No fans found from configs\n" << std::endl;
+    return;
+  }
+
+  for (int i = 0; i < 2; ++i) {
+    if (i > 0) {
+      std::cout << "Sleeping for 0.5s...\n" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    for (const auto& fan : *fanServiceConfig.fans()) {
+      std::string presenceStr{"ReadError"}, rpmStr{"ReadError"},
+          pwmPercentStr{"ReadError"};
+
+      FanImpl fanImpl(fan);
+
+      try {
+        presenceStr = fanImpl.readFanIsPresentOnDevice() ? "True" : "False";
+      } catch (const std::exception& e) {
+        std::cout << "Error in reading Fan Presence: " << e.what() << std::endl;
+        continue;
+      }
+      try {
+        rpmStr = std::to_string(fanImpl.readFanRpm());
+      } catch (const std::exception& e) {
+        std::cout << "Error in reading Fan RPM: " << e.what() << std::endl;
+      }
+      try {
+        pwmPercentStr = fmt::format("{}%", fanImpl.readFanPwmPercent());
+      } catch (const std::exception& e) {
+        std::cout << "Error in reading Fan PWM: " << e.what() << std::endl;
+      }
+      std::cout << fmt::format(
+                       "{} -> present={}, rpm={}, pwmPercent={}",
+                       *fan.fanName(),
+                       presenceStr,
+                       rpmStr,
+                       pwmPercentStr)
                 << std::endl;
     }
     std::cout << std::endl;
   }
+}
+
+void Utils::printFanspinnerDetails() {
+  std::cout << "##### Fanspinner Information #####" << std::endl;
+  if (config_.fanspinners()->empty()) {
+    std::cout << "No fanspinner found from config\n" << std::endl;
+    return;
+  }
+  for (const auto& fs : *config_.fanspinners()) {
+    std::cout << fmt::format("#### Fanspinner Path: {} ####", *fs.path())
+              << std::endl;
+    for (const auto& attr : *fs.sysfsAttributes()) {
+      printSysfsAttribute(*attr.name(), *attr.path());
+    }
+  }
+  std::cout << std::endl;
 }
 
 void Utils::runFbossCliCmd(const std::string& cmd) {
@@ -154,6 +275,51 @@ void Utils::runFbossCliCmd(const std::string& cmd) {
     std::cout << fmt::format("##### {} #####", fullCmd) << std::endl;
     std::cout << platformUtils_.execCommand(fullCmd).second << std::endl;
   }
+}
+
+void Utils::printSysfsAttribute(
+    const std::string& label,
+    const std::string& path) {
+  std::cout << label << ": ";
+  try {
+    std::cout << readSysfs(path) << std::endl;
+  } catch (const std::exception& e) {
+    std::cout << fmt::format(
+                     "Error: failed to read sysfs path {}: {}", path, e.what())
+              << std::endl;
+  }
+}
+
+std::optional<std::tuple<int, int>> Utils::getI2cInfoForDevice(
+    const std::string& path) {
+  std::string i2cPath{};
+  try {
+    i2cPath = std::filesystem::read_symlink(path).string();
+  } catch (const std::filesystem::filesystem_error& ex) {
+    std::cout << fmt::format(
+                     "Error: failed to resolve device symlink {}:{}",
+                     path,
+                     ex.what())
+              << std::endl;
+    return std::nullopt;
+  }
+
+  int busNum;
+  int deviceAddr;
+  RE2 i2cPattern(R"(/sys/bus/i2c/devices/(\d+)-([0-9a-fA-F]+))");
+
+  if (!RE2::PartialMatch(i2cPath, i2cPattern, &busNum, RE2::Hex(&deviceAddr))) {
+    std::cout << "Error: Could not extract i2c bus and address from path: "
+              << i2cPath << std::endl;
+    return std::nullopt;
+  }
+
+  std::cout << fmt::format(
+                   "Extracted i2c bus: {}, device address: 0x{:04x}",
+                   busNum,
+                   deviceAddr)
+            << std::endl;
+  return std::make_tuple(busNum, deviceAddr);
 }
 
 } // namespace facebook::fboss::platform

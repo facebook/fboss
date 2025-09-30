@@ -62,6 +62,12 @@ class PlatformPortProfileConfigMatcher {
 
   std::string toString() const;
 
+  bool isTransceiverVendorOverrideMatch(
+      const std::string& overrideVendorName,
+      const std::string& overridePartNum,
+      const std::string& currentVendorName,
+      const std::string& currentPartNum) const;
+
  private:
   const cfg::PortProfileID profileID_;
   std::optional<PimID> pimID_;
@@ -92,6 +98,7 @@ class PlatformMapping {
       PlatformPortProfileConfigMatcher matcher,
       phy::Side side) const;
 
+  // Match the PinConfig for a PlatformPortProfileConfigMatcher
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PlatformPortProfileConfigMatcher matcher) const;
 

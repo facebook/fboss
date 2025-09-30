@@ -102,6 +102,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -114,6 +115,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ARS:
     case HwAsic::Feature::QCM:
@@ -254,5 +256,14 @@ Tomahawk6Asic::desiredLoopbackModes() const {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMode;
+}
+
+std::optional<uint32_t> Tomahawk6Asic::getMaxArsGroups() const {
+  // TODO: old TH4 number, update if necessary
+  return 128;
+}
+
+std::optional<uint32_t> Tomahawk6Asic::getArsBaseIndex() const {
+  return std::nullopt;
 }
 } // namespace facebook::fboss

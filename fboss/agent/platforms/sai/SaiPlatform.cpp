@@ -38,11 +38,13 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiWedge800caPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
 DEFINE_string(
@@ -390,6 +392,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800BA) {
       saiPort = std::make_unique<SaiBcmWedge800baPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_WEDGE800CA) {
+      saiPort = std::make_unique<SaiWedge800caPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -554,7 +558,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if defined(BRCM_SAI_SDK_XGS)
   auto platformMode = getType();
   if (platformMode == PlatformType::PLATFORM_FUJI ||
-      platformMode == PlatformType::PLATFORM_ELBERT) {
+      platformMode == PlatformType::PLATFORM_ELBERT ||
+      platformMode == PlatformType::PLATFORM_MONTBLANC ||
+      platformMode == PlatformType::PLATFORM_TAHAN800BC) {
     std::vector<int8_t> dllPathCharArray;
     std::copy(
         FLAGS_dll_path.c_str(),
@@ -699,6 +705,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       fabricLLFC;
   std::optional<int32_t> maxSystemPortId;
   std::optional<int32_t> maxLocalSystemPortId;
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+  std::optional<std::vector<sai_u16_range_t>> localSystemPortIdRangeList;
+#endif
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
   std::optional<int32_t> maxSwitchId;
@@ -721,30 +730,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         // max switch-id in single node tests as well
         isDualStage3Q2QMode() || isL2FabricNode;
     if (isDualStage) {
-      /*
-       * Due to a HW bug in J3/R3, we are restricted to using switch-ids in the
-       * range of 0-4064.
-       * For 2-Stage, Num RDSWs = 512. SwitchIds consumed = 2048.
-       * Num EDSW = 128, Switch Ids consumed = 512. These ids will come after
-       * 2048. So 2560 (2.5K total). The last EDSW will take switch-ids from
-       * 2556-2559. We now start FDSWs at 2560. There are 200 FDSWs, taking 4
-       * switch Ids each = 2560 + 800 = 3360. So we start SDSW switch-ids from
-       * 3360. Given there are 128 SDSW, we get 3360 + (128 * 4) = 3872 Max
-       * switch id can only be set in multiples of 32. So we set it to next
-       * multiple of 32, which is 3904.
-       * TODO: look at 2-stage configs, find max switch-id and use that
-       * to compute the value here.
-       */
-      maxSwitchId = 3904;
+      // TODO: look at 2-stage configs, find max switch-id and use that
+      // to compute the value here.
+      maxSwitchId = kDualStageMaxGlobalSwitchId;
     } else {
-      // Single stage FAP-ID on J3/R3 are limited to 1K.
-      // With 4 cores we are limited to 1K switch-ids.
-      // Then with 80 R3 chips we get 160 more switch-ids
-      // so we are well within the 2K (vendor) recommended
-      // limit.
       // TODO: Programatically calculate the max switch-id and
       // assert that we are are within this limit
-      maxSwitchId = 2 * 1024;
+      maxSwitchId = kSingleStageMaxGlobalSwitchId;
     }
     auto maxDsfConfigSwitchId = utility::maxDsfSwitchId(*agentConfig) +
         std::max(getAsic()->getNumCores(),
@@ -767,7 +759,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
   if (isDualStage3Q2QMode()) {
     maxSystemPortId = 32694;
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+#else
     maxLocalSystemPortId = 184;
+#endif
     maxSystemPorts = 22136;
     maxVoqs = 65284;
   } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
@@ -810,7 +806,16 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     //  [7483-7500: One for each of the 16 x 800G NIF ports
     maxSystemPortId = 8120;
     maxSystemPorts = 8121;
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+    if (FLAGS_hyper_port) {
+      localSystemPortIdRangeList =
+          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+    } else {
+      localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+    }
+#else
     maxLocalSystemPortId = 184;
+#endif
     maxVoqs = maxSystemPorts.value() * 8;
   } else {
     if (FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports) {
@@ -820,7 +825,16 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSystemPortId = 6143;
       maxSystemPorts = 6144;
     }
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+    if (FLAGS_hyper_port) {
+      localSystemPortIdRangeList =
+          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+    } else {
+      localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+    }
+#else
     maxLocalSystemPortId = -1;
+#endif
     maxVoqs = maxSystemPorts.value() * 8;
   }
 #endif
@@ -956,6 +970,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       std::nullopt, // disable sll and hll timeout
       std::nullopt, // credit request profile scheduler mode
       std::nullopt, // module id to credit request profile param list
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      localSystemPortIdRangeList, // range list of local scope system port ids
+#endif
   };
 }
 

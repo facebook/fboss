@@ -13,12 +13,17 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
     const {
   SubRequest request;
   request.clientId()->instanceId() = clientId();
-  RawOperPath path;
-  request.paths() = this->subscribePaths();
   request.forceSubscribe() = this->subscriptionOptions().forceSubscribe_;
   if (this->subscriptionOptions().heartbeatInterval_.has_value()) {
     request.heartbeatInterval() =
         this->subscriptionOptions().heartbeatInterval_.value();
+  }
+  if constexpr (std::is_same_v<
+                    PathElement,
+                    std::map<SubscriptionKey, ExtendedOperPath>>) {
+    request.extPaths() = this->subscribePaths();
+  } else {
+    request.paths() = this->subscribePaths();
   }
   return request;
 }
@@ -32,13 +37,25 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::setupStream() {
       [&](const OperSubInitResponse& initResponse) -> bool {
     return !this->isCancelled();
   };
-  auto result = co_await (
-      this->isStats() ? this->client_->co_subscribeStats(
-                            this->getRpcOptions(), this->createRequest())
-                      : this->client_->co_subscribeState(
-                            this->getRpcOptions(), this->createRequest()));
-  initResponseReceiver(result.response);
-  co_return std::move(result.stream);
+  if constexpr (std::is_same_v<
+                    PathElement,
+                    std::map<SubscriptionKey, ExtendedOperPath>>) {
+    auto result = co_await (
+        this->isStats() ? this->client_->co_subscribeStatsExtended(
+                              this->getRpcOptions(), this->createRequest())
+                        : this->client_->co_subscribeStateExtended(
+                              this->getRpcOptions(), this->createRequest()));
+    initResponseReceiver(result.response);
+    co_return std::move(result.stream);
+  } else {
+    auto result = co_await (
+        this->isStats() ? this->client_->co_subscribeStats(
+                              this->getRpcOptions(), this->createRequest())
+                        : this->client_->co_subscribeState(
+                              this->getRpcOptions(), this->createRequest()));
+    initResponseReceiver(result.response);
+    co_return std::move(result.stream);
+  }
 }
 
 std::optional<OperMetadata> getChunkMetadata(const SubscriberChunk& chunk) {
@@ -147,5 +164,10 @@ template class FsdbPatchSubscriberImpl<
     SubscriberMessage,
     SubscriberChunk,
     std::map<SubscriptionKey, RawOperPath>>;
+
+template class FsdbPatchSubscriberImpl<
+    SubscriberMessage,
+    SubscriberChunk,
+    std::map<SubscriptionKey, ExtendedOperPath>>;
 
 } // namespace facebook::fboss::fsdb

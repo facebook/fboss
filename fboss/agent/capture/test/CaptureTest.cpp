@@ -54,7 +54,7 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   cfg::Interface thriftIface;
   *thriftIface.intfID() = 1;
   *thriftIface.vlanID() = 1;
-  thriftIface.ipAddresses()->push_back("10.0.0.1/24");
+  thriftIface.ipAddresses()->emplace_back("10.0.0.1/24");
   thriftIface.mac() = "02:01:02:03:04:05";
   thriftCfg.interfaces()->push_back(thriftIface);
 

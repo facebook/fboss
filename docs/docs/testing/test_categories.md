@@ -43,6 +43,7 @@ feel free to run all tests and work through them however you please.
 
 ### Platform Services
 
+- all tests in `platform_hw_test`
 - all tests in `data_corral_service_hw_test`
 - all tests in `fan_service_hw_test`
 - all tests in `fw_util_hw_test`

@@ -271,7 +271,7 @@ void BcmMultiPathNextHopTable::updateDlbExhaustionStat() {
     return;
   }
   auto maxDlbGroups =
-      getBcmSwitch()->getPlatform()->getAsic()->getMaxDlbEcmpGroups();
+      getBcmSwitch()->getPlatform()->getAsic()->getMaxArsGroups();
   CHECK(maxDlbGroups.has_value());
   bool dlbExhausted = false;
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
@@ -305,7 +305,7 @@ cfg::SwitchingMode BcmMultiPathNextHopTable::getFwdSwitchingMode(
   auto multipathNextHop =
       getNextHopIf(BcmMultiPathNextHopKey(vrf, nextHopSet, std::nullopt));
   if (!multipathNextHop) {
-    std::string str = "";
+    std::string str;
     for (const auto& nhop : nextHopSet) {
       str += folly::to<std::string>(nhop.str(), ",");
     }

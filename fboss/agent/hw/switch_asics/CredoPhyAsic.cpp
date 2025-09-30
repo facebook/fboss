@@ -19,6 +19,8 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
       return true;
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     default:
       return false;
   }
@@ -105,5 +107,12 @@ int CredoPhyAsic::getMidPriCpuQueueId() const {
 }
 int CredoPhyAsic::getHiPriCpuQueueId() const {
   throw FbossError("Credo ASIC does not support cpu queue");
+}
+std::optional<uint32_t> CredoPhyAsic::getMaxArsGroups() const {
+  return std::nullopt;
+}
+
+std::optional<uint32_t> CredoPhyAsic::getArsBaseIndex() const {
+  return std::nullopt;
 }
 }; // namespace facebook::fboss

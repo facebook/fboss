@@ -378,7 +378,7 @@ std::vector<PortDescriptor> getUplinksForEcmp(
                      .first;
   std::vector<PortDescriptor> ecmpPorts;
   for (auto it = uplinks.begin(); it != uplinks.end(); it++) {
-    ecmpPorts.push_back(PortDescriptor(*it));
+    ecmpPorts.emplace_back(*it);
   }
   return ecmpPorts;
 }

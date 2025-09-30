@@ -22,10 +22,12 @@ class ThriftTraverseResult {
     INCORRECT_VARIANT_MEMBER,
     VISITOR_EXCEPTION,
     INVALID_SET_MEMBER,
+    SKIPPING_PRIMITIVE_NODE,
   };
 
   // Constructors
   ThriftTraverseResult();
+  explicit ThriftTraverseResult(Code code);
   ThriftTraverseResult(Code code, const std::string& message);
 
   // Implicit conversion to bool for conditional checks
