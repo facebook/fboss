@@ -2122,10 +2122,13 @@ void SaiPortManager::updateStats(
     toSubtractFromInDiscardsRaw.emplace_back(
         *prevPortStats.inPause_(), *curPortStats.inPause_());
   }
-  for (auto& [priority, current] : *curPortStats.inPfc_()) {
-    if (current > 0) {
-      toSubtractFromInDiscardsRaw.emplace_back(
-          folly::get_default(*prevPortStats.inPfc_(), priority, 0), current);
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC)) {
+    for (auto& [priority, current] : *curPortStats.inPfc_()) {
+      if (current > 0) {
+        toSubtractFromInDiscardsRaw.emplace_back(
+            folly::get_default(*prevPortStats.inPfc_(), priority, 0), current);
+      }
     }
   }
   *curPortStats.inDiscards_() += utility::subtractIncrements(
