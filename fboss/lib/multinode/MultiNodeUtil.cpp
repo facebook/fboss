@@ -804,12 +804,9 @@ std::set<int> MultiNodeUtil::getGlobalRifsOfType(
   };
 
   std::set<int> rifsOfType;
-  auto peerToRifs = getPeerToRifs(rdsw);
-  for (const auto& [_, rifs] : peerToRifs) {
-    for (const auto& rif : rifs) {
-      if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
-        rifsOfType.insert(rif.interfaceId().value());
-      }
+  for (const auto& [_, rif] : getIntfIdToIntf(rdsw)) {
+    if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
+      rifsOfType.insert(rif.interfaceId().value());
     }
   }
   return rifsOfType;
@@ -1710,12 +1707,8 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
   };
 
   auto getIntfIDToIp = [this, rdsw]() {
-    auto peerToRifs = getPeerToRifs(rdsw);
-    CHECK(peerToRifs.find(rdsw) != peerToRifs.end());
-    auto rifs = peerToRifs.at(rdsw);
-
     std::map<int32_t, folly::IPAddress> intfIDToIp;
-    for (const auto& rif : rifs) {
+    for (const auto& [_, rif] : getIntfIdToIntf(rdsw)) {
       for (const auto& ipPrefix : *rif.address()) {
         auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
             reinterpret_cast<const unsigned char*>(
