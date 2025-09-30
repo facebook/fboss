@@ -1728,7 +1728,8 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
         auto intfIDToIp = getIntfIDToIp();
 
         for (auto& neighbor : neighbors) {
-          CHECK(intfIDToIp.find(neighbor.intfID) != intfIDToIp.end());
+          CHECK(intfIDToIp.find(neighbor.intfID) != intfIDToIp.end())
+              << "rdsw: " << rdsw << " neighbor.intfID: " << neighbor.intfID;
           auto ip = intfIDToIp.at(neighbor.intfID);
           auto [neighborIp, neighborMac] = computeNeighborIpAndMac(ip.str());
 
