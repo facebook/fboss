@@ -23,6 +23,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
+using facebook::fboss::FabricEndpoint;
 using facebook::fboss::FbossHwCtrl;
 using facebook::fboss::MultiSwitchRunState;
 using facebook::fboss::QsfpService;
@@ -197,6 +198,20 @@ getSystemPortdIdToSystemPort(const std::string& switchName) {
   std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortIdToSystemPort;
   swAgentClient->sync_getSystemPorts(systemPortIdToSystemPort);
   return systemPortIdToSystemPort;
+}
+
+std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
+    const std::string& switchName) {
+  std::map<std::string, FabricEndpoint> fabricPortToFabricEndpoint;
+  auto hwAgentQueryFn = [&fabricPortToFabricEndpoint](
+                            apache::thrift::Client<FbossHwCtrl>& client) {
+    std::map<std::string, FabricEndpoint> hwAgentEntries;
+    client.sync_getHwFabricConnectivity(hwAgentEntries);
+    fabricPortToFabricEndpoint.merge(hwAgentEntries);
+  };
+  runOnAllHwAgents(switchName, hwAgentQueryFn);
+
+  return fabricPortToFabricEndpoint;
 }
 
 void triggerGracefulAgentRestart(const std::string& switchName) {
