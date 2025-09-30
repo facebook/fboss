@@ -563,6 +563,7 @@ struct SflowCollectorFields {
   2: SocketAddress address;
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;
