@@ -2225,6 +2225,15 @@ struct FlowletSwitchingConfig {
   16: optional i32 alternatePathBias;
 }
 
+/*
+ * configuration for a static MAC entry
+ */
+struct StaticMacEntry {
+  1: i32 vlanID;
+  2: string macAddress;
+  3: i32 egressLogicalPortID;
+}
+
 /**
  * The configuration for a switch.
  *
@@ -2359,4 +2368,5 @@ struct SwitchConfig {
   // list of ACL table groups, prefer this over aclTableGroup, aclTableGroup will be deprecated
   56: optional list<AclTableGroup> aclTableGroups;
   57: list<MirrorOnDropReport> mirrorOnDropReports = [];
+  58: optional list<StaticMacEntry> staticMacAddrs;
 }
