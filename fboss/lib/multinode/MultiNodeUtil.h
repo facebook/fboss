@@ -87,6 +87,19 @@ class MultiNodeUtil {
     }
   }
 
+  void logRif(
+      const std::string& rdsw,
+      const facebook::fboss::InterfaceDetail& rif) {
+    XLOG(DBG2)
+        << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
+        << " interfaceId: " << rif.interfaceId().value() << " remoteIntfType: "
+        << apache::thrift::util::enumNameSafe(rif.remoteIntfType().value_or(-1))
+        << " remoteIntfLivenessStatus: "
+        << folly::to<std::string>(rif.remoteIntfLivenessStatus().value_or(-1))
+        << " scope: "
+        << apache::thrift::util::enumNameSafe(rif.scope().value());
+  }
+
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
