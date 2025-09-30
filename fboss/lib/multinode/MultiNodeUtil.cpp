@@ -672,39 +672,20 @@ bool MultiNodeUtil::verifyPorts() const {
 }
 
 std::map<std::string, std::vector<SystemPortThrift>>
-MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) const {
-  auto logSystemPort =
-      [rdsw](const facebook::fboss::SystemPortThrift& systemPort) {
-        XLOG(DBG2)
-            << "From " << rdsw << " portId: " << systemPort.portId().value()
-            << " switchId: " << systemPort.switchId().value()
-            << " portName: " << systemPort.portName().value()
-            << " remoteSystemPortType: "
-            << apache::thrift::util::enumNameSafe(
-                   systemPort.remoteSystemPortType().value_or(-1))
-            << " remoteSystemPortLivenessStatus: "
-            << apache::thrift::util::enumNameSafe(
-                   systemPort.remoteSystemPortLivenessStatus().value_or(-1))
-            << " scope: "
-            << apache::thrift::util::enumNameSafe(systemPort.scope().value());
-      };
+MultiNodeUtil::getRdswToSystemPorts() const {
+  std::map<std::string, std::vector<SystemPortThrift>> rdswToSystemPorts;
 
-  auto swAgentClient = getSwAgentThriftClient(rdsw);
-  std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries;
-  swAgentClient->sync_getSystemPorts(systemPortEntries);
+  for (const auto& rdsw : allRdsws_) {
+    auto systemPortIdToSystemPort = getSystemPortdIdToSystemPort(rdsw);
 
-  std::map<std::string, std::vector<SystemPortThrift>> peerToSystemPorts;
-  for (const auto& [_, systemPort] : systemPortEntries) {
-    logSystemPort(systemPort);
-    CHECK(
-        switchIdToSwitchName_.find(SwitchID(systemPort.switchId().value())) !=
-        std::end(switchIdToSwitchName_));
-    auto switchName =
-        switchIdToSwitchName_.at(SwitchID(systemPort.switchId().value()));
-    peerToSystemPorts[switchName].push_back(systemPort);
+    std::transform(
+        systemPortIdToSystemPort.begin(),
+        systemPortIdToSystemPort.end(),
+        std::back_inserter(rdswToSystemPorts[rdsw]),
+        [](const auto& pair) { return pair.second; });
   }
 
-  return peerToSystemPorts;
+  return rdswToSystemPorts;
 }
 
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
@@ -1313,9 +1294,8 @@ bool MultiNodeUtil::verifyStaleSystemPorts(
   auto staleSystemPorts = [this, myHostname, restartedRdsws] {
     // Verify system ports for restarted RDSWs are STALE
     // Verify system ports for non-restarted RDSWs are LIVE
-    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
-    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
-      bool isRestarted = restartedRdsws.find(peer) != restartedRdsws.end();
+    for (const auto& [rdsw, systemPorts] : getRdswToSystemPorts()) {
+      bool isRestarted = restartedRdsws.find(rdsw) != restartedRdsws.end();
 
       for (const auto& systemPort : systemPorts) {
         auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
@@ -1386,12 +1366,8 @@ bool MultiNodeUtil::verifyStaleRifs(
 }
 
 bool MultiNodeUtil::verifyLiveSystemPorts() const {
-  auto myHostname = network::NetworkUtil::getLocalHost(
-      true /* stripFbDomain */, true /* stripTFbDomain */);
-
-  auto liveSystemPorts = [this, myHostname] {
-    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
-    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
+  auto liveSystemPorts = [this] {
+    for (const auto& [rdsw, systemPorts] : getRdswToSystemPorts()) {
       for (const auto& systemPort : systemPorts) {
         auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
         if (!livenessStatus.has_value()) {
