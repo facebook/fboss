@@ -382,6 +382,26 @@ std::set<std::string> MultiNodeUtil::getConnectedFabricPorts(
   return connectedPorts;
 }
 
+std::map<std::string, FabricEndpoint>
+MultiNodeUtil::getConnectedFabricPortToFabricEndpoint(
+    const std::string& switchName) const {
+  std::map<std::string, FabricEndpoint> connectedFabricPortToFabricEndpoint;
+  auto fabricPortToFabricEndpoint = getFabricPortToFabricEndpoint(switchName);
+
+  std::copy_if(
+      fabricPortToFabricEndpoint.begin(),
+      fabricPortToFabricEndpoint.end(),
+      std::inserter(
+          connectedFabricPortToFabricEndpoint,
+          connectedFabricPortToFabricEndpoint.begin()),
+      [](const auto& pair) {
+        auto fabricEndpoint = pair.second;
+        return fabricEndpoint.isAttached().value();
+      });
+
+  return connectedFabricPortToFabricEndpoint;
+}
+
 bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
     SwitchType switchType,
     const std::string& switchToVerify,
