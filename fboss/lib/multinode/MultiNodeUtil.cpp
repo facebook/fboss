@@ -425,10 +425,9 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
                << fabricEndpoint.expectedPortName().value_or("none");
   };
 
-  auto fabricEndpoints = getFabricEndpoints(switchToVerify);
-
   std::set<std::string> gotConnectedSwitches;
-  for (const auto& [portName, fabricEndpoint] : fabricEndpoints) {
+  for (const auto& [portName, fabricEndpoint] :
+       getFabricPortToFabricEndpoint(switchToVerify)) {
     if (fabricEndpoint.isAttached().value()) {
       logFabricEndpoint(fabricEndpoint);
 
@@ -665,7 +664,15 @@ bool MultiNodeUtil::verifyPortActiveStateForSwitch(
     SwitchType switchType,
     const std::string& switchName) const {
   // Every Connected Fabric Port must be Active
-  auto expectedActivePorts = getConnectedFabricPorts(switchName);
+  auto connectedFabricPortToFabricEndpoint =
+      getConnectedFabricPortToFabricEndpoint(switchName);
+  std::set<std::string> expectedActivePorts;
+  std::transform(
+      connectedFabricPortToFabricEndpoint.begin(),
+      connectedFabricPortToFabricEndpoint.end(),
+      std::inserter(expectedActivePorts, expectedActivePorts.begin()),
+      [](const auto& pair) { return pair.first; });
+
   auto gotActivePorts = getActiveFabricPorts(switchName);
 
   XLOG(DBG2) << "From " << switchTypeToString(switchType) << ":: " << switchName
