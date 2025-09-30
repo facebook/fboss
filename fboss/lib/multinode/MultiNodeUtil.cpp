@@ -353,21 +353,6 @@ void MultiNodeUtil::populateAllFdsws() {
   }
 }
 
-std::map<std::string, FabricEndpoint> MultiNodeUtil::getFabricEndpoints(
-    const std::string& switchName) const {
-  std::map<std::string, FabricEndpoint> fabricEndpoints;
-  auto hwAgentQueryFn =
-      [&fabricEndpoints](
-          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-        std::map<std::string, FabricEndpoint> hwagentEntries;
-        client.sync_getHwFabricConnectivity(hwagentEntries);
-        fabricEndpoints.merge(hwagentEntries);
-      };
-  runOnAllHwAgents(switchName, hwAgentQueryFn);
-
-  return fabricEndpoints;
-}
-
 std::map<std::string, FabricEndpoint>
 MultiNodeUtil::getConnectedFabricPortToFabricEndpoint(
     const std::string& switchName) const {
