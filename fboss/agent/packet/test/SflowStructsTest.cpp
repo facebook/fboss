@@ -1032,4 +1032,231 @@ TEST(SflowStructsTest, SampleDatagramV5OwnedMultipleSamples) {
       serializedSize, 50); // Should be a substantial size with all the data
 }
 
+TEST(SflowStructsTest, SampleDatagramOwned) {
+  // Test comprehensive functionality of SampleDatagramOwned with detailed
+  // serialization verification
+  sflow::SampleDatagramOwned ownedDatagram;
+  ownedDatagram.datagramV5.agentAddress =
+      folly::IPAddress("2401:db00:116:3016::1b");
+  ownedDatagram.datagramV5.subAgentID = 54321; // 0xD431
+  ownedDatagram.datagramV5.sequenceNumber = 98765; // 0x181CD
+  ownedDatagram.datagramV5.uptime = 1234567; // 0x12D687
+
+  // Create a SampleRecordOwned with FlowSampleOwned data
+  sflow::SampleRecordOwned sampleRecord;
+  sampleRecord.sampleType = 1; // Flow sample type
+
+  // Create a FlowSampleOwned
+  sflow::FlowSampleOwned flowSample;
+  flowSample.sequenceNumber = 555; // 0x22B
+  flowSample.sourceID = 666; // 0x29A
+  flowSample.samplingRate = 777; // 0x309
+  flowSample.samplePool = 888; // 0x378
+  flowSample.drops = 999; // 0x3E7
+  flowSample.input = 1111; // 0x457
+  flowSample.output = 2222; // 0x8AE
+
+  // Add FlowRecords to the FlowSample
+  sflow::FlowRecordOwned record1;
+  record1.flowFormat = 1;
+  record1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding needed
+
+  sflow::FlowRecordOwned record2;
+  record2.flowFormat = 1;
+  record2.flowData = {0xCA, 0xFE, 0xBA, 0xBE, 0x12}; // 5 bytes, 3 bytes padding
+
+  flowSample.flowRecords = {record1, record2};
+
+  // Add FlowSample to SampleRecord
+  sampleRecord.sampleData.push_back(flowSample);
+
+  // Add SampleRecord to SampleDatagramV5Owned
+  ownedDatagram.datagramV5.samples.push_back(std::move(sampleRecord));
+
+  // Test size calculation
+  // Calculate expected size: VERSION5 (4) + datagramV5 size
+  uint32_t expectedSize = 4 /* VERSION5 */ + ownedDatagram.datagramV5.size();
+  EXPECT_EQ(ownedDatagram.size(), expectedSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  ownedDatagram.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify basic structure - should include VERSION5 and all datagram data
+  EXPECT_GT(serializedSize, 60); // At least VERSION5 + IP header + other fields
+
+  // Verify the first 8 bytes (VERSION5 and IP address type)
+  std::vector<uint8_t> headerData(buffer.begin(), buffer.begin() + 8);
+  EXPECT_THAT(
+      headerData,
+      ElementsAre(
+          // VERSION5 (5) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x05,
+          // IP address type (IPv6 = 2) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x02));
+
+  // Verify that the size calculation matches the actual serialized size
+  EXPECT_EQ(ownedDatagram.size(), serializedSize);
+}
+
+TEST(SflowStructsTest, SampleDatagramOwnedSizeCalculation) {
+  // Test size calculation with various configurations
+  sflow::SampleDatagramOwned datagram;
+  datagram.datagramV5.agentAddress = folly::IPAddress("192.168.100.200");
+  datagram.datagramV5.subAgentID = 11;
+  datagram.datagramV5.sequenceNumber = 22;
+  datagram.datagramV5.uptime = 33;
+
+  // Test empty samples
+  uint32_t expectedEmptySize = 4 /* VERSION5 */ + datagram.datagramV5.size();
+  EXPECT_EQ(datagram.size(), expectedEmptySize);
+
+  // Add one sample record with one FlowSample
+  sflow::SampleRecordOwned record1;
+  record1.sampleType = 1;
+
+  sflow::FlowSampleOwned flowSample1;
+  flowSample1.sequenceNumber = 1000;
+  flowSample1.sourceID = 2000;
+  flowSample1.samplingRate = 3000;
+  flowSample1.samplePool = 4000;
+  flowSample1.drops = 5000;
+  flowSample1.input = 6000;
+  flowSample1.output = 7000;
+
+  sflow::FlowRecordOwned flowRecord1;
+  flowRecord1.flowFormat = 1;
+  flowRecord1.flowData = {0x01, 0x02, 0x03, 0x04}; // 4 bytes, no padding
+  flowSample1.flowRecords = {flowRecord1};
+
+  record1.sampleData.push_back(flowSample1);
+  datagram.datagramV5.samples.push_back(std::move(record1));
+
+  uint32_t expectedSize1 = 4 /* VERSION5 */ + datagram.datagramV5.size();
+  EXPECT_EQ(datagram.size(), expectedSize1);
+
+  // Add another sample record
+  sflow::SampleRecordOwned record2;
+  record2.sampleType = 2;
+
+  sflow::FlowSampleOwned flowSample2;
+  flowSample2.sequenceNumber = 8000;
+  flowSample2.sourceID = 9000;
+  flowSample2.samplingRate = 10000;
+  flowSample2.samplePool = 11000;
+  flowSample2.drops = 12000;
+  flowSample2.input = 13000;
+  flowSample2.output = 14000;
+
+  sflow::FlowRecordOwned flowRecord2;
+  flowRecord2.flowFormat = 1;
+  flowRecord2.flowData = {0x10, 0x20, 0x30}; // 3 bytes + 1 padding = 4
+  flowSample2.flowRecords = {flowRecord2};
+
+  record2.sampleData.push_back(flowSample2);
+  datagram.datagramV5.samples.push_back(std::move(record2));
+
+  uint32_t expectedSize2 = 4 /* VERSION5 */ + datagram.datagramV5.size();
+  EXPECT_EQ(datagram.size(), expectedSize2);
+}
+
+TEST(SflowStructsTest, SampleDatagramOwnedMultipleSamples) {
+  // Test SampleDatagramOwned with multiple sample records and complex structure
+  sflow::SampleDatagramOwned datagram;
+  datagram.datagramV5.agentAddress = folly::IPAddress("10.1.2.3");
+  datagram.datagramV5.subAgentID = 99999;
+  datagram.datagramV5.sequenceNumber = 88888;
+  datagram.datagramV5.uptime = 77777;
+
+  // Create first sample record with multiple FlowRecords
+  sflow::SampleRecordOwned record1;
+  record1.sampleType = 1;
+
+  sflow::FlowSampleOwned flowSample1;
+  flowSample1.sequenceNumber = 1111;
+  flowSample1.sourceID = 2222;
+  flowSample1.samplingRate = 3333;
+  flowSample1.samplePool = 4444;
+  flowSample1.drops = 5555;
+  flowSample1.input = 6666;
+  flowSample1.output = 7777;
+
+  sflow::FlowRecordOwned flowRecord1a;
+  flowRecord1a.flowFormat = 1;
+  flowRecord1a.flowData = {0xAA, 0xBB}; // 2 bytes + 2 padding = 4
+
+  sflow::FlowRecordOwned flowRecord1b;
+  flowRecord1b.flowFormat = 1;
+  flowRecord1b.flowData = {
+      0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22}; // 6 bytes + 2 padding = 8
+
+  flowSample1.flowRecords = {flowRecord1a, flowRecord1b};
+  record1.sampleData.push_back(flowSample1);
+
+  // Create second sample record
+  sflow::SampleRecordOwned record2;
+  record2.sampleType = 2;
+
+  sflow::FlowSampleOwned flowSample2;
+  flowSample2.sequenceNumber = 9999;
+  flowSample2.sourceID = 8888;
+  flowSample2.samplingRate = 7777;
+  flowSample2.samplePool = 6666;
+  flowSample2.drops = 5555;
+  flowSample2.input = 4444;
+  flowSample2.output = 3333;
+
+  sflow::FlowRecordOwned flowRecord2;
+  flowRecord2.flowFormat = 1;
+  flowRecord2.flowData = {
+      0x33, 0x44, 0x55, 0x66, 0x77}; // 5 bytes + 3 padding = 8
+  flowSample2.flowRecords = {flowRecord2};
+
+  record2.sampleData.push_back(flowSample2);
+
+  // Add both records to datagram
+  datagram.datagramV5.samples.push_back(std::move(record1));
+  datagram.datagramV5.samples.push_back(std::move(record2));
+
+  // Test size calculation - should include both sample records
+  uint32_t expectedTotalSize = 4 /* VERSION5 */ + datagram.datagramV5.size();
+  EXPECT_EQ(datagram.size(), expectedTotalSize);
+
+  // Test serialization
+  int bufSize = 2048;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  datagram.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify that serialization size matches calculated size
+  EXPECT_EQ(datagram.size(), serializedSize);
+  EXPECT_EQ(datagram.datagramV5.samples.size(), 2);
+
+  // Verify basic structure integrity - should be substantial with all the
+  // nested data
+  EXPECT_GT(
+      serializedSize,
+      100); // Should be a large size with complex nested structure
+
+  // Verify the VERSION5 constant at the beginning
+  EXPECT_EQ(datagram.VERSION5, 5);
+  uint32_t actualVersion5 =
+      (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+  EXPECT_EQ(actualVersion5, 5);
+}
+
 } // namespace facebook::fboss::sflow

@@ -187,6 +187,16 @@ struct SampleDatagram {
   uint32_t size(const uint32_t recordsSize) const;
 };
 
+/* Self-contained version of SampleDatagram that owns its data */
+struct SampleDatagramOwned {
+  // We only consider sFlowV5
+  static constexpr uint32_t VERSION5 = 5;
+  SampleDatagramV5Owned datagramV5;
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  uint32_t size() const;
+};
+
 /* Proposed standard sFlow data formats (draft 14) */
 /* Packet Header Data */
 /* header_potocol enumeration */

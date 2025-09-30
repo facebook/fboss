@@ -237,6 +237,15 @@ uint32_t SampleDatagram::size(const uint32_t recordsSize) const {
   return 4 + this->datagramV5.size(recordsSize);
 }
 
+void SampleDatagramOwned::serialize(RWPrivateCursor* cursor) const {
+  cursor->writeBE<uint32_t>(SampleDatagramOwned::VERSION5);
+  this->datagramV5.serialize(cursor);
+}
+
+uint32_t SampleDatagramOwned::size() const {
+  return 4 + this->datagramV5.size();
+}
+
 void SampledHeader::serialize(RWPrivateCursor* cursor) const {
   cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->protocol));
   cursor->writeBE<uint32_t>(this->frameLength);
