@@ -104,6 +104,30 @@ uint32_t FlowSample::size(const uint32_t frecordsSize) const {
       4 /* flowRecordCnt */ + frecordsSize;
 }
 
+void FlowSampleOwned::serialize(RWPrivateCursor* cursor) const {
+  cursor->writeBE<uint32_t>(this->sequenceNumber);
+  serializeSflowDataSource(cursor, this->sourceID);
+  cursor->writeBE<uint32_t>(this->samplingRate);
+  cursor->writeBE<uint32_t>(this->samplePool);
+  cursor->writeBE<uint32_t>(this->drops);
+  serializeSflowPort(cursor, this->input);
+  serializeSflowPort(cursor, this->output);
+  cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->flowRecords.size()));
+  for (const FlowRecordOwned& record : this->flowRecords) {
+    record.serialize(cursor);
+  }
+}
+
+uint32_t FlowSampleOwned::size() const {
+  uint32_t recordsSize = 0;
+  for (const auto& record : this->flowRecords) {
+    recordsSize += record.size();
+  }
+  return 4 /* sequenceNumber */ + 4 /* sourceId */ + 4 /* samplingRate */ +
+      4 /* samplePool */ + 4 /* drops */ + 4 /* input */ + 4 /* output */ +
+      4 /* flowRecordCnt */ + recordsSize;
+}
+
 void SampleRecord::serialize(RWPrivateCursor* cursor) const {
   serializeDataFormat(cursor, this->sampleType);
   cursor->writeBE<uint32_t>(this->sampleDataLen);

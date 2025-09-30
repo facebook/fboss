@@ -92,6 +92,22 @@ struct FlowSample {
   uint32_t size(const uint32_t frecordSize) const;
 };
 
+/* Format of a single self-contained flow sample that owns its data */
+/* opaque = sample_data; enterprise = 0; format = 1 */
+struct FlowSampleOwned {
+  uint32_t sequenceNumber;
+  SflowDataSource sourceID;
+  uint32_t samplingRate;
+  uint32_t samplePool;
+  uint32_t drops;
+  SflowPort input;
+  SflowPort output;
+  std::vector<FlowRecordOwned> flowRecords;
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  uint32_t size() const;
+};
+
 /* Format of a single counter sample */
 /* opaque = sample_data; enterprise = 0; format = 2 */
 // TODO (sgwang)
