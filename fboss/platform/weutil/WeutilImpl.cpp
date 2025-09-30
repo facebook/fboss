@@ -6,7 +6,6 @@
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include <folly/Conv.h>
-#include <folly/Format.h>
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <iostream>
