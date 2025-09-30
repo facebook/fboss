@@ -43,6 +43,8 @@ class MultiNodeUtil {
 
   bool verifyNeighborAddRemove() const;
 
+  bool verifyTrafficSpray() const;
+
  private:
   enum class SwitchType : uint8_t {
     RDSW = 0,

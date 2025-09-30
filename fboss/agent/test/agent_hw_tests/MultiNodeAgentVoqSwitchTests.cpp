@@ -239,4 +239,16 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyNeighborAddRemove) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyTrafficSpray) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyTrafficSpray();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

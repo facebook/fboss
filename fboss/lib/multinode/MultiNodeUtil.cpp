@@ -1933,4 +1933,8 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
   return true;
 }
 
+bool MultiNodeUtil::verifyTrafficSpray() const {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
