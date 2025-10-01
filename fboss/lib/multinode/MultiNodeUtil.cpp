@@ -1724,15 +1724,20 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
     return intfIDToIp;
   };
 
-  auto computeNeighborIpAndMac = [](const std::string& ipAddress) {
+  auto computeNeighborIpAndMac = [this](const std::string& ipAddress) {
     auto constexpr kOffset = 0x10;
     auto ipv6Address = folly::IPAddressV6::tryFromString(ipAddress);
     std::array<uint8_t, 16> bytes = ipv6Address->toByteArray();
     bytes[15] += kOffset; // add some offset to derive neighbor IP
     auto neighborIp = folly::IPAddressV6::fromBinary(bytes);
 
-    auto macStr =
-        folly::to<std::string>(fmt::format("00:02:00:00:00:{:02x}", bytes[15]));
+    // Resolve Neighbor to Router MAC.
+    //
+    // Neighbor is resolved on a loopback port.
+    // Thus, packets out of this port get looped back. Since those packets
+    // carry router MAC as dstMac the packets get routed and help us create
+    // traffic loop.
+    auto macStr = utility::getMacForFirstInterfaceWithPorts(sw_->getState());
     auto neighborMac = folly::MacAddress(macStr);
 
     return std::make_pair(neighborIp, neighborMac);
