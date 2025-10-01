@@ -102,8 +102,8 @@ TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {
     fib6->removeNode(newRoute);
     EXPECT_EQ(fib6->size(), routesBefore - 1);
     consolidate(newerState);
-    const auto& nhops2Id = consolidator_->getNhopsToId();
-    EXPECT_EQ(nhops2Id.size(), 1);
+    const auto& updatedNhops2Id = consolidator_->getNhopsToId();
+    EXPECT_EQ(updatedNhops2Id.size(), 1);
     EXPECT_EQ(*getNhopId(defaultNhops()), groupId);
     EXPECT_FALSE(getNhopId(newNhops).has_value());
     // All resolved routes point to same nhop group
