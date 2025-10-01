@@ -43,7 +43,7 @@ constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWait = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
-constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
+constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 // We may need special handling for scenarios where Init time takes
 // more than 120 seconds. we will likely need to refactor code.
 constexpr int kUsecDatapathStateUpdateTimeMaxFboss = 120000000; // 120 seconds
@@ -2483,15 +2483,14 @@ void CmisModule::setApplicationCodeLocked(
     if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
         !isRequestValidMultiportSpeedConfig(
             speed, startHostLane, numHostLanes)) {
-      resetDataPathWithFunc(
-          std::bind(
-              &CmisModule::setApplicationSelectCodeAllPorts,
-              this,
-              speed,
-              startHostLane,
-              numHostLanes,
-              hostLaneMask),
-          hostLaneMask);
+      resetDataPathWithFunc(std::bind(
+          &CmisModule::setApplicationSelectCodeAllPorts,
+          this,
+          speed,
+          startHostLane,
+          numHostLanes,
+          hostLaneMask)); // To use the default hostLaneMask = 0xFF for
+                          // all the lanes datapath reset.
     } else {
       resetDataPathWithFunc(
           std::bind(
