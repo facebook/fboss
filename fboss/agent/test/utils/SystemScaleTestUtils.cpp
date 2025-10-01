@@ -336,7 +336,9 @@ void syncFib(
        RouteUpdateWrapper::SyncFibInfo::SyncFibType::IP_ONLY});
 }
 
-void configureMaxRouteEntries(AgentEnsemble* ensemble) {
+void configureMaxRouteEntries(
+    AgentEnsemble* ensemble,
+    const RouteDistributionGenerator& routeGenerator) {
   auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
   CHECK_EQ(switchIds.size(), 1);
   auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
@@ -351,8 +353,6 @@ void configureMaxRouteEntries(AgentEnsemble* ensemble) {
       asic->getMaxRoutes().has_value() ? asic->getMaxRoutes().value() : 0;
   CHECK_GT(maxNumRoute, 0);
 
-  auto routeGenerator = ScaleTestRouteScaleGenerator(
-      sw->getState(), ensemble->getSw()->needL2EntryForNeighbor());
   auto allThriftRoutes = routeGenerator.allThriftRoutes();
   int numThriftRoutes = allThriftRoutes.size();
 
@@ -737,11 +737,13 @@ void startTxMeasure(AgentEnsemble* ensemble, int& pps, int& bytesPerSec) {
   return;
 }
 
-void initSystemScaleTest(AgentEnsemble* ensemble) {
+void initSystemScaleTest(
+    AgentEnsemble* ensemble,
+    const RouteDistributionGenerator& routeGenerator) {
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
   auto timeBefore = std::chrono::steady_clock::now();
   configureMaxAclEntries(ensemble);
-  configureMaxRouteEntries(ensemble);
+  configureMaxRouteEntries(ensemble, routeGenerator);
   configureMaxMacEntries(ensemble);
   configureMaxNeighborEntries(ensemble);
   auto [rxPktsAfter, rxBytesAfter] = stopRxMeasure(ensemble);
@@ -793,10 +795,13 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
     macLearningFloodHelper.startChurnMacTable();
   }
   XLOG(INFO) << "start churn route entries";
-  configureMaxRouteEntries(ensemble);
+  auto generator = ScaleTestRouteScaleGenerator(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
+  configureMaxRouteEntries(ensemble, generator);
   for (auto i = 0; i < kNumChurnRoute; i++) {
     removeAllRouteEntries(ensemble);
-    configureMaxRouteEntries(ensemble);
+    configureMaxRouteEntries(ensemble, generator);
   }
   auto timeBefore = std::chrono::steady_clock::now();
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
