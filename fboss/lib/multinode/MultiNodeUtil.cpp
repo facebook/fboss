@@ -300,7 +300,9 @@ SubscriberIdToOperSubscriberInfos getSubscriberIdToOperSusbscriberInfos(
 namespace facebook::fboss::utility {
 
 MultiNodeUtil::MultiNodeUtil(
-    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
+    SwSwitch* sw,
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap)
+    : sw_(sw) {
   populateDsfNodes(dsfNodeMap);
   populateAllRdsws();
   populateAllFdsws();

@@ -10,16 +10,18 @@
 
 #pragma once
 
-#include <string>
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 
 #include <folly/MacAddress.h>
+#include <string>
 
 namespace facebook::fboss::utility {
 
 class MultiNodeUtil {
  public:
   explicit MultiNodeUtil(
+      SwSwitch* sw,
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
 
   bool verifyFabricConnectivity() const;
@@ -292,6 +294,8 @@ class MultiNodeUtil {
   std::set<std::string> allFdsws_;
   std::map<SwitchID, std::string> switchIdToSwitchName_;
   std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
+
+  SwSwitch* sw_{nullptr};
 };
 
 } // namespace facebook::fboss::utility
