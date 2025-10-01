@@ -2827,6 +2827,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
       origAggPort->getSystemID() == cfgSystemID &&
       origAggPort->getMinimumLinkCount() == cfgMinLinkCount &&
       origAggPort->getMinimumLinkCountToUp() == cfgMinLinkCountToUp &&
+      origAggPort->getAggregatePortType() == *cfg.aggregatePortType() &&
       std::equal(
           origSubports.begin(), origSubports.end(), cfgSubports.begin()) &&
       std::equal(
@@ -2845,6 +2846,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
   newAggPort->setInterfaceIDs(cfgAggregatePortInterfaceIDs);
   newAggPort->setMinimumLinkCounToUp(cfgMinLinkCountToUp);
+  newAggPort->setAggregatePortType(*cfg.aggregatePortType());
 
   return newAggPort;
 }
@@ -2877,7 +2879,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
       cfgMinLinkCount,
       folly::range(subports.begin(), subports.end()),
       aggregatePortInterfaceIDs,
-      cfgMinLinkCountToUp);
+      cfgMinLinkCountToUp,
+      *cfg.aggregatePortType());
 }
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(

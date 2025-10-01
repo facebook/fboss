@@ -654,6 +654,7 @@ struct AggregatePortFields {
   10: list<i32> interfaceIDs;
   // Used as the upper bound to bring up the aggregate port
   11: optional i16 minimumLinkCountToUp;
+  12: switch_config.AggregatePortType aggregatePortType = switch_config.AggregatePortType.LAG_PORT;
 }
 
 struct TeFlowEntryFields {

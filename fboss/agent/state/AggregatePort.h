@@ -157,7 +157,9 @@ class AggregatePort
       const std::vector<int32_t>& interfaceIDs,
       LegacyAggregatePortFields::Forwarding fwd = Forwarding::DISABLED,
       ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo(),
-      std::optional<uint8_t> minimumLinkCountToUp = std::nullopt);
+      std::optional<uint8_t> minimumLinkCountToUp = std::nullopt,
+      cfg::AggregatePortType aggregatePortType =
+          cfg::AggregatePortType::LAG_PORT);
 
   AggregatePort(
       AggregatePortID id,
@@ -169,7 +171,9 @@ class AggregatePort
       Subports&& ports,
       SubportToForwardingState&& portStates,
       SubportToPartnerState&& portPartnerStates,
-      std::optional<uint8_t> minimumLinkCountToUp = std::nullopt);
+      std::optional<uint8_t> minimumLinkCountToUp = std::nullopt,
+      cfg::AggregatePortType aggregatePortType =
+          cfg::AggregatePortType::LAG_PORT);
 
   template <typename Iterator>
   static std::shared_ptr<AggregatePort> fromSubportRange(
@@ -181,7 +185,9 @@ class AggregatePort
       uint8_t minLinkCount,
       folly::Range<Iterator> subports,
       const std::vector<int32_t>& interfaceIDs,
-      std::optional<uint8_t> minLinkCountToUp = std::nullopt) {
+      std::optional<uint8_t> minLinkCountToUp = std::nullopt,
+      cfg::AggregatePortType aggregatePortType =
+          cfg::AggregatePortType::LAG_PORT) {
     return std::make_shared<AggregatePort>(
         id,
         name,
@@ -193,7 +199,8 @@ class AggregatePort
         interfaceIDs,
         Forwarding::DISABLED,
         ParticipantInfo::defaultParticipantInfo(),
-        minLinkCountToUp);
+        minLinkCountToUp,
+        aggregatePortType);
   }
 
   AggregatePortID getID() const {
@@ -255,6 +262,14 @@ class AggregatePort
       return;
     }
     set<switch_state_tags::minimumLinkCountToUp>(minLinkCountToUp.value());
+  }
+
+  cfg::AggregatePortType getAggregatePortType() const {
+    return cref<switch_state_tags::aggregatePortType>()->cref();
+  }
+
+  void setAggregatePortType(const cfg::AggregatePortType& aggregatePortType) {
+    set<switch_state_tags::aggregatePortType>(aggregatePortType);
   }
 
   AggregatePort::Forwarding getForwardingState(PortID port) {
