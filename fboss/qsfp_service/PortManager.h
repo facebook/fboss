@@ -298,6 +298,9 @@ class PortManager {
   // Made public for PortManager access.
   void setPortEnabledStatusInCache(PortID portId, bool enabled);
 
+  void updatePortActiveState(
+      const std::map<int32_t, PortStatus>& portStatus) noexcept;
+
  protected:
   /*
    * function to initialize all the Phy in the system

@@ -132,7 +132,28 @@ void PortManager::init() {
 
 void PortManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
-    std::unique_ptr<std::map<int32_t, PortStatus>> ports) {}
+    std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
+  // Get transceiver ids that we want to update ports for.
+  std::set<TransceiverID> tcvrIDs;
+  for (const auto& [_, portStatus] : *ports) {
+    if (auto tcvrIdx = portStatus.transceiverIdx()) {
+      tcvrIDs.insert(TransceiverID(*tcvrIdx->transceiverId()));
+    }
+  }
+
+  updatePortActiveState(*ports);
+
+  // Only fetch the transceivers for the input ports.
+  for (auto tcvrId : tcvrIDs) {
+    // We only want to return info for transceivers that are not absent.
+    const auto& tcvrInfo =
+        transceiverManager_->getTransceiverInfoOptional(tcvrId);
+    if (!tcvrInfo) {
+      continue;
+    }
+    info[tcvrId] = *tcvrInfo;
+  }
+}
 
 bool PortManager::initExternalPhyMap(bool forceWarmboot) {
   return true;
@@ -1003,6 +1024,45 @@ void PortManager::waitForAllBlockingStateUpdateDone(
     }
     result->wait();
   }
+};
+
+void PortManager::updatePortActiveState(
+    const std::map<int32_t, PortStatus>& portStatusMap) noexcept {
+  std::map<int32_t, NpuPortStatus> npuPortStatus =
+      getNpuPortStatus(portStatusMap);
+  int numPortStatusChanged{0};
+  BlockingStateUpdateResultList results;
+
+  for (const auto& [portIdInt, portStatus] : npuPortStatus) {
+    PortStateMachineState portState;
+    auto portId = PortID(portIdInt);
+    try {
+      portState = getPortState(portId);
+    } catch (const FbossError& /* e */) {
+      XLOG(WARN) << "Unrecoginized Port:" << portId
+                 << ", skip updatePortActiveState()";
+      continue;
+    }
+
+    XLOG(INFO) << "Syncing port status for port " << portId;
+    bool arePortTcvrsJustProgrammed =
+        portState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED;
+    auto newState = operStateToPortState(portStatus.operState);
+
+    if (arePortTcvrsJustProgrammed ||
+        (portStatus.portEnabled && portState != newState)) {
+      ++numPortStatusChanged;
+      auto event = getPortStatusChangeEvent(newState);
+      if (auto result = updateStateBlockingWithoutWait(portId, event)) {
+        results.push_back(result);
+      }
+    }
+  }
+
+  waitForAllBlockingStateUpdateDone(results);
+  XLOG_IF(DBG2, numPortStatusChanged > 0)
+      << "updatePortActiveState has " << numPortStatusChanged
+      << " ports need to update port status.";
 }
 
 std::unordered_set<TransceiverID> PortManager::getTransceiversWithAllPortsInSet(
