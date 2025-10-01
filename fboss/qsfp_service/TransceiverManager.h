@@ -309,6 +309,12 @@ class TransceiverManager {
       phy::PortComponent /* component */,
       bool /* setLoopback */);
 
+  void setPortLoopbackStateTransceiver(
+      PortID portId,
+      std::string portName,
+      phy::PortComponent component,
+      bool setLoopback);
+
   void setPortAdminState(
       std::string /* portName */,
       phy::PortComponent /* component */,
@@ -502,6 +508,10 @@ class TransceiverManager {
           supportedPortProfiles,
       bool checkOptics);
 
+  bool isTransceiverPortStateSupported(
+      TransceiverID tcvrID,
+      TransceiverPortState& tcvrPortState);
+
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
 
@@ -559,7 +569,15 @@ class TransceiverManager {
   phy::PrbsStats getPortPrbsStats(PortID portId, phy::PortComponent component)
       const;
 
+  phy::PrbsStats getPortPrbsStatsTransceiver(PortID portId, phy::Side side)
+      const;
+
   void clearPortPrbsStats(PortID portId, phy::PortComponent component);
+
+  void clearPortPrbsStatsTransceiver(
+      PortID portId,
+      const std::string& portName,
+      phy::Side side);
 
   std::vector<prbs::PrbsPolynomial> getTransceiverPrbsCapabilities(
       TransceiverID tcvrID,
@@ -575,8 +593,20 @@ class TransceiverManager {
       phy::PortComponent component,
       const prbs::InterfacePrbsState& state);
 
+  void setInterfacePrbsTransceiver(
+      PortID portId,
+      const std::string& portName,
+      phy::PortComponent component,
+      const prbs::InterfacePrbsState& state);
+
   void getInterfacePrbsState(
       prbs::InterfacePrbsState& prbsState,
+      const std::string& portName,
+      phy::PortComponent component) const;
+
+  void getInterfacePrbsStateTransceiver(
+      prbs::InterfacePrbsState& prbsState,
+      PortID portId,
       const std::string& portName,
       phy::PortComponent component) const;
 

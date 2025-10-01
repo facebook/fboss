@@ -134,6 +134,12 @@ std::string getTcvrNameFromPortName(const std::string& portName) {
 
   return folly::sformat("{}{}/{}", portType, pimID, transceiverID);
 }
+
+bool isTransceiverComponent(
+    const facebook::fboss::phy::PortComponent& component) {
+  return component == facebook::fboss::phy::PortComponent::TRANSCEIVER_SYSTEM ||
+      component == facebook::fboss::phy::PortComponent::TRANSCEIVER_LINE;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -1466,14 +1472,20 @@ void TransceiverManager::getAllPortSupportedProfiles(
         continue;
       }
 
-      auto lockedTransceivers = transceivers_.rlock();
-      auto tcvrIt = lockedTransceivers->find(*tcvrIDOpt);
-      if (tcvrIt != lockedTransceivers->end() &&
-          tcvrIt->second->tcvrPortStateSupported(portState)) {
+      if (isTransceiverPortStateSupported(*tcvrIDOpt, portState)) {
         supportedPortProfiles[portName].push_back(profileID);
       }
     }
   }
+}
+
+bool TransceiverManager::isTransceiverPortStateSupported(
+    TransceiverID tcvrID,
+    TransceiverPortState& tcvrPortState) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(tcvrID);
+  return tcvrIt != lockedTransceivers->end() &&
+      tcvrIt->second->tcvrPortStateSupported(tcvrPortState);
 }
 
 void TransceiverManager::programTransceiver(
@@ -2755,22 +2767,8 @@ void TransceiverManager::setInterfacePrbs(
     throw FbossError("Neither generator or checker specified for PRBS setting");
   }
 
-  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PortComponent::TRANSCEIVER_LINE) {
-    if (auto tcvrID = getTransceiverID(portId.value())) {
-      phy::Side side = prbsComponentToPhySide(component);
-      auto lockedTransceivers = transceivers_.rlock();
-      if (auto it = lockedTransceivers->find(*tcvrID);
-          it != lockedTransceivers->end()) {
-        if (!it->second->setPortPrbs(portName, side, state)) {
-          throw FbossError("Failed to set PRBS on transceiver ", *tcvrID);
-        }
-      } else {
-        throw FbossError("Can't find transceiver ", *tcvrID);
-      }
-    } else {
-      throw FbossError("Can't find transceiverID for portID ", portId.value());
-    }
+  if (isTransceiverComponent(component)) {
+    setInterfacePrbsTransceiver(portId.value(), portName, component, state);
   } else {
     if (!phyManager_) {
       throw FbossError("Current platform doesn't support xphy");
@@ -2786,28 +2784,33 @@ void TransceiverManager::setInterfacePrbs(
   }
 }
 
+void TransceiverManager::setInterfacePrbsTransceiver(
+    PortID portId,
+    const std::string& portName,
+    phy::PortComponent component,
+    const prbs::InterfacePrbsState& state) {
+  if (auto tcvrID = getTransceiverID(portId)) {
+    phy::Side side = prbsComponentToPhySide(component);
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(*tcvrID);
+        it != lockedTransceivers->end()) {
+      if (!it->second->setPortPrbs(portName, side, state)) {
+        throw FbossError("Failed to set PRBS on transceiver ", *tcvrID);
+      }
+    } else {
+      throw FbossError("Can't find transceiver ", *tcvrID);
+    }
+  } else {
+    throw FbossError("Can't find transceiverID for portID ", portId);
+  }
+}
+
 phy::PrbsStats TransceiverManager::getPortPrbsStats(
     PortID portId,
     phy::PortComponent component) const {
   phy::Side side = prbsComponentToPhySide(component);
-  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PortComponent::TRANSCEIVER_LINE) {
-    auto portName = getPortNameByPortId(portId);
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto tcvrID = getTransceiverID(portId)) {
-      if (auto it = lockedTransceivers->find(*tcvrID);
-          it != lockedTransceivers->end()) {
-        if (portName.has_value()) {
-          return it->second->getPortPrbsStats(portName.value(), side);
-        } else {
-          throw FbossError("Can't find a portName for portId ", portId);
-        }
-      } else {
-        throw FbossError("Can't find transceiver ", *tcvrID);
-      }
-    } else {
-      throw FbossError("Can't find transceiverID for portID ", portId);
-    }
+  if (isTransceiverComponent(component)) {
+    return getPortPrbsStatsTransceiver(portId, side);
   } else {
     if (!phyManager_) {
       throw FbossError("Current platform doesn't support xphy");
@@ -2828,6 +2831,27 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
   }
 }
 
+phy::PrbsStats TransceiverManager::getPortPrbsStatsTransceiver(
+    PortID portId,
+    phy::Side side) const {
+  auto portName = getPortNameByPortId(portId);
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto tcvrID = getTransceiverID(portId)) {
+    if (auto it = lockedTransceivers->find(*tcvrID);
+        it != lockedTransceivers->end()) {
+      if (portName.has_value()) {
+        return it->second->getPortPrbsStats(portName.value(), side);
+      } else {
+        throw FbossError("Can't find a portName for portId ", portId);
+      }
+    } else {
+      throw FbossError("Can't find transceiver ", *tcvrID);
+    }
+  } else {
+    throw FbossError("Can't find transceiverID for portID ", portId);
+  }
+}
+
 void TransceiverManager::clearPortPrbsStats(
     PortID portId,
     phy::PortComponent component) {
@@ -2836,23 +2860,29 @@ void TransceiverManager::clearPortPrbsStats(
     throw FbossError("Can't find a portName for portId ", portId);
   }
   phy::Side side = prbsComponentToPhySide(component);
-  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PortComponent::TRANSCEIVER_LINE) {
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto tcvrID = getTransceiverID(portId)) {
-      if (auto it = lockedTransceivers->find(*tcvrID);
-          it != lockedTransceivers->end()) {
-        it->second->clearTransceiverPrbsStats(*portName, side);
-      } else {
-        throw FbossError("Can't find transceiver ", *tcvrID);
-      }
-    } else {
-      throw FbossError("Can't find transceiverID for portID ", portId);
-    }
+  if (isTransceiverComponent(component)) {
+    clearPortPrbsStatsTransceiver(portId, *portName, side);
   } else if (!phyManager_) {
     throw FbossError("Current platform doesn't support xphy");
   } else {
     phyManager_->clearPortPrbsStats(portId, prbsComponentToPhySide(component));
+  }
+}
+
+void TransceiverManager::clearPortPrbsStatsTransceiver(
+    PortID portId,
+    const std::string& portName,
+    phy::Side side) {
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto tcvrID = getTransceiverID(portId)) {
+    if (auto it = lockedTransceivers->find(*tcvrID);
+        it != lockedTransceivers->end()) {
+      it->second->clearTransceiverPrbsStats(portName, side);
+    } else {
+      throw FbossError("Can't find transceiver ", *tcvrID);
+    }
+  } else {
+    throw FbossError("Can't find transceiverID for portID ", portId);
   }
 }
 
@@ -2873,8 +2903,7 @@ void TransceiverManager::getSupportedPrbsPolynomials(
     std::string portName,
     phy::PortComponent component) {
   phy::Side side = prbsComponentToPhySide(component);
-  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PortComponent::TRANSCEIVER_LINE) {
+  if (isTransceiverComponent(component)) {
     if (portNameToModule_.find(portName) == portNameToModule_.end()) {
       throw FbossError("Can't find transceiver module for port ", portName);
     }
@@ -2909,21 +2938,8 @@ void TransceiverManager::getInterfacePrbsState(
     const std::string& portName,
     phy::PortComponent component) const {
   if (auto portID = getPortIDByPortName(portName)) {
-    if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
-        component == phy::PortComponent::TRANSCEIVER_LINE) {
-      if (auto tcvrID = getTransceiverID(*portID)) {
-        phy::Side side = prbsComponentToPhySide(component);
-        auto lockedTransceivers = transceivers_.rlock();
-        if (auto it = lockedTransceivers->find(*tcvrID);
-            it != lockedTransceivers->end()) {
-          prbsState = it->second->getPortPrbsState(portName, side);
-          return;
-        } else {
-          throw FbossError("Can't find transceiver ", *tcvrID);
-        }
-      } else {
-        throw FbossError("Can't find transceiverID for portID ", *portID);
-      }
+    if (isTransceiverComponent(component)) {
+      getInterfacePrbsStateTransceiver(prbsState, *portID, portName, component);
     } else {
       throw FbossError(
           "getInterfacePrbsState not supported on component ",
@@ -2931,6 +2947,26 @@ void TransceiverManager::getInterfacePrbsState(
     }
   } else {
     throw FbossError("Can't find a portID for portName ", portName);
+  }
+}
+
+void TransceiverManager::getInterfacePrbsStateTransceiver(
+    prbs::InterfacePrbsState& prbsState,
+    PortID portId,
+    const std::string& portName,
+    phy::PortComponent component) const {
+  if (auto tcvrID = getTransceiverID(portId)) {
+    phy::Side side = prbsComponentToPhySide(component);
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(*tcvrID);
+        it != lockedTransceivers->end()) {
+      prbsState = it->second->getPortPrbsState(portName, side);
+      return;
+    } else {
+      throw FbossError("Can't find transceiver ", *tcvrID);
+    }
+  } else {
+    throw FbossError("Can't find transceiverID for portID ", portId);
   }
 }
 
@@ -3175,24 +3211,32 @@ void TransceiverManager::setPortLoopbackState(
     getPhyManager()->setPortLoopbackState(
         PortID(swPort.value()), component, setLoopback);
   } else {
-    // Get the Transceiver ID
-    auto tcvrId = getTransceiverID(swPort.value());
-    if (!tcvrId.has_value()) {
-      throw FbossError(folly::sformat(
-          "setInterfaceTxRx: Transceiver not found for port {}", portName));
-    }
+    setPortLoopbackStateTransceiver(
+        swPort.value(), portName, component, setLoopback);
+  }
+}
 
-    // Finally call the transceiver object for port loopback
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto it = lockedTransceivers->find(tcvrId.value());
-        it != lockedTransceivers->end()) {
-      if (component == phy::PortComponent::TRANSCEIVER_LINE) {
-        it->second->setTransceiverLoopback(
-            portName, phy::Side::LINE, setLoopback);
-      } else {
-        it->second->setTransceiverLoopback(
-            portName, phy::Side::SYSTEM, setLoopback);
-      }
+void TransceiverManager::setPortLoopbackStateTransceiver(
+    PortID portId,
+    std::string portName,
+    phy::PortComponent component,
+    bool setLoopback) {
+  // Get the Transceiver ID
+  auto tcvrId = getTransceiverID(portId);
+  if (!tcvrId.has_value()) {
+    throw FbossError(folly::sformat(
+        "setInterfaceTxRx: Transceiver not found for port {}", portName));
+  }
+
+  auto lockedTransceivers = transceivers_.rlock();
+  if (auto it = lockedTransceivers->find(tcvrId.value());
+      it != lockedTransceivers->end()) {
+    if (component == phy::PortComponent::TRANSCEIVER_LINE) {
+      it->second->setTransceiverLoopback(
+          portName, phy::Side::LINE, setLoopback);
+    } else {
+      it->second->setTransceiverLoopback(
+          portName, phy::Side::SYSTEM, setLoopback);
     }
   }
 }
