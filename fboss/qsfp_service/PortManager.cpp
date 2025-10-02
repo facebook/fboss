@@ -285,7 +285,7 @@ void PortManager::setPortLoopbackState(
   XLOG(INFO) << " TransceiverManager::setPortLoopbackState Port "
              << static_cast<int>(portId);
 
-  if (!isXphyComponent(component)) {
+  if (isXphyComponent(component)) {
     phyManager_->setPortLoopbackState(PortID(portId), component, setLoopback);
   } else {
     transceiverManager_->setPortLoopbackStateTransceiver(
@@ -316,11 +316,17 @@ void PortManager::getSymbolErrorHistogram(
 
 const std::set<std::string> PortManager::getPortNames(
     TransceiverID tcvrId) const {
-  return {};
-}
+  std::set<std::string> portNames;
+  auto tcvrToPortMapItr = tcvrToPortMap_.find(tcvrId);
+  if (tcvrToPortMapItr == tcvrToPortMap_.end() ||
+      tcvrToPortMapItr->second.size() == 0) {
+    throw FbossError("No ports found for transceiver ", tcvrId);
+  }
 
-const std::string PortManager::getPortName(TransceiverID tcvrId) const {
-  return "";
+  for (const auto& port : tcvrToPortMapItr->second) {
+    portNames.insert(getPortNameByPortIdOrThrow(port));
+  }
+  return portNames;
 }
 
 PortStateMachineState PortManager::getPortState(PortID portId) const {
@@ -544,7 +550,78 @@ void PortManager::setOverrideAgentConfigAppliedInfoForTesting(
 void PortManager::getAllPortSupportedProfiles(
     std::map<std::string, std::vector<cfg::PortProfileID>>&
         supportedPortProfiles,
-    bool checkOptics) {}
+    bool checkOptics) {
+  // Find the list of all available ports from agent config
+  std::vector<std::string> availablePorts;
+  for (const auto& [tcvrID, initializedPorts] : tcvrToInitializedPorts_) {
+    auto lockedPorts = initializedPorts->rlock();
+    for (const auto& port : *lockedPorts) {
+      auto portNameStr = getPortNameByPortIdOrThrow(port);
+      availablePorts.push_back(portNameStr);
+    }
+  }
+
+  // Get all possible port profiles for all the ports from platform mapping.
+  // Exclude the ports which are not configured by agent config
+  auto allPossiblePortProfiles = platformMapping_->getAllPortProfiles();
+  std::map<std::string, std::vector<cfg::PortProfileID>>
+      allConfiguredPortProfiles;
+  for (auto& portNameStr : availablePorts) {
+    if (allPossiblePortProfiles.find(portNameStr) !=
+        allPossiblePortProfiles.end()) {
+      allConfiguredPortProfiles[portNameStr] =
+          allPossiblePortProfiles[portNameStr];
+    }
+  }
+
+  // If we don't need to check the optics support of the profile then return all
+  // supported port profiles from the platform mapping which are configured by
+  // agent config.
+  if (!checkOptics) {
+    supportedPortProfiles = allConfiguredPortProfiles;
+    return;
+  }
+
+  // Otherwise, match optics support.
+  for (auto& [portNameStr, portProfiles] : allConfiguredPortProfiles) {
+    auto portId = getPortIDByPortName(portNameStr);
+    if (!portId.has_value()) {
+      continue;
+    }
+    // Check if the transceiver supports the port profile
+    for (auto& profileID : portProfiles) {
+      auto tcvrHostLanes = platformMapping_->getTransceiverHostLanes(
+          PlatformPortProfileConfigMatcher(
+              profileID /* profileID */,
+              *portId /* portID */,
+              std::nullopt /* portConfigOverrideFactor */));
+      if (tcvrHostLanes.empty()) {
+        continue;
+      }
+      auto tcvrStartLane = *tcvrHostLanes.begin();
+      auto profileCfgOpt = platformMapping_->getPortProfileConfig(
+          PlatformPortProfileConfigMatcher(profileID));
+      if (!profileCfgOpt) {
+        continue;
+      }
+      const auto speed = *profileCfgOpt->speed();
+      TransceiverPortState portState;
+      portState.portName = portNameStr;
+      portState.startHostLane = tcvrStartLane;
+      portState.speed = speed;
+      portState.numHostLanes = tcvrHostLanes.size();
+      portState.transmitterTech = profileCfgOpt->iphy()->medium().value_or({});
+
+      // We should never have a portID in the platform mapping that doesn't have
+      // an associated transceiverID.
+      auto tcvrID = getLowestIndexedTransceiverForPort(*portId);
+      if (transceiverManager_->isTransceiverPortStateSupported(
+              tcvrID, portState)) {
+        supportedPortProfiles[portNameStr].push_back(profileID);
+      }
+    }
+  }
+}
 
 std::optional<PortID> PortManager::getPortIDByPortName(
     const std::string& portNameStr) const {
@@ -583,7 +660,12 @@ std::string PortManager::getPortNameByPortIdOrThrow(PortID portId) const {
 
 std::vector<PortID> PortManager::getAllPlatformPorts(
     TransceiverID tcvrID) const {
-  return {};
+  auto tcvrToPortMapItr = tcvrToPortMap_.find(tcvrID);
+  if (tcvrToPortMapItr == tcvrToPortMap_.end() ||
+      tcvrToPortMapItr->second.size() == 0) {
+    throw FbossError("No ports found for transceiver ", tcvrID);
+  }
+  return tcvrToPortMapItr->second;
 }
 
 void PortManager::publishLinkSnapshots(const std::string& portNameStr) {}
