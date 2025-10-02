@@ -144,6 +144,10 @@ def is_backplane(chip_type: ChipType) -> bool:
     return chip_type == ChipType.BACKPLANE
 
 
+def is_xphy(chip_type: ChipType) -> bool:
+    return chip_type == ChipType.XPHY
+
+
 # Any terminal connection (front panel transceivers or backplane connectors)
 def is_terminal_chip(chip_type: ChipType) -> bool:
     return is_transceiver(chip_type) or is_backplane(chip_type)
@@ -183,6 +187,20 @@ def get_backplane_chip(chip: Chip) -> DataPlanePhyChip:
     return DataPlanePhyChip(
         name=get_terminal_chip_name(chip=chip),
         type=DataPlanePhyChipType.BACKPLANE,
+        physicalID=chip.chip_id - 1,  # We need 0 indexed physicalIDs
+    )
+
+
+def get_xphy_chip_name(chip: Chip) -> str:
+    return f"{ChipType._VALUES_TO_NAMES[chip.chip_type]}-{CoreType._VALUES_TO_NAMES[chip.core_type]}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
+
+
+def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
+    if not is_xphy(chip.chip_type):
+        raise Exception(chip.chip_type, " is not an XPHY")
+    return DataPlanePhyChip(
+        name=get_xphy_chip_name(chip=chip),
+        type=DataPlanePhyChipType.XPHY,
         physicalID=chip.chip_id - 1,  # We need 0 indexed physicalIDs
     )
 
@@ -301,6 +319,8 @@ def get_pin_config(connection_end: ConnectionEnd) -> PinConfig:
         pin_name = get_npu_chip_name(connection_end.chip)
     elif is_terminal_chip(connection_end.chip.chip_type):
         pin_name = get_terminal_chip_name(connection_end.chip)
+    elif is_xphy(connection_end.chip.chip_type):
+        pin_name = get_xphy_chip_name(connection_end.chip)
     else:
         raise Exception("Don't understand chip type ", connection_end.chip.chip_type)
 
