@@ -1975,9 +1975,8 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
   return true;
 }
 
-bool MultiNodeUtil::verifyTrafficSpray() const {
-  XLOG(DBG2) << __func__;
-
+MultiNodeUtil::NeighborInfo
+MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
   auto logAddRoute =
       [](const auto& rdsw, const auto& prefix, const auto& neighbor) {
         XLOG(DBG2) << "Adding route:: " << " prefix: " << prefix.str()
@@ -2020,7 +2019,23 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   logAddRoute(*lastRdsw, kPrefix, firstRdswNeighbor);
   addRoute(*lastRdsw, kPrefix, kPrefixLength, {firstRdswNeighbor.ip});
 
+  return firstRdswNeighbor;
+}
+
+void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
+  // TODO
+}
+
+bool MultiNodeUtil::verifyTrafficCounters() const {
   return true;
+}
+
+bool MultiNodeUtil::verifyTrafficSpray() const {
+  XLOG(DBG2) << __func__;
+
+  auto firstRdswNeighbor = configureNeighborsAndRoutesForTrafficLoop();
+  createTrafficLoop(firstRdswNeighbor);
+  return verifyTrafficCounters();
 }
 
 } // namespace facebook::fboss::utility
