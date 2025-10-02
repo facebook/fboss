@@ -286,6 +286,11 @@ class MultiNodeUtil {
       const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
       const std::string& rdsw) const;
 
+  std::pair<folly::IPAddressV6, int16_t> kGetRoutePrefixAndPrefixLength()
+      const {
+    return std::make_pair(folly::IPAddressV6("2001:0db8:85a3::"), 64);
+  }
+
   NeighborInfo configureNeighborsAndRoutesForTrafficLoop() const;
   void createTrafficLoop(const NeighborInfo& neighborInfo) const;
   bool verifyTrafficCounters() const;

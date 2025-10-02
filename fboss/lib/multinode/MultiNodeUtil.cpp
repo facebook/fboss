@@ -1983,8 +1983,7 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
                    << " nexthop: " << neighbor.str() << " to " << rdsw;
       };
 
-  auto static kPrefix = folly::IPAddressV6("2001:0db8:85a3::");
-  auto static constexpr kPrefixLength = 64;
+  auto [prefix, prefixLength] = kGetRoutePrefixAndPrefixLength();
   std::optional<std::string> prevRdsw{std::nullopt};
   MultiNodeUtil::NeighborInfo firstRdswNeighbor{};
 
@@ -2008,7 +2007,7 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
       firstRdswNeighbor = neighbor;
     } else {
       logAddRoute(prevRdsw.value(), kPrefix, neighbor);
-      addRoute(prevRdsw.value(), kPrefix, kPrefixLength, {neighbor.ip});
+      addRoute(prevRdsw.value(), prefix, prefixLength, {neighbor.ip});
     }
     prevRdsw = rdsw;
   }
@@ -2016,8 +2015,8 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
   // Add route for first RDSW to complete the loop
   CHECK(!allRdsws_.empty());
   auto lastRdsw = std::prev(allRdsws_.end());
-  logAddRoute(*lastRdsw, kPrefix, firstRdswNeighbor);
-  addRoute(*lastRdsw, kPrefix, kPrefixLength, {firstRdswNeighbor.ip});
+  logAddRoute(*lastRdsw, prefix, firstRdswNeighbor);
+  addRoute(*lastRdsw, prefix, prefixLength, {firstRdswNeighbor.ip});
 
   return firstRdswNeighbor;
 }
