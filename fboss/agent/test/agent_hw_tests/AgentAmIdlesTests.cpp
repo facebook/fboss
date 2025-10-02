@@ -50,12 +50,12 @@ TEST_F(AgentAmIdlesTest, VerifyAmIdles) {
     // Configure AM idles on ports
     for (auto& portCfg : *newCfg.ports()) {
       if (PortID(*portCfg.logicalID()) == firstPortId) {
-        XLOG(INFO) << "Setting AM idles ENABLED for first port: "
-                   << firstPortId;
+        XLOG(INFO) << "Setting AM idles ENABLED for first port: " << firstPortId
+                   << " (name: " << *portCfg.name() << ")";
         portCfg.amIdles() = kAmIdlesEnabled;
       } else if (PortID(*portCfg.logicalID()) == secondPortId) {
         XLOG(INFO) << "Setting AM idles DISABLED for second port: "
-                   << secondPortId;
+                   << secondPortId << " (name: " << *portCfg.name() << ")";
         portCfg.amIdles() = kAmIdlesDisabled;
       }
     }
