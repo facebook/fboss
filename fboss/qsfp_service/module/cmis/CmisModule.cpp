@@ -2868,8 +2868,12 @@ bool CmisModule::ensureTransceiverReadyLocked() {
 
   if (currentModuleControl & POWER_CONTROL_MASK) {
     powerState = PowerControlState::POWER_LPMODE;
+    QSFP_LOG(INFO, this)
+        << "ensureTransceiverReadyLocked: Current power state is LOW POWER MODE (LP bit set)";
   } else {
     powerState = PowerControlState::HIGH_POWER_OVERRIDE;
+    QSFP_LOG(INFO, this)
+        << "ensureTransceiverReadyLocked: Current power state is HIGH POWER MODE";
   }
 
   // If Optics current power configuration is High Power then the config is
@@ -2882,6 +2886,15 @@ bool CmisModule::ensureTransceiverReadyLocked() {
     bool isReady =
         ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >>
                            MODULE_STATUS_BITSHIFT) == CmisModuleState::READY);
+
+    if (isReady) {
+      QSFP_LOG(INFO, this)
+          << "ensureTransceiverReadyLocked: Module is in high power and READY state";
+    } else {
+      QSFP_LOG(INFO, this)
+          << "ensureTransceiverReadyLocked: Module in high power but not ready yet - need more time to be ready";
+    }
+
     return isReady;
   }
 
@@ -2892,6 +2905,10 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // Set to 0x60 = (SquelchControl=Reduce Pave | LowPwr)
   uint8_t newModuleControl = SQUELCH_CONTROL | LOW_PWR_BIT;
 
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "ensureTransceiverReadyLocked: Setting module to low power mode with squelch control: {:#x}",
+      newModuleControl);
+
   // first set to low power
   writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
 
@@ -2901,13 +2918,11 @@ bool CmisModule::ensureTransceiverReadyLocked() {
 
   // Clear low power bit (set to 0x20)
   newModuleControl = SQUELCH_CONTROL;
-
-  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
-
   QSFP_LOG(INFO, this) << folly::sformat(
-      "ensureTransceiverReadyLocked: QSFP module control set to {:#x}",
+      "ensureTransceiverReadyLocked: Clearing low power bit to enable high power mode: {:#x}",
       newModuleControl);
 
+  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
   return false;
 }
 
