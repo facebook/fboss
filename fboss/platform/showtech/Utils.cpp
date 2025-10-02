@@ -11,6 +11,7 @@
 #include <tuple>
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -267,6 +268,52 @@ void Utils::printFanspinnerDetails() {
     }
   }
   std::cout << std::endl;
+}
+
+void Utils::printNvmeDetails() {
+  std::cout << "##### Nvme Information #####" << std::endl;
+
+  auto cmd = "nvme list";
+  auto [ret, output] = platformUtils_.execCommand(cmd);
+  if (ret != 0) {
+    std::cout << fmt::format(
+                     "Error: `{}` exited with non-zero status: {}\n", cmd, ret)
+              << std::endl;
+    return;
+  }
+
+  // Parse nvme-list output for devices
+  std::vector<std::string> nvmeDevices;
+  std::vector<std::string> lines;
+  folly::split('\n', output, lines, true);
+  if (lines.size() > 2) {
+    for (size_t i = 2; i < lines.size(); ++i) {
+      std::vector<std::string> fields;
+      folly::split(" ", lines[i], fields, true);
+      if (!fields.empty()) {
+        nvmeDevices.emplace_back(fields[0]);
+      }
+    }
+  }
+
+  if (nvmeDevices.empty()) {
+    std::cout << fmt::format("No nvme device found from `{}`\n", cmd)
+              << std::endl;
+    return;
+  }
+
+  std::array<std::string, 4> cmds{
+      "nvme smart-log {}",
+      "nvme error-log {}",
+      "nvme id-ctrl {} -H",
+      "nvme id-ns {} -H"};
+  for (const auto& nvmeDevice : nvmeDevices) {
+    for (const auto& cmdStr : cmds) {
+      auto cmd = fmt::format(fmt::runtime(cmdStr), nvmeDevice);
+      std::cout << fmt::format("#### Running `{}` ####", cmd) << std::endl;
+      std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+    }
+  }
 }
 
 void Utils::runFbossCliCmd(const std::string& cmd) {

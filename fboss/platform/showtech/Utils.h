@@ -27,6 +27,7 @@ class Utils {
   void printPemDetails();
   void printFanDetails();
   void printFanspinnerDetails();
+  void printNvmeDetails();
 
  private:
   const showtech_config::ShowtechConfig& config_;
