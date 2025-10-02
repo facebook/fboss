@@ -1,7 +1,7 @@
 # pyre-strict
 import copy
 import re
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
@@ -236,52 +236,75 @@ def get_platform_config_entry(
     return None
 
 
-def find_corresponding_xphy_system_lane(
-    line_connection_end: ConnectionEnd, static_mapping: StaticMapping
-) -> Optional[ConnectionEnd]:
-    """
-    Find corresponding SYSTEM lane for a retimer XPHY LINE connection.
-    """
-    if not is_xphy(line_connection_end.chip.chip_type):
-        raise Exception("Expected line_connection_end to be an XPHY chip")
+def _convert_xphy_core_type(
+    from_core_type: CoreType, suffix_from: str, suffix_to: str
+) -> Optional[CoreType]:
+    """Convert between XPHY core types (e.g., LINE ↔ SYSTEM)."""
+    from_core_type_name = CoreType._VALUES_TO_NAMES[from_core_type]
+    if not from_core_type_name.endswith(suffix_from):
+        return None
 
-    # Extract core type name and check if it's a LINE type
-    line_core_type_name = CoreType._VALUES_TO_NAMES[line_connection_end.chip.core_type]
-    if not line_core_type_name.endswith("_LINE"):
-        raise Exception(
-            f"Expected line_connection_end to have a *_LINE core type, got {line_core_type_name}"
-        )
+    target_core_type_name = from_core_type_name.replace(suffix_from, suffix_to)
 
-    # Generate corresponding SYSTEM core type name
-    system_core_type_name = line_core_type_name.replace("_LINE", "_SYSTEM")
-
-    # Find the corresponding SYSTEM core type
-    system_core_type = None
     for core_type_value, core_type_name in CoreType._VALUES_TO_NAMES.items():
-        if core_type_name == system_core_type_name:
-            system_core_type = core_type_value
-            break
+        if core_type_name == target_core_type_name:
+            return core_type_value
 
-    if system_core_type is None:
-        raise Exception(
-            f"Could not find corresponding SYSTEM core type for {line_core_type_name}"
-        )
+    return None
 
-    # Look for corresponding SYSTEM with same slot_id, chip_id, core_id, lane
-    for connection_pair in static_mapping._az_connections:
+
+def _find_matching_xphy_connection_in_pairs(
+    reference_connection: ConnectionEnd,
+    target_core_type: CoreType,
+    connection_pairs: List[ConnectionPair],
+) -> Optional[ConnectionEnd]:
+    """Find XPHY connection in ConnectionPairs matching reference with different core type."""
+    for connection_pair in connection_pairs:
         for connection_end in [connection_pair.a, connection_pair.z]:
             if (
                 connection_end
-                and connection_end.chip.chip_type == ChipType.XPHY
-                and connection_end.chip.slot_id == line_connection_end.chip.slot_id
-                and connection_end.chip.chip_id == line_connection_end.chip.chip_id
-                and connection_end.chip.core_id == line_connection_end.chip.core_id
-                and connection_end.chip.core_type == system_core_type
+                and connection_end.chip
+                and connection_end.lane
+                and is_xphy(connection_end.chip.chip_type)
+                and connection_end.chip.core_type == target_core_type
+                and connection_end.chip.slot_id == reference_connection.chip.slot_id
+                and connection_end.chip.chip_id == reference_connection.chip.chip_id
+                and connection_end.chip.core_id == reference_connection.chip.core_id
                 and connection_end.lane.logical_id
-                == line_connection_end.lane.logical_id
+                == reference_connection.lane.logical_id
             ):
                 return connection_end
     return None
+
+
+def find_corresponding_xphy_system_lane(
+    line_connection_end: ConnectionEnd, static_mapping: StaticMapping
+) -> Optional[ConnectionEnd]:
+    """Find corresponding SYSTEM lane for a retimer XPHY LINE connection."""
+    if not is_xphy(line_connection_end.chip.chip_type):
+        raise Exception("Expected line_connection_end to be an XPHY chip")
+
+    # Convert LINE to SYSTEM core type
+    system_core_type = _convert_xphy_core_type(
+        line_connection_end.chip.core_type, "_LINE", "_SYSTEM"
+    )
+
+    if system_core_type is None:
+        line_core_type_name = CoreType._VALUES_TO_NAMES[
+            line_connection_end.chip.core_type
+        ]
+        if not line_core_type_name.endswith("_LINE"):
+            raise Exception(
+                f"Expected line_connection_end to have a *_LINE core type, got {line_core_type_name}"
+            )
+        else:
+            raise Exception(
+                f"Could not find corresponding SYSTEM core type for {line_core_type_name}"
+            )
+
+    return _find_matching_xphy_connection_in_pairs(
+        line_connection_end, system_core_type, static_mapping._az_connections
+    )
 
 
 # Given a port name, find the connection end to start the topology traversal
@@ -402,6 +425,113 @@ def get_pin_config(connection_end: ConnectionEnd) -> PinConfig:
     return pin_config
 
 
+def _create_override_from_si_setting(
+    si_setting_and_factor: Any,
+    pin_conf: PinConfig,
+    profile: PortProfileID,
+    port_id: int,
+    chip_type: ChipType,
+) -> PlatformPortConfigOverride:
+    """Create platform port config override from SI setting factor."""
+    override_factor = PlatformPortConfigOverrideFactor(
+        ports=[port_id],
+        profiles=[profile],
+        transceiverManagementInterface=None,
+        mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
+        vendor=si_setting_and_factor.factor.tcvr_override_setting.vendor,
+    )
+
+    port_pin_config = PortPinConfig(
+        iphy=[pin_conf] if is_npu(chip_type) else None,
+        transceiver=None,
+        xphySys=[pin_conf] if is_xphy(chip_type) else None,
+        xphyLine=None,
+    )
+
+    return PlatformPortConfigOverride(factor=override_factor, pins=port_pin_config)
+
+
+def _process_connection_with_si_settings(
+    connection: ConnectionEnd,
+    si_settings: SiSettings,
+    profile: PortProfileID,
+    lane_speed: PortSpeed,
+    port_id: Optional[int] = None,
+) -> tuple[List[PinConfig], List[PlatformPortConfigOverride]]:
+    """Generic connection processing that applies SI settings and handles overrides."""
+    pin_config = get_pin_config(connection_end=connection)
+    pin_connection = SiSettingPinConnection(
+        chip=connection.chip,
+        logical_lane_id=connection.lane.logical_id,
+    )
+    si_setting_and_factor_list = si_settings.get_factor_and_setting(
+        pin_connection=pin_connection,
+        lane_speed=lane_speed,
+        media_type=transmitter_tech_from_profile(profile),
+    )
+
+    if len(si_setting_and_factor_list) == 0:
+        return [pin_config], []
+
+    configured_pins = []
+    overrides = []
+
+    for si_setting_and_factor in si_setting_and_factor_list:
+        pin_conf = copy.deepcopy(pin_config)
+        if si_setting_and_factor.tx_setting != TxSettings():
+            pin_conf.tx = si_setting_and_factor.tx_setting
+        if si_setting_and_factor.rx_setting != RxSettings():
+            pin_conf.rx = si_setting_and_factor.rx_setting
+
+        if si_setting_and_factor.factor is None:
+            configured_pins.append(pin_conf)
+        elif si_setting_and_factor.factor.tcvr_override_setting:
+            if port_id is not None:
+                override = _create_override_from_si_setting(
+                    si_setting_and_factor,
+                    pin_conf,
+                    profile,
+                    port_id,
+                    connection.chip.chip_type,
+                )
+                overrides.append(override)
+
+    return configured_pins, overrides
+
+
+def _process_xphy_connection(
+    connection: ConnectionEnd,
+    si_settings: SiSettings,
+    profile: PortProfileID,
+    lane_speed: PortSpeed,
+) -> tuple[List[PinConfig], List[PinConfig]]:
+    """Process XPHY connection and return (sys_pins, line_pins)."""
+    configured_pins, _ = _process_connection_with_si_settings(
+        connection, si_settings, profile, lane_speed
+    )
+
+    core_type_name = CoreType._VALUES_TO_NAMES[connection.chip.core_type]
+    if core_type_name.endswith("_SYSTEM"):
+        return configured_pins, []
+    elif core_type_name.endswith("_LINE"):
+        return [], configured_pins
+    else:
+        return [], []
+
+
+def _process_npu_connection(
+    connection: ConnectionEnd,
+    si_settings: SiSettings,
+    profile: PortProfileID,
+    lane_speed: PortSpeed,
+    port_id: int,
+) -> tuple[List[PinConfig], List[PlatformPortConfigOverride]]:
+    """Process NPU connection and return (iphy_pins, overrides)."""
+    return _process_connection_with_si_settings(
+        connection, si_settings, profile, lane_speed, port_id
+    )
+
+
 # Helper function that creates a PortPinConfig from the types that store
 # the parsed information from the CSVs
 def get_pins_from_connections(
@@ -413,95 +543,187 @@ def get_pins_from_connections(
 ) -> tuple[PortPinConfig, List[PlatformPortConfigOverride]]:
     port_pin_config_iphy = []
     port_pin_config_tcvr = []
+    port_pin_config_xphy_sys = []
+    port_pin_config_xphy_line = []
     port_pin_config_overrides = []
 
     for connection_pair in connections:
-        for connection in [
-            connection_pair.a,
-            connection_pair.z,
-        ]:
-            if connection and is_terminal_chip(connection.chip.chip_type):
+        for connection in [connection_pair.a, connection_pair.z]:
+            if not connection:
+                continue
+
+            if is_terminal_chip(connection.chip.chip_type):
                 port_pin_config_tcvr.append(get_pin_config(connection_end=connection))
-            if connection and is_npu(connection.chip.chip_type):
-                pin_config = get_pin_config(connection_end=connection)
-                pin_connection = SiSettingPinConnection(
-                    chip=connection.chip,
-                    logical_lane_id=connection.lane.logical_id,
+            elif is_xphy(connection.chip.chip_type):
+                sys_pins, line_pins = _process_xphy_connection(
+                    connection, si_settings, profile, lane_speed
                 )
-                si_setting_and_factor_list = si_settings.get_factor_and_setting(
-                    pin_connection=pin_connection,
-                    lane_speed=lane_speed,
-                    media_type=transmitter_tech_from_profile(profile),
+                port_pin_config_xphy_sys.extend(sys_pins)
+                port_pin_config_xphy_line.extend(line_pins)
+            elif is_npu(connection.chip.chip_type):
+                iphy_pins, overrides = _process_npu_connection(
+                    connection, si_settings, profile, lane_speed, port_id
                 )
-
-                if len(si_setting_and_factor_list) == 0:
-                    port_pin_config_iphy.append(pin_config)
-
-                else:
-                    for si_setting_and_factor in si_setting_and_factor_list:
-                        pin_conf = copy.deepcopy(pin_config)
-                        if si_setting_and_factor.factor is None:
-                            if si_setting_and_factor.tx_setting != TxSettings():
-                                pin_conf.tx = si_setting_and_factor.tx_setting
-                            if si_setting_and_factor.rx_setting != RxSettings():
-                                pin_conf.rx = si_setting_and_factor.rx_setting
-                            port_pin_config_iphy.append(pin_conf)
-                        elif si_setting_and_factor.factor.tcvr_override_setting:
-                            override_factor = PlatformPortConfigOverrideFactor(
-                                ports=[port_id],
-                                profiles=[profile],
-                                transceiverManagementInterface=None,
-                                mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
-                                vendor=si_setting_and_factor.factor.tcvr_override_setting.vendor,
-                            )
-
-                            if si_setting_and_factor.tx_setting != TxSettings():
-                                pin_conf.tx = si_setting_and_factor.tx_setting
-                            if si_setting_and_factor.rx_setting != RxSettings():
-                                pin_conf.rx = si_setting_and_factor.rx_setting
-
-                            port_pin_config = PortPinConfig(
-                                iphy=[pin_conf],
-                                transceiver=None,
-                            )
-                            platformPortConfigOverride = PlatformPortConfigOverride(
-                                factor=override_factor, pins=port_pin_config
-                            )
-                            port_pin_config_overrides.append(platformPortConfigOverride)
-            # else connection is transceiver.
-            # if there are override factors for specific to transceiver, add them here.
-            # E.g. Driver Peaking.
+                port_pin_config_iphy.extend(iphy_pins)
+                port_pin_config_overrides.extend(overrides)
 
     port_pin_config_ret = PortPinConfig(
         iphy=port_pin_config_iphy,
         transceiver=port_pin_config_tcvr or None,
+        xphySys=port_pin_config_xphy_sys or None,
+        xphyLine=port_pin_config_xphy_line or None,
     )
     return port_pin_config_ret, port_pin_config_overrides
+
+
+def _find_corresponding_xphy_line_and_terminal(
+    xphy_sys_connection: ConnectionEnd, connection_pairs: List[ConnectionPair]
+) -> tuple[Optional[ConnectionEnd], Optional[ConnectionEnd]]:
+    """Find corresponding XPHY line and terminal connections for a XPHY system connection."""
+    if not (xphy_sys_connection.chip and xphy_sys_connection.lane):
+        return None, None
+
+    # Convert SYSTEM to LINE core type using utility function
+    line_core_type = _convert_xphy_core_type(
+        xphy_sys_connection.chip.core_type, "_SYSTEM", "_LINE"
+    )
+
+    if line_core_type is None:
+        return None, None
+
+    # Find matching XPHY line connection using utility function
+    xphy_line_connection = _find_matching_xphy_connection_in_pairs(
+        xphy_sys_connection, line_core_type, connection_pairs
+    )
+
+    if not xphy_line_connection:
+        return None, None
+
+    # Find the terminal connection from the same connection pair
+    terminal_connection = None
+    for connection_pair in connection_pairs:
+        if connection_pair.a == xphy_line_connection:
+            if connection_pair.z and connection_pair.z.chip:
+                if is_terminal_chip(connection_pair.z.chip.chip_type):
+                    terminal_connection = connection_pair.z
+            break
+
+    return xphy_line_connection, terminal_connection
+
+
+def _create_xphy_junction(
+    xphy_sys_connection: ConnectionEnd,
+    xphy_line_connection: ConnectionEnd,
+    terminal_connection: ConnectionEnd,
+) -> Pin:
+    """Create XPHY junction pin structure."""
+    from neteng.fboss.phy.ttypes import PinJunction
+
+    xphy_sys_pin_name = get_xphy_chip_name(xphy_sys_connection.chip)
+    xphy_line_pin_name = get_xphy_chip_name(xphy_line_connection.chip)
+    terminal_pin_name = get_terminal_chip_name(terminal_connection.chip)
+
+    line_connection = PinConnection(
+        a=PinID(
+            chip=xphy_line_pin_name,
+            lane=xphy_line_connection.lane.logical_id,
+        ),
+        z=Pin(
+            end=PinID(
+                chip=terminal_pin_name,
+                lane=terminal_connection.lane.logical_id,
+            )
+        ),
+    )
+
+    junction = PinJunction(
+        system=PinID(
+            chip=xphy_sys_pin_name,
+            lane=xphy_sys_connection.lane.logical_id,
+        ),
+        line=[line_connection],
+    )
+
+    return Pin(junction=junction)
+
+
+def _is_xphy_system_core_type(core_type: CoreType) -> bool:
+    """Check if the core type is an XPHY *_SYSTEM type."""
+    core_type_name = CoreType._VALUES_TO_NAMES[core_type]
+    return core_type_name.endswith("_SYSTEM")
 
 
 # Helper function that creates a list of PinConnections that go into platform mapping
 # given the list of ConnectionPairs (how the CSV information is stored internally)
 def get_mapping_pins(connection_pairs: List[ConnectionPair]) -> List[PinConnection]:
     pin_connections = []
+
     for connection in connection_pairs:
+        if not (connection.a and is_npu(connection.a.chip.chip_type)):
+            continue
+
         pin_connection = PinConnection()
-        if is_npu(connection.a.chip.chip_type):
-            pin_name = get_npu_chip_name(connection.a.chip)
-            pin_connection.a = PinID(chip=pin_name, lane=connection.a.lane.logical_id)
-        if connection.z:
-            # Required linter type hint
-            connection_z: ConnectionEnd = connection.z
-            if is_terminal_chip(connection_z.chip.chip_type):
-                pin_name = get_terminal_chip_name(connection_z.chip)
-                pin_connection.z = Pin(
-                    end=PinID(
-                        chip=pin_name,
-                        lane=connection_z.lane.logical_id,
+
+        # Set NPU side (A side)
+        npu_pin_name = get_npu_chip_name(connection.a.chip)
+        pin_connection.a = PinID(chip=npu_pin_name, lane=connection.a.lane.logical_id)
+
+        if connection.z and connection.z.chip:
+            z_chip = connection.z.chip
+            if is_xphy(z_chip.chip_type) and _is_xphy_system_core_type(
+                z_chip.core_type
+            ):
+                # This is an NPU -> XPHY(System) connection
+                # Build complete junction: system -> line -> terminal
+                xphy_sys_connection = connection.z
+
+                if xphy_sys_connection:
+                    xphy_line_connection, terminal_connection = (
+                        _find_corresponding_xphy_line_and_terminal(
+                            xphy_sys_connection, connection_pairs
+                        )
                     )
-                )
-            else:
-                raise Exception("Unsupported chip type ", connection_z.chip.chip_type)
+
+                    if xphy_line_connection and terminal_connection:
+                        pin_connection.z = _create_xphy_junction(
+                            xphy_sys_connection,
+                            xphy_line_connection,
+                            terminal_connection,
+                        )
+                    else:
+                        sys_core_type_name = CoreType._VALUES_TO_NAMES[
+                            xphy_sys_connection.chip.core_type
+                        ]
+                        line_core_type_name = sys_core_type_name.replace(
+                            "_SYSTEM", "_LINE"
+                        )
+                        raise Exception(
+                            f"Failed to build complete XPHY junction for {sys_core_type_name} connection. "
+                            f"Expected to find corresponding {line_core_type_name} and terminal connections for "
+                            f"slot_id={xphy_sys_connection.chip.slot_id}, "
+                            f"chip_id={xphy_sys_connection.chip.chip_id}, "
+                            f"core_id={xphy_sys_connection.chip.core_id}, "
+                            f"lane_id={xphy_sys_connection.lane.logical_id}"
+                        )
+
+            elif connection.z:
+                # Direct terminal connection (no XPHY)
+                connection_z = connection.z
+                if is_terminal_chip(connection_z.chip.chip_type):
+                    terminal_pin_name = get_terminal_chip_name(connection_z.chip)
+                    pin_connection.z = Pin(
+                        end=PinID(
+                            chip=terminal_pin_name,
+                            lane=connection_z.lane.logical_id,
+                        )
+                    )
+                else:
+                    raise Exception(
+                        "Unsupported chip type ", connection_z.chip.chip_type
+                    )
+
         pin_connections.append(pin_connection)
+
     return pin_connections
 
 
