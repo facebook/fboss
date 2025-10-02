@@ -1009,7 +1009,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 39,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.15-1",
+  "bspKmodsRpmVersion": "0.7.16-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",
