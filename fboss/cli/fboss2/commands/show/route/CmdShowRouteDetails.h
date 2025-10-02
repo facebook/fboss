@@ -54,22 +54,25 @@ class CmdShowRouteDetails
 
   void populateAggregatePortMap(
       const std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>& client) {
-    std::map<std::string, std::string> vlanAggregatePortMap;
+    std::map<int32_t, PortInfoThrift> portInfoEntries;
+    client->sync_getAllPortInfo(portInfoEntries);
+
     std::vector<::facebook::fboss::AggregatePortThrift> aggregatePortThrift;
     client->sync_getAggregatePortTable(aggregatePortThrift);
 
     for (auto aggregatePort : aggregatePortThrift) {
       std::string aggPortName = *aggregatePort.name();
       for (auto memberPort : *aggregatePort.memberPorts()) {
-        facebook::fboss::PortInfoThrift portInfoThrift;
-        client->sync_getPortInfo(
-            portInfoThrift, folly::copy(memberPort.memberPortID().value()));
-        auto vlans = portInfoThrift.vlans();
-        // If L3 routing with multiple vlans, we can skip this port
-        if (vlans->size() > 1) {
-          continue;
+        auto memberPortID = memberPort.memberPortID().value();
+        auto it = portInfoEntries.find(memberPortID);
+        if (it != portInfoEntries.end()) {
+          auto vlans = it->second.vlans();
+          // If L3 routing with multiple vlans, we can skip this port
+          if (vlans->size() > 1) {
+            continue;
+          }
+          this->vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;
         }
-        vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;
       }
     }
   }
