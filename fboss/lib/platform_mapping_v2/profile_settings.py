@@ -5,6 +5,7 @@ from fboss.lib.platform_mapping_v2.helpers import (
     is_backplane,
     is_npu,
     is_transceiver,
+    is_xphy,
     num_lanes_from_profile,
     profile_to_port_speed,
     transmitter_tech_from_profile,
@@ -47,6 +48,11 @@ class ProfileSettings:
                 if phy_chip_type == DataPlanePhyChipType.BACKPLANE and (
                     is_backplane(setting.a_chip_settings.chip_type)
                     or is_backplane(setting.z_chip_settings.chip_type)
+                ):
+                    return setting
+                if phy_chip_type == DataPlanePhyChipType.XPHY and (
+                    is_xphy(setting.a_chip_settings.chip_type)
+                    or is_xphy(setting.z_chip_settings.chip_type)
                 ):
                     return setting
         raise Exception("Can't find speed setting for profile ", profile)
