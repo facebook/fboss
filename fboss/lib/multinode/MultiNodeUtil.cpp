@@ -20,6 +20,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
@@ -2022,7 +2023,26 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
 }
 
 void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
-  // TODO
+  auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
+  auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
+  for (int i = 0; i < 1000; i++) {
+    auto txPacket = utility::makeUDPTxPacket(
+        sw_,
+        std::nullopt, // vlanIDForTx
+        folly::MacAddress("00:02:00:00:01:01"), // srcMac
+        utility::getMacForFirstInterfaceWithPorts(sw_->getState()), // dstMac
+        kSrcIP,
+        prefix, // dstIP
+        8000,
+        8001,
+        0, // ECN
+        255, // TTL
+        // Payload
+        std::vector<uint8_t>(1200, 0xff));
+
+    sw_->sendPacketOutOfPortAsync(
+        std::move(txPacket), PortID(neighborInfo.portID));
+  }
 }
 
 bool MultiNodeUtil::verifyTrafficCounters() const {
