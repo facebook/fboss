@@ -236,6 +236,54 @@ def get_platform_config_entry(
     return None
 
 
+def find_corresponding_xphy_system_lane(
+    line_connection_end: ConnectionEnd, static_mapping: StaticMapping
+) -> Optional[ConnectionEnd]:
+    """
+    Find corresponding SYSTEM lane for a retimer XPHY LINE connection.
+    """
+    if not is_xphy(line_connection_end.chip.chip_type):
+        raise Exception("Expected line_connection_end to be an XPHY chip")
+
+    # Extract core type name and check if it's a LINE type
+    line_core_type_name = CoreType._VALUES_TO_NAMES[line_connection_end.chip.core_type]
+    if not line_core_type_name.endswith("_LINE"):
+        raise Exception(
+            f"Expected line_connection_end to have a *_LINE core type, got {line_core_type_name}"
+        )
+
+    # Generate corresponding SYSTEM core type name
+    system_core_type_name = line_core_type_name.replace("_LINE", "_SYSTEM")
+
+    # Find the corresponding SYSTEM core type
+    system_core_type = None
+    for core_type_value, core_type_name in CoreType._VALUES_TO_NAMES.items():
+        if core_type_name == system_core_type_name:
+            system_core_type = core_type_value
+            break
+
+    if system_core_type is None:
+        raise Exception(
+            f"Could not find corresponding SYSTEM core type for {line_core_type_name}"
+        )
+
+    # Look for corresponding SYSTEM with same slot_id, chip_id, core_id, lane
+    for connection_pair in static_mapping._az_connections:
+        for connection_end in [connection_pair.a, connection_pair.z]:
+            if (
+                connection_end
+                and connection_end.chip.chip_type == ChipType.XPHY
+                and connection_end.chip.slot_id == line_connection_end.chip.slot_id
+                and connection_end.chip.chip_id == line_connection_end.chip.chip_id
+                and connection_end.chip.core_id == line_connection_end.chip.core_id
+                and connection_end.chip.core_type == system_core_type
+                and connection_end.lane.logical_id
+                == line_connection_end.lane.logical_id
+            ):
+                return connection_end
+    return None
+
+
 # Given a port name, find the connection end to start the topology traversal
 def get_start_connection_end(
     port_name: str, static_mapping: StaticMapping
@@ -300,6 +348,32 @@ def get_connection_pairs_for_profile(
                         a=current_connection_end,
                     )
                 )
+
+            # Check if next_connection_end is a retimer XPHY *_LINE type
+            # If so, replace with corresponding *_SYSTEM
+            if (
+                next_connection_end
+                and next_connection_end.chip.chip_type == ChipType.XPHY
+                and CoreType._VALUES_TO_NAMES[
+                    next_connection_end.chip.core_type
+                ].endswith("_LINE")
+            ):
+                system_connection = find_corresponding_xphy_system_lane(
+                    next_connection_end, static_mapping
+                )
+                if system_connection:
+                    next_connection_end = system_connection
+                else:
+                    line_core_type_name = CoreType._VALUES_TO_NAMES[
+                        next_connection_end.chip.core_type
+                    ]
+                    system_core_type_name = line_core_type_name.replace(
+                        "_LINE", "_SYSTEM"
+                    )
+                    raise Exception(
+                        f"Could not find corresponding {system_core_type_name} for {line_core_type_name}"
+                    )
+
             current_connection_end = next_connection_end
             if (
                 not current_connection_end
