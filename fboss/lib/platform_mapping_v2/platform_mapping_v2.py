@@ -61,6 +61,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "meru800bia_100g_nif_port_breakout",
         "meru800bia_800g",
         "meru800bia_800g_hyperport",
+        "meru800bia_800g_uniform_local_offset",
         "meru800bia_dual_stage_edsw",
         "meru800bia_dual_stage_rdsw",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
