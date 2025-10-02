@@ -2023,6 +2023,31 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
 }
 
 void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
+  // configureNeighborsAndRoutesForTrafficLoop configures
+  //  o RDSW A route to point to RDSW B's neighbor,
+  //  o RDSW B route to point to RDSW C's neighbor,
+  //  o ...
+  //  o last RDSW's route to point to RDSW A's neighbor.
+  //
+  // Send packet froms self (say RDSW A) with dstMAC as RouterMAC:
+  //  o The packet is routed to RDSW B's neighbor.
+  //  o RDSW B neighbor is resolved on a port in loopback mode.
+  //  o The packet thus gets looped back.
+  //  o Since the packet carries dstMac = Router MAC, it gets routed.
+  //  o This packet routes to RDSW C's neighbor
+  //  ....
+  //  o The last RDSW routes the packet to RDSW A and loop continues.
+  //
+  // Forwarding is enabled for TTL0 packets so the packet continues to be
+  // forwarded even after TTL is 0. Thus, we get traffic flood.
+  //
+  // Injecting 1000 packets on one 400G NIF port is sufficient to create a loop
+  // that saturates the 400G RDSW links on every RDSW.
+  //
+  // TODO: Before injecting packets, verify that
+  //  o neighbor is resolved and programmed on every RDSW.
+  //  o the route is programmed on every RDSW with that neighbor as nexthop.
+  // Otherwise, the packets will be blackholed and we will not get traffic loop.
   auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
   auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
   for (int i = 0; i < 1000; i++) {
