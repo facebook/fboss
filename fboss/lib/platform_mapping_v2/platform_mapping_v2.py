@@ -345,11 +345,27 @@ class PlatformMappingV2:
         all_profiles = self.pm_parser.get_port_profile_mapping().get_all_profiles()
 
         for profile in all_profiles:
+            # Get NPU speed setting (always required)
+            npu_speed_setting = self.pm_parser.get_profile_settings().get_speed_setting(
+                profile, DataPlanePhyChipType.IPHY
+            )
+
+            # Get XPHY speed setting (optional)
+            xphy_speed_setting = None
+            try:
+                xphy_speed_setting = (
+                    self.pm_parser.get_profile_settings().get_speed_setting(
+                        profile, DataPlanePhyChipType.XPHY
+                    )
+                )
+            except Exception:
+                # XPHY speed setting doesn't exist for this profile, which is okay
+                pass
+
             entry = get_platform_config_entry(
-                profile,
-                self.pm_parser.get_profile_settings().get_speed_setting(
-                    profile, DataPlanePhyChipType.IPHY
-                ),
+                profile=profile,
+                npu_speed_setting=npu_speed_setting,
+                xphy_speed_setting=xphy_speed_setting,
             )
             if entry:
                 platform_config_entry.append(entry)

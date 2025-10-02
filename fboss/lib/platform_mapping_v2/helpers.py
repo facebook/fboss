@@ -208,30 +208,58 @@ def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
 # Creates a PlatformPortProfileConfigEntry for a given profileID, numlanes,
 # modulation, fec mode and interface type
 def get_platform_config_entry(
-    profile: PortProfileID, speed_setting: SpeedSetting
+    profile: PortProfileID,
+    npu_speed_setting: SpeedSetting,
+    xphy_speed_setting: Optional[SpeedSetting] = None,
 ) -> Optional[PlatformPortProfileConfigEntry]:
     factor = PlatformPortConfigFactor()
     profile_config = PortProfileConfig()
     factor.profileID = profile
 
-    profile_config.speed = speed_setting.speed
-    profile_side_config = ProfileSideConfig()
-    if is_npu(speed_setting.a_chip_settings.chip_type) or is_npu(
-        speed_setting.z_chip_settings.chip_type
+    profile_config.speed = npu_speed_setting.speed
+
+    # Configure NPU/IPHY side
+    npu_profile_side_config = ProfileSideConfig()
+    if is_npu(npu_speed_setting.a_chip_settings.chip_type) or is_npu(
+        npu_speed_setting.z_chip_settings.chip_type
     ):
-        profile_side_config.numLanes = speed_setting.num_lanes
-        profile_side_config.modulation = speed_setting.modulation
-        profile_side_config.fec = speed_setting.fec
-        if is_npu(speed_setting.a_chip_settings.chip_type):
-            profile_side_config.interfaceType = (
-                speed_setting.a_chip_settings.chip_interface_type
+        npu_profile_side_config.numLanes = npu_speed_setting.num_lanes
+        npu_profile_side_config.modulation = npu_speed_setting.modulation
+        npu_profile_side_config.fec = npu_speed_setting.fec
+        if is_npu(npu_speed_setting.a_chip_settings.chip_type):
+            npu_profile_side_config.interfaceType = (
+                npu_speed_setting.a_chip_settings.chip_interface_type
             )
         else:
-            profile_side_config.interfaceType = (
-                speed_setting.z_chip_settings.chip_interface_type
+            npu_profile_side_config.interfaceType = (
+                npu_speed_setting.z_chip_settings.chip_interface_type
             )
-        profile_side_config.medium = speed_setting.media_type
-        profile_config.iphy = profile_side_config
+        npu_profile_side_config.medium = npu_speed_setting.media_type
+        profile_config.iphy = npu_profile_side_config
+
+        # Configure XPHY side if available
+        if xphy_speed_setting is not None:
+            xphy_profile_side_config = ProfileSideConfig()
+            if is_xphy(xphy_speed_setting.a_chip_settings.chip_type) or is_xphy(
+                xphy_speed_setting.z_chip_settings.chip_type
+            ):
+                xphy_profile_side_config.numLanes = xphy_speed_setting.num_lanes
+                xphy_profile_side_config.modulation = xphy_speed_setting.modulation
+                xphy_profile_side_config.fec = xphy_speed_setting.fec
+                if is_xphy(xphy_speed_setting.a_chip_settings.chip_type):
+                    xphy_profile_side_config.interfaceType = (
+                        xphy_speed_setting.a_chip_settings.chip_interface_type
+                    )
+                else:
+                    xphy_profile_side_config.interfaceType = (
+                        xphy_speed_setting.z_chip_settings.chip_interface_type
+                    )
+                xphy_profile_side_config.medium = xphy_speed_setting.media_type
+
+                # Set both xphyLine and xphySystem to the same config
+                profile_config.xphyLine = xphy_profile_side_config
+                profile_config.xphySystem = xphy_profile_side_config
+
         return PlatformPortProfileConfigEntry(factor=factor, profile=profile_config)
     return None
 
