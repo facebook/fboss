@@ -12,9 +12,11 @@ from fboss.lib.platform_mapping_v2.helpers import (
     get_platform_config_entry,
     get_transceiver_chip,
     get_unique_connection_pairs,
+    get_xphy_chip,
     is_backplane,
     is_npu,
     is_transceiver,
+    is_xphy,
 )
 from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMapping
 from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
@@ -325,6 +327,8 @@ class PlatformMappingV2:
                 chips.append(get_transceiver_chip(chip))
             elif is_backplane(chip.chip_type):
                 chips.append(get_backplane_chip(chip))
+            elif is_xphy(chip.chip_type):
+                chips.append(get_xphy_chip(chip))
             else:
                 raise Exception("Unhandled chip_type ", chip.chip_type)
         chips = sorted(chips, key=lambda chip: (chip.type, chip.physicalID, chip.name))
