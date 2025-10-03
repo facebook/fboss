@@ -789,7 +789,7 @@ void PortManager::getAllInterfacePrbsStats(
     phy::PortComponent component) const {
   const auto& platformPorts = platformMapping_->getPlatformPorts();
   for (const auto& platformPort : platformPorts) {
-    auto portNameStr = platformPort.second.mapping()->name_ref();
+    auto portNameStr = platformPort.second.mapping()->name();
     try {
       auto prbsStatsEntry = getInterfacePrbsStats(*portNameStr, component);
       prbsStats[*portNameStr] = prbsStatsEntry;
