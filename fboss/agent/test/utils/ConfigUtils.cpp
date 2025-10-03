@@ -996,12 +996,14 @@ void populateSwitchInfo(
   std::map<long, cfg::SwitchInfo> newSwitchIdToSwitchInfo;
   std::map<long, cfg::DsfNode> newDsfNodes;
   // save the firsthwAsic to create dsfNodeConfig
-  SwitchID switchId{0};
-  auto firstHwAsicTableItr = hwAsicTable.find(switchId);
-  if (firstHwAsicTableItr == hwAsicTable.end()) {
-    throw FbossError("HwAsic not found for SwitchID: ", switchId);
-  }
-  const auto& firstHwAsic = firstHwAsicTableItr->second;
+  const auto& firstHwAsic = [&hwAsicTable]() {
+    SwitchID switchId{0};
+    auto firstHwAsicTableItr = hwAsicTable.find(switchId);
+    if (firstHwAsicTableItr == hwAsicTable.end()) {
+      throw FbossError("HwAsic not found for SwitchID: ", switchId);
+    }
+    return firstHwAsicTableItr->second;
+  }();
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
