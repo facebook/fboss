@@ -95,18 +95,17 @@ agent_benchmark_lib(
 
 cpp_library(
     name = "hw_route_scale_benchmark_helpers",
+    srcs = ["HwRouteScaleBenchmarkHelpers.cpp"],
     headers = [
         "HwRouteScaleBenchmarkHelpers.h",
     ],
+    undefined_symbols = True,
     exported_deps = [
         "//fboss/agent:agent_features",
         "//fboss/agent:core",
-        "//fboss/agent:fib_helpers",
-        "//fboss/agent:hw_switch",
         "//fboss/agent:utils",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/hw/test:config_factory",
-        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:resourcelibutil",
