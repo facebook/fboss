@@ -139,9 +139,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
         bool rollingBack,
         const PreUpdateState& _groupIdCache = PreUpdateState());
     /*
-     * addOrUpdateRoute has 2 interesting knobs
-     * ecmpDemandExceeded - used for checking that new route now
-     * either has overrideEcmpType set or points to a merged group
+     * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
      * delta. This only applies to when we are merging groups at
      * ECMP limit. When doing so we will
@@ -166,7 +164,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     void addOrUpdateRoute(
         RouterID rid,
         const std::shared_ptr<Route<AddrT>>& newRoute,
-        bool ecmpDemandExceeded,
         bool addNewDelta = false);
 
     template <typename AddrT>

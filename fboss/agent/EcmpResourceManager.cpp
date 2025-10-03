@@ -904,7 +904,6 @@ template <typename AddrT>
 void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& newRoute,
-    bool ecmpDemandExceeded,
     bool addNewDelta) {
   auto curStateDelta = getCurrentStateDelta();
   auto oldState = curStateDelta.newState();
@@ -1165,7 +1164,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
   auto newRoute = route->clone();
   newRoute->setResolved(std::move(newForwardInfo));
   newRoute->publish();
-  inOutState->addOrUpdateRoute(rid, newRoute, ecmpDemandExceeded, addNewDelta);
+  inOutState->addOrUpdateRoute(rid, newRoute, addNewDelta);
   inOutState->updated = true;
   return grpInfo;
 }
@@ -1294,8 +1293,7 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
       grpInfo->setIsBackupEcmpGroupType(newRoute->getForwardInfo()
                                             .getOverrideEcmpSwitchingMode()
                                             .has_value());
-      inOutState->addOrUpdateRoute(
-          rid, newRoute, false /* ecmpDemandExceeded*/);
+      inOutState->addOrUpdateRoute(rid, newRoute);
     }
     inOutState->primaryEcmpGroupsCnt += grpInfo->hasOverrides() ? 0 : 1;
     inOutState->ecmpMemberCnt += grpInfo->numNhops();
@@ -1309,7 +1307,7 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
       CHECK_EQ(existingGrpInfo, grpInfo);
     } else {
       // Everything matches just add the route to current delta
-      inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+      inOutState->addOrUpdateRoute(rid, newRoute);
     }
   }
   return {grpInfo, grpInserted};
@@ -1371,8 +1369,7 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
       // any override nhops being set (for that group must have existed
       // in our data structures before, and would have had to have its
       // override nhops set).
-      inOutState->addOrUpdateRoute(
-          rid, newRoute, false /* ecmpDemandExceeded*/);
+      inOutState->addOrUpdateRoute(rid, newRoute);
     }
     // If grp was made part of a merge group, we would have accounted
     // for it there.
@@ -1418,7 +1415,7 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
     } else {
       // No override nhops in group, and group already existed. Just add the
       // route.
-      inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+      inOutState->addOrUpdateRoute(rid, newRoute);
     }
   }
   return {grpInfo, grpInserted};
@@ -1769,7 +1766,7 @@ void EcmpResourceManager::routeUpdated(
     // Just update deltas, no need to account for update route as a ECMP group
     // This and previous delete still create a single delta since ecmp demand
     // is never exceeded in these 2 steps
-    inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+    inOutState->addOrUpdateRoute(rid, newRoute);
   } else {
     // Neither of the routes point to > 1 nhops. Nothing to do
     CHECK_LE(oldNHops.size(), 1);
@@ -1777,7 +1774,7 @@ void EcmpResourceManager::routeUpdated(
     XLOG(DBG2) << " Route:" << newRoute->str()
                << " transitioned from single nhop to a different single nhop";
     // Just update deltas, no need to account for this as a ECMP group
-    inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+    inOutState->addOrUpdateRoute(rid, newRoute);
   }
 }
 
@@ -1794,7 +1791,7 @@ void EcmpResourceManager::routeAdded(
         rid, std::shared_ptr<Route<AddrT>>(), newRoute, inOutState);
   } else {
     // Just update deltas, no need to account for this as a ECMP group
-    inOutState->addOrUpdateRoute(rid, newRoute, false /*ecmpDemandExceeded*/);
+    inOutState->addOrUpdateRoute(rid, newRoute);
   }
 }
 template <typename AddrT>
@@ -1974,8 +1971,7 @@ void EcmpResourceManager::processRouteUpdates(
           // Nexthops and override group type did not change,
           // but the route changed. Just queue it in the delta,
           // no need to reevaluate ECMP resources
-          inOutState->addOrUpdateRoute(
-              rid, newRoute, false /*ecmpDemandExceeded*/);
+          inOutState->addOrUpdateRoute(rid, newRoute);
         }
       },
       [this, inOutState](RouterID rid, const auto& newRoute) {
