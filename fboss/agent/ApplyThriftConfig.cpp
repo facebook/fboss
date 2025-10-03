@@ -5294,11 +5294,12 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         rxReasonToQueueUnchanged = false;
       }
     } else if (
-        const auto rxReasonToQueue = cpuTrafficPolicy->rxReasonToCPUQueue()) {
+        const auto rxReasonToCPUQueue =
+            cpuTrafficPolicy->rxReasonToCPUQueue()) {
       // TODO(pgardideh): the map version of reason to queue is deprecated.
       // Remove
       // this read when it is safe to do so.
-      for (auto rxEntry : *rxReasonToQueue) {
+      for (auto rxEntry : *rxReasonToCPUQueue) {
         newRxReasonToQueue.push_back(ControlPlane::makeRxReasonToQueueEntry(
             rxEntry.first, rxEntry.second));
       }
