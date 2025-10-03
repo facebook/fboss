@@ -45,8 +45,14 @@ class Parser {
       const std::string_view& line);
   static std::vector<TransceiverConfigRow> getTransceiverConfigRowsFromCsv(
       folly::StringPiece csv);
+  static PhyConfigRow getPhyConfigRowFromCsvLine(const std::string_view& line);
+  static std::vector<PhyConfigRow> getPhyConfigRowsFromCsv(
+      folly::StringPiece csv);
   static BspPlatformMappingThrift getBspPlatformMappingFromCsv(
       folly::StringPiece csv);
+  static BspPlatformMappingThrift getBspPlatformMappingFromCsv(
+      folly::StringPiece csv,
+      folly::StringPiece phyCsv);
 
  private:
   static std::vector<int> getTransceiverLaneIdList(
@@ -55,6 +61,7 @@ class Parser {
       const std::string_view& entry);
   static TransceiverIOType getTransceiverIOTypeFromString(
       const std::string_view& entry);
+  static PhyIOType getPhyIOTypeFromString(const std::string_view& entry);
 };
 
 } // namespace facebook::fboss
