@@ -18,6 +18,11 @@ namespace facebook::fboss {
 
 LagSaiId SaiLagManager::addLag(
     const std::shared_ptr<AggregatePort>& aggregatePort) {
+  if (aggregatePort->getAggregatePortType() ==
+      cfg::AggregatePortType::HYPER_PORT) {
+    // TODO(daiuweix): update HYPER port through SaiPortManager
+    return LagSaiId(0);
+  }
   XLOG(DBG2) << "adding aggregate port : " << aggregatePort->getID();
 
   auto name = aggregatePort->getName();
@@ -74,6 +79,10 @@ LagSaiId SaiLagManager::addLag(
 
 void SaiLagManager::removeLag(
     const std::shared_ptr<AggregatePort>& aggregatePort) {
+  if (aggregatePort->getAggregatePortType() ==
+      cfg::AggregatePortType::HYPER_PORT) {
+    return;
+  }
   XLOG(DBG2) << "removing aggregate port : " << aggregatePort->getID();
   auto iter = handles_.find(aggregatePort->getID());
   if (iter == handles_.end()) {
@@ -87,6 +96,11 @@ void SaiLagManager::removeLag(
 void SaiLagManager::changeLag(
     const std::shared_ptr<AggregatePort>& oldAggregatePort,
     const std::shared_ptr<AggregatePort>& newAggregatePort) {
+  if (newAggregatePort->getAggregatePortType() ==
+      cfg::AggregatePortType::HYPER_PORT) {
+    // TODO(daiuweix): update HYPER port through SaiPortManager
+    return;
+  }
   auto handleIter = handles_.find(oldAggregatePort->getID());
   CHECK(handleIter != handles_.end());
   auto& saiLagHandle = handleIter->second;
