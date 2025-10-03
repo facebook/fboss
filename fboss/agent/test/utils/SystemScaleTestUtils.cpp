@@ -27,7 +27,6 @@ DECLARE_int32(max_arp_entries);
 
 namespace {
 constexpr uint64_t kBaseMac = 0xFEEEC2000010;
-constexpr uint64_t kNeighborBaseMac = 0xF0EEC2000010;
 // the number of rounds to add/churn fboss routes and neighbors is limited by
 // the time to run the test. The number of rounds is chosen to finish in test in
 // 15mins
@@ -106,7 +105,7 @@ std::vector<std::pair<AddrT, folly::MacAddress>> neighborAddrs(
       ipStream << "100.100." << (i >> 8 & 0xff) << "." << (i & 0xff);
     }
     AddrT ip(ipStream.str());
-    uint64_t macBytes = kNeighborBaseMac + 1;
+    uint64_t macBytes = folly::MacAddress("06:00:00:00:00:00").u64HBO() + 1;
     folly::MacAddress mac = folly::MacAddress::fromHBO(macBytes);
     macIPPairs.push_back(std::make_pair(ip, mac));
   }
@@ -382,6 +381,10 @@ void configureMaxRouteEntries(
              << " routes assigned to ecmp group: " << allCombinations.size();
 
   // ECMP routes + generated routes should be less than max routes
+  XLOG(DBG2) << "thrift routes: " << allThriftRoutes.size();
+  XLOG(DBG2) << "generated routes: " << allCombinations.size();
+  XLOG(DBG2) << "maximum routes: " << maxNumRoute;
+
   CHECK_LE(allThriftRoutes.size() + allCombinations.size(), maxNumRoute);
 
   ensemble->applyNewState(

@@ -519,8 +519,9 @@ NSFRouteScaleGenerator::NSFRouteScaleGenerator(
           startingState,
           // v6 distribution
           {
-              {128, 6144},
-              {64, 59896},
+              {128, 3082}, // 6k is desired scale, remaining 3062 are generated
+                           // internally
+              {64, 68856}, // 75,000 -
           },
           {},
           chunkSize,
