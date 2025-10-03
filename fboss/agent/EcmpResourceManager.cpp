@@ -1408,10 +1408,10 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
               newMergeSet, (*mitr)->second.mergedNhops, mitr, *inOutState);
           grpInfo->setMergedGroupInfoItr(mitr);
         }
-        auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
-            rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
-        CHECK_EQ(existingGrpInfo, grpInfo);
       }
+      auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
+          rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
+      CHECK_EQ(existingGrpInfo, grpInfo);
     } else {
       // No override nhops in group, and group already existed. Just add the
       // route.
