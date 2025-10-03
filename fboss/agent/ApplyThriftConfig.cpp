@@ -226,6 +226,45 @@ bool checkParallelLinksToInterfaceNodes(
   }
   return hasParallelLinks;
 }
+
+bool isValidRxReasonToQueue(const auto& rxReasonToQueue) {
+  // FBOSS config exposes two different reason codes for TTLs: TTL_0 and TTL_1.
+  // For TTL_0, FBOSS configures packet action FORWARD.
+  // For TTL_1, FBOSS configures packet action TRAP.
+  //
+  // However, SAI spec defines a single attribute to match for TTL 0 and TTL 1
+  // viz.: SAI_HOSTIF_TRAP_TYPE_TTL_ERROR
+  //
+  // Thus, if config carries both TTL_0 and TTL_1, the second field overrides
+  // the first one and results into unexpected/buggy behavior.
+  //
+  // TTL_0 use case is for test: don't drop TTL 0 packets, allow creating loop.
+  // TTL_1 use case is for production only.
+  // Thus, explicitly fail config that attempts to set both TTL_0 and TTL1.
+
+  if (!rxReasonToQueue.has_value()) {
+    return true;
+  }
+
+  bool isTtl0 = false;
+  bool isTtl1 = false;
+  for (auto rxEntry : *rxReasonToQueue) {
+    if (*rxEntry.rxReason() == cfg::PacketRxReason::TTL_0) {
+      isTtl0 = true;
+    } else if (*rxEntry.rxReason() == cfg::PacketRxReason::TTL_1) {
+      isTtl1 = true;
+    }
+  }
+
+  if (isTtl0 && isTtl1) {
+    XLOG(ERR)
+        << "Setting RxReasons TTL_0 and TTL_1 simultaneously is unsupported";
+    return false;
+  }
+
+  return true;
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -5244,6 +5283,9 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     if (const auto rxReasonToQueue =
             cpuTrafficPolicy->rxReasonToQueueOrderedList()) {
+      if (!isValidRxReasonToQueue(rxReasonToQueue)) {
+        throw FbossError("Invalid RxReasonToQueueOrderedList specified");
+      }
       for (auto rxEntry : *rxReasonToQueue) {
         newRxReasonToQueue.push_back(rxEntry);
       }
