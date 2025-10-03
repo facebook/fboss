@@ -2617,7 +2617,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         "No port profile config found with matcher:", matcher.toString());
   }
   if (*portConf->state() == cfg::PortState::ENABLED &&
-      *portProfileCfg->speed() != *portConf->speed()) {
+      *portProfileCfg->speed() != *portConf->speed() &&
+      *portProfileCfg->speed() != cfg::PortSpeed::DEFAULT) {
     throw FbossError(
         orig->getName(),
         " has mismatched speed on profile:",
