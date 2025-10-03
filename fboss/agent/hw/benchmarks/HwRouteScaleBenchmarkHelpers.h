@@ -14,6 +14,7 @@
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
@@ -164,6 +165,13 @@ void routeAddDelBenchmarker(bool measureAdd) {
   lookupThread.join();
 }
 
+std::unique_ptr<AgentEnsemble> setupForVoqRouteScale(uint32_t ecmpWidth);
+
+std::vector<RoutePrefixV6> getVoqRoutePrefixes(uint32_t numRoutes);
+std::vector<flat_set<PortDescriptor>> getVoqRouteNextHopSets(
+    const boost::container::flat_set<PortDescriptor>& remoteNhops,
+    uint32_t ecmpGroup,
+    uint32_t ecmpWidth);
 void voqRouteBenchmark(bool add, uint32_t ecmpGroup, uint32_t ecmpWidth);
 
 #define ROUTE_ADD_BENCHMARK(name, RouteScaleGeneratorT) \
