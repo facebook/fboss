@@ -2264,18 +2264,32 @@ int32_t ThriftHandler::flushNeighborEntry(
   auto parsedIP = toIPAddress(*ip);
 
   try {
+    int32_t result;
     if (FLAGS_intf_nbr_tables) {
       // VOQ switches don't support VLANs. The thrift client will pass
       // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
       // identical to interfaceID.
       InterfaceID intfID = InterfaceID(vlan);
-      return sw_->getNeighborUpdater()
-          ->flushEntryForIntf(intfID, parsedIP)
-          .get();
+      result =
+          sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
     } else {
       VlanID vlanID(vlan);
-      return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
+      result = sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
     }
+
+    // After clearing NDP entry, send neighbor solicitation for configured
+    // interfaces
+    XLOG(DBG4) << "ThriftHandler::flushNeighborEntry - Entry flushed for "
+               << parsedIP.str()
+               << ", checking for interfaces that need neighbor solicitation";
+
+    if (parsedIP.isV6()) {
+      // Use common function to send neighbor solicitation for specific IP
+      sw_->sendNeighborSolicitationForConfiguredInterfaces(
+          "NDP entry clear", parsedIP.asV6());
+    }
+
+    return result;
   } catch (...) {
     throw FbossError(
         "Entry : ",
@@ -2542,8 +2556,8 @@ void ThriftHandler::addMplsRoutesImpl(
       // BGP leaks MPLS routes to OpenR which then sends routes to agent
       // In such routes, interface id information is absent, because neither
       // BGP nor OpenR has enough information (in different scenarios) to
-      // resolve this interface ID. Consequently doing this in agent. Each such
-      // unresolved next hop will always be in the subnet of one of the
+      // resolve this interface ID. Consequently doing this in agent. Each
+      // such unresolved next hop will always be in the subnet of one of the
       // interface routes. look for all interfaces of a router to find an
       // interface which can reach this next hop. searching interfaces of a
       // default router, in future if multiple routers are to be supported,
