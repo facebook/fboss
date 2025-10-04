@@ -37,6 +37,7 @@ cpp_unittest(
         "MirrorManagerTest.cpp",
         "NDPTest.cpp",
         "OperDeltaFilterTests.cpp",
+        "PortUpdateHandlerNDPTest.cpp",
         "PortUpdateHandlerTest.cpp",
         "ReachabilityGroupTests.cpp",
         "RemoteSystemInterfaceTests.cpp",
