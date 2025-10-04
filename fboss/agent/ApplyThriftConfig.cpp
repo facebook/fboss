@@ -4306,6 +4306,18 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   if (auto portID = config->portID()) {
     cfgPort = PortID(*portID);
   }
+  bool changedDesiredPeer = !((!config->desiredPeerName().has_value() &&
+                               !orig->getDesiredPeerName().has_value()) ||
+                              (config->desiredPeerName().has_value() &&
+                               orig->getDesiredPeerName().has_value() &&
+                               config->desiredPeerName().value() ==
+                                   orig->getDesiredPeerName().value())) ||
+      !((!config->desiredPeerAddressIPv6().has_value() &&
+         !orig->getDesiredPeerAddressIPv6().has_value()) ||
+        (config->desiredPeerAddressIPv6().has_value() &&
+         orig->getDesiredPeerAddressIPv6().has_value() &&
+         config->desiredPeerAddressIPv6().value() ==
+             orig->getDesiredPeerAddressIPv6().value()));
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (!orig->getVlanIDIf().has_value() ||
@@ -4317,7 +4329,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
       orig->getType() == *config->type() && oldDhcpV4Relay == newDhcpV4Relay &&
       oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
-      !changed_dhcp_overrides) {
+      !changed_dhcp_overrides && !changedDesiredPeer) {
     // No change
     return nullptr;
   }
@@ -4344,6 +4356,14 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setDhcpV4Relay(newDhcpV4Relay);
   newIntf->setDhcpV6Relay(newDhcpV6Relay);
   newIntf->setScope(*config->scope());
+  if (config->desiredPeerName().has_value()) {
+    newIntf->setDesiredPeerName(config->desiredPeerName().value());
+  }
+  if (config->desiredPeerAddressIPv6().has_value()) {
+    newIntf->setDesiredPeerAddressIPv6(
+        config->desiredPeerAddressIPv6().value());
+  }
+
   return newIntf;
 }
 
