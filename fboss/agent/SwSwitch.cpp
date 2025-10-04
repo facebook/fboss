@@ -4298,4 +4298,22 @@ void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
   }
 }
 
+bool SwSwitch::hasConfiguredDesiredPeers(const InterfaceID& intfId) {
+  auto switchState = getState();
+  auto* intf = switchState->getInterfaces()->getNode(intfId).get();
+  if (intf->getDesiredPeerAddressIPv6().has_value()) {
+    auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+    // check if this is correct ipv6 address
+    // Check if desiredPeerAddressString is a valid IPv6 address or CIDR
+    auto cidrNetwork =
+        folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+    if (!cidrNetwork.first.isV6()) {
+      XLOG(ERR) << "Desired peer address is not a valid IPv6 address: "
+                << *desiredPeerAddressString;
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
 } // namespace facebook::fboss

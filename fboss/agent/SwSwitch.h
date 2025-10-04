@@ -1015,6 +1015,7 @@ class SwSwitch : public HwSwitchCallback {
   template <typename VlanOrIntfT>
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
+  bool hasConfiguredDesiredPeers(const InterfaceID& intfId);
 
  private:
   void initAgentInfo();
