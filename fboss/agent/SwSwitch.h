@@ -909,6 +909,12 @@ class SwSwitch : public HwSwitchCallback {
       std::optional<VlanID> vlanID,
       cfg::InterfaceType intfType = cfg::InterfaceType::VLAN) const;
 
+  // Send neighbor solicitation for interfaces with desiredPeerAddressIPv6
+  // configured
+  void sendNeighborSolicitationForConfiguredInterfaces(
+      const std::string& reason,
+      const std::optional<folly::IPAddressV6>& targetIP = std::nullopt);
+
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 

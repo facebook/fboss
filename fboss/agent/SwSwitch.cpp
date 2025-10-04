@@ -1556,6 +1556,15 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
     lldpManager_->start();
   }
 
+  // Send neighbor solicitation for configured interfaces after
+  // initialConfigApplied existing interfaces with desiredPeerAddressIPv6
+  // need to send neighbor solicitation. By this time we should have all
+  // interface configured, and this also handle warmboot case, when agent
+  // do not get port UP event from SDK
+  XLOG(DBG4)
+      << "SwSwitch::initialConfigApplied - Checking for existing interfaces that need neighbor solicitation after warm boot";
+  sendNeighborSolicitationForConfiguredInterfaces("warm boot");
+
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
     stats()->switchConfiguredMs(duration_cast<std::chrono::milliseconds>(
                                     steady_clock::now() - startTime)
@@ -4193,5 +4202,100 @@ template std::optional<VlanID> SwSwitch::getVlanIDForTx(
 
 template std::optional<VlanID> SwSwitch::getVlanIDForTx(
     const std::shared_ptr<Interface>& vlanOrIntf) const;
+
+void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
+    const std::string& reason,
+    const std::optional<folly::IPAddressV6>& targetIP) {
+  auto currentState = getState();
+  if (!currentState) {
+    XLOG(WARN)
+        << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - No current state available";
+    return;
+  }
+
+  auto interfaces = currentState->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
+    for (const auto& [_, intf] : std::as_const(*intfMap)) {
+      // Check if this interface has desiredPeerAddressIPv6 configured
+      // and RA enabled
+      if (intf->getDesiredPeerAddressIPv6().has_value()) {
+        auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+        // Use folly's built-in network parsing for CIDR notation
+        auto cidrNetwork = folly::IPAddress::createNetwork(
+            *desiredPeerAddressString, -1, false);
+        auto desiredPeerAddressIPv6 = cidrNetwork.first.asV6();
+
+        // If targetIP is specified, only process that specific IP
+        if (targetIP.has_value() && desiredPeerAddressIPv6 != targetIP) {
+          continue;
+        }
+
+        // Check if desiredPeer is reachable from this interface
+        if (!intf->canReachAddress(desiredPeerAddressIPv6)) {
+          continue;
+        }
+
+        // Check if interface is operationally UP
+        bool isInterfaceOperationallyUp = false;
+
+        switch (intf->getType()) {
+          case cfg::InterfaceType::PORT: {
+            break;
+          }
+          case cfg::InterfaceType::VLAN: {
+            if (auto vlanID = intf->getVlanID()) {
+              // Check if any port is a member of this VLAN and is UP
+              auto vlanMap = currentState->getVlans();
+              if (vlanMap) {
+                auto vlan = vlanMap->getNodeIf(vlanID);
+                if (vlan) {
+                  for (auto memberPort : vlan->getPorts()) {
+                    auto port =
+                        currentState->getPorts()->getNodeIf(memberPort.first);
+                    if (port && port->isPortUp()) {
+                      isInterfaceOperationallyUp = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            break;
+          }
+          case cfg::InterfaceType::SYSTEM_PORT: {
+            if (auto sysPortID = intf->getSystemPortID()) {
+              if (sysPortID.has_value()) {
+                auto physPortID = getPortID(sysPortID.value(), getState());
+                auto port = currentState->getPorts()->getNodeIf(physPortID);
+                if (port && port->isPortUp()) {
+                  isInterfaceOperationallyUp = true;
+                }
+              }
+            }
+            break;
+          }
+        }
+
+        if (isInterfaceOperationallyUp) {
+          XLOG(DBG4)
+              << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - Sending neighbor solicitation for interface "
+              << intf->getID() << " (" << intf->getName()
+              << ") with desiredPeerAddressIPv6 "
+              << desiredPeerAddressIPv6.str() << " - reason: " << reason;
+
+          try {
+            sendNdpSolicitationHelper(
+                intf, currentState, desiredPeerAddressIPv6);
+          } catch (const std::exception& e) {
+            XLOG(ERR)
+                << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - Failed to send neighbor solicitation for interface "
+                << intf->getID() << " - reason: " << reason << ": " << e.what();
+            folly::rethrow_current_exception();
+          }
+        }
+      }
+    }
+  }
+}
 
 } // namespace facebook::fboss
