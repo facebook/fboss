@@ -98,6 +98,90 @@ class PortUpdateHandlerNDPTest : public ::testing::Test {
   }
 
  protected:
+  // Helper function to verify neighbor solicitation for a given interface and
+  // target IP
+  void verifyNeighborSolicitation(
+      SwSwitch* sw,
+      InterfaceID intfId,
+      const std::string& expectedDesiredPeer,
+      cfg::InterfaceType expectedType) {
+    auto state = sw->getState();
+    auto interfaces = state->getInterfaces();
+    auto intf = interfaces->getNode(intfId);
+    EXPECT_NE(intf, nullptr);
+
+    // Verify interface type
+    EXPECT_EQ(intf->getType(), expectedType);
+
+    // For SYSTEM_PORT interfaces, verify system port ID
+    if (expectedType == cfg::InterfaceType::SYSTEM_PORT) {
+      EXPECT_TRUE(intf->getSystemPortID().has_value());
+    }
+
+    // Check if desiredPeerAddressIPv6 is configured
+    auto desiredPeer = intf->getDesiredPeerAddressIPv6();
+    EXPECT_TRUE(desiredPeer.has_value());
+    EXPECT_EQ(desiredPeer.value(), expectedDesiredPeer);
+
+    // Log the conditions that should trigger sendNdpSolicitationHelper
+    auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+    // Use folly's built-in network parsing for CIDR notation
+    auto cidrNetwork =
+        folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+    auto targetIP = cidrNetwork.first.asV6();
+
+    XLOG(INFO)
+        << "verifyNeighborSolicitation: All conditions met - Router Advertisement enabled,"
+        << "desiredPeerAddressIPv6 configured ("
+        << intf->getDesiredPeerAddressIPv6().value()
+        << "), interface associated with port. "
+        << "sendNdpSolicitationHelper should be called.";
+
+    // Verify that neighbor solicitation was sent by checking NDP cache
+    XLOG(INFO)
+        << "verifyNeighborSolicitation: Checking NDP cache for evidence on neighbor solicitation ";
+
+    // Get all NDP entries from neighbor updater
+    bool foundEntry = false;
+    XLOG(DBG2) << "verify neighbor cache entry for " << targetIP.str();
+    WITH_RETRIES({
+      auto neighborCache =
+          sw->getNeighborUpdater()->getNdpCacheDataForIntf().get();
+      XLOG(DBG2) << "Neighbor cache size: " << neighborCache.size();
+      auto cacheEntry = std::find_if(
+          neighborCache.begin(),
+          neighborCache.end(),
+          [&targetIP](const auto& entry) {
+            return entry.ip() == facebook::network::toBinaryAddress(targetIP);
+          });
+      XLOG(DBG2) << "NDP : " << targetIP.str();
+      // verify neighbor cache entry and neighbor table entry
+      EXPECT_EVENTUALLY_TRUE(cacheEntry != neighborCache.end());
+      EXPECT_EVENTUALLY_TRUE(neighborCache.size() == 1);
+      XLOG(DBG2) << "Neighbor entry matched";
+      foundEntry = true;
+      XLOG(DBG2) << "verifyNeighborSolicitation:foundEntry: " << foundEntry
+                 << " neighborCache.size():" << neighborCache.size();
+    });
+    XLOG(DBG2) << "verifyNeighborSolicitation:foundEntry: " << foundEntry;
+    if (foundEntry) {
+      XLOG(INFO)
+          << "verifyNeighborSolicitation: CONFIRMED - Neighbor solicitation was sent for "
+          << targetIP.str() << " as evidenced by NeighborUpdatercache";
+      // wait for
+      sleep(4);
+      auto maxNeighborProbes =
+          sw->getNeighborUpdater()->getMaxNeighborProbes(intf->getID()).get();
+      auto probesLeft = sw->getNeighborUpdater()
+                            ->getProbesLeft(intf->getID(), targetIP)
+                            .get();
+      XLOG(DBG2) << "Total neighbor SolicitationHelper sent: "
+                 << maxNeighborProbes - probesLeft;
+      WITH_RETRIES(
+          { EXPECT_EVENTUALLY_GT(maxNeighborProbes - probesLeft, 4); });
+    }
+  }
+
   SwSwitch* sw_{};
 };
 
@@ -144,99 +228,11 @@ TEST_F(PortUpdateHandlerNDPTest, VlanInterfacePortUp) {
   sw_->linkStateChanged(PortID(PORT_ID), true, cfg::PortType::INTERFACE_PORT);
 
   // Verify behavior based on current implementation
-  auto state = sw_->getState();
-  auto interfaces = state->getInterfaces();
-  auto intf = interfaces->getNode(InterfaceID(INTERFACE_ID));
-  EXPECT_NE(intf, nullptr);
-
-  // For VLAN interfaces, verify configuration
-  EXPECT_EQ(intf->getType(), cfg::InterfaceType::VLAN);
-  EXPECT_EQ(intf->getVlanID(), VlanID(VLAN_ID));
-
-  // Check if desiredPeerAddressIPv6 is configured
-  auto desiredPeer = intf->getDesiredPeerAddressIPv6();
-  EXPECT_TRUE(desiredPeer.has_value());
-  EXPECT_EQ(desiredPeer.value(), DESIRED_PEER_ADDRESS_IPV6_2);
-
-  // Check Router Advertisement configuration
-  try {
-    auto ndpConfig = intf->getNdpConfig();
-    if (ndpConfig) {
-      EXPECT_GT(intf->routerAdvertisementSeconds(), 0);
-      XLOG(INFO) << "VlanInterfacePortUp: Router Advertisement is enabled ("
-                 << intf->routerAdvertisementSeconds() << "s)";
-    }
-  } catch (const std::exception& e) {
-    GTEST_SKIP() << "NDP configuration access failed: " << e.what();
-  }
-
-  // Verify the VLAN configuration that should trigger neighbor solicitation
-  auto vlanID = intf->getVlanID();
-  auto vlan = state->getVlans()->getNodeIf(vlanID);
-  if (vlan) {
-    EXPECT_TRUE(vlan->getPorts().contains(PortID(PORT_ID)));
-    XLOG(INFO) << "VlanInterfacePortUp: VLAN " << static_cast<int>(vlanID)
-               << " contains port 1, conditions met for neighbor solicitation";
-  }
-
-  // Log the conditions that should trigger sendNdpSolicitationHelper
-  XLOG(INFO)
-      << "VlanInterfacePortUp: All conditions met - Router Advertisement enabled, "
-      << "desiredPeerAddressIPv6 configured (" << desiredPeer.value()
-      << "), VLAN interface associated with port. "
-      << "sendNdpSolicitationHelper should be called.";
-
-  // Verify that neighbor solicitation was sent by checking NDP cache
-  XLOG(INFO)
-      << "VlanInterfacePortUp: Checking NDP cache for evidence of neighbor solicitation";
-
-  // Check NDP cache for the desired peer entry
-  auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
-  // Use folly's built-in network parsing for CIDR notation
-  auto cidrNetwork =
-      folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
-  auto targetIP = cidrNetwork.first.asV6();
-
-  // Get all NDP entries from neighbor updater
-  bool foundEntry = false;
-  XLOG(DBG2) << "verify neighbor cache entry for " << targetIP.str();
-  WITH_RETRIES({
-    auto neighborCache =
-        sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-    XLOG(DBG2) << "Neighbor cache size: " << neighborCache.size();
-    auto cacheEntry = std::find_if(
-        neighborCache.begin(),
-        neighborCache.end(),
-        [&targetIP](const auto& entry) {
-          return entry.ip() == facebook::network::toBinaryAddress(targetIP);
-        });
-    XLOG(DBG2) << "NDP : " << targetIP.str();
-    // verify neighbor cache entry and neighbor table entry
-    EXPECT_EVENTUALLY_TRUE(cacheEntry != neighborCache.end());
-    EXPECT_EVENTUALLY_TRUE(neighborCache.size() == 1);
-    XLOG(DBG2) << "Neighbor entry matched";
-    foundEntry = true;
-    XLOG(DBG2) << "VlanInterfacePortUp:foundEntry: " << foundEntry
-               << " neighborCache.size():" << neighborCache.size();
-  });
-  XLOG(DBG2) << "VlanInterfacePortUp:foundEntry: " << foundEntry;
-  if (foundEntry) {
-    XLOG(INFO)
-        << "VlanInterfacePortUp: CONFIRMED - Neighbor solicitation was sent for "
-        << targetIP.str() << " as evidenced by NeighborUpdatercache";
-    // wait for 4 seconds to verify retry
-    sleep(4);
-    auto maxNeighborProbes =
-        sw_->getNeighborUpdater()->getMaxNeighborProbes(intf->getID()).get();
-    auto probesLeft =
-        sw_->getNeighborUpdater()->getProbesLeft(intf->getID(), targetIP).get();
-    XLOG(DBG2) << "Total neighbor SolicitationHelper sent: "
-               << maxNeighborProbes - probesLeft;
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_GT(
-          maxNeighborProbes - probesLeft, 4); // 1st probe is sent
-    });
-  }
+  verifyNeighborSolicitation(
+      sw_,
+      InterfaceID(INTERFACE_ID),
+      DESIRED_PEER_ADDRESS_IPV6_2,
+      cfg::InterfaceType::VLAN);
 }
 
 // Test port UP but interface operationally DOWN
@@ -274,98 +270,45 @@ TEST_F(PortUpdateHandlerNDPTest, SystemPortInterfacePortUp) {
   // Bring port UP - should trigger NDP solicitation for SYSTEM_PORT interface
   sw_->linkStateChanged(PortID(PORT_ID_5), true, cfg::PortType::INTERFACE_PORT);
 
-  // Verify behavior based on current implementation
-  auto state = sw_->getState();
-  auto interfaces = state->getInterfaces();
-  auto intf = interfaces->getNode(InterfaceID(5));
-  EXPECT_NE(intf, nullptr);
+  verifyNeighborSolicitation(
+      sw_,
+      InterfaceID(5),
+      DESIRED_PEER_ADDRESS_IPV6,
+      cfg::InterfaceType::SYSTEM_PORT);
+}
 
-  // For SYSTEM_PORT interfaces, verify configuration
-  EXPECT_EQ(intf->getType(), cfg::InterfaceType::SYSTEM_PORT);
-  EXPECT_TRUE(intf->getSystemPortID().has_value());
+TEST_F(PortUpdateHandlerNDPTest, SystemPortInterfaceUpdate) {
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto handle = setupTestHandle(config);
 
-  // Check if desiredPeerAddressIPv6 is configured
-  auto desiredPeer = intf->getDesiredPeerAddressIPv6();
-  EXPECT_TRUE(desiredPeer.has_value());
-  EXPECT_EQ(desiredPeer.value(), DESIRED_PEER_ADDRESS_IPV6);
+  { // Verify behavior based on current implementation
+    auto state = sw_->getState();
+    auto interfaces = state->getInterfaces();
+    auto intf = interfaces->getNode(InterfaceID(5));
+    EXPECT_NE(intf, nullptr);
 
-  // Check Router Advertisement configuration
-  try {
-    auto ndpConfig = intf->getNdpConfig();
-    if (ndpConfig) {
-      EXPECT_GT(intf->routerAdvertisementSeconds(), 0);
-      XLOG(INFO)
-          << "SystemPortInterfacePortUp: Router Advertisement is enabled ("
-          << intf->routerAdvertisementSeconds() << "s)";
-    }
-  } catch (const std::exception& e) {
-    GTEST_SKIP() << "NDP configuration access failed: " << e.what();
+    // For SYSTEM_PORT interfaces, verify configuration
+    EXPECT_EQ(intf->getType(), cfg::InterfaceType::SYSTEM_PORT);
+    EXPECT_TRUE(intf->getSystemPortID().has_value());
+
+    // Check if desiredPeerAddressIPv6 is not configured
+    auto desiredPeer = intf->getDesiredPeerAddressIPv6();
+    EXPECT_FALSE(desiredPeer.has_value());
   }
+  // set port to DOWN
+  sw_->linkStateChanged(
+      PortID(PORT_ID_5), false, cfg::PortType::INTERFACE_PORT);
+  // update desiredPeerAddressIPv6
+  config.interfaces()[0].desiredPeerAddressIPv6() = DESIRED_PEER_ADDRESS_IPV6;
 
-  // Verify the port configuration that should trigger neighbor solicitation
-  auto sysPortID = intf->getSystemPortID();
-  if (sysPortID.has_value()) {
-    auto sysPort = state->getSystemPorts()->getNodeIf(sysPortID.value());
-    if (sysPort) {
-      XLOG(INFO) << "SystemPortInterfacePortUp: Port "
-                 << static_cast<int>(sysPortID.value())
-                 << " is enabled, conditions met for neighbor solicitation ";
-    }
-  }
+  sw_->applyConfig("applyConfig", config);
+  // Bring port UP - should trigger NDP solicitation for SYSTEM_PORT interface
+  sw_->linkStateChanged(PortID(PORT_ID_5), true, cfg::PortType::INTERFACE_PORT);
 
-  // Log the conditions that should trigger sendNdpSolicitationHelper
-  auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
-  // Use folly's built-in network parsing for CIDR notation
-  auto cidrNetwork =
-      folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
-  auto targetIP = cidrNetwork.first.asV6();
-
-  XLOG(INFO)
-      << "SystemPortInterfacePortUp: All conditions met - Router Advertisement enabled,"
-      << "desiredPeerAddressIPv6 configured ("
-      << intf->getDesiredPeerAddressIPv6().value()
-      << "), port interface associated with port. "
-      << "sendNdpSolicitationHelper should be called.";
-
-  // Verify that neighbor solicitation was sent by checking NDP cache
-  XLOG(INFO)
-      << "SystemPortInterfacePortUp: Checking NDP cache for evidence on neighbor solicitation ";
-
-  // Get all NDP entries from neighbor updater
-  bool foundEntry = false;
-  XLOG(DBG2) << "verify neighbor cache entry for " << targetIP.str();
-  WITH_RETRIES({
-    auto neighborCache =
-        sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-    XLOG(DBG2) << "Neighbor cache size: " << neighborCache.size();
-    auto cacheEntry = std::find_if(
-        neighborCache.begin(),
-        neighborCache.end(),
-        [&targetIP](const auto& entry) {
-          return entry.ip() == facebook::network::toBinaryAddress(targetIP);
-        });
-    XLOG(DBG2) << "NDP : " << targetIP.str();
-    // verify neighbor cache entry and neighbor table entry
-    EXPECT_EVENTUALLY_TRUE(cacheEntry != neighborCache.end());
-    EXPECT_EVENTUALLY_TRUE(neighborCache.size() == 1);
-    XLOG(DBG2) << "Neighbor entry matched";
-    foundEntry = true;
-    XLOG(DBG2) << "SystemPortInterfacePortUp:foundEntry: " << foundEntry
-               << " neighborCache.size():" << neighborCache.size();
-  });
-  XLOG(DBG2) << "SystemPortInterfacePortUp:foundEntry: " << foundEntry;
-  if (foundEntry) {
-    XLOG(INFO)
-        << "SystemPortInterfacePortUp: CONFIRMED - Neighbor solicitation was sent for "
-        << targetIP.str() << " as evidenced by NeighborUpdatercache";
-    // wait for
-    sleep(4);
-    auto maxNeighborProbes =
-        sw_->getNeighborUpdater()->getMaxNeighborProbes(intf->getID()).get();
-    auto probesLeft =
-        sw_->getNeighborUpdater()->getProbesLeft(intf->getID(), targetIP).get();
-    XLOG(DBG2) << "Total neighbor SolicitationHelper sent: "
-               << maxNeighborProbes - probesLeft;
-    WITH_RETRIES({ EXPECT_EVENTUALLY_GT(maxNeighborProbes - probesLeft, 4); });
-  }
+  // verify
+  verifyNeighborSolicitation(
+      sw_,
+      InterfaceID(5),
+      DESIRED_PEER_ADDRESS_IPV6,
+      cfg::InterfaceType::SYSTEM_PORT);
 }
