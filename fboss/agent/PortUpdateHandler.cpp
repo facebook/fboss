@@ -158,6 +158,10 @@ void PortUpdateHandler::clearErrorDisableLoopDetected(
 void PortUpdateHandler::handlePortUp(
     const std::shared_ptr<Port>& newPort,
     const std::shared_ptr<SwitchState>& state) {
+  // Check if NDP static neighbor is enabled
+  if (!FLAGS_ndp_static_neighbor) {
+    return;
+  }
   // Call neighbor solicitation when port comes UP
   XLOG(DBG4) << "handlePortUp - Port " << newPort->getID()
              << " is now UP, checking for associated interfaces";

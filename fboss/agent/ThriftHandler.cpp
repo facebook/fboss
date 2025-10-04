@@ -2277,16 +2277,19 @@ int32_t ThriftHandler::flushNeighborEntry(
       result = sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
     }
 
-    // After clearing NDP entry, send neighbor solicitation for configured
-    // interfaces
-    XLOG(DBG4) << "ThriftHandler::flushNeighborEntry - Entry flushed for "
-               << parsedIP.str()
-               << ", checking for interfaces that need neighbor solicitation";
+    // Check if NDP static neighbor is enabled
+    if (FLAGS_ndp_static_neighbor) {
+      // After clearing NDP entry, send neighbor solicitation for configured
+      // interfaces
+      XLOG(DBG4) << "ThriftHandler::flushNeighborEntry - Entry flushed for "
+                 << parsedIP.str()
+                 << ", checking for interfaces that need neighbor solicitation";
 
-    if (parsedIP.isV6()) {
-      // Use common function to send neighbor solicitation for specific IP
-      sw_->sendNeighborSolicitationForConfiguredInterfaces(
-          "NDP entry clear", parsedIP.asV6());
+      if (parsedIP.isV6()) {
+        // Use common function to send neighbor solicitation for specific IP
+        sw_->sendNeighborSolicitationForConfiguredInterfaces(
+            "NDP entry clear", parsedIP.asV6());
+      }
     }
 
     return result;

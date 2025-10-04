@@ -4206,6 +4206,11 @@ template std::optional<VlanID> SwSwitch::getVlanIDForTx(
 void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
     const std::string& reason,
     const std::optional<folly::IPAddressV6>& targetIP) {
+  // Check if NDP static neighbor is enabled
+  if (!FLAGS_ndp_static_neighbor) {
+    return;
+  }
+
   auto currentState = getState();
   if (!currentState) {
     XLOG(WARN)
