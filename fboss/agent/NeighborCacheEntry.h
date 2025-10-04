@@ -74,6 +74,9 @@ enum class NeighborEntryState : uint8_t {
   EXPIRED,
 };
 
+constexpr auto slowProbeWindow_ = 30; // seconds
+constexpr auto probeWindow_ = 1; // second
+
 template <typename NTable>
 class NeighborCache;
 
@@ -257,6 +260,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       case NeighborEntryState::REACHABLE:
         lifetime = calculateLifetime();
         expireTime_ = std::chrono::steady_clock::now() + lifetime;
+        // reset slowRetries_ to false for REACHABLE state
+        slowRetries_ = false;
         scheduleTimeout(lifetime);
         break;
       case NeighborEntryState::STALE:
@@ -264,7 +269,13 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         break;
       case NeighborEntryState::PROBE:
       case NeighborEntryState::INCOMPLETE:
-        scheduleTimeout(std::chrono::seconds(1));
+        // if slowRetries_ is true, we will schedule a timeout of 30 seconds
+        // otherwise, we will schedule a timeout of 1 second
+        if (slowRetries_) {
+          scheduleTimeout(std::chrono::seconds(slowProbeWindow_));
+        } else {
+          scheduleTimeout(std::chrono::seconds(probeWindow_));
+        }
         break;
       case NeighborEntryState::EXPIRED:
         // This entry is expired and is already flushed. Don't schedule a
@@ -344,6 +355,15 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       }
       --probesLeft_;
     } else {
+      if (cache_->sw_->hasConfiguredDesiredPeers(getIntfID())) {
+        // If we have configured desired peers, we should not flush the entry
+        // after MAX_PROBE tries. Instead, we should keep on probing.
+        // This functionality is needed for the scenario:
+        //  - We have a configured desired peer on the interface.
+        slowRetries_ = true;
+        XLOG(DBG2) << "Slow Retries enabling for " << getIP();
+        return;
+      }
       state_ = NeighborEntryState::EXPIRED;
     }
   }
@@ -423,6 +443,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   FbossEventBase* evb_;
   NeighborEntryState state_{NeighborEntryState::UNINITIALIZED};
   uint32_t probesLeft_{0};
+  bool slowRetries_{false};
   state::NeighborEntryType type_{state::NeighborEntryType::DYNAMIC_ENTRY};
   std::chrono::time_point<std::chrono::steady_clock> expireTime_;
 };
