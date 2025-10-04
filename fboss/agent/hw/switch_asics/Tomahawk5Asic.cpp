@@ -270,7 +270,9 @@ Tomahawk5Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getMaxArsGroups() const {
-  return FLAGS_enable_th5_ars_scale_mode ? 256 : 128;
+  // BRCM SDK utilizes 200000 internally
+  // ARS offset also starts at 200000
+  return FLAGS_enable_th5_ars_scale_mode ? 254 : 127;
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
