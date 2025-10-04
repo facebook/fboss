@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/PortUpdateHandler.h"
+#include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LldpManager.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -149,6 +150,42 @@ void PortUpdateHandler::clearErrorDisableLoopDetected(
       });
 }
 
+// Add this function to the PortUpdateHandler class
+// This function will be called when a port comes up and will check if there
+// are any interfaces associated with this port. If there are, it will call
+// the sendNdpSolicitationHelper function to send a neighbor solicitation
+// packet for the desired peer address of the interface.
+void PortUpdateHandler::handlePortUp(
+    const std::shared_ptr<Port>& newPort,
+    const std::shared_ptr<SwitchState>& state) {
+  // Call neighbor solicitation when port comes UP
+  XLOG(DBG4) << "handlePortUp - Port " << newPort->getID()
+             << " is now UP, checking for associated interfaces";
+
+  // Find interfaces associated with this port
+  const auto& interfaceIDs = newPort->getInterfaceIDs();
+  for (const auto& interfaceID : interfaceIDs) {
+    auto interface =
+        state->getInterfaces()->getNodeIf(InterfaceID(interfaceID));
+    if (interface && interface->getDesiredPeerAddressIPv6().has_value()) {
+      // Store the string to avoid use-after-free with StringPiece
+      auto desiredPeerAddressString = interface->getDesiredPeerAddressIPv6();
+      // Use folly's built-in network parsing for CIDR notation
+      auto cidrNetwork =
+          folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+      auto desiredPeerAddressIPv6 = cidrNetwork.first.asV6();
+      // subnet suffix would be available as cidrNetwork.second (prefix length)
+      if (interface->canReachAddress(desiredPeerAddressIPv6)) {
+        XLOG(DBG4) << "Calling sendNdpSolicitationHelper for interface "
+                   << interface->getID() << " when port " << newPort->getID()
+                   << " comes UP";
+        sw_->sendNdpSolicitationHelper(
+            interface, state, desiredPeerAddressIPv6);
+      }
+    }
+  }
+}
+
 void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
   checkNewlyUndrained(delta);
   DeltaFunctions::forEachChanged(
@@ -160,6 +197,10 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
           if (sw_->getLldpMgr()) {
             sw_->getLldpMgr()->portDown(newPort->getID());
           }
+        } else if (
+            (!oldPort->isUp() && newPort->isUp()) ||
+            (!oldPort->isEnabled() && newPort->isEnabled())) {
+          handlePortUp(newPort, delta.newState());
         }
         if (oldPort->getName() != newPort->getName()) {
           for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
