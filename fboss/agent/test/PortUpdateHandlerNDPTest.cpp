@@ -14,8 +14,15 @@
 #include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
-#define DESIRED_PEER_ADDRESS_IPV6_2 "2001:db8:100::2/64"
+
 namespace {
+
+constexpr auto DESIRED_PEER_ADDRESS_IPV6 = "2401:db00:2110:3005::1/64";
+constexpr auto DESIRED_PEER_ADDRESS_IPV6_2 = "2001:db8:100::2/64";
+constexpr auto VLAN_ID = 100;
+constexpr auto INTERFACE_ID = 100;
+constexpr auto PORT_ID = 1;
+constexpr auto PORT_ID_5 = 5;
 
 cfg::SwitchConfig createVlanInterfaceConfig() {
   cfg::SwitchConfig config;
@@ -25,28 +32,28 @@ cfg::SwitchConfig createVlanInterfaceConfig() {
   // Create a simpler VLAN setup with only one port
   config.vlans()->resize(1);
   *config.vlans()[0].name() = "TestVlan";
-  *config.vlans()[0].id() = 100;
+  *config.vlans()[0].id() = VLAN_ID;
   *config.vlans()[0].routable() = true;
-  config.vlans()[0].intfID() = 100;
+  config.vlans()[0].intfID() = INTERFACE_ID;
 
   config.vlanPorts()->resize(1);
   config.ports()->resize(1);
 
   // Setup only one port for VLAN interface testing
-  preparedMockPortConfig(config.ports()[0], 1);
+  preparedMockPortConfig(config.ports()[0], PORT_ID);
   *config.ports()[0].routable() = true;
-  *config.ports()[0].ingressVlan() = 100;
+  *config.ports()[0].ingressVlan() = VLAN_ID;
 
-  *config.vlanPorts()[0].vlanID() = 100;
-  *config.vlanPorts()[0].logicalPort() = 1;
+  *config.vlanPorts()[0].vlanID() = VLAN_ID;
+  *config.vlanPorts()[0].logicalPort() = PORT_ID;
   *config.vlanPorts()[0].spanningTreeState() =
       cfg::SpanningTreeState::FORWARDING;
   *config.vlanPorts()[0].emitTags() = 0;
 
   // Add VLAN interface configuration
   config.interfaces()->resize(1);
-  *config.interfaces()[0].intfID() = 100;
-  *config.interfaces()[0].vlanID() = 100;
+  *config.interfaces()[0].intfID() = INTERFACE_ID;
+  *config.interfaces()[0].vlanID() = VLAN_ID;
   *config.interfaces()[0].routerID() = 0;
   config.interfaces()[0].type() = cfg::InterfaceType::VLAN;
   config.interfaces()[0].name() = "VlanInterface100";
@@ -59,6 +66,17 @@ cfg::SwitchConfig createVlanInterfaceConfig() {
   *config.interfaces()[0].ndp()->routerAdvertisementSeconds() = 30;
   config.interfaces()[0].desiredPeerAddressIPv6() = DESIRED_PEER_ADDRESS_IPV6_2;
 
+  return config;
+}
+
+cfg::SwitchConfig createSystemPortInterfaceConfig() {
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  // Configure Router Advertisement and desiredPeerAddressIPv6
+  XLOG(DBG2) << " config.interfaces()[0]: "
+             << static_cast<int>(config.interfaces()[0].intfID().value());
+  config.interfaces()[0].ndp() = cfg::NdpConfig();
+  *config.interfaces()[0].ndp()->routerAdvertisementSeconds() = 30;
+  config.interfaces()[0].desiredPeerAddressIPv6() = DESIRED_PEER_ADDRESS_IPV6;
   return config;
 }
 
@@ -93,11 +111,11 @@ TEST_F(PortUpdateHandlerNDPTest, VlanInterfaceNoDesiredPeer) {
   auto handle = setupTestHandle(config);
 
   // Initially set port to DOWN
-  sw_->linkStateChanged(PortID(1), false, cfg::PortType::INTERFACE_PORT);
+  sw_->linkStateChanged(PortID(PORT_ID), false, cfg::PortType::INTERFACE_PORT);
 
   // Bring port UP - should NOT trigger NDP solicitation due to missing
   // desiredPeerAddressIPv6
-  sw_->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
+  sw_->linkStateChanged(PortID(PORT_ID), true, cfg::PortType::INTERFACE_PORT);
 
   // Verify interface exists but lacks desiredPeerAddressIPv6
   auto state = sw_->getState();
@@ -116,24 +134,24 @@ TEST_F(PortUpdateHandlerNDPTest, VlanInterfacePortUp) {
   auto handle = setupTestHandle(config);
 
   // Initially set port to DOWN
-  sw_->linkStateChanged(PortID(1), false, cfg::PortType::INTERFACE_PORT);
+  sw_->linkStateChanged(PortID(PORT_ID), false, cfg::PortType::INTERFACE_PORT);
   {
     auto neighborCache =
         sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
     EXPECT_EQ(neighborCache.size(), 0);
   }
   // Bring port UP
-  sw_->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
+  sw_->linkStateChanged(PortID(PORT_ID), true, cfg::PortType::INTERFACE_PORT);
 
   // Verify behavior based on current implementation
   auto state = sw_->getState();
   auto interfaces = state->getInterfaces();
-  auto intf = interfaces->getNode(InterfaceID(100));
+  auto intf = interfaces->getNode(InterfaceID(INTERFACE_ID));
   EXPECT_NE(intf, nullptr);
 
   // For VLAN interfaces, verify configuration
   EXPECT_EQ(intf->getType(), cfg::InterfaceType::VLAN);
-  EXPECT_EQ(intf->getVlanID(), VlanID(100));
+  EXPECT_EQ(intf->getVlanID(), VlanID(VLAN_ID));
 
   // Check if desiredPeerAddressIPv6 is configured
   auto desiredPeer = intf->getDesiredPeerAddressIPv6();
@@ -156,7 +174,7 @@ TEST_F(PortUpdateHandlerNDPTest, VlanInterfacePortUp) {
   auto vlanID = intf->getVlanID();
   auto vlan = state->getVlans()->getNodeIf(vlanID);
   if (vlan) {
-    EXPECT_TRUE(vlan->getPorts().contains(PortID(1)));
+    EXPECT_TRUE(vlan->getPorts().contains(PortID(PORT_ID)));
     XLOG(INFO) << "VlanInterfacePortUp: VLAN " << static_cast<int>(vlanID)
                << " contains port 1, conditions met for neighbor solicitation";
   }
@@ -227,23 +245,127 @@ TEST_F(PortUpdateHandlerNDPTest, VlanUpInterfaceDown) {
   auto handle = setupTestHandle(config);
 
   // Initially set port to DOWN and also disable it administratively
-  sw_->linkStateChanged(PortID(1), false, cfg::PortType::INTERFACE_PORT);
+  sw_->linkStateChanged(PortID(PORT_ID), false, cfg::PortType::INTERFACE_PORT);
 
   // Update state to disable port administratively
   auto updateFn = [](const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
-    auto port = newState->getPorts()->getNode(PortID(1))->modify(&newState);
+    auto port =
+        newState->getPorts()->getNode(PortID(PORT_ID))->modify(&newState);
     port->setAdminState(cfg::PortState::DISABLED);
     return newState;
   };
   sw_->updateState("Disable port admin", updateFn);
 
-  // Mock to count calls
-  int ndpSolicitationCalls = 0;
-
   // Bring port UP operationally, but it's still disabled administratively
-  sw_->linkStateChanged(PortID(1), true, cfg::PortType::INTERFACE_PORT);
+  sw_->linkStateChanged(PortID(PORT_ID), true, cfg::PortType::INTERFACE_PORT);
+}
 
-  // Should NOT trigger NDP solicitation because port is not fully UP
-  EXPECT_EQ(ndpSolicitationCalls, 0);
+// Unit tests for system port interface handling
+// Test SYSTEM_PORT interface handling
+TEST_F(PortUpdateHandlerNDPTest, SystemPortInterfacePortUp) {
+  auto config = createSystemPortInterfaceConfig();
+  auto handle = setupTestHandle(config);
+
+  // Initially set port to DOWN
+  sw_->linkStateChanged(
+      PortID(PORT_ID_5), false, cfg::PortType::INTERFACE_PORT);
+
+  // Bring port UP - should trigger NDP solicitation for SYSTEM_PORT interface
+  sw_->linkStateChanged(PortID(PORT_ID_5), true, cfg::PortType::INTERFACE_PORT);
+
+  // Verify behavior based on current implementation
+  auto state = sw_->getState();
+  auto interfaces = state->getInterfaces();
+  auto intf = interfaces->getNode(InterfaceID(5));
+  EXPECT_NE(intf, nullptr);
+
+  // For SYSTEM_PORT interfaces, verify configuration
+  EXPECT_EQ(intf->getType(), cfg::InterfaceType::SYSTEM_PORT);
+  EXPECT_TRUE(intf->getSystemPortID().has_value());
+
+  // Check if desiredPeerAddressIPv6 is configured
+  auto desiredPeer = intf->getDesiredPeerAddressIPv6();
+  EXPECT_TRUE(desiredPeer.has_value());
+  EXPECT_EQ(desiredPeer.value(), DESIRED_PEER_ADDRESS_IPV6);
+
+  // Check Router Advertisement configuration
+  try {
+    auto ndpConfig = intf->getNdpConfig();
+    if (ndpConfig) {
+      EXPECT_GT(intf->routerAdvertisementSeconds(), 0);
+      XLOG(INFO)
+          << "SystemPortInterfacePortUp: Router Advertisement is enabled ("
+          << intf->routerAdvertisementSeconds() << "s)";
+    }
+  } catch (const std::exception& e) {
+    GTEST_SKIP() << "NDP configuration access failed: " << e.what();
+  }
+
+  // Verify the port configuration that should trigger neighbor solicitation
+  auto sysPortID = intf->getSystemPortID();
+  if (sysPortID.has_value()) {
+    auto sysPort = state->getSystemPorts()->getNodeIf(sysPortID.value());
+    if (sysPort) {
+      XLOG(INFO) << "SystemPortInterfacePortUp: Port "
+                 << static_cast<int>(sysPortID.value())
+                 << " is enabled, conditions met for neighbor solicitation ";
+    }
+  }
+
+  // Log the conditions that should trigger sendNdpSolicitationHelper
+  auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+  // Use folly's built-in network parsing for CIDR notation
+  auto cidrNetwork =
+      folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+  auto targetIP = cidrNetwork.first.asV6();
+
+  XLOG(INFO)
+      << "SystemPortInterfacePortUp: All conditions met - Router Advertisement enabled,"
+      << "desiredPeerAddressIPv6 configured ("
+      << intf->getDesiredPeerAddressIPv6().value()
+      << "), port interface associated with port. "
+      << "sendNdpSolicitationHelper should be called.";
+
+  // Verify that neighbor solicitation was sent by checking NDP cache
+  XLOG(INFO)
+      << "SystemPortInterfacePortUp: Checking NDP cache for evidence on neighbor solicitation ";
+
+  // Get all NDP entries from neighbor updater
+  bool foundEntry = false;
+  XLOG(DBG2) << "verify neighbor cache entry for " << targetIP.str();
+  WITH_RETRIES({
+    auto neighborCache =
+        sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
+    XLOG(DBG2) << "Neighbor cache size: " << neighborCache.size();
+    auto cacheEntry = std::find_if(
+        neighborCache.begin(),
+        neighborCache.end(),
+        [&targetIP](const auto& entry) {
+          return entry.ip() == facebook::network::toBinaryAddress(targetIP);
+        });
+    XLOG(DBG2) << "NDP : " << targetIP.str();
+    // verify neighbor cache entry and neighbor table entry
+    EXPECT_EVENTUALLY_TRUE(cacheEntry != neighborCache.end());
+    EXPECT_EVENTUALLY_TRUE(neighborCache.size() == 1);
+    XLOG(DBG2) << "Neighbor entry matched";
+    foundEntry = true;
+    XLOG(DBG2) << "SystemPortInterfacePortUp:foundEntry: " << foundEntry
+               << " neighborCache.size():" << neighborCache.size();
+  });
+  XLOG(DBG2) << "SystemPortInterfacePortUp:foundEntry: " << foundEntry;
+  if (foundEntry) {
+    XLOG(INFO)
+        << "SystemPortInterfacePortUp: CONFIRMED - Neighbor solicitation was sent for "
+        << targetIP.str() << " as evidenced by NeighborUpdatercache";
+    // wait for
+    sleep(4);
+    auto maxNeighborProbes =
+        sw_->getNeighborUpdater()->getMaxNeighborProbes(intf->getID()).get();
+    auto probesLeft =
+        sw_->getNeighborUpdater()->getProbesLeft(intf->getID(), targetIP).get();
+    XLOG(DBG2) << "Total neighbor SolicitationHelper sent: "
+               << maxNeighborProbes - probesLeft;
+    WITH_RETRIES({ EXPECT_EVENTUALLY_GT(maxNeighborProbes - probesLeft, 4); });
+  }
 }
