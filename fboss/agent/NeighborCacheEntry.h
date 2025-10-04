@@ -230,6 +230,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         getClassID().has_value() ? static_cast<int>(getClassID().value()) : 0;
     *entry.interfaceID() = getIntfID();
     *entry.portDescriptor() = getPort().toThrift();
+    entry.probesLeft() = probesLeft_;
+    entry.maxNeighborProbes() = cache_->getMaxNeighborProbes();
   }
 
  private:
