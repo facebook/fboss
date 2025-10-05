@@ -47,6 +47,61 @@ void runTunManagerProbeBenchmark();
 namespace facebook::fboss {
 
 /**
+ * Print comprehensive network debugging information including kernel
+ * interfaces, switch state interfaces, probed routes, and probed source rules.
+ */
+inline void printAllNetworkDebugInfo(
+    AgentEnsemble* ensemble,
+    TunManager* tunMgr) {
+  // Print kernel network information
+  XLOG(INFO) << "=== Kernel Network Information ===";
+
+  // IPv4 addresses - Shows all interfaces, their status, and addresses
+  XLOG(INFO) << "--- IPv4 Addresses ---";
+  std::string cmd = "ip -4 a";
+  auto output = runShellCmd(cmd);
+  XLOG(INFO) << "Command: " << cmd;
+  XLOG(INFO) << "Output:\n" << output;
+
+  // IPv6 addresses - Shows all interfaces, their status, and addresses
+  XLOG(INFO) << "--- IPv6 Addresses ---";
+  cmd = "ip -6 a";
+  output = runShellCmd(cmd);
+  XLOG(INFO) << "Command: " << cmd;
+  XLOG(INFO) << "Output:\n" << output;
+
+  // IPv4 route table (all tables)
+  XLOG(INFO) << "--- IPv4 Routes (All Tables) ---";
+  cmd = "ip route show table all";
+  output = runShellCmd(cmd);
+  XLOG(INFO) << "Command: " << cmd;
+  XLOG(INFO) << "Output:\n" << output;
+
+  // IPv6 route table (all tables)
+  XLOG(INFO) << "--- IPv6 Routes (All Tables) ---";
+  cmd = "ip -6 route show table all";
+  output = runShellCmd(cmd);
+  XLOG(INFO) << "Command: " << cmd;
+  XLOG(INFO) << "Output:\n" << output;
+
+  // IPv4 rule table
+  XLOG(INFO) << "--- IPv4 Rules ---";
+  cmd = "ip rule";
+  output = runShellCmd(cmd);
+  XLOG(INFO) << "Command: " << cmd;
+  XLOG(INFO) << "Output:\n" << output;
+
+  // IPv6 rule table
+  XLOG(INFO) << "--- IPv6 Rules ---";
+  cmd = "ip -6 rule";
+  output = runShellCmd(cmd);
+  XLOG(INFO) << "Command: " << cmd;
+  XLOG(INFO) << "Output:\n" << output;
+
+  XLOG(INFO) << "=== End Kernel Network Information ===";
+}
+
+/**
  * Print switch state interface details.
  */
 inline void printSwitchStateInterfaces(
@@ -138,6 +193,7 @@ inline void runTunManagerProbeBenchmark() {
     return;
   }
 
+  printAllNetworkDebugInfo(ensemble.get(), tunMgr);
   printSwitchStateInterfaces(ensemble.get(), tunMgr);
 
   // Set probeDone_ to false before calling probe()
@@ -164,6 +220,7 @@ inline void runTunManagerProbeBenchmark() {
   // Stop measuring
   suspender.rehire();
   printSwitchStateInterfaces(ensemble.get(), tunMgr);
+  printAllNetworkDebugInfo(ensemble.get(), tunMgr);
 }
 
 } // namespace facebook::fboss
