@@ -461,6 +461,30 @@ agent_benchmark_lib(
     extra_deps = [],
 )
 
+cpp_library(
+    name = "hw_tun_manager_probe_benchmark_helper",
+    headers = [
+        "HwTunManagerProbeBenchmarkHelper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:sw_agent_initializer",
+        "//fboss/agent/hw/test:config_factory",
+        "//fboss/agent/test:agent_ensemble",
+        "//fboss/agent/test:utils",
+        "//folly:benchmark",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_tun_manager_probe_and_cleanup_speed",
+    srcs = ["HwTunManagerProbeBenchmark.cpp"],
+    extra_deps = [
+        ":hw_tun_manager_probe_benchmark_helper",
+    ],
+)
+
 agent_benchmark_lib(
     name = "hw_ecmp_backup_group_spillover",
     srcs = ["HwEcmpBackupGroupSpilloverBenchmark.cpp"],

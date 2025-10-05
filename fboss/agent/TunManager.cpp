@@ -392,7 +392,6 @@ std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
 bool TunManager::requiresProbedDataCleanup(
     const std::unordered_map<InterfaceID, int>& stateMap,
     const std::unordered_map<InterfaceID, int>& probedMap) const {
-  // Most idiomatic: direct equality comparison
   bool mapsEqual = (stateMap == probedMap);
 
   if (!mapsEqual) {
