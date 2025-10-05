@@ -101,12 +101,20 @@ inline void runTunManagerProbeBenchmark() {
   // Start measuring only the critical probe and cleanup operations
   suspender.dismiss();
 
+  const auto startTs = std::chrono::steady_clock::now();
+
   // Probe kernel for existing TUN interface state
   tunMgr->probe();
 
   // Force cleanup by calling deleteAllProbedData directly. This ensures cleanup
   // happens regardless of interface mapping comparison
   tunMgr->deleteAllProbedData();
+
+  const auto endTs = std::chrono::steady_clock::now();
+  auto elapsedMs =
+      std::chrono::duration_cast<std::chrono::milliseconds>(endTs - startTs);
+  XLOG(INFO) << "TUN Manager probe and cleanup operations took "
+             << elapsedMs.count() << "ms to complete";
 
   // Stop measuring
   suspender.rehire();
