@@ -46,6 +46,49 @@ void runTunManagerProbeBenchmark();
 
 namespace facebook::fboss {
 
+/**
+ * Print switch state interface details.
+ */
+inline void printSwitchStateInterfaces(
+    AgentEnsemble* ensemble,
+    TunManager* tunMgr) {
+  XLOG(INFO) << "=== Switch State Interface Details ===";
+
+  auto config = ensemble->getCurrentConfig();
+  for (int i = 0; i < config.interfaces()->size(); i++) {
+    std::vector<std::string> intfIPv4s;
+    std::vector<std::string> intfIPv6s;
+
+    for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+      std::string intfIP = folly::to<std::string>(
+          folly::IPAddress::createNetwork(
+              config.interfaces()[i].ipAddresses()[j], -1, false)
+              .first);
+
+      if (intfIP.find("::") != std::string::npos) {
+        intfIPv6s.push_back(intfIP);
+      } else {
+        intfIPv4s.push_back(intfIP);
+      }
+    }
+
+    auto status = tunMgr->getIntfStatus(
+        ensemble->getProgrammedState(),
+        (InterfaceID)config.interfaces()[i].intfID().value());
+
+    // Convert vectors to comma-separated strings for logging
+    std::string ipv4List = folly::join(", ", intfIPv4s);
+    std::string ipv6List = folly::join(", ", intfIPv6s);
+
+    XLOG(INFO) << "Interface ID: "
+               << (InterfaceID)config.interfaces()[i].intfID().value()
+               << ", Status: " << (status ? "UP" : "DOWN") << ", IPv4: ["
+               << ipv4List << "]" << ", IPv6: [" << ipv6List << "]";
+  }
+
+  XLOG(INFO) << "=== End Switch State Interface Details ===";
+}
+
 /*
  * Benchmark probing and cleanup of TUN interface data.
  * This benchmarks the time it takes to:
@@ -95,6 +138,8 @@ inline void runTunManagerProbeBenchmark() {
     return;
   }
 
+  printSwitchStateInterfaces(ensemble.get(), tunMgr);
+
   // Set probeDone_ to false before calling probe()
   tunMgr->probeDone_ = false;
 
@@ -118,6 +163,7 @@ inline void runTunManagerProbeBenchmark() {
 
   // Stop measuring
   suspender.rehire();
+  printSwitchStateInterfaces(ensemble.get(), tunMgr);
 }
 
 } // namespace facebook::fboss
