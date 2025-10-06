@@ -24,6 +24,13 @@
 namespace facebook::fboss {
 namespace {
 
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::optional<cfg::SwitchingMode>& mode) {
+  os << (mode.has_value() ? apache::thrift::util::enumNameSafe(*mode) : "None");
+  return os;
+}
+
 void updateRouteOverrides(
     const EcmpResourceManager::Prefix& ridAndPfx,
     std::shared_ptr<SwitchState>& newState,
@@ -47,11 +54,8 @@ void updateRouteOverrides(
         curForwardInfo.getClassID(),
         backupSwitchingMode,
         overrideNhops);
-    XLOG(DBG2) << " Set : " << route->str() << " backup switching mode to : "
-               << (backupSwitchingMode.has_value()
-                       ? apache::thrift::util::enumNameSafe(
-                             *backupSwitchingMode)
-                       : "null")
+    XLOG(DBG2) << " Set : " << route->str()
+               << " backup switching mode to : " << backupSwitchingMode
                << " override next hops to : "
                << (overrideNhops.has_value()
                        ? folly::to<std::string>(*overrideNhops)
@@ -2040,7 +2044,11 @@ void EcmpResourceManager::updateFailed(
     // However this adds more code for a use case we don't need to support.
     // BackupEcmpType can only change via a config update state delta. And
     // if that fails, we anyways fail the application
-    throw FbossError("Update failed with backup switching mode transition");
+    std::stringstream ss;
+    ss << "Update failed with backup switching mode transition, from: "
+       << getBackupEcmpSwitchingMode()
+       << " to: " << getBackupSwitchingMode(knownGoodState);
+    throw FbossError(ss.str());
   }
   reconstructFromSwitchState(knownGoodState);
 }
@@ -2389,10 +2397,7 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     auto maxEcmps =
         std::floor(*maxEcmpGroups * static_cast<double>(percentage) / 100.0);
     XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
-               << maxEcmps << " and backup group type: "
-               << (switchingMode.has_value()
-                       ? apache::thrift::util::enumNameSafe(*switchingMode)
-                       : "None");
+               << maxEcmps << " and backup group type: " << switchingMode;
 
     ecmpResourceManager = switchingMode
         ? std::make_unique<EcmpResourceManager>(
