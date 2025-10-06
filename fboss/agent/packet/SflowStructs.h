@@ -51,18 +51,8 @@ void serializeSflowPort(
     folly::io::RWPrivateCursor* cursor,
     SflowPort sflowPort);
 
-/* Counter and Flow sample formats */
+/* Flow record format */
 struct FlowRecord {
-  DataFormat flowFormat;
-  uint32_t flowDataLen;
-  byte* flowData;
-
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size() const;
-};
-
-/* Self-contained version of FlowRecord that owns its data */
-struct FlowRecordOwned {
   DataFormat flowFormat;
   std::vector<uint8_t> flowData;
 
@@ -86,24 +76,7 @@ struct FlowSample {
   uint32_t drops;
   SflowPort input;
   SflowPort output;
-  uint32_t flowRecordsCnt;
-  FlowRecord* flowRecords;
-
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size(const uint32_t frecordSize) const;
-};
-
-/* Format of a single self-contained flow sample that owns its data */
-/* opaque = sample_data; enterprise = 0; format = 1 */
-struct FlowSampleOwned {
-  uint32_t sequenceNumber;
-  SflowDataSource sourceID;
-  uint32_t samplingRate;
-  uint32_t samplePool;
-  uint32_t drops;
-  SflowPort input;
-  SflowPort output;
-  std::vector<FlowRecordOwned> flowRecords;
+  std::vector<FlowRecord> flowRecords;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
@@ -130,21 +103,11 @@ struct FlowSampleOwned {
 // TODO (sgwang)
 // struct counters_sample_expanded {...}
 
+/* Sample data variant - supports different types of sample data */
+using SampleData = std::variant<FlowSample>;
+
 /* Format of a sample datagram */
 struct SampleRecord {
-  DataFormat sampleType;
-  uint32_t sampleDataLen;
-  byte* sampleData;
-
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size() const;
-};
-
-/* Sample data variant - supports different types of sample data */
-using SampleData = std::variant<FlowSampleOwned>;
-
-/* Self-contained version of SampleRecord that owns its data */
-struct SampleRecordOwned {
   DataFormat sampleType;
   std::vector<SampleData> sampleData;
 
@@ -158,20 +121,7 @@ struct SampleDatagramV5 {
   uint32_t subAgentID;
   uint32_t sequenceNumber; // for sub-agent
   uint32_t uptime;
-  uint32_t samplesCnt;
-  SampleRecord* samples;
-
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size(const uint32_t recordsSize) const;
-};
-
-/* Self-contained version of SampleDatagramV5 that owns its data */
-struct SampleDatagramV5Owned {
-  folly::IPAddress agentAddress;
-  uint32_t subAgentID;
-  uint32_t sequenceNumber; // for sub-agent
-  uint32_t uptime;
-  std::vector<SampleRecordOwned> samples;
+  std::vector<SampleRecord> samples;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
@@ -182,16 +132,6 @@ struct SampleDatagram {
   // We only consider sFlowV5
   static constexpr uint32_t VERSION5 = 5;
   SampleDatagramV5 datagramV5;
-
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size(const uint32_t recordsSize) const;
-};
-
-/* Self-contained version of SampleDatagram that owns its data */
-struct SampleDatagramOwned {
-  // We only consider sFlowV5
-  static constexpr uint32_t VERSION5 = 5;
-  SampleDatagramV5Owned datagramV5;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;

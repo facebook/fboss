@@ -802,8 +802,8 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
     uint32_t egressInterface,
     uint32_t samplingRate,
     const std::vector<uint8_t>& payload) {
-  // Create owned structures that handle their own memory management
-  sflow::SampleDatagramOwned datagram{};
+  // Create structures that handle their own memory management
+  sflow::SampleDatagram datagram{};
 
   // Set up the V5 datagram
   datagram.datagramV5.agentAddress = agentIp;
@@ -812,11 +812,11 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
   datagram.datagramV5.uptime = 0; // not used
 
   // Create sample record
-  sflow::SampleRecordOwned record{};
+  sflow::SampleRecord record{};
   record.sampleType = 1; // raw header
 
   // Create flow sample
-  sflow::FlowSampleOwned fsample{};
+  sflow::FlowSample fsample{};
   fsample.sequenceNumber = 0;
   fsample.sourceID = 0;
   fsample.samplingRate = samplingRate;
@@ -826,7 +826,7 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
   fsample.output = egressInterface;
 
   // Create flow record with header data
-  sflow::FlowRecordOwned frecord{};
+  sflow::FlowRecord frecord{};
   frecord.flowFormat = 1; // single flow sample
 
   // Serialize the sampled header directly into the flow record data
@@ -917,17 +917,17 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   // EthHdr
   auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV4);
 
-  // Create owned structures to compute the actual sFlow size dynamically
-  sflow::SampleDatagramOwned datagram{};
+  // Create structures to compute the actual sFlow size dynamically
+  sflow::SampleDatagram datagram{};
   datagram.datagramV5.agentAddress = folly::IPAddress(srcIp);
   datagram.datagramV5.subAgentID = 0;
   datagram.datagramV5.sequenceNumber = 0;
   datagram.datagramV5.uptime = 0;
 
-  sflow::SampleRecordOwned record{};
+  sflow::SampleRecord record{};
   record.sampleType = 1;
 
-  sflow::FlowSampleOwned fsample{};
+  sflow::FlowSample fsample{};
   fsample.sequenceNumber = 0;
   fsample.sourceID = 0;
   fsample.samplingRate = samplingRate;
@@ -936,7 +936,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   fsample.input = ingressInterface;
   fsample.output = egressInterface;
 
-  sflow::FlowRecordOwned frecord{};
+  sflow::FlowRecord frecord{};
   frecord.flowFormat = 1;
 
   // Calculate size needed for serialized header
@@ -1008,17 +1008,17 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   // EthHdr
   auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
 
-  // Create owned structures to compute the actual sFlow size dynamically
-  sflow::SampleDatagramOwned datagram;
+  // Create structures to compute the actual sFlow size dynamically
+  sflow::SampleDatagram datagram;
   datagram.datagramV5.agentAddress = folly::IPAddress(srcIp);
   datagram.datagramV5.subAgentID = 0;
   datagram.datagramV5.sequenceNumber = 0;
   datagram.datagramV5.uptime = 0;
 
-  sflow::SampleRecordOwned record;
+  sflow::SampleRecord record;
   record.sampleType = 1;
 
-  sflow::FlowSampleOwned fsample;
+  sflow::FlowSample fsample;
   fsample.sequenceNumber = 0;
   fsample.sourceID = 0;
   fsample.samplingRate = samplingRate;
@@ -1027,7 +1027,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   fsample.input = ingressInterface;
   fsample.output = egressInterface;
 
-  sflow::FlowRecordOwned frecord;
+  sflow::FlowRecord frecord;
   frecord.flowFormat = 1;
 
   // Calculate size needed for serialized header

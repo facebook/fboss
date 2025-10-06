@@ -46,23 +46,6 @@ void serializeSflowPort(RWPrivateCursor* cursor, SflowPort sflowPort) {
 void FlowRecord::serialize(RWPrivateCursor* cursor) const {
   serializeDataFormat(cursor, this->flowFormat);
   // serialize XDR opaque sFlow flow_data
-  cursor->writeBE<uint32_t>(this->flowDataLen);
-  cursor->push(this->flowData, this->flowDataLen);
-  if (this->flowDataLen % XDR_BASIC_BLOCK_SIZE != 0) {
-    int fillCnt =
-        XDR_BASIC_BLOCK_SIZE - this->flowDataLen % XDR_BASIC_BLOCK_SIZE;
-    std::vector<byte> crud(XDR_BASIC_BLOCK_SIZE, 0);
-    cursor->push(crud.data(), fillCnt);
-  }
-}
-
-uint32_t FlowRecord::size() const {
-  return 4 /* flowFormat */ + 4 /* flowDataLen */ + this->flowDataLen;
-}
-
-void FlowRecordOwned::serialize(RWPrivateCursor* cursor) const {
-  serializeDataFormat(cursor, this->flowFormat);
-  // serialize XDR opaque sFlow flow_data
   cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->flowData.size()));
   cursor->push(this->flowData.data(), this->flowData.size());
   if (this->flowData.size() % XDR_BASIC_BLOCK_SIZE != 0) {
@@ -73,7 +56,7 @@ void FlowRecordOwned::serialize(RWPrivateCursor* cursor) const {
   }
 }
 
-uint32_t FlowRecordOwned::size() const {
+uint32_t FlowRecord::size() const {
   uint32_t dataSize = this->flowData.size();
   // Add XDR padding to align to 4-byte boundary (same as serialization does)
   if (dataSize % XDR_BASIC_BLOCK_SIZE != 0) {
@@ -85,40 +68,18 @@ uint32_t FlowRecordOwned::size() const {
 void FlowSample::serialize(RWPrivateCursor* cursor) const {
   cursor->writeBE<uint32_t>(this->sequenceNumber);
   serializeSflowDataSource(cursor, this->sourceID);
-
-  cursor->writeBE<uint32_t>(this->samplingRate);
-  cursor->writeBE<uint32_t>(this->samplePool);
-  cursor->writeBE<uint32_t>(this->drops);
-  serializeSflowPort(cursor, this->input);
-  serializeSflowPort(cursor, this->output);
-  cursor->writeBE<uint32_t>(this->flowRecordsCnt);
-  for (int i = 0; i < this->flowRecordsCnt; i++) {
-    this->flowRecords[i].serialize(cursor);
-  }
-}
-
-uint32_t FlowSample::size(const uint32_t frecordsSize) const {
-  // TODO infer the flow records size instead and remove the input param.
-  return 4 /* sequenceNumber */ + 4 /* sourceId */ + 4 /* samplingRate */ +
-      4 /* samplePool */ + 4 /* drops */ + 4 /* input */ + 4 /* output */ +
-      4 /* flowRecordCnt */ + frecordsSize;
-}
-
-void FlowSampleOwned::serialize(RWPrivateCursor* cursor) const {
-  cursor->writeBE<uint32_t>(this->sequenceNumber);
-  serializeSflowDataSource(cursor, this->sourceID);
   cursor->writeBE<uint32_t>(this->samplingRate);
   cursor->writeBE<uint32_t>(this->samplePool);
   cursor->writeBE<uint32_t>(this->drops);
   serializeSflowPort(cursor, this->input);
   serializeSflowPort(cursor, this->output);
   cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->flowRecords.size()));
-  for (const FlowRecordOwned& record : this->flowRecords) {
+  for (const FlowRecord& record : this->flowRecords) {
     record.serialize(cursor);
   }
 }
 
-uint32_t FlowSampleOwned::size() const {
+uint32_t FlowSample::size() const {
   uint32_t recordsSize = 0;
   for (const auto& record : this->flowRecords) {
     recordsSize += record.size();
@@ -129,23 +90,6 @@ uint32_t FlowSampleOwned::size() const {
 }
 
 void SampleRecord::serialize(RWPrivateCursor* cursor) const {
-  serializeDataFormat(cursor, this->sampleType);
-  cursor->writeBE<uint32_t>(this->sampleDataLen);
-  // Serialize XDR opaque sFlow sample_data
-  cursor->push(this->sampleData, this->sampleDataLen);
-  if (this->sampleDataLen % XDR_BASIC_BLOCK_SIZE > 0) {
-    int fillCnt =
-        XDR_BASIC_BLOCK_SIZE - this->sampleDataLen % XDR_BASIC_BLOCK_SIZE;
-    std::vector<byte> crud(XDR_BASIC_BLOCK_SIZE, 0);
-    cursor->push(crud.data(), fillCnt);
-  }
-}
-
-uint32_t SampleRecord::size() const {
-  return 4 /* sampleType */ + 4 /* sampleDataLen */ + this->sampleDataLen;
-}
-
-void SampleRecordOwned::serialize(RWPrivateCursor* cursor) const {
   serializeDataFormat(cursor, this->sampleType);
 
   // Calculate total data size for all sample data
@@ -172,7 +116,7 @@ void SampleRecordOwned::serialize(RWPrivateCursor* cursor) const {
   }
 }
 
-uint32_t SampleRecordOwned::size() const {
+uint32_t SampleRecord::size() const {
   uint32_t totalDataSize = 0;
   for (const auto& sampleDatum : this->sampleData) {
     std::visit(
@@ -191,34 +135,16 @@ uint32_t SampleRecordOwned::size() const {
 
 void SampleDatagramV5::serialize(RWPrivateCursor* cursor) const {
   serializeIP(cursor, this->agentAddress);
-
-  cursor->writeBE<uint32_t>(this->subAgentID);
-  cursor->writeBE<uint32_t>(this->sequenceNumber);
-  cursor->writeBE<uint32_t>(this->uptime);
-  cursor->writeBE<uint32_t>(this->samplesCnt);
-  for (int i = 0; i < this->samplesCnt; i++) {
-    this->samples[i].serialize(cursor);
-  }
-}
-
-uint32_t SampleDatagramV5::size(const uint32_t recordsSize) const {
-  return this->agentAddress.byteCount() + 4 /* subAgentID */ +
-      4 /*sequenceNumber */ + 4 /*uptime*/
-      + 4 /*samplesCnt */ + recordsSize;
-}
-
-void SampleDatagramV5Owned::serialize(RWPrivateCursor* cursor) const {
-  serializeIP(cursor, this->agentAddress);
   cursor->writeBE<uint32_t>(this->subAgentID);
   cursor->writeBE<uint32_t>(this->sequenceNumber);
   cursor->writeBE<uint32_t>(this->uptime);
   cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->samples.size()));
-  for (const SampleRecordOwned& sample : this->samples) {
+  for (const SampleRecord& sample : this->samples) {
     sample.serialize(cursor);
   }
 }
 
-uint32_t SampleDatagramV5Owned::size() const {
+uint32_t SampleDatagramV5::size() const {
   uint32_t samplesSize = 0;
   for (const auto& sample : this->samples) {
     samplesSize += sample.size();
@@ -233,16 +159,7 @@ void SampleDatagram::serialize(RWPrivateCursor* cursor) const {
   this->datagramV5.serialize(cursor);
 }
 
-uint32_t SampleDatagram::size(const uint32_t recordsSize) const {
-  return 4 + this->datagramV5.size(recordsSize);
-}
-
-void SampleDatagramOwned::serialize(RWPrivateCursor* cursor) const {
-  cursor->writeBE<uint32_t>(SampleDatagramOwned::VERSION5);
-  this->datagramV5.serialize(cursor);
-}
-
-uint32_t SampleDatagramOwned::size() const {
+uint32_t SampleDatagram::size() const {
   return 4 + this->datagramV5.size();
 }
 
