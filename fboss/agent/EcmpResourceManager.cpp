@@ -30,6 +30,7 @@ void updateRouteOverrides(
     std::optional<cfg::SwitchingMode> backupSwitchingMode = std::nullopt,
     std::optional<EcmpResourceManager::GroupIds2ConsolidationInfoItr>
         mergeInfoItr = std::nullopt) {
+  // Cannot have both backup switching mode and merge info set.
   CHECK(!(backupSwitchingMode.has_value() && mergeInfoItr.has_value()));
   auto updateFib = [backupSwitchingMode, mergeInfoItr](
                        const auto& routePfx, auto fib) {
@@ -176,10 +177,13 @@ RouteNextHopSet computeCommonNextHops(
 }
 
 int computePenalty(int numGroupNhops, int numMergedNhops, int routeRefCount) {
-  CHECK_GT(numGroupNhops, 0);
-  CHECK_GE(numGroupNhops, numMergedNhops);
-  auto nhopsLost = numGroupNhops - numMergedNhops;
-  auto nhopsPctLoss = std::ceil((nhopsLost * 100.0) / numGroupNhops);
+  DCHECK_GT(numGroupNhops, 0);
+  double nhopsPctLoss{0.0};
+  if (numGroupNhops) {
+    CHECK_GE(numGroupNhops, numMergedNhops);
+    auto nhopsLost = numGroupNhops - numMergedNhops;
+    nhopsPctLoss = std::ceil((nhopsLost * 100.0) / numGroupNhops);
+  }
   return routeRefCount * nhopsPctLoss;
 }
 
