@@ -281,6 +281,9 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
 
   handleSwitchSettingsDelta(delta);
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
+  if (switchingModeChangeResult) {
+    switchingModeChangeResult->publishLastDelta();
+  }
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     if (switchingModeChangeResult.has_value()) {
       return switchingModeChangeResult->moveDeltas();
@@ -308,8 +311,16 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
 std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     const StateDelta& delta,
     InputOutputState* inOutState) {
-  processRouteUpdates(delta, inOutState);
-  reclaimEcmpGroups(inOutState);
+  auto computeAndPublishLastDelta = [inOutState](const auto& computeFunc) {
+    computeFunc();
+    inOutState->publishLastDelta();
+  };
+  computeAndPublishLastDelta(
+      [&delta, inOutState, this]() { processRouteUpdates(delta, inOutState); });
+  computeAndPublishLastDelta(
+      [inOutState, this]() { reclaimSingleMemberMergeGroups(inOutState); });
+  computeAndPublishLastDelta(
+      [inOutState, this]() { reclaimEcmpGroups(inOutState); });
   CHECK_NE(inOutState->numDeltas(), 0);
   if (!inOutState->updated) {
     /*
@@ -747,7 +758,6 @@ void EcmpResourceManager::reclaimMergeGroups(
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
   CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
-  reclaimSingleMemberMergeGroups(inOutState);
   auto canReclaim =
       config_.getMaxPrimaryEcmpGroups() - inOutState->primaryEcmpGroupsCnt;
   if (!canReclaim) {
@@ -935,8 +945,13 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     const std::shared_ptr<Route<AddrT>>& newRoute,
     bool addNewDelta) {
   auto curStateDelta = getCurrentStateDelta();
+  DCHECK(curStateDelta.oldState()->isPublished());
+  if (addNewDelta) {
+    // We are starting a new delta, publish the
+    // last one.
+    publishLastDelta();
+  }
   auto oldState = curStateDelta.newState();
-  CHECK(oldState->isPublished());
   auto newState = oldState->clone();
   auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
       rid, &newState);
@@ -960,7 +975,6 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
                        : "N");
     fib->addNode(newRoute);
   }
-  newState->publish();
   if (!addNewDelta) {
     // Still working on the current, replace the current delta.
     oldState = getCurrentStateDelta().oldState();
@@ -976,13 +990,12 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
     RouterID rid,
     const std::shared_ptr<Route<AddrT>>& delRoute) {
   auto curStateDelta = getCurrentStateDelta();
+  DCHECK(curStateDelta.oldState()->isPublished());
   auto oldState = curStateDelta.newState();
-  CHECK(oldState->isPublished());
   auto newState = oldState->clone();
   auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
       rid, &newState);
   fib->removeNode(delRoute);
-  newState->publish();
   oldState = getCurrentStateDelta().oldState();
   // Still working on the current, replace the current delta.
   replaceLastDelta(StateDelta(oldState, newState));
@@ -2036,8 +2049,9 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
   auto oldBackupEcmpMode = getBackupEcmpSwitchingMode();
   config_.handleFlowletSwitchConfigDelta(delta);
   if (!oldBackupEcmpMode.has_value()) {
-    // No backup ecmp type value for old group.
-    // Nothing to do.
+    // No backup ecmp type value for old group. Thus
+    // we can't have any prefixes with override ECMP
+    // mode set. Nothing to do.
     return std::nullopt;
   }
   InputOutputState inOutState(
