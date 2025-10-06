@@ -37,6 +37,7 @@ using RunForHwAgentFn = std::function<void(
 using facebook::fboss::ClientID;
 using facebook::fboss::IpPrefix;
 using facebook::fboss::PortInfoThrift;
+using facebook::fboss::RouteDetails;
 using facebook::fboss::UnicastRoute;
 using facebook::fboss::cfg::DsfNode;
 
@@ -166,6 +167,13 @@ void removeNeighbor(
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_flushNeighborEntry(
       facebook::network::toBinaryAddress(neighborIP), interfaceID);
+}
+
+std::vector<RouteDetails> getAllRoutes(const std::string& switchName) {
+  std::vector<RouteDetails> routes;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getRouteTableDetails(routes);
+  return routes;
 }
 
 void addRoute(
