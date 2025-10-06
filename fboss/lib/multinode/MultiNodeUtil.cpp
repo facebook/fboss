@@ -2031,6 +2031,13 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
   return true;
 }
 
+bool MultiNodeUtil::verifyRoutePresent(
+    const std::string& rdsw,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength) const {
+  return true;
+}
+
 std::optional<MultiNodeUtil::NeighborInfo>
 MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
   auto logAddRoute =
@@ -2069,6 +2076,12 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
     } else {
       logAddRoute(prevRdsw.value(), kPrefix, neighbor);
       addRoute(prevRdsw.value(), prefix, prefixLength, {neighbor.ip});
+      if (!verifyRoutePresent(prevRdsw.value(), prefix, prefixLength)) {
+        XLOG(DBG2) << "Route add verification failed: " << prevRdsw.value()
+                   << " route: " << prefix.str()
+                   << " prefixLength: " << prefixLength;
+        return std::nullopt;
+      }
     }
     prevRdsw = rdsw;
   }
@@ -2078,6 +2091,12 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
   auto lastRdsw = std::prev(allRdsws_.end());
   logAddRoute(*lastRdsw, prefix, firstRdswNeighbor);
   addRoute(*lastRdsw, prefix, prefixLength, {firstRdswNeighbor.ip});
+  if (!verifyRoutePresent(*lastRdsw, prefix, prefixLength)) {
+    XLOG(DBG2) << "Route add verification failed: " << *lastRdsw
+               << " route: " << prefix.str()
+               << " prefixLength: " << prefixLength;
+    return std::nullopt;
+  }
 
   return firstRdswNeighbor;
 }
