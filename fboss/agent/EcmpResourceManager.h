@@ -174,6 +174,28 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       return StateDelta(out_.back().oldState(), out_.back().newState());
     }
     /*
+     * We adopt a lazy publish strategy for InputOutputState.out deltas. In
+     * that, when a change is made (say route update),
+     *  - We clone the state to make this change on
+     *  - Make the change.
+     *  At this point, we *don't publish* this new state, but just
+     *  replace/append the cur delta to list of deltas.
+     *  We then publish at a later point
+     *  - When appending a new delta, before appending, we publish
+     *  the last delta in queue.
+     *  - When finishing a functional block, e.g.
+     *  finishing route processing, reclaimingEcmpGroups we publish
+     *  the last delta in queue.
+     * Lazy publishing is much more efficient than a simpler always
+     * (eager) publishing approach. Consider the eager publish approach
+     * where we publish after every change. Now consider that we
+     * get a large route update (say 50K routes). Most of these will
+     * just be grafted onto current delta. If we publish after every
+     * individual route update, the next update will end up cloning
+     * the FIB and copying the prefix->shared_ptr<Route> for FIB
+     * for every update. This is a expensive O(N^2) operation.
+     */
+    /*
      * Publish last delta in queue
      * */
     void publishLastDelta();
