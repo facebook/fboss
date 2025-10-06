@@ -838,11 +838,9 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
-    const StateDelta& _in,
-    const PreUpdateState& _groupIdCache)
+    const StateDelta& _in)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
-      ecmpMemberCnt(_ecmpMemberCnt),
-      groupIdCache(_groupIdCache) {
+      ecmpMemberCnt(_ecmpMemberCnt) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
@@ -1230,7 +1228,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
    * except that we will now be able to reclaim some of the backup nhop groups.
    * */
   StateDelta delta(std::make_shared<SwitchState>(), curState);
-  InputOutputState inOutState(0, 0, delta, *preUpdateState_);
+  InputOutputState inOutState(0, 0, delta);
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!getEcmpCompressionThresholdPct()) {
     // For getBackupEcmpSwitchingMode() reclaim is completed on

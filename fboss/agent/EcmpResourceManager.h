@@ -132,8 +132,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
-        const StateDelta& _in,
-        const PreUpdateState& _groupIdCache = PreUpdateState());
+        const StateDelta& _in);
     /*
      * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
@@ -181,9 +180,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      */
     uint32_t primaryEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
-    std::vector<StateDelta> out;
-    PreUpdateState groupIdCache;
     bool updated{false};
+    std::vector<StateDelta> out;
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,
