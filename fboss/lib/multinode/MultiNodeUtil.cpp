@@ -750,8 +750,8 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
 
 bool MultiNodeUtil::verifySystemPortsForRdsw(
     const std::string& rdswToVerify) const {
-  // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY or
-  // DYNAMIC_ENTRY of the local RDSW
+  // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY
+  // or DYNAMIC_ENTRY of the local RDSW
   std::set<std::string> gotSystemPorts;
   std::set<std::string> expectedSystemPorts;
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
@@ -1068,8 +1068,8 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDown(
       // verify no flaps is expensive.
       // Thus, only verify just before disabling the last port.
       // There is no loss of signal due to this approach as if the sessions
-      // flap due to an intermediate port admin disable, it will be detected by
-      // this check failure anyway.
+      // flap due to an intermediate port admin disable, it will be detected
+      // by this check failure anyway.
       checkPassed =
           verifyNoSessionsFlap(rdswToVerify, baselinePeerToDsfSession);
     }
@@ -1136,8 +1136,8 @@ bool MultiNodeUtil::verifySwSwitchRunState(
     return gotSwitchRunState == expectedSwitchRunState;
   };
 
-  // Thrift client queries will throw exception while the Agent is initializing.
-  // Thus, continue to retry while absorbing exceptions.
+  // Thrift client queries will throw exception while the Agent is
+  // initializing. Thus, continue to retry while absorbing exceptions.
   return checkWithRetryErrorReturn(
       switchRunStateMatches,
       30 /* num retries */,
@@ -1219,7 +1219,8 @@ bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
         return false;
       }
 
-      // Verify all DSF sessions are established for the RDSW that was restarted
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
       verifyAllSessionsEstablished(rdsw);
 
       // Restart only one remote RDSW per cluster
@@ -1257,7 +1258,8 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() const {
   // verify no flaps is expensive.
   // Thus, only verify after warmboot restarting one FDSW from each cluster.
   // There is no loss of signal due to this approach as if the sessions flap
-  // due to an intermediate warmboot, it will be detected by this check anyway.
+  // due to an intermediate warmboot, it will be detected by this check
+  // anyway.
   if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
     return false;
   }
@@ -1462,12 +1464,14 @@ bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() const {
   //  - Start Agent
   //  - Verify entries are LIVE
   // However, in order to implement above sequence, we need a mechanism for
-  // the test to invoke "Start Agent" when Agent thrift server is not running.
+  // the test to invoke "Start Agent" when Agent thrift server is not
+  // running.
   //
   // This can be accomplished by test client (this code) logging into the
-  // remote device running Agent. But then the test needs to worry about login
-  // credentials. Alternatively, the remote device can run a Thrift server for
-  // the test purpose along, but that is an overkill for this use case.
+  // remote device running Agent. But then the test needs to worry about
+  // login credentials. Alternatively, the remote device can run a Thrift
+  // server for the test purpose along, but that is an overkill for this use
+  // case.
   //
   // This test logic solves it with the following approach:
   //  - Restart Agent API with delay: Test API supported by remote device
@@ -1545,7 +1549,8 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() const {
         return false;
       }
 
-      // Verify all DSF sessions are established for the RDSW that was restarted
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
       verifyAllSessionsEstablished(rdsw);
 
       // Ungracefully restart only one remote RDSW QSFP per cluster
@@ -1632,7 +1637,8 @@ bool MultiNodeUtil::verifyFsdbDownUpForRemoteRdswsHelper(
         return false;
       }
 
-      // Verify all DSF sessions are established for the RDSW that was restarted
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
       verifyAllSessionsEstablished(rdsw);
 
       // Restart only one remote RDSW FSDB per cluster
@@ -1961,7 +1967,8 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
         return false;
       }
 
-      // Disable second neighbor port and verify it is removed from every RDSW
+      // Disable second neighbor port and verify it is removed from every
+      // RDSW
       adminDisablePort(rdsw, secondNeighbor.portID);
       if (!verifyNeighborLocalPresentRemoteAbsent({secondNeighbor}, rdsw)) {
         XLOG(DBG2) << "Neighbor remove verification failed: " << rdsw;
@@ -2041,13 +2048,14 @@ void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
   // Forwarding is enabled for TTL0 packets so the packet continues to be
   // forwarded even after TTL is 0. Thus, we get traffic flood.
   //
-  // Injecting 1000 packets on one 400G NIF port is sufficient to create a loop
-  // that saturates the 400G RDSW links on every RDSW.
+  // Injecting 1000 packets on one 400G NIF port is sufficient to create a
+  // loop that saturates the 400G RDSW links on every RDSW.
   //
   // TODO: Before injecting packets, verify that
   //  o neighbor is resolved and programmed on every RDSW.
   //  o the route is programmed on every RDSW with that neighbor as nexthop.
-  // Otherwise, the packets will be blackholed and we will not get traffic loop.
+  // Otherwise, the packets will be blackholed and we will not get traffic
+  // loop.
   auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
   auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
   for (int i = 0; i < 1000; i++) {
