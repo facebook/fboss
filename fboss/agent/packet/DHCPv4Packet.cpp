@@ -83,18 +83,20 @@ bool DHCPv4Packet::operator==(const DHCPv4Packet& r) const {
       file == r.file && dhcpCookie == r.dhcpCookie && options == r.options;
 }
 
-size_t
-DHCPv4Packet::appendOption(uint8_t op, uint8_t len, const uint8_t* bytes) {
-  XLOG(DBG4) << "Appending option: " << static_cast<int>(op)
+size_t DHCPv4Packet::appendOption(
+    uint8_t optionCode,
+    uint8_t len,
+    const uint8_t* bytes) {
+  XLOG(DBG4) << "Appending option: " << static_cast<int>(optionCode)
              << " of length: " << static_cast<int>(len);
 
-  if (isOptionWithoutLength(op)) {
-    options.push_back(op);
+  if (isOptionWithoutLength(optionCode)) {
+    options.push_back(optionCode);
     return 1;
   }
   auto origSize = options.size();
   options.reserve(options.size() + 2 + len);
-  options.push_back(op);
+  options.push_back(optionCode);
   options.push_back(len);
   copy(bytes, bytes + len, std::back_inserter(options));
   CHECK(options.size() == origSize + 2 + len);
