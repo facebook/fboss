@@ -580,15 +580,6 @@ bool MultiNodeUtil::verifyFabricReachability() const {
   return true;
 }
 
-std::map<int32_t, facebook::fboss::PortInfoThrift> MultiNodeUtil::getPorts(
-    const std::string& switchName) const {
-  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
-  auto swAgentClient = getSwAgentThriftClient(switchName);
-  swAgentClient->sync_getAllPortInfo(portEntries);
-
-  return portEntries;
-}
-
 std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
     const std::string& switchName) const {
   std::set<std::string> activePorts;

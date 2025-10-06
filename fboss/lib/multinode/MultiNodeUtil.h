@@ -163,8 +163,6 @@ class MultiNodeUtil {
       const std::map<std::string, PortInfoThrift>&
           activeFabricPortNameToPortInfo) const;
 
-  std::map<int32_t, facebook::fboss::PortInfoThrift> getPorts(
-      const std::string& switchName) const;
   std::set<std::string> getActiveFabricPorts(
       const std::string& switchName) const;
   std::map<std::string, PortInfoThrift> getActiveFabricPortNameToPortInfo(
