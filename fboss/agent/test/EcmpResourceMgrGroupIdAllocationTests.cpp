@@ -353,7 +353,9 @@ TEST_F(NextHopIdAllocatorTest, addRouteAndSetBackupSwitchingMode) {
   auto routesBefore = fib6->size();
   fib6->addNode(makeRoute(nextPrefix(), defaultNhops()));
   EXPECT_EQ(fib6->size(), routesBefore + 1);
-  EXPECT_FALSE(consolidator_->getBackupEcmpSwitchingMode().has_value());
+  EXPECT_EQ(
+      consolidator_->getBackupEcmpSwitchingMode(),
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
   // Set backup switching mode
   auto newFlowletSwitchingConfig =
       newState->getFlowletSwitchingConfig()->modify(&newState);
