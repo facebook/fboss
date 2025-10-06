@@ -582,13 +582,18 @@ bool MultiNodeUtil::verifyFabricReachability() const {
 
 std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
     const std::string& switchName) const {
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(switchName);
   std::set<std::string> activePorts;
-  for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(switchName)) {
-    if (portInfo.activeState().has_value() &&
-        portInfo.activeState().value() == PortActiveState::ACTIVE) {
-      activePorts.insert(portInfo.name().value());
-    }
-  }
+
+  std::transform(
+      activeFabricPortNameToPortInfo.begin(),
+      activeFabricPortNameToPortInfo.end(),
+      std::inserter(activePorts, activePorts.begin()),
+      [](const auto& pair) {
+        auto portInfo = pair.second;
+        return portInfo.name().value();
+      });
 
   return activePorts;
 }
