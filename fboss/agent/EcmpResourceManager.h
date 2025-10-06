@@ -170,8 +170,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      * next delta or updating current delta.
      */
     StateDelta getCurrentStateDelta() const {
-      CHECK(!out.empty());
-      return StateDelta(out.back().oldState(), out.back().newState());
+      CHECK(!out_.empty());
+      return StateDelta(out_.back().oldState(), out_.back().newState());
     }
     /*
      * Publish last delta in queue
@@ -182,18 +182,18 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      * */
     void appendDelta(const StateDelta& delta);
     /*
-     * Replace current delta and back of out queue
+     * Replace current delta and back of out_ queue
      * */
     void replaceLastDelta(const StateDelta& delta);
     size_t numDeltas() const {
-      return out.size();
+      return out_.size();
     }
 
     /*
-     * Return and empty out deltas
+     * Return and empty out_ deltas
      */
     std::vector<StateDelta> moveDeltas() {
-      return std::move(out);
+      return std::move(out_);
     }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
@@ -203,7 +203,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     uint32_t primaryEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
     bool updated{false};
-    std::vector<StateDelta> out;
+
+   private:
+    std::vector<StateDelta> out_;
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,

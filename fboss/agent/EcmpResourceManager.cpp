@@ -283,7 +283,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     if (switchingModeChangeResult.has_value()) {
-      return std::move(switchingModeChangeResult->out);
+      return switchingModeChangeResult->moveDeltas();
     }
     return makeRet(delta);
   }
@@ -310,13 +310,13 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
     InputOutputState* inOutState) {
   processRouteUpdates(delta, inOutState);
   reclaimEcmpGroups(inOutState);
-  CHECK(!inOutState->out.empty());
+  CHECK_NE(inOutState->numDeltas(), 0);
   if (!inOutState->updated) {
     /*
      * If inOutState was not updated, just return the original delta
      */
-    inOutState->out.clear();
-    inOutState->out.emplace_back(delta.oldState(), delta.newState());
+    std::ignore = inOutState->moveDeltas();
+    inOutState->appendDelta(delta);
   }
   if (auto switchStats = statsGetter_()) {
     switchStats->setPrimaryEcmpGroupsCount(inOutState->primaryEcmpGroupsCnt);
@@ -335,7 +335,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   }
   DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
   DCHECK(checkNoUnitializedGroups());
-  return std::move(inOutState->out);
+  return inOutState->moveDeltas();
 }
 
 bool EcmpResourceManager::checkPrimaryGroupAndMemberCounts(
@@ -457,7 +457,7 @@ void EcmpResourceManager::reclaimBackupGroups(
     const std::vector<std::shared_ptr<NextHopGroupInfo>>& toReclaimSorted,
     const NextHopGroupIds& groupIdsToReclaim,
     InputOutputState* inOutState) {
-  auto oldState = inOutState->out.back().newState();
+  auto oldState = inOutState->getCurrentStateDelta().newState();
   auto newState = oldState->clone();
   for (auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
     if (!groupIdsToReclaim.contains(grpInfo->getID())) {
@@ -490,7 +490,7 @@ void EcmpResourceManager::reclaimBackupGroups(
    * a single delta StateDelta(state0, state2), we would have
    * overflowed the ECMP limit when processing R0
    */
-  inOutState->out.emplace_back(oldState, newState);
+  inOutState->appendDelta(StateDelta(oldState, newState));
   // Increment primaryEcmpGroupsCnt, however no need to increment
   // ecmpMemberCnt since backup ecmp group members already counted
   // towards ecmpMemberCnt
@@ -580,7 +580,7 @@ void EcmpResourceManager::updateMergedGroups(
      */
     auto newMergeSet =
         nhopGroupIdsDifference(curMergeSet, groupIdsToReclaimOrPrune);
-    auto oldState = inOutState->out.back().newState();
+    auto oldState = inOutState->getCurrentStateDelta().newState();
     auto newState = oldState->clone();
     auto gid2Prefix = getGidToPrefixes();
     if (op == MergeGroupUpdateOp::RECLAIM_GROUPS) {
@@ -659,7 +659,7 @@ void EcmpResourceManager::updateMergedGroups(
     // We put each unmerge on a new delta, to ensure that all
     // constitutent groups get unmerged and we reclaim the merged
     // group at the end of this processing.
-    inOutState->out.emplace_back(oldState, newState);
+    inOutState->appendDelta(StateDelta(oldState, newState));
     // Reclaimed curMergeSet.size() groups and deleted all references
     // to the merged group.
     inOutState->updated = true;
@@ -899,15 +899,15 @@ EcmpResourceManager::InputOutputState::InputOutputState(
     newStateWithOldFibs->resetForwardingInformationBases(std::move(mfib));
   }
   newStateWithOldFibs->publish();
-  out.emplace_back(_in.oldState(), newStateWithOldFibs);
+  appendDelta(StateDelta(_in.oldState(), newStateWithOldFibs));
 }
 
 void EcmpResourceManager::InputOutputState::publishLastDelta() {
-  if (out.size()) {
-    DCHECK(out.back().oldState()->isPublished());
-    out.back().newState()->publish();
+  if (out_.size()) {
+    DCHECK(out_.back().oldState()->isPublished());
+    out_.back().newState()->publish();
   }
-  DCHECK(checkDeltasPublished(out));
+  DCHECK(checkDeltasPublished(out_));
 }
 
 void EcmpResourceManager::InputOutputState::appendDelta(
@@ -917,16 +917,16 @@ void EcmpResourceManager::InputOutputState::appendDelta(
    * previous delta is published
    */
   publishLastDelta();
-  out.emplace_back(delta.oldState(), delta.newState());
+  out_.emplace_back(delta.oldState(), delta.newState());
 }
 
 void EcmpResourceManager::InputOutputState::replaceLastDelta(
     const StateDelta& delta) {
-  CHECK(!out.empty());
-  DCHECK_EQ(out.back().oldState(), delta.oldState());
-  DCHECK(out.back().oldState()->isPublished());
-  out.pop_back();
-  out.emplace_back(delta.oldState(), delta.newState());
+  CHECK(!out_.empty());
+  DCHECK_EQ(out_.back().oldState(), delta.oldState());
+  DCHECK(out_.back().oldState()->isPublished());
+  out_.pop_back();
+  out_.emplace_back(delta.oldState(), delta.newState());
 }
 
 template <typename AddrT>
@@ -960,6 +960,7 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
                        : "N");
     fib->addNode(newRoute);
   }
+  newState->publish();
   if (!addNewDelta) {
     // Still working on the current, replaced the current delta.
     // To do this, we need to do 2 things
@@ -967,11 +968,11 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
     // new delta
     // - Replace the current (last in the list) delta with
     // StateDelta(out.back().oldState(), newState);
-    oldState = out.back().oldState();
-    out.pop_back();
+    oldState = getCurrentStateDelta().oldState();
+    replaceLastDelta(StateDelta(oldState, newState));
+  } else {
+    appendDelta(StateDelta(oldState, newState));
   }
-  newState->publish();
-  out.emplace_back(oldState, newState);
 }
 
 template <typename AddrT>
@@ -991,10 +992,9 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
   // new delta
   // - Replace the current (last in the list) delta with
   // StateDelta(out.back().oldState(), newState);
-  oldState = out.back().oldState();
-  out.pop_back();
   newState->publish();
-  out.emplace_back(oldState, newState);
+  oldState = getCurrentStateDelta().oldState();
+  replaceLastDelta(StateDelta(oldState, newState));
 }
 
 std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
@@ -1206,7 +1206,7 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     std::shared_ptr<NextHopGroupInfo>& pfxGrpInfo,
     InputOutputState* inOutState,
     bool addNewDelta) {
-  auto newState = inOutState->out.back().newState();
+  auto newState = inOutState->getCurrentStateDelta().newState();
   auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>();
   std::shared_ptr<Route<AddrT>> existingRoute;
   if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
@@ -2051,11 +2051,11 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
   }
   InputOutputState inOutState(
       0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta);
-  CHECK_EQ(inOutState.out.size(), 1);
+  CHECK_EQ(inOutState.numDeltas(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue
   // will be the oldState's FIBs route's updated to new backup group.
-  auto newState = inOutState.out.back().newState();
+  auto newState = inOutState.getCurrentStateDelta().newState();
   bool changed = false;
   for (const auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
     if (!grpInfo->isBackupEcmpGroupType()) {
