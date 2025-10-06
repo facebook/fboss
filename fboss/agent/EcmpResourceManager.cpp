@@ -197,6 +197,15 @@ bool checkDeltasPublished(const std::vector<StateDelta>& deltas) {
   return published;
 }
 
+std::optional<cfg::SwitchingMode> getBackupSwitchingMode(
+    const std::shared_ptr<SwitchState>& state) {
+  std::optional<cfg::SwitchingMode> backupMode;
+  if (state->getFlowletSwitchingConfig()) {
+    backupMode = state->getFlowletSwitchingConfig()->getBackupSwitchingMode();
+  }
+  return backupMode;
+}
+
 } // namespace
 
 EcmpResourceManager::EcmpResourceManager(
@@ -2027,24 +2036,24 @@ void EcmpResourceManager::updateDone() {
 }
 
 void EcmpResourceManager::updateFailed(
-    const std::shared_ptr<SwitchState>& curState) {
+    const std::shared_ptr<SwitchState>& knownGoodState) {
   if (!preUpdateState_.has_value()) {
     return;
   }
   XLOG(DBG2) << " Update failed";
   CHECK(preUpdateState_.has_value());
-  if (getBackupEcmpSwitchingMode() != preUpdateState_->backupEcmpGroupType) {
+  if (getBackupEcmpSwitchingMode() != getBackupSwitchingMode(knownGoodState)) {
     // Throw if we get a failed update involving backup switching mode
     // change. We can make this smarter by
     // - Reverting getBackupEcmpSwitchingMode() setting
-    // - Asserting that all prefixes in curState with overrideEcmpMode set
+    // - Asserting that all prefixes in knownGoodState with overrideEcmpMode set
     // match the old backupEcmpGroupType
     // However this adds more code for a use case we don't need to support.
     // BackupEcmpType can only change via a config update state delta. And
     // if that fails, we anyways fail the application
     throw FbossError("Update failed with backup switching mode transition");
   }
-  reconstructFromSwitchState(curState);
+  reconstructFromSwitchState(knownGoodState);
   preUpdateState_.reset();
 }
 

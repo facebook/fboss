@@ -70,7 +70,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
   size_t getCost(NextHopGroupId nhopGrpId) const;
   void updateDone() override;
-  void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
+  void updateFailed(
+      const std::shared_ptr<SwitchState>& knownGoodState) override;
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
     return config_.getBackupEcmpSwitchingMode();
   }
