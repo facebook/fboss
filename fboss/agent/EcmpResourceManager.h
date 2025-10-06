@@ -173,7 +173,28 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       CHECK(!out.empty());
       return StateDelta(out.back().oldState(), out.back().newState());
     }
+    /*
+     * Publish last delta in queue
+     * */
     void publishLastDelta();
+    /*
+     * Append to current set of queued deltas
+     * */
+    void appendDelta(const StateDelta& delta);
+    /*
+     * Replace current delta and back of out queue
+     * */
+    void replaceLastDelta(const StateDelta& delta);
+    size_t numDeltas() const {
+      return out.size();
+    }
+
+    /*
+     * Return and empty out deltas
+     */
+    std::vector<StateDelta> moveDeltas() {
+      return std::move(out);
+    }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups

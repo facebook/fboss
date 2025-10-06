@@ -904,9 +904,29 @@ EcmpResourceManager::InputOutputState::InputOutputState(
 
 void EcmpResourceManager::InputOutputState::publishLastDelta() {
   if (out.size()) {
+    DCHECK(out.back().oldState()->isPublished());
     out.back().newState()->publish();
   }
   DCHECK(checkDeltasPublished(out));
+}
+
+void EcmpResourceManager::InputOutputState::appendDelta(
+    const StateDelta& delta) {
+  /*
+   * Now that we are starting a new delta. Ensure that the
+   * previous delta is published
+   */
+  publishLastDelta();
+  out.emplace_back(delta.oldState(), delta.newState());
+}
+
+void EcmpResourceManager::InputOutputState::replaceLastDelta(
+    const StateDelta& delta) {
+  CHECK(!out.empty());
+  DCHECK_EQ(out.back().oldState(), delta.oldState());
+  DCHECK(out.back().oldState()->isPublished());
+  out.pop_back();
+  out.emplace_back(delta.oldState(), delta.newState());
 }
 
 template <typename AddrT>
