@@ -242,14 +242,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
       const InputOutputState& inOutState);
   /*
-   * Prune from a exidting merge group and gets iterator.
-   * Only updates internal data structures, no delta update
-   */
-  std::optional<GroupIds2ConsolidationInfoItr> pruneMergeGroupMembers(
-      NextHopGroupId toPrune,
-      GroupIds2ConsolidationInfoItr existingMitr,
-      const InputOutputState& inOutState);
-  /*
    * Update merge itertor for a set of groups
    */
   void fixMergeItreators(
