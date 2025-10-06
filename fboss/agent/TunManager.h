@@ -47,6 +47,10 @@ class TunManager : public StateObserver {
   AGENT_TUNNEL_MGR_FRIEND_TESTS
 #endif
 
+#ifdef HW_TUN_MANAGER_BENCHMARK_FRIEND_TESTS
+  HW_TUN_MANAGER_BENCHMARK_FRIEND_TESTS
+#endif
+
   /**
    * Update the intfs_ map based on the given state update. This
    * overrides the StateObserver stateUpdated api, which is always

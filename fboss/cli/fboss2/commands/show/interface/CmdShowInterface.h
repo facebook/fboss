@@ -27,7 +27,9 @@
 namespace {
 
 std::string getRif(const std::string& name, int32_t port) {
-  if (port != 0 && (name.rfind("eth", 0) == 0 || name.rfind("evt", 0) == 0)) {
+  if (port != 0 &&
+      (name.rfind("eth", 0) == 0 || name.rfind("evt", 0) == 0 ||
+       name.rfind("hyp", 0) == 0)) {
     return "fboss" + std::to_string(port);
   }
   return "";

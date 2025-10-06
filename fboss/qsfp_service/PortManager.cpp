@@ -8,6 +8,18 @@
 
 namespace facebook::fboss {
 namespace {
+
+bool isTransceiverComponent(
+    const facebook::fboss::phy::PortComponent& component) {
+  return component == facebook::fboss::phy::PortComponent::TRANSCEIVER_SYSTEM ||
+      component == facebook::fboss::phy::PortComponent::TRANSCEIVER_LINE;
+}
+
+bool isXphyComponent(const facebook::fboss::phy::PortComponent& component) {
+  return component == phy::PortComponent::GB_SYSTEM ||
+      component == phy::PortComponent::GB_LINE;
+}
+
 TcvrToPortMap getTcvrToPortMap(
     const std::shared_ptr<const PlatformMapping> platformMapping) {
   if (!platformMapping) {
@@ -49,6 +61,22 @@ PortStateMachineEvent getPortStatusChangeEvent(PortStateMachineState newState) {
   return newState == PortStateMachineState::PORT_UP
       ? PortStateMachineEvent::PORT_EV_SET_PORT_UP
       : PortStateMachineEvent::PORT_EV_SET_PORT_DOWN;
+}
+
+phy::Side prbsComponentToPhySide(phy::PortComponent component) {
+  switch (component) {
+    case phy::PortComponent::ASIC:
+      throw FbossError("qsfp_service doesn't support program ASIC prbs");
+    case phy::PortComponent::GB_SYSTEM:
+    case phy::PortComponent::TRANSCEIVER_SYSTEM:
+      return phy::Side::SYSTEM;
+    case phy::PortComponent::GB_LINE:
+    case phy::PortComponent::TRANSCEIVER_LINE:
+      return phy::Side::LINE;
+  };
+  throw FbossError(
+      "Unsupported prbs component: ",
+      apache::thrift::util::enumNameSafe(component));
 }
 } // namespace
 
@@ -132,7 +160,28 @@ void PortManager::init() {
 
 void PortManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
-    std::unique_ptr<std::map<int32_t, PortStatus>> ports) {}
+    std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
+  // Get transceiver ids that we want to update ports for.
+  std::set<TransceiverID> tcvrIDs;
+  for (const auto& [_, portStatus] : *ports) {
+    if (auto tcvrIdx = portStatus.transceiverIdx()) {
+      tcvrIDs.insert(TransceiverID(*tcvrIdx->transceiverId()));
+    }
+  }
+
+  updatePortActiveState(*ports);
+
+  // Only fetch the transceivers for the input ports.
+  for (auto tcvrId : tcvrIDs) {
+    // We only want to return info for transceivers that are not absent.
+    const auto& tcvrInfo =
+        transceiverManager_->getTransceiverInfoOptional(tcvrId);
+    if (!tcvrInfo) {
+      continue;
+    }
+    info[tcvrId] = *tcvrInfo;
+  }
+}
 
 bool PortManager::initExternalPhyMap(bool forceWarmboot) {
   return true;
@@ -217,24 +266,49 @@ std::string PortManager::getPortInfo(const std::string& portNameStr) {
   if (!phyManager_) {
     return "";
   }
-  auto swPort = getPortIDByPortName(portNameStr);
-  if (!swPort.has_value()) {
-    throw FbossError(
-        folly::sformat("getPortInfo: Invalid port {}", portNameStr));
-  }
-
-  return phyManager_->getPortInfoStr(PortID(swPort.value()));
+  auto swPort = getPortIDByPortNameOrThrow(portNameStr);
+  return phyManager_->getPortInfoStr(PortID(swPort));
 }
 
 void PortManager::setPortLoopbackState(
-    const std::string& /* portName */,
-    phy::PortComponent /* component */,
-    bool /* setLoopback */) {}
+    const std::string& portNameStr,
+    phy::PortComponent component,
+    bool setLoopback) {
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
+  if (!isXphyComponent(component) && !isTransceiverComponent(component)) {
+    XLOG(INFO)
+        << " TransceiverManager::setPortLoopbackState - component not supported "
+        << apache::thrift::util::enumNameSafe(component);
+    return;
+  }
+
+  XLOG(INFO) << " TransceiverManager::setPortLoopbackState Port "
+             << static_cast<int>(portId);
+
+  if (isXphyComponent(component)) {
+    phyManager_->setPortLoopbackState(PortID(portId), component, setLoopback);
+  } else {
+    transceiverManager_->setPortLoopbackStateTransceiver(
+        portId, portNameStr, component, setLoopback);
+  }
+}
 
 void PortManager::setPortAdminState(
-    const std::string& /* portName */,
-    phy::PortComponent /* component */,
-    bool /* setAdminUp */) {}
+    const std::string& portNameStr,
+    phy::PortComponent component,
+    bool setAdminUp) {
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
+  if (!isXphyComponent(component)) {
+    XLOG(INFO)
+        << " TransceiverManager::setPortAdminState - component not supported "
+        << apache::thrift::util::enumNameSafe(component);
+    return;
+  }
+
+  XLOG(INFO) << " TransceiverManager::setPortAdminState Port "
+             << static_cast<int>(portId);
+  phyManager_->setPortAdminState(PortID(portId), component, setAdminUp);
+}
 
 void PortManager::getSymbolErrorHistogram(
     CdbDatapathSymErrHistogram& symErr,
@@ -242,11 +316,17 @@ void PortManager::getSymbolErrorHistogram(
 
 const std::set<std::string> PortManager::getPortNames(
     TransceiverID tcvrId) const {
-  return {};
-}
+  std::set<std::string> portNames;
+  auto tcvrToPortMapItr = tcvrToPortMap_.find(tcvrId);
+  if (tcvrToPortMapItr == tcvrToPortMap_.end() ||
+      tcvrToPortMapItr->second.size() == 0) {
+    throw FbossError("No ports found for transceiver ", tcvrId);
+  }
 
-const std::string PortManager::getPortName(TransceiverID tcvrId) const {
-  return "";
+  for (const auto& port : tcvrToPortMapItr->second) {
+    portNames.insert(getPortNameByPortIdOrThrow(port));
+  }
+  return portNames;
 }
 
 PortStateMachineState PortManager::getPortState(PortID portId) const {
@@ -431,12 +511,8 @@ phy::PhyInfo PortManager::getPhyInfo(const std::string& portNameStr) {
   if (!phyManager_) {
     return phy::PhyInfo();
   }
-  auto swPort = getPortIDByPortName(portNameStr);
-  if (!swPort.has_value()) {
-    throw FbossError(
-        folly::sformat("getPhyInfo: Invalid port {}", portNameStr));
-  }
-  return phyManager_->getPhyInfo(PortID(swPort.value()));
+  auto swPort = getPortIDByPortNameOrThrow(portNameStr);
+  return phyManager_->getPhyInfo(PortID(swPort));
 }
 
 const std::map<int32_t, NpuPortStatus>&
@@ -474,7 +550,78 @@ void PortManager::setOverrideAgentConfigAppliedInfoForTesting(
 void PortManager::getAllPortSupportedProfiles(
     std::map<std::string, std::vector<cfg::PortProfileID>>&
         supportedPortProfiles,
-    bool checkOptics) {}
+    bool checkOptics) {
+  // Find the list of all available ports from agent config
+  std::vector<std::string> availablePorts;
+  for (const auto& [tcvrID, initializedPorts] : tcvrToInitializedPorts_) {
+    auto lockedPorts = initializedPorts->rlock();
+    for (const auto& port : *lockedPorts) {
+      auto portNameStr = getPortNameByPortIdOrThrow(port);
+      availablePorts.push_back(portNameStr);
+    }
+  }
+
+  // Get all possible port profiles for all the ports from platform mapping.
+  // Exclude the ports which are not configured by agent config
+  auto allPossiblePortProfiles = platformMapping_->getAllPortProfiles();
+  std::map<std::string, std::vector<cfg::PortProfileID>>
+      allConfiguredPortProfiles;
+  for (auto& portNameStr : availablePorts) {
+    if (allPossiblePortProfiles.find(portNameStr) !=
+        allPossiblePortProfiles.end()) {
+      allConfiguredPortProfiles[portNameStr] =
+          allPossiblePortProfiles[portNameStr];
+    }
+  }
+
+  // If we don't need to check the optics support of the profile then return all
+  // supported port profiles from the platform mapping which are configured by
+  // agent config.
+  if (!checkOptics) {
+    supportedPortProfiles = allConfiguredPortProfiles;
+    return;
+  }
+
+  // Otherwise, match optics support.
+  for (auto& [portNameStr, portProfiles] : allConfiguredPortProfiles) {
+    auto portId = getPortIDByPortName(portNameStr);
+    if (!portId.has_value()) {
+      continue;
+    }
+    // Check if the transceiver supports the port profile
+    for (auto& profileID : portProfiles) {
+      auto tcvrHostLanes = platformMapping_->getTransceiverHostLanes(
+          PlatformPortProfileConfigMatcher(
+              profileID /* profileID */,
+              *portId /* portID */,
+              std::nullopt /* portConfigOverrideFactor */));
+      if (tcvrHostLanes.empty()) {
+        continue;
+      }
+      auto tcvrStartLane = *tcvrHostLanes.begin();
+      auto profileCfgOpt = platformMapping_->getPortProfileConfig(
+          PlatformPortProfileConfigMatcher(profileID));
+      if (!profileCfgOpt) {
+        continue;
+      }
+      const auto speed = *profileCfgOpt->speed();
+      TransceiverPortState portState;
+      portState.portName = portNameStr;
+      portState.startHostLane = tcvrStartLane;
+      portState.speed = speed;
+      portState.numHostLanes = tcvrHostLanes.size();
+      portState.transmitterTech = profileCfgOpt->iphy()->medium().value_or({});
+
+      // We should never have a portID in the platform mapping that doesn't have
+      // an associated transceiverID.
+      auto tcvrID = getLowestIndexedTransceiverForPort(*portId);
+      if (transceiverManager_->isTransceiverPortStateSupported(
+              tcvrID, portState)) {
+        supportedPortProfiles[portNameStr].push_back(profileID);
+      }
+    }
+  }
+}
 
 std::optional<PortID> PortManager::getPortIDByPortName(
     const std::string& portNameStr) const {
@@ -513,7 +660,12 @@ std::string PortManager::getPortNameByPortIdOrThrow(PortID portId) const {
 
 std::vector<PortID> PortManager::getAllPlatformPorts(
     TransceiverID tcvrID) const {
-  return {};
+  auto tcvrToPortMapItr = tcvrToPortMap_.find(tcvrID);
+  if (tcvrToPortMapItr == tcvrToPortMap_.end() ||
+      tcvrToPortMapItr->second.size() == 0) {
+    throw FbossError("No ports found for transceiver ", tcvrID);
+  }
+  return tcvrToPortMapItr->second;
 }
 
 void PortManager::publishLinkSnapshots(const std::string& portNameStr) {}
@@ -544,40 +696,126 @@ void PortManager::getAllInterfacePhyInfo(
 void PortManager::setPortPrbs(
     PortID portId,
     phy::PortComponent component,
-    const phy::PortPrbsState& state) {}
+    const phy::PortPrbsState& state) {
+  auto portNameStr = getPortNameByPortIdOrThrow(portId);
+
+  prbs::InterfacePrbsState newState;
+  newState.polynomial() = prbs::PrbsPolynomial(state.polynominal().value());
+  newState.generatorEnabled() = state.enabled().value();
+  newState.checkerEnabled() = state.enabled().value();
+  setInterfacePrbs(portNameStr, component, newState);
+}
 
 phy::PrbsStats PortManager::getPortPrbsStats(
     PortID portId,
     phy::PortComponent component) const {
-  return phy::PrbsStats();
+  phy::Side side = prbsComponentToPhySide(component);
+  if (isTransceiverComponent(component)) {
+    return transceiverManager_->getPortPrbsStatsTransceiver(portId, side);
+  } else {
+    if (!phyManager_) {
+      throw FbossError("Current platform doesn't support xphy");
+    }
+    phy::PrbsStats stats;
+    auto lanePrbsStats = phyManager_->getPortPrbsStats(portId, side);
+    for (const auto& lane : lanePrbsStats) {
+      stats.laneStats()->push_back(lane);
+      auto timeCollected = lane.timeCollected().value();
+      // Store most recent timeCollected across all lane stats
+      if (timeCollected > stats.timeCollected()) {
+        stats.timeCollected() = timeCollected;
+      }
+    }
+    stats.portId() = portId;
+    stats.component() = component;
+    return stats;
+  }
 }
 
 void PortManager::clearPortPrbsStats(
     PortID portId,
-    phy::PortComponent component) {}
+    phy::PortComponent component) {
+  auto portNameStr = getPortNameByPortIdOrThrow(portId);
+  phy::Side side = prbsComponentToPhySide(component);
+  if (isTransceiverComponent(component)) {
+    transceiverManager_->clearPortPrbsStatsTransceiver(
+        portId, portNameStr, side);
+  } else if (!phyManager_) {
+    throw FbossError("Current platform doesn't support xphy");
+  } else {
+    phyManager_->clearPortPrbsStats(portId, prbsComponentToPhySide(component));
+  }
+}
 
 void PortManager::setInterfacePrbs(
     const std::string& portNameStr,
     phy::PortComponent component,
-    const prbs::InterfacePrbsState& state) {}
+    const prbs::InterfacePrbsState& state) {
+  // Get the port ID first
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
+
+  // Sanity check
+  if (!state.generatorEnabled().has_value() &&
+      !state.checkerEnabled().has_value()) {
+    throw FbossError("Neither generator or checker specified for PRBS setting");
+  }
+
+  if (isTransceiverComponent(component)) {
+    transceiverManager_->setInterfacePrbsTransceiver(
+        portId, portNameStr, component, state);
+  } else {
+    if (!phyManager_) {
+      throw FbossError("Current platform doesn't support xphy");
+    }
+    // PhyManager is using old portPrbsState
+    phy::PortPrbsState phyPrbs;
+    phyPrbs.polynominal() = static_cast<int>(state.polynomial().value());
+    phyPrbs.enabled() = (state.generatorEnabled().has_value() &&
+                         state.generatorEnabled().value()) ||
+        (state.checkerEnabled().has_value() && state.checkerEnabled().value());
+    phyManager_->setPortPrbs(
+        portId, prbsComponentToPhySide(component), phyPrbs);
+  }
+}
 
 phy::PrbsStats PortManager::getInterfacePrbsStats(
     const std::string& portNameStr,
     phy::PortComponent component) const {
-  return phy::PrbsStats();
+  return getPortPrbsStats(getPortIDByPortNameOrThrow(portNameStr), component);
 }
 
 void PortManager::getAllInterfacePrbsStats(
     std::map<std::string, phy::PrbsStats>& prbsStats,
-    phy::PortComponent component) const {}
+    phy::PortComponent component) const {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  for (const auto& platformPort : platformPorts) {
+    auto portNameStr = platformPort.second.mapping()->name();
+    try {
+      auto prbsStatsEntry = getInterfacePrbsStats(*portNameStr, component);
+      prbsStats[*portNameStr] = prbsStatsEntry;
+    } catch (const std::exception& ex) {
+      // If PRBS is not enabled on this port, return
+      // a default stats / State.
+      XLOG(DBG2) << "Failed to get prbs stats for port " << *portNameStr
+                 << " with error: " << ex.what();
+      prbsStats[*portNameStr] = phy::PrbsStats();
+    }
+  }
+}
 
 void PortManager::clearInterfacePrbsStats(
     const std::string& portNameStr,
-    phy::PortComponent component) {}
+    phy::PortComponent component) {
+  clearPortPrbsStats(getPortIDByPortNameOrThrow(portNameStr), component);
+}
 
 void PortManager::bulkClearInterfacePrbsStats(
     std::unique_ptr<std::vector<std::string>> interfaces,
-    phy::PortComponent component) {}
+    phy::PortComponent component) {
+  for (const auto& interface : *interfaces) {
+    clearInterfacePrbsStats(interface, component);
+  }
+}
 
 void PortManager::syncNpuPortStatusUpdate(
     std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {
@@ -1003,6 +1241,45 @@ void PortManager::waitForAllBlockingStateUpdateDone(
     }
     result->wait();
   }
+};
+
+void PortManager::updatePortActiveState(
+    const std::map<int32_t, PortStatus>& portStatusMap) noexcept {
+  std::map<int32_t, NpuPortStatus> npuPortStatus =
+      getNpuPortStatus(portStatusMap);
+  int numPortStatusChanged{0};
+  BlockingStateUpdateResultList results;
+
+  for (const auto& [portIdInt, portStatus] : npuPortStatus) {
+    PortStateMachineState portState;
+    auto portId = PortID(portIdInt);
+    try {
+      portState = getPortState(portId);
+    } catch (const FbossError& /* e */) {
+      XLOG(WARN) << "Unrecoginized Port:" << portId
+                 << ", skip updatePortActiveState()";
+      continue;
+    }
+
+    XLOG(INFO) << "Syncing port status for port " << portId;
+    bool arePortTcvrsJustProgrammed =
+        portState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED;
+    auto newState = operStateToPortState(portStatus.operState);
+
+    if (arePortTcvrsJustProgrammed ||
+        (portStatus.portEnabled && portState != newState)) {
+      ++numPortStatusChanged;
+      auto event = getPortStatusChangeEvent(newState);
+      if (auto result = updateStateBlockingWithoutWait(portId, event)) {
+        results.push_back(result);
+      }
+    }
+  }
+
+  waitForAllBlockingStateUpdateDone(results);
+  XLOG_IF(DBG2, numPortStatusChanged > 0)
+      << "updatePortActiveState has " << numPortStatusChanged
+      << " ports need to update port status.";
 }
 
 std::unordered_set<TransceiverID> PortManager::getTransceiversWithAllPortsInSet(

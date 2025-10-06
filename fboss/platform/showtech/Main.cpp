@@ -25,6 +25,7 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
     DETAIL_FUNCTIONS = {
         {"host", [](Utils& util) { util.printHostDetails(); }},
         {"fboss", [](Utils& util) { util.printFbossDetails(); }},
+        {"powergood", [](Utils& util) { util.printPowerGoodDetails(); }},
         {"weutil", [](Utils& util) { util.printWeutilDetails(); }},
         {"fwutil", [](Utils& util) { util.printFwutilDetails(); }},
         {"lspci", [](Utils& util) { util.printLspciDetails(); }},

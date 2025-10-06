@@ -226,6 +226,45 @@ bool checkParallelLinksToInterfaceNodes(
   }
   return hasParallelLinks;
 }
+
+bool isValidRxReasonToQueue(const auto& rxReasonToQueue) {
+  // FBOSS config exposes two different reason codes for TTLs: TTL_0 and TTL_1.
+  // For TTL_0, FBOSS configures packet action FORWARD.
+  // For TTL_1, FBOSS configures packet action TRAP.
+  //
+  // However, SAI spec defines a single attribute to match for TTL 0 and TTL 1
+  // viz.: SAI_HOSTIF_TRAP_TYPE_TTL_ERROR
+  //
+  // Thus, if config carries both TTL_0 and TTL_1, the second field overrides
+  // the first one and results into unexpected/buggy behavior.
+  //
+  // TTL_0 use case is for test: don't drop TTL 0 packets, allow creating loop.
+  // TTL_1 use case is for production only.
+  // Thus, explicitly fail config that attempts to set both TTL_0 and TTL1.
+
+  if (!rxReasonToQueue.has_value()) {
+    return true;
+  }
+
+  bool isTtl0 = false;
+  bool isTtl1 = false;
+  for (auto rxEntry : *rxReasonToQueue) {
+    if (*rxEntry.rxReason() == cfg::PacketRxReason::TTL_0) {
+      isTtl0 = true;
+    } else if (*rxEntry.rxReason() == cfg::PacketRxReason::TTL_1) {
+      isTtl1 = true;
+    }
+  }
+
+  if (isTtl0 && isTtl1) {
+    XLOG(ERR)
+        << "Setting RxReasons TTL_0 and TTL_1 simultaneously is unsupported";
+    return false;
+  }
+
+  return true;
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -2578,7 +2617,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         "No port profile config found with matcher:", matcher.toString());
   }
   if (*portConf->state() == cfg::PortState::ENABLED &&
-      *portProfileCfg->speed() != *portConf->speed()) {
+      *portProfileCfg->speed() != *portConf->speed() &&
+      *portProfileCfg->speed() != cfg::PortSpeed::DEFAULT) {
     throw FbossError(
         orig->getName(),
         " has mismatched speed on profile:",
@@ -2827,6 +2867,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
       origAggPort->getSystemID() == cfgSystemID &&
       origAggPort->getMinimumLinkCount() == cfgMinLinkCount &&
       origAggPort->getMinimumLinkCountToUp() == cfgMinLinkCountToUp &&
+      origAggPort->getAggregatePortType() == *cfg.aggregatePortType() &&
       std::equal(
           origSubports.begin(), origSubports.end(), cfgSubports.begin()) &&
       std::equal(
@@ -2845,6 +2886,7 @@ shared_ptr<AggregatePort> ThriftConfigApplier::updateAggPort(
   newAggPort->setSubports(folly::range(cfgSubports.begin(), cfgSubports.end()));
   newAggPort->setInterfaceIDs(cfgAggregatePortInterfaceIDs);
   newAggPort->setMinimumLinkCounToUp(cfgMinLinkCountToUp);
+  newAggPort->setAggregatePortType(*cfg.aggregatePortType());
 
   return newAggPort;
 }
@@ -2877,7 +2919,8 @@ shared_ptr<AggregatePort> ThriftConfigApplier::createAggPort(
       cfgMinLinkCount,
       folly::range(subports.begin(), subports.end()),
       aggregatePortInterfaceIDs,
-      cfgMinLinkCountToUp);
+      cfgMinLinkCountToUp,
+      *cfg.aggregatePortType());
 }
 
 std::vector<AggregatePort::Subport> ThriftConfigApplier::getSubportsSorted(
@@ -4263,6 +4306,18 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   if (auto portID = config->portID()) {
     cfgPort = PortID(*portID);
   }
+  bool changedDesiredPeer = !((!config->desiredPeerName().has_value() &&
+                               !orig->getDesiredPeerName().has_value()) ||
+                              (config->desiredPeerName().has_value() &&
+                               orig->getDesiredPeerName().has_value() &&
+                               config->desiredPeerName().value() ==
+                                   orig->getDesiredPeerName().value())) ||
+      !((!config->desiredPeerAddressIPv6().has_value() &&
+         !orig->getDesiredPeerAddressIPv6().has_value()) ||
+        (config->desiredPeerAddressIPv6().has_value() &&
+         orig->getDesiredPeerAddressIPv6().has_value() &&
+         config->desiredPeerAddressIPv6().value() ==
+             orig->getDesiredPeerAddressIPv6().value()));
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (!orig->getVlanIDIf().has_value() ||
@@ -4274,7 +4329,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
       orig->getType() == *config->type() && oldDhcpV4Relay == newDhcpV4Relay &&
       oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
-      !changed_dhcp_overrides) {
+      !changed_dhcp_overrides && !changedDesiredPeer) {
     // No change
     return nullptr;
   }
@@ -4301,6 +4356,14 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setDhcpV4Relay(newDhcpV4Relay);
   newIntf->setDhcpV6Relay(newDhcpV6Relay);
   newIntf->setScope(*config->scope());
+  if (config->desiredPeerName().has_value()) {
+    newIntf->setDesiredPeerName(config->desiredPeerName().value());
+  }
+  if (config->desiredPeerAddressIPv6().has_value()) {
+    newIntf->setDesiredPeerAddressIPv6(
+        config->desiredPeerAddressIPv6().value());
+  }
+
   return newIntf;
 }
 
@@ -5241,6 +5304,9 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
     }
     if (const auto rxReasonToQueue =
             cpuTrafficPolicy->rxReasonToQueueOrderedList()) {
+      if (!isValidRxReasonToQueue(rxReasonToQueue)) {
+        throw FbossError("Invalid RxReasonToQueueOrderedList specified");
+      }
       for (auto rxEntry : *rxReasonToQueue) {
         newRxReasonToQueue.push_back(rxEntry);
       }
@@ -5249,11 +5315,12 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
         rxReasonToQueueUnchanged = false;
       }
     } else if (
-        const auto rxReasonToQueue = cpuTrafficPolicy->rxReasonToCPUQueue()) {
+        const auto rxReasonToCPUQueue =
+            cpuTrafficPolicy->rxReasonToCPUQueue()) {
       // TODO(pgardideh): the map version of reason to queue is deprecated.
       // Remove
       // this read when it is safe to do so.
-      for (auto rxEntry : *rxReasonToQueue) {
+      for (auto rxEntry : *rxReasonToCPUQueue) {
         newRxReasonToQueue.push_back(ControlPlane::makeRxReasonToQueueEntry(
             rxEntry.first, rxEntry.second));
       }

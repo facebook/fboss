@@ -46,6 +46,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
         "//fboss/platform/platform_manager:config_validator",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
@@ -53,9 +54,6 @@ cpp_library(
         "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 

@@ -1075,11 +1075,13 @@ add_dependencies(fboss_agent_thrift_libs
   asic_config_v2_cpp2
   agent_stats_cpp2
   production_features_cpp2
+  link_test_production_features_cpp2
   hw_ctrl_cpp2
   sai_ctrl_cpp2
   hw_test_ctrl_cpp2
   sai_test_ctrl_cpp2
   multiswitch_ctrl_cpp2
+  agent_hw_test_ctrl_cpp2
   lldp_structs_cpp2
   validated_shell_commands_cpp2
 )

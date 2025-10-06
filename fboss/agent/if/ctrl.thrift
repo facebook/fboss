@@ -157,6 +157,8 @@ struct ArpEntryThrift {
   11: optional i64 resolvedSince;
   12: i32 interfaceID;
   13: switch_config.PortDescriptor portDescriptor;
+  14: optional i32 probesLeft;
+  15: optional i32 maxNeighborProbes;
 }
 
 enum L2EntryType {
@@ -465,6 +467,8 @@ struct NdpEntryThrift {
   11: optional i64 resolvedSince;
   12: i32 interfaceID;
   13: switch_config.PortDescriptor portDescriptor;
+  14: optional i32 probesLeft;
+  15: optional i32 maxNeighborProbes;
 }
 
 enum BootType {

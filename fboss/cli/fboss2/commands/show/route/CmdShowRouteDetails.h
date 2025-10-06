@@ -54,21 +54,25 @@ class CmdShowRouteDetails
 
   void populateAggregatePortMap(
       const std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>& client) {
-    std::map<std::string, std::string> vlanAggregatePortMap;
+    std::map<int32_t, PortInfoThrift> portInfoEntries;
+    client->sync_getAllPortInfo(portInfoEntries);
+
     std::vector<::facebook::fboss::AggregatePortThrift> aggregatePortThrift;
     client->sync_getAggregatePortTable(aggregatePortThrift);
 
     for (auto aggregatePort : aggregatePortThrift) {
       std::string aggPortName = *aggregatePort.name();
       for (auto memberPort : *aggregatePort.memberPorts()) {
-        facebook::fboss::PortInfoThrift portInfoThrift;
-        client->sync_getPortInfo(portInfoThrift, memberPort.get_memberPortID());
-        auto vlans = portInfoThrift.vlans();
-        // If L3 routing with multiple vlans, we can skip this port
-        if (vlans->size() > 1) {
-          continue;
+        auto memberPortID = memberPort.memberPortID().value();
+        auto it = portInfoEntries.find(memberPortID);
+        if (it != portInfoEntries.end()) {
+          auto vlans = it->second.vlans();
+          // If L3 routing with multiple vlans, we can skip this port
+          if (vlans->size() > 1) {
+            continue;
+          }
+          this->vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;
         }
-        vlanAggregatePortMap[std::to_string(vlans[0])] = aggPortName;
       }
     }
   }
@@ -85,7 +89,7 @@ class CmdShowRouteDetails
         continue;
       }
       auto vlan = std::to_string(portInfo.second.vlans()[0]);
-      auto portName = portInfo.second.get_name();
+      auto portName = portInfo.second.name().value();
       auto rootPort = parseRootPort(portName);
       vlanPortMap[vlan][rootPort].push_back(portName);
     }
@@ -115,7 +119,7 @@ class CmdShowRouteDetails
             auto addr =
                 facebook::network::toAddress(folly::IPAddress(queryRoute));
             client->sync_getIpRouteDetails(route, addr, 0);
-            if (route.get_nextHopMulti().size() > 0) {
+            if (route.nextHopMulti().value().size() > 0) {
               auto ipStr = utils::getAddrStr(*route.dest()->ip());
               auto ipPrefix =
                   ipStr + "/" + std::to_string(*route.dest()->prefixLength());
@@ -130,24 +134,24 @@ class CmdShowRouteDetails
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    for (const auto& entry : model.get_routeEntries()) {
+    for (const auto& entry : model.routeEntries().value()) {
       out << fmt::format(
           "\nNetwork Address: {}/{}{}\n",
-          entry.get_ip(),
-          entry.get_prefixLength(),
-          entry.get_isConnected() ? " (connected)" : "");
+          entry.ip().value(),
+          folly::copy(entry.prefixLength().value()),
+          folly::copy(entry.isConnected().value()) ? " (connected)" : "");
 
-      for (const auto& clAndNxthops : entry.get_nextHopMulti()) {
+      for (const auto& clAndNxthops : entry.nextHopMulti().value()) {
         auto clientId = static_cast<ClientID>(*clAndNxthops.clientId());
         auto clientName = apache::thrift::util::enumNameSafe(clientId);
         out << fmt::format("  Nexthops from client {}\n", clientName);
-        for (const auto& nextHop : clAndNxthops.get_nextHops()) {
+        for (const auto& nextHop : clAndNxthops.nextHops().value()) {
           out << fmt::format(
               "    {}\n", show::route::utils::getNextHopInfoStr(nextHop));
         }
       }
 
-      out << fmt::format("  Action: {}\n", entry.get_action());
+      out << fmt::format("  Action: {}\n", entry.action().value());
 
       auto printNextHops = [this, &out](
                                const std::string& header,
@@ -180,8 +184,8 @@ class CmdShowRouteDetails
           }
         }
       };
-      auto& nextHops = entry.get_nextHops();
-      auto& nhToTopoInfo = entry.get_nhAddressToTopologyInfo();
+      auto& nextHops = entry.nextHops().value();
+      auto& nhToTopoInfo = entry.nhAddressToTopologyInfo().value();
       if (nextHops.size() > 0) {
         std::string header =
             (entry.overridenNextHops() ? "Original next hops:"
@@ -202,11 +206,12 @@ class CmdShowRouteDetails
             nextHops.size() - entry.overridenNextHops()->size());
       }
 
-      out << fmt::format("  Admin Distance: {}\n", entry.get_adminDistance());
-      out << fmt::format("  Counter Id: {}\n", entry.get_counterID());
-      out << fmt::format("  Class Id: {}\n", entry.get_classID());
       out << fmt::format(
-          "  Overridden ECMP mode: {}\n", entry.get_overridenEcmpMode());
+          "  Admin Distance: {}\n", entry.adminDistance().value());
+      out << fmt::format("  Counter Id: {}\n", entry.counterID().value());
+      out << fmt::format("  Class Id: {}\n", entry.classID().value());
+      out << fmt::format(
+          "  Overridden ECMP mode: {}\n", entry.overridenEcmpMode().value());
     }
   }
 
@@ -231,12 +236,13 @@ class CmdShowRouteDetails
         // fields)
         std::map<std::string, NetworkTopologyInformation> nhToTopoInfo;
 
-        auto& nextHopMulti = entry.get_nextHopMulti();
+        auto& nextHopMulti = entry.nextHopMulti().value();
         for (const auto& clAndNxthops : nextHopMulti) {
           cli::ClientAndNextHops clAndNxthopsCli;
-          clAndNxthopsCli.clientId() = clAndNxthops.get_clientId();
-          auto& nextHopAddrs = clAndNxthops.get_nextHopAddrs();
-          auto& nextHops = clAndNxthops.get_nextHops();
+          clAndNxthopsCli.clientId() =
+              folly::copy(clAndNxthops.clientId().value());
+          auto& nextHopAddrs = clAndNxthops.nextHopAddrs().value();
+          auto& nextHops = clAndNxthops.nextHops().value();
           if (nextHopAddrs.size() > 0) {
             for (const auto& address : nextHopAddrs) {
               cli::NextHopInfo nextHopInfo;
@@ -262,7 +268,7 @@ class CmdShowRouteDetails
         routeDetails.nhAddressToTopologyInfo() = nhToTopoInfo;
 
         auto& fwdInfo = *entry.fwdInfo();
-        auto& nextHops = entry.get_nextHops();
+        auto& nextHops = entry.nextHops().value();
 
         if (nextHops.size() > 0) {
           for (const auto& nextHop : nextHops) {
@@ -273,9 +279,10 @@ class CmdShowRouteDetails
         } else if (fwdInfo.size() > 0) {
           for (const auto& ifAndIp : fwdInfo) {
             cli::NextHopInfo nextHopInfo;
-            nextHopInfo.interfaceID() = ifAndIp.get_interfaceID();
+            nextHopInfo.interfaceID() =
+                folly::copy(ifAndIp.interfaceID().value());
             show::route::utils::getNextHopInfoAddr(
-                ifAndIp.get_ip(), nextHopInfo);
+                ifAndIp.ip().value(), nextHopInfo);
             routeDetails.nextHops()->emplace_back(nextHopInfo);
           }
         }
@@ -291,19 +298,21 @@ class CmdShowRouteDetails
               nextHops.size() - entry.overridenNextHops()->size();
         }
 
-        auto adminDistancePtr = entry.get_adminDistance();
+        auto adminDistancePtr =
+            apache::thrift::get_pointer(entry.adminDistance());
         routeDetails.adminDistance() = adminDistancePtr == nullptr
             ? "None"
             : utils::getAdminDistanceStr(*adminDistancePtr);
 
-        auto counterIDPtr = entry.get_counterID();
+        auto counterIDPtr = apache::thrift::get_pointer(entry.counterID());
         routeDetails.counterID() =
             counterIDPtr == nullptr ? "None" : *counterIDPtr;
 
-        auto classIDPtr = entry.get_classID();
+        auto classIDPtr = apache::thrift::get_pointer(entry.classID());
         routeDetails.classID() =
             classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
-        auto overrideEcmpModePtr = entry.get_overridenEcmpMode();
+        auto overrideEcmpModePtr =
+            apache::thrift::get_pointer(entry.overridenEcmpMode());
         routeDetails.overridenEcmpMode() = overrideEcmpModePtr == nullptr
             ? "None"
             : apache::thrift::util::enumNameSafe(*overrideEcmpModePtr);

@@ -17,11 +17,15 @@
       "tempToPwmMaps": {
         "OPTIC_TYPE_800_GENERIC": {
           "5": 40,
-          "67": 41,
+          "64": 42,
+          "65": 44,
+          "66": 46,
+          "67": 48,
           "68": 50,
-          "69": 67,
-          "70": 80,
-          "71": 100
+          "69": 55,
+          "70": 65,
+          "71": 80,
+          "72": 100
         }
       }
     }
@@ -59,21 +63,37 @@
       "normalUpTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       },
       "normalDownTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       },
       "failUpTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       },
       "failDownTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       }
     },
@@ -86,21 +106,37 @@
       "normalUpTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       },
       "normalDownTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       },
       "failUpTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       },
       "failDownTable": {
         "15": 7,
         "70": 10,
+        "72": 13,
+        "74": 16,
+        "76": 19,
+        "78": 22,
         "80": 100
       }
     },
@@ -138,7 +174,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan1_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan1_present",
-      "ledSysfsPath": "/sys/class/leds/fan1::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan1_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -151,7 +187,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan2_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan2_present",
-      "ledSysfsPath": "/sys/class/leds/fan2::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan2_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -164,7 +200,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan3_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan3_present",
-      "ledSysfsPath": "/sys/class/leds/fan3::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan3_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -177,7 +213,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan4_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD0/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan4_present",
-      "ledSysfsPath": "/sys/class/leds/fan4::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan4_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -190,7 +226,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan1_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan1_present",
-      "ledSysfsPath": "/sys/class/leds/fan5::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan5_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -203,7 +239,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan2_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan2_present",
-      "ledSysfsPath": "/sys/class/leds/fan6::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan6_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -216,7 +252,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan3_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan3_present",
-      "ledSysfsPath": "/sys/class/leds/fan7::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan7_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -229,7 +265,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan4_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD1/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan4_present",
-      "ledSysfsPath": "/sys/class/leds/fan8::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan8_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -242,7 +278,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan1_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan1_present",
-      "ledSysfsPath": "/sys/class/leds/fan9::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan9_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -255,7 +291,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan2_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan2_present",
-      "ledSysfsPath": "/sys/class/leds/fan10::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan10_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -268,7 +304,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan3_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan3_present",
-      "ledSysfsPath": "/sys/class/leds/fan11::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan11_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -281,7 +317,7 @@
       "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan4_input",
       "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD2/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan4_present",
-      "ledSysfsPath": "/sys/class/leds/fan12::status/brightness",
+      "ledSysfsPath": "/sys/class/leds/fan12_led:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,

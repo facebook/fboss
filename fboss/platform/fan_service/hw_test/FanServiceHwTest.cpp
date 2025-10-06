@@ -121,6 +121,19 @@ TEST_F(FanServiceHwTest, ODSCounters) {
   }
 }
 
+TEST_F(FanServiceHwTest, LedWriteDidNotFail) {
+  controlLogic_->controlFan();
+
+  for (const auto& fan : *fanServiceConfig_.fans()) {
+    if (fan.ledSysfsPath().has_value()) {
+      EXPECT_EQ(
+          fb303::fbData->getCounter(
+              fmt::format("{}.led_write.failure", *fan.fanName())),
+          0);
+    }
+  }
+}
+
 } // namespace facebook::fboss::platform::fan_service
 
 int main(int argc, char* argv[]) {

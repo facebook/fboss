@@ -243,6 +243,16 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     return condition ? std::optional{state} : std::nullopt;
   }
 
+  void updateTransceiverActiveState(bool up, bool enabled, PortID portId) {
+    PortStatus status;
+    status.enabled() = enabled;
+    status.up() = up;
+    portManager_->updatePortActiveState({{portId, status}});
+    // Sleep 1s to avoid the state machine handling the event too fast
+    /* sleep override */
+    sleep(1);
+  }
+
   template <
       typename PRE_UPDATE_FN,
       typename STATE_UPDATE_FN,
@@ -874,6 +884,49 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
       true /* isMock */);
 
   resetManagers();
+}
+
+TEST_F(PortStateMachineTest, syncPortsOnRemovedTransceiver) {
+  initManagers();
+  verifyStateMachine(
+      {TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+          {PortStateMachineState::PORT_UP, std::nullopt}}},
+      TcvrPortStatePair{
+          TransceiverStateMachineState::NOT_PRESENT,
+          {PortStateMachineState::PORT_DOWN, std::nullopt}},
+      [this]() {
+        setMockCmisPresence(false);
+
+        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
+        ::testing::Sequence s;
+        // The first refreshLocked() should detect transceiver is removed
+        // and dirty, need to updateQsfpData fully
+        EXPECT_CALL(*mockXcvr, ensureOutOfReset());
+        EXPECT_CALL(*mockXcvr, updateQsfpData(true));
+        // Because transceiver is absent, we should use default ModuleStatus
+        // to update cached transceiver info
+        ModuleStatus moduleStatus;
+        EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(moduleStatus));
+      } /* preUpdate */,
+      [this]() {
+        // Trigger active state change function just like wedge_agent calls
+        // qsfp_service syncPorts(). Bring down the ports
+        updateTransceiverActiveState(
+            false /* up */, true /* enabled */, portId1_);
+        // The refresh() will let TransceiverStateMachine trigger next event
+        xcvr_->refresh();
+      } /* stateUpdate */,
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(tcvrId_);
+        EXPECT_FALSE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+      } /* verify */,
+      "Triggering syncPorts with port down on a removed transceiver",
+      true);
 }
 
 } // namespace facebook::fboss

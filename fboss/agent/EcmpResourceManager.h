@@ -50,7 +50,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       : EcmpResourceManager(
             EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
             statsGetter) {}
-  using NextHopGroupId = uint32_t;
+  using NextHopGroupId = uint64_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
   using Prefix = std::pair<RouterID, folly::CIDRNetwork>;
@@ -61,9 +61,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
 
   std::vector<StateDelta> modifyState(
       const std::vector<StateDelta>& deltas) override;
-  std::vector<StateDelta> consolidate(
-      const StateDelta& delta,
-      bool rollingBack = false);
+  std::vector<StateDelta> consolidate(const StateDelta& delta);
   std::vector<StateDelta> reconstructFromSwitchState(
       const std::shared_ptr<SwitchState>& curState) override;
   const auto& getNhopsToId() const {
@@ -72,7 +70,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
   size_t getCost(NextHopGroupId nhopGrpId) const;
   void updateDone() override;
-  void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
+  void updateFailed(
+      const std::shared_ptr<SwitchState>& knownGoodState) override;
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
     return config_.getBackupEcmpSwitchingMode();
   }
@@ -127,21 +126,13 @@ class EcmpResourceManager : public PreUpdateStateModifier {
 
  private:
   RouteNextHopSet getCommonNextHops(const NextHopGroupIds& grpIds) const;
-  struct PreUpdateState {
-    std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
-    std::optional<cfg::SwitchingMode> backupEcmpGroupType;
-  };
   struct InputOutputState {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
-        const StateDelta& _in,
-        bool rollingBack,
-        const PreUpdateState& _groupIdCache = PreUpdateState());
+        const StateDelta& _in);
     /*
-     * addOrUpdateRoute has 2 interesting knobs
-     * ecmpDemandExceeded - used for checking that new route now
-     * either has overrideEcmpType set or points to a merged group
+     * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
      * delta. This only applies to when we are merging groups at
      * ECMP limit. When doing so we will
@@ -166,7 +157,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     void addOrUpdateRoute(
         RouterID rid,
         const std::shared_ptr<Route<AddrT>>& newRoute,
-        bool ecmpDemandExceeded,
         bool addNewDelta = false);
 
     template <typename AddrT>
@@ -178,8 +168,52 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      * next delta or updating current delta.
      */
     StateDelta getCurrentStateDelta() const {
-      CHECK(!out.empty());
-      return StateDelta(out.back().oldState(), out.back().newState());
+      CHECK(!out_.empty());
+      return StateDelta(out_.back().oldState(), out_.back().newState());
+    }
+    /*
+     * We adopt a lazy publish strategy for InputOutputState.out deltas. In
+     * that, when a change is made (say route update),
+     *  - We clone the state to make this change on
+     *  - Make the change.
+     *  At this point, we *don't publish* this new state, but just
+     *  replace/append the cur delta to list of deltas.
+     *  We then publish at a later point
+     *  - When appending a new delta, before appending, we publish
+     *  the last delta in queue.
+     *  - When finishing a functional block, e.g.
+     *  finishing route processing, reclaimingEcmpGroups we publish
+     *  the last delta in queue.
+     * Lazy publishing is much more efficient than a simpler always
+     * (eager) publishing approach. Consider the eager publish approach
+     * where we publish after every change. Now consider that we
+     * get a large route update (say 50K routes). Most of these will
+     * just be grafted onto current delta. If we publish after every
+     * individual route update, the next update will end up cloning
+     * the FIB and copying the prefix->shared_ptr<Route> for FIB
+     * for every update. This is a expensive O(N^2) operation.
+     */
+    /*
+     * Publish last delta in queue
+     * */
+    void publishLastDelta();
+    /*
+     * Append to current set of queued deltas
+     * */
+    void appendDelta(const StateDelta& delta);
+    /*
+     * Replace current delta and back of out_ queue
+     * */
+    void replaceLastDelta(const StateDelta& delta);
+    size_t numDeltas() const {
+      return out_.size();
+    }
+
+    /*
+     * Return and empty out_ deltas
+     */
+    std::vector<StateDelta> moveDeltas() {
+      return std::move(out_);
     }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
@@ -188,29 +222,10 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      */
     uint32_t primaryEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
-    std::vector<StateDelta> out;
-    /*
-     * In the normal forward pass, EcmpResourceManager is
-     * the sole decider for setting route override information.
-     * Hoever during rollback, we must give preference to
-     * override info coming in with the routes. For instance
-     * say we are rolling back from State2->State1. Take a example
-     * route R1, we could have
-     * State2
-     * R1-> G1 with overrides to {G2,G1}
-     * State1
-     * R1->G1 (no overrides).
-     * Now in rollback we must prefer R1 -> G1 (no overrides) and
-     * unmerge G1 from G2, and clear R1's overrides.
-     * NOTE: we can't *always* prefer route's override info.
-     * Consider a forward pass from State2. Say a route R2 gets
-     * added/updated to same nhops as R1. We should set its
-     * next hops to
-     * R2-> G1 with overrides to {G1, G2}
-     */
-    bool rollingBack{false};
-    PreUpdateState groupIdCache;
     bool updated{false};
+
+   private:
+    std::vector<StateDelta> out_;
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,
@@ -227,8 +242,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const InputOutputState& inOutState) const;
   bool checkNoUnitializedGroups() const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
-      const StateDelta& delta,
-      bool rollingBack);
+      const StateDelta& delta);
   void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
@@ -267,14 +281,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       NextHopGroupIds newMemberGroups,
       const RouteNextHopSet& mergedNhops,
       std::optional<GroupIds2ConsolidationInfoItr> existingMitr,
-      const InputOutputState& inOutState);
-  /*
-   * Prune from a exidting merge group and gets iterator.
-   * Only updates internal data structures, no delta update
-   */
-  std::optional<GroupIds2ConsolidationInfoItr> pruneMergeGroupMembers(
-      NextHopGroupId toPrune,
-      GroupIds2ConsolidationInfoItr existingMitr,
       const InputOutputState& inOutState);
   /*
    * Update merge itertor for a set of groups
@@ -416,9 +422,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   PrefixToGroupInfo prefixToGroupInfo_;
   std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups_;
   std::map<NextHopGroupIds, ConsolidationInfo> candidateMergeGroups_;
-  // Cached pre update state, will be used in case of roll back
-  // if update fails
-  std::optional<PreUpdateState> preUpdateState_;
   SwitchStatsGetter statsGetter_;
   EcmpResourceManagerConfig config_;
 };

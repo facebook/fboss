@@ -63,8 +63,8 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
   }
 
   std::unique_ptr<MultiNodeUtil> createMultiNodeUtil() {
-    auto multiNodeUtil =
-        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
+    auto multiNodeUtil = std::make_unique<MultiNodeUtil>(
+        getSw(), getProgrammedState()->getDsfNodes());
 
     return multiNodeUtil;
   }

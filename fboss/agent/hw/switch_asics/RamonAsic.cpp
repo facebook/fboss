@@ -27,7 +27,6 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
       return true;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
-    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     default:
       return false;
   }

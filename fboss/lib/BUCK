@@ -237,10 +237,8 @@ cpp_library(
         "CommonPortUtils.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 

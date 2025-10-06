@@ -40,8 +40,8 @@ TEST_F(AgentAmIdlesTest, VerifyAmIdles) {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*(this->getAgentEnsemble()))};
 
-    // Get the first two ports for testing
-    auto masterPorts = masterLogicalPortIds();
+    // Get the first two interface ports for testing
+    auto masterPorts = masterLogicalInterfacePortIds();
     EXPECT_GE(masterPorts.size(), 2) << "Need at least 2 ports for this test";
 
     const auto& firstPortId = masterPorts[0];
@@ -50,12 +50,12 @@ TEST_F(AgentAmIdlesTest, VerifyAmIdles) {
     // Configure AM idles on ports
     for (auto& portCfg : *newCfg.ports()) {
       if (PortID(*portCfg.logicalID()) == firstPortId) {
-        XLOG(INFO) << "Setting AM idles ENABLED for first port: "
-                   << firstPortId;
+        XLOG(INFO) << "Setting AM idles ENABLED for first port: " << firstPortId
+                   << " (name: " << *portCfg.name() << ")";
         portCfg.amIdles() = kAmIdlesEnabled;
       } else if (PortID(*portCfg.logicalID()) == secondPortId) {
         XLOG(INFO) << "Setting AM idles DISABLED for second port: "
-                   << secondPortId;
+                   << secondPortId << " (name: " << *portCfg.name() << ")";
         portCfg.amIdles() = kAmIdlesDisabled;
       }
     }
@@ -64,7 +64,7 @@ TEST_F(AgentAmIdlesTest, VerifyAmIdles) {
   };
 
   auto verify = [=, this]() {
-    auto masterPorts = masterLogicalPortIds();
+    auto masterPorts = masterLogicalInterfacePortIds();
 
     // Verify first port has AM idles enabled
     auto firstPort =

@@ -630,4 +630,56 @@ TEST_F(PortManagerTest, tcvrToInitializedPortsCacheConsistency) {
   EXPECT_TRUE(resultAll.count(TransceiverID(1)));
 }
 
+TEST_F(PortManagerTest, syncPorts) {
+  initManagers(2, 4); // 2 transceivers, 4 ports each
+
+  // Create a map of PortStatus objects
+  auto ports = std::make_unique<std::map<int32_t, PortStatus>>();
+
+  // Create PortStatus for port 1 with transceiver info
+  PortStatus port1Status;
+  port1Status.enabled() = true;
+  port1Status.up() = true;
+  port1Status.speedMbps() = 100000;
+  port1Status.profileID() = "PROFILE_100G_2_PAM4_RS544X2N_OPTICAL";
+  port1Status.drained() = false;
+
+  TransceiverIdxThrift tcvrIdx1;
+  tcvrIdx1.transceiverId() = 0;
+  port1Status.transceiverIdx() = tcvrIdx1;
+
+  // Create PortStatus for port 5 with different transceiver info
+  PortStatus port5Status;
+  port5Status.enabled() = true;
+  port5Status.up() = false;
+  port5Status.speedMbps() = 100000;
+  port5Status.profileID() = "PROFILE_100G_2_PAM4_RS544X2N_OPTICAL";
+  port5Status.drained() = false;
+
+  TransceiverIdxThrift tcvrIdx2;
+  tcvrIdx2.transceiverId() = 1;
+  port5Status.transceiverIdx() = tcvrIdx2;
+
+  // Create PortStatus for port without transceiver info (should be skipped)
+  PortStatus port9Status;
+  port9Status.enabled() = false;
+  port9Status.up() = false;
+  port9Status.speedMbps() = 0;
+  port9Status.profileID() = "";
+  port9Status.drained() = false;
+  // No transceiverIdx set - this should be skipped in the loop
+
+  (*ports)[1] = port1Status;
+  (*ports)[5] = port5Status;
+  (*ports)[9] = port9Status;
+
+  // Call syncPorts
+  std::map<int32_t, TransceiverInfo> info;
+  EXPECT_NO_THROW(portManager_->syncPorts(info, std::move(ports)));
+
+  // The info map should contain entries for transceivers that have valid info
+  // The exact content depends on what the mock TransceiverManager returns
+  // but we can at least verify the method doesn't crash and processes the input
+}
+
 } // namespace facebook::fboss

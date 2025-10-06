@@ -496,4 +496,19 @@ void NeighborUpdaterImpl::updateNdpEntryClassIDForIntf(
   cache->updateEntryClassID(ip, classID);
 }
 
+uint32_t NeighborUpdaterImpl::getProbesLeft(
+    const InterfaceID& intfID,
+    const folly::IPAddressV6& ip) {
+  auto cache = getNdpCacheForIntf(intfID);
+  auto ndpEntry = cache->getNdpCacheData(ip);
+  return ndpEntry.has_value() && ndpEntry->probesLeft().has_value()
+      ? *ndpEntry->probesLeft()
+      : 0;
+}
+
+uint32_t NeighborUpdaterImpl::getMaxNeighborProbes(const InterfaceID& intfID) {
+  auto cache = getNdpCacheForIntf(intfID);
+  return cache->getMaxNeighborProbes();
+}
+
 } // namespace facebook::fboss

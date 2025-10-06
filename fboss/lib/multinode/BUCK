@@ -8,10 +8,12 @@ cpp_library(
     headers = ["MultiNodeUtil.h"],
     exported_deps = [
         "//common/network:util",
+        "//fboss/agent:core",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/agent/if:test_ctrl-cpp2-clients",
+        "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/lib:common_utils",

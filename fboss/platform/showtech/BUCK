@@ -26,6 +26,7 @@ cpp_binary(
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         ":showtech_config-cpp2-types",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:gpiod_line",
@@ -40,7 +41,6 @@ cpp_binary(
     ],
     external_deps = [
         "CLI11",
-        "re2",
         ("libgpiod", None, "gpiod"),
     ],
 )

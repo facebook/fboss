@@ -51,6 +51,7 @@ cpp_unittest(
         "SflowStructsTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/googletest:gmock",
         "//fboss/agent/packet:sflow_structs",
         "//folly:network_address",
         "//folly/container:array",
