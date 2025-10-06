@@ -292,7 +292,7 @@ class MultiNodeUtil {
     return std::make_pair(folly::IPAddressV6("2001:0db8:85a3::"), 64);
   }
 
-  NeighborInfo configureNeighborsAndRoutesForTrafficLoop() const;
+  std::optional<NeighborInfo> configureNeighborsAndRoutesForTrafficLoop() const;
   void createTrafficLoop(const NeighborInfo& neighborInfo) const;
   bool verifyTrafficCounters() const;
 

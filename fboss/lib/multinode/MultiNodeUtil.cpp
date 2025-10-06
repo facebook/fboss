@@ -2023,7 +2023,7 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
   return true;
 }
 
-MultiNodeUtil::NeighborInfo
+std::optional<MultiNodeUtil::NeighborInfo>
 MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
   auto logAddRoute =
       [](const auto& rdsw, const auto& prefix, const auto& neighbor) {
@@ -2050,6 +2050,11 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
     XLOG(DBG2) << "Adding neighbor: " << neighbor.str() << " to " << rdsw;
     addNeighbor(
         rdsw, neighbor.intfID, neighbor.ip, neighbor.mac, neighbor.portID);
+    if (!verifyNeighborsPresent(rdsw, {neighbor})) {
+      XLOG(DBG2) << "Neighbor add verification failed: " << rdsw
+                 << " neighbor: " << neighbor.str();
+      return std::nullopt;
+    }
 
     if (!prevRdsw.has_value()) { // first RDSW
       firstRdswNeighbor = neighbor;
@@ -2126,7 +2131,11 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   XLOG(DBG2) << __func__;
 
   auto firstRdswNeighbor = configureNeighborsAndRoutesForTrafficLoop();
-  createTrafficLoop(firstRdswNeighbor);
+  if (!firstRdswNeighbor.has_value()) {
+    return false;
+  }
+
+  createTrafficLoop(firstRdswNeighbor.value());
   return verifyTrafficCounters();
 }
 
