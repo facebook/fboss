@@ -50,7 +50,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       : EcmpResourceManager(
             EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
             statsGetter) {}
-  using NextHopGroupId = uint32_t;
+  using NextHopGroupId = uint64_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
   using NextHops2GroupId = std::map<RouteNextHopSet, NextHopGroupId>;
   using Prefix = std::pair<RouterID, folly::CIDRNetwork>;
