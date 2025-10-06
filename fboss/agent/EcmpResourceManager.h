@@ -173,6 +173,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       CHECK(!out.empty());
       return StateDelta(out.back().oldState(), out.back().newState());
     }
+    void publishLastDelta();
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups

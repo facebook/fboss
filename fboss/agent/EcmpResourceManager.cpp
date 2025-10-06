@@ -183,6 +183,16 @@ int computePenalty(int numGroupNhops, int numMergedNhops, int routeRefCount) {
   return routeRefCount * nhopsPctLoss;
 }
 
+bool checkDeltasPublished(const std::vector<StateDelta>& deltas) {
+  bool published{true};
+  for (auto i = 0; i < deltas.size() && published; ++i) {
+    auto published = deltas[i].oldState()->isPublished() &&
+        deltas[i].newState()->isPublished();
+    XLOG(DBG4) << " Checking delta: " << i << " published: " << published;
+  }
+  return published;
+}
+
 } // namespace
 
 EcmpResourceManager::EcmpResourceManager(
@@ -890,6 +900,13 @@ EcmpResourceManager::InputOutputState::InputOutputState(
   }
   newStateWithOldFibs->publish();
   out.emplace_back(_in.oldState(), newStateWithOldFibs);
+}
+
+void EcmpResourceManager::InputOutputState::publishLastDelta() {
+  if (out.size()) {
+    out.back().newState()->publish();
+  }
+  DCHECK(checkDeltasPublished(out));
 }
 
 template <typename AddrT>
