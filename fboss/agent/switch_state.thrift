@@ -513,8 +513,14 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  2: map<string, RouteFields> fibV4 (allow_skip_thrift_cow = true);
-  3: map<string, RouteFields> fibV6 (allow_skip_thrift_cow = true);
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
+  2: map<string, RouteFields> fibV4;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
+  3: map<string, RouteFields> fibV6;
 }
 
 struct TrafficClassToQosAttributeEntry {
