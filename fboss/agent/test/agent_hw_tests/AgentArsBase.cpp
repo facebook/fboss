@@ -91,8 +91,10 @@ std::string AgentArsBase::getAclName(
   return aclName;
 }
 
-std::string AgentArsBase::getCounterName(AclType aclType) const {
-  return getAclName(aclType) + "-stats";
+std::string AgentArsBase::getCounterName(
+    AclType aclType,
+    bool enableAlternateArsMembers) const {
+  return getAclName(aclType, enableAlternateArsMembers) + "-stats";
 }
 
 void AgentArsBase::setup(int ecmpWidth) {
@@ -622,8 +624,14 @@ void AgentArsBase::addAclAndStat(
       utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
       if (FLAGS_enable_th5_ars_scale_mode) {
         auto alternateMemberAclName = getAclName(aclType, true);
+        auto alternateCounterName = getCounterName(aclType, true);
         utility::addFlowletAcl(
-            *config, isSai, alternateMemberAclName, counterName, false, true);
+            *config,
+            isSai,
+            alternateMemberAclName,
+            alternateCounterName,
+            false,
+            true);
       }
     } break;
     case AclType::FLOWLET_WITH_UDF_ACK:
