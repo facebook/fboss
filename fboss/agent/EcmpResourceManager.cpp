@@ -1324,11 +1324,8 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
  *     ii) We are not at ECMP limit
  *      - Add the route with it current nhops.
  *   - If we match a existing group. There are 2 subcases
- *    i) Group has override nhop. This further has 2 subcases
- *     - We are doing rollback. In which case we must prefer
- *     the prefix's override settings. So we clear this group's
- *     overrides and reclaim the group from its merge set
- *     - We are not doing rollback. We must prefer the group's override
+ *    i) Group has override nhops
+ *     We must prefer the group's override
  *     settings. We look at this group's merge itr, for the merge set
  *     membership. If this group ID is not part of that merge
  *     group, add it. Note this is a data structure update only.
@@ -1383,31 +1380,20 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
       // override next hops we need to reconcile these.
       auto mitr = grpInfo->getMergedGroupInfoItr();
       CHECK(mitr);
-      if (inOutState->rollingBack) {
-        // Group has overrides but prefix does not. If we are rolling
-        // back, prefer the setting from the prefix. Reclaim this
-        // group from the merge set.
-        updateMergedGroups(
-            {(*mitr)->first},
-            MergeGroupUpdateOp::RECLAIM_GROUPS,
-            {grpInfo->getID()},
-            inOutState);
-      } else {
-        // Not rolling back. Prefer group's override info
-        if (!(*mitr)->first.contains(grpInfo->getID())) {
-          // This group's nhops point to a merged group, but
-          // the group itself is not part of the merged group,
-          // then state could only be MERGED_NHOPS_ONLY
-          DCHECK(grpInfo->hasMergedNhopsOnly());
-          // If group is not part of the merge set pointed to by
-          // the merge iterator, make it a part of it and update
-          // prefixes accordingly.
-          auto newMergeSet = (*mitr)->first;
-          newMergeSet.insert(grpInfo->getID());
-          mitr = appendToOrCreateMergeGroup(
-              newMergeSet, (*mitr)->second.mergedNhops, mitr, *inOutState);
-          grpInfo->setMergedGroupInfoItr(mitr);
-        }
+      // Not rolling back. Prefer group's override info
+      if (!(*mitr)->first.contains(grpInfo->getID())) {
+        // This group's nhops point to a merged group, but
+        // the group itself is not part of the merged group,
+        // then state could only be MERGED_NHOPS_ONLY
+        DCHECK(grpInfo->hasMergedNhopsOnly());
+        // If group is not part of the merge set pointed to by
+        // the merge iterator, make it a part of it and update
+        // prefixes accordingly.
+        auto newMergeSet = (*mitr)->first;
+        newMergeSet.insert(grpInfo->getID());
+        mitr = appendToOrCreateMergeGroup(
+            newMergeSet, (*mitr)->second.mergedNhops, mitr, *inOutState);
+        grpInfo->setMergedGroupInfoItr(mitr);
       }
       auto existingGrpInfo = updateForwardingInfoAndInsertDelta(
           rid, newRoute, grpInfo, false /*ecmpLimitReached*/, inOutState);
