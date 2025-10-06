@@ -510,7 +510,8 @@ SaiSwitchTraits::Attributes::AttributeMaxSystemPortId::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeMaxLocalSystemPortId::operator()() {
-#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0)
+#if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_12_0) && \
+    !defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_SWITCH_ATTR_MAX_LOCAL_SYSTEM_PORT_ID;
 #endif
   return std::nullopt;
