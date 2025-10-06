@@ -36,6 +36,7 @@ using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 using facebook::fboss::ClientID;
 using facebook::fboss::IpPrefix;
+using facebook::fboss::PortInfoThrift;
 using facebook::fboss::UnicastRoute;
 using facebook::fboss::cfg::DsfNode;
 
@@ -191,6 +192,14 @@ std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
   std::map<int32_t, facebook::fboss::InterfaceDetail> intfIdToIntf;
   swAgentClient->sync_getAllInterfaces(intfIdToIntf);
   return intfIdToIntf;
+}
+
+std::map<int32_t, PortInfoThrift> getPortIdToPortInfo(
+    const std::string& switchName) {
+  std::map<int32_t, PortInfoThrift> portIdToPortInfo;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getAllPortInfo(portIdToPortInfo);
+  return portIdToPortInfo;
 }
 
 std::map<int64_t, facebook::fboss::SystemPortThrift>
@@ -611,7 +620,7 @@ std::map<std::string, PortInfoThrift>
 MultiNodeUtil::getFabricPortNameToPortInfo(
     const std::string& switchName) const {
   std::map<std::string, PortInfoThrift> fabricPortNameToPortInfo;
-  for (const auto& [_, portInfo] : getPorts(switchName)) {
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
     if (portInfo.portType().value() == cfg::PortType::FABRIC_PORT) {
       fabricPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
     }
@@ -624,7 +633,7 @@ std::map<std::string, PortInfoThrift>
 MultiNodeUtil::getUpEthernetPortNameToPortInfo(
     const std::string& switchName) const {
   std::map<std::string, PortInfoThrift> upEthernetPortNameToPortInfo;
-  for (const auto& [_, portInfo] : getPorts(switchName)) {
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
     if (portInfo.portType().value() == cfg::PortType::INTERFACE_PORT &&
         portInfo.operState().value() == PortOperState::UP) {
       upEthernetPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
@@ -661,9 +670,7 @@ bool MultiNodeUtil::verifyNoPortErrorsForSwitch(
     SwitchType switchType,
     const std::string& switchName) const {
   // No ports should have errors
-  auto ports = getPorts(switchName);
-  for (const auto& port : ports) {
-    auto portInfo = port.second;
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
     if (portInfo.activeErrors()->size() != 0) {
       XLOG(DBG2) << "From " << switchTypeToString(switchType)
                  << ":: " << switchName << " Port: " << portInfo.name().value()
