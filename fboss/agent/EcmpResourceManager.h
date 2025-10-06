@@ -61,9 +61,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
 
   std::vector<StateDelta> modifyState(
       const std::vector<StateDelta>& deltas) override;
-  std::vector<StateDelta> consolidate(
-      const StateDelta& delta,
-      bool rollingBack = false);
+  std::vector<StateDelta> consolidate(const StateDelta& delta);
   std::vector<StateDelta> reconstructFromSwitchState(
       const std::shared_ptr<SwitchState>& curState) override;
   const auto& getNhopsToId() const {
@@ -136,7 +134,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
         uint32_t _primaryEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
         const StateDelta& _in,
-        bool rollingBack,
         const PreUpdateState& _groupIdCache = PreUpdateState());
     /*
      * addOrUpdateRoute has 1 interesting knobs
@@ -186,26 +183,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     uint32_t primaryEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
     std::vector<StateDelta> out;
-    /*
-     * In the normal forward pass, EcmpResourceManager is
-     * the sole decider for setting route override information.
-     * Hoever during rollback, we must give preference to
-     * override info coming in with the routes. For instance
-     * say we are rolling back from State2->State1. Take a example
-     * route R1, we could have
-     * State2
-     * R1-> G1 with overrides to {G2,G1}
-     * State1
-     * R1->G1 (no overrides).
-     * Now in rollback we must prefer R1 -> G1 (no overrides) and
-     * unmerge G1 from G2, and clear R1's overrides.
-     * NOTE: we can't *always* prefer route's override info.
-     * Consider a forward pass from State2. Say a route R2 gets
-     * added/updated to same nhops as R1. We should set its
-     * next hops to
-     * R2-> G1 with overrides to {G1, G2}
-     */
-    bool rollingBack{false};
     PreUpdateState groupIdCache;
     bool updated{false};
   };
@@ -224,8 +201,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const InputOutputState& inOutState) const;
   bool checkNoUnitializedGroups() const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
-      const StateDelta& delta,
-      bool rollingBack);
+      const StateDelta& delta);
   void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
