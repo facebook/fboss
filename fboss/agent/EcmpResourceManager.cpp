@@ -267,8 +267,7 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     return makeRet(delta);
   }
 
-  preUpdateState_ =
-      PreUpdateState(nextHopGroup2Id_, getBackupEcmpSwitchingMode());
+  preUpdateState_ = PreUpdateState(getBackupEcmpSwitchingMode());
 
   handleSwitchSettingsDelta(delta);
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
@@ -1950,9 +1949,7 @@ EcmpResourceManager::findCachedOrNewIdForNhops(
         allocatedIds.insert(id);
       }
     };
-    CHECK(preUpdateState_.has_value());
     fillAllocatedIds(nextHopGroup2Id_);
-    fillAllocatedIds(preUpdateState_->nextHopGroup2Id);
     for (auto start = kMinNextHopGroupId;
          start < std::numeric_limits<NextHopGroupId>::max();
          ++start) {
@@ -1962,10 +1959,7 @@ EcmpResourceManager::findCachedOrNewIdForNhops(
     }
     throw FbossError("Unable to find id to allocate for new next hop group");
   };
-  auto nitr = inOutState.groupIdCache.nextHopGroup2Id.find(nhops);
-  return nitr != inOutState.groupIdCache.nextHopGroup2Id.end()
-      ? nitr->second
-      : findNextAvailableId();
+  return findNextAvailableId();
 }
 
 size_t EcmpResourceManager::getRouteUsageCount(NextHopGroupId nhopGrpId) const {

@@ -126,7 +126,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
  private:
   RouteNextHopSet getCommonNextHops(const NextHopGroupIds& grpIds) const;
   struct PreUpdateState {
-    std::map<RouteNextHopSet, NextHopGroupId> nextHopGroup2Id;
     std::optional<cfg::SwitchingMode> backupEcmpGroupType;
   };
   struct InputOutputState {

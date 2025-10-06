@@ -194,7 +194,8 @@ TEST_F(NextHopIdAllocatorTest, updateRouteNhopsMultipleTimes) {
     EXPECT_FALSE(getNhopId(newNhops).has_value());
     auto newerNhopsId = *getNhopId(newerNhops);
     EXPECT_EQ(defaultNhopsId, 1);
-    EXPECT_EQ(newerNhopsId, 3);
+    // Since we freed up newNhops, its ID should get reused
+    EXPECT_EQ(newerNhopsId, 2);
     // All but one route point to defaultNhops
     assertRouteUsageCount(
         defaultNhopsId, numPostConfigResolvedRoutes(state_) - 1);
@@ -225,10 +226,9 @@ TEST_F(NextHopIdAllocatorTest, updateAllRouteNhops) {
     auto newState = state_->clone();
     auto fib6 = fib(newState);
     auto resolvedRoutesBefore = numPostConfigResolvedRoutes(newState);
-    // Previously nhop group Id set was {1} and we updated all 5 routes. Since
-    // we account for both before and current nhop  group Ids when allocating
-    // next IDs, the IDs generated will be 2 - 11
-    std::set<NextHopGroupId> expectedNhopIds{2, 3, 4, 5, 6};
+    // Previously nhop group Id set was {1} and we updated all 5 routes. But
+    // as we assign new nhops, and remove {1}, that ID would get reused.
+    std::set<NextHopGroupId> expectedNhopIds{1, 2, 3, 4, 5};
     for (auto i = 0; i < resolvedRoutesBefore; ++i) {
       curNhops.erase(curNhops.begin());
       CHECK(curNhops.size());
@@ -241,11 +241,11 @@ TEST_F(NextHopIdAllocatorTest, updateAllRouteNhops) {
     auto newState = state_->clone();
     auto fib6 = fib(newState);
     auto resolvedRoutesBefore = numPostConfigResolvedRoutes(newState);
-    // Previously nhop group Id set was {2, 3, 4, 5, 6}
-    // and we updated all 10 routes. Since
-    // we account for both before and current nhop  group Ids when allocating
-    // next IDs, the IDs generated will be {1, 7 - 10}
-    std::set<NextHopGroupId> expectedNhopIds{1, 7, 8, 9, 10};
+    // Previously nhop group Id set was {1, 2, 3, 4, 5}
+    // and we update all 10 routes. But since IDs get recirculated
+    // as they are freed, we should still get the same gids
+    // allocated
+    std::set<NextHopGroupId> expectedNhopIds{1, 2, 3, 4, 5};
     for (auto i = 0; i < resolvedRoutesBefore; ++i) {
       curNhops.erase(curNhops.begin());
       CHECK(curNhops.size());
