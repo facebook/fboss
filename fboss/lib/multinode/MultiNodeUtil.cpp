@@ -679,11 +679,48 @@ bool MultiNodeUtil::verifyNoPortErrorsForSwitch(
   return true;
 }
 
+bool MultiNodeUtil::verifyPortCableLength(
+    SwitchType switchType,
+    const std::string& switchName) const {
+  // Cable length query (i.e. cable propagation delay attribute) works only on
+  // below fabric ports::
+  // DSF Single Stage system:
+  //   o RDSW Fabric ports towards FDSW
+  // DSF Dual Stage system:
+  //   o RDSW Fabric ports towards FDSW
+  //   o FDSW Fabric ports towards SDSW
+  //
+  // TODO Enhance this check for DSF Dual stage: FDSW Fabric ports towards SDSW
+  if (switchType != SwitchType::RDSW) {
+    return true;
+  }
+
+  // Verify if all connected fabric ports have valid cable length
+  for (const auto& [_, portInfo] :
+       getActiveFabricPortNameToPortInfo(switchName)) {
+    if (portInfo.cableLengthMeters().has_value() &&
+        portInfo.cableLengthMeters().value() >= 0) {
+      // Cable length may vary on different test setups. Thus, verify
+      // if the Cable length query returns a valid non-0 cable length.
+      continue;
+    }
+
+    XLOG(DBG2) << "From " << switchTypeToString(switchType)
+               << ":: " << switchName << " Port: " << portInfo.name().value()
+               << " has invalid cable length: "
+               << portInfo.cableLengthMeters().value_or(-1);
+    return false;
+  }
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyPortsForSwitch(
     SwitchType switchType,
     const std::string& switchName) const {
   return verifyPortActiveStateForSwitch(switchType, switchName) &&
-      verifyNoPortErrorsForSwitch(switchType, switchName);
+      verifyNoPortErrorsForSwitch(switchType, switchName) &&
+      verifyPortCableLength(switchType, switchName);
 }
 
 bool MultiNodeUtil::verifyPorts() const {

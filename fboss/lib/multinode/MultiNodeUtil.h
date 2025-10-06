@@ -178,6 +178,9 @@ class MultiNodeUtil {
   bool verifyNoPortErrorsForSwitch(
       SwitchType switchType,
       const std::string& switchName) const;
+  bool verifyPortCableLength(
+      SwitchType switchType,
+      const std::string& switchName) const;
   bool verifyPortsForSwitch(
       SwitchType switchType,
       const std::string& switchName) const;
