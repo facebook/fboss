@@ -2261,13 +2261,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "controllerId": "65",
             "type": 1,
             "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_65/xcvr_reset",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_65/xcvr_reset",
               "mask": 1,
               "gpioOffset": 0,
               "resetHoldHi": 0
             },
             "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_65/xcvr_present",
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_65/xcvr_present",
               "mask": 1,
               "gpioOffset": 0,
               "presentHoldHi": 0
@@ -2277,7 +2277,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "io": {
             "controllerId": "65",
             "type": 1,
-            "devicePath": "/run/devmap/i2c-busses/XCVR_65"
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_65"
           },
           "tcvrLaneToLedId": {
             "1": 129,
