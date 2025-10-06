@@ -962,15 +962,11 @@ void EcmpResourceManager::InputOutputState::addOrUpdateRoute(
   }
   newState->publish();
   if (!addNewDelta) {
-    // Still working on the current, replaced the current delta.
-    // To do this, we need to do 2 things
-    // - use the current delta's old state as a base for
-    // new delta
-    // - Replace the current (last in the list) delta with
-    // StateDelta(out.back().oldState(), newState);
+    // Still working on the current, replace the current delta.
     oldState = getCurrentStateDelta().oldState();
     replaceLastDelta(StateDelta(oldState, newState));
   } else {
+    // add new delta
     appendDelta(StateDelta(oldState, newState));
   }
 }
@@ -986,14 +982,9 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
   auto fib = newState->getFibs()->getNode(rid)->getFib<AddrT>()->modify(
       rid, &newState);
   fib->removeNode(delRoute);
-  // replace current delta
-  // To do this, we need to do 2 things
-  // - use the current delta's old state as a base for
-  // new delta
-  // - Replace the current (last in the list) delta with
-  // StateDelta(out.back().oldState(), newState);
   newState->publish();
   oldState = getCurrentStateDelta().oldState();
+  // Still working on the current, replace the current delta.
   replaceLastDelta(StateDelta(oldState, newState));
 }
 
