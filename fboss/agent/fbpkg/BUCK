@@ -154,3 +154,6 @@ fboss_fbpkg_builder(
 )
 
 build_test_artifacts_fbpkg(product_line = ProductLine.NVIDIA_SAI_SDK)
+
+#Build LEABA test artifacts fbpkg
+build_test_artifacts_fbpkg(product_line = ProductLine.LEABA)
