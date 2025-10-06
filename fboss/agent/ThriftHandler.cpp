@@ -297,10 +297,10 @@ void getPortInfoHelper(
         range.maximum() = portQueueRate->cref<switch_config_tags::pktsPerSec>()
                               ->cref<switch_config_tags::maximum>()
                               ->cref();
-        PortQueueRate portQueueRate;
-        portQueueRate.pktsPerSec() = range;
+        PortQueueRate pqRate;
+        pqRate.pktsPerSec() = range;
 
-        pq.portQueueRate() = portQueueRate;
+        pq.portQueueRate() = pqRate;
       } else if (
           portQueueRate->type() == cfg::PortQueueRate::Type::kbitsPerSec) {
         Range range;
@@ -310,10 +310,10 @@ void getPortInfoHelper(
         range.maximum() = portQueueRate->cref<switch_config_tags::kbitsPerSec>()
                               ->cref<switch_config_tags::maximum>()
                               ->cref();
-        PortQueueRate portQueueRate;
-        portQueueRate.kbitsPerSec() = range;
+        PortQueueRate pqRate;
+        pqRate.kbitsPerSec() = range;
 
-        pq.portQueueRate() = portQueueRate;
+        pq.portQueueRate() = pqRate;
       }
     }
 
@@ -3056,17 +3056,18 @@ void ThriftHandler::getDsfSubscriptions(
   std::unordered_map<IPAddress, std::string> loopbackIpToName;
   for (const auto& [_, dsfNodes] :
        std::as_const(*sw_->getState()->getDsfNodes())) {
-    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+    for (const auto& [__, node] : std::as_const(*dsfNodes)) {
       if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE &&
           node->getLoopbackIps()->size()) {
         auto loopbackIps = node->getLoopbackIps()->toThrift();
         std::for_each(
             loopbackIps.begin(),
             loopbackIps.end(),
-            [&loopbackIpToName, node = node](const auto& loopbackSubnet) {
+            [&loopbackIpToName,
+             currentNode = node](const auto& loopbackSubnet) {
               loopbackIpToName.emplace(
                   IPAddress(loopbackSubnet.substr(0, loopbackSubnet.find("/"))),
-                  node->getName());
+                  currentNode->getName());
             });
       }
     }
