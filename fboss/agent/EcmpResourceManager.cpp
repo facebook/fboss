@@ -267,7 +267,6 @@ EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta) {
-  CHECK(!preUpdateState_.has_value());
   std::optional<InputOutputState> inOutState;
   StopWatch timeIt("EcmpResourceManager::consolidate", false /*json*/);
   SCOPE_EXIT {
@@ -289,8 +288,6 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
       DeltaFunctions::isEmpty(delta.getFibsDelta())) {
     return makeRet(delta);
   }
-
-  preUpdateState_ = PreUpdateState(getBackupEcmpSwitchingMode());
 
   handleSwitchSettingsDelta(delta);
   auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
@@ -1249,9 +1246,6 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
     const std::shared_ptr<SwitchState>& curState) {
   StopWatch timeIt(
       "EcmpResourceManager::reconstructFromSwitchState", false /*json*/);
-  if (!preUpdateState_.has_value()) {
-    preUpdateState_ = PreUpdateState();
-  }
   // Clear state which needs to be restored from given state
   nextHopGroup2Id_.clear();
   mergedGroups_.clear();
@@ -2032,16 +2026,11 @@ size_t EcmpResourceManager::getCost(NextHopGroupId nhopGrpId) const {
 
 void EcmpResourceManager::updateDone() {
   XLOG(DBG2) << " Update done";
-  preUpdateState_.reset();
 }
 
 void EcmpResourceManager::updateFailed(
     const std::shared_ptr<SwitchState>& knownGoodState) {
-  if (!preUpdateState_.has_value()) {
-    return;
-  }
   XLOG(DBG2) << " Update failed";
-  CHECK(preUpdateState_.has_value());
   if (getBackupEcmpSwitchingMode() != getBackupSwitchingMode(knownGoodState)) {
     // Throw if we get a failed update involving backup switching mode
     // change. We can make this smarter by
@@ -2054,7 +2043,6 @@ void EcmpResourceManager::updateFailed(
     throw FbossError("Update failed with backup switching mode transition");
   }
   reconstructFromSwitchState(knownGoodState);
-  preUpdateState_.reset();
 }
 
 std::optional<EcmpResourceManager::InputOutputState>

@@ -126,9 +126,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
 
  private:
   RouteNextHopSet getCommonNextHops(const NextHopGroupIds& grpIds) const;
-  struct PreUpdateState {
-    std::optional<cfg::SwitchingMode> backupEcmpGroupType;
-  };
   struct InputOutputState {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
@@ -425,9 +422,6 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   PrefixToGroupInfo prefixToGroupInfo_;
   std::map<NextHopGroupIds, ConsolidationInfo> mergedGroups_;
   std::map<NextHopGroupIds, ConsolidationInfo> candidateMergeGroups_;
-  // Cached pre update state, will be used in case of roll back
-  // if update fails
-  std::optional<PreUpdateState> preUpdateState_;
   SwitchStatsGetter statsGetter_;
   EcmpResourceManagerConfig config_;
 };
