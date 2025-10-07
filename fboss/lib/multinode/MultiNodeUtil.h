@@ -297,7 +297,8 @@ class MultiNodeUtil {
       const folly::IPAddress& destPrefix,
       const int16_t prefixLength) const;
 
-  std::optional<NeighborInfo> configureNeighborsAndRoutesForTrafficLoop() const;
+  std::map<std::string, NeighborInfo>
+  configureNeighborsAndRoutesForTrafficLoop() const;
   void createTrafficLoop(const NeighborInfo& neighborInfo) const;
   bool verifyTrafficCounters() const;
 

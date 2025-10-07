@@ -2058,7 +2058,7 @@ bool MultiNodeUtil::verifyRoutePresent(
       true /* retry on exception */);
 }
 
-std::optional<MultiNodeUtil::NeighborInfo>
+std::map<std::string, MultiNodeUtil::NeighborInfo>
 MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
   auto logAddRoute =
       [](const auto& rdsw, const auto& prefix, const auto& neighbor) {
@@ -2066,6 +2066,7 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
                    << " nexthop: " << neighbor.str() << " to " << rdsw;
       };
 
+  std::map<std::string, NeighborInfo> rdswToNeighbor;
   auto [prefix, prefixLength] = kGetRoutePrefixAndPrefixLength();
   std::optional<std::string> prevRdsw{std::nullopt};
   MultiNodeUtil::NeighborInfo firstRdswNeighbor{};
@@ -2081,6 +2082,7 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
     auto neighbors = computeNeighborsForRdsw(rdsw, 1 /* number of neighbors */);
     CHECK_EQ(neighbors.size(), 1);
     auto neighbor = neighbors[0];
+    rdswToNeighbor[rdsw] = neighbor;
 
     XLOG(DBG2) << "Adding neighbor: " << neighbor.str() << " to " << rdsw;
     addNeighbor(
@@ -2088,7 +2090,7 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
     if (!verifyNeighborsPresent(rdsw, {neighbor})) {
       XLOG(DBG2) << "Neighbor add verification failed: " << rdsw
                  << " neighbor: " << neighbor.str();
-      return std::nullopt;
+      return rdswToNeighbor;
     }
 
     if (!prevRdsw.has_value()) { // first RDSW
@@ -2100,7 +2102,7 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
         XLOG(DBG2) << "Route add verification failed: " << prevRdsw.value()
                    << " route: " << prefix.str()
                    << " prefixLength: " << prefixLength;
-        return std::nullopt;
+        return rdswToNeighbor;
       }
     }
     prevRdsw = rdsw;
@@ -2115,10 +2117,10 @@ MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
     XLOG(DBG2) << "Route add verification failed: " << *lastRdsw
                << " route: " << prefix.str()
                << " prefixLength: " << prefixLength;
-    return std::nullopt;
+    return rdswToNeighbor;
   }
 
-  return firstRdswNeighbor;
+  return rdswToNeighbor;
 }
 
 void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
@@ -2177,12 +2179,16 @@ bool MultiNodeUtil::verifyTrafficCounters() const {
 bool MultiNodeUtil::verifyTrafficSpray() const {
   XLOG(DBG2) << __func__;
 
-  auto firstRdswNeighbor = configureNeighborsAndRoutesForTrafficLoop();
-  if (!firstRdswNeighbor.has_value()) {
+  auto rdswToNeighbor = configureNeighborsAndRoutesForTrafficLoop();
+  if (rdswToNeighbor.empty()) {
     return false;
   }
 
-  createTrafficLoop(firstRdswNeighbor.value());
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
+  createTrafficLoop(rdswToNeighbor[myHostname]);
+
   return verifyTrafficCounters();
 }
 
