@@ -2374,6 +2374,17 @@ bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
 }
 
 bool MultiNodeUtil::verifyNoTrafficDrop() const {
+  if (!setupTrafficLoop()) {
+    XLOG(DBG2) << "Traffic loop setup failed";
+    return false;
+  }
+
+  if (!verifyNoReassemblyErrorsForAllSwitches()) {
+    XLOG(DBG2) << "Unexpected reassembly errors";
+    // TODO query drop counters to root cause reason for reassembly errors
+    return false;
+  }
+
   return true;
 }
 
