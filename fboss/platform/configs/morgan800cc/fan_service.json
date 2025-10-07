@@ -218,9 +218,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_1_R",
@@ -232,9 +230,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_2_F",
@@ -246,9 +242,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_2_R",
@@ -260,9 +254,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_3_F",
@@ -274,9 +266,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_3_R",
@@ -288,9 +278,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_4_F",
@@ -302,9 +290,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_4_R",
@@ -316,9 +302,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_5_F",
@@ -330,9 +314,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_5_R",
@@ -344,9 +326,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_6_F",
@@ -358,9 +338,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_6_R",
@@ -372,9 +350,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_7_F",
@@ -386,9 +362,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_7_R",
@@ -400,9 +374,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_8_F",
@@ -414,9 +386,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     },
     {
       "fanName": "FAN_8_R",
@@ -428,9 +398,7 @@
       "pwmMin": 1,
       "pwmMax": 100,
       "fanPresentVal": 1,
-      "fanMissingVal": 0,
-      "fanGoodLedVal": 2,
-      "fanFailLedVal": 1
+      "fanMissingVal": 0
     }
   ],
   "zones": [

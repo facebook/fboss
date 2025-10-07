@@ -78,11 +78,9 @@ struct Fan {
   8: i32 pwmMax;
   9: i32 fanPresentVal;
   10: i32 fanMissingVal;
-  11: i32 fanGoodLedVal;
-  12: i32 fanFailLedVal;
-  13: optional Gpio presenceGpio;
-  14: optional i32 rpmMin;
-  15: optional i32 rpmMax;
+  11: optional Gpio presenceGpio;
+  12: optional i32 rpmMin;
+  13: optional i32 rpmMax;
 }
 
 struct Watchdog {

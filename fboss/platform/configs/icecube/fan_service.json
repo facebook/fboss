@@ -118,8 +118,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     },
     {
@@ -131,8 +129,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     },
     {
@@ -144,8 +140,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     },
     {
@@ -157,8 +151,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     },
     {
@@ -170,8 +162,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     },
     {
@@ -183,8 +173,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     },
     {
@@ -196,8 +184,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     },
     {
@@ -209,8 +195,6 @@
       "pwmMax": 40,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 1500
     }
   ],
