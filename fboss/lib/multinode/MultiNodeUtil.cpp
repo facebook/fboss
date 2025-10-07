@@ -2381,6 +2381,28 @@ bool MultiNodeUtil::verifyNoTrafficDrop() const {
     return false;
   }
 
+  // With traffic loop running, execute a variety of scenarios.
+  // For each scenario, expect no drops on Fabric ports.
+  struct Scenario {
+    std::string name;
+    std::function<bool()> setup;
+  };
+
+  std::vector<Scenario> scenarios = {};
+  for (const auto& scenario : scenarios) {
+    XLOG(DBG2) << "Running scenario: " << scenario.name;
+    if (!scenario.setup()) {
+      XLOG(DBG2) << "Scenario: " << scenario.name << " failed";
+      return false;
+    }
+
+    if (!verifyNoReassemblyErrorsForAllSwitches()) {
+      XLOG(DBG2) << "Scenario: " << scenario.name
+                 << " unexpected reassembly errors";
+      return false;
+    }
+  }
+
   return true;
 }
 
