@@ -300,6 +300,7 @@ class MultiNodeUtil {
   bool verifyLineRate(
       const std::string& rdsw,
       const MultiNodeUtil::NeighborInfo& neighborInfo) const;
+  bool verifyFabricSpray(const std::string& rdsw) const;
 
   std::map<std::string, NeighborInfo>
   configureNeighborsAndRoutesForTrafficLoop() const;

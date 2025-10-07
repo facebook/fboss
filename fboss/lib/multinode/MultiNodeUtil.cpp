@@ -2213,10 +2213,20 @@ bool MultiNodeUtil::verifyLineRate(
       true /* retry on exception */);
 }
 
+bool MultiNodeUtil::verifyFabricSpray(const std::string& rdsw) const {
+  return true;
+}
+
 bool MultiNodeUtil::verifyTrafficCounters(
     const std::map<std::string, NeighborInfo>& rdswToNeighbor) const {
   for (const auto& [rdsw, neighbor] : rdswToNeighbor) {
     if (!verifyLineRate(rdsw, neighbor)) {
+      return false;
+    }
+  }
+
+  for (const auto& [rdsw, _] : rdswToNeighbor) {
+    if (!verifyFabricSpray(rdsw)) {
       return false;
     }
   }
