@@ -21,6 +21,7 @@ cpp_binary(
     deps = [
         ":core-credo-0.7.2",
         ":handler",
+        ":port-manager",
         ":stats",
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
         "//folly/executors:function_scheduler",

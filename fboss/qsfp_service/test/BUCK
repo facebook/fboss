@@ -13,6 +13,7 @@ cpp_binary(
         "fbsource//third-party/googletest:gtest",
         "//common/init:init",
         "//fboss/qsfp_service:handler",
+        "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
         "//folly:singleton",
         "//folly/executors:function_scheduler",

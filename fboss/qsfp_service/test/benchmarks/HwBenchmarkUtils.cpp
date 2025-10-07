@@ -3,6 +3,7 @@
 #include <folly/Benchmark.h>
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
@@ -101,7 +102,8 @@ std::unique_ptr<WedgeManager> setupForColdboot() {
   gflags::SetCommandLineOptionWithMode(
       "force_reload_gearbox_fw", "1", gflags::SET_FLAGS_DEFAULT);
 
-  return createWedgeManager();
+  auto [transceiverManager, _] = createQsfpManagers();
+  return std::move(transceiverManager);
 }
 
 std::unique_ptr<WedgeManager> setupForWarmboot() {
@@ -113,7 +115,8 @@ std::unique_ptr<WedgeManager> setupForWarmboot() {
   // Use gracefulExit so the next initExternalPhyMap() will be using warm boot
   wedgeMgr->gracefulExit();
 
-  return createWedgeManager();
+  auto [transceiverManager, _] = createQsfpManagers();
+  return std::move(transceiverManager);
 }
 
 } // namespace facebook::fboss

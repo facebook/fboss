@@ -5,6 +5,7 @@
 #include <folly/executors/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/QsfpServiceSignalHandler.h"
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
 
   qsfpServiceInit(&argc, &argv);
 
-  auto transceiverManager = createWedgeManager();
+  auto [transceiverManager, _] = createQsfpManagers();
   StatsPublisher publisher(transceiverManager.get());
 
   auto [server, handler] = setupThriftServer(std::move(transceiverManager));

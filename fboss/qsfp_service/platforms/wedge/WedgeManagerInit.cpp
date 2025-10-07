@@ -25,6 +25,7 @@
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
@@ -34,8 +35,16 @@
 #include "fboss/lib/CommonFileUtils.h"
 
 namespace facebook::fboss {
+namespace {
 
-std::unique_ptr<WedgeManager> createWedgeManager() {
+struct ManagerInitComponents {
+  std::unique_ptr<PlatformProductInfo> productInfo;
+  std::shared_ptr<const PlatformMapping> platformMapping;
+  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+      threads;
+};
+
+ManagerInitComponents initializeManagerComponents() {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
@@ -62,9 +71,20 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     threads->emplace(tcvrID, SlotThreadHelper(tcvrID));
   }
 
+  return {std::move(productInfo), platformMapping, threads};
+}
+
+} // namespace
+
+std::unique_ptr<WedgeManager> createWedgeManager(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads) {
+  auto mode = productInfo->getType();
+
   createDir(FLAGS_qsfp_service_volatile_dir);
 
-  std::unique_ptr<WedgeManager> wedgeManager;
   switch (mode) {
     case PlatformType::PLATFORM_WEDGE100:
       return std::make_unique<Wedge100Manager>(platformMapping, threads);
@@ -72,14 +92,12 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     case PlatformType::PLATFORM_GALAXY_FC:
       return std::make_unique<GalaxyManager>(mode, platformMapping, threads);
     case PlatformType::PLATFORM_YAMP:
-      wedgeManager = createYampWedgeManager(platformMapping, threads);
-      break;
+      return createYampWedgeManager(platformMapping, threads);
     case PlatformType::PLATFORM_DARWIN:
     case PlatformType::PLATFORM_DARWIN48V:
       return createDarwinWedgeManager(platformMapping, threads);
     case PlatformType::PLATFORM_ELBERT:
-      wedgeManager = createElbertWedgeManager(platformMapping, threads);
-      break;
+      return createElbertWedgeManager(platformMapping, threads);
     case PlatformType::PLATFORM_MERU400BFU:
       return createBspWedgeManager<
           Meru400bfuBspPlatformMapping,
@@ -136,9 +154,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     case PlatformType::PLATFORM_FUJI:
     case PlatformType::PLATFORM_MINIPACK:
     case PlatformType::PLATFORM_WEDGE400:
-      wedgeManager = createFBWedgeManager(
+      return createFBWedgeManager(
           std::move(productInfo), platformMapping, threads);
-      break;
     case PlatformType::PLATFORM_TAHANSB800BC:
       return createBspWedgeManager<
           Tahansb800bcBspPlatformMapping,
@@ -146,13 +163,6 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     default:
       return std::make_unique<Wedge40Manager>(platformMapping, threads);
   }
-
-  auto phyManager = createPhyManager(mode, platformMapping.get());
-  if (phyManager) {
-    wedgeManager->setPhyManager(std::move(phyManager));
-  }
-
-  return wedgeManager;
 }
 
 template <typename BspPlatformMapping, PlatformType platformType>
@@ -168,6 +178,32 @@ std::unique_ptr<WedgeManager> createBspWedgeManager(
       platformMapping,
       platformType,
       threads);
+}
+
+std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
+createQsfpManagers() {
+  auto [productInfo, platformMapping, threads] = initializeManagerComponents();
+
+  auto phyManager =
+      createPhyManager(productInfo->getType(), platformMapping.get());
+  auto wedgeManager =
+      createWedgeManager(std::move(productInfo), platformMapping, threads);
+
+  std::unique_ptr<PortManager> portManager{nullptr};
+  if (FLAGS_port_manager_mode) {
+    // When port_manager_mode is enabled, we want Port Manager to own the
+    // PhyManager.
+    portManager = std::make_unique<PortManager>(
+        wedgeManager.get(), std::move(phyManager), platformMapping, threads);
+  } else {
+    if (phyManager) {
+      wedgeManager->setPhyManager(std::move(phyManager));
+    }
+  }
+
+  return std::
+      make_pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>(
+          std::move(wedgeManager), std::move(portManager));
 }
 
 } // namespace facebook::fboss

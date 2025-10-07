@@ -12,6 +12,7 @@
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
@@ -48,7 +49,7 @@ void HwQsfpEnsemble::init() {
     close(fd);
   }
 
-  auto wedgeManager = createWedgeManager();
+  auto [wedgeManager, _] = createQsfpManagers();
   std::tie(server_, qsfpServiceHandler_) =
       setupThriftServer(std::move(wedgeManager));
 }

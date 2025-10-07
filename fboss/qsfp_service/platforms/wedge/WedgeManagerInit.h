@@ -22,6 +22,7 @@ namespace facebook {
 namespace fboss {
 
 class WedgeManager;
+class PortManager;
 class PlatformProductInfo;
 class FbossMacsecHandler;
 
@@ -29,7 +30,14 @@ std::unique_ptr<PhyManager> createPhyManager(
     PlatformType mode,
     const PlatformMapping* platformMapping);
 
-std::unique_ptr<WedgeManager> createWedgeManager();
+std::unique_ptr<WedgeManager> createWedgeManager(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
+        threads);
+
+std::pair<std::unique_ptr<WedgeManager>, std::unique_ptr<PortManager>>
+createQsfpManagers();
 
 std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
     WedgeManager* wedgeMgr);

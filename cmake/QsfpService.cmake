@@ -234,13 +234,18 @@ add_library(transceiver_manager STATIC
 )
 
 target_link_libraries(transceiver_manager
+  qsfp_module
+  ledIO
+  qsfp_bsp_core
+  platform_base
+  io_stats_recorder
+  platform_mapping_utils
   fboss_error
   fboss_types
   qsfp_config
   phy_management_base
   thrift_service_client
   common_file_utils
-  qsfp_platforms_wedge
   thread_heartbeat
   utils
   product_info
@@ -278,6 +283,7 @@ add_library(qsfp_handler
 target_link_libraries(qsfp_handler
   Folly::folly
   transceiver_manager
+  port_manager
   log_thrift_call
   fsdb_stream_client
   fsdb_pub_sub

@@ -40,6 +40,7 @@ cpp_binary(
         "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module:firmware_upgrader",

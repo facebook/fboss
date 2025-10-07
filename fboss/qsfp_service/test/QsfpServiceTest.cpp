@@ -13,6 +13,7 @@
 
 #include "common/init/Init.h"
 
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 using namespace facebook::fboss;
@@ -43,7 +44,8 @@ void QsfpServiceTest::SetUp() {
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
 
-  wedgeManager_ = createWedgeManager();
+  auto [wedgeManager, _] = createQsfpManagers();
+  wedgeManager_ = std::move(wedgeManager);
 }
 
 TEST_F(QsfpServiceTest, simpleTest) {
