@@ -362,6 +362,34 @@ void forEachExcluding(
   }
 }
 
+// Invoke the provided func on every element of given set.
+// except on exclusions.
+// Return true if and only if every func returns true.
+// false otherwise. Stops on first failure.
+template <typename Callable, typename... Args>
+bool checkForEachExcluding(
+    const std::set<std::string>& inputSet,
+    const std::set<std::string>& exclusions,
+    Callable&& func,
+    Args&&... args) {
+  // Store arguments in a tuple for safe repeated use
+  auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
+  for (const auto& elem : inputSet) {
+    if (exclusions.find(elem) == exclusions.end()) {
+      bool result = std::apply(
+          [&](auto&&... unpackedArgs) {
+            return func(
+                elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+          },
+          argsTuple);
+      if (!result) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
