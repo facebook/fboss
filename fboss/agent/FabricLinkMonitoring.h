@@ -23,6 +23,11 @@ class FabricLinkMonitoring {
 
  private:
   // Forward declarations for methods to be added in later diffs
+  // Compute switch ID offsets
+  int getSwitchIdOffset(
+      const SwitchID& localSwitchId,
+      const SwitchID& remoteSwitchId);
+
   void processDsfNodes(const cfg::SwitchConfig* config);
   void processLinkInfo(const cfg::SwitchConfig* config);
 

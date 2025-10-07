@@ -64,6 +64,39 @@ int FabricLinkMonitoring::calculateParallelLinkOffset(
   return static_cast<int>(std::distance(portList.begin(), portIt));
 }
 
+// Compute the offset based on local and remote switch IDs for use in the switch
+// ID per link determination.
+int FabricLinkMonitoring::getSwitchIdOffset(
+    const SwitchID& localSwitchId,
+    const SwitchID& remoteSwitchId) {
+  auto getLeafL1SwitchIdOffset = [this](
+                                     const SwitchID& leafSwitchId,
+                                     const SwitchID& l1SwitchId) {
+    constexpr int kNumSwitchIdsPerLeafSwitch{4}; // Switch IDs per leaf switch
+    return (leafSwitchId - lowestLeafSwitchId_) / kNumSwitchIdsPerLeafSwitch +
+        l1SwitchId - lowestL1SwitchId_;
+  };
+  auto getL1L2SwitchIdOffset =
+      [this](const SwitchID& l1SwitchId, const SwitchID& l2SwitchId) {
+        constexpr int kNumSwitchIdsPerL1Switch{4}; // Switch IDs per L1 switch
+        return (l1SwitchId - lowestL1SwitchId_) / kNumSwitchIdsPerL1Switch +
+            l2SwitchId - lowestL2SwitchId_;
+      };
+
+  // Leaf switch ID < L1 switch ID < L2 switch ID
+  if (localSwitchId < lowestL1SwitchId_ || remoteSwitchId < lowestL1SwitchId_) {
+    // We are dealing with leaf-L1 switches
+    return localSwitchId < lowestL1SwitchId_
+        ? getLeafL1SwitchIdOffset(localSwitchId, remoteSwitchId)
+        : getLeafL1SwitchIdOffset(remoteSwitchId, localSwitchId);
+  } else {
+    // We are dealing with L1-L2 switches
+    return localSwitchId < lowestL2SwitchId_
+        ? getL1L2SwitchIdOffset(localSwitchId, remoteSwitchId)
+        : getL1L2SwitchIdOffset(remoteSwitchId, localSwitchId);
+  }
+}
+
 void FabricLinkMonitoring::processDsfNodes(const cfg::SwitchConfig* config) {
   switchName2SwitchId_.clear();
   for (const auto& [_, dsfNode] : *config->dsfNodes()) {
