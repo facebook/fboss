@@ -1955,6 +1955,10 @@ struct SwitchSettings {
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   32: optional i32 pfcWatchdogTimerGranularityMsec;
   33: optional i32 ecmpCompressionThresholdPct;
+  // Offset from where to start connected system port ID allocation from.
+  // Connected system ports are for fabric links and used in fabric link
+  // monitoring feature.
+  34: optional i32 fabricLinkMonitoringSystemPortOffset;
 }
 
 // Global buffer pool

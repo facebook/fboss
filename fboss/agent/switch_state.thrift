@@ -462,6 +462,8 @@ struct SwitchSettingsFields {
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   58: optional i32 pfcWatchdogTimerGranularityMsec;
   59: optional i32 ecmpCompressionThresholdPct;
+  // System port offset for fabric link monitoring
+  60: optional i32 fabricLinkMonitoringSystemPortOffset;
 }
 
 struct RoutePrefix {
