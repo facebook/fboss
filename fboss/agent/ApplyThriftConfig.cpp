@@ -407,6 +407,10 @@ class ThriftConfigApplier {
       const std::shared_ptr<MultiSwitchSettings>& origMultiSwitchSettings,
       const std::shared_ptr<MultiSwitchSettings>& newMultiSwitchSettings,
       const SwitchIdScopeResolver& scopeResolver);
+  std::optional<int32_t> getFabricLinkMonitoringPortSwitchId(
+      const PortID& portId,
+      const cfg::PortType& type,
+      const size_t expectedNeighborCount) const;
 
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
@@ -655,6 +659,7 @@ class ThriftConfigApplier {
   SwitchIdScopeResolver scopeResolver_;
   const PlatformMapping* platformMapping_{nullptr};
   const HwAsicTable* hwAsicTable_{nullptr};
+  const FabricLinkMonitoring* fabricLinkMon_{nullptr};
 
   struct InterfaceIpInfo {
     InterfaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -716,6 +721,11 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   processInterfaceForPort();
+  if (FLAGS_enable_fabric_link_monitoring) {
+    // Create the fabric link mon object in case we have
+    // fabric link monitoring enabled.
+    fabricLinkMon_ = new FabricLinkMonitoring(cfg_);
+  }
 
   {
     auto newPorts = updatePorts(new_->getTransceivers());
@@ -732,7 +742,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    if (needFabricLinkMonSystemPortUpdate(
+    if (FLAGS_enable_fabric_link_monitoring &&
+        needFabricLinkMonSystemPortUpdate(
             orig_->getSwitchSettings(),
             new_->getSwitchSettings(),
             scopeResolver_)) {
@@ -1832,8 +1843,6 @@ ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
   auto sysPorts = std::make_shared<SystemPortMap>();
-  auto fabricLinkMon = FabricLinkMonitoring(cfg_);
-  const auto& portId2LinkSwitchId = fabricLinkMon.getPort2LinkSwitchIdMapping();
 
   for (const auto& [matcherString, portMap] : std::as_const(*ports)) {
     auto switchId = HwSwitchMatcher(matcherString).switchId();
@@ -1847,16 +1856,20 @@ ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
     auto dsfNode = cfg_->dsfNodes()->find(switchId)->second;
 
     for (const auto& port : std::as_const(*portMap)) {
-      if (port.second->getPortType() != cfg::PortType::FABRIC_PORT) {
+      auto fabricLinkSwitchId = getFabricLinkMonitoringPortSwitchId(
+          port.second->getID(),
+          port.second->getPortType(),
+          port.second->getExpectedNeighborValues()->size());
+      if (!fabricLinkSwitchId.has_value()) {
+        // Not a valid port for fabric link monitoring
         continue;
       }
       auto sysPort =
           std::make_shared<SystemPort>(getFabricLinkMonitoringSystemPortID(
               port.second->getID(), switchSettings));
-      auto fabricLinkSwitchId = portId2LinkSwitchId.at(port.second->getID());
-      sysPort->setSwitchId(SwitchID(fabricLinkSwitchId));
+      sysPort->setSwitchId(SwitchID(*fabricLinkSwitchId));
       // Last 2 bits in the SwitchID determines the core ID
-      int64_t coreIdx = fabricLinkSwitchId & 0x3;
+      int64_t coreIdx = *fabricLinkSwitchId & 0x3;
       sysPort->setCoreIndex(coreIdx);
       // Populate the CPU port for the core identified above
       for (const auto& [_, coreAndPortIdx] :
@@ -2012,6 +2025,22 @@ bool ThriftConfigApplier::needFabricLinkMonSystemPortUpdate(
     }
   }
   return false;
+}
+
+std::optional<int32_t> ThriftConfigApplier::getFabricLinkMonitoringPortSwitchId(
+    const PortID& portId,
+    const cfg::PortType& type,
+    const size_t expectedNeighborCount) const {
+  std::optional<SwitchID> linkSwitchId;
+  if (FLAGS_enable_fabric_link_monitoring &&
+      type == cfg::PortType::FABRIC_PORT && expectedNeighborCount > 0) {
+    // Fabric link mon supported only for fabric ports
+    // with valid expected neighbors.
+    CHECK(fabricLinkMon_ != nullptr)
+        << "Fabric link monitoring not initialized!";
+    linkSwitchId = fabricLinkMon_->getSwitchIdForPort(portId);
+  }
+  return linkSwitchId;
 }
 
 shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
