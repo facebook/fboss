@@ -448,6 +448,14 @@ SystemPortID getSystemPortID(
       switchId);
 }
 
+SystemPortID getFabricLinkMonitoringSystemPortID(
+    const PortID& portId,
+    const std::shared_ptr<SwitchSettings>& switchSettings) {
+  CHECK(switchSettings->getFabricLinkMonitoringSystemPortOffset().has_value());
+  return SystemPortID(
+      portId + *switchSettings->getFabricLinkMonitoringSystemPortOffset());
+}
+
 SystemPortID getInbandSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId) {
