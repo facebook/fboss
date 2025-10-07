@@ -25,6 +25,7 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/BufferUtils.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/FabricLinkMonitoring.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/LacpTypes.h"
@@ -394,6 +395,9 @@ class ThriftConfigApplier {
   void updateVlanInterfaces(const Interface* intf);
   std::shared_ptr<PortMap> updatePorts(
       const std::shared_ptr<MultiSwitchTransceiverMap>& transceiverMap);
+  shared_ptr<SystemPortMap> updateFabricLinkMonitoringSystemPorts(
+      const std::shared_ptr<MultiSwitchPortMap>& ports,
+      const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<MultiSwitchPortMap>& ports,
       const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
@@ -1803,6 +1807,58 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
   IPAddressV6 linkLocalAddr(IPAddressV6::LINK_LOCAL, intf->getMac());
   InterfaceIpInfo linkLocalInfo(64, intf->getMac(), intf->getID());
   entry.addresses.emplace(IPAddress(linkLocalAddr), linkLocalInfo);
+}
+
+shared_ptr<SystemPortMap>
+ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
+    const std::shared_ptr<MultiSwitchPortMap>& ports,
+    const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings) {
+  auto sysPorts = std::make_shared<SystemPortMap>();
+  auto fabricLinkMon = FabricLinkMonitoring(cfg_);
+  const auto& portId2LinkSwitchId = fabricLinkMon.getPort2LinkSwitchIdMapping();
+
+  for (const auto& [matcherString, portMap] : std::as_const(*ports)) {
+    auto switchId = HwSwitchMatcher(matcherString).switchId();
+    auto switchSettings = multiSwitchSettings->getNodeIf(matcherString);
+    // System port creation for fabric link monitoring is applicable
+    // to fabric ports of VOQ switches only!
+    if (!switchSettings || !switchSettings->l3SwitchType().has_value() ||
+        switchSettings->l3SwitchType().value() != cfg::SwitchType::VOQ) {
+      continue;
+    }
+    auto dsfNode = cfg_->dsfNodes()->find(switchId)->second;
+
+    for (const auto& port : std::as_const(*portMap)) {
+      if (port.second->getPortType() != cfg::PortType::FABRIC_PORT) {
+        continue;
+      }
+      auto sysPort =
+          std::make_shared<SystemPort>(getFabricLinkMonitoringSystemPortID(
+              port.second->getID(), switchSettings));
+      auto fabricLinkSwitchId = portId2LinkSwitchId.at(port.second->getID());
+      sysPort->setSwitchId(SwitchID(fabricLinkSwitchId));
+      // Last 2 bits in the SwitchID determines the core ID
+      int64_t coreIdx = fabricLinkSwitchId & 0x3;
+      sysPort->setCoreIndex(coreIdx);
+      // Populate the CPU port for the core identified above
+      for (const auto& [_, coreAndPortIdx] :
+           platformMapping_->getCpuPortsCoreAndPortIdx()) {
+        if (coreAndPortIdx.first == coreIdx) {
+          sysPort->setCorePortIndex(coreAndPortIdx.second);
+          break;
+        }
+      }
+      sysPort->setName(
+          folly::sformat("{}:{}", *dsfNode.name(), port.second->getName()));
+      sysPort->setNumVoqs(getLocalPortNumVoqs(
+          port.second->getPortType(), port.second->getScope()));
+      sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
+      sysPort->setScope(port.second->getScope());
+      sysPort->setPortType(port.second->getPortType());
+      sysPorts->addSystemPort(sysPort);
+    }
+  }
+  return sysPorts;
 }
 
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
