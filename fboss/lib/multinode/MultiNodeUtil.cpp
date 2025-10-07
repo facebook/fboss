@@ -21,6 +21,7 @@
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
@@ -2214,7 +2215,34 @@ bool MultiNodeUtil::verifyLineRate(
 }
 
 bool MultiNodeUtil::verifyFabricSpray(const std::string& rdsw) const {
-  return true;
+  auto verifyFabricSprayHelper = [this, rdsw]() {
+    int64_t lowestMbps = std::numeric_limits<int64_t>::max();
+    int64_t highestMbps = std::numeric_limits<int64_t>::min();
+
+    auto counterNameToCount = getCounterNameToCount(rdsw);
+    for (const auto& [_, portInfo] : getActiveFabricPortNameToPortInfo(rdsw)) {
+      auto portName = portInfo.name().value();
+      auto counterName = portName + ".out_bytes.rate.60";
+      auto outSpeedMbps = counterNameToCount[counterName] * 8 / 1000000;
+
+      lowestMbps = std::min(lowestMbps, outSpeedMbps);
+      highestMbps = std::max(highestMbps, outSpeedMbps);
+
+      XLOG(DBG2) << "Active Fabric port: " << portInfo.name().value()
+                 << " outSpeedMbps: " << outSpeedMbps
+                 << " lowestMbps: " << lowestMbps
+                 << " highestMbps: " << highestMbps;
+    }
+
+    return isDeviationWithinThreshold(
+        lowestMbps, highestMbps, 5 /* maxDeviationPct */);
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyFabricSprayHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool MultiNodeUtil::verifyTrafficCounters(

@@ -15,6 +15,7 @@ cpp_library(
         "//fboss/agent/if:test_ctrl-cpp2-clients",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/lib:common_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-clients",
