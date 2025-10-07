@@ -251,6 +251,26 @@ target_link_libraries(transceiver_manager
   restart_time_tracker
 )
 
+add_library(port_manager STATIC
+    fboss/qsfp_service/PortManager.cpp
+    fboss/qsfp_service/PortStateMachine.cpp
+    fboss/qsfp_service/PortStateMachineController.cpp
+    fboss/qsfp_service/SlotThreadHelper.cpp
+)
+
+target_link_libraries(port_manager
+  fboss_error
+  fboss_types
+  utils
+  transceiver_manager
+  phy_management_base
+  thrift_service_client
+  thread_heartbeat
+  product_info
+  fsdb_flags
+  restart_time_tracker
+)
+
 add_library(qsfp_handler
   fboss/qsfp_service/QsfpServiceHandler.cpp
 )
@@ -283,6 +303,7 @@ target_link_libraries(qsfp_service
     qsfp_config
     phy_management_base
     transceiver_manager
+    port_manager
     qsfp_platforms_wedge
     log_thrift_call
     qsfp_core
