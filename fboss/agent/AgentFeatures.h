@@ -121,3 +121,4 @@ DECLARE_bool(hyper_port);
 DECLARE_uint32(ecmp_width);
 DECLARE_bool(enable_th5_ars_scale_mode);
 DECLARE_bool(check_wb_handles);
+DECLARE_bool(enable_fabric_link_monitoring);

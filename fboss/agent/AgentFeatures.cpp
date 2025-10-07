@@ -372,3 +372,9 @@ DEFINE_bool(
     check_wb_handles,
     false,
     "Fail if any warm boot handles are left unclaimed.");
+
+// DSF specific feature to monitor fabric side links
+DEFINE_bool(
+    enable_fabric_link_monitoring,
+    false,
+    "Enable fabric link monitoring feature in DSF");
