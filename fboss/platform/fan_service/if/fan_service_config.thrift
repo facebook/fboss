@@ -72,16 +72,17 @@ struct Fan {
   2: string rpmSysfsPath;
   3: string pwmSysfsPath;
   4: optional string presenceSysfsPath;
-  5: string ledSysfsPath;
-  6: i32 pwmMin;
-  7: i32 pwmMax;
-  8: i32 fanPresentVal;
-  9: i32 fanMissingVal;
-  10: i32 fanGoodLedVal;
-  11: i32 fanFailLedVal;
-  12: optional Gpio presenceGpio;
-  13: optional i32 rpmMin;
-  14: optional i32 rpmMax;
+  5: optional string goodLedSysfsPath;
+  6: optional string failLedSysfsPath;
+  7: i32 pwmMin;
+  8: i32 pwmMax;
+  9: i32 fanPresentVal;
+  10: i32 fanMissingVal;
+  11: i32 fanGoodLedVal;
+  12: i32 fanFailLedVal;
+  13: optional Gpio presenceGpio;
+  14: optional i32 rpmMin;
+  15: optional i32 rpmMax;
 }
 
 struct Watchdog {

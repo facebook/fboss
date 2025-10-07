@@ -125,7 +125,8 @@ TEST_F(FanServiceHwTest, LedWriteDidNotFail) {
   controlLogic_->controlFan();
 
   for (const auto& fan : *fanServiceConfig_.fans()) {
-    if (fan.ledSysfsPath().has_value()) {
+    if (fan.goodLedSysfsPath().has_value() ||
+        fan.failLedSysfsPath().has_value()) {
       EXPECT_EQ(
           fb303::fbData->getCounter(
               fmt::format("{}.led_write.failure", *fan.fanName())),
