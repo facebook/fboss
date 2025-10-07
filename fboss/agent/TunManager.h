@@ -387,6 +387,11 @@ class TunManager : public StateObserver {
   void addProbedAddr(int ifIndex, const folly::IPAddress& addr, uint8_t mask);
 
   /**
+   * Performs initial sync if no syncs have occurred yet.
+   */
+  void performInitialSyncIfNeeded();
+
+  /**
    * Delete all probed data from kernel including routes, addresses, rules and
    * tunnel interfaces.
    */

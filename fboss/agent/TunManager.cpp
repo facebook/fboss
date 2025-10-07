@@ -989,15 +989,17 @@ bool TunManager::getIntfStatus(
   return folly::get_default(intfStatusMap, ifID, false);
 }
 
+void TunManager::performInitialSyncIfNeeded() {
+  if (numSyncs_ == 0) {
+    // no syncs occurred yet. Force initial sync. The initial sync is done
+    // with applied state, and subsequent sync's will also be done with
+    // the applied states.
+    sync(sw_->getState());
+  }
+}
+
 void TunManager::forceInitialSync() {
-  evb_->runInFbossEventBaseThread([this]() {
-    if (numSyncs_ == 0) {
-      // no syncs occurred yet. Force initial sync. The initial sync is done
-      // with applied state, and subsequent sync's will also be done with
-      // the applied states.
-      sync(sw_->getState());
-    }
-  });
+  evb_->runInFbossEventBaseThread([this]() { performInitialSyncIfNeeded(); });
 }
 
 void TunManager::sync(std::shared_ptr<SwitchState> state) {
