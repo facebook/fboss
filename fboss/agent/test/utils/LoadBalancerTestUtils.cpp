@@ -418,11 +418,7 @@ bool isLoadBalancedImpl(
       }
     }
   } else {
-    auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
-    // Don't tolerate a deviation of more than maxDeviationPct
-    XLOG(DBG2) << "Percent Deviation: " << percentDev
-               << ", Maximum Deviation: " << maxDeviationPct;
-    if (percentDev > maxDeviationPct) {
+    if (!isDeviationWithinThreshold(lowest, highest, maxDeviationPct)) {
       return false;
     }
   }
