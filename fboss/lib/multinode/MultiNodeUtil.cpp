@@ -2282,6 +2282,23 @@ bool MultiNodeUtil::verifyTrafficCounters(
 bool MultiNodeUtil::verifyTrafficSpray() const {
   XLOG(DBG2) << __func__;
 
+  auto getPeerToDsfSessionForAllRdsws = [this] {
+    std::map<std::string, std::map<std::string, DsfSessionThrift>>
+        rdswToPeerAndDsfSession;
+    for (const auto& rdsw : allRdsws_) {
+      rdswToPeerAndDsfSession[rdsw] = getPeerToDsfSession(rdsw);
+    }
+
+    return rdswToPeerAndDsfSession;
+  };
+
+  auto verifyNoSessionsFlapForAllRdsws =
+      [this](const auto& baselineRdswToPeerAndDsfSession) { return true; };
+
+  // Store all DSF sessions for every RDSW before creating Traffic loop
+  auto baselineRdswToPeerAndDsfSession = getPeerToDsfSessionForAllRdsws();
+
+  // Configure for Traffic loop
   auto rdswToNeighbor = configureNeighborsAndRoutesForTrafficLoop();
   if (rdswToNeighbor.empty()) {
     return false;
@@ -2290,9 +2307,21 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
   CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
+  // Create Traffic loop
   createTrafficLoop(rdswToNeighbor[myHostname]);
 
-  return verifyTrafficCounters(rdswToNeighbor);
+  if (!verifyTrafficCounters(rdswToNeighbor)) {
+    XLOG(DBG2) << "Verify Traffic counters failed";
+    return false;
+  }
+
+  // Verify no DSF Sessions flapped due to traffic loop
+  if (!verifyNoSessionsFlapForAllRdsws(baselineRdswToPeerAndDsfSession)) {
+    XLOG(DBG2) << "Traffic flood flapped some DSF sessions";
+    return false;
+  }
+
+  return true;
 }
 
 } // namespace facebook::fboss::utility
