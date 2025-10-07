@@ -320,6 +320,7 @@ class MultiNodeUtil {
   std::set<std::string> allFdsws_;
   std::map<SwitchID, std::string> switchIdToSwitchName_;
   std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
+  std::map<std::string, cfg::AsicType> switchNameToAsicType_;
 
   SwSwitch* sw_{nullptr};
 };
