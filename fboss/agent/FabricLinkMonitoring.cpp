@@ -15,13 +15,13 @@ FabricLinkMonitoring::FabricLinkMonitoring(const cfg::SwitchConfig* config)
           *config->switchSettings()->switchType() == cfg::SwitchType::VOQ) {
   processDsfNodes(config);
   processLinkInfo(config);
+  allocateSwitchIdForPorts(config);
 }
 
 // Returns mapping from port IDs to their corresponding switch IDs
-// TODO: Implement the actual switch ID mapping logic based on processed data
-std::map<PortID, SwitchID> FabricLinkMonitoring::getPort2SwitchIdMapping() {
-  // TODO: Implement the actual switch ID mapping logic
-  return std::map<PortID, SwitchID>();
+const std::map<PortID, SwitchID>&
+FabricLinkMonitoring::getPort2LinkSwitchIdMapping() const {
+  return portId2LinkSwitchId_;
 }
 
 // In cases where there are parallel links between VDs of switches, each of the
@@ -94,6 +94,75 @@ int FabricLinkMonitoring::getSwitchIdOffset(
     return localSwitchId < lowestL2SwitchId_
         ? getL1L2SwitchIdOffset(localSwitchId, remoteSwitchId)
         : getL1L2SwitchIdOffset(remoteSwitchId, localSwitchId);
+  }
+}
+
+// Allocate a switch ID per link in the network satisfying the below:
+// 1. Every fabric link is allocated a switch ID
+// 2. Both sides of a fabric link should get the same switch ID
+// 3. Switch ID is unique per J3 ASIC and VD in R3
+// 4. The number of switch IDs between RDSW-FDSW / FDSW-SDSW is limited
+// 5. All the switches in the network will use fabric link mon switch
+//    IDs from the same range
+// 6. Parallel links are possible in the network between layers and needs
+//    to be accounted for in switch ID computation
+void FabricLinkMonitoring::allocateSwitchIdForPorts(
+    const cfg::SwitchConfig* config) {
+  CHECK(config->switchSettings()->switchId().has_value())
+      << "Local switch ID missing in switch settings!";
+  SwitchID localSwitchId = SwitchID(*config->switchSettings()->switchId());
+
+  for (const auto& port : *config->ports()) {
+    if (*port.portType() != cfg::PortType::FABRIC_PORT ||
+        !port.expectedNeighborReachability()->size()) {
+      // Fabric link monitoring is applicable only for fabric ports with
+      // valid expected neighbors! Not all fabric ports are used in some
+      // of the roles and those fabric ports wont have expected neighbors.
+      continue;
+    }
+    PortID portId = PortID(*port.logicalID());
+    const auto& [remoteSwitchName, _] = getExpectedNeighborAndPortName(port);
+
+    auto remoteSwitchIter = switchName2SwitchId_.find(remoteSwitchName);
+    CHECK(remoteSwitchIter != switchName2SwitchId_.end());
+    SwitchID remoteSwitchId = remoteSwitchIter->second;
+
+    auto portVdIter = portId2Vd_.find(portId);
+    CHECK(portVdIter != portId2Vd_.end());
+    int vd = portVdIter->second;
+
+    int switchIdBase;
+    int linksAtLevel;
+    int maxParallelLinks;
+    int switchIdOffset;
+    if (isVoqSwitch_ || isConnectedToVoqSwitch(config, remoteSwitchId)) {
+      // Port connecting a VoQ switch and L1 fabric
+      switchIdBase = kFabricLinkMonitoringLeafBaseSwitchId;
+      linksAtLevel = numLeafToL1Links_;
+      maxParallelLinks = maxParallelLeafToL1Links_;
+      switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
+    } else {
+      // Port connecting L1 and L2 fabric
+      switchIdBase = kFabricLinkMonitoringLevel2BaseSwitchId;
+      linksAtLevel = numL1ToL2Links_;
+      maxParallelLinks = maxParallelL1ToL2Links_;
+      switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
+    }
+    int parallelLinkOffset =
+        calculateParallelLinkOffset(port, remoteSwitchId, vd, maxParallelLinks);
+    int offset = switchIdOffset * maxParallelLinks + vd + parallelLinkOffset;
+    // SwitchID allocated should be in the specific range bounded by the number
+    // of links at that layer.
+    portId2LinkSwitchId_[portId] = switchIdBase + (offset % linksAtLevel);
+    XLOG(DBG3) << "Fabric Link Mon: Port ID:" << portId
+               << " Link Switch ID:" << portId2LinkSwitchId_[portId]
+               << " localSwitchId:" << localSwitchId
+               << " remoteSwitchId:" << remoteSwitchId
+               << " switchIdBase:" << switchIdBase
+               << " switchIdOffset:" << switchIdOffset
+               << " maxParallelLinks:" << maxParallelLinks << " vd:" << vd
+               << " parallelLinkOffset:" << parallelLinkOffset
+               << " linksAtLevel:" << linksAtLevel;
   }
 }
 
