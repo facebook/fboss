@@ -851,6 +851,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<int32_t> getPortSwitchId() const {
+    if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
+      return portSwitchId->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setPortSwitchId(std::optional<int32_t> portSwitchId) {
+    if (!portSwitchId.has_value()) {
+      ref<switch_state_tags::portSwitchId>().reset();
+    } else {
+      set<switch_state_tags::portSwitchId>(portSwitchId.value());
+    }
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();
