@@ -140,4 +140,89 @@ int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
   return *virtualDeviceId;
 }
 
+void FabricLinkMonitoring::updateMaxParallelLinks(
+    const cfg::SwitchConfig* config) {
+  auto updateParallelLinkCounts = [](int& currentCount, int newCount) {
+    if (currentCount != 0 && newCount != currentCount) {
+      XLOG(WARN)
+          << "Asymmetric topology with different number of parallel links between nodes";
+    }
+    if (newCount > currentCount) {
+      currentCount = newCount;
+    }
+  };
+
+  for (const auto& [remoteSwitchId, vd2Ports] : remoteSwitchId2Vd2Ports_) {
+    for (const auto& [vd, ports] : vd2Ports) {
+      const int newCount = static_cast<int>(ports.size());
+      if (isVoqSwitch_ || isConnectedToVoqSwitch(config, remoteSwitchId)) {
+        // Either a VoQ switch or connected to a VoQ switch
+        updateParallelLinkCounts(maxParallelLeafToL1Links_, newCount);
+      } else {
+        updateParallelLinkCounts(maxParallelL1ToL2Links_, newCount);
+      }
+    }
+  }
+}
+
+// It is possible that there are multiple links between the same switchID and
+// VD. Switch ID allocation to link should be such that both sides of a link
+// will be allocated the same switch ID. This function creates a canonical pair
+// with the local and remote port names for all parallel links in a specific
+// {SwitchID, VD}, sorts it and then use the sorted order to determine the order
+// in which local ports should be sequenced while allocating switch IDs per
+// link.
+void FabricLinkMonitoring::sequenceParallelLinksToVds(
+    const cfg::SwitchConfig* config,
+    const std::map<
+        SwitchID,
+        std::map<int32_t, std::vector<std::pair<std::string, std::string>>>>&
+        remoteSwitchId2Vd2PortNamePairs) {
+  std::map<SwitchID, std::map<int32_t, std::vector<std::string>>>
+      switchId2Vd2OrderedPorts;
+
+  for (const auto& [switchId, vd2PortPairs] : remoteSwitchId2Vd2PortNamePairs) {
+    // For each VD, get the {local port, remote port} list
+    for (const auto& [vd, localRemotePortList] : vd2PortPairs) {
+      std::vector<std::pair<std::pair<std::string, std::string>, std::string>>
+          canonicalLinks;
+
+      for (const auto& localRemotePort : localRemotePortList) {
+        const auto& [localPortName, remotePortName] = localRemotePort;
+        std::pair<std::string, std::string> canonical;
+        // Canonical pair creation such that both sides of a link can create
+        // the same ordering in a pair.
+        if (localPortName <= remotePortName) {
+          canonical = {localPortName, remotePortName};
+        } else {
+          canonical = {remotePortName, localPortName};
+        }
+
+        // Keep track of the local port name along with the canonical pair
+        // so we know the local port ordering once the sorting is done based
+        // on the canonical pair..
+        canonicalLinks.emplace_back(canonical, localPortName);
+      }
+
+      // Sort based on the canonical pair
+      std::sort(
+          canonicalLinks.begin(),
+          canonicalLinks.end(),
+          [](const auto& a, const auto& b) { return a.first < b.first; });
+
+      // From the sorted list, get the localPortName maintaining the order
+      // in the sorted list
+      std::vector<std::string> orderedPorts;
+      orderedPorts.reserve(canonicalLinks.size());
+      for (const auto& [_, localPortName] : canonicalLinks) {
+        orderedPorts.push_back(localPortName);
+      }
+      switchId2Vd2OrderedPorts[switchId][vd] = std::move(orderedPorts);
+    }
+  }
+  remoteSwitchId2Vd2Ports_ = std::move(switchId2Vd2OrderedPorts);
+  // Given the parallel links are identified, find the max number of
+  // parallel link at rhe various layers.
+  updateMaxParallelLinks(config);
+}
 } // namespace facebook::fboss

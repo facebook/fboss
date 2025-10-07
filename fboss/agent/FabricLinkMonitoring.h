@@ -22,6 +22,12 @@ class FabricLinkMonitoring {
   std::map<PortID, SwitchID> getPort2SwitchIdMapping();
 
  private:
+  // Parallel link variables
+  int maxParallelLeafToL1Links_{0};
+  int maxParallelL1ToL2Links_{0};
+  std::map<SwitchID, std::map<int32_t, std::vector<std::string>>>
+      remoteSwitchId2Vd2Ports_;
+
   // Forward declarations for methods to be added in later diffs
   void processDsfNodes(const cfg::SwitchConfig* config);
   void processLinkInfo(const cfg::SwitchConfig* config);
@@ -46,6 +52,15 @@ class FabricLinkMonitoring {
       const cfg::SwitchConfig* config,
       const cfg::Port& port,
       const SwitchID& neighborSwitchId);
+
+  // Parallel link sequencing
+  void sequenceParallelLinksToVds(
+      const cfg::SwitchConfig* config,
+      const std::map<
+          SwitchID,
+          std::map<int32_t, std::vector<std::pair<std::string, std::string>>>>&
+          remoteSwitchId2Vd2PortNamePairs);
+  void updateMaxParallelLinks(const cfg::SwitchConfig* config);
 
   // Basic member variables
   std::map<std::string, SwitchID> switchName2SwitchId_;
