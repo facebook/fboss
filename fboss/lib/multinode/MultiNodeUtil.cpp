@@ -232,6 +232,15 @@ std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
   return fabricPortToFabricEndpoint;
 }
 
+std::map<std::string, int64_t> getCounterNameToCount(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<std::string, int64_t> counterNameToCount;
+  swAgentClient->sync_getCounters(counterNameToCount);
+
+  return counterNameToCount;
+}
+
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
