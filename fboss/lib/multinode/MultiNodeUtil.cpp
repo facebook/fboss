@@ -2352,6 +2352,27 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   return true;
 }
 
+bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
+  auto verifyNoReassemblyErrorsForAllSwitchesHelper = [this]() {
+    for (const auto& [switchName, _] : switchNameToSwitchIds_) {
+      auto counterNameToCount = getCounterNameToCount(switchName);
+      auto reassemblyErrors = counterNameToCount["bcm.reassembly.errors.sum"];
+      if (reassemblyErrors > 0) {
+        XLOG(DBG2) << "Switch: " << switchName
+                   << " reassemblyErrors: " << reassemblyErrors;
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // The reassembly errors may happen after a few seeconds.
+  // Thus, keep retrying for several seconds to ensure no reassembly errors.
+  return checkAlwaysTrueWithRetryErrorReturn(
+      verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
+}
+
 bool MultiNodeUtil::verifyNoTrafficDrop() const {
   return true;
 }
