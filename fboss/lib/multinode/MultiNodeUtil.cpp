@@ -2184,7 +2184,33 @@ void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
 bool MultiNodeUtil::verifyLineRate(
     const std::string& rdsw,
     const MultiNodeUtil::NeighborInfo& neighborInfo) const {
-  return true;
+  auto portIdToPortInfo = getPortIdToPortInfo(rdsw);
+  CHECK(portIdToPortInfo.find(neighborInfo.portID) != portIdToPortInfo.end());
+  auto portName = portIdToPortInfo[neighborInfo.portID].name().value();
+  auto portSpeedMbps =
+      portIdToPortInfo[neighborInfo.portID].speedMbps().value();
+
+  // Verify is line rate is achieved i.e. in bytes within 5% of line rate.
+  constexpr float kVariance = 0.05; // i.e. + or - 5%
+  auto lowPortSpeedMbps = portSpeedMbps * (1 - kVariance);
+
+  auto verifyLineRateHelper =
+      [rdsw, portName, portSpeedMbps, lowPortSpeedMbps]() {
+        auto counterNameToCount = getCounterNameToCount(rdsw);
+        auto outSpeedMbps =
+            counterNameToCount[portName + ".out_bytes.rate.60"] * 8 / 1000000;
+        XLOG(DBG2) << "portSpeedMbps: " << portSpeedMbps
+                   << " lowPortSpeedMbps: " << lowPortSpeedMbps
+                   << " outSpeedMbps: " << outSpeedMbps;
+
+        return lowPortSpeedMbps < outSpeedMbps;
+      };
+
+  return checkWithRetryErrorReturn(
+      verifyLineRateHelper,
+      60 /* num retries, flood takes about ~30s to reach line rate */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool MultiNodeUtil::verifyTrafficCounters(
