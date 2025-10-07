@@ -194,6 +194,11 @@ SwitchState::getRemoteSystemPorts() const {
   return safe_cref<switch_state_tags::remoteSystemPortMaps>();
 }
 
+const std::shared_ptr<MultiSwitchSystemPortMap>&
+SwitchState::getFabricLinkMonitoringSystemPorts() const {
+  return safe_cref<switch_state_tags::fabricLinkMonitoringSystemPortMaps>();
+}
+
 std::shared_ptr<AclEntry> SwitchState::getAcl(const std::string& name) const {
   if (FLAGS_enable_acl_table_group) {
     getAclTableGroups()
@@ -353,6 +358,11 @@ void SwitchState::resetSystemPorts(
 void SwitchState::resetRemoteSystemPorts(
     const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
   ref<switch_state_tags::remoteSystemPortMaps>() = systemPorts;
+}
+
+void SwitchState::resetFabricLinkMonitoringSystemPorts(
+    const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
+  ref<switch_state_tags::fabricLinkMonitoringSystemPortMaps>() = systemPorts;
 }
 
 const std::shared_ptr<MultiSwitchSystemPortMap>& SwitchState::getSystemPorts()
@@ -829,6 +839,9 @@ template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::systemPortMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::remoteSystemPortMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchSystemPortMap*
+SwitchState::modify<switch_state_tags::fabricLinkMonitoringSystemPortMaps>(
+    std::shared_ptr<SwitchState>*);
 template MultiSwitchPortMap* SwitchState::modify<switch_state_tags::portMaps>(
     std::shared_ptr<SwitchState>*);
 template MultiLabelForwardingInformationBase* SwitchState::modify<

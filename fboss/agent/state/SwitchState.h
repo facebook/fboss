@@ -156,6 +156,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchSystemPortMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::fabricLinkMonitoringSystemPortMaps,
+    MultiSwitchSystemPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::controlPlaneMap,
     MultiControlPlane);
 RESOLVE_STRUCT_MEMBER(
@@ -449,6 +453,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchTransceiverMap>& getTransceivers() const;
   const std::shared_ptr<MultiSwitchSystemPortMap>& getSystemPorts() const;
+  const std::shared_ptr<MultiSwitchSystemPortMap>&
+  getFabricLinkMonitoringSystemPorts() const;
   const std::shared_ptr<MultiSwitchIpTunnelMap>& getTunnels() const;
 
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
@@ -522,6 +528,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
   void resetRemoteSystemPorts(
+      const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
+  void resetFabricLinkMonitoringSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
 
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);

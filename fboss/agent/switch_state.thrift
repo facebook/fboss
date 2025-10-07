@@ -752,6 +752,11 @@ struct SwitchState {
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
+  // Fabric Link Monitoring system ports
+  602: map<
+    SwitchIdList,
+    map<i64, SystemPortFields>
+  > fabricLinkMonitoringSystemPortMaps;
 }
 
 struct RouteTableFields {
