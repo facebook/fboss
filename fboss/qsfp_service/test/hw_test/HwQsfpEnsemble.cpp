@@ -49,9 +49,9 @@ void HwQsfpEnsemble::init() {
     close(fd);
   }
 
-  auto [wedgeManager, _] = createQsfpManagers();
+  auto [tcvrManager, portManager] = createQsfpManagers();
   std::tie(server_, qsfpServiceHandler_) =
-      setupThriftServer(std::move(wedgeManager));
+      setupThriftServer(std::move(tcvrManager), std::move(portManager));
 }
 
 HwQsfpEnsemble::~HwQsfpEnsemble() {

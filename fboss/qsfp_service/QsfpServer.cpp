@@ -17,12 +17,14 @@ namespace facebook::fboss {
 std::pair<
     std::shared_ptr<apache::thrift::ThriftServer>,
     std::shared_ptr<QsfpServiceHandler>>
-setupThriftServer(std::unique_ptr<WedgeManager> transceiverManager) {
+setupThriftServer(
+    std::unique_ptr<WedgeManager> tcvrManager,
+    std::unique_ptr<PortManager> portManager) {
   // Create Platform specific FbossMacsecHandler object
-  auto macsecHandler = createFbossMacsecHandler(transceiverManager.get());
+  auto macsecHandler = createFbossMacsecHandler(tcvrManager.get());
 
   auto handler = std::make_shared<QsfpServiceHandler>(
-      std::move(transceiverManager), macsecHandler);
+      std::move(tcvrManager), std::move(portManager), macsecHandler);
   handler->init();
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   // Since thrift calls may involve programming HW, don't

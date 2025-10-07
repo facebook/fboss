@@ -36,6 +36,7 @@ cpp_library(
         "QsfpServiceHandler.cpp",
     ],
     exported_deps = [
+        ":port-manager",
         ":transceiver-manager",
         "//common/fb303/cpp:fb303",
         "//fboss/agent:fboss-error",
