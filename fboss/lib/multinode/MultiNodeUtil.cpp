@@ -2270,8 +2270,8 @@ bool MultiNodeUtil::verifyTrafficCounters(
     }
   }
 
-  for (const auto& [rdsw, _] : rdswToNeighbor) {
-    if (!verifyFabricSpray(rdsw)) {
+  for (const auto& [switchName, _] : switchNameToSwitchIds_) {
+    if (!verifyFabricSpray(switchName)) {
       return false;
     }
   }
