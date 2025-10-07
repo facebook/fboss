@@ -352,6 +352,7 @@ MultiNodeUtil::MultiNodeUtil(
   populateDsfNodes(dsfNodeMap);
   populateAllRdsws();
   populateAllFdsws();
+  populateAllSwitches();
 }
 
 void MultiNodeUtil::populateDsfNodes(
@@ -400,6 +401,12 @@ void MultiNodeUtil::populateAllFdsws() {
       allFdsws_.insert(fdsw);
     }
   }
+}
+
+void MultiNodeUtil::populateAllSwitches() {
+  allSwitches_.insert(allRdsws_.begin(), allRdsws_.end());
+  allSwitches_.insert(allFdsws_.begin(), allFdsws_.end());
+  allSwitches_.insert(sdsws_.begin(), sdsws_.end());
 }
 
 std::map<std::string, FabricEndpoint>

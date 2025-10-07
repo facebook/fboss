@@ -126,6 +126,7 @@ class MultiNodeUtil {
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
   void populateAllFdsws();
+  void populateAllSwitches();
 
   std::map<std::string, FabricEndpoint> getConnectedFabricPortToFabricEndpoint(
       const std::string& switchName) const;
@@ -319,6 +320,7 @@ class MultiNodeUtil {
   std::map<SwitchID, std::string> switchIdToSwitchName_;
   std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
   std::map<std::string, cfg::AsicType> switchNameToAsicType_;
+  std::set<std::string> allSwitches_;
 
   SwSwitch* sw_{nullptr};
 };
