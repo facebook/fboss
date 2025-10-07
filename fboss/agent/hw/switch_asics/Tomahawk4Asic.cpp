@@ -152,7 +152,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:

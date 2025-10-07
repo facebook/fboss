@@ -663,8 +663,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   // port member is supported or not.
   std::optional<SaiPortTraits::Attributes::Mtu> mtu{};
   if ((swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) &&
-      (swPort->getPortType() != cfg::PortType::FABRIC_PORT ||
-       platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORT_MTU))) {
+      (swPort->getPortType() != cfg::PortType::FABRIC_PORT)) {
     mtu = swPort->getMaxFrameSize();
   }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =

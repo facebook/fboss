@@ -906,8 +906,7 @@ cfg::SwitchConfig genPortVlanCfg(
     portCfg->loopbackMode() = iter->second;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
       portCfg->ingressVlan() = 0;
-      portCfg->maxFrameSize() =
-          asic->isSupported(HwAsic::Feature::FABRIC_PORT_MTU) ? kPortMTU : 0;
+      portCfg->maxFrameSize() = 0;
       portCfg->state() = enableFabricPorts ? cfg::PortState::ENABLED
                                            : cfg::PortState::DISABLED;
 

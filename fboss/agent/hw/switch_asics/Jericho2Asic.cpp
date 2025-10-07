@@ -134,7 +134,6 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     // TODO - get the features working on Jericho2 ASIC
-    case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:

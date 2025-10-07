@@ -119,7 +119,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
