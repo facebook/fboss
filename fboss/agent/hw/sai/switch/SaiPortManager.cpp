@@ -3489,4 +3489,18 @@ void SaiPortManager::incrementPfcDeadlockCounter(const PortID& portId) {
 void SaiPortManager::incrementPfcRecoveryCounter(const PortID& portId) {
   incrementPfcCounter(portId, PfcCounterType::RECOVERY);
 }
+
+// Set the SystemPort object associated with fabric ports for fabric link
+// monitoring
+void SaiPortManager::setFabricLinkMonitoringSystemPortId(
+    const PortID& portId,
+    sai_object_id_t sysPortObj) {
+  getPortHandle(portId)->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::FabricSystemPort{std::move(sysPortObj)});
+}
+void SaiPortManager::resetFabricLinkMonitoringSystemPortId(
+    const PortID& portId) {
+  getPortHandle(portId)->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::FabricSystemPort{SAI_NULL_OBJECT_ID});
+}
 } // namespace facebook::fboss
