@@ -18,6 +18,7 @@ class FabricLinkMonitoring {
  public:
   explicit FabricLinkMonitoring(const cfg::SwitchConfig* config);
   const std::map<PortID, SwitchID>& getPort2LinkSwitchIdMapping() const;
+  SwitchID getSwitchIdForPort(const PortID& portId) const;
 
  private:
   // Forward declarations for methods to be added in later diffs

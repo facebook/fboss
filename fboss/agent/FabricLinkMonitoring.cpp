@@ -24,6 +24,14 @@ FabricLinkMonitoring::getPort2LinkSwitchIdMapping() const {
   return portId2LinkSwitchId_;
 }
 
+// Returns the switchID for a specific portId
+SwitchID FabricLinkMonitoring::getSwitchIdForPort(const PortID& portId) const {
+  const auto& portIter = portId2LinkSwitchId_.find(portId);
+  CHECK(portIter != portId2LinkSwitchId_.end())
+      << "Port ID " << portId << " not found in the port ID to switch ID map!";
+  return portIter->second;
+}
+
 // In cases where there are parallel links between VDs of switches, each of the
 // links need to be given a different switchID and both side of the link should
 // allocate the same switch ID. With an ordered list of local ports on both
