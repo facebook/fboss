@@ -2832,6 +2832,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
         isPortFlowletConfigUnchanged(portFlowletCfg, orig);
   }
 
+  auto newFabricLinkMonSwitchId = getFabricLinkMonitoringPortSwitchId(
+      PortID(*portConf->logicalID()),
+      *portConf->portType(),
+      portConf->expectedNeighborReachability()->size());
   // Ensure portConf has actually changed, before applying
   if (*portConf->state() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
@@ -2866,7 +2870,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getInterPacketGapBits().value_or(0) &&
       portConf->amIdles().value_or(false) ==
           orig->getAmIdles().value_or(false) &&
-      portConf->amIdles().has_value() == orig->getAmIdles().has_value()) {
+      portConf->amIdles().has_value() == orig->getAmIdles().has_value() &&
+      newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
 
@@ -2915,6 +2920,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPortFlowletConfig(portFlowletCfg);
   newPort->setScope(*portConf->scope());
   newPort->setConditionalEntropyRehash(*portConf->conditionalEntropyRehash());
+  newPort->setPortSwitchId(newFabricLinkMonSwitchId);
   if (auto selfHealingECMPLagEnable = portConf->selfHealingECMPLagEnable()) {
     if (selfHealingECMPLagEnable.value() &&
         !cfg_->switchSettings()->selfHealingEcmpLagConfig().has_value()) {

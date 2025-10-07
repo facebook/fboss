@@ -752,6 +752,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 #endif
 
+  std::optional<SaiPortTraits::Attributes::StaticModuleId> staticModuleId{};
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  staticModuleId = swPort->getPortSwitchId();
+#endif
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -829,7 +834,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         fecErrorDetectEnable,
         std::nullopt, // AmIdles
         std::nullopt, // FabricSystemPort
-        std::nullopt, // StaticModuleId
+        staticModuleId,
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
     };
@@ -920,7 +925,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       fecErrorDetectEnable,
       amIdles, // AmIdles
       std::nullopt, // FabricSystemPort
-      std::nullopt, // StaticModuleId
+      staticModuleId,
       std::nullopt, // IsHyperPortMember
       std::nullopt, // HyperPortMemberList
   };
