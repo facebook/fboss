@@ -5326,6 +5326,19 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  {
+    std::optional<int32_t> fabricLinkMonitoringSystemPortOffset;
+    if (cfg_->switchSettings()->fabricLinkMonitoringSystemPortOffset()) {
+      fabricLinkMonitoringSystemPortOffset =
+          *cfg_->switchSettings()->fabricLinkMonitoringSystemPortOffset();
+    }
+    if (fabricLinkMonitoringSystemPortOffset !=
+        origSwitchSettings->getFabricLinkMonitoringSystemPortOffset()) {
+      newSwitchSettings->setFabricLinkMonitoringSystemPortOffset(
+          fabricLinkMonitoringSystemPortOffset);
+      switchSettingsChange = true;
+    }
+  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;
