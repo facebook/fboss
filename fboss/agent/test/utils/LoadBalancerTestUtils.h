@@ -44,10 +44,10 @@ AllocatePktFunc getAllocatePktFn(SwSwitch* sw);
 
 size_t pumpTraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
+    const std::optional<VlanID>& vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
     int numPackets = 10000,
@@ -90,24 +90,24 @@ size_t pumpRoCETraffic(
     bool sameDstQueue = false);
 
 size_t pumpTrafficWithSourceFile(
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
+    const std::optional<VlanID>& vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt);
 
 void pumpTraffic(
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::vector<folly::IPAddress> srcIp,
-    std::vector<folly::IPAddress> dstIp,
+    const std::vector<folly::IPAddress>& srcIp,
+    const std::vector<folly::IPAddress>& dstIp,
     uint16_t srcPort,
     uint16_t dstPort,
     uint8_t streams,
-    std::optional<VlanID> vlan,
+    const std::optional<VlanID>& vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMac = std::nullopt,
@@ -115,7 +115,7 @@ void pumpTraffic(
 
 void pumpDeterministicRandomTraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress intfMac,
     VlanID vlan,
@@ -124,11 +124,11 @@ void pumpDeterministicRandomTraffic(
 
 void pumpMplsTraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     uint32_t label,
     folly::MacAddress intfMac,
-    VlanID vlanId,
+    const VlanID& vlanId,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt);
 
 template <typename PortIdT, typename PortStatsT>
@@ -273,9 +273,9 @@ std::shared_ptr<SwitchState> addLoadBalancers(
     const SwitchIdScopeResolver& resolver);
 
 void pumpTrafficAndVerifyLoadBalanced(
-    std::function<void()> pumpTraffic,
-    std::function<void()> clearPortStats,
-    std::function<bool()> isLoadBalanced,
+    const std::function<void()>& pumpTraffic,
+    const std::function<void()>& clearPortStats,
+    const std::function<bool()>& isLoadBalanced,
     bool loadBalanceExpected = true);
 
 /*
