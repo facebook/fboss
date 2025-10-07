@@ -2279,6 +2279,29 @@ bool MultiNodeUtil::verifyTrafficCounters(
   return true;
 }
 
+bool MultiNodeUtil::setupTrafficLoop() const {
+  // Configure for Traffic loop
+  auto rdswToNeighbor = configureNeighborsAndRoutesForTrafficLoop();
+  if (rdswToNeighbor.empty()) {
+    return false;
+  }
+
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
+  // Create Traffic loop
+  createTrafficLoop(rdswToNeighbor[myHostname]);
+
+  for (const auto& [rdsw, neighbor] : rdswToNeighbor) {
+    if (!verifyLineRate(rdsw, neighbor)) {
+      XLOG(DBG2) << "Verify line rate failed for rdsw: " << rdsw;
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyTrafficSpray() const {
   XLOG(DBG2) << __func__;
 

@@ -308,6 +308,7 @@ class MultiNodeUtil {
   void createTrafficLoop(const NeighborInfo& neighborInfo) const;
   bool verifyTrafficCounters(
       const std::map<std::string, NeighborInfo>& rdswToNeighbor) const;
+  bool setupTrafficLoop() const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
