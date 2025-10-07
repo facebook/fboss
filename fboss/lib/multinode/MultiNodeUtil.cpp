@@ -2331,21 +2331,16 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   // Store all DSF sessions for every RDSW before creating Traffic loop
   auto baselineRdswToPeerAndDsfSession = getPeerToDsfSessionForAllRdsws();
 
-  // Configure for Traffic loop
-  auto rdswToNeighbor = configureNeighborsAndRoutesForTrafficLoop();
-  if (rdswToNeighbor.empty()) {
+  if (!setupTrafficLoop()) {
+    XLOG(DBG2) << "Traffic loop setup failed";
     return false;
   }
 
-  auto myHostname = network::NetworkUtil::getLocalHost(
-      true /* stripFbDomain */, true /* stripTFbDomain */);
-  CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
-  // Create Traffic loop
-  createTrafficLoop(rdswToNeighbor[myHostname]);
-
-  if (!verifyTrafficCounters(rdswToNeighbor)) {
-    XLOG(DBG2) << "Verify Traffic counters failed";
-    return false;
+  for (const auto& [switchName, _] : switchNameToSwitchIds_) {
+    if (!verifyFabricSpray(switchName)) {
+      XLOG(DBG2) << "Verify line rate failed for switch: " << switchName;
+      return false;
+    }
   }
 
   // Verify no DSF Sessions flapped due to traffic loop
