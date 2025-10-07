@@ -386,7 +386,7 @@ MultiNodeUtil::getConnectedFabricPortToFabricEndpoint(
           connectedFabricPortToFabricEndpoint,
           connectedFabricPortToFabricEndpoint.begin()),
       [](const auto& pair) {
-        auto fabricEndpoint = pair.second;
+        const auto& fabricEndpoint = pair.second;
         return fabricEndpoint.isAttached().value();
       });
 
@@ -599,7 +599,7 @@ std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
       activeFabricPortNameToPortInfo.end(),
       std::inserter(activePorts, activePorts.begin()),
       [](const auto& pair) {
-        auto portInfo = pair.second;
+        const auto& portInfo = pair.second;
         return portInfo.name().value();
       });
 
