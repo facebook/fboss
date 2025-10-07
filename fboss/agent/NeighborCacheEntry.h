@@ -74,19 +74,20 @@ enum class NeighborEntryState : uint8_t {
   EXPIRED,
 };
 
-constexpr auto slowProbeWindow_ = 30; // seconds
-constexpr auto probeWindow_ = 1; // second
-
 template <typename NTable>
 class NeighborCache;
 
 template <typename NTable>
 class NeighborCacheEntry : private folly::AsyncTimeout {
+  static constexpr auto kSlowProbeWindowSecs = 30;
+  static constexpr auto kProbeWindowSecs = 1;
+
  public:
   using AddressType = typename NTable::Entry::AddressType;
   using Cache = NeighborCache<NTable>;
   using Entry = NeighborCacheEntry<NTable>;
   using EntryFields = NeighborEntryFields<AddressType>;
+
   NeighborCacheEntry(
       EntryFields fields,
       FbossEventBase* evb,
@@ -272,9 +273,9 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
         // if slowRetries_ is true, we will schedule a timeout of 30 seconds
         // otherwise, we will schedule a timeout of 1 second
         if (slowRetries_) {
-          scheduleTimeout(std::chrono::seconds(slowProbeWindow_));
+          scheduleTimeout(std::chrono::seconds(kSlowProbeWindowSecs));
         } else {
-          scheduleTimeout(std::chrono::seconds(probeWindow_));
+          scheduleTimeout(std::chrono::seconds(kProbeWindowSecs));
         }
         break;
       case NeighborEntryState::EXPIRED:
