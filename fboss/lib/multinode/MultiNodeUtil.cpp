@@ -2181,7 +2181,20 @@ void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
   }
 }
 
-bool MultiNodeUtil::verifyTrafficCounters() const {
+bool MultiNodeUtil::verifyLineRate(
+    const std::string& rdsw,
+    const MultiNodeUtil::NeighborInfo& neighborInfo) const {
+  return true;
+}
+
+bool MultiNodeUtil::verifyTrafficCounters(
+    const std::map<std::string, NeighborInfo>& rdswToNeighbor) const {
+  for (const auto& [rdsw, neighbor] : rdswToNeighbor) {
+    if (!verifyLineRate(rdsw, neighbor)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -2198,7 +2211,7 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
   createTrafficLoop(rdswToNeighbor[myHostname]);
 
-  return verifyTrafficCounters();
+  return verifyTrafficCounters(rdswToNeighbor);
 }
 
 } // namespace facebook::fboss::utility

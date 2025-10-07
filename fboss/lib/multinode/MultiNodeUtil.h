@@ -297,10 +297,15 @@ class MultiNodeUtil {
       const folly::IPAddress& destPrefix,
       const int16_t prefixLength) const;
 
+  bool verifyLineRate(
+      const std::string& rdsw,
+      const MultiNodeUtil::NeighborInfo& neighborInfo) const;
+
   std::map<std::string, NeighborInfo>
   configureNeighborsAndRoutesForTrafficLoop() const;
   void createTrafficLoop(const NeighborInfo& neighborInfo) const;
-  bool verifyTrafficCounters() const;
+  bool verifyTrafficCounters(
+      const std::map<std::string, NeighborInfo>& rdswToNeighbor) const;
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
