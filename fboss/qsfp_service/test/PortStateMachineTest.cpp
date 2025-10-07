@@ -476,7 +476,7 @@ TEST_F(PortStateMachineTest, defaultStateAfterInit) {
   initManagers();
   ASSERT_EQ(
       transceiverManager_->getCurrentState(tcvrId_),
-      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
+      TransceiverStateMachineState::DISCOVERED);
   ASSERT_EQ(
       portManager_->getPortState(portId1_),
       PortStateMachineState::UNINITIALIZED);
@@ -496,7 +496,7 @@ TEST_F(PortStateMachineTest, enablePorts) {
              optionalPortState(
                  multiPort, PortStateMachineState::UNINITIALIZED)}}},
         TcvrPortStatePair{
-            TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+            TransceiverStateMachineState::DISCOVERED,
             {PortStateMachineState::INITIALIZED,
              optionalPortState(
                  multiPort,
@@ -593,7 +593,7 @@ TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotPresent) {
         }
       } /* stateUpdate */,
       []() {} /* verify */,
-      "furthestStatesWhenTransceiverNotReady",
+      "furthestStatesWhenTransceiverNotPresent",
       true /* isMock */);
 }
 
@@ -608,10 +608,13 @@ TEST_F(PortStateMachineTest, furthestStatesWhenTransceiverNotReady) {
               {PortStateMachineState::INITIALIZED, std::nullopt}},
       },
       TcvrPortStatePair{
-          TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+          TransceiverStateMachineState::DISCOVERED,
           {PortStateMachineState::XPHY_PORTS_PROGRAMMED,
            std::nullopt}} /* expected state */,
-      [this]() { setMockCmisTransceiverReady(false); } /* preUpdate */,
+      [this]() {
+        setMockCmisPresence(true);
+        setMockCmisTransceiverReady(false);
+      } /* preUpdate */,
       [this]() {
         for (int i = 0; i < 5; ++i) {
           refreshAndTriggerProgramming();
@@ -709,19 +712,19 @@ TEST_F(
   setMockCmisTransceiverReady(true);
   transceiverManager_->refreshTransceivers();
   assertCurrentStateEquals(TcvrPortStatePair{
-      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+      TransceiverStateMachineState::DISCOVERED,
       {PortStateMachineState::PORT_DOWN, std::nullopt}});
 
   // Port is detected as needing to re-initialize.
   portManager_->detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
   assertCurrentStateEquals(TcvrPortStatePair{
-      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+      TransceiverStateMachineState::DISCOVERED,
       {PortStateMachineState::INITIALIZED, std::nullopt}});
 
   // Ensure port status from agent doesn't progress any states.
   portManager_->updateTransceiverPortStatus();
   assertCurrentStateEquals(TcvrPortStatePair{
-      TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+      TransceiverStateMachineState::DISCOVERED,
       {PortStateMachineState::INITIALIZED, std::nullopt}});
 
   // First round of programming.

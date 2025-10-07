@@ -844,7 +844,7 @@ void PortManager::
     auto previousTcvrStateIt = lastTcvrStates_.find(tcvrId);
     if (previousTcvrStateIt != lastTcvrStates_.end()) {
       shouldReinitPorts = currTcvrState != previousTcvrStateIt->second &&
-          currTcvrState == TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED;
+          currTcvrState == TransceiverStateMachineState::DISCOVERED;
     }
 
     auto portSet = *lockedPortSetPtr->rlock();
