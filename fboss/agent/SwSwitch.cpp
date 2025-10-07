@@ -1521,17 +1521,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   setSwitchRunState(SwitchRunState::CONFIGURED);
-
-  if (flags_ & SwitchFlags::ENABLE_TUN) {
-    // skip if mock tun manager was set by tests or during monolithic agent
-    // initialization.
-    // this is created only for split software agent after config is applied
-    if (!tunMgr_) {
-      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
-      tunMgr_->probe();
-    }
-  }
-
+  createAndProbeTunManager();
   if (tunMgr_) {
     // We check for syncing tun interface only on state changes after the
     // initial configuration is applied. This is really a hack to get around
@@ -2907,6 +2897,18 @@ void SwSwitch::postInit() {
 void SwSwitch::initLldpManager() {
   if (flags_ & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
+  }
+}
+
+void SwSwitch::createAndProbeTunManager() {
+  if (flags_ & SwitchFlags::ENABLE_TUN) {
+    // skip if mock tun manager was set by tests or during monolithic agent
+    // initialization.
+    // this is created only for split software agent after config is applied
+    if (!tunMgr_) {
+      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
+      tunMgr_->probe();
+    }
   }
 }
 

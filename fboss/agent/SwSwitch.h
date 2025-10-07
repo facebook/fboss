@@ -1019,6 +1019,7 @@ class SwSwitch : public HwSwitchCallback {
 
  private:
   void initAgentInfo();
+  void createAndProbeTunManager();
 
   void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
