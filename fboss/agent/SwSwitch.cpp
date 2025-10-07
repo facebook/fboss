@@ -1522,26 +1522,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   setSwitchRunState(SwitchRunState::CONFIGURED);
   createAndProbeTunManager();
-  if (tunMgr_) {
-    // We check for syncing tun interface only on state changes after the
-    // initial configuration is applied. This is really a hack to get around
-    // 2 issues
-    // a) On warm boot the initial state constructed from warm boot cache
-    // does not know of interface addresses. This means if we sync tun
-    // interface on applying initial boot up state we would blow away tunnel
-    // interferace addresses, causing connectivity disruption. Once t4155406
-    // is fixed we should be able to remove this check. b) Even if we were
-    // willing to live with the above, the TunManager code does not properly
-    // track deleting of interface addresses, viz. when we delete a
-    // interface's primary address, secondary addresses get blown away as
-    // well. TunManager does not track this and tries to delete the
-    // secondaries as well leading to errors, t4746261 is tracking this.
-    tunMgr_->startObservingUpdates();
-
-    // Perform initial sync of interfaces
-    tunMgr_->forceInitialSync();
-  }
-
+  initializeTunManager(/*useBlocking=*/false);
   if (lldpManager_) {
     lldpManager_->start();
   }
@@ -2909,6 +2890,30 @@ void SwSwitch::createAndProbeTunManager() {
       tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
       tunMgr_->probe();
     }
+  }
+}
+
+void SwSwitch::initializeTunManager(bool useBlocking) {
+  if (tunMgr_) {
+    // We check for syncing tun interface only on state changes after the
+    // initial configuration is applied. This is really a hack to get around
+    // 2 issues
+    // a) On warm boot the initial state constructed from warm boot cache
+    // does not know of interface addresses. This means if we sync tun
+    // interface on applying initial boot up state we would blow away tunnel
+    // interferace addresses, causing connectivity disruption. Once t4155406
+    // is fixed we should be able to remove this check. b) Even if we were
+    // willing to live with the above, the TunManager code does not properly
+    // track deleting of interface addresses, viz. when we delete a
+    // interface's primary address, secondary addresses get blown away as
+    // well. TunManager does not track this and tries to delete the
+    // secondaries as well leading to errors, t4746261 is tracking this.
+
+    // Legacy behavior: start observing first, then async sync (original
+    // order)
+    tunMgr_->startObservingUpdates();
+    // Perform initial sync of interfaces
+    tunMgr_->forceInitialSync();
   }
 }
 
