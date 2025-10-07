@@ -448,12 +448,22 @@ SystemPortID getSystemPortID(
       switchId);
 }
 
+// API to get SystemPortID associated with fabric link monitoring fabric port
+// IDs
 SystemPortID getFabricLinkMonitoringSystemPortID(
     const PortID& portId,
     const std::shared_ptr<SwitchSettings>& switchSettings) {
   CHECK(switchSettings->getFabricLinkMonitoringSystemPortOffset().has_value());
   return SystemPortID(
       portId + *switchSettings->getFabricLinkMonitoringSystemPortOffset());
+}
+
+// API to derive the PortID associated with fabric link monitoring fabric
+// SystemPortID
+PortID getPortIdFromFabricLinkMonSystemPortID(
+    const SystemPortID& systemPortId,
+    const int32_t fabricLinkMonitoringSystemPortOffset) {
+  return PortID(systemPortId - fabricLinkMonitoringSystemPortOffset);
 }
 
 SystemPortID getInbandSystemPortID(
