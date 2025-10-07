@@ -2180,20 +2180,8 @@ void TransceiverManager::findAndTriggerPotentialFirmwareUpgradeEvents(
   }
 }
 
-void TransceiverManager::resetTcvrMgrStateAfterFirmwareUpgrade() {
-  // Resume heartbeats at the end of refresh loop in case they were paused by
-  // any of the operations above
-  for (auto& threadHelper : *threads_) {
-    heartbeatWatchdog_->resumeMonitoringHeartbeat(
-        threadHelper.second.getThreadHeartbeat());
-  }
-  heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
-  isUpgradingFirmware_ = false;
-}
-
 void TransceiverManager::refreshStateMachines() {
   XLOG(INFO) << "refreshStateMachines started";
-  clearEvbsRunningFirmwareUpgrade();
 
   // Step1: Fetch current port status from wedge_agent.
   // Since the following steps, like refreshTransceivers() might need to use
@@ -2206,7 +2194,6 @@ void TransceiverManager::refreshStateMachines() {
   // Step2: Refresh all transceivers so that we can get an update
   // TransceiverInfo
   const auto& presentXcvrIds = refreshTransceivers();
-  findAndTriggerPotentialFirmwareUpgradeEvents(presentXcvrIds);
 
   // Step3: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();
@@ -2228,7 +2215,22 @@ void TransceiverManager::refreshStateMachines() {
   }
   triggerRemediateEvents(stableTcvrs);
 
-  resetTcvrMgrStateAfterFirmwareUpgrade();
+  publishPimStatesToFsdb();
+
+  completeRefresh();
+
+  XLOG(INFO) << "refreshStateMachines ended";
+}
+
+void TransceiverManager::completeRefresh() {
+  // Resume heartbeats at the end of refresh loop in case they were paused by
+  // any of the operations during the refresh cycle
+  for (auto& threadHelper : *threads_) {
+    heartbeatWatchdog_->resumeMonitoringHeartbeat(
+        threadHelper.second.getThreadHeartbeat());
+  }
+  heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
+  isUpgradingFirmware_ = false;
 
   if (!isFullyInitialized_) {
     isFullyInitialized_ = true;
@@ -2245,12 +2247,8 @@ void TransceiverManager::refreshStateMachines() {
     restart_time::mark(RestartEvent::CONFIGURED);
   }
 
-  publishPimStatesToFsdb();
-
   // Update the warmboot state if there is a change.
   setWarmBootState();
-
-  XLOG(INFO) << "refreshStateMachines ended";
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {

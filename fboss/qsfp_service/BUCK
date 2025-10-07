@@ -114,6 +114,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         ":qsfp-config",
         ":slot-thread-helper",
         ":transceiver-validator",
@@ -154,7 +155,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "re2",
         ("boost", None, "boost_bimap"),
     ],
 )

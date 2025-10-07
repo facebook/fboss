@@ -301,6 +301,10 @@ class PortManager {
   void updatePortActiveState(
       const std::map<int32_t, PortStatus>& portStatus) noexcept;
 
+  // This contains refresh logic for TransceiverStateMachine and
+  // PortStateMachine.
+  void refreshStateMachines();
+
  protected:
   /*
    * function to initialize all the Phy in the system

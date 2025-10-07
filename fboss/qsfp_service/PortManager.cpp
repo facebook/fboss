@@ -1441,4 +1441,37 @@ void PortManager::restoreWarmBootPhyState() {
   }
 }
 
+void PortManager::refreshStateMachines() {
+  XLOG(INFO) << "refreshStateMachines started";
+
+  // Step 1: Refresh all transceivers so that we can get updated present
+  // transceivers and transceiver data.
+  transceiverManager_->refreshTransceivers();
+
+  // Step 2: Reset port state machines for ports that have transceivers that are
+  // recently discovered to retrigger programming.
+  detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
+
+  // Step 3: Fetch current port status from wedge_agent.
+  updateTransceiverPortStatus();
+
+  // Step 4: Check whether there's a wedge_agent config change
+  triggerAgentConfigChangeEvent();
+
+  // Step 5: Trigger port programming events.
+  triggerProgrammingEvents();
+
+  // Step 6: Trigger transceiver programming events.
+  transceiverManager_->triggerProgrammingEvents();
+
+  // TODO(smenta) – Add support for triggering remediation.
+
+  // TODO(smenta) – Need to add support for publishing PIM states.
+
+  // Step 7: Mark full initialization complete.
+  transceiverManager_->completeRefresh();
+
+  XLOG(INFO) << "refreshStateMachines ended";
+}
+
 } // namespace facebook::fboss

@@ -497,6 +497,8 @@ void WedgeManager::updateTransceiverLogInfo(
 // NOTE: this may refresh transceivers multiple times if they're newly plugged
 //  in, as refresh() is called both via updateTransceiverMap and futureRefresh
 std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
+  clearEvbsRunningFirmwareUpgrade();
+
   try {
     wedgeI2cBus_->verifyBus(false);
   } catch (const std::exception& ex) {
@@ -542,6 +544,8 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
     }
     nextOpticsToBmcSyncTime_ = currTime + kOpticsThermalSyncInterval;
   }
+
+  findAndTriggerPotentialFirmwareUpgradeEvents(refreshedTransceivers);
 
   return refreshedTransceivers;
 }

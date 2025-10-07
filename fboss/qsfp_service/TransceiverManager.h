@@ -741,8 +741,6 @@ class TransceiverManager {
   void findAndTriggerPotentialFirmwareUpgradeEvents(
       const std::vector<TransceiverID>& presentXcvrIds);
 
-  void resetTcvrMgrStateAfterFirmwareUpgrade();
-
   void clearEvbsRunningFirmwareUpgrade() {
     // Clear the map that tracks the firmware upgrades in progress per evb
     evbsRunningFirmwareUpgrade_.wlock()->clear();
@@ -754,6 +752,8 @@ class TransceiverManager {
   // initialization to avoid cold booting non-XPhy systems in case of a
   // non-graceful exit and also set during graceful exit.
   void setCanWarmBoot();
+
+  void completeRefresh();
 
   // Store the warmboot state for qsfp_service. This will be updated
   // periodically after Transceiver State machine updates to maintain
