@@ -445,6 +445,8 @@ struct SystemPortThrift {
   15: bool shelDestinationEnabled_DEPRECATED = false;
   16: optional bool shelDestinationEnabled;
   17: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;
+  // VoQs under this system port do not need credits to send traffic out
+  18: optional bool pushQueueEnabled;
 }
 
 struct PortHardwareDetails {
