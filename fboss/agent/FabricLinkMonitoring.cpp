@@ -68,10 +68,53 @@ void FabricLinkMonitoring::updateLowestSwitchIds(
   }
 }
 
-void FabricLinkMonitoring::processLinkInfo(
-    const cfg::SwitchConfig* /*config*/) {
-  // Stub - will be implemented in later diff, but add validation call
+// Run through the local ports and associate each local port with a VD. Also,
+// prepare the map needed to track the local/remote port names connecting
+// between the same VDs of the same switches, which are basically parallel
+// links.
+void FabricLinkMonitoring::processLinkInfo(const cfg::SwitchConfig* config) {
+  std::map<
+      SwitchID,
+      std::map<int32_t, std::vector<std::pair<std::string, std::string>>>>
+      remoteSwitchId2Vd2PortNamePairs;
+
+  for (const auto& port : *config->ports()) {
+    if (port.portType() != cfg::PortType::FABRIC_PORT ||
+        port.expectedNeighborReachability()->empty()) {
+      // Skip non fabric ports and ports without expected neighbor info
+      continue;
+    }
+
+    const auto& [remoteNodeName, remotePortName] =
+        getExpectedNeighborAndPortName(port);
+    const auto remoteSwitchIt = switchName2SwitchId_.find(remoteNodeName);
+    if (remoteSwitchIt == switchName2SwitchId_.end()) {
+      // Skip the missing neighbor switch ID
+      continue;
+    }
+
+    const auto remoteSwitchId = remoteSwitchIt->second;
+
+    // Find the number of links at each network layer
+    updateLinkCounts(config, remoteSwitchId);
+
+    // Keep track of the mapping from PortID to VD
+    auto vd = getVirtualDeviceIdForLink(config, port, remoteSwitchId);
+    portId2Vd_[PortID(*port.logicalID())] = vd;
+
+    CHECK(port.name().has_value())
+        << "Missing port name for port with ID: " << *port.logicalID();
+    // Keep track of local/remote port per VD for each remote SwitchID
+    const auto& localPortName = *port.name();
+    remoteSwitchId2Vd2PortNamePairs[remoteSwitchId][vd].emplace_back(
+        localPortName, remotePortName);
+  }
+
+  // Ensure that the link counts at various layers are within the bounds
+  // of the number of switch IDs planned.
   validateLinkLimits();
+  // Determine the ordering to use for parallel links
+  sequenceParallelLinksToVds(config, remoteSwitchId2Vd2PortNamePairs);
 }
 
 // Keep track of the number of links between leaf and L1 and
