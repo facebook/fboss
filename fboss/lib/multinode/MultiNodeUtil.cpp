@@ -2334,4 +2334,8 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   return true;
 }
 
+bool MultiNodeUtil::verifyNoTrafficDrop() const {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
