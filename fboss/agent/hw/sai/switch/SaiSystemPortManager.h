@@ -65,6 +65,13 @@ class SaiSystemPortManager {
       const std::shared_ptr<MultiSwitchPortMap>& ports,
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo,
       int64_t switchId);
+  SystemPortSaiId addFabricLinkMonitoringSystemPort(
+      const std::shared_ptr<SystemPort>& swSystemPort);
+  void changeFabricLinkMonitoringSystemPort(
+      const std::shared_ptr<SystemPort>& oldSystemPort,
+      const std::shared_ptr<SystemPort>& newSystemPort);
+  void removeFabricLinkMonitoringSystemPort(
+      const std::shared_ptr<SystemPort>& swSystemPort);
 
   const Stats& getLastPortStats() const {
     return portStats_;
