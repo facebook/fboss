@@ -2444,7 +2444,29 @@ bool MultiNodeUtil::verifyNoTrafficDrop() const {
     std::function<bool()> setup;
   };
 
-  std::vector<Scenario> scenarios = {};
+  Scenario gracefullyRestartQsfpAllSwitches = {
+      "gracefullyRestartQsfpAllSwitches", [this]() {
+        // Gracefully restart QSFP on all switches
+        forEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            triggerGracefulQsfpRestart);
+
+        // Wait for QSFP to come up on all switches
+        auto gracefulRestart = checkForEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            [this](
+                const std::string& switchName,
+                const QsfpServiceRunState& state) {
+              return this->verifyQsfpServiceRunState(switchName, state);
+            },
+            QsfpServiceRunState::ACTIVE);
+
+        return gracefulRestart;
+      }};
+
+  std::vector<Scenario> scenarios = {gracefullyRestartQsfpAllSwitches};
   for (const auto& scenario : scenarios) {
     XLOG(DBG2) << "Running scenario: " << scenario.name;
     if (!scenario.setup()) {
