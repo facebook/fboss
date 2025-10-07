@@ -102,6 +102,9 @@ class SaiSystemPortManager {
   void changeSystemPortShelPktDstEnable(
       const std::shared_ptr<SystemPort>& oldSystemPort,
       const std::shared_ptr<SystemPort>& newSystemPort) const;
+  void setFabricLinkMonitoringSystemPortOffset(std::optional<int32_t> offset) {
+    fabricLinkMonitoringSystemPortOffset_ = offset;
+  }
 
  private:
   void loadQueues(
@@ -131,6 +134,8 @@ class SaiSystemPortManager {
   ConcurrentIndices* concurrentIndices_;
   Stats portStats_;
   bool tcToQueueMapAllowedOnSystemPort_;
+  // The offset from PortID for system ports in fabric link monitoring
+  std::optional<int32_t> fabricLinkMonitoringSystemPortOffset_;
 };
 
 } // namespace facebook::fboss

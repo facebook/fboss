@@ -1801,6 +1801,19 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
           *newPfcWatchdogTimerGranularity);
     }
   }
+
+  {
+    const auto oldFabricLinkMonitoringSystemPortOffset =
+        oldSwitchSettings->getFabricLinkMonitoringSystemPortOffset();
+    const auto newFabricLinkMonitoringSystemPortOffset =
+        newSwitchSettings->getFabricLinkMonitoringSystemPortOffset();
+    if (oldFabricLinkMonitoringSystemPortOffset !=
+        newFabricLinkMonitoringSystemPortOffset) {
+      managerTable_->systemPortManager()
+          .setFabricLinkMonitoringSystemPortOffset(
+              newFabricLinkMonitoringSystemPortOffset);
+    }
+  }
 }
 
 template <typename LockPolicyT>
