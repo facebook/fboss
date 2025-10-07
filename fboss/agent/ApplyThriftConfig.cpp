@@ -1873,6 +1873,9 @@ ThriftConfigApplier::updateFabricLinkMonitoringSystemPorts(
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setScope(port.second->getScope());
       sysPort->setPortType(port.second->getPortType());
+      // There is no physical port mapping to this system port and hence we need
+      // to operate in PUSH mode and not wait for credits.
+      sysPort->setPushQueueEnabled(true);
       sysPorts->addSystemPort(sysPort);
     }
   }
