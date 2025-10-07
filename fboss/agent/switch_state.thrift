@@ -154,6 +154,8 @@ struct PortFields {
   61: optional bool amIdles;
   // Option to reset the initial credits for a port, primarily for tests
   62: optional bool resetQueueCreditBalance;
+  // Switch ID for use with fabric links in Fabric Link Monitoring
+  63: optional i32 portSwitchId;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
