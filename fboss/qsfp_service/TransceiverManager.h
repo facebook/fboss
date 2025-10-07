@@ -770,6 +770,24 @@ class TransceiverManager {
     return warmBootState_;
   }
 
+  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
+    phyManager_ = std::move(phyManager);
+    phyManager_->setPublishPhyCb(
+        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
+          if (newInfo.has_value()) {
+            publishPhyStateToFsdb(
+                std::string(portName), std::move(*newInfo->state()));
+            publishPhyStatToFsdb(
+                std::string(portName), std::move(*newInfo->stats()));
+          } else {
+            publishPhyStateToFsdb(std::string(portName), std::nullopt);
+          }
+          if (portStats.has_value()) {
+            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
+          }
+        });
+  }
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -788,24 +806,6 @@ class TransceiverManager {
   virtual void initTransceiverMap() = 0;
 
   virtual void loadConfig() = 0;
-
-  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
-    phyManager_ = std::move(phyManager);
-    phyManager_->setPublishPhyCb(
-        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
-          if (newInfo.has_value()) {
-            publishPhyStateToFsdb(
-                std::string(portName), std::move(*newInfo->state()));
-            publishPhyStatToFsdb(
-                std::string(portName), std::move(*newInfo->stats()));
-          } else {
-            publishPhyStateToFsdb(std::string(portName), std::nullopt);
-          }
-          if (portStats.has_value()) {
-            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
-          }
-        });
-  }
 
   // Update the cached PortStatus of TransceiverToPortInfo based on the input
   // This will only change the active state of the state machine.

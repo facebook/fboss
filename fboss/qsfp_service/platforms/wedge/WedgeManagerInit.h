@@ -15,6 +15,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
+#include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/SlotThreadHelper.h"
 
 namespace facebook {
@@ -23,6 +24,10 @@ namespace fboss {
 class WedgeManager;
 class PlatformProductInfo;
 class FbossMacsecHandler;
+
+std::unique_ptr<PhyManager> createPhyManager(
+    PlatformType mode,
+    const PlatformMapping* platformMapping);
 
 std::unique_ptr<WedgeManager> createWedgeManager();
 

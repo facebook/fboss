@@ -63,6 +63,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
   }
 
   createDir(FLAGS_qsfp_service_volatile_dir);
+
+  std::unique_ptr<WedgeManager> wedgeManager;
   switch (mode) {
     case PlatformType::PLATFORM_WEDGE100:
       return std::make_unique<Wedge100Manager>(platformMapping, threads);
@@ -70,12 +72,14 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     case PlatformType::PLATFORM_GALAXY_FC:
       return std::make_unique<GalaxyManager>(mode, platformMapping, threads);
     case PlatformType::PLATFORM_YAMP:
-      return createYampWedgeManager(platformMapping, threads);
+      wedgeManager = createYampWedgeManager(platformMapping, threads);
+      break;
     case PlatformType::PLATFORM_DARWIN:
     case PlatformType::PLATFORM_DARWIN48V:
       return createDarwinWedgeManager(platformMapping, threads);
     case PlatformType::PLATFORM_ELBERT:
-      return createElbertWedgeManager(platformMapping, threads);
+      wedgeManager = createElbertWedgeManager(platformMapping, threads);
+      break;
     case PlatformType::PLATFORM_MERU400BFU:
       return createBspWedgeManager<
           Meru400bfuBspPlatformMapping,
@@ -132,8 +136,9 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     case PlatformType::PLATFORM_FUJI:
     case PlatformType::PLATFORM_MINIPACK:
     case PlatformType::PLATFORM_WEDGE400:
-      return createFBWedgeManager(
+      wedgeManager = createFBWedgeManager(
           std::move(productInfo), platformMapping, threads);
+      break;
     case PlatformType::PLATFORM_TAHANSB800BC:
       return createBspWedgeManager<
           Tahansb800bcBspPlatformMapping,
@@ -141,6 +146,13 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     default:
       return std::make_unique<Wedge40Manager>(platformMapping, threads);
   }
+
+  auto phyManager = createPhyManager(mode, platformMapping.get());
+  if (phyManager) {
+    wedgeManager->setPhyManager(std::move(phyManager));
+  }
+
+  return wedgeManager;
 }
 
 template <typename BspPlatformMapping, PlatformType platformType>
