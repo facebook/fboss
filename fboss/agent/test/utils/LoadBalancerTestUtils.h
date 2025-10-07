@@ -149,6 +149,11 @@ std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
     const std::map<PortIdT, PortStatsT>& beforePortIdToStats,
     const std::map<PortIdT, PortStatsT>& afterPortIdToStats);
 
+bool isDeviationWithinThreshold(
+    int64_t lowest,
+    int64_t highest,
+    int maxDeviationPct);
+
 template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,

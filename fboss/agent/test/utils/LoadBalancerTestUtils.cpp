@@ -364,6 +364,18 @@ std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
   return std::make_pair(highest, lowest);
 }
 
+bool isDeviationWithinThreshold(
+    int64_t lowest,
+    int64_t highest,
+    int maxDeviationPct) {
+  auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
+  // Don't tolerate a deviation of more than maxDeviationPct
+  XLOG(DBG2) << "Percent Deviation: " << percentDev
+             << ", Maximum Deviation: " << maxDeviationPct;
+
+  return percentDev <= maxDeviationPct;
+}
+
 template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
