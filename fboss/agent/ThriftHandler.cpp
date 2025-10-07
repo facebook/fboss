@@ -906,6 +906,9 @@ static void populateInterfaceDetail(
   if (intf->getVlanIDIf().has_value()) {
     *interfaceDetail.vlanId() = intf->getVlanID();
   }
+  if (intf->getType() == cfg::InterfaceType::PORT) {
+    *interfaceDetail.portId() = intf->getPortID();
+  }
   *interfaceDetail.routerId() = intf->getRouterID();
   *interfaceDetail.mtu() = intf->getMtu();
   *interfaceDetail.mac() = intf->getMac().toString();

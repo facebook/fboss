@@ -250,6 +250,8 @@ struct InterfaceDetail {
   8: optional common.RemoteInterfaceType remoteIntfType;
   9: optional common.LivenessStatus remoteIntfLivenessStatus;
   10: switch_config.Scope scope = switch_config.Scope.LOCAL;
+  // PortId populated only for interfaces of type PORT
+  11: i32 portId;
 }
 
 /*
