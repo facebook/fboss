@@ -2264,23 +2264,6 @@ bool MultiNodeUtil::verifyFabricSpray(const std::string& rdsw) const {
       true /* retry on exception */);
 }
 
-bool MultiNodeUtil::verifyTrafficCounters(
-    const std::map<std::string, NeighborInfo>& rdswToNeighbor) const {
-  for (const auto& [rdsw, neighbor] : rdswToNeighbor) {
-    if (!verifyLineRate(rdsw, neighbor)) {
-      return false;
-    }
-  }
-
-  for (const auto& [switchName, _] : switchNameToSwitchIds_) {
-    if (!verifyFabricSpray(switchName)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 bool MultiNodeUtil::setupTrafficLoop() const {
   // Configure for Traffic loop
   auto rdswToNeighbor = configureNeighborsAndRoutesForTrafficLoop();

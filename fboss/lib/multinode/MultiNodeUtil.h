@@ -306,8 +306,6 @@ class MultiNodeUtil {
   std::map<std::string, NeighborInfo>
   configureNeighborsAndRoutesForTrafficLoop() const;
   void createTrafficLoop(const NeighborInfo& neighborInfo) const;
-  bool verifyTrafficCounters(
-      const std::map<std::string, NeighborInfo>& rdswToNeighbor) const;
   bool setupTrafficLoop() const;
 
   bool verifyNoReassemblyErrorsForAllSwitches() const;
