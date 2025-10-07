@@ -2293,7 +2293,17 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   };
 
   auto verifyNoSessionsFlapForAllRdsws =
-      [this](const auto& baselineRdswToPeerAndDsfSession) { return true; };
+      [this](const auto& baselineRdswToPeerAndDsfSession) {
+        for (const auto& [rdsw, baselinePeerToDsfSession] :
+             baselineRdswToPeerAndDsfSession) {
+          if (!verifyNoSessionsFlap(rdsw, baselinePeerToDsfSession)) {
+            XLOG(DBG2) << "DSF Sessions flapped from rdsw: " << rdsw;
+            return false;
+          }
+        }
+
+        return true;
+      };
 
   // Store all DSF sessions for every RDSW before creating Traffic loop
   auto baselineRdswToPeerAndDsfSession = getPeerToDsfSessionForAllRdsws();
