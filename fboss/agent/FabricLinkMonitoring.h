@@ -22,12 +22,6 @@ class FabricLinkMonitoring {
   std::map<PortID, SwitchID> getPort2SwitchIdMapping();
 
  private:
-  // Parallel link variables
-  int maxParallelLeafToL1Links_{0};
-  int maxParallelL1ToL2Links_{0};
-  std::map<SwitchID, std::map<int32_t, std::vector<std::string>>>
-      remoteSwitchId2Vd2Ports_;
-
   // Forward declarations for methods to be added in later diffs
   void processDsfNodes(const cfg::SwitchConfig* config);
   void processLinkInfo(const cfg::SwitchConfig* config);
@@ -61,6 +55,12 @@ class FabricLinkMonitoring {
           std::map<int32_t, std::vector<std::pair<std::string, std::string>>>>&
           remoteSwitchId2Vd2PortNamePairs);
   void updateMaxParallelLinks(const cfg::SwitchConfig* config);
+  // Parallel link offset computation
+  int calculateParallelLinkOffset(
+      const cfg::Port& port,
+      SwitchID remoteSwitchId,
+      int vd,
+      int parallelLinks);
 
   // Basic member variables
   std::map<std::string, SwitchID> switchName2SwitchId_;
@@ -75,6 +75,12 @@ class FabricLinkMonitoring {
 
   // Virtual device variables
   std::map<PortID, int32_t> portId2Vd_;
+
+  // Parallel link variables
+  int maxParallelLeafToL1Links_{0};
+  int maxParallelL1ToL2Links_{0};
+  std::map<SwitchID, std::map<int32_t, std::vector<std::string>>>
+      remoteSwitchId2Vd2Ports_;
 };
 
 } // namespace facebook::fboss

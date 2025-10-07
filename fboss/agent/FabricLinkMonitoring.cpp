@@ -24,6 +24,46 @@ std::map<PortID, SwitchID> FabricLinkMonitoring::getPort2SwitchIdMapping() {
   return std::map<PortID, SwitchID>();
 }
 
+// In cases where there are parallel links between VDs of switches, each of the
+// links need to be given a different switchID and both side of the link should
+// allocate the same switch ID. With an ordered list of local ports on both
+// sides of the link, the offset of the local port could be used.
+int FabricLinkMonitoring::calculateParallelLinkOffset(
+    const cfg::Port& port,
+    SwitchID remoteSwitchId,
+    int vd,
+    int maxParallelLinks) {
+  // A different offset is needed for every port only in case of multiple
+  // parallel links.
+  if (maxParallelLinks <= 1) {
+    return 0;
+  }
+
+  // Find the port list for this remote switch and VD combination
+  const auto remoteSwitch2VdIter =
+      remoteSwitchId2Vd2Ports_.find(remoteSwitchId);
+  CHECK(remoteSwitch2VdIter != remoteSwitchId2Vd2Ports_.end())
+      << "Remote switch VD mapping not found for switch: " << remoteSwitchId;
+
+  const auto vd2PortsIter = remoteSwitch2VdIter->second.find(vd);
+  CHECK(vd2PortsIter != remoteSwitch2VdIter->second.end())
+      << "VD port mapping not found for VD: " << vd;
+
+  // Find this port's position in the ordered list
+  CHECK(port.name().has_value())
+      << "Missing port name in parallel link offset compuration for port ID: "
+      << *port.logicalID();
+  const auto& portName = *port.name();
+
+  const auto& portList = vd2PortsIter->second;
+  const auto portIt = std::find(portList.begin(), portList.end(), portName);
+  CHECK(portIt != portList.end())
+      << "Port not found in VD port list for VD: " << vd
+      << ", port: " << portName;
+
+  return static_cast<int>(std::distance(portList.begin(), portIt));
+}
+
 void FabricLinkMonitoring::processDsfNodes(const cfg::SwitchConfig* config) {
   switchName2SwitchId_.clear();
   for (const auto& [_, dsfNode] : *config->dsfNodes()) {
