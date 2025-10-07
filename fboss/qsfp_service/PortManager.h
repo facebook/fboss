@@ -199,6 +199,11 @@ class PortManager {
       const std::unordered_set<PortID>& enabledPortIds,
       bool clearOnly = false);
 
+  void setOverrideAllAgentPortStatusForTesting(
+      bool up,
+      bool enabled,
+      bool clearOnly = false);
+
   void setOverrideAgentConfigAppliedInfoForTesting(
       std::optional<ConfigAppliedInfo> configAppliedInfo);
 

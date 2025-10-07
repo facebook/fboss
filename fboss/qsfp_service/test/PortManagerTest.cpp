@@ -60,8 +60,8 @@ class PortManagerTest : public ::testing::Test {
   }
   void validatePortStatusInTestingOverride(
       PortID portId,
-      bool expectedEnabled,
-      bool expectedUp) {
+      bool expectedUp,
+      bool expectedEnabled) {
     const auto& overrideStatusMap =
         portManager_->getOverrideAgentPortStatusForTesting();
     auto it = overrideStatusMap.find(portId);
@@ -198,8 +198,8 @@ TEST_F(PortManagerTest, setPortsMixedStatusForTesting) {
   initManagers(1, 4);
   portManager_->setOverrideAgentPortStatusForTesting({PortID(1)}, {PortID(3)});
 
-  validatePortStatusInTestingOverride(PortID(1), false, true);
-  validatePortStatusInTestingOverride(PortID(3), true, false);
+  validatePortStatusInTestingOverride(PortID(1), true, false);
+  validatePortStatusInTestingOverride(PortID(3), false, true);
 }
 
 TEST_F(PortManagerTest, clearOverrideAgentPortStatusForTesting) {
@@ -581,6 +581,29 @@ TEST_F(PortManagerTest, tcvrToInitializedPortsCacheEdgeCases) {
   EXPECT_EQ(ports.size(), 1);
   EXPECT_FALSE(ports.count(PortID(1))); // Should be false due to last operation
   EXPECT_TRUE(ports.count(PortID(2))); // Should be true
+}
+
+TEST_F(PortManagerTest, setOverrideAllAgentPortStatusForTesting) {
+  initManagers(1, 4);
+
+  // Test various combinations and verify they apply to all ports
+  portManager_->setOverrideAllAgentPortStatusForTesting(true, true);
+  validatePortStatusInTestingOverride(PortID(1), true, true);
+  validatePortStatusInTestingOverride(PortID(3), true, true);
+
+  portManager_->setOverrideAllAgentPortStatusForTesting(false, false);
+  validatePortStatusInTestingOverride(PortID(1), false, false);
+  validatePortStatusInTestingOverride(PortID(3), false, false);
+
+  portManager_->setOverrideAllAgentPortStatusForTesting(false, true);
+  validatePortStatusInTestingOverride(PortID(1), false, true);
+  validatePortStatusInTestingOverride(PortID(3), false, true);
+
+  // Test that it clears existing individual overrides
+  portManager_->setOverrideAgentPortStatusForTesting({PortID(1)}, {PortID(3)});
+  portManager_->setOverrideAllAgentPortStatusForTesting(true, true);
+  validatePortStatusInTestingOverride(PortID(1), true, true);
+  validatePortStatusInTestingOverride(PortID(3), true, true);
 }
 
 TEST_F(PortManagerTest, tcvrToInitializedPortsCacheConsistency) {

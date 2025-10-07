@@ -542,6 +542,27 @@ void PortManager::setOverrideAgentPortStatusForTesting(
   }
 }
 
+void PortManager::setOverrideAllAgentPortStatusForTesting(
+    bool up,
+    bool enabled,
+    bool clearOnly) {
+  overrideAgentPortStatusForTesting_.clear();
+  if (clearOnly) {
+    return;
+  }
+
+  for (const auto& it :
+       transceiverManager_->getOverrideTcvrToPortAndProfileForTesting()) {
+    for (const auto& [portId, profileID] : it.second) {
+      NpuPortStatus status;
+      status.portEnabled = enabled;
+      status.operState = up;
+      status.profileID = apache::thrift::util::enumNameSafe(profileID);
+      overrideAgentPortStatusForTesting_.emplace(portId, status);
+    }
+  }
+}
+
 void PortManager::setOverrideAgentConfigAppliedInfoForTesting(
     std::optional<ConfigAppliedInfo> configAppliedInfo) {
   overrideAgentConfigAppliedInfoForTesting_ = configAppliedInfo;
@@ -1247,6 +1268,7 @@ void PortManager::updatePortActiveState(
     const std::map<int32_t, PortStatus>& portStatusMap) noexcept {
   std::map<int32_t, NpuPortStatus> npuPortStatus =
       getNpuPortStatus(portStatusMap);
+
   int numPortStatusChanged{0};
   BlockingStateUpdateResultList results;
 
@@ -1304,6 +1326,7 @@ PortManager::setupTcvrToSynchronizedPortSet() {
   for (const auto& tcvrId :
        utility::getTransceiverIds(platformMapping_->getChips())) {
     tcvrToPortSet.emplace(
+
         tcvrId,
         std::make_unique<folly::Synchronized<std::unordered_set<PortID>>>());
   }
@@ -1348,6 +1371,7 @@ PortManager::PortNameIdMap PortManager::setupPortNameToPortIDMap() {
     PortID portId = PortID(portIDInt);
     if (auto portToTcvrMapItr = portToTcvrMap_.find(portId);
         portToTcvrMapItr == portToTcvrMap_.end() ||
+
         portToTcvrMapItr->second.empty()) {
       // Skip ports that are not associated with any transceivers
       continue;
@@ -1362,6 +1386,7 @@ PortManager::PortNameIdMap PortManager::setupPortNameToPortIDMap() {
 
 void PortManager::triggerProgrammingEvents() {
   int32_t numProgramIphy{0}, numProgramXphy{0}, numCheckTcvrsProgrammed{0};
+
   BlockingStateUpdateResultList results;
   steady_clock::time_point begin = steady_clock::now();
 
