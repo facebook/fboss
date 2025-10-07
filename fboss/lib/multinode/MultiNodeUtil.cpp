@@ -341,6 +341,27 @@ SubscriberIdToOperSubscriberInfos getSubscriberIdToOperSusbscriberInfos(
   return subInfos;
 }
 
+// Invoke the provided func on every element of given set.
+// except on exclusions.
+template <typename Callable, typename... Args>
+void forEachExcluding(
+    const std::set<std::string>& inputSet,
+    const std::set<std::string>& exclusions,
+    Callable&& func,
+    Args&&... args) {
+  // Store arguments in a tuple for safe repeated use
+  auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
+  for (const auto& elem : inputSet) {
+    if (exclusions.find(elem) == exclusions.end()) {
+      std::apply(
+          [&](auto&&... unpackedArgs) {
+            func(elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+          },
+          argsTuple);
+    }
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
