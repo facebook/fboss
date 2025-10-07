@@ -415,7 +415,7 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   std::map<std::string, int64_t> counters;
 #ifndef IS_OSS
   // TODO: sync_getRegexCounters is not available in OSS
-  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+  if (utils::isMultiSwitchEnabled(hostInfo)) {
     auto hwAgentQueryFn =
         [&counters,
          &regex](apache::thrift::Client<facebook::fboss::FbossCtrl>& client) {
