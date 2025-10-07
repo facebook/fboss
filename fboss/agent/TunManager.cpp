@@ -1002,6 +1002,23 @@ void TunManager::forceInitialSync() {
   evb_->runInFbossEventBaseThread([this]() { performInitialSyncIfNeeded(); });
 }
 
+void TunManager::forceInitialSyncBlocking() {
+  XLOG(DBG2) << "Starting forceInitialSyncBlocking()...";
+
+  StopWatch stopWatch(std::string("forceInitialSyncBlocking"), false);
+  SCOPE_EXIT {
+    XLOG(DBG2) << "forceInitialSyncBlocking() took "
+               << static_cast<int>(stopWatch.msecsElapsed().count())
+               << "ms. cleanup_done="
+               << (initialCleanupDone_ ? "true" : "false")
+               << " probed_state_cleaned_up="
+               << (probedStateCleanedUp_ ? "true" : "false");
+  };
+
+  evb_->runInFbossEventBaseThreadAndWait(
+      [this]() { performInitialSyncIfNeeded(); });
+}
+
 void TunManager::sync(std::shared_ptr<SwitchState> state) {
   CHECK(evb_->isInEventBaseThread());
   using Addresses = Interface::Addresses;

@@ -83,6 +83,8 @@ class TunManager : public StateObserver {
 
   void forceInitialSync();
 
+  void forceInitialSyncBlocking();
+
   /**
    * This should be called externally only after initial sync has been
    * performed.
