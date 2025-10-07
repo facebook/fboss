@@ -403,6 +403,10 @@ class ThriftConfigApplier {
       const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
   std::shared_ptr<MultiSwitchSystemPortMap> updateRemoteSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
+  bool needFabricLinkMonSystemPortUpdate(
+      const std::shared_ptr<MultiSwitchSettings>& origMultiSwitchSettings,
+      const std::shared_ptr<MultiSwitchSettings>& newMultiSwitchSettings,
+      const SwitchIdScopeResolver& scopeResolver);
 
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
@@ -723,6 +727,20 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
           scopeResolver_));
       new_->resetRemoteSystemPorts(
           updateRemoteSystemPorts(new_->getSystemPorts()));
+      changed = true;
+    }
+  }
+
+  {
+    if (needFabricLinkMonSystemPortUpdate(
+            orig_->getSwitchSettings(),
+            new_->getSwitchSettings(),
+            scopeResolver_)) {
+      new_->resetFabricLinkMonitoringSystemPorts(
+          toMultiSwitchMap<MultiSwitchSystemPortMap>(
+              updateFabricLinkMonitoringSystemPorts(
+                  new_->getPorts(), new_->getSwitchSettings()),
+              scopeResolver_));
       changed = true;
     }
   }
@@ -1955,6 +1973,42 @@ ThriftConfigApplier::updateRemoteSystemPorts(
     }
   }
   return remoteSystemPorts;
+}
+
+bool ThriftConfigApplier::needFabricLinkMonSystemPortUpdate(
+    const std::shared_ptr<MultiSwitchSettings>& origMultiSwitchSettings,
+    const std::shared_ptr<MultiSwitchSettings>& newMultiSwitchSettings,
+    const SwitchIdScopeResolver& scopeResolver) {
+  if (!scopeResolver.hasVoq()) {
+    // Fabric link monitoring is applicable only for voq switches
+    return false;
+  }
+
+  // Check if the fabricLinkMonitoringSystemPortOffset() configuration
+  // has changed.
+  for (auto& switchIdAndSwitchInfo : scopeResolver.switchIdToSwitchInfo()) {
+    auto switchId = switchIdAndSwitchInfo.first;
+    auto matcher = HwSwitchMatcher(
+        std::unordered_set<SwitchID>({static_cast<SwitchID>(switchId)}));
+
+    auto origSwitchSettings =
+        origMultiSwitchSettings->getNodeIf(matcher.matcherString());
+    auto newSwitchSettings =
+        newMultiSwitchSettings->getNodeIf(matcher.matcherString());
+    std::optional<int32_t> origFabricLinkMonitoringSystemPortOffset =
+        origSwitchSettings
+        ? origSwitchSettings->getFabricLinkMonitoringSystemPortOffset()
+        : std::nullopt;
+    std::optional<int32_t> newFabricLinkMonitoringSystemPortOffset =
+        newSwitchSettings
+        ? newSwitchSettings->getFabricLinkMonitoringSystemPortOffset()
+        : std::nullopt;
+    if (origFabricLinkMonitoringSystemPortOffset !=
+        newFabricLinkMonitoringSystemPortOffset) {
+      return true;
+    }
+  }
+  return false;
 }
 
 shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
