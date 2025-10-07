@@ -20,6 +20,7 @@
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -2355,11 +2356,22 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
 
 bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
   auto verifyNoReassemblyErrorsForAllSwitchesHelper = [this]() {
+    auto getCounterName = [this](const auto& switchName) {
+      auto iter = switchNameToAsicType_.find(switchName);
+      CHECK(iter != switchNameToAsicType_.end());
+      auto asicType = iter->second;
+      auto vendorName = getHwAsicForAsicType(asicType).getVendor();
+
+      return vendorName + ".reassembly.errors.sum";
+    };
+
     for (const auto& [switchName, _] : switchNameToSwitchIds_) {
       auto counterNameToCount = getCounterNameToCount(switchName);
-      auto reassemblyErrors = counterNameToCount["bcm.reassembly.errors.sum"];
+      auto counterName = getCounterName(switchName);
+      auto reassemblyErrors = counterNameToCount[counterName];
       if (reassemblyErrors > 0) {
         XLOG(DBG2) << "Switch: " << switchName
+                   << " counterName: " << counterName
                    << " reassemblyErrors: " << reassemblyErrors;
         return false;
       }

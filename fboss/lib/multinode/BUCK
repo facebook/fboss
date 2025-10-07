@@ -9,6 +9,7 @@ cpp_library(
     exported_deps = [
         "//common/network:util",
         "//common/thrift/thrift:monitor-cpp2-clients",
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
