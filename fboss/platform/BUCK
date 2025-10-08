@@ -20,6 +20,7 @@ fbpkg.builder(
         "sensor_service": "//fboss/platform/sensor_service:sensor_service",
         "sensor_service.service": "facebook/sensor_service.service",
         "sensor_service_client": "//fboss/platform/sensor_service:sensor_service_client",
+        "showtech": "//fboss/platform/showtech:showtech",
         "weutil": "//fboss/platform/weutil:weutil",
     },
     split_debuginfo = True,
