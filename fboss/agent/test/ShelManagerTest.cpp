@@ -10,6 +10,7 @@
 
 namespace {
 constexpr auto kLocalSysPortMax = 20;
+constexpr auto kRemoteSysPortMax = 40;
 constexpr auto kEcmpWidth = 4;
 constexpr auto kEcmpWeight = 1;
 } // namespace
@@ -39,10 +40,12 @@ class ShelManagerTest : public ::testing::Test {
     return switchState;
   }
 
-  std::shared_ptr<SwitchState> switchStateWithEcmpRouteToLocalPorts(
-      int localSysPortMax) {
-    // Prepare initial SwitchState with local system ports and ports
-    auto initialState = switchStateWithLocalSysPorts(localSysPortMax);
+  std::shared_ptr<SwitchState> switchStateWithEcmpRoute(
+      int localSysPortMax,
+      int remoteSysPortMax,
+      bool routeResolvedToLocalPorts) {
+    auto initialState = switchStateWithLocalAndRemoteSysPorts(
+        localSysPortMax, remoteSysPortMax);
 
     // Add ports to the state and set desiredSelfHealingECMPLagEnable to true
     auto portMap = initialState->getPorts()->clone();
@@ -62,10 +65,11 @@ class ShelManagerTest : public ::testing::Test {
     auto newState = initialState->clone();
     std::vector<ResolvedNextHop> ecmpNexthops;
     ecmpNexthops.reserve(kEcmpWidth);
+    int intfOffset = routeResolvedToLocalPorts ? 0 : localSysPortMax;
     for (int i = 0; i < kEcmpWidth; ++i) {
       ecmpNexthops.emplace_back(
           folly::IPAddress(folly::to<std::string>("10.0.0.", i + 1)),
-          InterfaceID(i + 1),
+          InterfaceID(i + 1 + intfOffset),
           kEcmpWeight);
     }
     RouteNextHopSet ecmpNextHopSet(ecmpNexthops.begin(), ecmpNexthops.end());
@@ -193,7 +197,8 @@ TEST_F(ShelManagerTest, EnableShelPortWithLocalEcmp) {
   // Create StateDelta
   std::vector<facebook::fboss::StateDelta> deltas;
   auto initialState = switchStateWithLocalSysPorts(kLocalSysPortMax);
-  auto newState = switchStateWithEcmpRouteToLocalPorts(kLocalSysPortMax);
+  auto newState = switchStateWithEcmpRoute(
+      kLocalSysPortMax, kRemoteSysPortMax, true /*routeResolvedToLocalPorts*/);
   deltas.emplace_back(initialState, newState);
 
   auto retDeltas = shelManager_->modifyState(deltas);
@@ -211,6 +216,28 @@ TEST_F(ShelManagerTest, EnableShelPortWithLocalEcmp) {
     } else {
       EXPECT_FALSE(port->getSelfHealingECMPLagEnable().has_value());
     }
+  }
+}
+
+TEST_F(ShelManagerTest, EnableShelPortWithRemoteEcmp) {
+  // Create StateDelta
+  std::vector<facebook::fboss::StateDelta> deltas;
+  auto initialState = switchStateWithLocalAndRemoteSysPorts(
+      kLocalSysPortMax, kRemoteSysPortMax);
+  auto newState = switchStateWithEcmpRoute(
+      kLocalSysPortMax, kRemoteSysPortMax, false /*routeResolvedToLocalPorts*/);
+  deltas.emplace_back(initialState, newState);
+
+  auto retDeltas = shelManager_->modifyState(deltas);
+
+  // Verify the modified state has SelfHealingECMPLagEnable set for ECMP ports
+  ASSERT_EQ(retDeltas.size(), 1);
+  auto modifiedState = retDeltas.begin()->newState();
+  for (int i = 0; i < kLocalSysPortMax; ++i) {
+    auto portId = PortID(i + 1);
+    auto port = modifiedState->getPorts()->getNodeIf(portId);
+    ASSERT_NE(port, nullptr);
+    EXPECT_FALSE(port->getSelfHealingECMPLagEnable().has_value());
   }
 }
 } // namespace facebook::fboss
