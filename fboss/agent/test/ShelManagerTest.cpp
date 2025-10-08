@@ -261,4 +261,26 @@ TEST_F(ShelManagerTest, ShelDownOnLocalPort) {
   EXPECT_FALSE(shelManager_->ecmpOverShelDisabledPort(enabledShelState));
   EXPECT_TRUE(shelManager_->ecmpOverShelDisabledPort(disabledShelState));
 }
+
+TEST_F(ShelManagerTest, ShelDownOnRemotePort) {
+  // Create StateDelta
+  std::vector<facebook::fboss::StateDelta> deltas;
+  auto initialState = switchStateWithLocalAndRemoteSysPorts(
+      kLocalSysPortMax, kRemoteSysPortMax);
+  auto newState = switchStateWithEcmpRoute(
+      kLocalSysPortMax, kRemoteSysPortMax, false /*routeResolvedToLocalPorts*/);
+  deltas.emplace_back(initialState, newState);
+
+  auto retDeltas = shelManager_->modifyState(deltas);
+
+  std::map<int, cfg::PortState> enabledShelState;
+  std::map<int, cfg::PortState> disabledShelState;
+  for (int i = kLocalSysPortMax; i < kRemoteSysPortMax; i++) {
+    enabledShelState[i + 1] = cfg::PortState::ENABLED;
+    disabledShelState[i + 1] = cfg::PortState::DISABLED;
+  }
+
+  EXPECT_FALSE(shelManager_->ecmpOverShelDisabledPort(enabledShelState));
+  EXPECT_TRUE(shelManager_->ecmpOverShelDisabledPort(disabledShelState));
+}
 } // namespace facebook::fboss
