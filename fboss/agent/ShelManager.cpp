@@ -51,25 +51,20 @@ void ShelManager::updateRefCount(
     const std::shared_ptr<SwitchState>& origState,
     bool add) {
   for (const auto& nhop : routeNhops) {
-    // NextHops that is resolved to local interfaces with global scope
     if (nhop.isResolved()) {
-      auto sysPort =
-          origState->getSystemPorts()->getNodeIf(SystemPortID(nhop.intf()));
-      if (sysPort && sysPort->getScope() == cfg::Scope::GLOBAL) {
-        auto lockedMap = intf2RefCnt_.wlock();
-        auto iter = lockedMap->find(nhop.intf());
-        if (add) {
-          if (iter == lockedMap->end()) {
-            lockedMap->insert_or_assign(nhop.intf(), 1);
-          } else {
-            iter->second++;
-          }
+      auto lockedMap = intf2RefCnt_.wlock();
+      auto iter = lockedMap->find(nhop.intf());
+      if (add) {
+        if (iter == lockedMap->end()) {
+          lockedMap->insert_or_assign(nhop.intf(), 1);
         } else {
-          CHECK(iter != lockedMap->end() && iter->second > 0);
-          iter->second--;
-          if (iter->second == 0) {
-            lockedMap->erase(iter);
-          }
+          iter->second++;
+        }
+      } else {
+        CHECK(iter != lockedMap->end() && iter->second > 0);
+        iter->second--;
+        if (iter->second == 0) {
+          lockedMap->erase(iter);
         }
       }
     }
@@ -142,22 +137,25 @@ std::shared_ptr<SwitchState> ShelManager::processDelta(
   processRouteUpdates(delta);
   auto modifiedState = delta.newState()->clone();
 
-  auto processIntfDiff =
-      [&](const auto& fromMap, const auto& toMap, bool enable) {
-        for (const auto& [intf, _] : toMap) {
-          if (fromMap.find(intf) == fromMap.end()) {
-            auto portId =
-                getPortID(static_cast<SystemPortID>(intf), delta.newState());
-            auto port = modifiedState->getPorts()->getNodeIf(portId);
-            CHECK(port);
-            auto desiredShelState = port->getDesiredSelfHealingECMPLagEnable();
-            if (desiredShelState.has_value() && desiredShelState.value()) {
-              auto newPort = port->modify(&modifiedState);
-              newPort->setSelfHealingECMPLagEnable(enable);
-            }
-          }
+  auto processIntfDiff = [&](const auto& fromMap,
+                             const auto& toMap,
+                             bool enable) {
+    for (const auto& [intf, _] : toMap) {
+      // Only enable SHEL for local system ports
+      if (fromMap.find(intf) == fromMap.end() &&
+          delta.newState()->getSystemPorts()->getNodeIf(SystemPortID(intf))) {
+        auto portId =
+            getPortID(static_cast<SystemPortID>(intf), delta.newState());
+        auto port = modifiedState->getPorts()->getNodeIf(portId);
+        CHECK(port);
+        auto desiredShelState = port->getDesiredSelfHealingECMPLagEnable();
+        if (desiredShelState.has_value() && desiredShelState.value()) {
+          auto newPort = port->modify(&modifiedState);
+          newPort->setSelfHealingECMPLagEnable(enable);
         }
-      };
+      }
+    }
+  };
 
   auto lockedMap = intf2RefCnt_.rlock();
   processIntfDiff(beforeIntf2RefCnt, *lockedMap, true);
