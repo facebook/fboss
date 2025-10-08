@@ -19,11 +19,14 @@ class BcmTestFujiPlatform : public BcmTestTomahawk4Platform {
  public:
   explicit BcmTestFujiPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo);
+  ~BcmTestFujiPlatform() override = default;
 
  private:
   // Forbidden copy constructor and assignment operator
   BcmTestFujiPlatform(BcmTestFujiPlatform const&) = delete;
   BcmTestFujiPlatform& operator=(BcmTestFujiPlatform const&) = delete;
+  BcmTestFujiPlatform(BcmTestFujiPlatform&&) = delete;
+  BcmTestFujiPlatform& operator=(BcmTestFujiPlatform&&) = delete;
 
   std::unique_ptr<BcmTestPort> createTestPort(PortID id) override;
 };
