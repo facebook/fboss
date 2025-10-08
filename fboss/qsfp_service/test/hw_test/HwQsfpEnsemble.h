@@ -56,6 +56,7 @@ class ExternalPhy;
  * --- yamp
  * ----- YampPhyEnsemble.h
  */
+
 class HwQsfpEnsemble {
  public:
   void init();
@@ -68,6 +69,9 @@ class HwQsfpEnsemble {
   WedgeManager* getWedgeManager();
   const WedgeManager* getWedgeManager() const {
     return const_cast<HwQsfpEnsemble*>(this)->getWedgeManager();
+  }
+  std::shared_ptr<QsfpServiceHandler> getQsfpServiceHandler() {
+    return qsfpServiceHandler_;
   }
 
   bool isXphyPlatform() const;

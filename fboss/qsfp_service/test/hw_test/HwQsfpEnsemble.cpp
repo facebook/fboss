@@ -70,7 +70,7 @@ void HwQsfpEnsemble::setupForWarmboot() {
 }
 
 PhyManager* HwQsfpEnsemble::getPhyManager() {
-  return getWedgeManager()->getPhyManager();
+  return qsfpServiceHandler_->getPhyManager();
 }
 
 const PlatformMapping* HwQsfpEnsemble::getPlatformMapping() const {
@@ -100,4 +100,5 @@ bool HwQsfpEnsemble::isSaiPlatform() const {
   return saiPlatforms.find(getWedgeManager()->getPlatformType()) !=
       saiPlatforms.end();
 }
+
 } // namespace facebook::fboss

@@ -578,6 +578,17 @@ void QsfpServiceHandler::gracefulExit() {
   tcvrManager_->gracefulExit();
 }
 
+/*
+ * Return a pointer to the port manager.
+ */
+PhyManager* QsfpServiceHandler::getPhyManager() const {
+  if (FLAGS_port_manager_mode) {
+    return getPortManager()->getPhyManager();
+  } else {
+    return getTransceiverManager()->getPhyManager();
+  }
+}
+
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(

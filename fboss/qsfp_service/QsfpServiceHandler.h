@@ -298,6 +298,8 @@ class QsfpServiceHandler
 
   void gracefulExit();
 
+  PhyManager* getPhyManager() const;
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,
