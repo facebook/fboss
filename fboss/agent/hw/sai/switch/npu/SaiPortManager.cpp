@@ -658,12 +658,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   uint16_t vlanId = swPort->getIngressVlan();
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
 
-  // Skip setting MTU for fabric ports if not supported
-  // TODO(daiweix): CS00012426928 to confirm whether MTU setting on hyper
-  // port member is supported or not.
   std::optional<SaiPortTraits::Attributes::Mtu> mtu{};
-  if ((swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) &&
-      (swPort->getPortType() != cfg::PortType::FABRIC_PORT)) {
+  if (platform_->getAsic()->portMtuSupported(swPort->getPortType())) {
     mtu = swPort->getMaxFrameSize();
   }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =

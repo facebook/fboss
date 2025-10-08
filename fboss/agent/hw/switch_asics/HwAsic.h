@@ -505,6 +505,8 @@ class HwAsic {
 
   virtual uint64_t getCpuPortEgressPoolSize() const;
 
+  virtual bool portMtuSupported(cfg::PortType portType) const;
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 
