@@ -972,13 +972,13 @@ void TransceiverManager::stopThreads() {
   // We use runInEventBaseThread() to terminateLoopSoon() rather than calling it
   // directly here.  This ensures that any events already scheduled via
   // runInEventBaseThread() will have a chance to run.
+  drainAllStateMachineUpdates();
   if (updateThread_) {
     updateEventBase_->runInEventBaseThread(
         [this] { updateEventBase_->terminateLoopSoon(); });
     updateThread_->join();
     XLOG(DBG2) << "Terminated TransceiverStateMachineUpdateThread";
   }
-  drainAllStateMachineUpdates();
 
   // And finally stop all TransceiverStateMachineHelper thread
   for (auto& threadHelper : *threads_) {
@@ -3450,11 +3450,25 @@ void TransceiverManager::drainAllStateMachineUpdates() {
     stateMachineController->blockNewUpdates();
   }
 
+  // Make sure threads are actually active before we start draining.
+  bool allStateMachineThreadsActive{true};
+  for (auto& threadHelper : *threads_) {
+    if (!threadHelper.second.isThreadActive()) {
+      allStateMachineThreadsActive = false;
+      break;
+    }
+  }
+
+  if (!allStateMachineThreadsActive) {
+    XLOG(INFO) << "All state machine threads are not active. Skip draining.";
+    return;
+  }
+
   // Drain any pending updates by calling handlePendingUpdates directly.
   bool updatesDrained = false;
   do {
     updatesDrained = true;
-    handlePendingUpdates();
+    executeStateUpdates();
     for (auto& [_, stateMachineController] : stateMachineControllers_) {
       if (stateMachineController->arePendingUpdates()) {
         updatesDrained = false;
