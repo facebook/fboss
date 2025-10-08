@@ -27,6 +27,7 @@ class Utils {
   void printPemDetails();
   void printFanDetails();
   void printFanspinnerDetails();
+  void printNvmeDetails();
   void printPowerGoodDetails();
 
  private:
