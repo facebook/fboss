@@ -20,19 +20,35 @@ class ShelManagerTest : public ::testing::Test {
 
   std::shared_ptr<SwitchState> switchStateWithLocalSysPorts(
       int localSysPortMax) {
-    std::shared_ptr<MultiSwitchSystemPortMap> multiSwitchSysPorts =
-        std::make_shared<MultiSwitchSystemPortMap>();
-    for (int i = 0; i < localSysPortMax; i++) {
-      auto sysPort = std::make_shared<SystemPort>(SystemPortID(i + 1));
-      sysPort->setScope(cfg::Scope::GLOBAL);
-      multiSwitchSysPorts->addNode(sysPort, HwSwitchMatcher());
-    }
     std::shared_ptr<SwitchState> switchState = std::make_shared<SwitchState>();
-    switchState->resetSystemPorts(multiSwitchSysPorts);
+    switchState->resetSystemPorts(multiSwitchSysPortMap(0, localSysPortMax));
+    return switchState;
+  }
+
+  std::shared_ptr<SwitchState> switchStateWithLocalAndRemoteSysPorts(
+      int localSysPortMax,
+      int remoteSysPortMax) {
+    std::shared_ptr<SwitchState> switchState = std::make_shared<SwitchState>();
+    switchState->resetSystemPorts(multiSwitchSysPortMap(0, localSysPortMax));
+    switchState->resetRemoteSystemPorts(
+        multiSwitchSysPortMap(localSysPortMax, remoteSysPortMax));
     return switchState;
   }
 
  protected:
+  std::shared_ptr<MultiSwitchSystemPortMap> multiSwitchSysPortMap(
+      int sysPortMin,
+      int sysPortMax) {
+    std::shared_ptr<MultiSwitchSystemPortMap> multiSwitchSysPorts =
+        std::make_shared<MultiSwitchSystemPortMap>();
+    for (int i = sysPortMin; i < sysPortMax; i++) {
+      auto sysPort = std::make_shared<SystemPort>(SystemPortID(i + 1));
+      sysPort->setScope(cfg::Scope::GLOBAL);
+      multiSwitchSysPorts->addNode(sysPort, HwSwitchMatcher());
+    }
+    return multiSwitchSysPorts;
+  }
+
   std::unique_ptr<ShelManager> shelManager_;
 };
 
