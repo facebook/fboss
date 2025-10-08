@@ -66,3 +66,16 @@ cpp_unittest(
         "//fboss/platform/sensor_service:utils",
     ],
 )
+
+cpp_unittest(
+    name = "sensor_service_power_consumption_test",
+    srcs = [
+        "SensorServiceImplPowerConsumptionTest.cpp",
+    ],
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/sensor_service:service",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
