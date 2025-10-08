@@ -23,10 +23,11 @@ std::vector<TransceiverID> getMatchingTcvrIds(
   CHECK(qsfpTestConfig.has_value());
 
   for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
-    for (auto portName : {portPairs.aPortName(), portPairs.zPortName()}) {
-      auto portID = wedgeMgr->getPortIDByPortName(*portName);
-      CHECK(portID.has_value());
-      auto tcvrID = wedgeMgr->getTransceiverID(PortID(*portID));
+    for (auto currentPortName :
+         {portPairs.aPortName(), portPairs.zPortName()}) {
+      auto currentPortID = wedgeMgr->getPortIDByPortName(*currentPortName);
+      CHECK(currentPortID.has_value());
+      auto tcvrID = wedgeMgr->getTransceiverID(PortID(*currentPortID));
       if (!tcvrID) {
         continue;
       }
