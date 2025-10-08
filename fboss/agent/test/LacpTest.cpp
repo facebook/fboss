@@ -382,6 +382,7 @@ void DUColdBootReconvergenceWithESWHelper(
       MacAddress::fromBinary(
           folly::ByteRange(duInfo.systemID.cbegin(), duInfo.systemID.cend())),
       1 /* minimum-link count */,
+      std::nullopt,
       &duEventInterceptor);
 
   duEventInterceptor.addController(duControllerPtr);
@@ -582,6 +583,7 @@ void UUColdBootReconvergenceWithDRHelper(
         MacAddress::fromBinary(
             folly::ByteRange(info.systemID.cbegin(), info.systemID.cend())),
         portCount /* minimum-link count */,
+        std::nullopt,
         &uuEventInterceptor);
 
     uuEventInterceptor.addController(controllerPtrs[portIdx]);
@@ -845,6 +847,7 @@ void selfInteroperabilityHelper(
       MacAddress::fromBinary(
           folly::ByteRange(uuInfo.systemID.cbegin(), uuInfo.systemID.cend())),
       1 /* minimum-link count */,
+      std::nullopt,
       &uuEventInterceptor);
   uuEventInterceptor.addController(uuControllerPtr);
   auto duControllerPtr = std::make_shared<LacpController>(
@@ -859,6 +862,7 @@ void selfInteroperabilityHelper(
       MacAddress::fromBinary(
           folly::ByteRange(duInfo.systemID.cbegin(), duInfo.systemID.cend())),
       1 /* minimum-link count */,
+      std::nullopt,
       &duEventInterceptor);
   duEventInterceptor.addController(duControllerPtr);
 
@@ -1045,6 +1049,7 @@ void selfInteroperabilityAfterWarmbootHelper(
       MacAddress::fromBinary(
           folly::ByteRange(uuInfo.systemID.cbegin(), uuInfo.systemID.cend())),
       1 /* minimum-link count */,
+      std::nullopt,
       &uuEventInterceptor);
   uuEventInterceptor.addController(uuController);
   auto duController = std::make_shared<LacpController>(
@@ -1059,6 +1064,7 @@ void selfInteroperabilityAfterWarmbootHelper(
       MacAddress::fromBinary(
           folly::ByteRange(duInfo.systemID.cbegin(), duInfo.systemID.cend())),
       1 /* minimum-link count */,
+      std::nullopt,
       &duEventInterceptor);
   duEventInterceptor.addController(duController);
 
@@ -1154,6 +1160,7 @@ TEST_F(LacpTest, lacpPortFlapAfterSync) {
             MacAddress::fromBinary(folly::ByteRange(
                 pInfo.systemID.cbegin(), pInfo.systemID.cend())),
             2 /* minimum-link count */,
+            std::nullopt,
             &interceptor);
         interceptor.addController(controller);
         return controller;
@@ -1200,6 +1207,210 @@ TEST_F(LacpTest, lacpPortFlapAfterSync) {
   // the port should stay down
   ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), false);
 }
+
+bool verifyPortForwardingState(
+    LacpServiceInterceptor& eventInterceptor,
+    std::vector<PortID> ports,
+    std::vector<bool> expectedStates) {
+  for (int i = 0; i < ports.size(); i++) {
+    if (eventInterceptor.isForwarding(ports[i]) != expectedStates[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+/*
+ * LAG with 2 min-link limit (low/high) and 4 member links between DU and UU
+ */
+TEST_F(LacpTest, lacpPortFlapAfterSyncWithTwoMinLinkLimit) {
+  auto rate = cfg::LacpPortRate::SLOW;
+  FbossEventBase* lacpEvbase = lacpEvb();
+  LacpServiceInterceptor uuEventInterceptor(lacpEvbase);
+  LacpServiceInterceptor duEventInterceptor(lacpEvbase);
+
+  PortID uuPort1(static_cast<uint16_t>(0xA));
+  PortID uuPort2(static_cast<uint16_t>(0xB));
+  PortID uuPort3(static_cast<uint16_t>(0xC));
+  PortID uuPort4(static_cast<uint16_t>(0xD));
+  PortID duPort1(static_cast<uint16_t>(0x1));
+  PortID duPort2(static_cast<uint16_t>(0x2));
+  PortID duPort3(static_cast<uint16_t>(0x3));
+  PortID duPort4(static_cast<uint16_t>(0x4));
+
+  using SystemID = std::array<uint8_t, 6>;
+  auto makeParticipantInfo =
+      [&rate](SystemID systemID, auto port, auto key) -> ParticipantInfo {
+    ParticipantInfo pInfo;
+    pInfo.systemPriority = 65535;
+    pInfo.systemID = systemID;
+    pInfo.key = key;
+    pInfo.portPriority = 32768;
+    pInfo.port = port;
+    pInfo.state = LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE |
+        LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC;
+    if (rate == cfg::LacpPortRate::FAST) {
+      pInfo.state |= LacpState::SHORT_TIMEOUT;
+    }
+    return pInfo;
+  };
+
+  ParticipantInfo uuInfo1 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}, uuPort1, 1);
+  ParticipantInfo uuInfo2 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}, uuPort2, 1);
+  ParticipantInfo uuInfo3 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}, uuPort3, 1);
+  ParticipantInfo uuInfo4 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x1e, 0x85}, uuPort4, 1);
+  ParticipantInfo duInfo1 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort1, 2);
+  ParticipantInfo duInfo2 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort2, 2);
+  ParticipantInfo duInfo3 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort3, 2);
+  ParticipantInfo duInfo4 =
+      makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort4, 2);
+
+  auto createAndAddController = [&rate, &lacpEvbase](
+                                    auto& port, auto& pInfo, auto& interceptor)
+      -> std::shared_ptr<LacpController> {
+    auto controller = std::make_shared<LacpController>(
+        port,
+        lacpEvbase,
+        pInfo.portPriority,
+        rate,
+        cfg::LacpPortActivity::ACTIVE,
+        cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+        AggregatePortID(pInfo.key),
+        pInfo.systemPriority,
+        MacAddress::fromBinary(
+            folly::ByteRange(pInfo.systemID.cbegin(), pInfo.systemID.cend())),
+        2 /* minimum-link to down count */,
+        4 /* minimum-link to up count */,
+        &interceptor);
+    interceptor.addController(controller);
+    return controller;
+  };
+
+  auto uuController1 =
+      createAndAddController(uuPort1, uuInfo1, uuEventInterceptor);
+  auto uuController2 =
+      createAndAddController(uuPort2, uuInfo2, uuEventInterceptor);
+  auto uuController3 =
+      createAndAddController(uuPort3, uuInfo3, uuEventInterceptor);
+  auto uuController4 =
+      createAndAddController(uuPort4, uuInfo4, uuEventInterceptor);
+  auto duController1 =
+      createAndAddController(duPort1, duInfo1, duEventInterceptor);
+  auto duController2 =
+      createAndAddController(duPort2, duInfo2, duEventInterceptor);
+  auto duController3 =
+      createAndAddController(duPort3, duInfo3, duEventInterceptor);
+  auto duController4 =
+      createAndAddController(duPort4, duInfo4, duEventInterceptor);
+
+  AggregatePort::PartnerState partnerState =
+      makeParticipantInfo(duInfo1.systemID, duInfo1.port, 2);
+  uuController1->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(duInfo2.systemID, duInfo2.port, 2);
+  uuController2->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(duInfo3.systemID, duInfo3.port, 2);
+  uuController3->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(duInfo4.systemID, duInfo4.port, 2);
+  uuController4->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(uuInfo1.systemID, uuInfo1.port, 1);
+  duController1->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(uuInfo2.systemID, uuInfo2.port, 1);
+  duController2->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(uuInfo3.systemID, uuInfo3.port, 1);
+  duController3->restoreMachines(partnerState);
+  partnerState = makeParticipantInfo(uuInfo4.systemID, uuInfo4.port, 1);
+  duController4->restoreMachines(partnerState);
+  XLOG(DBG3) << "Restored LACP state machines";
+
+  // All ports should be in forwarding state
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort1), true);
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), true);
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort3), true);
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort4), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort1), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort2), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort3), true);
+  ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort4), true);
+
+  /*
+   * Flap once LAG is Up (has selected ports)
+   */
+  duController1->portDown();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, true, true, true});
+  // Port 2 flag
+  duController2->portDown();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, false, true, true});
+  duController2->portUp();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, true, true, true});
+  duController2->portDown();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, false, true, true});
+  // Now Below Th_low, all ports go to standby
+  duController3->portDown();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, false, false, false});
+
+  /*
+   * Flap once LAG is Down (No selected port)
+   */
+  duController3->portUp();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, false, false, false});
+  duController2->portUp();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, false, false, false});
+  duController2->portDown();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, false, false, false});
+  duController2->portUp();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {false, false, false, false});
+  // Reach Th_high, all ports go to forwarding
+  duController1->portUp();
+  verifyPortForwardingState(
+      duEventInterceptor,
+      {duPort1, duPort2, duPort3, duPort4},
+      {true, true, true, true});
+
+  duController1->portDown();
+  duController2->portDown();
+  duController3->portDown();
+  auto uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort4);
+  uuTransmission.actorInfo.state =
+      LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE | LacpState::IN_SYNC;
+  // A PDU is received on UP/Standby port
+  duController4->received(uuTransmission);
+  // the port should stay down
+  ASSERT_EQ(duEventInterceptor.isForwarding(duPort4), false);
+}
+
 /*
  * Test LACP counters for timeout and PDU teardown
  */
@@ -1254,6 +1465,7 @@ TEST_F(LacpTest, lacpDownCounters) {
             MacAddress::fromBinary(folly::ByteRange(
                 pInfo.systemID.cbegin(), pInfo.systemID.cend())),
             2 /* minimum-link count */,
+            std::nullopt,
             &interceptor);
         interceptor.addController(controller);
         return controller;
@@ -1330,6 +1542,7 @@ TEST_F(LacpTest, lacpTransmissionFailureRetry) {
       MacAddress::fromBinary(folly::ByteRange(
           testInfo.systemID.cbegin(), testInfo.systemID.cend())),
       1 /* minimum-link count */,
+      std::nullopt,
       &serviceInterceptor);
 
   serviceInterceptor.addController(controllerPtr);
