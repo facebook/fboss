@@ -450,8 +450,11 @@ EcmpResourceManager::getGroupsToReclaimOrdered(uint32_t canReclaim) const {
         continue;
       }
       auto mergeGrpInfoItr = (*oitr)->getMergedGroupInfoItr();
+      // Merge itr must be set, since we are reclaiming from a merged group
       CHECK(mergeGrpInfoItr.has_value());
       const auto& [mergeSet, _] = *mergeGrpInfoItr.value();
+      // Merged group must not be empty. Else it should have already been
+      // pruned
       CHECK_GT(mergeSet.size(), 0);
       // Merge set will create mergeSet.size() primary groups primary group and
       // delete one merged group
@@ -633,6 +636,7 @@ void EcmpResourceManager::updateMergedGroups(
                  << nhopGroupIdsDifference(curMergeSet, newMergeSet);
     }
     auto citr = mergedGroups_.find(curMergeSet);
+    // curMergeSet must be in the mergedGroups_ map
     CHECK(citr != mergedGroups_.end());
     auto curMergedSetNhops = citr->second.mergedNhops.size();
     // Prune curMergeSet from mergedGroups_
@@ -771,7 +775,8 @@ void EcmpResourceManager::reclaimMergeGroups(
 }
 
 void EcmpResourceManager::reclaimEcmpGroups(InputOutputState* inOutState) {
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  DCHECK_LE(
+      inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   auto canReclaim =
       config_.getMaxPrimaryEcmpGroups() - inOutState->primaryEcmpGroupsCnt;
   if (!canReclaim) {
@@ -1543,7 +1548,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  DCHECK_LE(
+      inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   bool ecmpLimitReached = config_.ecmpLimitReached(
       inOutState->primaryEcmpGroupsCnt, inOutState->ecmpMemberCnt);
   if (oldRoute) {
@@ -1585,7 +1591,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
     pitr->second->incRouteUsageCount();
   }
   CHECK_GT(pitr->second->getRouteUsageCount(), 0);
-  CHECK_LE(inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
+  DCHECK_LE(
+      inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   if (getEcmpCompressionThresholdPct()) {
     if (pfxInserted) {
       /*
