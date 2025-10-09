@@ -2607,7 +2607,26 @@ bool MultiNodeUtil::verifyNoTrafficDropOnDrainUndrain() const {
     return false;
   }
 
-  return true;
+  Scenario drainUndrainFabricLinkOnePerFabric = {
+      "drainUndrainFabricLinkOnePerFabric", [this]() {
+        auto fabricSwitchesToDrainUndrainLinks =
+            getOneFabricSwitchForEachCluster();
+
+        auto drainUndrainFabricLink = checkForEachExcluding(
+            fabricSwitchesToDrainUndrainLinks,
+            {}, // exclude none
+            [this](const std::string& switchName) {
+              return drainUndrainActiveFabricLinkForSwitch(switchName);
+            });
+
+        return drainUndrainFabricLink;
+      }};
+
+  const std::vector<Scenario> scenarios = {
+      std::move(drainUndrainFabricLinkOnePerFabric),
+  };
+
+  return runScenariosAndVerifyNoDrops(scenarios);
 }
 
 } // namespace facebook::fboss::utility
