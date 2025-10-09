@@ -29,6 +29,7 @@ class Utils {
   void printFanspinnerDetails();
   void printNvmeDetails();
   void printPowerGoodDetails();
+  void printLogs();
 
  private:
   const showtech_config::ShowtechConfig& config_;
@@ -36,9 +37,14 @@ class Utils {
   I2cHelper i2cHelper_{};
   void runFbossCliCmd(const std::string& cmd);
   void printSysfsAttribute(const std::string& label, const std::string& path);
-  std::optional<std::tuple<int, int>> getI2cInfoForDevice(const std::string&);
   void printGpio(const showtech_config::Gpio& gpio);
+  void printServiceLogs(const std::string& service) const;
+  std::optional<std::tuple<int, int>> getI2cInfoForDevice(
+      const std::string& path);
   std::pair<int, std::string> safeExecCommand(const std::string& cmd) const;
+  std::pair<int, std::string> safeExecCommandWithLimit(
+      const std::string& cmd,
+      int maxLines = 5000) const;
 };
 
 } // namespace facebook::fboss::platform

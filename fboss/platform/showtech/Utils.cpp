@@ -314,6 +314,51 @@ void Utils::printPowerGoodDetails() {
   std::cout << std::endl;
 }
 
+void Utils::printServiceLogs(const std::string& service) const {
+  std::string cmd;
+  auto logFile = fmt::format("/var/facebook/logs/fboss/{}.log", service);
+  if (std::filesystem::exists(logFile)) {
+    cmd = fmt::format("cat {}", logFile);
+  } else {
+    cmd = fmt::format("journalctl -u {}", service);
+  }
+  std::cout << safeExecCommandWithLimit(cmd).second << std::endl;
+}
+
+void Utils::printLogs() {
+  std::cout << "##### Platform Manager Log #####" << std::endl;
+  printServiceLogs("platform_manager");
+
+  std::cout << "##### Sensor Service Log #####" << std::endl;
+  printServiceLogs("sensor_service");
+
+  std::cout << "##### Fan Service Log #####" << std::endl;
+  printServiceLogs("fan_service");
+
+  std::cout << "##### Data Corral Log #####" << std::endl;
+  printServiceLogs("data_corral_service");
+
+  std::cout << "##### QSFP Service Log #####" << std::endl;
+  printServiceLogs("qsfp_service");
+
+  std::cout << "##### fboss_sw_agent Log #####" << std::endl;
+  printServiceLogs("fboss_sw_agent");
+
+  std::cout << "##### fboss_hw_agent@0 Log #####" << std::endl;
+  printServiceLogs("fboss_hw_agent@0");
+
+  std::cout << "##### demsg Log #####" << std::endl;
+  std::cout << safeExecCommandWithLimit("dmesg").second << std::endl;
+
+  std::cout << "##### Boot Console Log #####" << std::endl;
+  std::cout << safeExecCommandWithLimit("cat /var/log/boot.log").second
+            << std::endl;
+
+  std::cout << "##### Linux Messages Log #####" << std::endl;
+  std::cout << safeExecCommandWithLimit("cat /var/log/messages").second
+            << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
@@ -331,6 +376,43 @@ std::pair<int, std::string> Utils::safeExecCommand(
         -1,
         fmt::format("Error: error running command `{}`: {}", cmd, ex.what())};
   }
+}
+
+std::pair<int, std::string> Utils::safeExecCommandWithLimit(
+    const std::string& cmd,
+    int maxLines) const {
+  auto [ret, output] = safeExecCommand(cmd);
+  std::vector<std::string> lines;
+  folly::split('\n', output, lines);
+
+  int totalLines = lines.size();
+  if (totalLines <= maxLines) {
+    return {ret, output};
+  }
+
+  // truncate output
+  int headCount = (maxLines + 1) / 2;
+  int tailCount = maxLines / 2;
+  std::string first =
+      folly::join('\n', folly::range(lines.begin(), lines.begin() + headCount));
+  std::string last =
+      folly::join('\n', folly::range(lines.end() - tailCount, lines.end()));
+
+  return {
+      ret,
+      fmt::format(
+          "=== Output exceeds {} lines (total: {}). "
+          "Showing first {} and last {} lines ===\n\n"
+          "{}\n\n"
+          "=== {} lines truncated ===\n\n"
+          "{}\n",
+          maxLines,
+          totalLines,
+          headCount,
+          tailCount,
+          first,
+          totalLines - maxLines,
+          last)};
 }
 
 void Utils::printSysfsAttribute(
