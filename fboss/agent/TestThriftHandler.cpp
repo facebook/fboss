@@ -136,4 +136,7 @@ void TestThriftHandler::addNeighbor(
       0 /* flags */);
 }
 
+void TestThriftHandler::setSwitchDrainState(
+    cfg::SwitchDrainState switchDrainState) {}
+
 } // namespace facebook::fboss

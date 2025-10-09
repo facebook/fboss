@@ -7,6 +7,7 @@ namespace py.asyncio neteng.fboss.asyncio.test_ctrl
 
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/ctrl.thrift"
+include "fboss/agent/switch_config.thrift"
 
 service TestCtrl extends ctrl.FbossCtrl {
   void gracefullyRestartService(1: string serviceName);
@@ -30,4 +31,7 @@ service TestCtrl extends ctrl.FbossCtrl {
     3: string mac,
     4: i32 portID,
   );
+
+  // Apply the specified drain state on every NPU
+  void setSwitchDrainState(1: switch_config.SwitchDrainState switchDrainState);
 }

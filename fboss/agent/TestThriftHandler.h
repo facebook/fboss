@@ -36,6 +36,8 @@ class TestThriftHandler : public ThriftHandler,
       std::unique_ptr<std::string> mac,
       int32_t portID) override;
 
+  void setSwitchDrainState(cfg::SwitchDrainState switchDrainState) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   TestThriftHandler(TestThriftHandler const&) = delete;
