@@ -47,6 +47,7 @@ class MultiNodeUtil {
 
   bool verifyTrafficSpray() const;
   bool verifyNoTrafficDropOnProcessRestarts() const;
+  bool verifyNoTrafficDropOnDrainUndrain() const;
 
  private:
   enum class SwitchType : uint8_t {

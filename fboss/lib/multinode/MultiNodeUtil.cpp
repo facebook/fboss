@@ -2529,4 +2529,8 @@ bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
   return runScenariosAndVerifyNoDrops(scenarios);
 }
 
+bool MultiNodeUtil::verifyNoTrafficDropOnDrainUndrain() const {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
