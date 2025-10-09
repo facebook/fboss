@@ -320,6 +320,10 @@ class MultiNodeUtil {
   bool runScenariosAndVerifyNoDrops(
       const std::vector<Scenario>& scenarios) const;
 
+  // Returns sample set of Fabric switches to test.
+  // One FDSW from each cluster + one SDSW.
+  std::set<std::string> getOneFabricSwitchForEachCluster() const;
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;

@@ -2445,6 +2445,22 @@ bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
       verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
 }
 
+std::set<std::string> MultiNodeUtil::getOneFabricSwitchForEachCluster() const {
+  // Get one FDSW from each cluster + one SDSW
+  std::set<std::string> fabricSwitchesToTest;
+  for (const auto& [_, fdsws] : std::as_const(clusterIdToFdsws_)) {
+    if (!fdsws.empty()) {
+      fabricSwitchesToTest.insert(fdsws.front());
+    }
+  }
+
+  if (!sdsws_.empty()) {
+    fabricSwitchesToTest.insert(*sdsws_.begin());
+  }
+
+  return fabricSwitchesToTest;
+}
+
 bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
   auto myHostname = network::NetworkUtil::getLocalHost(
       true /* stripFbDomain */, true /* stripTFbDomain */);
