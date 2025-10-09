@@ -154,6 +154,22 @@ void setSelfHealingLagDisable(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setSelfHealingLagState(portID, false /* disable SHEL */);
 }
 
+void enableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, true /* enable conditional entropy rehash */);
+}
+
+void disableConditionalEntropyRehash(
+    const std::string& switchName,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setConditionalEntropyRehash(
+      portID, false /* disable conditional entropy rehash */);
+}
+
 std::map<int64_t, DsfNode> getSwitchIdToDsfNode(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   std::map<int64_t, DsfNode> switchIdToDsfNode;
