@@ -184,10 +184,17 @@ void TestThriftHandler::setSelfHealingLagState(int32_t portId, bool enable) {
 void TestThriftHandler::setConditionalEntropyRehash(
     int32_t portId,
     bool enable) {
-  ensureConfigured(__func__);
+  ensureVoqOrFabric(__func__);
   const auto port = getSw()->getState()->getPorts()->getNodeIf(PortID(portId));
   if (!port) {
     throw FbossError("no such port ", portId);
+  }
+  if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
+    throw FbossError(
+        "Can set Conditional Entropy Rehash on INTERFACE port only. Port: ",
+        portId,
+        " portType: ",
+        apache::thrift::util::enumNameSafe(port->getPortType()));
   }
 
   if (port->getConditionalEntropyRehash() == enable) {
