@@ -2445,7 +2445,7 @@ bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
       verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
 }
 
-bool MultiNodeUtil::verifyNoTrafficDrop() const {
+bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
   if (!setupTrafficLoop()) {
     XLOG(DBG2) << "Traffic loop setup failed";
     return false;
