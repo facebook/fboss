@@ -2499,27 +2499,32 @@ bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
   // With traffic loop running, execute a variety of scenarios.
   // For each scenario, expect no drops on Fabric ports.
 
+  auto allQsfpRestartHelper = [this](bool gracefulRestart) {
+    {
+      // Gracefully restart QSFP on all switches
+      forEachExcluding(
+          allSwitches_,
+          {}, // exclude none
+          gracefulRestart ? triggerGracefulQsfpRestart
+                          : triggerUngracefulQsfpRestart);
+
+      // Wait for QSFP to come up on all switches
+      auto restart = checkForEachExcluding(
+          allSwitches_,
+          {}, // exclude none
+          [this](
+              const std::string& switchName, const QsfpServiceRunState& state) {
+            return this->verifyQsfpServiceRunState(switchName, state);
+          },
+          QsfpServiceRunState::ACTIVE);
+
+      return restart;
+    }
+  };
+
   Scenario gracefullyRestartQsfpAllSwitches = {
-      "gracefullyRestartQsfpAllSwitches", [this]() {
-        // Gracefully restart QSFP on all switches
-        forEachExcluding(
-            allSwitches_,
-            {}, // exclude none
-            triggerGracefulQsfpRestart);
-
-        // Wait for QSFP to come up on all switches
-        auto gracefulRestart = checkForEachExcluding(
-            allSwitches_,
-            {}, // exclude none
-            [this](
-                const std::string& switchName,
-                const QsfpServiceRunState& state) {
-              return this->verifyQsfpServiceRunState(switchName, state);
-            },
-            QsfpServiceRunState::ACTIVE);
-
-        return gracefulRestart;
-      }};
+      "gracefullyRestartQsfpAllSwitches",
+      [&] { return allQsfpRestartHelper(true /* gracefulRestart */); }};
 
   Scenario gracefullyRestartFSDBAllSwitches = {
       "gracefullyRestartFSDBAllSwitches", [this]() {
