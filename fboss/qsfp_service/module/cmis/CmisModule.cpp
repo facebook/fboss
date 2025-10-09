@@ -63,6 +63,7 @@ constexpr int kMaxFecTailRs544 = 15;
 // Datapath init/deinit variables
 constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
+constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
@@ -3829,12 +3830,14 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
     // Read the datapath init/deinit max time from module.
     uint8_t specVal;
     readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);
-
+    // MAX_DP_DEINIT_TIME: bits 7-4
+    // MAX_DP_INIT_TIME: bits 3-0
     uint8_t spec = 0;
     if (init) {
       spec = specVal & DP_INIT_MAX_MASK;
     } else {
       spec = specVal & DP_DINIT_MAX_MASK;
+      spec >>= DP_DINIT_BITSHIFT;
     }
     auto itr = DpInitValToTimeMap.find(spec);
     if (itr != DpInitValToTimeMap.end()) {
@@ -3853,6 +3856,11 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
             maxTime,
             kUsecDatapathStateUpdateTimeMaxFboss);
       }
+    } else {
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Datapath max {:s} time unable to retreive from val map spec {:x}",
+          init ? "init" : "deinit",
+          spec);
     }
   }
   QSFP_LOG(INFO, this) << fmt::format(
