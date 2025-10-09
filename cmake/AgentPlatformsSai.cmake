@@ -189,6 +189,10 @@ if (SAI_BRCM_IMPL)
   message(STATUS, "SAI_EXPERIMENTAL_INCLUDE_DIR: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
 endif()
 
+if(BUILD_SAI_FAKE)
+  BUILD_SAI_WEDGE_AGENT("fake" fake_sai)
+endif()
+
 if(SAI_IMPL)
   BUILD_SAI_WEDGE_AGENT("sai_impl" ${SAI_IMPL})
   install(
