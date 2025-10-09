@@ -357,9 +357,9 @@ DEFINE_bool(
     "Allow upto 8K system ports on single stage DSF (default=6144)");
 
 DEFINE_bool(
-    dsf_single_stage_r128_f40_e16_local_offset_0,
+    dsf_single_stage_r128_f40_e16_uniform_local_offset,
     false,
-    "Use local system port offset of 0 for single stage DSF");
+    "Use uniform local system port offset for single stage DSF");
 
 DEFINE_uint32(
     ecmp_width,
@@ -372,3 +372,9 @@ DEFINE_bool(
     check_wb_handles,
     false,
     "Fail if any warm boot handles are left unclaimed.");
+
+// DSF specific feature to monitor fabric side links
+DEFINE_bool(
+    enable_fabric_link_monitoring,
+    false,
+    "Enable fabric link monitoring feature in DSF");

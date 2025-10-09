@@ -78,6 +78,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::ARS:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
+    case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -144,7 +145,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
@@ -269,7 +270,9 @@ Tomahawk5Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getMaxArsGroups() const {
-  return FLAGS_enable_th5_ars_scale_mode ? 256 : 128;
+  // BRCM SDK utilizes 200000 internally
+  // ARS offset also starts at 200000
+  return FLAGS_enable_th5_ars_scale_mode ? 256 : 127;
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {

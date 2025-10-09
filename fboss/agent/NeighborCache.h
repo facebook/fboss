@@ -114,6 +114,10 @@ class NeighborCache {
     impl_->updateEntryClassID(ip, classID);
   }
 
+  uint32_t getMaxNeighborProbes() const {
+    return maxNeighborProbes_;
+  }
+
  protected:
   // protected constructor since this is only meant to be inherited from
   NeighborCache(
@@ -194,10 +198,6 @@ class NeighborCache {
 
   std::chrono::seconds getStaleEntryInterval() const {
     return staleEntryInterval_;
-  }
-
-  uint32_t getMaxNeighborProbes() const {
-    return maxNeighborProbes_;
   }
 
  private:

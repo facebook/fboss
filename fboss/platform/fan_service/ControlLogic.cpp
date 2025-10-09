@@ -459,28 +459,24 @@ bool ControlLogic::programFan(
 }
 
 void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
-  if (!fan.ledSysfsPath()->empty()) {
-    unsigned int valueToWrite =
-        (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-    XLOG(INFO) << fmt::format(
-        "{}: Setting LED to {} (value: {})",
-        *fan.fanName(),
-        (fanFailed ? "Fail" : "Good"),
-        valueToWrite);
-    bool ret = pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
-    if (!ret) {
-      XLOG(ERR) << fmt::format(
-          "{}: Failed to set LED sysfs path {}",
-          *fan.fanName(),
-          *fan.ledSysfsPath());
-    }
-    fb303::fbData->setCounter(
-        fmt::format(kLedWriteFailure, *fan.fanName()), !ret);
-  } else {
+  auto ledToWriteRef =
+      fanFailed ? fan.failLedSysfsPath() : fan.goodLedSysfsPath();
+  if (!ledToWriteRef.has_value()) {
     XLOG(INFO) << fmt::format(
         "{}: FAN LED sysfs path is empty. It's likely that FAN LED is controlled by hardware.",
         *fan.fanName());
+    return;
   }
+  std::string ledPath = *ledToWriteRef;
+  XLOG(INFO) << fmt::format(
+      "{}: Turning LED on ({})", *fan.fanName(), (fanFailed ? "Fail" : "Good"));
+  bool ret = pBsp_->turnOnLedSysfs(ledPath);
+  if (!ret) {
+    XLOG(ERR) << fmt::format(
+        "{}: Failed to set LED sysfs path {}", *fan.fanName(), ledPath);
+  }
+  fb303::fbData->setCounter(
+      fmt::format(kLedWriteFailure, *fan.fanName()), !ret);
 }
 
 int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {

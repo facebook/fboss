@@ -83,6 +83,10 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair("SAI_KEY_AR_ECMP_RANDOM_SPRAY_ENABLED", "1"));
   kv_map.insert(
       std::make_pair("SAI_KEY_ROUTE_METADATA_BIT_END", "4")); // 5 bit metadata
+  // by default only non-discarded packet is counted in
+  // SAI_PORT_STAT_IF_IN_UCAST_PKTS, set SAI_PORT_STAT_IF_IN_UCAST_PKTS to count
+  // all received packet, including discarded packets
+  kv_map.insert(std::make_pair("SAI_AGGREGATE_UCAST_DROPS", "1"));
   return kv_map;
 }
 

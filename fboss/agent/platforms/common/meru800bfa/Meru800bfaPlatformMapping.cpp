@@ -17,7 +17,9 @@
 
 namespace facebook::fboss {
 namespace {
-static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
+static const std::string getPlatformMappingStr(
+    bool multiNpuPlatformMapping,
+    std::optional<int> version) {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   try {
@@ -27,7 +29,7 @@ static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
     XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
   }
 
-  auto productVersion = productInfo->getProductVersion();
+  auto productVersion = version.value_or(productInfo->getProductVersion());
   XLOG(INFO) << "Product version: " << productVersion;
   if (productVersion < 4 && multiNpuPlatformMapping) {
     XLOG(INFO) << "Using P2 MNPU Platform Mapping";
@@ -49,15 +51,18 @@ static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
 } // namespace
 
 Meru800bfaPlatformMapping::Meru800bfaPlatformMapping()
-    : PlatformMapping(getPlatformMappingStr(FLAGS_multi_npu_platform_mapping)) {
-}
+    : PlatformMapping(getPlatformMappingStr(
+          FLAGS_multi_npu_platform_mapping,
+          std::nullopt)) {}
 
 Meru800bfaPlatformMapping::Meru800bfaPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 
 Meru800bfaPlatformMapping::Meru800bfaPlatformMapping(
-    bool multiNpuPlatformMapping)
-    : PlatformMapping(getPlatformMappingStr(multiNpuPlatformMapping)) {}
+    bool multiNpuPlatformMapping,
+    std::optional<int> productVersion)
+    : PlatformMapping(
+          getPlatformMappingStr(multiNpuPlatformMapping, productVersion)) {}
 
 } // namespace facebook::fboss

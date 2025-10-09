@@ -12,6 +12,7 @@
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
+#include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
@@ -19,10 +20,14 @@
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
+using facebook::fboss::FabricEndpoint;
 using facebook::fboss::FbossHwCtrl;
 using facebook::fboss::MultiSwitchRunState;
 using facebook::fboss::QsfpService;
@@ -32,6 +37,11 @@ using facebook::fboss::fsdb::FsdbService;
 using facebook::fboss::fsdb::SubscriberIdToOperSubscriberInfos;
 using RunForHwAgentFn = std::function<void(
     apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
+using facebook::fboss::ClientID;
+using facebook::fboss::IpPrefix;
+using facebook::fboss::PortInfoThrift;
+using facebook::fboss::RouteDetails;
+using facebook::fboss::UnicastRoute;
 using facebook::fboss::cfg::DsfNode;
 
 std::unique_ptr<apache::thrift::Client<TestCtrl>> getSwAgentThriftClient(
@@ -162,6 +172,94 @@ void removeNeighbor(
       facebook::network::toBinaryAddress(neighborIP), interfaceID);
 }
 
+std::vector<RouteDetails> getAllRoutes(const std::string& switchName) {
+  std::vector<RouteDetails> routes;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getRouteTableDetails(routes);
+  return routes;
+}
+
+void addRoute(
+    const std::string& switchName,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength,
+    const std::vector<folly::IPAddress>& nexthops) {
+  UnicastRoute route;
+  route.dest()->ip() = facebook::network::toBinaryAddress(destPrefix);
+  route.dest()->prefixLength() = prefixLength;
+  for (const auto& nexthop : nexthops) {
+    route.nextHopAddrs()->push_back(
+        facebook::network::toBinaryAddress(nexthop));
+  }
+
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_addUnicastRoutes(
+      static_cast<int16_t>(ClientID::STATIC_ROUTE), {std::move(route)});
+}
+
+std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<int32_t, facebook::fboss::InterfaceDetail> intfIdToIntf;
+  swAgentClient->sync_getAllInterfaces(intfIdToIntf);
+  return intfIdToIntf;
+}
+
+std::map<int32_t, PortInfoThrift> getPortIdToPortInfo(
+    const std::string& switchName) {
+  std::map<int32_t, PortInfoThrift> portIdToPortInfo;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getAllPortInfo(portIdToPortInfo);
+  return portIdToPortInfo;
+}
+
+std::map<int64_t, facebook::fboss::SystemPortThrift>
+getSystemPortdIdToSystemPort(const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortIdToSystemPort;
+  swAgentClient->sync_getSystemPorts(systemPortIdToSystemPort);
+  return systemPortIdToSystemPort;
+}
+
+std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
+    const std::string& switchName) {
+  std::map<std::string, FabricEndpoint> fabricPortToFabricEndpoint;
+  auto hwAgentQueryFn = [&fabricPortToFabricEndpoint](
+                            apache::thrift::Client<FbossHwCtrl>& client) {
+    std::map<std::string, FabricEndpoint> hwAgentEntries;
+    client.sync_getHwFabricConnectivity(hwAgentEntries);
+    fabricPortToFabricEndpoint.merge(hwAgentEntries);
+  };
+  runOnAllHwAgents(switchName, hwAgentQueryFn);
+
+  return fabricPortToFabricEndpoint;
+}
+
+std::map<std::string, int64_t> getCounterNameToCount(
+    const std::string& switchName) {
+  std::map<std::string, int64_t> counterNameToCount;
+
+  auto multiSwitchRunState = getMultiSwitchRunState(switchName);
+  // For split binary (multiSwitchEnabled), the counters are available in the
+  // HwAgent. For monolithic, the counters are available in the SwAgent.
+  if (*multiSwitchRunState.multiSwitchEnabled()) {
+    auto hwAgentQueryFn =
+        [&counterNameToCount](apache::thrift::Client<FbossHwCtrl>& client) {
+          std::map<std::string, int64_t> hwAgentCounters;
+          apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
+              client.getChannelShared()};
+          monitoringClient.sync_getCounters(hwAgentCounters);
+          counterNameToCount.merge(hwAgentCounters);
+        };
+    runOnAllHwAgents(switchName, hwAgentQueryFn);
+  } else {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_getCounters(counterNameToCount);
+  }
+
+  return counterNameToCount;
+}
+
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);
@@ -243,15 +341,67 @@ SubscriberIdToOperSubscriberInfos getSubscriberIdToOperSusbscriberInfos(
   return subInfos;
 }
 
+// Invoke the provided func on every element of given set.
+// except on exclusions.
+template <typename Callable, typename... Args>
+void forEachExcluding(
+    const std::set<std::string>& inputSet,
+    const std::set<std::string>& exclusions,
+    Callable&& func,
+    Args&&... args) {
+  // Store arguments in a tuple for safe repeated use
+  auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
+  for (const auto& elem : inputSet) {
+    if (exclusions.find(elem) == exclusions.end()) {
+      std::apply(
+          [&](auto&&... unpackedArgs) {
+            func(elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+          },
+          argsTuple);
+    }
+  }
+}
+
+// Invoke the provided func on every element of given set.
+// except on exclusions.
+// Return true if and only if every func returns true.
+// false otherwise. Stops on first failure.
+template <typename Callable, typename... Args>
+bool checkForEachExcluding(
+    const std::set<std::string>& inputSet,
+    const std::set<std::string>& exclusions,
+    Callable&& func,
+    Args&&... args) {
+  // Store arguments in a tuple for safe repeated use
+  auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
+  for (const auto& elem : inputSet) {
+    if (exclusions.find(elem) == exclusions.end()) {
+      bool result = std::apply(
+          [&](auto&&... unpackedArgs) {
+            return func(
+                elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+          },
+          argsTuple);
+      if (!result) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
 
 MultiNodeUtil::MultiNodeUtil(
-    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
+    SwSwitch* sw,
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap)
+    : sw_(sw) {
   populateDsfNodes(dsfNodeMap);
   populateAllRdsws();
   populateAllFdsws();
+  populateAllSwitches();
 }
 
 void MultiNodeUtil::populateDsfNodes(
@@ -260,6 +410,7 @@ void MultiNodeUtil::populateDsfNodes(
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
       switchIdToSwitchName_[node->getSwitchId()] = node->getName();
       switchNameToSwitchIds_[node->getName()].insert(node->getSwitchId());
+      switchNameToAsicType_[node->getName()] = node->getAsicType();
 
       if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
         CHECK(node->getClusterId().has_value());
@@ -301,33 +452,30 @@ void MultiNodeUtil::populateAllFdsws() {
   }
 }
 
-std::map<std::string, FabricEndpoint> MultiNodeUtil::getFabricEndpoints(
-    const std::string& switchName) const {
-  std::map<std::string, FabricEndpoint> fabricEndpoints;
-  auto hwAgentQueryFn =
-      [&fabricEndpoints](
-          apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-        std::map<std::string, FabricEndpoint> hwagentEntries;
-        client.sync_getHwFabricConnectivity(hwagentEntries);
-        fabricEndpoints.merge(hwagentEntries);
-      };
-  runOnAllHwAgents(switchName, hwAgentQueryFn);
-
-  return fabricEndpoints;
+void MultiNodeUtil::populateAllSwitches() {
+  allSwitches_.insert(allRdsws_.begin(), allRdsws_.end());
+  allSwitches_.insert(allFdsws_.begin(), allFdsws_.end());
+  allSwitches_.insert(sdsws_.begin(), sdsws_.end());
 }
 
-std::set<std::string> MultiNodeUtil::getConnectedFabricPorts(
+std::map<std::string, FabricEndpoint>
+MultiNodeUtil::getConnectedFabricPortToFabricEndpoint(
     const std::string& switchName) const {
-  auto fabricEndpoints = getFabricEndpoints(switchName);
+  std::map<std::string, FabricEndpoint> connectedFabricPortToFabricEndpoint;
+  auto fabricPortToFabricEndpoint = getFabricPortToFabricEndpoint(switchName);
 
-  std::set<std::string> connectedPorts;
-  for (const auto& [localPort, fabricEndpoint] : fabricEndpoints) {
-    if (fabricEndpoint.isAttached().value()) {
-      connectedPorts.insert(localPort);
-    }
-  }
+  std::copy_if(
+      fabricPortToFabricEndpoint.begin(),
+      fabricPortToFabricEndpoint.end(),
+      std::inserter(
+          connectedFabricPortToFabricEndpoint,
+          connectedFabricPortToFabricEndpoint.begin()),
+      [](const auto& pair) {
+        const auto& fabricEndpoint = pair.second;
+        return fabricEndpoint.isAttached().value();
+      });
 
-  return connectedPorts;
+  return connectedFabricPortToFabricEndpoint;
 }
 
 bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
@@ -353,10 +501,9 @@ bool MultiNodeUtil::verifyFabricConnectedSwitchesHelper(
                << fabricEndpoint.expectedPortName().value_or("none");
   };
 
-  auto fabricEndpoints = getFabricEndpoints(switchToVerify);
-
   std::set<std::string> gotConnectedSwitches;
-  for (const auto& [portName, fabricEndpoint] : fabricEndpoints) {
+  for (const auto& [portName, fabricEndpoint] :
+       getFabricPortToFabricEndpoint(switchToVerify)) {
     if (fabricEndpoint.isAttached().value()) {
       logFabricEndpoint(fabricEndpoint);
 
@@ -526,24 +673,20 @@ bool MultiNodeUtil::verifyFabricReachability() const {
   return true;
 }
 
-std::map<int32_t, facebook::fboss::PortInfoThrift> MultiNodeUtil::getPorts(
-    const std::string& switchName) const {
-  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
-  auto swAgentClient = getSwAgentThriftClient(switchName);
-  swAgentClient->sync_getAllPortInfo(portEntries);
-
-  return portEntries;
-}
-
 std::set<std::string> MultiNodeUtil::getActiveFabricPorts(
     const std::string& switchName) const {
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(switchName);
   std::set<std::string> activePorts;
-  for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(switchName)) {
-    if (portInfo.activeState().has_value() &&
-        portInfo.activeState().value() == PortActiveState::ACTIVE) {
-      activePorts.insert(portInfo.name().value());
-    }
-  }
+
+  std::transform(
+      activeFabricPortNameToPortInfo.begin(),
+      activeFabricPortNameToPortInfo.end(),
+      std::inserter(activePorts, activePorts.begin()),
+      [](const auto& pair) {
+        const auto& portInfo = pair.second;
+        return portInfo.name().value();
+      });
 
   return activePorts;
 }
@@ -566,7 +709,7 @@ std::map<std::string, PortInfoThrift>
 MultiNodeUtil::getFabricPortNameToPortInfo(
     const std::string& switchName) const {
   std::map<std::string, PortInfoThrift> fabricPortNameToPortInfo;
-  for (const auto& [_, portInfo] : getPorts(switchName)) {
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
     if (portInfo.portType().value() == cfg::PortType::FABRIC_PORT) {
       fabricPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
     }
@@ -579,7 +722,7 @@ std::map<std::string, PortInfoThrift>
 MultiNodeUtil::getUpEthernetPortNameToPortInfo(
     const std::string& switchName) const {
   std::map<std::string, PortInfoThrift> upEthernetPortNameToPortInfo;
-  for (const auto& [_, portInfo] : getPorts(switchName)) {
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
     if (portInfo.portType().value() == cfg::PortType::INTERFACE_PORT &&
         portInfo.operState().value() == PortOperState::UP) {
       upEthernetPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
@@ -593,7 +736,15 @@ bool MultiNodeUtil::verifyPortActiveStateForSwitch(
     SwitchType switchType,
     const std::string& switchName) const {
   // Every Connected Fabric Port must be Active
-  auto expectedActivePorts = getConnectedFabricPorts(switchName);
+  auto connectedFabricPortToFabricEndpoint =
+      getConnectedFabricPortToFabricEndpoint(switchName);
+  std::set<std::string> expectedActivePorts;
+  std::transform(
+      connectedFabricPortToFabricEndpoint.begin(),
+      connectedFabricPortToFabricEndpoint.end(),
+      std::inserter(expectedActivePorts, expectedActivePorts.begin()),
+      [](const auto& pair) { return pair.first; });
+
   auto gotActivePorts = getActiveFabricPorts(switchName);
 
   XLOG(DBG2) << "From " << switchTypeToString(switchType) << ":: " << switchName
@@ -608,9 +759,7 @@ bool MultiNodeUtil::verifyNoPortErrorsForSwitch(
     SwitchType switchType,
     const std::string& switchName) const {
   // No ports should have errors
-  auto ports = getPorts(switchName);
-  for (const auto& port : ports) {
-    auto portInfo = port.second;
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
     if (portInfo.activeErrors()->size() != 0) {
       XLOG(DBG2) << "From " << switchTypeToString(switchType)
                  << ":: " << switchName << " Port: " << portInfo.name().value()
@@ -623,11 +772,48 @@ bool MultiNodeUtil::verifyNoPortErrorsForSwitch(
   return true;
 }
 
+bool MultiNodeUtil::verifyPortCableLength(
+    SwitchType switchType,
+    const std::string& switchName) const {
+  // Cable length query (i.e. cable propagation delay attribute) works only on
+  // below fabric ports::
+  // DSF Single Stage system:
+  //   o RDSW Fabric ports towards FDSW
+  // DSF Dual Stage system:
+  //   o RDSW Fabric ports towards FDSW
+  //   o FDSW Fabric ports towards SDSW
+  //
+  // TODO Enhance this check for DSF Dual stage: FDSW Fabric ports towards SDSW
+  if (switchType != SwitchType::RDSW) {
+    return true;
+  }
+
+  // Verify if all connected fabric ports have valid cable length
+  for (const auto& [_, portInfo] :
+       getActiveFabricPortNameToPortInfo(switchName)) {
+    if (portInfo.cableLengthMeters().has_value() &&
+        portInfo.cableLengthMeters().value() >= 0) {
+      // Cable length may vary on different test setups. Thus, verify
+      // if the Cable length query returns a valid non-0 cable length.
+      continue;
+    }
+
+    XLOG(DBG2) << "From " << switchTypeToString(switchType)
+               << ":: " << switchName << " Port: " << portInfo.name().value()
+               << " has invalid cable length: "
+               << portInfo.cableLengthMeters().value_or(-1);
+    return false;
+  }
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyPortsForSwitch(
     SwitchType switchType,
     const std::string& switchName) const {
   return verifyPortActiveStateForSwitch(switchType, switchName) &&
-      verifyNoPortErrorsForSwitch(switchType, switchName);
+      verifyNoPortErrorsForSwitch(switchType, switchName) &&
+      verifyPortCableLength(switchType, switchName);
 }
 
 bool MultiNodeUtil::verifyPorts() const {
@@ -656,45 +842,26 @@ bool MultiNodeUtil::verifyPorts() const {
 }
 
 std::map<std::string, std::vector<SystemPortThrift>>
-MultiNodeUtil::getPeerToSystemPorts(const std::string& rdsw) const {
-  auto logSystemPort =
-      [rdsw](const facebook::fboss::SystemPortThrift& systemPort) {
-        XLOG(DBG2)
-            << "From " << rdsw << " portId: " << systemPort.portId().value()
-            << " switchId: " << systemPort.switchId().value()
-            << " portName: " << systemPort.portName().value()
-            << " remoteSystemPortType: "
-            << apache::thrift::util::enumNameSafe(
-                   systemPort.remoteSystemPortType().value_or(-1))
-            << " remoteSystemPortLivenessStatus: "
-            << apache::thrift::util::enumNameSafe(
-                   systemPort.remoteSystemPortLivenessStatus().value_or(-1))
-            << " scope: "
-            << apache::thrift::util::enumNameSafe(systemPort.scope().value());
-      };
+MultiNodeUtil::getRdswToSystemPorts() const {
+  std::map<std::string, std::vector<SystemPortThrift>> rdswToSystemPorts;
 
-  auto swAgentClient = getSwAgentThriftClient(rdsw);
-  std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries;
-  swAgentClient->sync_getSystemPorts(systemPortEntries);
+  for (const auto& rdsw : allRdsws_) {
+    auto systemPortIdToSystemPort = getSystemPortdIdToSystemPort(rdsw);
 
-  std::map<std::string, std::vector<SystemPortThrift>> peerToSystemPorts;
-  for (const auto& [_, systemPort] : systemPortEntries) {
-    logSystemPort(systemPort);
-    CHECK(
-        switchIdToSwitchName_.find(SwitchID(systemPort.switchId().value())) !=
-        std::end(switchIdToSwitchName_));
-    auto switchName =
-        switchIdToSwitchName_.at(SwitchID(systemPort.switchId().value()));
-    peerToSystemPorts[switchName].push_back(systemPort);
+    std::transform(
+        systemPortIdToSystemPort.begin(),
+        systemPortIdToSystemPort.end(),
+        std::back_inserter(rdswToSystemPorts[rdsw]),
+        [](const auto& pair) { return pair.second; });
   }
 
-  return peerToSystemPorts;
+  return rdswToSystemPorts;
 }
 
 std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
     const std::string& rdsw,
     const std::set<RemoteSystemPortType>& types) const {
-  auto matchesPortType =
+  auto matchesSystemPortType =
       [&types](const facebook::fboss::SystemPortThrift& systemPort) {
         if (systemPort.remoteSystemPortType().has_value()) {
           return types.find(systemPort.remoteSystemPortType().value()) !=
@@ -705,23 +872,19 @@ std::set<std::string> MultiNodeUtil::getGlobalSystemPortsOfType(
       };
 
   std::set<std::string> systemPortsOfType;
-  auto peerToSystemPorts = getPeerToSystemPorts(rdsw);
-  for (const auto& [_, systemPorts] : peerToSystemPorts) {
-    for (const auto& systemPort : systemPorts) {
-      if (*systemPort.scope() == cfg::Scope::GLOBAL &&
-          matchesPortType(systemPort)) {
-        systemPortsOfType.insert(systemPort.portName().value());
-      }
+  for (const auto& [_, systemPort] : getSystemPortdIdToSystemPort(rdsw)) {
+    if (*systemPort.scope() == cfg::Scope::GLOBAL &&
+        matchesSystemPortType(systemPort)) {
+      systemPortsOfType.insert(systemPort.portName().value());
     }
   }
-
   return systemPortsOfType;
 }
 
 bool MultiNodeUtil::verifySystemPortsForRdsw(
     const std::string& rdswToVerify) const {
-  // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY or
-  // DYNAMIC_ENTRY of the local RDSW
+  // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY
+  // or DYNAMIC_ENTRY of the local RDSW
   std::set<std::string> gotSystemPorts;
   std::set<std::string> expectedSystemPorts;
   for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
@@ -759,29 +922,19 @@ bool MultiNodeUtil::verifySystemPorts() const {
 }
 
 std::map<std::string, std::vector<InterfaceDetail>>
-MultiNodeUtil::getPeerToRifs(const std::string& rdsw) const {
-  auto logRif = [rdsw](const facebook::fboss::InterfaceDetail& rif) {
-    XLOG(DBG2)
-        << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
-        << " interfaceId: " << rif.interfaceId().value() << " remoteIntfType: "
-        << apache::thrift::util::enumNameSafe(rif.remoteIntfType().value_or(-1))
-        << " remoteIntfLivenessStatus: "
-        << folly::to<std::string>(rif.remoteIntfLivenessStatus().value_or(-1))
-        << " scope: "
-        << apache::thrift::util::enumNameSafe(rif.scope().value());
-  };
+MultiNodeUtil::getRdswToRifs() const {
+  std::map<std::string, std::vector<InterfaceDetail>> rdswToRifs;
+  for (const auto& rdsw : allRdsws_) {
+    auto intfIdToIntf = getIntfIdToIntf(rdsw);
 
-  auto swAgentClient = getSwAgentThriftClient(rdsw);
-  std::map<int32_t, facebook::fboss::InterfaceDetail> rifs;
-  swAgentClient->sync_getAllInterfaces(rifs);
-
-  std::map<std::string, std::vector<InterfaceDetail>> peerToRifs;
-  for (const auto& [_, rif] : rifs) {
-    logRif(rif);
-    peerToRifs[rdsw].push_back(rif);
+    std::transform(
+        intfIdToIntf.begin(),
+        intfIdToIntf.end(),
+        std::back_inserter(rdswToRifs[rdsw]),
+        [](const auto& pair) { return pair.second; });
   }
 
-  return peerToRifs;
+  return rdswToRifs;
 }
 
 std::set<int> MultiNodeUtil::getGlobalRifsOfType(
@@ -796,12 +949,9 @@ std::set<int> MultiNodeUtil::getGlobalRifsOfType(
   };
 
   std::set<int> rifsOfType;
-  auto peerToRifs = getPeerToRifs(rdsw);
-  for (const auto& [_, rifs] : peerToRifs) {
-    for (const auto& rif : rifs) {
-      if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
-        rifsOfType.insert(rif.interfaceId().value());
-      }
+  for (const auto& [_, rif] : getIntfIdToIntf(rdsw)) {
+    if (*rif.scope() == cfg::Scope::GLOBAL && matchesRifType(rif)) {
+      rifsOfType.insert(rif.interfaceId().value());
     }
   }
   return rifsOfType;
@@ -1051,8 +1201,8 @@ bool MultiNodeUtil::verifyGracefulFabricLinkDown(
       // verify no flaps is expensive.
       // Thus, only verify just before disabling the last port.
       // There is no loss of signal due to this approach as if the sessions
-      // flap due to an intermediate port admin disable, it will be detected by
-      // this check failure anyway.
+      // flap due to an intermediate port admin disable, it will be detected
+      // by this check failure anyway.
       checkPassed =
           verifyNoSessionsFlap(rdswToVerify, baselinePeerToDsfSession);
     }
@@ -1119,8 +1269,8 @@ bool MultiNodeUtil::verifySwSwitchRunState(
     return gotSwitchRunState == expectedSwitchRunState;
   };
 
-  // Thrift client queries will throw exception while the Agent is initializing.
-  // Thus, continue to retry while absorbing exceptions.
+  // Thrift client queries will throw exception while the Agent is
+  // initializing. Thus, continue to retry while absorbing exceptions.
   return checkWithRetryErrorReturn(
       switchRunStateMatches,
       30 /* num retries */,
@@ -1202,7 +1352,8 @@ bool MultiNodeUtil::verifyDeviceDownUpForRemoteRdswsHelper(
         return false;
       }
 
-      // Verify all DSF sessions are established for the RDSW that was restarted
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
       verifyAllSessionsEstablished(rdsw);
 
       // Restart only one remote RDSW per cluster
@@ -1240,7 +1391,8 @@ bool MultiNodeUtil::verifyGracefulDeviceDownUpForRemoteFdsws() const {
   // verify no flaps is expensive.
   // Thus, only verify after warmboot restarting one FDSW from each cluster.
   // There is no loss of signal due to this approach as if the sessions flap
-  // due to an intermediate warmboot, it will be detected by this check anyway.
+  // due to an intermediate warmboot, it will be detected by this check
+  // anyway.
   if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
     return false;
   }
@@ -1314,9 +1466,8 @@ bool MultiNodeUtil::verifyStaleSystemPorts(
   auto staleSystemPorts = [this, myHostname, restartedRdsws] {
     // Verify system ports for restarted RDSWs are STALE
     // Verify system ports for non-restarted RDSWs are LIVE
-    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
-    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
-      bool isRestarted = restartedRdsws.find(peer) != restartedRdsws.end();
+    for (const auto& [rdsw, systemPorts] : getRdswToSystemPorts()) {
+      bool isRestarted = restartedRdsws.find(rdsw) != restartedRdsws.end();
 
       for (const auto& systemPort : systemPorts) {
         auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
@@ -1350,15 +1501,11 @@ bool MultiNodeUtil::verifyStaleSystemPorts(
 
 bool MultiNodeUtil::verifyStaleRifs(
     const std::set<std::string>& restartedRdsws) const {
-  auto myHostname = network::NetworkUtil::getLocalHost(
-      true /* stripFbDomain */, true /* stripTFbDomain */);
-
-  auto staleRifs = [this, myHostname, restartedRdsws] {
+  auto staleRifs = [this, restartedRdsws] {
     // Verify rifs for restarted RDSWs are STALE
     // Verify rifs for non-restarted RDSWs are LIVE
-    auto peerToRifs = getPeerToRifs(myHostname);
-    for (const auto& [peer, rifs] : peerToRifs) {
-      bool isRestarted = restartedRdsws.find(peer) != restartedRdsws.end();
+    for (const auto& [rdsw, rifs] : getRdswToRifs()) {
+      bool isRestarted = restartedRdsws.find(rdsw) != restartedRdsws.end();
 
       for (const auto& rif : rifs) {
         auto livenessStatus = rif.remoteIntfLivenessStatus();
@@ -1391,12 +1538,8 @@ bool MultiNodeUtil::verifyStaleRifs(
 }
 
 bool MultiNodeUtil::verifyLiveSystemPorts() const {
-  auto myHostname = network::NetworkUtil::getLocalHost(
-      true /* stripFbDomain */, true /* stripTFbDomain */);
-
-  auto liveSystemPorts = [this, myHostname] {
-    auto peerToSystemPorts = getPeerToSystemPorts(myHostname);
-    for (const auto& [peer, systemPorts] : peerToSystemPorts) {
+  auto liveSystemPorts = [this] {
+    for (const auto& [rdsw, systemPorts] : getRdswToSystemPorts()) {
       for (const auto& systemPort : systemPorts) {
         auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
         if (!livenessStatus.has_value()) {
@@ -1422,12 +1565,8 @@ bool MultiNodeUtil::verifyLiveSystemPorts() const {
 }
 
 bool MultiNodeUtil::verifyLiveRifs() const {
-  auto myHostname = network::NetworkUtil::getLocalHost(
-      true /* stripFbDomain */, true /* stripTFbDomain */);
-
-  auto liveRifs = [this, myHostname] {
-    auto peerToRifs = getPeerToRifs(myHostname);
-    for (const auto& [peer, rifs] : peerToRifs) {
+  auto liveRifs = [this] {
+    for (const auto& [_, rifs] : getRdswToRifs()) {
       for (const auto& rif : rifs) {
         auto livenessStatus = rif.remoteIntfLivenessStatus();
         if (!livenessStatus.has_value()) {
@@ -1458,12 +1597,14 @@ bool MultiNodeUtil::verifyGracefulRestartTimeoutRecovery() const {
   //  - Start Agent
   //  - Verify entries are LIVE
   // However, in order to implement above sequence, we need a mechanism for
-  // the test to invoke "Start Agent" when Agent thrift server is not running.
+  // the test to invoke "Start Agent" when Agent thrift server is not
+  // running.
   //
   // This can be accomplished by test client (this code) logging into the
-  // remote device running Agent. But then the test needs to worry about login
-  // credentials. Alternatively, the remote device can run a Thrift server for
-  // the test purpose along, but that is an overkill for this use case.
+  // remote device running Agent. But then the test needs to worry about
+  // login credentials. Alternatively, the remote device can run a Thrift
+  // server for the test purpose along, but that is an overkill for this use
+  // case.
   //
   // This test logic solves it with the following approach:
   //  - Restart Agent API with delay: Test API supported by remote device
@@ -1541,7 +1682,8 @@ bool MultiNodeUtil::verifyUngracefulQsfpDownUpForRemoteRdsws() const {
         return false;
       }
 
-      // Verify all DSF sessions are established for the RDSW that was restarted
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
       verifyAllSessionsEstablished(rdsw);
 
       // Ungracefully restart only one remote RDSW QSFP per cluster
@@ -1628,7 +1770,8 @@ bool MultiNodeUtil::verifyFsdbDownUpForRemoteRdswsHelper(
         return false;
       }
 
-      // Verify all DSF sessions are established for the RDSW that was restarted
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
       verifyAllSessionsEstablished(rdsw);
 
       // Restart only one remote RDSW FSDB per cluster
@@ -1702,12 +1845,8 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
   };
 
   auto getIntfIDToIp = [this, rdsw]() {
-    auto peerToRifs = getPeerToRifs(rdsw);
-    CHECK(peerToRifs.find(rdsw) != peerToRifs.end());
-    auto rifs = peerToRifs.at(rdsw);
-
     std::map<int32_t, folly::IPAddress> intfIDToIp;
-    for (const auto& rif : rifs) {
+    for (const auto& [_, rif] : getIntfIdToIntf(rdsw)) {
       for (const auto& ipPrefix : *rif.address()) {
         auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
             reinterpret_cast<const unsigned char*>(
@@ -1725,15 +1864,20 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
     return intfIDToIp;
   };
 
-  auto computeNeighborIpAndMac = [](const std::string& ipAddress) {
+  auto computeNeighborIpAndMac = [this](const std::string& ipAddress) {
     auto constexpr kOffset = 0x10;
     auto ipv6Address = folly::IPAddressV6::tryFromString(ipAddress);
     std::array<uint8_t, 16> bytes = ipv6Address->toByteArray();
     bytes[15] += kOffset; // add some offset to derive neighbor IP
     auto neighborIp = folly::IPAddressV6::fromBinary(bytes);
 
-    auto macStr =
-        folly::to<std::string>(fmt::format("00:02:00:00:00:{:02x}", bytes[15]));
+    // Resolve Neighbor to Router MAC.
+    //
+    // Neighbor is resolved on a loopback port.
+    // Thus, packets out of this port get looped back. Since those packets
+    // carry router MAC as dstMac the packets get routed and help us create
+    // traffic loop.
+    auto macStr = utility::getMacForFirstInterfaceWithPorts(sw_->getState());
     auto neighborMac = folly::MacAddress(macStr);
 
     return std::make_pair(neighborIp, neighborMac);
@@ -1744,7 +1888,8 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
         auto intfIDToIp = getIntfIDToIp();
 
         for (auto& neighbor : neighbors) {
-          CHECK(intfIDToIp.find(neighbor.intfID) != intfIDToIp.end());
+          CHECK(intfIDToIp.find(neighbor.intfID) != intfIDToIp.end())
+              << "rdsw: " << rdsw << " neighbor.intfID: " << neighbor.intfID;
           auto ip = intfIDToIp.at(neighbor.intfID);
           auto [neighborIp, neighborMac] = computeNeighborIpAndMac(ip.str());
 
@@ -1955,7 +2100,8 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
         return false;
       }
 
-      // Disable second neighbor port and verify it is removed from every RDSW
+      // Disable second neighbor port and verify it is removed from every
+      // RDSW
       adminDisablePort(rdsw, secondNeighbor.portID);
       if (!verifyNeighborLocalPresentRemoteAbsent({secondNeighbor}, rdsw)) {
         XLOG(DBG2) << "Neighbor remove verification failed: " << rdsw;
@@ -1964,6 +2110,374 @@ bool MultiNodeUtil::verifyNeighborAddRemove() const {
 
       // Add neighbor to one remote RDSW per cluster
       break;
+    }
+  }
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyRoutePresent(
+    const std::string& rdsw,
+    const folly::IPAddress& destPrefix,
+    const int16_t prefixLength) const {
+  auto verifyRoutePresentHelper = [rdsw, destPrefix, prefixLength]() {
+    for (const auto& route : getAllRoutes(rdsw)) {
+      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
+          reinterpret_cast<const unsigned char*>(
+              route.dest()->ip()->addr()->data()),
+          route.dest()->ip()->addr()->size()));
+      if (ip == destPrefix && *route.dest()->prefixLength() == prefixLength) {
+        XLOG(DBG2) << "rdsw: " << rdsw << " Found route:: prefix: " << ip.str()
+                   << " prefixLength: " << *route.dest()->prefixLength();
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyRoutePresentHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+std::map<std::string, MultiNodeUtil::NeighborInfo>
+MultiNodeUtil::configureNeighborsAndRoutesForTrafficLoop() const {
+  auto logAddRoute =
+      [](const auto& rdsw, const auto& prefix, const auto& neighbor) {
+        XLOG(DBG2) << "Adding route:: " << " prefix: " << prefix.str()
+                   << " nexthop: " << neighbor.str() << " to " << rdsw;
+      };
+
+  std::map<std::string, NeighborInfo> rdswToNeighbor;
+  auto [prefix, prefixLength] = kGetRoutePrefixAndPrefixLength();
+  std::optional<std::string> prevRdsw{std::nullopt};
+  MultiNodeUtil::NeighborInfo firstRdswNeighbor{};
+
+  // Add a neighbor for every RDSW in the cluster
+  // Also, add routes for every RDSW to create a loop i.e.:
+  //    - RDSW A has route with nexthop as RDSW B's neighbor
+  //    - RDSW B has route with nexthop as RDSW C's neighbor
+  //    ...
+  //    - RDSW Z has route with nexthop as RDSW A's neighbor
+  //      so the packet loops around
+  for (const auto& rdsw : allRdsws_) {
+    auto neighbors = computeNeighborsForRdsw(rdsw, 1 /* number of neighbors */);
+    CHECK_EQ(neighbors.size(), 1);
+    auto neighbor = neighbors[0];
+    rdswToNeighbor[rdsw] = neighbor;
+
+    XLOG(DBG2) << "Adding neighbor: " << neighbor.str() << " to " << rdsw;
+    addNeighbor(
+        rdsw, neighbor.intfID, neighbor.ip, neighbor.mac, neighbor.portID);
+    if (!verifyNeighborsPresent(rdsw, {neighbor})) {
+      XLOG(DBG2) << "Neighbor add verification failed: " << rdsw
+                 << " neighbor: " << neighbor.str();
+      return rdswToNeighbor;
+    }
+
+    if (!prevRdsw.has_value()) { // first RDSW
+      firstRdswNeighbor = neighbor;
+    } else {
+      logAddRoute(prevRdsw.value(), kPrefix, neighbor);
+      addRoute(prevRdsw.value(), prefix, prefixLength, {neighbor.ip});
+      if (!verifyRoutePresent(prevRdsw.value(), prefix, prefixLength)) {
+        XLOG(DBG2) << "Route add verification failed: " << prevRdsw.value()
+                   << " route: " << prefix.str()
+                   << " prefixLength: " << prefixLength;
+        return rdswToNeighbor;
+      }
+    }
+    prevRdsw = rdsw;
+  }
+
+  // Add route for first RDSW to complete the loop
+  CHECK(!allRdsws_.empty());
+  auto lastRdsw = std::prev(allRdsws_.end());
+  logAddRoute(*lastRdsw, prefix, firstRdswNeighbor);
+  addRoute(*lastRdsw, prefix, prefixLength, {firstRdswNeighbor.ip});
+  if (!verifyRoutePresent(*lastRdsw, prefix, prefixLength)) {
+    XLOG(DBG2) << "Route add verification failed: " << *lastRdsw
+               << " route: " << prefix.str()
+               << " prefixLength: " << prefixLength;
+    return rdswToNeighbor;
+  }
+
+  return rdswToNeighbor;
+}
+
+void MultiNodeUtil::createTrafficLoop(const NeighborInfo& neighborInfo) const {
+  // configureNeighborsAndRoutesForTrafficLoop configures
+  //  o RDSW A route to point to RDSW B's neighbor,
+  //  o RDSW B route to point to RDSW C's neighbor,
+  //  o ...
+  //  o last RDSW's route to point to RDSW A's neighbor.
+  //
+  // Send packet froms self (say RDSW A) with dstMAC as RouterMAC:
+  //  o The packet is routed to RDSW B's neighbor.
+  //  o RDSW B neighbor is resolved on a port in loopback mode.
+  //  o The packet thus gets looped back.
+  //  o Since the packet carries dstMac = Router MAC, it gets routed.
+  //  o This packet routes to RDSW C's neighbor
+  //  ....
+  //  o The last RDSW routes the packet to RDSW A and loop continues.
+  //
+  // Forwarding is enabled for TTL0 packets so the packet continues to be
+  // forwarded even after TTL is 0. Thus, we get traffic flood.
+  //
+  // Injecting 1000 packets on one 400G NIF port is sufficient to create a
+  // loop that saturates the 400G RDSW links on every RDSW.
+  //
+  // TODO: Before injecting packets, verify that
+  //  o neighbor is resolved and programmed on every RDSW.
+  //  o the route is programmed on every RDSW with that neighbor as nexthop.
+  // Otherwise, the packets will be blackholed and we will not get traffic
+  // loop.
+  auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
+  auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
+  for (int i = 0; i < 1000; i++) {
+    auto txPacket = utility::makeUDPTxPacket(
+        sw_,
+        std::nullopt, // vlanIDForTx
+        folly::MacAddress("00:02:00:00:01:01"), // srcMac
+        utility::getMacForFirstInterfaceWithPorts(sw_->getState()), // dstMac
+        kSrcIP,
+        prefix, // dstIP
+        8000,
+        8001,
+        0, // ECN
+        255, // TTL
+        // Payload
+        std::vector<uint8_t>(1200, 0xff));
+
+    sw_->sendPacketOutOfPortAsync(
+        std::move(txPacket), PortID(neighborInfo.portID));
+  }
+}
+
+bool MultiNodeUtil::verifyLineRate(
+    const std::string& rdsw,
+    const MultiNodeUtil::NeighborInfo& neighborInfo) const {
+  auto portIdToPortInfo = getPortIdToPortInfo(rdsw);
+  CHECK(portIdToPortInfo.find(neighborInfo.portID) != portIdToPortInfo.end());
+  auto portName = portIdToPortInfo[neighborInfo.portID].name().value();
+  auto portSpeedMbps =
+      portIdToPortInfo[neighborInfo.portID].speedMbps().value();
+
+  // Verify is line rate is achieved i.e. in bytes within 5% of line rate.
+  constexpr float kVariance = 0.05; // i.e. + or - 5%
+  auto lowPortSpeedMbps = portSpeedMbps * (1 - kVariance);
+
+  auto verifyLineRateHelper =
+      [rdsw, portName, portSpeedMbps, lowPortSpeedMbps]() {
+        auto counterNameToCount = getCounterNameToCount(rdsw);
+        auto outSpeedMbps =
+            counterNameToCount[portName + ".out_bytes.rate.60"] * 8 / 1000000;
+        XLOG(DBG2) << "portSpeedMbps: " << portSpeedMbps
+                   << " lowPortSpeedMbps: " << lowPortSpeedMbps
+                   << " outSpeedMbps: " << outSpeedMbps;
+
+        return lowPortSpeedMbps < outSpeedMbps;
+      };
+
+  return checkWithRetryErrorReturn(
+      verifyLineRateHelper,
+      60 /* num retries, flood takes about ~30s to reach line rate */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool MultiNodeUtil::verifyFabricSpray(const std::string& rdsw) const {
+  auto verifyFabricSprayHelper = [this, rdsw]() {
+    int64_t lowestMbps = std::numeric_limits<int64_t>::max();
+    int64_t highestMbps = std::numeric_limits<int64_t>::min();
+
+    auto counterNameToCount = getCounterNameToCount(rdsw);
+    for (const auto& [_, portInfo] : getActiveFabricPortNameToPortInfo(rdsw)) {
+      auto portName = portInfo.name().value();
+      auto counterName = portName + ".out_bytes.rate.60";
+      auto outSpeedMbps = counterNameToCount[counterName] * 8 / 1000000;
+
+      lowestMbps = std::min(lowestMbps, outSpeedMbps);
+      highestMbps = std::max(highestMbps, outSpeedMbps);
+
+      XLOG(DBG2) << "Active Fabric port: " << portInfo.name().value()
+                 << " outSpeedMbps: " << outSpeedMbps
+                 << " lowestMbps: " << lowestMbps
+                 << " highestMbps: " << highestMbps;
+    }
+
+    return isDeviationWithinThreshold(
+        lowestMbps, highestMbps, 5 /* maxDeviationPct */);
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyFabricSprayHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool MultiNodeUtil::setupTrafficLoop() const {
+  // Configure for Traffic loop
+  auto rdswToNeighbor = configureNeighborsAndRoutesForTrafficLoop();
+  if (rdswToNeighbor.empty()) {
+    return false;
+  }
+
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+  CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
+  // Create Traffic loop
+  createTrafficLoop(rdswToNeighbor[myHostname]);
+
+  for (const auto& [rdsw, neighbor] : rdswToNeighbor) {
+    if (!verifyLineRate(rdsw, neighbor)) {
+      XLOG(DBG2) << "Verify line rate failed for rdsw: " << rdsw;
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyTrafficSpray() const {
+  XLOG(DBG2) << __func__;
+
+  auto getPeerToDsfSessionForAllRdsws = [this] {
+    std::map<std::string, std::map<std::string, DsfSessionThrift>>
+        rdswToPeerAndDsfSession;
+    for (const auto& rdsw : allRdsws_) {
+      rdswToPeerAndDsfSession[rdsw] = getPeerToDsfSession(rdsw);
+    }
+
+    return rdswToPeerAndDsfSession;
+  };
+
+  auto verifyNoSessionsFlapForAllRdsws =
+      [this](const auto& baselineRdswToPeerAndDsfSession) {
+        for (const auto& [rdsw, baselinePeerToDsfSession] :
+             baselineRdswToPeerAndDsfSession) {
+          if (!verifyNoSessionsFlap(rdsw, baselinePeerToDsfSession)) {
+            XLOG(DBG2) << "DSF Sessions flapped from rdsw: " << rdsw;
+            return false;
+          }
+        }
+
+        return true;
+      };
+
+  // Store all DSF sessions for every RDSW before creating Traffic loop
+  auto baselineRdswToPeerAndDsfSession = getPeerToDsfSessionForAllRdsws();
+
+  if (!setupTrafficLoop()) {
+    XLOG(DBG2) << "Traffic loop setup failed";
+    return false;
+  }
+
+  for (const auto& [switchName, _] : switchNameToSwitchIds_) {
+    if (!verifyFabricSpray(switchName)) {
+      XLOG(DBG2) << "Verify line rate failed for switch: " << switchName;
+      return false;
+    }
+  }
+
+  // Verify no DSF Sessions flapped due to traffic loop
+  if (!verifyNoSessionsFlapForAllRdsws(baselineRdswToPeerAndDsfSession)) {
+    XLOG(DBG2) << "Traffic flood flapped some DSF sessions";
+    return false;
+  }
+
+  return true;
+}
+
+bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
+  auto verifyNoReassemblyErrorsForAllSwitchesHelper = [this]() {
+    auto getCounterName = [this](const auto& switchName) {
+      auto iter = switchNameToAsicType_.find(switchName);
+      CHECK(iter != switchNameToAsicType_.end());
+      auto asicType = iter->second;
+      auto vendorName = getHwAsicForAsicType(asicType).getVendor();
+
+      return vendorName + ".reassembly.errors.sum";
+    };
+
+    for (const auto& [switchName, _] : switchNameToSwitchIds_) {
+      auto counterNameToCount = getCounterNameToCount(switchName);
+      auto counterName = getCounterName(switchName);
+      auto reassemblyErrors = counterNameToCount[counterName];
+      if (reassemblyErrors > 0) {
+        XLOG(DBG2) << "Switch: " << switchName
+                   << " counterName: " << counterName
+                   << " reassemblyErrors: " << reassemblyErrors;
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // The reassembly errors may happen after a few seeconds.
+  // Thus, keep retrying for several seconds to ensure no reassembly errors.
+  return checkAlwaysTrueWithRetryErrorReturn(
+      verifyNoReassemblyErrorsForAllSwitchesHelper, 10 /* num retries */);
+}
+
+bool MultiNodeUtil::verifyNoTrafficDrop() const {
+  if (!setupTrafficLoop()) {
+    XLOG(DBG2) << "Traffic loop setup failed";
+    return false;
+  }
+
+  if (!verifyNoReassemblyErrorsForAllSwitches()) {
+    XLOG(DBG2) << "Unexpected reassembly errors";
+    // TODO query drop counters to root cause reason for reassembly errors
+    return false;
+  }
+
+  // With traffic loop running, execute a variety of scenarios.
+  // For each scenario, expect no drops on Fabric ports.
+  struct Scenario {
+    std::string name;
+    std::function<bool()> setup;
+  };
+
+  Scenario gracefullyRestartQsfpAllSwitches = {
+      "gracefullyRestartQsfpAllSwitches", [this]() {
+        // Gracefully restart QSFP on all switches
+        forEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            triggerGracefulQsfpRestart);
+
+        // Wait for QSFP to come up on all switches
+        auto gracefulRestart = checkForEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            [this](
+                const std::string& switchName,
+                const QsfpServiceRunState& state) {
+              return this->verifyQsfpServiceRunState(switchName, state);
+            },
+            QsfpServiceRunState::ACTIVE);
+
+        return gracefulRestart;
+      }};
+
+  std::vector<Scenario> scenarios = {gracefullyRestartQsfpAllSwitches};
+  for (const auto& scenario : scenarios) {
+    XLOG(DBG2) << "Running scenario: " << scenario.name;
+    if (!scenario.setup()) {
+      XLOG(DBG2) << "Scenario: " << scenario.name << " failed";
+      return false;
+    }
+
+    if (!verifyNoReassemblyErrorsForAllSwitches()) {
+      XLOG(DBG2) << "Scenario: " << scenario.name
+                 << " unexpected reassembly errors";
+      return false;
     }
   }
 

@@ -12,9 +12,11 @@ from fboss.lib.platform_mapping_v2.helpers import (
     get_platform_config_entry,
     get_transceiver_chip,
     get_unique_connection_pairs,
+    get_xphy_chip,
     is_backplane,
     is_npu,
     is_transceiver,
+    is_xphy,
 )
 from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMapping
 from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
@@ -59,6 +61,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "meru800bia_100g_nif_port_breakout",
         "meru800bia_800g",
         "meru800bia_800g_hyperport",
+        "meru800bia_800g_uniform_local_offset",
         "meru800bia_dual_stage_edsw",
         "meru800bia_dual_stage_rdsw",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
@@ -325,6 +328,8 @@ class PlatformMappingV2:
                 chips.append(get_transceiver_chip(chip))
             elif is_backplane(chip.chip_type):
                 chips.append(get_backplane_chip(chip))
+            elif is_xphy(chip.chip_type):
+                chips.append(get_xphy_chip(chip))
             else:
                 raise Exception("Unhandled chip_type ", chip.chip_type)
         chips = sorted(chips, key=lambda chip: (chip.type, chip.physicalID, chip.name))
@@ -341,11 +346,27 @@ class PlatformMappingV2:
         all_profiles = self.pm_parser.get_port_profile_mapping().get_all_profiles()
 
         for profile in all_profiles:
+            # Get NPU speed setting (always required)
+            npu_speed_setting = self.pm_parser.get_profile_settings().get_speed_setting(
+                profile, DataPlanePhyChipType.IPHY
+            )
+
+            # Get XPHY speed setting (optional)
+            xphy_speed_setting = None
+            try:
+                xphy_speed_setting = (
+                    self.pm_parser.get_profile_settings().get_speed_setting(
+                        profile, DataPlanePhyChipType.XPHY
+                    )
+                )
+            except Exception:
+                # XPHY speed setting doesn't exist for this profile, which is okay
+                pass
+
             entry = get_platform_config_entry(
-                profile,
-                self.pm_parser.get_profile_settings().get_speed_setting(
-                    profile, DataPlanePhyChipType.IPHY
-                ),
+                profile=profile,
+                npu_speed_setting=npu_speed_setting,
+                xphy_speed_setting=xphy_speed_setting,
             )
             if entry:
                 platform_config_entry.append(entry)

@@ -73,14 +73,14 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
     }
     normalizer.testNormalizeWeightsForNexthops(nhs);
     auto numPrunedPaths = [](const auto& nhs, const auto planeId) {
-      int numPrunedPaths = 0;
+      int count = 0;
       for (const auto& nh : nhs) {
         if (*nh.topologyInfo()->plane_id() == planeId &&
             nh.adjustedWeight().has_value() && nh.adjustedWeight() == 0) {
-          numPrunedPaths++;
+          count++;
         }
       }
-      return numPrunedPaths;
+      return count;
     };
     for (int planeId = 0; planeId < numPlanes; planeId++) {
       XLOG(DBG4) << "Checking for planeId: " << planeId

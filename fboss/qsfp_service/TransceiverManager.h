@@ -309,6 +309,12 @@ class TransceiverManager {
       phy::PortComponent /* component */,
       bool /* setLoopback */);
 
+  void setPortLoopbackStateTransceiver(
+      PortID portId,
+      std::string portName,
+      phy::PortComponent component,
+      bool setLoopback);
+
   void setPortAdminState(
       std::string /* portName */,
       phy::PortComponent /* component */,
@@ -502,6 +508,10 @@ class TransceiverManager {
           supportedPortProfiles,
       bool checkOptics);
 
+  bool isTransceiverPortStateSupported(
+      TransceiverID tcvrID,
+      TransceiverPortState& tcvrPortState);
+
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
 
@@ -559,7 +569,15 @@ class TransceiverManager {
   phy::PrbsStats getPortPrbsStats(PortID portId, phy::PortComponent component)
       const;
 
+  phy::PrbsStats getPortPrbsStatsTransceiver(PortID portId, phy::Side side)
+      const;
+
   void clearPortPrbsStats(PortID portId, phy::PortComponent component);
+
+  void clearPortPrbsStatsTransceiver(
+      PortID portId,
+      const std::string& portName,
+      phy::Side side);
 
   std::vector<prbs::PrbsPolynomial> getTransceiverPrbsCapabilities(
       TransceiverID tcvrID,
@@ -575,8 +593,20 @@ class TransceiverManager {
       phy::PortComponent component,
       const prbs::InterfacePrbsState& state);
 
+  void setInterfacePrbsTransceiver(
+      PortID portId,
+      const std::string& portName,
+      phy::PortComponent component,
+      const prbs::InterfacePrbsState& state);
+
   void getInterfacePrbsState(
       prbs::InterfacePrbsState& prbsState,
+      const std::string& portName,
+      phy::PortComponent component) const;
+
+  void getInterfacePrbsStateTransceiver(
+      prbs::InterfacePrbsState& prbsState,
+      PortID portId,
       const std::string& portName,
       phy::PortComponent component) const;
 
@@ -711,8 +741,6 @@ class TransceiverManager {
   void findAndTriggerPotentialFirmwareUpgradeEvents(
       const std::vector<TransceiverID>& presentXcvrIds);
 
-  void resetTcvrMgrStateAfterFirmwareUpgrade();
-
   void clearEvbsRunningFirmwareUpgrade() {
     // Clear the map that tracks the firmware upgrades in progress per evb
     evbsRunningFirmwareUpgrade_.wlock()->clear();
@@ -724,6 +752,8 @@ class TransceiverManager {
   // initialization to avoid cold booting non-XPhy systems in case of a
   // non-graceful exit and also set during graceful exit.
   void setCanWarmBoot();
+
+  void completeRefresh();
 
   // Store the warmboot state for qsfp_service. This will be updated
   // periodically after Transceiver State machine updates to maintain
@@ -738,6 +768,24 @@ class TransceiverManager {
 
   folly::dynamic getWarmBootState() const {
     return warmBootState_;
+  }
+
+  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
+    phyManager_ = std::move(phyManager);
+    phyManager_->setPublishPhyCb(
+        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
+          if (newInfo.has_value()) {
+            publishPhyStateToFsdb(
+                std::string(portName), std::move(*newInfo->state()));
+            publishPhyStatToFsdb(
+                std::string(portName), std::move(*newInfo->stats()));
+          } else {
+            publishPhyStateToFsdb(std::string(portName), std::nullopt);
+          }
+          if (portStats.has_value()) {
+            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
+          }
+        });
   }
 
  protected:
@@ -758,24 +806,6 @@ class TransceiverManager {
   virtual void initTransceiverMap() = 0;
 
   virtual void loadConfig() = 0;
-
-  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
-    phyManager_ = std::move(phyManager);
-    phyManager_->setPublishPhyCb(
-        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
-          if (newInfo.has_value()) {
-            publishPhyStateToFsdb(
-                std::string(portName), std::move(*newInfo->state()));
-            publishPhyStatToFsdb(
-                std::string(portName), std::move(*newInfo->stats()));
-          } else {
-            publishPhyStateToFsdb(std::string(portName), std::nullopt);
-          }
-          if (portStats.has_value()) {
-            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
-          }
-        });
-  }
 
   // Update the cached PortStatus of TransceiverToPortInfo based on the input
   // This will only change the active state of the state machine.

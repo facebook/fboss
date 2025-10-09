@@ -17,5 +17,9 @@ class ConfigValidator {
   bool isValidSensorName(
       const sensor_config::SensorConfig& sensorConfig,
       const std::string& sensorName);
+  bool isValidPowerConsumptionConfig(
+      const sensor_config::SensorConfig& sensorConfig);
+  std::unordered_set<std::string> getAllSensorNames(
+      const sensor_config::SensorConfig& sensorConfig);
 };
 } // namespace facebook::fboss::platform::sensor_service

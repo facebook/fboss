@@ -658,13 +658,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   uint16_t vlanId = swPort->getIngressVlan();
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
 
-  // Skip setting MTU for fabric ports if not supported
-  // TODO(daiweix): CS00012426928 to confirm whether MTU setting on hyper
-  // port member is supported or not.
   std::optional<SaiPortTraits::Attributes::Mtu> mtu{};
-  if ((swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) &&
-      (swPort->getPortType() != cfg::PortType::FABRIC_PORT ||
-       platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORT_MTU))) {
+  if (platform_->getAsic()->portMtuSupported(swPort->getPortType())) {
     mtu = swPort->getMaxFrameSize();
   }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =
@@ -752,6 +747,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 #endif
 
+  std::optional<SaiPortTraits::Attributes::StaticModuleId> staticModuleId{};
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  staticModuleId = swPort->getPortSwitchId();
+#endif
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -829,7 +829,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         fecErrorDetectEnable,
         std::nullopt, // AmIdles
         std::nullopt, // FabricSystemPort
-        std::nullopt, // StaticModuleId
+        staticModuleId,
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
     };
@@ -920,7 +920,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       fecErrorDetectEnable,
       amIdles, // AmIdles
       std::nullopt, // FabricSystemPort
-      std::nullopt, // StaticModuleId
+      staticModuleId,
       std::nullopt, // IsHyperPortMember
       std::nullopt, // HyperPortMemberList
   };

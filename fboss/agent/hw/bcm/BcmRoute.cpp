@@ -57,19 +57,16 @@ void attachRouteStat(
     bcmCheckError(rc, "failed to detach stat from route ", prefix);
   }
   if (newCounterID.has_value()) {
-    auto rc =
-        bcm_l3_route_stat_attach(unit, rt, newCounterID.value().getHwId());
     bcmCheckError(
-        rc,
+        bcm_l3_route_stat_attach(unit, rt, newCounterID.value().getHwId()),
         "failed to attach stat to route ",
         prefix,
         " counter ",
         (*newCounterID).str());
     if (isFlexCounterSupported) {
-      auto rc = bcm_l3_route_flexctr_object_set(
-          unit, rt, newCounterID.value().getHwOffset());
       bcmCheckError(
-          rc,
+          bcm_l3_route_flexctr_object_set(
+              unit, rt, newCounterID.value().getHwOffset()),
           "failed to set flexctr index for ",
           prefix,
           " counter ",

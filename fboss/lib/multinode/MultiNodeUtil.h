@@ -10,16 +10,18 @@
 
 #pragma once
 
-#include <string>
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 
 #include <folly/MacAddress.h>
+#include <string>
 
 namespace facebook::fboss::utility {
 
 class MultiNodeUtil {
  public:
   explicit MultiNodeUtil(
+      SwSwitch* sw,
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
 
   bool verifyFabricConnectivity() const;
@@ -42,6 +44,9 @@ class MultiNodeUtil {
   bool verifyUngracefulFsdbDownUp() const;
 
   bool verifyNeighborAddRemove() const;
+
+  bool verifyTrafficSpray() const;
+  bool verifyNoTrafficDrop() const;
 
  private:
   enum class SwitchType : uint8_t {
@@ -87,14 +92,43 @@ class MultiNodeUtil {
     }
   }
 
+  void logRif(
+      const std::string& rdsw,
+      const facebook::fboss::InterfaceDetail& rif) {
+    XLOG(DBG2)
+        << "From " << rdsw << " interfaceName: " << rif.interfaceName().value()
+        << " interfaceId: " << rif.interfaceId().value() << " remoteIntfType: "
+        << apache::thrift::util::enumNameSafe(rif.remoteIntfType().value_or(-1))
+        << " remoteIntfLivenessStatus: "
+        << folly::to<std::string>(rif.remoteIntfLivenessStatus().value_or(-1))
+        << " scope: "
+        << apache::thrift::util::enumNameSafe(rif.scope().value());
+  }
+
+  void logSystemPort(
+      const std::string& rdsw,
+      const facebook::fboss::SystemPortThrift& systemPort) {
+    XLOG(DBG2) << "From " << rdsw << " portId: " << systemPort.portId().value()
+               << " switchId: " << systemPort.switchId().value()
+               << " portName: " << systemPort.portName().value()
+               << " remoteSystemPortType: "
+               << apache::thrift::util::enumNameSafe(
+                      systemPort.remoteSystemPortType().value_or(-1))
+               << " remoteSystemPortLivenessStatus: "
+               << apache::thrift::util::enumNameSafe(
+                      systemPort.remoteSystemPortLivenessStatus().value_or(-1))
+               << " scope: "
+               << apache::thrift::util::enumNameSafe(
+                      systemPort.scope().value());
+  }
+
   void populateDsfNodes(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
   void populateAllRdsws();
   void populateAllFdsws();
+  void populateAllSwitches();
 
-  std::map<std::string, FabricEndpoint> getFabricEndpoints(
-      const std::string& switchName) const;
-  std::set<std::string> getConnectedFabricPorts(
+  std::map<std::string, FabricEndpoint> getConnectedFabricPortToFabricEndpoint(
       const std::string& switchName) const;
   bool verifyFabricConnectedSwitchesHelper(
       SwitchType switchType,
@@ -131,8 +165,6 @@ class MultiNodeUtil {
       const std::map<std::string, PortInfoThrift>&
           activeFabricPortNameToPortInfo) const;
 
-  std::map<int32_t, facebook::fboss::PortInfoThrift> getPorts(
-      const std::string& switchName) const;
   std::set<std::string> getActiveFabricPorts(
       const std::string& switchName) const;
   std::map<std::string, PortInfoThrift> getActiveFabricPortNameToPortInfo(
@@ -148,19 +180,21 @@ class MultiNodeUtil {
   bool verifyNoPortErrorsForSwitch(
       SwitchType switchType,
       const std::string& switchName) const;
+  bool verifyPortCableLength(
+      SwitchType switchType,
+      const std::string& switchName) const;
   bool verifyPortsForSwitch(
       SwitchType switchType,
       const std::string& switchName) const;
 
-  std::map<std::string, std::vector<SystemPortThrift>> getPeerToSystemPorts(
-      const std::string& rdsw) const;
+  std::map<std::string, std::vector<SystemPortThrift>> getRdswToSystemPorts()
+      const;
   std::set<std::string> getGlobalSystemPortsOfType(
       const std::string& rdsw,
       const std::set<RemoteSystemPortType>& types) const;
   bool verifySystemPortsForRdsw(const std::string& rdswToVerify) const;
 
-  std::map<std::string, std::vector<InterfaceDetail>> getPeerToRifs(
-      const std::string& rdsw) const;
+  std::map<std::string, std::vector<InterfaceDetail>> getRdswToRifs() const;
   std::set<int> getGlobalRifsOfType(
       const std::string& rdsw,
       const std::set<RemoteInterfaceType>& types) const;
@@ -255,6 +289,28 @@ class MultiNodeUtil {
       const std::vector<MultiNodeUtil::NeighborInfo>& neighbors,
       const std::string& rdsw) const;
 
+  std::pair<folly::IPAddressV6, int16_t> kGetRoutePrefixAndPrefixLength()
+      const {
+    return std::make_pair(folly::IPAddressV6("2001:0db8:85a3::"), 64);
+  }
+
+  bool verifyRoutePresent(
+      const std::string& rdsw,
+      const folly::IPAddress& destPrefix,
+      const int16_t prefixLength) const;
+
+  bool verifyLineRate(
+      const std::string& rdsw,
+      const MultiNodeUtil::NeighborInfo& neighborInfo) const;
+  bool verifyFabricSpray(const std::string& rdsw) const;
+
+  std::map<std::string, NeighborInfo>
+  configureNeighborsAndRoutesForTrafficLoop() const;
+  void createTrafficLoop(const NeighborInfo& neighborInfo) const;
+  bool setupTrafficLoop() const;
+
+  bool verifyNoReassemblyErrorsForAllSwitches() const;
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;
@@ -263,6 +319,10 @@ class MultiNodeUtil {
   std::set<std::string> allFdsws_;
   std::map<SwitchID, std::string> switchIdToSwitchName_;
   std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
+  std::map<std::string, cfg::AsicType> switchNameToAsicType_;
+  std::set<std::string> allSwitches_;
+
+  SwSwitch* sw_{nullptr};
 };
 
 } // namespace facebook::fboss::utility

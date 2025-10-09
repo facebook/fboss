@@ -47,6 +47,10 @@ class TunManager : public StateObserver {
   AGENT_TUNNEL_MGR_FRIEND_TESTS
 #endif
 
+#ifdef HW_TUN_MANAGER_BENCHMARK_FRIEND_TESTS
+  HW_TUN_MANAGER_BENCHMARK_FRIEND_TESTS
+#endif
+
   /**
    * Update the intfs_ map based on the given state update. This
    * overrides the StateObserver stateUpdated api, which is always
@@ -78,6 +82,8 @@ class TunManager : public StateObserver {
   virtual void sync(std::shared_ptr<SwitchState> state);
 
   void forceInitialSync();
+
+  void forceInitialSyncBlocking();
 
   /**
    * This should be called externally only after initial sync has been
@@ -381,6 +387,11 @@ class TunManager : public StateObserver {
    * Add an address to a TUN interface during probe process.
    */
   void addProbedAddr(int ifIndex, const folly::IPAddress& addr, uint8_t mask);
+
+  /**
+   * Performs initial sync if no syncs have occurred yet.
+   */
+  void performInitialSyncIfNeeded();
 
   /**
    * Delete all probed data from kernel including routes, addresses, rules and

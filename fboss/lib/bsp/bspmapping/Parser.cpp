@@ -85,6 +85,56 @@ TransceiverIOType Parser::getTransceiverIOTypeFromString(
   }
 }
 
+PhyIOType Parser::getPhyIOTypeFromString(const std::string_view& entry) {
+  if (entry == "MDIO") {
+    return PhyIOType::MDIO;
+  } else {
+    return PhyIOType::UNKNOWN;
+  }
+}
+
+PhyConfigRow Parser::getPhyConfigRowFromCsvLine(const std::string_view& line) {
+  std::vector<std::string_view> parts;
+  folly::split(',', line, parts);
+  if (parts.size() != 9) {
+    throw std::runtime_error("Invalid PHY CSV line format, expected 9 columns");
+  }
+
+  PhyConfigRow pcr;
+  pcr.phyId() = folly::to<int>(parts[0]);
+  pcr.phyCoreId() = folly::to<int>(parts[1]);
+  pcr.pimId() = folly::to<int>(parts[2]);
+  pcr.phyResetPath() = parts[3];
+  pcr.ioControlType() = Parser::getPhyIOTypeFromString(parts[4]);
+  pcr.ioControllerId() = folly::to<int>(parts[5]);
+  pcr.ioControllerResetPath() = parts[6];
+  pcr.ioPath() = parts[7];
+  pcr.phyAddr() = folly::to<int>(parts[8]);
+
+  return pcr;
+}
+
+std::vector<PhyConfigRow> Parser::getPhyConfigRowsFromCsv(
+    folly::StringPiece csv) {
+  std::string data;
+  folly::readFile(csv.data(), data);
+  std::vector<std::string_view> lines;
+  folly::split('\n', data, lines);
+
+  std::vector<PhyConfigRow> pcrList;
+  int nLine = 0;
+  for (auto& line : lines) {
+    if (nLine++ < HEADER_OFFSET || line.empty()) {
+      continue;
+    }
+
+    auto pcr = getPhyConfigRowFromCsvLine(line);
+    pcrList.push_back(pcr);
+  }
+
+  return pcrList;
+}
+
 std::vector<TransceiverConfigRow> Parser::getTransceiverConfigRowsFromCsv(
     folly::StringPiece csv) {
   std::string data;
@@ -108,6 +158,13 @@ std::vector<TransceiverConfigRow> Parser::getTransceiverConfigRowsFromCsv(
 
 BspPlatformMappingThrift Parser::getBspPlatformMappingFromCsv(
     folly::StringPiece csv) {
+  // Call the overloaded version with empty PHY CSV
+  return getBspPlatformMappingFromCsv(csv, "");
+}
+
+BspPlatformMappingThrift Parser::getBspPlatformMappingFromCsv(
+    folly::StringPiece csv,
+    folly::StringPiece phyCsv) {
   auto tcrList = getTransceiverConfigRowsFromCsv(csv);
   std::map<int, std::vector<TransceiverConfigRow>> tcrMap;
   for (auto& tl : tcrList) {
@@ -184,11 +241,48 @@ BspPlatformMappingThrift Parser::getBspPlatformMappingFromCsv(
     ledsMap[*apache::thrift::get_pointer(tl.ledId())] = singleLedMap;
   }
 
+  // Parse PHY CSV if provided
+  std::map<int, BspPhyMapping> phyMap;
+  std::map<int, BspPhyIOControllerInfo> phyIOControllersMap;
+
+  if (!phyCsv.empty()) {
+    auto pcrList = getPhyConfigRowsFromCsv(phyCsv);
+
+    // Build PHY IO Controllers map
+    std::map<int, PhyConfigRow> controllerRowMap;
+    for (auto& pcr : pcrList) {
+      controllerRowMap[folly::copy(pcr.ioControllerId().value())] = pcr;
+    }
+
+    for (auto& [controllerId, pcr] : controllerRowMap) {
+      BspPhyIOControllerInfo ioControllerInfo;
+      ioControllerInfo.controllerId() =
+          folly::copy(pcr.ioControllerId().value());
+      ioControllerInfo.type() = folly::copy(pcr.ioControlType().value());
+      ioControllerInfo.devicePath() = pcr.ioPath().value();
+      ioControllerInfo.resetPath() = pcr.ioControllerResetPath().value();
+      phyIOControllersMap[controllerId] = ioControllerInfo;
+    }
+
+    // Build PHY mapping
+    for (auto& pcr : pcrList) {
+      BspPhyMapping phyMapping;
+      phyMapping.phyId() = folly::copy(pcr.phyId().value());
+      phyMapping.phyIOControllerId() =
+          folly::copy(pcr.ioControllerId().value());
+      phyMapping.phyAddr() = folly::copy(pcr.phyAddr().value());
+      phyMapping.phyCoreId() = folly::copy(pcr.phyCoreId().value());
+      phyMapping.pimId() = folly::copy(pcr.pimId().value());
+      phyMapping.phyResetPath() = pcr.phyResetPath().value();
+      phyMap[folly::copy(pcr.phyId().value())] = phyMapping;
+    }
+  }
+
   BspPimMapping bspPimMapping;
   bspPimMapping.pimID() = folly::copy(tcrList.back().pimId().value());
   bspPimMapping.tcvrMapping() = tcvrMap;
-  bspPimMapping.phyMapping() = {};
-  bspPimMapping.phyIOControllers() = {};
+  bspPimMapping.phyMapping() = phyMap;
+  bspPimMapping.phyIOControllers() = phyIOControllersMap;
   bspPimMapping.ledMapping() = ledsMap;
 
   std::map<int, BspPimMapping> bspPlatformMap;

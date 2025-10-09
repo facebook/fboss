@@ -171,6 +171,20 @@ class SystemPort
     set<switch_state_tags::portType>(portType);
   }
 
+  std::optional<bool> getPushQueueEnabled() const {
+    if (auto pushQueueEnabled = cref<ctrl_if_tags::pushQueueEnabled>()) {
+      return pushQueueEnabled->cref();
+    };
+    return std::nullopt;
+  }
+  void setPushQueueEnabled(std::optional<bool> pushQueueEnabled) {
+    if (!pushQueueEnabled.has_value()) {
+      ref<ctrl_if_tags::pushQueueEnabled>().reset();
+    } else {
+      set<ctrl_if_tags::pushQueueEnabled>(pushQueueEnabled.value());
+    }
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

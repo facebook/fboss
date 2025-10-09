@@ -44,7 +44,7 @@ unique_ptr<SimPlatform> simPlatform;
 unique_ptr<SwSwitch> setupSwitch() {
   MacAddress localMac("02:00:01:00:00:01");
   simPlatform = make_unique<SimPlatform>(localMac, 10);
-  auto sw = make_unique<SwSwitch>(
+  auto localSw = make_unique<SwSwitch>(
       [platform = simPlatform.get()](
           const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
         return std::make_unique<facebook::fboss::MonolithicHwSwitchHandler>(
@@ -53,7 +53,8 @@ unique_ptr<SwSwitch> setupSwitch() {
       simPlatform->getDirectoryUtil(),
       simPlatform->supportsAddRemovePort(),
       nullptr);
-  sw->init(nullptr /* No custom TunManager */, mockHwSwitchInitFn(sw.get()));
+  localSw->init(
+      nullptr /* No custom TunManager */, mockHwSwitchInitFn(localSw.get()));
   auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
   auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
     auto state = oldState->clone();
@@ -96,8 +97,8 @@ unique_ptr<SwSwitch> setupSwitch() {
     return state;
   };
 
-  sw->updateStateBlocking("setup", updateFn);
-  return sw;
+  localSw->updateStateBlocking("setup", updateFn);
+  return localSw;
 }
 
 void init() {

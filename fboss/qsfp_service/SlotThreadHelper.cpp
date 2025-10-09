@@ -26,9 +26,11 @@ void SlotThreadHelper::startThread() {
       folly::to<std::string>("thread_", id_, "_"),
       FLAGS_state_machine_update_thread_heartbeat_ms,
       heartbeatStatsFunc);
+  isThreadActive_ = true;
 }
 
 void SlotThreadHelper::stopThread() {
+  isThreadActive_ = false;
   if (updateThread_) {
     updateEventBase_->terminateLoopSoon();
     updateThread_->join();

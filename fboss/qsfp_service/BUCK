@@ -1,7 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
-load("//fboss/qsfp_service:qsfp_service.bzl", "all_qsfp_core_libs", "all_qsfp_service_binaries")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS", "all_qsfp_core_libs", "all_qsfp_service_binaries")
 
 oncall("fboss_optics_phy")
 
@@ -13,6 +13,7 @@ cpp_binary(
     srcs = [
         "Main.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     versions = {
         "broadcom-plp-barchetta2": "5.2",
         "broadcom-plp-epdm": "4.1.2",
@@ -21,6 +22,7 @@ cpp_binary(
     deps = [
         ":core-credo-0.7.2",
         ":handler",
+        ":port-manager",
         ":stats",
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
         "//folly/executors:function_scheduler",
@@ -34,7 +36,9 @@ cpp_library(
     srcs = [
         "QsfpServiceHandler.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
+        ":port-manager",
         ":transceiver-manager",
         "//common/fb303/cpp:fb303",
         "//fboss/agent:fboss-error",
@@ -68,6 +72,7 @@ cpp_library(
     headers = [
         "facebook/StatsPublisherHelper.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         ":transceiver-manager",
         "//common/network:util",
@@ -86,6 +91,7 @@ cpp_library(
     headers = [
         "StatsPublisher.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         ":stats-helper",
         ":transceiver-manager",
@@ -112,8 +118,10 @@ cpp_library(
         "module/Transceiver.h",
         "module/TransceiverImpl.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         ":qsfp-config",
         ":slot-thread-helper",
         ":transceiver-validator",
@@ -154,7 +162,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "re2",
         ("boost", None, "boost_bimap"),
     ],
 )
@@ -167,6 +174,7 @@ cpp_library(
     headers = [
         "QsfpConfig.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent:fboss-error",
         "//fboss/qsfp_service/if:config-cpp2-types",
@@ -184,6 +192,7 @@ cpp_library(
     headers = [
         "TransceiverValidator.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/lib:alert_logger",
         "//fboss/qsfp_service/if:transceiver_validation-cpp2-types",
@@ -198,6 +207,7 @@ cpp_library(
     headers = [
         "TypedStateMachineUpdate.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "//folly/logging:logging",
@@ -212,6 +222,7 @@ cpp_library(
     headers = [
         "SlotThreadHelper.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent:fboss-types",
         "//fboss/lib:thread_heartbeat",
@@ -237,6 +248,7 @@ cpp_library(
         "StateMachineController.h",
         "TypedStateMachineUpdate.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         ":transceiver-manager",

@@ -909,6 +909,12 @@ class SwSwitch : public HwSwitchCallback {
       std::optional<VlanID> vlanID,
       cfg::InterfaceType intfType = cfg::InterfaceType::VLAN) const;
 
+  // Send neighbor solicitation for interfaces with desiredPeerAddressIPv6
+  // configured
+  void sendNeighborSolicitationForConfiguredInterfaces(
+      const std::string& reason,
+      const std::optional<folly::IPAddressV6>& targetIP = std::nullopt);
+
   InterfaceID getInterfaceIDForAggregatePort(
       AggregatePortID aggregatePortID) const;
 
@@ -1009,9 +1015,12 @@ class SwSwitch : public HwSwitchCallback {
   template <typename VlanOrIntfT>
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
+  bool hasConfiguredDesiredPeers(const InterfaceID& intfId);
 
  private:
   void initAgentInfo();
+  void createAndProbeTunManager();
+  void initializeTunManager(bool useBlocking);
 
   void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(

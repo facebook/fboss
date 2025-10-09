@@ -906,8 +906,7 @@ cfg::SwitchConfig genPortVlanCfg(
     portCfg->loopbackMode() = iter->second;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
       portCfg->ingressVlan() = 0;
-      portCfg->maxFrameSize() =
-          asic->isSupported(HwAsic::Feature::FABRIC_PORT_MTU) ? kPortMTU : 0;
+      portCfg->maxFrameSize() = 0;
       portCfg->state() = enableFabricPorts ? cfg::PortState::ENABLED
                                            : cfg::PortState::DISABLED;
 
@@ -996,12 +995,14 @@ void populateSwitchInfo(
   std::map<long, cfg::SwitchInfo> newSwitchIdToSwitchInfo;
   std::map<long, cfg::DsfNode> newDsfNodes;
   // save the firsthwAsic to create dsfNodeConfig
-  SwitchID switchId{0};
-  auto firstHwAsicTableItr = hwAsicTable.find(switchId);
-  if (firstHwAsicTableItr == hwAsicTable.end()) {
-    throw FbossError("HwAsic not found for SwitchID: ", switchId);
-  }
-  const auto& firstHwAsic = firstHwAsicTableItr->second;
+  const auto& firstHwAsic = [&hwAsicTable]() {
+    SwitchID switchId{0};
+    auto firstHwAsicTableItr = hwAsicTable.find(switchId);
+    if (firstHwAsicTableItr == hwAsicTable.end()) {
+      throw FbossError("HwAsic not found for SwitchID: ", switchId);
+    }
+    return firstHwAsicTableItr->second;
+  }();
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);

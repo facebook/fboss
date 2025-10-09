@@ -106,5 +106,11 @@
         }
       ]
     }
-  ]
+  ],
+  "scPowerGood": {
+    "sysfsAttribute": {
+      "name": "SMB_POWERGOOD",
+      "path": "/run/devmap/cplds/BLACKHAWK_CPLD/switch_card_pwr_status"
+    }
+  }
 }

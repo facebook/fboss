@@ -17,12 +17,16 @@ namespace facebook::fboss {
 class FabricLinkMonitoring {
  public:
   explicit FabricLinkMonitoring(const cfg::SwitchConfig* config);
-
-  // Main public interface
-  std::map<PortID, SwitchID> getPort2SwitchIdMapping();
+  const std::map<PortID, SwitchID>& getPort2LinkSwitchIdMapping() const;
+  SwitchID getSwitchIdForPort(const PortID& portId) const;
 
  private:
   // Forward declarations for methods to be added in later diffs
+  // Compute switch ID offsets
+  int getSwitchIdOffset(
+      const SwitchID& localSwitchId,
+      const SwitchID& remoteSwitchId);
+
   void processDsfNodes(const cfg::SwitchConfig* config);
   void processLinkInfo(const cfg::SwitchConfig* config);
 
@@ -47,6 +51,24 @@ class FabricLinkMonitoring {
       const cfg::Port& port,
       const SwitchID& neighborSwitchId);
 
+  // Parallel link sequencing
+  void sequenceParallelLinksToVds(
+      const cfg::SwitchConfig* config,
+      const std::map<
+          SwitchID,
+          std::map<int32_t, std::vector<std::pair<std::string, std::string>>>>&
+          remoteSwitchId2Vd2PortNamePairs);
+  void updateMaxParallelLinks(const cfg::SwitchConfig* config);
+  // Parallel link offset computation
+  int calculateParallelLinkOffset(
+      const cfg::Port& port,
+      SwitchID remoteSwitchId,
+      int vd,
+      int parallelLinks);
+
+  // Allocate a unique switch ID for each of the links in a VD
+  void allocateSwitchIdForPorts(const cfg::SwitchConfig* config);
+
   // Basic member variables
   std::map<std::string, SwitchID> switchName2SwitchId_;
   SwitchID lowestLeafSwitchId_{SHRT_MAX};
@@ -60,6 +82,15 @@ class FabricLinkMonitoring {
 
   // Virtual device variables
   std::map<PortID, int32_t> portId2Vd_;
+
+  // Parallel link variables
+  int maxParallelLeafToL1Links_{0};
+  int maxParallelL1ToL2Links_{0};
+  std::map<SwitchID, std::map<int32_t, std::vector<std::string>>>
+      remoteSwitchId2Vd2Ports_;
+
+  // Unique fabric link monitoring switch ID per port
+  std::map<PortID, SwitchID> portId2LinkSwitchId_;
 };
 
 } // namespace facebook::fboss

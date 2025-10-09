@@ -144,7 +144,8 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntry(
     const std::shared_ptr<SwitchState>& state,
     const PortDescriptor& port,
     VlanID vlanId,
-    folly::MacAddress mac) {
+    folly::MacAddress mac,
+    std::optional<bool> configured) {
   auto existingMacEntry = getMacEntry(state, vlanId, mac);
   if (existingMacEntry &&
       existingMacEntry->getType() == MacEntryType::STATIC_ENTRY &&
@@ -164,7 +165,8 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntry(
         mac,
         port,
         std::optional<cfg::AclLookupClass>(std::nullopt),
-        MacEntryType::STATIC_ENTRY);
+        MacEntryType::STATIC_ENTRY,
+        configured);
     macTable->addEntry(newEntry);
   }
 

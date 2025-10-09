@@ -30,8 +30,12 @@ void waitForStateMachineState(
     TransceiverStateMachineState stateMachineState,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry);
+void includeLpoTransceivers(
+    std::map<int32_t, TransceiverInfo>& infos,
+    bool includeLpo);
 std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
     std::vector<int32_t> transceiverIds,
+    bool includeLpo = true,
     uint32_t retries = 2,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
         std::chrono::duration_cast<std::chrono::milliseconds>(

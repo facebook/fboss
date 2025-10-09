@@ -64,7 +64,8 @@ class MacTable : public ThriftMapNode<MacTable, MacTableTraits> {
       folly::MacAddress mac,
       PortDescriptor portDescr,
       std::optional<cfg::AclLookupClass> classID,
-      std::optional<MacEntryType> type = std::nullopt);
+      std::optional<MacEntryType> type = std::nullopt,
+      std::optional<bool> isConfigured = std::nullopt);
 
  private:
   // Inherit the constructors required for clone()
