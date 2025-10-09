@@ -2526,6 +2526,10 @@ bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
       "gracefullyRestartQsfpAllSwitches",
       [&] { return allQsfpRestartHelper(true /* gracefulRestart */); }};
 
+  Scenario unGracefullyRestartQsfpAllSwitches = {
+      "unGracefullyRestartQsfpAllSwitches",
+      [&] { return allQsfpRestartHelper(false /* ungracefulRestart */); }};
+
   Scenario gracefullyRestartFSDBAllSwitches = {
       "gracefullyRestartFSDBAllSwitches", [this]() {
         // Gracefully restart FSDB on all switches
@@ -2586,6 +2590,7 @@ bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
 
   std::vector<Scenario> scenarios = {
       std::move(gracefullyRestartQsfpAllSwitches),
+      std::move(unGracefullyRestartQsfpAllSwitches),
       std::move(gracefullyRestartFSDBAllSwitches),
       std::move(ungracefullyRestartFSDBAllSwitches),
       std::move(gracefullyRestartAgentAllSwitches),
