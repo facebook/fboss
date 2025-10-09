@@ -140,10 +140,17 @@ void TestThriftHandler::setSwitchDrainState(
     cfg::SwitchDrainState switchDrainState) {}
 
 void TestThriftHandler::setSelfHealingLagState(int32_t portId, bool enable) {
-  ensureConfigured(__func__);
+  ensureVoqOrFabric(__func__);
   const auto port = getSw()->getState()->getPorts()->getNodeIf(PortID(portId));
   if (!port) {
     throw FbossError("no such port ", portId);
+  }
+  if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
+    throw FbossError(
+        "Can set selfHealingLag on INTERFACE port only. Port: ",
+        portId,
+        " portType: ",
+        apache::thrift::util::enumNameSafe(port->getPortType()));
   }
 
   if (port->getSelfHealingECMPLagEnable().has_value() &&
