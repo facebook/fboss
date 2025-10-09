@@ -2446,6 +2446,9 @@ bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
 }
 
 bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
+  auto myHostname = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+
   if (!setupTrafficLoop()) {
     XLOG(DBG2) << "Traffic loop setup failed";
     return false;
@@ -2520,10 +2523,31 @@ bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
         return ungracefulRestart;
       }};
 
+  Scenario gracefullyRestartAgentAllSwitches = {
+      "gracefullyRestartAgentAllSwitches", [this, myHostname]() {
+        // Gracefully restart Agent on all switches
+        forEachExcluding(
+            allSwitches_,
+            {myHostname}, // exclude self
+            triggerGracefulAgentRestart);
+
+        // Wait for Agent to come up on all switches
+        auto gracefulRestart = checkForEachExcluding(
+            allSwitches_,
+            {myHostname}, // exclude self
+            [this](const std::string& switchName, const SwitchRunState& state) {
+              return this->verifySwSwitchRunState(switchName, state);
+            },
+            SwitchRunState::CONFIGURED);
+
+        return gracefulRestart;
+      }};
+
   std::vector<Scenario> scenarios = {
       std::move(gracefullyRestartQsfpAllSwitches),
       std::move(gracefullyRestartFSDBAllSwitches),
       std::move(ungracefullyRestartFSDBAllSwitches),
+      std::move(gracefullyRestartAgentAllSwitches),
   };
 
   return runScenariosAndVerifyNoDrops(scenarios);
