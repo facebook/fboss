@@ -2581,6 +2581,13 @@ bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
 
 bool MultiNodeUtil::drainUndrainActiveFabricLinkForSwitch(
     const std::string& switchName) const {
+  auto isPortDrainedHelper = [switchName](int32_t portId, bool drained) {
+    auto portIdToPortInfo = getPortIdToPortInfo(switchName);
+    auto iter = portIdToPortInfo.find(portId);
+    CHECK(iter != portIdToPortInfo.end());
+    return iter->second.isDrained() == drained;
+  };
+
   auto activeFabricPortNameToPortInfo =
       getActiveFabricPortNameToPortInfo(switchName);
   CHECK(!activeFabricPortNameToPortInfo.empty());
@@ -2589,8 +2596,28 @@ bool MultiNodeUtil::drainUndrainActiveFabricLinkForSwitch(
   XLOG(DBG2) << "Draining port: " << portInfo.name().value();
   drainPort(switchName, portInfo.portId().value());
 
+  if (!checkWithRetryErrorReturn(
+          [&] {
+            return isPortDrainedHelper(
+                portInfo.portId().value(), true /* drained */);
+          },
+          30 /* num retries */)) {
+    XLOG(DBG2) << "Port not drained: " << portInfo.name().value();
+    return false;
+  }
+
   XLOG(DBG2) << "Undraining port: " << portInfo.name().value();
   undrainPort(switchName, portInfo.portId().value());
+
+  if (!checkWithRetryErrorReturn(
+          [&] {
+            return isPortDrainedHelper(
+                portInfo.portId().value(), false /* undrained */);
+          },
+          30 /* num retries */)) {
+    XLOG(DBG2) << "Port not undrained: " << portInfo.name().value();
+    return false;
+  }
 
   return true;
 }
