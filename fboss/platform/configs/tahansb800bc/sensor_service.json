@@ -468,7 +468,7 @@
             "maxAlarmVal": 60,
             "upperCriticalVal": 70
           },
-          "compute": "2.4*@/1000.0"
+          "compute": "1.8*@/1000.0"
         },
         {
           "name": "MCB_PU1066_XP48R0V_HOTSWAP_TEMP",
@@ -484,7 +484,7 @@
             "maxAlarmVal": 3000,
             "upperCriticalVal": 3200
           },
-          "compute": "0.0024*@/1000.0"
+          "compute": "0.0018*@/1000.0"
         },
         {
           "name": "MCB_PU426_XP12R0V_FAN1_VIN",
@@ -500,7 +500,7 @@
         },
         {
           "name": "MCB_PU426_XP12R0V_FAN1_VOUT",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN1_SENSOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN1_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 12.6,
@@ -540,7 +540,7 @@
         },
         {
           "name": "MCB_PU595_XP12R0V_FAN2_VOUT",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN2_SENSOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN2_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 12.6,
@@ -580,7 +580,7 @@
         },
         {
           "name": "MCB_PU691_XP12R0V_FAN3_VOUT",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN3_SENSOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN3_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 12.6,
@@ -620,7 +620,7 @@
         },
         {
           "name": "MCB_PU810_XP12R0V_FAN4_VOUT",
-          "sysfsPath": "/run/devmap/sensors/MCB_FAN4_SENSOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_FAN4_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 12.6,
@@ -748,7 +748,7 @@
         },
         {
           "name": "MCB_PU925_XP12R0V_COME_VOUT",
-          "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/in3_input",
           "type": 1,
           "compute": "@/1000.0"
         },
