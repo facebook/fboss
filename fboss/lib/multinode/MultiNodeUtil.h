@@ -311,6 +311,14 @@ class MultiNodeUtil {
 
   bool verifyNoReassemblyErrorsForAllSwitches() const;
 
+  struct Scenario {
+    std::string name;
+    std::function<bool()> setup;
+  };
+  // Return true only if all scenarios are successful
+  bool runScenariosAndVerifyNoDrops(
+      const std::vector<Scenario>& scenarios) const;
+
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
   std::map<int, std::vector<std::string>> clusterIdToFdsws_;
   std::set<std::string> sdsws_;

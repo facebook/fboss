@@ -2393,6 +2393,26 @@ bool MultiNodeUtil::verifyTrafficSpray() const {
   return true;
 }
 
+bool MultiNodeUtil::runScenariosAndVerifyNoDrops(
+    const std::vector<Scenario>& scenarios) const {
+  for (const auto& scenario : scenarios) {
+    XLOG(DBG2) << "Running scenario: " << scenario.name;
+    if (!scenario.setup()) {
+      XLOG(DBG2) << "Scenario: " << scenario.name << " failed";
+      return false;
+    }
+
+    if (!verifyNoReassemblyErrorsForAllSwitches()) {
+      // TODO query drop counters to root cause reason for reassembly errors
+      XLOG(DBG2) << "Scenario: " << scenario.name
+                 << " unexpected reassembly errors";
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyNoReassemblyErrorsForAllSwitches() const {
   auto verifyNoReassemblyErrorsForAllSwitchesHelper = [this]() {
     auto getCounterName = [this](const auto& switchName) {
@@ -2439,10 +2459,6 @@ bool MultiNodeUtil::verifyNoTrafficDrop() const {
 
   // With traffic loop running, execute a variety of scenarios.
   // For each scenario, expect no drops on Fabric ports.
-  struct Scenario {
-    std::string name;
-    std::function<bool()> setup;
-  };
 
   Scenario gracefullyRestartQsfpAllSwitches = {
       "gracefullyRestartQsfpAllSwitches", [this]() {
