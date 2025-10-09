@@ -446,11 +446,11 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     // This version of ensureConfigured() won't log
     ensureConfigured(folly::StringPiece(nullptr, nullptr));
   }
+  void ensureVoqOrFabric(folly::StringPiece function) const;
 
  private:
   void ensureNPU(folly::StringPiece function) const;
   void ensureNotFabric(folly::StringPiece function) const;
-  void ensureVoqOrFabric(folly::StringPiece function) const;
   void updateUnicastRoutesImpl(
       int32_t vrf,
       int16_t client,
