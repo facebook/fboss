@@ -10,6 +10,7 @@ cpp_library(
         "facebook/PlatformMapping.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
@@ -19,9 +20,6 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 

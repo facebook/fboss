@@ -273,6 +273,7 @@ cpp_library(
         ":acl_test_utils",
         ":config_utils",
         ":voq_test_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent:loadbalancer_utils",

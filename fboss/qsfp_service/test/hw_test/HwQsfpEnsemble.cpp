@@ -12,6 +12,7 @@
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/phy/PhyManager.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
@@ -48,9 +49,9 @@ void HwQsfpEnsemble::init() {
     close(fd);
   }
 
-  auto wedgeManager = createWedgeManager();
+  auto [tcvrManager, portManager] = createQsfpManagers();
   std::tie(server_, qsfpServiceHandler_) =
-      setupThriftServer(std::move(wedgeManager));
+      setupThriftServer(std::move(tcvrManager), std::move(portManager));
 }
 
 HwQsfpEnsemble::~HwQsfpEnsemble() {
@@ -69,7 +70,7 @@ void HwQsfpEnsemble::setupForWarmboot() {
 }
 
 PhyManager* HwQsfpEnsemble::getPhyManager() {
-  return getWedgeManager()->getPhyManager();
+  return qsfpServiceHandler_->getPhyManager();
 }
 
 const PlatformMapping* HwQsfpEnsemble::getPlatformMapping() const {
@@ -99,4 +100,5 @@ bool HwQsfpEnsemble::isSaiPlatform() const {
   return saiPlatforms.find(getWedgeManager()->getPlatformType()) !=
       saiPlatforms.end();
 }
+
 } // namespace facebook::fboss

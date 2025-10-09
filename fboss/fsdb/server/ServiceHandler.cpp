@@ -360,9 +360,9 @@ void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
   }
   num_publishers_.incrementValue(1);
   try {
-    auto config =
+    auto pathConfig =
         fsdbConfig_->getPathConfig(*info.publisherId(), *info.path()->raw());
-    if (*config.get().isExpected()) {
+    if (*pathConfig.get().isExpected()) {
       num_disconnected_publishers_.incrementValue(-1);
       auto counter = disconnectedPublishers_.find(
           PublisherKey(*info.publisherId(), *info.isStats()));

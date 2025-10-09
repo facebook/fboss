@@ -297,10 +297,10 @@ void getPortInfoHelper(
         range.maximum() = portQueueRate->cref<switch_config_tags::pktsPerSec>()
                               ->cref<switch_config_tags::maximum>()
                               ->cref();
-        PortQueueRate portQueueRate;
-        portQueueRate.pktsPerSec() = range;
+        PortQueueRate pqRate;
+        pqRate.pktsPerSec() = range;
 
-        pq.portQueueRate() = portQueueRate;
+        pq.portQueueRate() = pqRate;
       } else if (
           portQueueRate->type() == cfg::PortQueueRate::Type::kbitsPerSec) {
         Range range;
@@ -310,10 +310,10 @@ void getPortInfoHelper(
         range.maximum() = portQueueRate->cref<switch_config_tags::kbitsPerSec>()
                               ->cref<switch_config_tags::maximum>()
                               ->cref();
-        PortQueueRate portQueueRate;
-        portQueueRate.kbitsPerSec() = range;
+        PortQueueRate pqRate;
+        pqRate.kbitsPerSec() = range;
 
-        pq.portQueueRate() = portQueueRate;
+        pq.portQueueRate() = pqRate;
       }
     }
 
@@ -905,6 +905,9 @@ static void populateInterfaceDetail(
   *interfaceDetail.interfaceId() = intf->getID();
   if (intf->getVlanIDIf().has_value()) {
     *interfaceDetail.vlanId() = intf->getVlanID();
+  }
+  if (intf->getType() == cfg::InterfaceType::PORT) {
+    *interfaceDetail.portId() = intf->getPortID();
   }
   *interfaceDetail.routerId() = intf->getRouterID();
   *interfaceDetail.mtu() = intf->getMtu();
@@ -2264,18 +2267,35 @@ int32_t ThriftHandler::flushNeighborEntry(
   auto parsedIP = toIPAddress(*ip);
 
   try {
+    int32_t result;
     if (FLAGS_intf_nbr_tables) {
       // VOQ switches don't support VLANs. The thrift client will pass
       // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
       // identical to interfaceID.
       InterfaceID intfID = InterfaceID(vlan);
-      return sw_->getNeighborUpdater()
-          ->flushEntryForIntf(intfID, parsedIP)
-          .get();
+      result =
+          sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
     } else {
       VlanID vlanID(vlan);
-      return sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
+      result = sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
     }
+
+    // Check if NDP static neighbor is enabled
+    if (FLAGS_ndp_static_neighbor) {
+      // After clearing NDP entry, send neighbor solicitation for configured
+      // interfaces
+      XLOG(DBG4) << "ThriftHandler::flushNeighborEntry - Entry flushed for "
+                 << parsedIP.str()
+                 << ", checking for interfaces that need neighbor solicitation";
+
+      if (parsedIP.isV6()) {
+        // Use common function to send neighbor solicitation for specific IP
+        sw_->sendNeighborSolicitationForConfiguredInterfaces(
+            "NDP entry clear", parsedIP.asV6());
+      }
+    }
+
+    return result;
   } catch (...) {
     throw FbossError(
         "Entry : ",
@@ -2542,8 +2562,8 @@ void ThriftHandler::addMplsRoutesImpl(
       // BGP leaks MPLS routes to OpenR which then sends routes to agent
       // In such routes, interface id information is absent, because neither
       // BGP nor OpenR has enough information (in different scenarios) to
-      // resolve this interface ID. Consequently doing this in agent. Each such
-      // unresolved next hop will always be in the subnet of one of the
+      // resolve this interface ID. Consequently doing this in agent. Each
+      // such unresolved next hop will always be in the subnet of one of the
       // interface routes. look for all interfaces of a router to find an
       // interface which can reach this next hop. searching interfaces of a
       // default router, in future if multiple routers are to be supported,
@@ -3039,17 +3059,18 @@ void ThriftHandler::getDsfSubscriptions(
   std::unordered_map<IPAddress, std::string> loopbackIpToName;
   for (const auto& [_, dsfNodes] :
        std::as_const(*sw_->getState()->getDsfNodes())) {
-    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+    for (const auto& [__, node] : std::as_const(*dsfNodes)) {
       if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE &&
           node->getLoopbackIps()->size()) {
         auto loopbackIps = node->getLoopbackIps()->toThrift();
         std::for_each(
             loopbackIps.begin(),
             loopbackIps.end(),
-            [&loopbackIpToName, node = node](const auto& loopbackSubnet) {
+            [&loopbackIpToName,
+             currentNode = node](const auto& loopbackSubnet) {
               loopbackIpToName.emplace(
                   IPAddress(loopbackSubnet.substr(0, loopbackSubnet.find("/"))),
-                  node->getName());
+                  currentNode->getName());
             });
       }
     }

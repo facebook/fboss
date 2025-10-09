@@ -964,6 +964,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiSystemPortManager::removeSystemPort);
   processRemovedDelta(
+      delta.getFabricLinkMonitoringSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::removeFabricLinkMonitoringSystemPort);
+  processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
       lockPolicy,
@@ -984,6 +989,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiSystemPortManager::changeSystemPort);
   processChangedDelta(
+      delta.getFabricLinkMonitoringSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::changeFabricLinkMonitoringSystemPort);
+  processChangedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
       lockPolicy,
@@ -1003,6 +1013,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       managerTable_->systemPortManager(),
       lockPolicy,
       &SaiSystemPortManager::addSystemPort);
+  processAddedDelta(
+      delta.getFabricLinkMonitoringSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::addFabricLinkMonitoringSystemPort);
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -1786,6 +1801,19 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
           *newPfcWatchdogTimerGranularity);
     }
   }
+
+  {
+    const auto oldFabricLinkMonitoringSystemPortOffset =
+        oldSwitchSettings->getFabricLinkMonitoringSystemPortOffset();
+    const auto newFabricLinkMonitoringSystemPortOffset =
+        newSwitchSettings->getFabricLinkMonitoringSystemPortOffset();
+    if (oldFabricLinkMonitoringSystemPortOffset !=
+        newFabricLinkMonitoringSystemPortOffset) {
+      managerTable_->systemPortManager()
+          .setFabricLinkMonitoringSystemPortOffset(
+              newFabricLinkMonitoringSystemPortOffset);
+    }
+  }
 }
 
 template <typename LockPolicyT>
@@ -1960,6 +1988,13 @@ SaiSwitch::getRouterInterfaceStatsLocked(
   auto state = getProgrammedState();
   for (const auto& entry : statsMap) {
     auto intf = state->getInterfaces()->getNodeIf(entry.first);
+    if (!intf) {
+      // rif will get added into sai switch but programmed state is reflecting
+      // old state until the entire switch state is fully applied.
+      XLOG(WARNING) << "interface with id " << entry.first
+                    << " not yet in programmed state";
+      continue;
+    }
     rifStatsMap.emplace(intf->getName(), entry.second);
   }
   return rifStatsMap;

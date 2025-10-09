@@ -199,6 +199,11 @@ class PortManager {
       const std::unordered_set<PortID>& enabledPortIds,
       bool clearOnly = false);
 
+  void setOverrideAllAgentPortStatusForTesting(
+      bool up,
+      bool enabled,
+      bool clearOnly = false);
+
   void setOverrideAgentConfigAppliedInfoForTesting(
       std::optional<ConfigAppliedInfo> configAppliedInfo);
 
@@ -297,6 +302,13 @@ class PortManager {
 
   // Made public for PortManager access.
   void setPortEnabledStatusInCache(PortID portId, bool enabled);
+
+  void updatePortActiveState(
+      const std::map<int32_t, PortStatus>& portStatus) noexcept;
+
+  // This contains refresh logic for TransceiverStateMachine and
+  // PortStateMachine.
+  void refreshStateMachines();
 
  protected:
   /*

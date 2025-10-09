@@ -392,7 +392,6 @@ std::unordered_map<InterfaceID, int> TunManager::buildProbedIfIdToTableIdMap()
 bool TunManager::requiresProbedDataCleanup(
     const std::unordered_map<InterfaceID, int>& stateMap,
     const std::unordered_map<InterfaceID, int>& probedMap) const {
-  // Most idiomatic: direct equality comparison
   bool mapsEqual = (stateMap == probedMap);
 
   if (!mapsEqual) {
@@ -486,7 +485,7 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   } else if (
       platform == PlatformType::PLATFORM_JANGA800BIC ||
       FLAGS_dsf_single_stage_r192_f40_e32 ||
-      FLAGS_dsf_single_stage_r128_f40_e16_local_offset_0) {
+      FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset) {
     auto intf = sw_->getState()->getInterfaces()->getNode(ifID);
     auto constexpr kLocalIntfTableStart = 1;
     auto constexpr kGlobalIntfTableStart = 200;
@@ -990,15 +989,34 @@ bool TunManager::getIntfStatus(
   return folly::get_default(intfStatusMap, ifID, false);
 }
 
+void TunManager::performInitialSyncIfNeeded() {
+  if (numSyncs_ == 0) {
+    // no syncs occurred yet. Force initial sync. The initial sync is done
+    // with applied state, and subsequent sync's will also be done with
+    // the applied states.
+    sync(sw_->getState());
+  }
+}
+
 void TunManager::forceInitialSync() {
-  evb_->runInFbossEventBaseThread([this]() {
-    if (numSyncs_ == 0) {
-      // no syncs occurred yet. Force initial sync. The initial sync is done
-      // with applied state, and subsequent sync's will also be done with
-      // the applied states.
-      sync(sw_->getState());
-    }
-  });
+  evb_->runInFbossEventBaseThread([this]() { performInitialSyncIfNeeded(); });
+}
+
+void TunManager::forceInitialSyncBlocking() {
+  XLOG(DBG2) << "Starting forceInitialSyncBlocking()...";
+
+  StopWatch stopWatch(std::string("forceInitialSyncBlocking"), false);
+  SCOPE_EXIT {
+    XLOG(DBG2) << "forceInitialSyncBlocking() took "
+               << static_cast<int>(stopWatch.msecsElapsed().count())
+               << "ms. cleanup_done="
+               << (initialCleanupDone_ ? "true" : "false")
+               << " probed_state_cleaned_up="
+               << (probedStateCleanedUp_ ? "true" : "false");
+  };
+
+  evb_->runInFbossEventBaseThreadAndWait(
+      [this]() { performInitialSyncIfNeeded(); });
 }
 
 void TunManager::sync(std::shared_ptr<SwitchState> state) {

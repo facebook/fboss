@@ -55,7 +55,8 @@ void QsfpServiceSignalHandler::signalReceived(int signum) noexcept {
              functionSchedulerStopped - thriftServerStopped)
              .count();
 
-  qsfpServiceHandler_->getTransceiverManager()->gracefulExit();
+  qsfpServiceHandler_->gracefulExit();
+
   steady_clock::time_point gracefulExitDone = steady_clock::now();
   XLOG(INFO)
       << "[Exit] Total qsfp_service Exit time: "

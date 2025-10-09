@@ -154,6 +154,8 @@ struct PortFields {
   61: optional bool amIdles;
   // Option to reset the initial credits for a port, primarily for tests
   62: optional bool resetQueueCreditBalance;
+  // Switch ID for use with fabric links in Fabric Link Monitoring
+  63: optional i32 portSwitchId;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -276,6 +278,7 @@ struct MacEntryFields {
   2: switch_config.PortDescriptor portId;
   3: optional switch_config.AclLookupClass classID;
   4: MacEntryType type = MacEntryType.DYNAMIC_ENTRY;
+  5: optional bool configured;
 }
 
 struct NeighborResponseEntryFields {
@@ -461,6 +464,8 @@ struct SwitchSettingsFields {
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   58: optional i32 pfcWatchdogTimerGranularityMsec;
   59: optional i32 ecmpCompressionThresholdPct;
+  // System port offset for fabric link monitoring
+  60: optional i32 fabricLinkMonitoringSystemPortOffset;
 }
 
 struct RoutePrefix {
@@ -512,8 +517,14 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  2: map<string, RouteFields> fibV4 (allow_skip_thrift_cow = true);
-  3: map<string, RouteFields> fibV6 (allow_skip_thrift_cow = true);
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
+  2: map<string, RouteFields> fibV4;
+  @thrift.DeprecatedUnvalidatedAnnotations{
+    items = {"allow_skip_thrift_cow": "1"},
+  }
+  3: map<string, RouteFields> fibV6;
 }
 
 struct TrafficClassToQosAttributeEntry {
@@ -563,6 +574,7 @@ struct SflowCollectorFields {
   2: SocketAddress address;
 }
 
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;
@@ -652,6 +664,7 @@ struct AggregatePortFields {
   10: list<i32> interfaceIDs;
   // Used as the upper bound to bring up the aggregate port
   11: optional i16 minimumLinkCountToUp;
+  12: switch_config.AggregatePortType aggregatePortType = switch_config.AggregatePortType.LAG_PORT;
 }
 
 struct TeFlowEntryFields {
@@ -741,6 +754,11 @@ struct SwitchState {
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
+  // Fabric Link Monitoring system ports
+  602: map<
+    SwitchIdList,
+    map<i64, SystemPortFields>
+  > fabricLinkMonitoringSystemPortMaps;
 }
 
 struct RouteTableFields {

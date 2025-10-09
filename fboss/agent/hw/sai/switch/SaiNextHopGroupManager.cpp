@@ -177,12 +177,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
     auto managedNextHop =
         managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNextHop);
-    auto key = std::make_pair(nextHopGroupId, resolvedNextHop);
+    auto memberKey = std::make_pair(nextHopGroupId, resolvedNextHop);
     auto weight = (resolvedNextHop.weight() == ECMP_WEIGHT)
         ? 1
         : resolvedNextHop.weight();
     auto result = nextHopGroupMembers_.refOrEmplace(
-        key,
+        memberKey,
         this,
         nextHopGroupHandle.get(),
         nextHopGroupId,

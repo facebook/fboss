@@ -20,6 +20,7 @@ target_link_libraries(wedge_qsfp_util
   ${YAML-CPP}
   phy_management_base
   transceiver_manager
+  port_manager
   qsfp_platforms_wedge
   fboss_common_cpp2
 )

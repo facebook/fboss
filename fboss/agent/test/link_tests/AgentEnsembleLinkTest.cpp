@@ -315,7 +315,10 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
   utility::EcmpSetupTargetedPorts6 ecmp6(
       getSw()->getState(),
       getSw()->needL2EntryForNeighbor(),
-      getSw()->getLocalMac(switchId));
+      getSw()->getLocalMac(switchId),
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(getSw(), ecmpPorts);
   auto vlanID = getAgentEnsemble()->getVlanIDForTx();

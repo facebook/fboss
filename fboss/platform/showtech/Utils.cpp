@@ -11,6 +11,7 @@
 #include <tuple>
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -161,30 +162,12 @@ void Utils::printPsuDetails() {
 
 void Utils::printGpioDetails() {
   std::cout << "##### GPIO Information #####" << std::endl;
-
   if (config_.gpios()->empty()) {
     std::cout << "No GPIO chip found from configs\n" << std::endl;
     return;
   }
-
   for (const auto& gpio : *config_.gpios()) {
-    std::cout << fmt::format("#### GPIO Chip Details {} ####", *gpio.path())
-              << std::endl;
-    struct gpiod_chip* chip = gpiod_chip_open(gpio.path()->c_str());
-    for (const auto& line : *gpio.lines()) {
-      std::cout << fmt::format(
-          "line {:>3}:   {:<15} -> ", *line.lineIndex(), *line.name());
-      try {
-        std::cout << GpiodLine(chip, *line.lineIndex(), *line.name()).getValue()
-                  << std::endl;
-      } catch (const std::exception& e) {
-        std::cout << fmt::format(
-                         "Error: failed to read gpio line: {}", e.what())
-                  << std::endl;
-      }
-    }
-    gpiod_chip_close(chip);
-    std::cout << std::endl;
+    printGpio(gpio);
   }
 }
 
@@ -269,6 +252,71 @@ void Utils::printFanspinnerDetails() {
   std::cout << std::endl;
 }
 
+void Utils::printNvmeDetails() {
+  std::cout << "##### Nvme Information #####" << std::endl;
+
+  auto listCmd = "nvme list";
+  auto [ret, output] = platformUtils_.execCommand(listCmd);
+  if (ret != 0) {
+    std::cout << fmt::format(
+                     "Error: `{}` exited with non-zero status: {}\n",
+                     listCmd,
+                     ret)
+              << std::endl;
+    return;
+  }
+
+  // Parse nvme-list output for devices
+  std::vector<std::string> nvmeDevices;
+  std::vector<std::string> lines;
+  folly::split('\n', output, lines, true);
+  if (lines.size() > 2) {
+    for (size_t i = 2; i < lines.size(); ++i) {
+      std::vector<std::string> fields;
+      folly::split(' ', lines[i], fields, true);
+      if (!fields.empty()) {
+        nvmeDevices.emplace_back(fields[0]);
+      }
+    }
+  }
+
+  if (nvmeDevices.empty()) {
+    std::cout << fmt::format("No nvme device found from `{}`\n", listCmd)
+              << std::endl;
+    return;
+  }
+
+  std::array<std::string, 4> cmds{
+      "nvme smart-log {}",
+      "nvme error-log {}",
+      "nvme id-ctrl {} -H",
+      "nvme id-ns {} -H"};
+  for (const auto& nvmeDevice : nvmeDevices) {
+    for (const auto& cmdStr : cmds) {
+      auto cmd = fmt::format(fmt::runtime(cmdStr), nvmeDevice);
+      std::cout << fmt::format("#### Running `{}` ####", cmd) << std::endl;
+      std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+    }
+  }
+}
+
+void Utils::printPowerGoodDetails() {
+  std::cout << "##### Power Good Information #####" << std::endl;
+
+  if (config_.scPowerGood() && config_.scPowerGood()->sysfsAttribute()) {
+    std::cout << "Reading scPowerGood from sysfs" << std::endl;
+    auto pgSysfs = *config_.scPowerGood()->sysfsAttribute();
+    printSysfsAttribute(*pgSysfs.name(), *pgSysfs.path());
+  } else if (config_.scPowerGood() && config_.scPowerGood()->gpioAttribute()) {
+    std::cout << "Reading scPowerGood from gpio" << std::endl;
+    auto pgGpio = *config_.scPowerGood()->gpioAttribute();
+    printGpio(pgGpio);
+  } else {
+    std::cout << "No powergood info found from config\n";
+  }
+  std::cout << std::endl;
+}
+
 void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
@@ -320,6 +368,25 @@ std::optional<std::tuple<int, int>> Utils::getI2cInfoForDevice(
                    deviceAddr)
             << std::endl;
   return std::make_tuple(busNum, deviceAddr);
+}
+
+void Utils::printGpio(const Gpio& gpio) {
+  std::cout << fmt::format("#### GPIO Chip Details {} ####", *gpio.path())
+            << std::endl;
+  struct gpiod_chip* chip = gpiod_chip_open(gpio.path()->c_str());
+  for (const auto& line : *gpio.lines()) {
+    std::cout << fmt::format(
+        "line {:>3}:   {:<15} -> ", *line.lineIndex(), *line.name());
+    try {
+      std::cout << GpiodLine(chip, *line.lineIndex(), *line.name()).getValue()
+                << std::endl;
+    } catch (const std::exception& e) {
+      std::cout << fmt::format("Error: failed to read gpio line: {}", e.what())
+                << std::endl;
+    }
+  }
+  gpiod_chip_close(chip);
+  std::cout << std::endl;
 }
 
 } // namespace facebook::fboss::platform

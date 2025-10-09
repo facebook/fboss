@@ -43,4 +43,5 @@ target_link_libraries(qsfp_platforms_wedge
   wedge400_i2c
   io_stats_recorder
   platform_mapping_utils
+  port_manager
 )

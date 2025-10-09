@@ -3,7 +3,6 @@
 #include "fboss/platform/sensor_service/tests/TestUtils.h"
 
 #include <folly/FileUtil.h>
-#include <folly/json/dynamic.h>
 #include <folly/testing/TestUtil.h>
 
 using namespace facebook::fboss::platform::sensor_service;

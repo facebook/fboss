@@ -34,7 +34,9 @@ void LedServiceTest::SetUp() {
   // and the LED is managed by service now
   ledManager_ = getLedEnsemble()->getLedManager();
   CHECK_NE(ledManager_, nullptr);
+#ifndef IS_OSS
   CHECK(ledManager_->isLedControlledThroughService());
+#endif
   platformMap_ = ledManager_->getPlatformMapping();
   CHECK_NE(platformMap_, nullptr);
 }

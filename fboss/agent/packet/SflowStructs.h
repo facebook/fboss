@@ -9,6 +9,9 @@
  */
 #pragma once
 
+#include <variant>
+#include <vector>
+
 #include <folly/ExceptionString.h>
 #include <folly/IPAddress.h>
 #include <folly/io/Cursor.h>
@@ -48,11 +51,10 @@ void serializeSflowPort(
     folly::io::RWPrivateCursor* cursor,
     SflowPort sflowPort);
 
-/* Counter and Flow sample formats */
+/* Flow record format */
 struct FlowRecord {
   DataFormat flowFormat;
-  uint32_t flowDataLen;
-  byte* flowData;
+  std::vector<uint8_t> flowData;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
@@ -74,11 +76,10 @@ struct FlowSample {
   uint32_t drops;
   SflowPort input;
   SflowPort output;
-  uint32_t flowRecordsCnt;
-  FlowRecord* flowRecords;
+  std::vector<FlowRecord> flowRecords;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size(const uint32_t frecordSize) const;
+  uint32_t size() const;
 };
 
 /* Format of a single counter sample */
@@ -102,11 +103,13 @@ struct FlowSample {
 // TODO (sgwang)
 // struct counters_sample_expanded {...}
 
+/* Sample data variant - supports different types of sample data */
+using SampleData = std::variant<FlowSample>;
+
 /* Format of a sample datagram */
 struct SampleRecord {
   DataFormat sampleType;
-  uint32_t sampleDataLen;
-  byte* sampleData;
+  std::vector<SampleData> sampleData;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
@@ -118,11 +121,10 @@ struct SampleDatagramV5 {
   uint32_t subAgentID;
   uint32_t sequenceNumber; // for sub-agent
   uint32_t uptime;
-  uint32_t samplesCnt;
-  SampleRecord* samples;
+  std::vector<SampleRecord> samples;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size(const uint32_t recordsSize) const;
+  uint32_t size() const;
 };
 
 // Here we skip sample_datagram_type, since only v5 is used
@@ -132,7 +134,7 @@ struct SampleDatagram {
   SampleDatagramV5 datagramV5;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size(const uint32_t recordsSize) const;
+  uint32_t size() const;
 };
 
 /* Proposed standard sFlow data formats (draft 14) */

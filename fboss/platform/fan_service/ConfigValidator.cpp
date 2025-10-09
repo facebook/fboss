@@ -119,6 +119,37 @@ bool ConfigValidator::isValidFanConfig(const Fan& fan) {
     XLOG(ERR) << "Either presenceSysfsPath or presenceGpio must be set";
     return false;
   }
+
+  const std::string ledPathPrefix = "/sys/class/leds";
+  const std::string goodLedSuffix = ":blue:status";
+  const std::string failLedSuffix = ":amber:status";
+
+  if (fan.goodLedSysfsPath()) {
+    if (!fan.goodLedSysfsPath()->starts_with(ledPathPrefix)) {
+      XLOG(ERR) << "goodLedSysfsPath must start with '" << ledPathPrefix
+                << "', got: " << *fan.goodLedSysfsPath();
+      return false;
+    }
+    if (!fan.goodLedSysfsPath()->ends_with(goodLedSuffix)) {
+      XLOG(ERR) << "goodLedSysfsPath must end with '" << goodLedSuffix
+                << "', got: " << *fan.goodLedSysfsPath();
+      return false;
+    }
+  }
+
+  if (fan.failLedSysfsPath()) {
+    if (!fan.failLedSysfsPath()->starts_with(ledPathPrefix)) {
+      XLOG(ERR) << "failLedSysfsPath must start with '" << ledPathPrefix
+                << "', got: " << *fan.failLedSysfsPath();
+      return false;
+    }
+    if (!fan.failLedSysfsPath()->ends_with(failLedSuffix)) {
+      XLOG(ERR) << "failLedSysfsPath must end with '" << failLedSuffix
+                << "', got: " << *fan.failLedSysfsPath();
+      return false;
+    }
+  }
+
   return true;
 }
 

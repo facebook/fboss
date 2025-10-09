@@ -1136,6 +1136,37 @@ void SaiTracer::logSetAttrFn(
   writeToFile(lines, /*linefeed*/ false);
 }
 
+void SaiTracer::logCommentedAttrFn(
+    const string& fn_name,
+    sai_object_id_t set_object_id,
+    const sai_attribute_t* attr,
+    sai_object_type_t object_type) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Log as a comment to avoid executing problematic attributes
+  vector<string> lines = {to<string>("// Commented out attribute ", attr->id)};
+
+  // Setup one attribute (but commented out)
+  vector<string> attrLines = setAttrList(attr, 1, object_type);
+  for (auto& line : attrLines) {
+    lines.push_back(to<string>("// ", line));
+  }
+
+  // Comment out the actual API call
+  lines.push_back(to<string>(
+      "// rv=",
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      getVariable(set_object_id),
+      ",s_a)"));
+
+  writeToFile(lines, /*linefeed*/ false);
+}
+
 void SaiTracer::logBulkSetAttrFn(
     const std::string& fn_name,
     uint32_t object_count,

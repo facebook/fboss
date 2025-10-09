@@ -1803,7 +1803,7 @@ bool SaiPortManager::rxFrequencyRPMSupported() const {
 }
 
 bool SaiPortManager::rxSerdesParametersSupported() const {
-#if defined(SAI_VERSION_13_0_EA_ODP) || defined(SAI_VERSION_13_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
   return platform_->getAsic()->isSupported(
       HwAsic::Feature::RX_SERDES_PARAMETERS);
 #else
@@ -2122,10 +2122,13 @@ void SaiPortManager::updateStats(
     toSubtractFromInDiscardsRaw.emplace_back(
         *prevPortStats.inPause_(), *curPortStats.inPause_());
   }
-  for (auto& [priority, current] : *curPortStats.inPfc_()) {
-    if (current > 0) {
-      toSubtractFromInDiscardsRaw.emplace_back(
-          folly::get_default(*prevPortStats.inPfc_(), priority, 0), current);
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC)) {
+    for (auto& [priority, current] : *curPortStats.inPfc_()) {
+      if (current > 0) {
+        toSubtractFromInDiscardsRaw.emplace_back(
+            folly::get_default(*prevPortStats.inPfc_(), priority, 0), current);
+      }
     }
   }
   *curPortStats.inDiscards_() += utility::subtractIncrements(
@@ -3485,5 +3488,19 @@ void SaiPortManager::incrementPfcDeadlockCounter(const PortID& portId) {
  */
 void SaiPortManager::incrementPfcRecoveryCounter(const PortID& portId) {
   incrementPfcCounter(portId, PfcCounterType::RECOVERY);
+}
+
+// Set the SystemPort object associated with fabric ports for fabric link
+// monitoring
+void SaiPortManager::setFabricLinkMonitoringSystemPortId(
+    const PortID& portId,
+    sai_object_id_t sysPortObj) {
+  getPortHandle(portId)->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::FabricSystemPort{std::move(sysPortObj)});
+}
+void SaiPortManager::resetFabricLinkMonitoringSystemPortId(
+    const PortID& portId) {
+  getPortHandle(portId)->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::FabricSystemPort{SAI_NULL_OBJECT_ID});
 }
 } // namespace facebook::fboss

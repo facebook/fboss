@@ -49,7 +49,8 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 5000"
+    "SMBus I801 adapter at 5000",
+    "SMBus iSMT adapter at 20fffa7b000"
   ],
   "versionedPmUnitConfigs": {
     "NETLAKE": [
@@ -1540,11 +1541,12 @@
   "chassisEepromDevicePath": "/SMB_FRU_SLOT@0/[IDPROM]",
   "numXcvrs": 33,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "3.3.0-1",
+  "bspKmodsRpmVersion": "3.3.2-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",
+    "fboss_iob_i2c",
     "ledtrig_timer"
   ]
 }

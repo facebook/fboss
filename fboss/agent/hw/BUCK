@@ -150,13 +150,11 @@ cpp_library(
         "DiagCmdFilter.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         "//folly:fbstring",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 

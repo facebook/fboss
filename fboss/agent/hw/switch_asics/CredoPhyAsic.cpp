@@ -20,7 +20,6 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
       return true;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
-    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     default:
       return false;
   }

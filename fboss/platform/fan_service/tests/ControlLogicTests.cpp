@@ -30,9 +30,12 @@ class MockBsp : public Bsp {
  public:
   explicit MockBsp(const FanServiceConfig& config) : Bsp(config) {}
   MOCK_METHOD(bool, setFanPwmSysfs, (const std::string&, int));
-  MOCK_METHOD(bool, setFanLedSysfs, (const std::string&, int));
+  MOCK_METHOD(bool, turnOnLedSysfs, (const std::string&));
   MOCK_METHOD(bool, checkIfInitialSensorDataRead, (), (const));
   MOCK_METHOD(float, readSysfs, (const std::string&), (const));
+  std::optional<int> getLedMaxBrightness(const std::string&) const override {
+    return 255;
+  }
 };
 
 class ControlLogicTests : public testing::Test {
@@ -81,7 +84,7 @@ TEST_F(ControlLogicTests, SetTransitionValueSuccess) {
   for (const auto& fan : *fanServiceConfig_.fans()) {
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
         .WillOnce(Return(true));
-    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _)).Times(0);
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.goodLedSysfsPath())).Times(0);
   }
 
   controlLogic_->setTransitionValue();
@@ -97,7 +100,7 @@ TEST_F(ControlLogicTests, SetTransitionValueFailure) {
   for (const auto& fan : *fanServiceConfig_.fans()) {
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
         .WillOnce(Return(false));
-    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _))
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.failLedSysfsPath()))
         .Times(1)
         .WillOnce(Return(true));
   }
@@ -117,7 +120,7 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
         .Times(2)
         .WillRepeatedly(Return(true));
-    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _))
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.goodLedSysfsPath()))
         .WillOnce(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
         .WillOnce(Return(kDefaultRpm));
@@ -159,7 +162,7 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
         .Times(2)
         .WillRepeatedly(Return(true));
-    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _))
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.failLedSysfsPath()))
         .WillOnce(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath())).Times(0);
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceSysfsPath()))
@@ -190,7 +193,7 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
         .Times(2)
         .WillRepeatedly(Return(true));
-    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _))
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.failLedSysfsPath()))
         .Times(1)
         .WillRepeatedly(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
@@ -227,7 +230,7 @@ TEST_F(
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
         .Times(3)
         .WillRepeatedly(Return(true));
-    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _))
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.goodLedSysfsPath()))
         .Times(2)
         .WillRepeatedly(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
@@ -263,7 +266,7 @@ TEST_F(ControlLogicTests, UpdateControlSensorReadFailure) {
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
         .Times(2)
         .WillRepeatedly(Return(true));
-    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _))
+    EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.goodLedSysfsPath()))
         .WillOnce(Return(true));
     EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
         .WillOnce(Return(kDefaultRpm));

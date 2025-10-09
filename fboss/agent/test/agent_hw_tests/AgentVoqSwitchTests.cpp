@@ -37,7 +37,7 @@ constexpr auto kDefaultEgressQueue = 0;
 using namespace facebook::fb303;
 namespace facebook::fboss {
 
-std::string AgentVoqSwitchTest::getSdkMajorVersion() {
+std::string AgentVoqSwitchTest::getSdkMajorVersion(const SwitchID& switchId) {
   std::string majorVersion;
 
   static const re2::RE2 bcmSaiPattern("BRCM SAI ver: \\[(\\d+)\\.");
@@ -45,8 +45,8 @@ std::string AgentVoqSwitchTest::getSdkMajorVersion() {
   // Start with a blank command first and then get the BCM SAI version
   // This is because, sometimes first diag command doesn't work in some SDK
   // versions
-  getAgentEnsemble()->runDiagCommand("\n", output);
-  getAgentEnsemble()->runDiagCommand("bcmsai ver\n", output);
+  getAgentEnsemble()->runDiagCommand("\n", output, switchId);
+  getAgentEnsemble()->runDiagCommand("bcmsai ver\n", output, switchId);
   if (RE2::PartialMatch(output, bcmSaiPattern, &majorVersion)) {
     return majorVersion;
   }
@@ -1006,29 +1006,33 @@ TEST_F(AgentVoqSwitchTest, verifySendPacketOutOfEventorBlocked) {
 TEST_F(AgentVoqSwitchTest, verifyAI23ModeConfig) {
   auto setup = []() {};
   auto verify = [this]() {
-    // Get the SDK major version
-    auto sdkMajorVersionStr = getSdkMajorVersion();
-    auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
-    // Check if SDK major version is valid
-    EXPECT_GT(sdkMajorVersionNum, 0);
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // Get the SDK major version
+      auto sdkMajorVersionStr = getSdkMajorVersion(switchId);
+      auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
+      // Check if SDK major version is valid
+      EXPECT_GT(sdkMajorVersionNum, 0);
 
-    // If major version is >= 12, check for AI23_mode
-    if (sdkMajorVersionNum >= 12) {
-      std::string configOutput;
-      getAgentEnsemble()->runDiagCommand("config show\n", configOutput);
+      // If major version is >= 12, check for AI23_mode
+      if (sdkMajorVersionNum >= 12) {
+        std::string configOutput;
+        getAgentEnsemble()->runDiagCommand(
+            "config show\n", configOutput, switchId);
 
-      // Check if AI23_mode is enabled in the config
-      bool isAI23ModeEnabled =
-          configOutput.find("AI23_mode=1") != std::string::npos;
-      XLOG(DBG2) << "AI23_mode enabled? " << (isAI23ModeEnabled ? "yes" : "no");
+        // Check if AI23_mode is enabled in the config
+        bool isAI23ModeEnabled =
+            configOutput.find("AI23_mode=1") != std::string::npos;
+        XLOG(DBG2) << "Switch ID: " << switchId << ", AI23_mode enabled? "
+                   << (isAI23ModeEnabled ? "yes" : "no");
 
-      EXPECT_TRUE(isAI23ModeEnabled)
-          << "AI23_mode=1 is not enabled for SAI major version "
-          << sdkMajorVersionNum;
-    } else {
-      XLOG(DBG2)
-          << "Skipping AI23_mode config verification for SAI major version "
-          << sdkMajorVersionNum;
+        EXPECT_TRUE(isAI23ModeEnabled)
+            << "AI23_mode=1 is not enabled for SAI major version "
+            << sdkMajorVersionNum << " on switch ID " << switchId;
+      } else {
+        XLOG(DBG2)
+            << "Skipping AI23_mode config verification for SAI major version "
+            << sdkMajorVersionNum << " on switch ID " << switchId;
+      }
     }
   };
 

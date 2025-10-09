@@ -108,7 +108,6 @@ class HwAsic {
     RX_SERDES_PARAMETERS,
     FABRIC_PORTS,
     ECMP_MEMBER_WIDTH_INTROSPECTION,
-    FABRIC_PORT_MTU,
     SAI_FIRMWARE_PATH,
     EXTENDED_FEC,
     LINK_TRAINING,
@@ -127,6 +126,7 @@ class HwAsic {
     ARS,
     P4_WARMBOOT,
     IN_PAUSE_INCREMENTS_DISCARDS,
+    IN_DISCARDS_EXCLUDES_PFC,
     FEC_AM_LOCK_STATUS,
     PCS_RX_LINK_STATUS,
     TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT,
@@ -504,6 +504,8 @@ class HwAsic {
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;
+
+  virtual bool portMtuSupported(cfg::PortType portType) const;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

@@ -26,6 +26,10 @@ std::string MacEntry::str() const {
      << " classID: " << classIDStr << " " << " type: "
      << (getType() == MacEntryType::STATIC_ENTRY ? "static" : "dynamic");
 
+  if (auto configuredField = get<switch_state_tags::configured>()) {
+    os << " configured: " << (configuredField->cref() ? "true" : "false");
+  }
+
   return os.str();
 }
 

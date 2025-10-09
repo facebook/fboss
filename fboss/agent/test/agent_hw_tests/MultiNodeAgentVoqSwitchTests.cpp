@@ -63,8 +63,8 @@ class MultiNodeAgentVoqSwitchTest : public AgentHwTest {
   }
 
   std::unique_ptr<MultiNodeUtil> createMultiNodeUtil() {
-    auto multiNodeUtil =
-        std::make_unique<MultiNodeUtil>(getProgrammedState()->getDsfNodes());
+    auto multiNodeUtil = std::make_unique<MultiNodeUtil>(
+        getSw(), getProgrammedState()->getDsfNodes());
 
     return multiNodeUtil;
   }
@@ -233,6 +233,42 @@ TEST_F(MultiNodeAgentVoqSwitchTest, verifyNeighborAddRemove) {
   auto verify = [this]() {
     verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
       return multiNodeUtil->verifyNeighborAddRemove();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyTrafficSpray) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyTrafficSpray();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNoTrafficDropOnProcessRestarts) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNoTrafficDropOnProcessRestarts();
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(MultiNodeAgentVoqSwitchTest, verifyNoTrafficDropOnDrainUndrain) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    verifySetupRunTestVerifyAgain([](const MultiNodeUtil* multiNodeUtil) {
+      return multiNodeUtil->verifyNoTrafficDropOnDrainUndrain();
     });
   };
 

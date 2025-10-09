@@ -34,11 +34,11 @@
           }
         }
     },
-    "2": {
+    "4": {
         "mapping": {
-          "id": 2,
+          "id": 4,
           "name": "rcy1/1/442",
-          "controllingPort": 2,
+          "controllingPort": 4,
           "pins": [
             {
               "a": {
@@ -68,11 +68,11 @@
           }
         }
     },
-    "3": {
+    "5": {
         "mapping": {
-          "id": 3,
+          "id": 5,
           "name": "rcy1/1/443",
-          "controllingPort": 3,
+          "controllingPort": 5,
           "pins": [
             {
               "a": {
@@ -102,11 +102,11 @@
           }
         }
     },
-    "4": {
+    "6": {
         "mapping": {
-          "id": 4,
+          "id": 6,
           "name": "rcy1/1/444",
-          "controllingPort": 4,
+          "controllingPort": 6,
           "pins": [
             {
               "a": {
@@ -128,74 +128,6 @@
                   {
                     "id": {
                       "chip": "NPU-J3_RCY-slot1/chip1/core444",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "5": {
-        "mapping": {
-          "id": 5,
-          "name": "rcy1/1/445",
-          "controllingPort": 5,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_RCY-slot1/chip1/core445",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 3,
-          "attachedCoreId": 3,
-          "attachedCorePortIndex": 6,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "49": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_RCY-slot1/chip1/core445",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "6": {
-        "mapping": {
-          "id": 6,
-          "name": "evt1/1/506",
-          "controllingPort": 6,
-          "pins": [
-            {
-              "a": {
-                "chip": "NPU-J3_EVT-slot1/chip1/core506",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 5,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 7,
-          "virtualDeviceId": 0,
-          "scope": 0
-        },
-        "supportedProfiles": {
-          "49": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J3_EVT-slot1/chip1/core506",
                       "lane": 0
                     }
                   }
@@ -447,8 +379,76 @@
     "8": {
         "mapping": {
           "id": 8,
-          "name": "hyp1/1/1",
+          "name": "rcy1/1/445",
           "controllingPort": 8,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_RCY-slot1/chip1/core445",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 6,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "49": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_RCY-slot1/chip1/core445",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "9": {
+        "mapping": {
+          "id": 9,
+          "name": "evt1/1/506",
+          "controllingPort": 9,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-J3_EVT-slot1/chip1/core506",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 5,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 7,
+          "virtualDeviceId": 0,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "49": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_EVT-slot1/chip1/core506",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "11": {
+        "mapping": {
+          "id": 11,
+          "name": "hyp1/1/1",
+          "controllingPort": 11,
           "pins": [
             
           ],

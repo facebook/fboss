@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("dc_push")
 
@@ -29,6 +30,7 @@ cpp_binary(
     headers = [
         "wedge_qsfp_util.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     versions = {
         "broadcom-plp-barchetta2": "5.2",
         "broadcom-plp-epdm": "4.1.2",
@@ -40,6 +42,7 @@ cpp_binary(
         "//fboss/lib/firmware_storage:firmware_storage",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module:firmware_upgrader",
@@ -68,6 +71,7 @@ cpp_library(
         "qsfp/QsfpUtilTx.h",
         "wedge_qsfp_util.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-types",

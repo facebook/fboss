@@ -186,6 +186,11 @@ class PlatformMapping {
     return false;
   }
 
+  virtual std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+  getCpuPortsCoreAndPortIdx() const {
+    return std::map<uint32_t, std::pair<uint32_t, uint32_t>>();
+  }
+
   std::vector<cfg::PortProfileID> getPortProfileFromLinkProperties(
       cfg::PortSpeed speed,
       uint16_t numLanes,

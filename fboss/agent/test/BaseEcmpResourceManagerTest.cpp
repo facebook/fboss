@@ -292,6 +292,15 @@ void BaseEcmpResourceManagerTest::TearDown() {
   assertResourceMgrCorrectness(*consolidator_, state_);
 }
 
+std::shared_ptr<EcmpResourceManager>
+BaseEcmpResourceManagerTest::makeResourceMgr() const {
+  static constexpr auto kEcmpGroupHwLimit = 100;
+  return getBackupEcmpSwitchingMode()
+      ? std::make_shared<EcmpResourceManager>(
+            kEcmpGroupHwLimit, getBackupEcmpSwitchingMode())
+      : std::make_shared<EcmpResourceManager>(
+            kEcmpGroupHwLimit, getEcmpCompressionThresholdPct());
+}
 std::set<EcmpResourceManager::NextHopGroupId>
 BaseEcmpResourceManagerTest::getNhopGroupIds() const {
   auto nhop2Id = consolidator_->getNhopsToId();

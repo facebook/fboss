@@ -577,6 +577,7 @@ cpp_library(
         "facebook/Utils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":agent_features",
         ":asic_utils",
         ":fboss-error",
@@ -610,7 +611,6 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
-        "re2",
         ("boost", None, "boost_container"),
         ("boost", None, "boost_filesystem"),
     ],
@@ -883,6 +883,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
         ":address_utils",
         ":agent_dir_util",
         ":agent_features",
@@ -967,6 +968,7 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:alert_logger",
+        "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib:exponential_back_off",
         "//fboss/lib:hw_write_behavior",
@@ -1031,7 +1033,6 @@ cpp_library(
         "boost",
         "gflags",
         "glog",
-        "re2",
         ("boost", None, "boost_container"),
         ("iproute2", None, "netlink"),
         ("libnl", None, "nl-route-3"),
@@ -1198,6 +1199,7 @@ cpp_library(
         "PlatformPort.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":agent_dir_util",
         ":agent_features",
         ":fboss-error",
@@ -1225,9 +1227,6 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2:server",
     ],
-    exported_external_deps = [
-        "re2",
-    ],
 )
 
 cpp_library(
@@ -1238,6 +1237,7 @@ cpp_library(
         "facebook/HwSwitch.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":fboss-error",
         ":fboss-types",
         ":hwswitchcallback",
@@ -1267,9 +1267,6 @@ cpp_library(
         "//folly:thread_local",
         "//folly/logging:logging",
         "//folly/testing:test_util",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 

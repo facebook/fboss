@@ -22,16 +22,6 @@
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
-namespace {
-using namespace facebook::fboss;
-sai_macsec_direction_t mkaDirectionToSaiDirection(
-    facebook::fboss::mka::MacsecDirection direction) {
-  return direction == mka::MacsecDirection::INGRESS
-      ? SAI_MACSEC_DIRECTION_INGRESS
-      : SAI_MACSEC_DIRECTION_EGRESS;
-}
-} // namespace
-
 namespace facebook::fboss {
 
 SaiPhyManager::SaiPhyManager(const PlatformMapping* platformMapping)

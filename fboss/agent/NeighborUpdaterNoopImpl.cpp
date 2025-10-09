@@ -200,5 +200,14 @@ void NeighborUpdaterNoopImpl::interfaceAdded(
     std::shared_ptr<SwitchState> state) {}
 
 void NeighborUpdaterNoopImpl::interfaceRemoved(InterfaceID intfID) {}
+uint32_t NeighborUpdaterNoopImpl::getProbesLeft(
+    const InterfaceID& /*intfID*/,
+    const folly::IPAddressV6& /*ip*/) {
+  return 0;
+}
+uint32_t NeighborUpdaterNoopImpl::getMaxNeighborProbes(
+    const InterfaceID& /*intfID*/) {
+  return 0;
+}
 
 } // namespace facebook::fboss

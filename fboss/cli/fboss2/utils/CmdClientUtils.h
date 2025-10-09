@@ -48,6 +48,7 @@ std::unique_ptr<
 createLedClient(const HostInfo& hostInfo);
 
 int getNumHwSwitches(const HostInfo& hostInfo);
+bool isMultiSwitchEnabled(const HostInfo& hostInfo);
 
 void runOnAllHwAgents(const HostInfo& hostInfo, RunForHwAgentFn fn);
 void runOnAllHwAgents(const HostInfo& hostInfo, RunForAgentFn fn);

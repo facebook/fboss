@@ -319,13 +319,9 @@ bool operator()(
 }
 };
 
-BOOST_MSM_EUML_ACTION(readyTransceiver) {
-template <class Event, class Fsm, class Source, class Target>
-bool operator()(
-    const Event& /* ev */,
-    Fsm& fsm,
-    Source& /* src */,
-    Target& /* trg */) {
+// Helper function to encapsulate the common readyTransceiver logic
+template <class Fsm>
+static bool executeReadyTransceiver(Fsm& fsm) {
   auto tcvrID = fsm.get_attribute(transceiverID);
   try {
     bool ready = fsm.get_attribute(transceiverMgrPtr)->readyTransceiver(tcvrID);
@@ -345,6 +341,16 @@ bool operator()(
                << folly::exceptionStr(ex);
     return false;
   }
+}
+
+BOOST_MSM_EUML_ACTION(readyTransceiver) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  return executeReadyTransceiver(fsm);
 }
 };
 
@@ -456,14 +462,14 @@ bool operator()(
 };
 
 
-BOOST_MSM_EUML_ACTION(isPortManagerMode) {
+BOOST_MSM_EUML_ACTION(isPortManagerModeAndReadyTcvr) {
 template <class Event, class Fsm, class Source, class Target>
 bool operator()(
     const Event& /* ev */,
-    Fsm& /* fsm */,
+    Fsm& fsm,
     Source& /* src */,
     Target& /* trg */) {
-      return FLAGS_port_manager_mode;
+  return FLAGS_port_manager_mode && executeReadyTransceiver(fsm);
 }
 };
 
@@ -541,7 +547,8 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     UPGRADING              + RESET_TO_DISCOVERED                               / logStateChanged == DISCOVERED,
     // For non-present transceiver, we still want to call transceiver programming in case optic is actually present.
     // In Port Manager mode, transceiver will skip PHY programming and proced directly to tcvr programming.
-    NOT_PRESENT           + PREPARE_TRANSCEIVER     [isPortManagerMode]        / logStateChanged == TRANSCEIVER_READY
+    NOT_PRESENT           + PREPARE_TRANSCEIVER [isPortManagerModeAndReadyTcvr] / logStateChanged == TRANSCEIVER_READY,
+    DISCOVERED            + PREPARE_TRANSCEIVER [isPortManagerModeAndReadyTcvr] / logStateChanged == TRANSCEIVER_READY
 //  +------------------------------------------------------------------------------------------------------------+
     ), TransceiverTransitionTable)
 // clang-format on

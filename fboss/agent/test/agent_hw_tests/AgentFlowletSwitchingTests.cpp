@@ -500,6 +500,7 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
             *getNextUpdatedPortStats(ecmpEgressPort).outUnicastPkts_();
         pktsBeforeTotal += pktsBefore[i];
       }
+      // Use appropriate ACL counter based on ARS configuration
       auto aclPktCountBefore = utility::getAclInOutPackets(
           getSw(), getCounterName(AclType::FLOWLET));
       int packetCount = 1000;
@@ -620,81 +621,136 @@ TEST_F(AgentFlowletSwitchingEnhancedScaleTest, VerifyAlternateArsEcmpObjects) {
   };
 
   auto verify = [this]() {
-    auto verifyCounts = [this](int destPort, bool bumpOnHit) {
-      const int kEcmpGroupSize = 4;
-      std::vector<PortID> ecmpPorts;
-      std::vector<uint64_t> pktsBefore, pktsAfter;
+    auto verifyCounts =
+        [this](
+            int destPort, bool bumpOnHit, int portCount, bool useAlternateArs) {
+          std::vector<PortID> ecmpPorts;
+          std::vector<uint64_t> pktsBefore, pktsAfter;
 
-      // Collect port IDs and before stats
-      for (int i = 0; i < kEcmpGroupSize; ++i) {
-        ecmpPorts.push_back(helper_->ecmpPortDescriptorAt(i).phyPortID());
-        pktsBefore.push_back(
-            *getNextUpdatedPortStats(ecmpPorts[i]).outUnicastPkts_());
-      }
-
-      uint64_t pktsBeforeTotal =
-          std::accumulate(pktsBefore.begin(), pktsBefore.end(), 0ULL);
-      auto aclPktCountBefore = utility::getAclInOutPackets(
-          getSw(), getCounterName(AclType::FLOWLET));
-
-      std::vector<uint8_t> rethHdr(16);
-      rethHdr[15] = 0xFF;
-      auto egressPort =
-          helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
-      sendRoceTraffic(
-          egressPort,
-          utility::kUdfRoceOpcodeWriteImmediate,
-          rethHdr,
-          1000,
-          destPort);
-
-      WITH_RETRIES({
-        auto aclPktCountAfter = utility::getAclInOutPackets(
-            getSw(), getCounterName(AclType::FLOWLET));
-
-        // Collect after stats
-        pktsAfter.clear();
-        for (int i = 0; i < kEcmpGroupSize; ++i) {
-          pktsAfter.push_back(
-              *getNextUpdatedPortStats(ecmpPorts[i]).outUnicastPkts_());
-          XLOG(DBG2) << "Ecmp egress Port " << i << ": " << ecmpPorts[i]
-                     << ", Count: " << pktsBefore[i] << " -> " << pktsAfter[i];
-        }
-
-        uint64_t pktsAfterTotal =
-            std::accumulate(pktsAfter.begin(), pktsAfter.end(), 0ULL);
-        XLOG(DBG2) << "Total packets: " << pktsBeforeTotal << " -> "
-                   << pktsAfterTotal;
-        XLOG(DBG2) << "ACL count: " << aclPktCountBefore << " -> "
-                   << aclPktCountAfter;
-
-        // Check total packets across all four ports in the ECMP group
-        EXPECT_EVENTUALLY_GE(pktsAfterTotal, pktsBeforeTotal + 1000);
-
-        // Count ports with traffic using vector comparison
-        int portsWithTraffic = 0;
-        for (int i = 0; i < kEcmpGroupSize; ++i) {
-          if (pktsAfter[i] > pktsBefore[i]) {
-            portsWithTraffic++;
+          // Collect port IDs and before stats
+          for (int i = 0; i < portCount; ++i) {
+            ecmpPorts.push_back(helper_->ecmpPortDescriptorAt(i).phyPortID());
+            pktsBefore.push_back(
+                *getNextUpdatedPortStats(ecmpPorts[i]).outUnicastPkts_());
           }
-        }
 
-        if (bumpOnHit) {
-          EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1000);
-          // Verify that traffic is distributed across all four ports when DLB
-          // is enabled
-          EXPECT_EVENTUALLY_EQ(portsWithTraffic, 4);
-        } else {
-          EXPECT_EVENTUALLY_EQ(aclPktCountAfter, aclPktCountBefore);
-          // When DLB is disabled, traffic should use traditional ECMP hashing
-          // and go to exactly one port for a consistent flow
-          EXPECT_EVENTUALLY_EQ(portsWithTraffic, 1);
-        }
-      });
-    };
+          uint64_t pktsBeforeTotal =
+              std::accumulate(pktsBefore.begin(), pktsBefore.end(), 0ULL);
+          // Use appropriate ACL counter based on ARS configuration
+          auto aclPktCountBefore = utility::getAclInOutPackets(
+              getSw(), getCounterName(AclType::FLOWLET, useAlternateArs));
 
-    verifyCounts(4791, true); // DLB enabled
-    verifyCounts(1024, false); // DLB disabled
+          std::vector<uint8_t> rethHdr(16);
+          rethHdr[15] = 0xFF;
+          auto egressPort =
+              helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID();
+          sendRoceTraffic(
+              egressPort,
+              utility::kUdfRoceOpcodeWriteImmediate,
+              rethHdr,
+              1000,
+              destPort);
+
+          WITH_RETRIES({
+            auto aclPktCountAfter = utility::getAclInOutPackets(
+                getSw(), getCounterName(AclType::FLOWLET, useAlternateArs));
+
+            // Collect after stats
+            pktsAfter.clear();
+            for (int i = 0; i < portCount; ++i) {
+              pktsAfter.push_back(
+                  *getNextUpdatedPortStats(ecmpPorts[i]).outUnicastPkts_());
+              XLOG(DBG2) << "Ecmp egress Port " << i << ": " << ecmpPorts[i]
+                         << ", Count: " << pktsBefore[i] << " -> "
+                         << pktsAfter[i];
+            }
+
+            uint64_t pktsAfterTotal =
+                std::accumulate(pktsAfter.begin(), pktsAfter.end(), 0ULL);
+            XLOG(DBG2) << "Total packets: " << pktsBeforeTotal << " -> "
+                       << pktsAfterTotal;
+            XLOG(DBG2) << "ACL count: " << aclPktCountBefore << " -> "
+                       << aclPktCountAfter;
+
+            // Check total packets across all ports in the ECMP group
+            EXPECT_EVENTUALLY_GE(pktsAfterTotal, pktsBeforeTotal + 1000);
+
+            // Count ports with traffic using vector comparison
+            int portsWithTraffic = 0;
+            for (int i = 0; i < portCount; ++i) {
+              if (pktsAfter[i] > pktsBefore[i]) {
+                portsWithTraffic++;
+              }
+            }
+
+            if (bumpOnHit) {
+              EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1000);
+              // Verify that traffic is distributed across all ports when DLB is
+              // enabled
+              EXPECT_EVENTUALLY_EQ(portsWithTraffic, portCount);
+            } else {
+              EXPECT_EVENTUALLY_EQ(aclPktCountAfter, aclPktCountBefore);
+              // When DLB is disabled, traffic should use traditional ECMP
+              // hashing and go to exactly one port for a consistent flow
+              EXPECT_EVENTUALLY_EQ(portsWithTraffic, 1);
+            }
+          });
+        };
+
+    // Initial verification with 4 ports (primary ARS)
+    verifyCounts(4791, true, 4, true); // DLB enabled, alternate ARS
+    verifyCounts(1024, false, 4, true); // DLB disabled, alternate ARS
+
+    // Modify default route to point to primary ars
+    {
+      auto wrapper = getSw()->getRouteUpdater();
+
+      // Create nexthop set with first 3 ports [0,1,2]
+      flat_set<PortDescriptor> threePortNhopSet;
+      std::vector<PortDescriptor> tempPortDescs = {
+          helper_->ecmpPortDescriptorAt(0),
+          helper_->ecmpPortDescriptorAt(1),
+          helper_->ecmpPortDescriptorAt(2)};
+      threePortNhopSet.insert(
+          std::make_move_iterator(tempPortDescs.begin()),
+          std::make_move_iterator(tempPortDescs.end()));
+
+      auto defaultPrefix = RoutePrefixV6{folly::IPAddressV6("::"), 0};
+      std::vector<RoutePrefixV6> defaultPrefixes = {defaultPrefix};
+      std::vector<flat_set<PortDescriptor>> threePortNhopSets = {
+          threePortNhopSet};
+      helper_->programRoutes(&wrapper, threePortNhopSets, defaultPrefixes);
+    }
+
+    // Verify traffic on the 3 ports (should trigger primary ARS)
+    verifyCounts(4791, true, 3, false); // DLB enabled, 3 ports, primary ARS
+    verifyCounts(1024, false, 3, false); // DLB disabled, 3 ports, primary ARS
+
+    // Move default route back to alternate ars
+    {
+      auto wrapper = getSw()->getRouteUpdater();
+
+      // Create nexthop set with first 4 ports [0,1,2,3]
+      flat_set<PortDescriptor> fourPortNhopSet;
+      std::vector<PortDescriptor> tempPortDescs = {
+          helper_->ecmpPortDescriptorAt(0),
+          helper_->ecmpPortDescriptorAt(1),
+          helper_->ecmpPortDescriptorAt(2),
+          helper_->ecmpPortDescriptorAt(3)};
+      fourPortNhopSet.insert(
+          std::make_move_iterator(tempPortDescs.begin()),
+          std::make_move_iterator(tempPortDescs.end()));
+
+      auto defaultPrefix = RoutePrefixV6{folly::IPAddressV6("::"), 0};
+      std::vector<RoutePrefixV6> defaultPrefixes = {defaultPrefix};
+      std::vector<flat_set<PortDescriptor>> fourPortNhopSets = {
+          fourPortNhopSet};
+      helper_->programRoutes(&wrapper, fourPortNhopSets, defaultPrefixes);
+    }
+
+    // Verify traffic on the 4 ports again (back to alternate ARS)
+    verifyCounts(4791, true, 4, true); // DLB enabled, 4 ports, alternate ARS
+    verifyCounts(1024, false, 4, true); // DLB disabled, 4 ports, alternate ARS
   };
 
   verifyAcrossWarmBoots(setup, verify);

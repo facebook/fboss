@@ -219,4 +219,20 @@ const std::set<uint16_t>& HwAsic::getL1FabricPortsToConnectToL2() const {
 uint64_t HwAsic::getCpuPortEgressPoolSize() const {
   throw FbossError("cpu port egress pool size is not available");
 }
+
+bool HwAsic::portMtuSupported(cfg::PortType portType) const {
+  switch (portType) {
+    case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
+    case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
+      return true;
+    case cfg::PortType::FABRIC_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
+      return false;
+  };
+  throw FbossError("Unexcepted port type: ", portType);
+}
 } // namespace facebook::fboss
