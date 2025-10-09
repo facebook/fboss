@@ -38,6 +38,7 @@ class Utils {
   void printSysfsAttribute(const std::string& label, const std::string& path);
   std::optional<std::tuple<int, int>> getI2cInfoForDevice(const std::string&);
   void printGpio(const showtech_config::Gpio& gpio);
+  std::pair<int, std::string> safeExecCommand(const std::string& cmd) const;
 };
 
 } // namespace facebook::fboss::platform

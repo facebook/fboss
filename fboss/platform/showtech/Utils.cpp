@@ -28,14 +28,14 @@ namespace facebook::fboss::platform {
 
 void Utils::printHostDetails() {
   std::cout << "##### SYSTEM TIME #####" << std::endl;
-  std::cout << platformUtils_.execCommand("date").second << std::endl;
+  std::cout << safeExecCommand("date").second << std::endl;
   std::cout << "##### HOSTNAME #####" << std::endl;
-  std::cout << platformUtils_.execCommand("hostname").second << std::endl;
+  std::cout << safeExecCommand("hostname").second << std::endl;
   std::cout << "##### Linux Kernel Version #####" << std::endl;
-  std::cout << platformUtils_.execCommand("uname -r").second << std::endl;
+  std::cout << safeExecCommand("uname -r").second << std::endl;
   std::cout << "##### UPTIME #####" << std::endl;
-  std::cout << platformUtils_.execCommand("uptime").second << std::endl;
-  std::cout << platformUtils_.execCommand("last reboot").second << std::endl;
+  std::cout << safeExecCommand("uptime").second << std::endl;
+  std::cout << safeExecCommand("last reboot").second << std::endl;
 }
 
 void Utils::printFbossDetails() {
@@ -49,14 +49,13 @@ void Utils::printFbossDetails() {
 
 void Utils::printWeutilDetails() {
   std::cout << "##### WEUTIL dump of all EEPROMs #####" << std::endl;
-  std::cout << platformUtils_.execCommand("weutil --all").second << std::endl;
+  std::cout << safeExecCommand("weutil --all").second << std::endl;
 }
 
 void Utils::printFwutilDetails() {
   std::cout << "##### FWUTIL dump of all Programmables #####" << std::endl;
-  std::cout << platformUtils_
-                   .execCommand(
-                       "fw_util --fw_action version --fw_target_name all")
+  std::cout << safeExecCommand(
+                   "fw_util --fw_action version --fw_target_name all")
                    .second
             << std::endl;
 }
@@ -64,7 +63,7 @@ void Utils::printFwutilDetails() {
 void Utils::printLspciDetails() {
   std::cout << "##### LSPCI #####" << std::endl;
   std::string cmd = "lspci -vvv";
-  std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+  std::cout << safeExecCommand(cmd).second << std::endl;
 }
 
 void Utils::printPortDetails() {
@@ -78,8 +77,7 @@ void Utils::printPortDetails() {
   runFbossCliCmd("transceiver");
   if (!std::filesystem::exists("/etc/ramdisk")) {
     std::cout << "##### wedge_qsfp_util #####" << std::endl;
-    auto [ret, output] =
-        platformUtils_.execCommand("timeout 30 wedge_qsfp_util");
+    auto [ret, output] = safeExecCommand("timeout 30 wedge_qsfp_util");
     std::cout << output << std::endl;
     if (ret == 124) {
       std::cout << "Error: wedge_qsfp_util timed out after 30 seconds"
@@ -90,15 +88,14 @@ void Utils::printPortDetails() {
 
 void Utils::printSensorDetails() {
   std::cout << "##### SENSORS #####" << std::endl;
-  std::cout << platformUtils_.execCommand("sensors").second << std::endl;
+  std::cout << safeExecCommand("sensors").second << std::endl;
   std::cout << "##### Dump from sensor_service #####" << std::endl;
-  std::cout << platformUtils_.execCommand("sensor_service_client").second
-            << std::endl;
+  std::cout << safeExecCommand("sensor_service_client").second << std::endl;
 }
 
 void Utils::printI2cDetails() {
   std::cout << "##### I2C Scan Information #####" << std::endl;
-  auto [ret, output] = platformUtils_.execCommand("i2cdetect -l");
+  auto [ret, output] = safeExecCommand("i2cdetect -l");
   std::cout << output << std::endl;
 
   auto i2cBuses = i2cHelper_.findI2cBuses();
@@ -111,7 +108,7 @@ void Utils::printI2cDetails() {
     auto cmd = fmt::format("time i2cdetect -y {}", busNum);
     std::cout << fmt::format("##### Running `{}` for {} #####", cmd, busName)
               << std::endl;
-    std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+    std::cout << safeExecCommand(cmd).second << std::endl;
   }
 }
 
@@ -130,7 +127,7 @@ void Utils::printI2cDumpDetails() {
       auto cmd = fmt::format("timeout 15 i2cdump -f -y {} {} b", bus, devAddr);
 
       std::cout << fmt::format("Running `{}`", cmd) << std::endl;
-      auto [ret, output] = platformUtils_.execCommand(cmd);
+      auto [ret, output] = safeExecCommand(cmd);
       std::cout << output << std::endl;
       if (ret == 124) {
         std::cout << "Error: command timed out after 15 seconds" << std::endl;
@@ -256,7 +253,7 @@ void Utils::printNvmeDetails() {
   std::cout << "##### Nvme Information #####" << std::endl;
 
   auto listCmd = "nvme list";
-  auto [ret, output] = platformUtils_.execCommand(listCmd);
+  auto [ret, output] = safeExecCommand(listCmd);
   if (ret != 0) {
     std::cout << fmt::format(
                      "Error: `{}` exited with non-zero status: {}\n",
@@ -295,7 +292,7 @@ void Utils::printNvmeDetails() {
     for (const auto& cmdStr : cmds) {
       auto cmd = fmt::format(fmt::runtime(cmdStr), nvmeDevice);
       std::cout << fmt::format("#### Running `{}` ####", cmd) << std::endl;
-      std::cout << platformUtils_.execCommand(cmd).second << std::endl;
+      std::cout << safeExecCommand(cmd).second << std::endl;
     }
   }
 }
@@ -321,7 +318,18 @@ void Utils::runFbossCliCmd(const std::string& cmd) {
   if (!std::filesystem::exists("/etc/ramdisk")) {
     auto fullCmd = fmt::format("fboss2 show {}", cmd);
     std::cout << fmt::format("##### {} #####", fullCmd) << std::endl;
-    std::cout << platformUtils_.execCommand(fullCmd).second << std::endl;
+    std::cout << safeExecCommand(fullCmd).second << std::endl;
+  }
+}
+
+std::pair<int, std::string> Utils::safeExecCommand(
+    const std::string& cmd) const {
+  try {
+    return platformUtils_.execCommand(cmd);
+  } catch (const std::exception& ex) {
+    return {
+        -1,
+        fmt::format("Error: error running command `{}`: {}", cmd, ex.what())};
   }
 }
 
