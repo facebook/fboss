@@ -2,7 +2,7 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
-#include <folly/testing/TestUtil.h>
+
 #include <gtest/gtest.h>
 
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
