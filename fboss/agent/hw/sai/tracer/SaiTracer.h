@@ -160,6 +160,12 @@ class SaiTracer {
       const sai_attribute_t* attr,
       sai_object_type_t object_type);
 
+  void logCommentedAttrFn(
+      const std::string& fn_name,
+      sai_object_id_t set_object_id,
+      const sai_attribute_t* attr,
+      sai_object_type_t object_type);
+
   void logBulkSetAttrFn(
       const std::string& fn_name,
       uint32_t object_count,
@@ -653,11 +659,27 @@ class SaiTracer {
     return rv;                                                             \
   }
 
-#define WRAP_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type)                  \
+// Sentinel value for attribute filtering - a very large number guaranteed
+// not to match any real attribute ID
+#define SAI_TRACER_ATTR_FILTER_SENTINEL 0xFFFFFFFF
+
+// Default wrapper for attribute setter function - uses sentinel value to
+// disable filtering
+#define WRAP_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type) \
+  WRAP_SET_ATTR_FUNC_WITH_FILTER(                            \
+      obj_type, sai_obj_type, api_type, SAI_TRACER_ATTR_FILTER_SENTINEL)
+
+#define WRAP_SET_ATTR_FUNC_WITH_FILTER(                                       \
+    obj_type, sai_obj_type, api_type, filter_attr_id)                         \
   sai_status_t wrap_set_##obj_type##_attribute(                               \
       sai_object_id_t obj_type##_id, const sai_attribute_t* attr) {           \
-    SaiTracer::getInstance()->logSetAttrFn(                                   \
-        "set_" #obj_type "_attribute", obj_type##_id, attr, sai_obj_type);    \
+    if (attr->id == filter_attr_id) {                                         \
+      SaiTracer::getInstance()->logCommentedAttrFn(                           \
+          "set_" #obj_type "_attribute", obj_type##_id, attr, sai_obj_type);  \
+    } else {                                                                  \
+      SaiTracer::getInstance()->logSetAttrFn(                                 \
+          "set_" #obj_type "_attribute", obj_type##_id, attr, sai_obj_type);  \
+    }                                                                         \
     auto begin = FLAGS_enable_elapsed_time_log                                \
         ? std::chrono::system_clock::now()                                    \
         : std::chrono::system_clock::time_point::min();                       \
