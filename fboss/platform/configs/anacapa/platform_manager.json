@@ -9,8 +9,7 @@
         "busName": "SMBus I801 adapter at 5000",
         "address": "0x53",
         "kernelDeviceName": "24c02"
-      },
-      "pmUnitName": "ANACAPA_MCB"
+      }
     },
     "RUNBMC_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -18,8 +17,7 @@
         "busName": "INCOMING@0",
         "address": "0x51",
         "kernelDeviceName": "24c64"
-      },
-      "pmUnitName": "BMC"
+      }
     },
     "COMESE_SLOT": {
       "numOutgoingI2cBuses": 2,
@@ -27,8 +25,7 @@
         "busName": "INCOMING@1",
         "address": "0x56",
         "kernelDeviceName": "24c128"
-      },
-      "pmUnitName": "NETLAKE"
+      }
     },
     "RTM_L_SLOT": {
       "numOutgoingI2cBuses": 3,
@@ -36,8 +33,7 @@
         "busName": "INCOMING@0",
         "address": "0x50",
         "kernelDeviceName": "24c64d"
-      },
-      "pmUnitName": "RTM_L"
+      }
     },
     "RTM_R_SLOT": {
       "numOutgoingI2cBuses": 3,
@@ -45,8 +41,7 @@
         "busName": "INCOMING@0",
         "address": "0x50",
         "kernelDeviceName": "24c64d"
-      },
-      "pmUnitName": "RTM_R"
+      }
     },
     "SMB_L_SLOT": {
       "numOutgoingI2cBuses": 5,
@@ -54,8 +49,7 @@
         "busName": "INCOMING@2",
         "address": "0x50",
         "kernelDeviceName": "24c64"
-      },
-      "pmUnitName": "SMB_L"
+      }
     },
     "SMB_R_SLOT": {
       "numOutgoingI2cBuses": 5,
@@ -63,8 +57,7 @@
         "busName": "INCOMING@4",
         "address": "0x50",
         "kernelDeviceName": "24c64"
-      },
-      "pmUnitName": "SMB_R"
+      }
     }
   },
   "i2cAdaptersFromCpu": [
@@ -580,7 +573,8 @@
                 2
               ]
             }
-          ]
+          ],
+          "__comment__": "Advanced configuration register setting for mode select"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_16",
@@ -594,7 +588,8 @@
                 2
               ]
             }
-          ]
+          ],
+          "__comment__": "Advanced configuration register setting for mode select"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_18",
@@ -747,31 +742,36 @@
           "busName": "INCOMING@0",
           "address": "0x11",
           "kernelDeviceName": "tda38640",
-          "pmUnitScopedName": "COME_HWMON1"
+          "pmUnitScopedName": "COME_HWMON1",
+          "__comment__": "Multiply-phase power Controller for PVNN_PCH"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
           "kernelDeviceName": "tda38640",
-          "pmUnitScopedName": "COME_HWMON2"
+          "pmUnitScopedName": "COME_HWMON2",
+          "__comment__": "Multiply-phase power Controller for P1V05_STBY"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
           "kernelDeviceName": "tda38640",
-          "pmUnitScopedName": "COME_HWMON3"
+          "pmUnitScopedName": "COME_HWMON3",
+          "__comment__": "Multiply-phase power Controller for PVDDQ_ABC_CPU"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
           "kernelDeviceName": "tda38640",
-          "pmUnitScopedName": "COME_HWMON4"
+          "pmUnitScopedName": "COME_HWMON4",
+          "__comment__": "Multiply-phase power Controller for PVCC_ANA"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "COME_HWMON5"
+          "pmUnitScopedName": "COME_HWMON5",
+          "__comment__": "Multiply-phase power Controller for PVCCIN_CPU and P1V8_STBY"
         },
         {
           "busName": "INCOMING@1",
@@ -807,19 +807,22 @@
           "busName": "RTM_L_MUX_1@1",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_1_1"
+          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_1",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 3, 4, 7 and 8"
         },
         {
           "busName": "RTM_L_MUX_1@3",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_1_3"
+          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_2",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 11, 12, 15 and 16"
         },
         {
           "busName": "RTM_L_MUX_1@4",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_1_4"
+          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_3",
+          "__comment__": "Voltage sensor for XP0R9V_RTM_AVDD of ASIC 1-8 and XP0R9V_RTM_AVDD of ASIC 9-16"
         },
         {
           "busName": "RTM_L_MUX_1@5",
@@ -833,7 +836,8 @@
                 2
               ]
             }
-          ]
+          ],
+          "__comment__": "Advanced configuration register setting for mode select"
         },
         {
           "busName": "RTM_L_MUX_1@6",
@@ -852,7 +856,8 @@
           "busName": "RTM_L_MUX_2@1",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_2_1"
+          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_4",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 1, 2, 5 and 6"
         },
         {
           "busName": "RTM_L_MUX_2@2",
@@ -866,25 +871,29 @@
                 2
               ]
             }
-          ]
+          ],
+          "__comment__": "Advanced configuration register setting for mode select"
         },
         {
           "busName": "RTM_L_MUX_2@3",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_2_3"
+          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_5",
+          "__comment__": "Voltage sensor for XP1R5V_RTM_AVDD of ASIC 1-8 and XP0R75V_RTM_AVDD of ASIC 1-8"
         },
         {
           "busName": "RTM_L_MUX_2@4",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_2_4"
+          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_6",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 9, 10, 13 and 14"
         },
         {
           "busName": "RTM_L_MUX_2@5",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_2_5"
+          "pmUnitScopedName": "RTM_L_ASIC_VOLTAGE_7",
+          "__comment__": "Voltage sensor for XP1R5V_RTM_AVDD of ASIC 9-16 and XP0R75V_RTM_AVDD of ASIC 9-16"
         },
         {
           "busName": "RTM_L_MUX_2@6",
@@ -914,19 +923,22 @@
           "busName": "RTM_R_MUX_1@1",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_1_1"
+          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_1",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 3, 4, 7 and 8"
         },
         {
           "busName": "RTM_R_MUX_1@3",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_1_3"
+          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_2",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 11, 12, 15 and 16"
         },
         {
           "busName": "RTM_R_MUX_1@4",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_1_4"
+          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_3",
+          "__comment__": "Voltage sensor for XP0R9V_RTM_AVDD of ASIC 1-8 and XP0R9V_RTM_AVDD of ASIC 9-16"
         },
         {
           "busName": "RTM_R_MUX_1@5",
@@ -959,7 +971,8 @@
           "busName": "RTM_R_MUX_2@1",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_2_1"
+          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_4",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 1, 2, 5 and 6"
         },
         {
           "busName": "RTM_R_MUX_2@2",
@@ -979,19 +992,22 @@
           "busName": "RTM_R_MUX_2@3",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_2_3"
+          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_5",
+          "__comment__": "Voltage sensor for XP1R5V_RTM_AVDD of ASIC 1-8 and XP0R75V_RTM_AVDD of ASIC 1-8"
         },
         {
           "busName": "RTM_R_MUX_2@4",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_2_4"
+          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_6",
+          "__comment__": "Voltage sensor for XP0R75V_RTM_DVDD of ASIC 9, 10, 13 and 14"
         },
         {
           "busName": "RTM_R_MUX_2@5",
           "address": "0x70",
           "kernelDeviceName": "xdpe15284",
-          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_2_5"
+          "pmUnitScopedName": "RTM_R_ASIC_VOLTAGE_7",
+          "__comment__": "Voltage sensor for XP1R5V_RTM_AVDD of ASIC 9-16 and XP0R75V_RTM_AVDD of ASIC 9-16"
         },
         {
           "busName": "RTM_R_MUX_2@6",
@@ -1303,41 +1319,11 @@
     "/run/devmap/inforoms/RTM_L_DOM_INFO_ROM": "/[RTM_L_DOM_INFO_ROM]",
     "/run/devmap/inforoms/RTM_R_DOM_INFO_ROM": "/[RTM_R_DOM_INFO_ROM]",
     "/run/devmap/watchdogs/FAN_WATCHDOG": "/[MCB_FAN_CPLD]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_1": "/[MCB_IOB_I2C_MASTER_1]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_2": "/[MCB_IOB_I2C_MASTER_2]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_3": "/[MCB_IOB_I2C_MASTER_3]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_4": "/[MCB_IOB_I2C_MASTER_4]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_5": "/[MCB_IOB_I2C_MASTER_5]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_6": "/[MCB_IOB_I2C_MASTER_6]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_7": "/[MCB_IOB_I2C_MASTER_7]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_8": "/[MCB_IOB_I2C_MASTER_8]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_9": "/[MCB_IOB_I2C_MASTER_9]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_10": "/[MCB_IOB_I2C_MASTER_10]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_11": "/[MCB_IOB_I2C_MASTER_11]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_12": "/[MCB_IOB_I2C_MASTER_12]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_13": "/[MCB_IOB_I2C_MASTER_13]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_14": "/[MCB_IOB_I2C_MASTER_14]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_15": "/[MCB_IOB_I2C_MASTER_15]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_16": "/[MCB_IOB_I2C_MASTER_16]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_17": "/[MCB_IOB_I2C_MASTER_17]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_18": "/[MCB_IOB_I2C_MASTER_18]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_19": "/[MCB_IOB_I2C_MASTER_19]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_20": "/[MCB_IOB_I2C_MASTER_20]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_21": "/[MCB_IOB_I2C_MASTER_21]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_22": "/[MCB_IOB_I2C_MASTER_22]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_23": "/[MCB_IOB_I2C_MASTER_23]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_24": "/[MCB_IOB_I2C_MASTER_24]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_25": "/[MCB_IOB_I2C_MASTER_25]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_26": "/[MCB_IOB_I2C_MASTER_26]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_27": "/[MCB_IOB_I2C_MASTER_27]",
     "/run/devmap/i2c-busses/XCVR_1": "/[MCB_IOB_I2C_MASTER_28]",
     "/run/devmap/i2c-busses/XCVR_2": "/[MCB_IOB_I2C_MASTER_29]",
-    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_30": "/[MCB_IOB_I2C_MASTER_30]",
     "/run/devmap/gpiochips/MCB_GPIO_CHIP_1": "/[MCB_GPIO_CHIP_1]",
-    "/run/devmap/xcvrs/xcvr_1": "/[IOB_XCVR_CTRL_PORT_1]",
     "/run/devmap/xcvrs/xcvr_io_1": "/[MCB_IOB_I2C_MASTER_28]",
     "/run/devmap/xcvrs/xcvr_ctrl_1": "/[IOB_XCVR_CTRL_PORT_1]",
-    "/run/devmap/xcvrs/xcvr_2": "/[IOB_XCVR_CTRL_PORT_2]",
     "/run/devmap/xcvrs/xcvr_io_2": "/[MCB_IOB_I2C_MASTER_29]",
     "/run/devmap/xcvrs/xcvr_ctrl_2": "/[IOB_XCVR_CTRL_PORT_2]",
     "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1": "/[MCB_SPI_MASTER_1_DEVICE_1]",
@@ -1355,32 +1341,28 @@
     "/run/devmap/sensors/COME_HWMON5": "/COMESE_SLOT@0/[COME_HWMON5]",
     "/run/devmap/sensors/COME_INLET_TSENSOR": "/[COME_INLET_TSENSOR]",
     "/run/devmap/sensors/COME_OUTLET_TSENSOR": "/[COME_OUTLET_TSENSOR]",
-    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_1_1": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_1_1]",
-    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_1_3": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_1_3]",
-    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_1_4": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_1_4]",
-    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_2_1": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_2_1]",
-    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_2_3": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_2_3]",
-    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_2_4": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_2_4]",
-    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_2_5": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_2_5]",
+    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_1": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_1]",
+    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_2": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_2]",
+    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_3": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_3]",
+    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_4": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_4]",
+    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_5": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_5]",
+    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_6": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_6]",
+    "/run/devmap/sensors/RTM_L_ASIC_VOLTAGE_7": "/RTM_L_SLOT@0/[RTM_L_ASIC_VOLTAGE_7]",
     "/run/devmap/sensors/RTM_L_ADC1_SENSOR": "/RTM_L_SLOT@0/[RTM_L_ADC1_SENSOR]",
     "/run/devmap/sensors/RTM_L_ADC2_SENSOR": "/RTM_L_SLOT@0/[RTM_L_ADC2_SENSOR]",
     "/run/devmap/sensors/RTM_L_TSENSOR_1": "/RTM_L_SLOT@0/[RTM_L_TSENSOR_1]",
     "/run/devmap/sensors/RTM_L_TSENSOR_2": "/RTM_L_SLOT@0/[RTM_L_TSENSOR_2]",
-    "/run/devmap/i2c-busses/RTM_L_DOM_I2C_MASTER_1": "/[RTM_L_DOM_I2C_MASTER_1]",
-    "/run/devmap/i2c-busses/RTM_L_DOM_I2C_MASTER_2": "/[RTM_L_DOM_I2C_MASTER_2]",
-    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_1_1": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_1_1]",
-    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_1_3": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_1_3]",
-    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_1_4": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_1_4]",
-    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_2_1": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_2_1]",
-    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_2_3": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_2_3]",
-    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_2_4": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_2_4]",
-    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_2_5": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_2_5]",
+    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_1": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_1]",
+    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_2": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_2]",
+    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_3": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_3]",
+    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_4": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_4]",
+    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_5": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_5]",
+    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_6": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_6]",
+    "/run/devmap/sensors/RTM_R_ASIC_VOLTAGE_7": "/RTM_R_SLOT@0/[RTM_R_ASIC_VOLTAGE_7]",
     "/run/devmap/sensors/RTM_R_ADC1_SENSOR": "/RTM_R_SLOT@0/[RTM_R_ADC1_SENSOR]",
     "/run/devmap/sensors/RTM_R_ADC2_SENSOR": "/RTM_R_SLOT@0/[RTM_R_ADC2_SENSOR]",
     "/run/devmap/sensors/RTM_R_TSENSOR_1": "/RTM_R_SLOT@0/[RTM_R_TSENSOR_1]",
     "/run/devmap/sensors/RTM_R_TSENSOR_2": "/RTM_R_SLOT@0/[RTM_R_TSENSOR_2]",
-    "/run/devmap/i2c-busses/RTM_R_DOM_I2C_MASTER_1": "/[RTM_R_DOM_I2C_MASTER_1]",
-    "/run/devmap/i2c-busses/RTM_R_DOM_I2C_MASTER_2": "/[RTM_R_DOM_I2C_MASTER_2]",
     "/run/devmap/cplds/SMB_L_CPLD": "/SMB_L_SLOT@0/[SMB_L_CPLD]",
     "/run/devmap/cplds/SMB_R_CPLD": "/SMB_R_SLOT@0/[SMB_R_CPLD]",
     "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0": "/SMB_L_SLOT@0/[SMB_L_ASIC_VOLTAGE_0]",
