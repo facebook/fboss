@@ -660,6 +660,8 @@ std::optional<FirmwareUpgradeData> TransceiverManager::getFirmwareUpgradeData(
     return std::nullopt;
   }
 
+  auto cmisModuleState = moduleStatus->cmisModuleState();
+
   auto fwStatus = moduleStatus->fwStatus();
   if (!fwStatus.has_value()) {
     FW_LOG(DBG4, tcvrID)
@@ -695,14 +697,26 @@ std::optional<FirmwareUpgradeData> TransceiverManager::getFirmwareUpgradeData(
     }
     if (fwType == cfg::FirmwareType::DSP && fwStatus->dspFwVer() &&
         fwIt.version().value() != *fwStatus->dspFwVer()) {
-      FW_LOG(INFO, tcvrID) << "Part Number " << partNumber
-                           << " DSP Version in cfg=" << fwIt.version().value()
-                           << " current operational version= "
-                           << *fwStatus->dspFwVer()
-                           << ". Returning valid getFirmwareUpgradeData";
-      fwUpgradeData.currentFirmwareVersion() = *fwStatus->dspFwVer();
-      fwUpgradeData.desiredFirmwareVersion() = fwIt.version().value();
-      return fwUpgradeData;
+      if (cmisModuleState &&
+          cmisModuleState.value() == CmisModuleState::LOW_POWER &&
+          fwStatus->dspFwVer().value() == "0.0" &&
+          partNumber == "QDD-400G-XDR4") {
+        // QDD-400G-XDR4 has a bug in the firmware where it reports a 0.0 in DSP
+        // FW version when in low power mode. This is a known issue and since
+        // it's an old part, we don't plan to fix it forward. Thus adding a
+        // special check for this part here
+        FW_LOG(INFO, tcvrID)
+            << "Not considering for DSP FW Upgrade as QDD-400G-XDR4 incorrectly reports 0.0 as DSP FW Version in low power mode";
+      } else {
+        FW_LOG(INFO, tcvrID)
+            << "Part Number " << partNumber
+            << " DSP Version in cfg=" << fwIt.version().value()
+            << " current operational version= " << *fwStatus->dspFwVer()
+            << ". Returning valid getFirmwareUpgradeData";
+        fwUpgradeData.currentFirmwareVersion() = *fwStatus->dspFwVer();
+        fwUpgradeData.desiredFirmwareVersion() = fwIt.version().value();
+        return fwUpgradeData;
+      }
     }
     FW_LOG(DBG, tcvrID) << "Part Number " << partNumber << " FW Type Cfg "
                         << apache::thrift::util::enumNameSafe(fwType)
@@ -808,9 +822,9 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   // We will leave the fwUpgradeStatus as true for now because we still have a
   // lot to do after upgrading the firmware. The optic goes through reset, the
   // state machine goes back to discovered state. IPHY + XPHY ports get
-  // programmed again, Optic itself gets programmed again. Therefore, we'll set
-  // the fwUpgradeInProgress status to false after we are truly done getting the
-  // optic ready after fw upgrade
+  // programmed again, Optic itself gets programmed again. Therefore, we'll
+  // set the fwUpgradeInProgress status to false after we are truly done
+  // getting the optic ready after fw upgrade
 }
 
 void TransceiverManager::getPortMediaInterface(
@@ -940,7 +954,8 @@ void TransceiverManager::startThreads() {
 
   // Create a watchdog that will monitor the heartbeats of all the threads and
   // increment the missed counter when there is no heartbeat on at least one
-  // thread in the last FLAGS_state_machine_update_thread_heartbeat_ms * 10 time
+  // thread in the last FLAGS_state_machine_update_thread_heartbeat_ms * 10
+  // time
   heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
       std::chrono::milliseconds(
           FLAGS_state_machine_update_thread_heartbeat_ms * 10),
@@ -969,8 +984,8 @@ void TransceiverManager::stopThreads() {
     heartbeat_.reset();
   }
 
-  // We use runInEventBaseThread() to terminateLoopSoon() rather than calling it
-  // directly here.  This ensures that any events already scheduled via
+  // We use runInEventBaseThread() to terminateLoopSoon() rather than calling
+  // it directly here.  This ensures that any events already scheduled via
   // runInEventBaseThread() will have a chance to run.
   drainAllStateMachineUpdates();
   if (updateThread_) {
@@ -1137,8 +1152,8 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
   steady_clock::time_point begin = steady_clock::now();
 
   // If Port Manager mode is enabled, fetch the programReady status of all
-  // transceivers. Create a copy of the map so we don't have to hold the lock on
-  // tcvrsReadyForProgramming for the duration of the function.
+  // transceivers. Create a copy of the map so we don't have to hold the lock
+  // on tcvrsReadyForProgramming for the duration of the function.
   const auto tcvrsReadyForProgramming = FLAGS_port_manager_mode
       ? getTcvrsReadyForProgramming()
       : std::unordered_set<TransceiverID>{};
@@ -1398,9 +1413,9 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
  *
  * This function returns the list of all supported port profiles on every port
  * configured by agent config at that moment. If the checkOptics is False then
- * it returns all possible port profiles for every configured port as mentioned
- * in the platform mapping. If the checkOptics is True then it will exclude the
- * port profiles which current optics does not support.
+ * it returns all possible port profiles for every configured port as
+ * mentioned in the platform mapping. If the checkOptics is True then it will
+ * exclude the port profiles which current optics does not support.
  */
 void TransceiverManager::getAllPortSupportedProfiles(
     std::map<std::string, std::vector<cfg::PortProfileID>>&
@@ -1430,9 +1445,9 @@ void TransceiverManager::getAllPortSupportedProfiles(
     }
   }
 
-  // If we don't need to check the optics support of the profile then return all
-  // supported port profiles from the platform mapping which are configured by
-  // agent config
+  // If we don't need to check the optics support of the profile then return
+  // all supported port profiles from the platform mapping which are
+  // configured by agent config
   if (!checkOptics) {
     supportedPortProfiles = allConfiguredPortProfiles;
     return;
@@ -1866,7 +1881,8 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
     heartbeatWatchdog_->pauseMonitoringHeartbeat(
         threads_->find(tcvrID)->second.getThreadHeartbeat());
-    // Only enqueue updates for now, we'll execute them at once after this loop
+    // Only enqueue updates for now, we'll execute them at once after this
+    // loop
     if (auto result =
             enqueueStateUpdateForTcvrWithoutExecuting(tcvrID, event)) {
       results.push_back(result);
@@ -2140,8 +2156,8 @@ void TransceiverManager::findAndTriggerPotentialFirmwareUpgradeEvents(
     auto curState = getCurrentState(tcvrID);
     if (curState == TransceiverStateMachineState::INACTIVE &&
         FLAGS_firmware_upgrade_on_link_down) {
-      // Anytime a module is in inactive state (link down), it's a candidate for
-      // fw upgrade.
+      // Anytime a module is in inactive state (link down), it's a candidate
+      // for fw upgrade.
       XLOG(INFO)
           << "Transceiver " << static_cast<int>(tcvrID)
           << " is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
@@ -2159,8 +2175,8 @@ void TransceiverManager::findAndTriggerPotentialFirmwareUpgradeEvents(
         if (stateMachine != stateMachineControllers_.end() &&
             stateMachine->second->getStateMachine().rlock()->get_attribute(
                 newTransceiverInsertedAfterInit)) {
-          // Not the first refresh but the module is in discovered state and was
-          // just inserted
+          // Not the first refresh but the module is in discovered state and
+          // was just inserted
           XLOG(INFO)
               << "Transceiver " << static_cast<int>(tcvrID)
               << " is in DISCOVERED state and was recently inserted, adding it to list of potentialTcvrsForFwUpgrade";
@@ -2237,9 +2253,9 @@ void TransceiverManager::completeRefresh() {
     // On successful initialization, set warm boot flag in case of a
     // qsfp_service crash (no gracefulExit).
 
-    /* We don't want to set warm boot flag here for platforms with external PHYs
-     * The reason is SAI based external PHYs platforms needs to gracefully
-     * shutdown to store the warmboot state */
+    /* We don't want to set warm boot flag here for platforms with external
+     * PHYs The reason is SAI based external PHYs platforms needs to
+     * gracefully shutdown to store the warmboot state */
     if (!phyManager_) {
       setCanWarmBoot();
     }
@@ -2477,8 +2493,8 @@ void TransceiverManager::triggerRemediateEvents(
   }
   BlockingStateUpdateResultList results;
   for (auto tcvrID : stableTcvrs) {
-    // Check if any of the ports are running ASIC PRBS. If yes, skip triggering
-    // remediation on transceiver.
+    // Check if any of the ports are running ASIC PRBS. If yes, skip
+    // triggering remediation on transceiver.
     if (isRunningAsicPrbs(tcvrID)) {
       XLOG(DBG2) << "Skip remediating Transceiver=" << tcvrID
                  << ". Transceiver is running ASIC PRBS";
