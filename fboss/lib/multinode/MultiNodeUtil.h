@@ -49,6 +49,8 @@ class MultiNodeUtil {
   bool verifyNoTrafficDropOnProcessRestarts() const;
   bool verifyNoTrafficDropOnDrainUndrain() const;
 
+  bool verifySelfHealingECMPLag() const;
+
  private:
   enum class SwitchType : uint8_t {
     RDSW = 0,

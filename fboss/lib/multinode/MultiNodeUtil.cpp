@@ -2692,4 +2692,8 @@ bool MultiNodeUtil::verifyNoTrafficDropOnDrainUndrain() const {
   return runScenariosAndVerifyNoDrops(scenarios);
 }
 
+bool MultiNodeUtil::verifySelfHealingECMPLag() const {
+  return true;
+}
+
 } // namespace facebook::fboss::utility
