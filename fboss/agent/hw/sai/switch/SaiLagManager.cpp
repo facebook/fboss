@@ -225,7 +225,7 @@ SaiLagHandle* SaiLagManager::getLagHandle(
   throw FbossError("handle for aggregate port ", aggregatePortID, " not found");
 }
 
-bool SaiLagManager::isMinimumLinkMet(AggregatePortID aggregatePortID) const {
+bool SaiLagManager::isLagUp(const AggregatePortID& aggregatePortID) const {
   const auto* handle = getLagHandle(aggregatePortID);
   return handle->minimumLinkCount <= getActiveMemberCount(aggregatePortID);
 }
