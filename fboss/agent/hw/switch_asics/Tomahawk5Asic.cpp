@@ -270,12 +270,16 @@ Tomahawk5Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getMaxArsGroups() const {
-  // BRCM SDK utilizes 200000 internally
-  // ARS offset also starts at 200000
-  return FLAGS_enable_th5_ars_scale_mode ? 256 : 127;
+  return FLAGS_enable_th5_ars_scale_mode ? 256 : 128;
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
-  return getMaxEcmpGroups().value() - getMaxArsGroups().value();
+  // ideally this needs to be dynamic based on getMaxArsGroups
+  // getMaxEcmpGroups().value() - getMaxArsGroups().value();
+  //
+  // BRCM SAI SDK has this hard-coded for TH5 to not allow base index
+  // >(4096-256)
+  // So setting default start index as 3840
+  return getMaxEcmpGroups().value() - 256;
 }
 } // namespace facebook::fboss
