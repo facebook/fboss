@@ -2526,21 +2526,7 @@ bool MultiNodeUtil::verifyNoTrafficDrop() const {
       std::move(ungracefullyRestartFSDBAllSwitches),
   };
 
-  for (const auto& scenario : scenarios) {
-    XLOG(DBG2) << "Running scenario: " << scenario.name;
-    if (!scenario.setup()) {
-      XLOG(DBG2) << "Scenario: " << scenario.name << " failed";
-      return false;
-    }
-
-    if (!verifyNoReassemblyErrorsForAllSwitches()) {
-      XLOG(DBG2) << "Scenario: " << scenario.name
-                 << " unexpected reassembly errors";
-      return false;
-    }
-  }
-
-  return true;
+  return runScenariosAndVerifyNoDrops(scenarios);
 }
 
 } // namespace facebook::fboss::utility
