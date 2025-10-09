@@ -2579,6 +2579,22 @@ bool MultiNodeUtil::verifyNoTrafficDropOnProcessRestarts() const {
   return runScenariosAndVerifyNoDrops(scenarios);
 }
 
+bool MultiNodeUtil::drainUndrainActiveFabricLinkForSwitch(
+    const std::string& switchName) const {
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(switchName);
+  CHECK(!activeFabricPortNameToPortInfo.empty());
+
+  auto [_, portInfo] = *activeFabricPortNameToPortInfo.begin();
+  XLOG(DBG2) << "Draining port: " << portInfo.name().value();
+  drainPort(switchName, portInfo.portId().value());
+
+  XLOG(DBG2) << "Undraining port: " << portInfo.name().value();
+  undrainPort(switchName, portInfo.portId().value());
+
+  return true;
+}
+
 bool MultiNodeUtil::verifyNoTrafficDropOnDrainUndrain() const {
   if (!setupTrafficLoop()) {
     XLOG(DBG2) << "Traffic loop setup failed";
