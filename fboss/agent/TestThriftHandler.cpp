@@ -54,17 +54,28 @@ void TestThriftHandler::ungracefullyRestartService(
     std::unique_ptr<std::string> serviceName) {
   XLOG(INFO) << __func__;
 
+  // QSFP ungraceful restart can be implemented by:
+  // (A) pkill -9 qsfp
+  // (B) touch /dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service,
+  //     restart qsfp
+  //
+  // QSFP does not save any state for transceivers (non xphy platforms).
+  // Thus a process crash (simulated by pkill) is able to warmboot and thus does
+  // not flap ports.
+  //
+  // From the testing standpoint, simulating process crash is of interest, and
+  // thus this handler is implemented using pkill -9.
+  //
+  // (B) is a planned cold boot restart and will flap ports, but is not
+  // implemented here.
   if (kServicesSupportingRestart().find(*serviceName) ==
       kServicesSupportingRestart().end()) {
     throw std::runtime_error(folly::to<std::string>(
         "Failed to restart ungracefully. Unsupported service: ", *serviceName));
   }
 
-  if (*serviceName == "wedge_agent_test" || *serviceName == "qsfp_service") {
-    std::string fileToCreate = (*serviceName == "wedge_agent_test")
-        ? "/dev/shm/fboss/warm_boot/cold_boot_once_0"
-        : "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
-
+  if (*serviceName == "wedge_agent_test") {
+    std::string fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
     auto cmd = folly::to<std::string>(
         "touch ", fileToCreate, " && systemctl restart ", *serviceName);
     runShellCmd(cmd);
