@@ -183,6 +183,27 @@ void TestThriftHandler::setSelfHealingLagState(int32_t portId, bool enable) {
 
 void TestThriftHandler::setConditionalEntropyRehash(
     int32_t portId,
-    bool enable) {}
+    bool enable) {
+  ensureConfigured(__func__);
+  const auto port = getSw()->getState()->getPorts()->getNodeIf(PortID(portId));
+  if (!port) {
+    throw FbossError("no such port ", portId);
+  }
+
+  if (port->getConditionalEntropyRehash() == enable) {
+    XLOG(DBG2) << __func__ << " port already in conditionalEntroRehash: "
+               << (enable ? "ENABLED" : "DISABLED");
+    return;
+  }
+
+  auto updateFn = [portId, enable](const std::shared_ptr<SwitchState>& state) {
+    const auto oldPort = state->getPorts()->getNodeIf(PortID(portId));
+    std::shared_ptr<SwitchState> newState{state};
+    auto newPort = oldPort->modify(&newState);
+    newPort->setConditionalEntropyRehash(enable);
+    return newState;
+  };
+  getSw()->updateStateBlocking("set Port ConditionalEntropyHash", updateFn);
+}
 
 } // namespace facebook::fboss
