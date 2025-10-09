@@ -134,6 +134,16 @@ void adminEnablePort(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setPortState(portID, true /* enable port */);
 }
 
+void drainPort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortDrainState(portID, true /* drain port */);
+}
+
+void undrainPort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortDrainState(portID, false /* undrain port */);
+}
+
 std::map<int64_t, DsfNode> getSwitchIdToDsfNode(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   std::map<int64_t, DsfNode> switchIdToDsfNode;
