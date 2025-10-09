@@ -1049,6 +1049,7 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
       << "Ecmp overflow, but no candidates available for merge";
   auto mergeSet = mergeSetIn;
   auto citr = candidateMergeGroups_.find(mergeSet);
+  // mergeSet must be in candidate merged
   CHECK(citr != candidateMergeGroups_.end());
   auto [newMergeGrpInfo, mergeGrpNhopsInserted] =
       getOrCreateGroupInfo(citr->second.mergedNhops, *inOutState);
@@ -1117,7 +1118,7 @@ void EcmpResourceManager::mergeGroupAndMigratePrefixes(
         }
       });
   // Prune preExistingMemberMergeSets since we are going to
-  // make these part of a large merge set now
+  // make these part of a larger merge set now
   std::for_each(
       preExistingMemberMergeSets.begin(),
       preExistingMemberMergeSets.end(),
@@ -1295,7 +1296,7 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
     // For merge groups - reclaim creates one delta for
     // each merge set being reclaimed. So we can't assert
     // for a precise number.
-    CHECK_LE(deltas.size(), 2);
+    DCHECK_LE(deltas.size(), 2);
   }
   StateDelta toRet(deltas.front().oldState(), deltas.back().newState());
   deltas.clear();
@@ -1326,7 +1327,7 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
-    CHECK(grpInfo->isUninitialized());
+    DCHECK(grpInfo->isUninitialized());
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to new group: " << *grpInfo;
     // Ecmp limit reached and we did not find a existing group,
@@ -1397,7 +1398,7 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
   auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
-    CHECK(grpInfo->isUninitialized());
+    DCHECK(grpInfo->isUninitialized());
     XLOG(DBG2) << " Route: " << newRoute->str()
                << " points to new group: " << *grpInfo;
     // Ecmp limit reached and we did not find a existing group,
@@ -1502,7 +1503,7 @@ EcmpResourceManager::routeAddedWithOverrideNhops(
              << " created: " << grpInserted;
   if (overrideGrpInserted) {
     if (ecmpLimitReached) {
-      CHECK(overrideGrpInfo->isUninitialized());
+      DCHECK(overrideGrpInfo->isUninitialized());
       XLOG(DBG2) << " Exceeded ECMP limit for route: " << newRoute->str();
       mergeGroupAndMigratePrefixes(inOutState);
     } else {
@@ -1713,7 +1714,7 @@ EcmpResourceManager::appendToOrCreateMergeGroup(
             grpInfo->getRouteUsageCount());
         auto [_, insertedPenalty] =
             mitr->second.groupId2Penalty.insert({newMemberGroupId, penalty});
-        CHECK(insertedPenalty)
+        DCHECK(insertedPenalty)
             << " Group ID: " << newMemberGroupId
             << " already has a computed penalty in: " << mitr->first;
       });
@@ -2297,9 +2298,9 @@ void NextHopGroupInfo::routeUsageCountChanged(
   auto prevState = state_;
   switch (state_) {
     case NextHopGroupState::UNINITIALIZED:
-      CHECK_EQ(prevRouteUsageCount, 0);
+      DCHECK_EQ(prevRouteUsageCount, 0);
       // From 0, routeUsageCount can only transition to 1
-      CHECK_EQ(curRouteUsageCount, 1);
+      DCHECK_EQ(curRouteUsageCount, 1);
       state_ = NextHopGroupState::UNMERGED_NHOPS_ONLY;
       break;
     case NextHopGroupState::UNMERGED_NHOPS_ONLY:
@@ -2312,9 +2313,9 @@ void NextHopGroupInfo::routeUsageCountChanged(
         // merged nhop group.
         // If current state was MERGED_NHOPS_ONLY, the prior
         // route usage count must be 0
-        CHECK_EQ(prevRouteUsageCount, 0);
+        DCHECK_EQ(prevRouteUsageCount, 0);
         // From 0, routeUsageCount can only transition to 1
-        CHECK_EQ(curRouteUsageCount, 1);
+        DCHECK_EQ(curRouteUsageCount, 1);
         DCHECK(mergedAndUnmergedNhopsMatch());
         state_ = NextHopGroupState::UNMERGED_AND_MERGED_NHOPS;
       }
@@ -2339,7 +2340,7 @@ void NextHopGroupInfo::mergeInfoItrChanged() {
   auto prevState = state_;
   switch (state_) {
     case NextHopGroupState::UNINITIALIZED:
-      CHECK_EQ(routeUsageCount_, 0);
+      DCHECK_EQ(routeUsageCount_, 0);
       if (mergedAndUnmergedNhopsMatch()) {
         state_ = NextHopGroupState::MERGED_NHOPS_ONLY;
       }
@@ -2360,7 +2361,7 @@ void NextHopGroupInfo::mergeInfoItrChanged() {
     case NextHopGroupState::UNMERGED_AND_MERGED_NHOPS:
       // In such a state routeUsageCount must always be > 0,
       // since we are just updating the iterator.
-      CHECK_GT(routeUsageCount_, 0);
+      DCHECK_GT(routeUsageCount_, 0);
       if (!mergedAndUnmergedNhopsMatch()) {
         state_ = NextHopGroupState::UNMERGED_NHOPS_ONLY;
       }
