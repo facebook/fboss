@@ -491,7 +491,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
    */
   SwSwitch* sw_;
 
-  int thriftIdleTimeout_;
+  int thriftIdleTimeout_{};
   std::vector<const TConnectionContext*> brokenClients_;
 
   apache::thrift::SSLPolicy sslPolicy_;
