@@ -289,7 +289,10 @@ void LinkTest::createL3DataplaneFlood(
   utility::EcmpSetupTargetedPorts6 ecmp6(
       sw()->getState(),
       sw()->needL2EntryForNeighbor(),
-      sw()->getLocalMac(switchId));
+      sw()->getLocalMac(switchId),
+      RouterID(0),
+      false,
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
   utility::disableTTLDecrements(sw(), ecmpPorts);
   auto vlanID = getVlanIDForTx();
