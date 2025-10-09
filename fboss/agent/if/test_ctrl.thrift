@@ -40,4 +40,9 @@ service TestCtrl extends ctrl.FbossCtrl {
   void setSelfHealingLagState(1: i32 portId, bool enable) throws (
     1: fboss.FbossBaseError error,
   );
+
+  // Set conditional entropy rehash for a NIF port of a VOQ Switch
+  void setConditionalEntropyRehash(1: i32 portId, bool enable) throws (
+    1: fboss.FbossBaseError error,
+  );
 }

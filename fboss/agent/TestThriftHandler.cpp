@@ -181,4 +181,8 @@ void TestThriftHandler::setSelfHealingLagState(int32_t portId, bool enable) {
   getSw()->updateStateBlocking("set Port SelfHealingLagstate", updateFn);
 }
 
+void TestThriftHandler::setConditionalEntropyRehash(
+    int32_t portId,
+    bool enable) {}
+
 } // namespace facebook::fboss

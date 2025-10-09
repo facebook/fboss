@@ -40,6 +40,8 @@ class TestThriftHandler : public ThriftHandler,
 
   void setSelfHealingLagState(int32_t portId, bool enable) override;
 
+  void setConditionalEntropyRehash(int32_t portId, bool enable) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   TestThriftHandler(TestThriftHandler const&) = delete;
