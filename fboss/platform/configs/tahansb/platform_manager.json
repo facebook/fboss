@@ -617,6 +617,7 @@
           "pmUnitScopedName": "PMBUS_1",
           "initRegSettings": [
             {
+              "__comment__": "Set the page to 0 to ensure the driver can read the correct registers",
               "regOffset": 0,
               "ioBuf": [
                 0
@@ -631,6 +632,7 @@
           "pmUnitScopedName": "PMBUS_2",
           "initRegSettings": [
             {
+              "__comment__": "Set the page to 0 to ensure the driver can read the correct registers",
               "regOffset": 0,
               "ioBuf": [
                 0
