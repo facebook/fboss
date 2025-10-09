@@ -5,6 +5,7 @@ namespace py neteng.fboss.test_ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.test_ctrl
 
+include "fboss/agent/if/fboss.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/switch_config.thrift"
@@ -34,4 +35,9 @@ service TestCtrl extends ctrl.FbossCtrl {
 
   // Apply the specified drain state on every NPU
   void setSwitchDrainState(1: switch_config.SwitchDrainState switchDrainState);
+
+  // Set SHEL state for a NIF port of a VOQ Switch
+  void setSelfHealingLagState(1: i32 portId, bool enable) throws (
+    1: fboss.FbossBaseError error,
+  );
 }

@@ -38,6 +38,8 @@ class TestThriftHandler : public ThriftHandler,
 
   void setSwitchDrainState(cfg::SwitchDrainState switchDrainState) override;
 
+  void setSelfHealingLagState(int32_t portId, bool enable) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   TestThriftHandler(TestThriftHandler const&) = delete;

@@ -391,6 +391,7 @@ thrift_library(
     },
     deps = [
         ":ctrl",
+        ":fboss",
         "//common/network/if:if",
         "//fboss/agent:switch_config",
     ],

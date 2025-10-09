@@ -139,4 +139,6 @@ void TestThriftHandler::addNeighbor(
 void TestThriftHandler::setSwitchDrainState(
     cfg::SwitchDrainState switchDrainState) {}
 
+void TestThriftHandler::setSelfHealingLagState(int32_t portId, bool enable) {}
+
 } // namespace facebook::fboss
