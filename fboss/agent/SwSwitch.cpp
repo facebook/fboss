@@ -4327,7 +4327,7 @@ void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
   }
 }
 
-bool SwSwitch::hasConfiguredDesiredPeers(const InterfaceID& intfId) {
+bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
   auto switchState = getState();
   auto* intf = switchState->getInterfaces()->getNode(intfId).get();
   if (intf->getDesiredPeerAddressIPv6().has_value()) {
@@ -4339,6 +4339,21 @@ bool SwSwitch::hasConfiguredDesiredPeers(const InterfaceID& intfId) {
     if (!cidrNetwork.first.isV6()) {
       XLOG(ERR) << "Desired peer address is not a valid IPv6 address: "
                 << *desiredPeerAddressString;
+      return false;
+    }
+    // Check if interface has any operational ports
+    auto portIds = getPortsForInterface(intfId, switchState);
+    bool hasOperationalPort = false;
+    for (auto portId : portIds) {
+      auto port = switchState->getPorts()->getNodeIf(portId);
+      if (port && port->isUp()) {
+        hasOperationalPort = true;
+        break;
+      }
+    }
+    if (!hasOperationalPort) {
+      XLOG(DBG4) << "Interface " << intfId
+                 << " has no operational ports, skipping desired peer check";
       return false;
     }
     return true;
