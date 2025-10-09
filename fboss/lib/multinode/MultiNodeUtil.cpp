@@ -2466,7 +2466,30 @@ bool MultiNodeUtil::verifyNoTrafficDrop() const {
         return gracefulRestart;
       }};
 
-  std::vector<Scenario> scenarios = {gracefullyRestartQsfpAllSwitches};
+  Scenario gracefullyRestartFSDBAllSwitches = {
+      "gracefullyRestartFSDBAllSwitches", [this]() {
+        // Gracefully restart FSDB on all switches
+        forEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            triggerGracefulFsdbRestart);
+
+        // Wait for FSDB to come up on all switches
+        auto gracefulRestart = checkForEachExcluding(
+            allSwitches_,
+            {}, // exclude none
+            [this](const std::string& switchName) {
+              return this->verifyFsdbIsUp(switchName);
+            });
+
+        return gracefulRestart;
+      }};
+
+  std::vector<Scenario> scenarios = {
+      std::move(gracefullyRestartQsfpAllSwitches),
+      std::move(gracefullyRestartFSDBAllSwitches),
+  };
+
   for (const auto& scenario : scenarios) {
     XLOG(DBG2) << "Running scenario: " << scenario.name;
     if (!scenario.setup()) {
