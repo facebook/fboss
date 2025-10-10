@@ -448,7 +448,7 @@ TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   XLOG(INFO) << "Step 1. Bring the ports Up";
   // By default the modules are in TransceiverProgrammed state. Bring the ports
   // up now
-  wedgeManager->setOverrideAgentPortStatusForTesting(
+  qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
       true /* up */, true /* enabled */);
   qsfpServiceHandler->refreshStateMachines();
 
@@ -483,7 +483,7 @@ TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   // when there are i2c errors on any transceiver, that transceiver will lag
   // behind but the refresh will take rest of them to active and
   // waitTillCabledTcvrProgrammed will fail
-  wedgeManager->setOverrideAgentPortStatusForTesting(
+  qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
       true /* up */, true /* enabled */, true /* clearOnly */);
   waitTillCabledTcvrProgrammed();
 }

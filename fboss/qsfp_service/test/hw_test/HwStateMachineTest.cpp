@@ -282,10 +282,10 @@ TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
     auto checkTransceiverActiveState =
         [this, &lastDownTimes](
             bool up, TransceiverStateMachineState expectedState) {
-          auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
           auto qsfpServiceHandler =
               getHwQsfpEnsemble()->getQsfpServiceHandler();
-          wedgeMgr->setOverrideAgentPortStatusForTesting(
+          auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+          qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
               up, true /* enabled */);
           qsfpServiceHandler->refreshStateMachines();
           // Adding extra refresh cycle to account for PortManager differences.
@@ -336,9 +336,10 @@ TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
 TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
   auto verify = [this]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->setOverrideAgentPortStatusForTesting(
+    auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+    qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         false /* up */, true /* enabled */);
-    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
+    qsfpServiceHandler->refreshStateMachines();
     // Reset all present transceivers
     for (auto tcvrID : getPresentTransceivers()) {
       wedgeMgr->triggerQsfpHardReset(tcvrID);
@@ -356,11 +357,12 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
   auto verify = [this]() {
     std::set<TransceiverID> enabledTcvrs;
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->setOverrideAgentPortStatusForTesting(
+    auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+    qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         true /* up */, true /* enabled */);
     // Remove pause remediation
     setPauseRemediation(false);
-    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
+    qsfpServiceHandler->refreshStateMachines();
     for (auto id : getPresentTransceivers()) {
       auto curState = wedgeMgr->getCurrentState(id);
       bool isEnabled = !wedgeMgr->getProgrammedIphyPortToPortInfo(id).empty();
@@ -377,7 +379,7 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
     }
 
     // Now set all ports down to trigger remediation
-    wedgeMgr->setOverrideAgentPortStatusForTesting(
+    qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
         false /* up */, true /* enabled */);
     // Make sure all enabled transceiver should go through:
     // XPHY_PORTS_PROGRAMMED -> TRANSCEIVER_READY -> TRANSCEIVER_PROGRAMMED

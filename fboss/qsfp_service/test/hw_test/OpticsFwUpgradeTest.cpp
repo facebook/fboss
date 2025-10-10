@@ -143,8 +143,10 @@ class OpticsFwUpgradeTest : public HwTest {
   // transitioned to ACTIVE or INACTIVE states.
   void setPortStatus(bool status) {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->setOverrideAgentPortStatusForTesting(status, true /* enabled */);
-    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
+    auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+    qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
+        status, true /* enabled */);
+    qsfpServiceHandler->refreshStateMachines();
 
     auto cabledTransceivers = utility::legacyTransceiverIds(
         utility::getCabledPortTranceivers(getHwQsfpEnsemble()));

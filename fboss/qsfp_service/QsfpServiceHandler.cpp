@@ -589,6 +589,18 @@ PhyManager* QsfpServiceHandler::getPhyManager() const {
   }
 }
 
+void QsfpServiceHandler::setOverrideAgentPortStatusForTesting(
+    bool up,
+    bool enabled,
+    bool clearOnly) {
+  if (FLAGS_port_manager_mode) {
+    getPortManager()->setOverrideAllAgentPortStatusForTesting(
+        up, enabled, clearOnly);
+  } else {
+    getTransceiverManager()->setOverrideAgentPortStatusForTesting(
+        up, enabled, clearOnly);
+  }
+}
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(
