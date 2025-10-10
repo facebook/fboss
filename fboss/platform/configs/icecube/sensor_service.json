@@ -653,7 +653,7 @@
         },
         {
           "name": "MCB_PU925_TPS25990_COMe_P12V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 13.2,
