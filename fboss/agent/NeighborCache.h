@@ -229,6 +229,8 @@ class NeighborCache {
   // Forbidden copy constructor and assignment operator
   NeighborCache(NeighborCache const&) = delete;
   NeighborCache& operator=(NeighborCache const&) = delete;
+  NeighborCache(NeighborCache&&) = delete;
+  NeighborCache& operator=(NeighborCache&&) = delete;
 
   SwSwitch* sw_;
   std::chrono::seconds timeout_;
