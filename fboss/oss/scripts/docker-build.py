@@ -22,6 +22,7 @@ OPT_ARG_LOCAL = "--local"
 OPT_ARG_NUM_JOBS = "--num-jobs"
 OPT_ARG_EXTRAS_DIR = "--extras-dir"
 OPT_ARG_EXTRA_CMAKE_DEFINES = "--extra-cmake-defines"
+OPT_ARG_DOT_FILES = "--dot-files"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -180,6 +181,16 @@ def parse_args():
             'e.g: \'{"CMAKE_CXX_FLAGS": "--bla"}\''
         ),
     )
+    parser.add_argument(
+        OPT_ARG_DOT_FILES,
+        dest="dot_files",
+        default=False,
+        action="store_true",
+        help=(
+            "Mount essential config files from the user's home directory into the container. "
+            "This includes shell configs (.bashrc/.zshrc), .ssh, .vim, .vimrc, and .gitconfig."
+        ),
+    )
 
     return parser.parse_args()
 
@@ -261,6 +272,7 @@ def run_fboss_build(
     num_jobs: Optional[int],
     extras_dir: Optional[str],
     extra_cmake_defines: Optional[str],
+    dot_files: bool = False,
 ):
     use_stable_hashes()
 
@@ -288,6 +300,27 @@ def run_fboss_build(
         cmd_args.append("-it")
     if extras_dir:
         cmd_args.extend(["-v", f"{extras_dir}:/var/extras:rw"])
+
+    # Mount dotfiles if requested
+    if dot_files:
+        home_dir = os.path.expanduser("~")
+        # Mount other common dotfiles/directories
+        dotfiles = [
+            ".bashrc", ".bash_history", ".zshrc", ".zsh_history",
+            ".config",
+            ".emacs", ".emacs.d",
+            ".gitconfig",
+            ".gnupg",
+            ".ssh",
+            ".vim", ".vimrc",
+            "bin",
+            ]
+
+        for dotfile in dotfiles:
+            host_path = os.path.join(home_dir, dotfile)
+            if os.path.exists(host_path):
+                cmd_args.extend(["-v", f"{host_path}:/home/{USERNAME}/{dotfile}:rw"])
+
     # Add args for docker container name
     cmd_args.append(f"--name={FBOSS_CONTAINER_NAME}")
     # Add args for image name
@@ -374,6 +407,7 @@ def main():
         args.num_jobs,
         args.extras_dir,
         args.extra_cmake_defines,
+        args.dot_files,
     )
 
     cleanup_fboss_build_container()
