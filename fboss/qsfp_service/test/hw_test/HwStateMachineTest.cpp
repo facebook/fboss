@@ -87,7 +87,7 @@ class HwStateMachineTest : public HwTest {
       const auto programmedPortToPortInfo =
           wedgeMgr->getProgrammedIphyPortToPortInfo(id);
       std::vector<PortID> xphyPorts;
-      if (auto phyManager = wedgeMgr->getPhyManager()) {
+      if (auto phyManager = getHwQsfpEnsemble()->getPhyManager()) {
         xphyPorts = phyManager->getXphyPorts();
       }
 
@@ -228,7 +228,7 @@ TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
                                                  tcvrs) {
       auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
       std::vector<PortID> xphyPorts;
-      if (auto phyManager = wedgeMgr->getPhyManager()) {
+      if (auto phyManager = getHwQsfpEnsemble()->getPhyManager()) {
         xphyPorts = phyManager->getXphyPorts();
       }
 
@@ -423,7 +423,7 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       std::
           unordered_map<TransceiverID, std::queue<TransceiverStateMachineState>>
               expectedStates;
-      bool hasXphy = (wedgeMgr->getPhyManager() != nullptr);
+      bool hasXphy = (getHwQsfpEnsemble()->getPhyManager() != nullptr);
       // All tcvrs should go through no matter present or absent
       // IPHY_PORTS_PROGRAMMED -> XPHY_PORTS_PROGRAMMED ->
       // -> TRANSCEIVER_READY -> TRANSCEIVER_PROGRAMMED
