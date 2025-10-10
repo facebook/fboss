@@ -65,6 +65,29 @@ uint32_t FlowRecord::size() const {
   return 4 /* flowFormat */ + 4 /* flowDataLen */ + dataSize;
 }
 
+FlowRecord FlowRecord::deserialize(Cursor& cursor) {
+  FlowRecord flowRecord;
+
+  // Read the flow format
+  flowRecord.flowFormat = cursor.readBE<DataFormat>();
+
+  // Read the flow data length
+  uint32_t flowDataLen = cursor.readBE<uint32_t>();
+
+  // Read the flow data
+  flowRecord.flowData.resize(flowDataLen);
+  cursor.pull(flowRecord.flowData.data(), flowDataLen);
+
+  // Skip XDR padding if needed
+  if (flowDataLen % XDR_BASIC_BLOCK_SIZE != 0) {
+    uint32_t paddingBytes =
+        XDR_BASIC_BLOCK_SIZE - (flowDataLen % XDR_BASIC_BLOCK_SIZE);
+    cursor.skip(paddingBytes);
+  }
+
+  return flowRecord;
+}
+
 void FlowSample::serialize(RWPrivateCursor* cursor) const {
   cursor->writeBE<uint32_t>(this->sequenceNumber);
   serializeSflowDataSource(cursor, this->sourceID);

@@ -58,6 +58,7 @@ struct FlowRecord {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static FlowRecord deserialize(folly::io::Cursor& cursor);
 };
 
 // TODO (sgwang)

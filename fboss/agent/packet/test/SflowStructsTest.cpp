@@ -76,6 +76,88 @@ TEST(SflowStructsTest, FlowRecord) {
           0x00));
 }
 
+TEST(SflowStructsTest, FlowRecordDeserialization) {
+  // Test FlowRecord deserialization functionality
+
+  // Create a buffer with serialized FlowRecord data
+  std::vector<uint8_t> serializedData = {// flowFormat (1) as big-endian
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x01,
+                                         // flowDataLen (5) as big-endian
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x05,
+                                         // data content
+                                         0x01,
+                                         0x02,
+                                         0x03,
+                                         0x04,
+                                         0x05,
+                                         // padding bytes (zero)
+                                         0x00,
+                                         0x00,
+                                         0x00};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the FlowRecord
+  sflow::FlowRecord flowRecord = sflow::FlowRecord::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(flowRecord.flowFormat, 1);
+  EXPECT_EQ(flowRecord.flowData.size(), 5);
+  EXPECT_THAT(flowRecord.flowData, ElementsAre(0x01, 0x02, 0x03, 0x04, 0x05));
+}
+
+TEST(SflowStructsTest, FlowRecordSerializeDeserializeRoundTrip) {
+  // Test serialize-deserialize round trip for FlowRecord
+
+  // Create original FlowRecord with various data sizes to test padding
+  std::vector<std::vector<uint8_t>> testData = {
+      {},
+      {0xAA}, // 1 byte (3 bytes padding)
+      {0xBB, 0xCC}, // 2 bytes (2 bytes padding)
+      {0xDD, 0xEE, 0xFF}, // 3 bytes (1 byte padding)
+      {0x11, 0x22, 0x33, 0x44}, // 4 bytes (no padding)
+      {0x55, 0x66, 0x77, 0x88, 0x99} // 5 bytes (3 bytes padding)
+  };
+
+  for (size_t i = 0; i < testData.size(); ++i) {
+    // Create original FlowRecord
+    sflow::FlowRecord original;
+    original.flowFormat = 1;
+    original.flowData = testData[i];
+
+    // Serialize
+    int bufSize = 1024;
+    std::vector<uint8_t> buffer(bufSize);
+    auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+    auto rwCursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+    original.serialize(rwCursor.get());
+    size_t serializedSize = bufSize - rwCursor->length();
+
+    // Deserialize
+    auto readBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
+    folly::io::Cursor readCursor(readBuf.get());
+
+    sflow::FlowRecord deserialized = sflow::FlowRecord::deserialize(readCursor);
+
+    // Verify round-trip correctness
+    EXPECT_EQ(deserialized.flowFormat, original.flowFormat)
+        << "Mismatch for test case " << i;
+    EXPECT_EQ(deserialized.flowData.size(), original.flowData.size())
+        << "Data size mismatch for test case " << i;
+    EXPECT_THAT(deserialized.flowData, ContainerEq(original.flowData))
+        << "Data content mismatch for test case " << i;
+  }
+}
+
 TEST(SflowStructsTest, FlowSample) {
   // Test comprehensive functionality of FlowSample with detailed
   // serialization verification
