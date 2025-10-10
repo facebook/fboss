@@ -313,11 +313,12 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
   patch = patches.front();
-  using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
+  using LocalTestStructMembers =
+      apache::thrift::reflect_struct<TestStruct>::member;
   auto newVal = patch.patch()
                     ->struct_node_ref()
                     ->children()
-                    ->at(TestStructMembers::tx::id::value)
+                    ->at(LocalTestStructMembers::tx::id::value)
                     .val_ref();
   auto deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, bool>(
@@ -1117,9 +1118,10 @@ TYPED_TEST(SubscribableStorageTests, ApplyPatch) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStructSimple>>(
       std::move(newStruct));
 
-  using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
+  using LocalTestStructMembers =
+      apache::thrift::reflect_struct<TestStruct>::member;
   std::vector<std::string> path = {
-      folly::to<std::string>(TestStructMembers::member::id::value)};
+      folly::to<std::string>(LocalTestStructMembers::member::id::value)};
   auto patch = PatchBuilder::build(nodeA, nodeB, std::move(path));
 
   auto memberStruct = storage.get(this->root.member());
