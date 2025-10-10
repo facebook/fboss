@@ -124,6 +124,8 @@ void SensorServiceImpl::fetchSensorData() {
     publishPerSensorStats(kAsicTemp, sensorData.value().to_optional());
   }
 
+  processPowerConsumption(polledData, *sensorConfig_.powerConsumptionConfigs());
+
   fb303::fbData->setCounter(kReadTotal, polledData.size());
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
   fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
@@ -220,6 +222,18 @@ void SensorServiceImpl::publishPerSensorStats(
   }
 }
 
+void SensorServiceImpl::publishDerivedStats(
+    const std::string& entity,
+    std::optional<float> value) {
+  fb303::fbData->setCounter(
+      fmt::format(kDerivedValue, entity), value.value_or(0));
+  if (!value) {
+    fb303::fbData->setCounter(fmt::format(kDerivedFailure, entity), 1);
+  } else {
+    fb303::fbData->setCounter(fmt::format(kDerivedFailure, entity), 0);
+  }
+}
+
 SensorData SensorServiceImpl::getAsicTemp(const SwitchAsicTemp& asicTemp) {
   SensorData sensorData{};
   sensorData.name() = kAsicTemp;
@@ -253,4 +267,49 @@ SensorData SensorServiceImpl::getAsicTemp(const SwitchAsicTemp& asicTemp) {
   return sensorData;
 }
 
+void SensorServiceImpl::processPowerConsumption(
+    const std::map<std::string, SensorData>& polledData,
+    const std::vector<PowerConsumptionConfig>& pcConfigs) {
+  auto getSensorValue = [&](const std::string& sensorName) {
+    auto it = polledData.find(sensorName);
+    if (it != polledData.end()) {
+      return it->second.value().to_optional();
+    }
+    return std::optional<float>(std::nullopt);
+  };
+  float totalPowerVal{0};
+  for (const auto& pcConfig : pcConfigs) {
+    std::optional<float> psuPower{std::nullopt};
+    std::string calcMethod{};
+    if (pcConfig.powerSensorName()) {
+      psuPower = getSensorValue(*pcConfig.powerSensorName());
+      calcMethod = fmt::format("Power Sensor: {}", *pcConfig.powerSensorName());
+    } else if (pcConfig.voltageSensorName() && pcConfig.currentSensorName()) {
+      auto voltage = getSensorValue(*pcConfig.voltageSensorName());
+      auto current = getSensorValue(*pcConfig.currentSensorName());
+      if (voltage && current) {
+        psuPower = *voltage * *current;
+      }
+      calcMethod = fmt::format(
+          "Voltage Sensor: {} * Current Sensor: {}",
+          *pcConfig.voltageSensorName(),
+          *pcConfig.currentSensorName());
+    }
+    publishDerivedStats(fmt::format("{}_POWER", *pcConfig.name()), psuPower);
+    if (psuPower) {
+      XLOG(INFO) << fmt::format(
+          "{}: Power {}W (Based on {})",
+          *pcConfig.name(),
+          *psuPower,
+          calcMethod);
+      totalPowerVal += *psuPower;
+    } else {
+      XLOG(ERR) << fmt::format(
+          "{}: Error reading power (Based on {})",
+          *pcConfig.name(),
+          calcMethod);
+    }
+  }
+  publishDerivedStats(kTotalPower, totalPowerVal);
+}
 } // namespace facebook::fboss::platform::sensor_service

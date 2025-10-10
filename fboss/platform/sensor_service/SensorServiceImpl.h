@@ -11,7 +11,6 @@
 #pragma once
 
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include <folly/Synchronized.h>
@@ -38,6 +37,9 @@ class SensorServiceImpl {
   auto static constexpr kCriticalThresholdViolation =
       "sensor_read.sensor_{}.type_{}.critical_threshold_violation";
   auto static constexpr kAsicTemp = "asic_temp";
+  auto static constexpr kTotalPower = "TOTAL_POWER";
+  auto static constexpr kDerivedFailure = "derived.{}.failure";
+  auto static constexpr kDerivedValue = "derived.{}.value";
 
   explicit SensorServiceImpl(
       const SensorConfig& sensorConfig,
@@ -56,6 +58,10 @@ class SensorServiceImpl {
     return fsdbSyncer_.get();
   }
 
+  void processPowerConsumption(
+      const std::map<std::string, SensorData>& polledData,
+      const std::vector<PowerConsumptionConfig>& pcConfigs);
+
  private:
   SensorData fetchSensorDataImpl(
       const std::string& name,
@@ -66,6 +72,10 @@ class SensorServiceImpl {
 
   void publishPerSensorStats(
       const std::string& sensorName,
+      std::optional<float> value);
+
+  void publishDerivedStats(
+      const std::string& entity,
       std::optional<float> value);
 
   SensorData getAsicTemp(const SwitchAsicTemp& asicTemp);

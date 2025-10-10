@@ -31,7 +31,8 @@ AggregatePort::AggregatePort(
     const std::vector<int32_t>& interfaceIDs,
     LegacyAggregatePortFields::Forwarding fwd,
     ParticipantInfo pState,
-    std::optional<uint8_t> minimumLinkCountToUp) {
+    std::optional<uint8_t> minimumLinkCountToUp,
+    cfg::AggregatePortType aggregatePortType) {
   set<switch_state_tags::id>(id);
   set<switch_state_tags::name>(name);
   set<switch_state_tags::description>(description);
@@ -57,6 +58,7 @@ AggregatePort::AggregatePort(
   if (minimumLinkCountToUp.has_value()) {
     set<switch_state_tags::minimumLinkCountToUp>(minimumLinkCountToUp.value());
   }
+  set<switch_state_tags::aggregatePortType>(aggregatePortType);
 }
 
 AggregatePort::AggregatePort(
@@ -69,7 +71,8 @@ AggregatePort::AggregatePort(
     Subports&& ports,
     SubportToForwardingState&& portStates,
     SubportToPartnerState&& portPartnerStates,
-    std::optional<uint8_t> minLinkCountToUp) {
+    std::optional<uint8_t> minLinkCountToUp,
+    cfg::AggregatePortType aggregatePortType) {
   set<switch_state_tags::id>(id);
   set<switch_state_tags::name>(name);
   set<switch_state_tags::description>(description);
@@ -93,6 +96,7 @@ AggregatePort::AggregatePort(
   if (minLinkCountToUp.has_value()) {
     set<switch_state_tags::minimumLinkCountToUp>(minLinkCountToUp.value());
   }
+  set<switch_state_tags::aggregatePortType>(aggregatePortType);
 }
 
 uint32_t AggregatePort::forwardingSubportCount() const {
@@ -177,6 +181,18 @@ bool AggregatePort::isIngressValid(
   return isValid;
 }
 
+/*
+ * [minLinkCount, minLinkCountToUp(optional)] are used to determine the LAG
+ * min-link requirement in LACP machine.
+ * If min-link requirement is not met, all Up subports will be in STANDBY state
+ * with forwarding disabled.
+ * So basically, as long as forwardingSubportCount > 0, the LAG is considered as
+ * up.
+ * But we need to cover a special case where a new port is down in fast-path, in
+ * which case, forwardingSubportCount might > 0 but < minLinkCount. This will
+ * also be considered as LAG down for fast-path.
+ * To cover both, simply use minLinkCount in the check.
+ */
 bool AggregatePort::isUp() const {
   return forwardingSubportCount() >= getMinimumLinkCount();
 }

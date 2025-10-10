@@ -167,7 +167,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     transceiverManager_->setPauseRemediation(60, nullptr);
     enableTransceiverFirmwareUpgradeTesting(false);
 
-    auto discoverTransceiver = [this]() {
+    auto discoverTransceiverFn = [this]() {
       // One refresh can finish discoverring xcvr after detectPresence
       transceiverManager_->refreshStateMachines();
     };
@@ -221,7 +221,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         xcvr_->updateQsfpData(true);
         break;
       case TransceiverStateMachineState::DISCOVERED:
-        discoverTransceiver();
+        discoverTransceiverFn();
         break;
       case TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED:
         programIphy();

@@ -787,6 +787,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_ARS_PORT_LOAD_FUTURE_WEIGHT:
       port.ars_port_load_future_weight = attr->value.u32;
       break;
+    case SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE:
+      port.resetQueueCreditBalance = attr->value.booldata;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -1141,6 +1144,9 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.maplist.list[j] = port.portPgPktDropStatus[j];
         }
         attr[i].value.maplist.count = port.portPgPktDropStatus.size();
+        break;
+      case SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE:
+        attr[i].value.booldata = port.resetQueueCreditBalance;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

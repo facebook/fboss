@@ -34,7 +34,7 @@ inline int64_t timevalToUsec(const timeval& tv) {
 }
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  const folly::Init init(&argc, &argv, true);
   // For HW benchmarks its not always possible to teardown and re setup the HW
   // without exiting the process. So as benchmark framework to only a single
   // iteration (2^1, since folly benhmark counts in powers of 2)of benchmark

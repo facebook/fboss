@@ -47,4 +47,17 @@ Janga800bicPlatformMapping::Janga800bicPlatformMapping(
     bool multiNpuPlatformMapping)
     : PlatformMapping(getPlatformMappingStr(multiNpuPlatformMapping)) {}
 
+std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+Janga800bicPlatformMapping::getCpuPortsCoreAndPortIdx() const {
+  static const std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+      kCpuPortsCoreAndPortIdx = {
+          // {CPU System Port, {Core ID, Port ID/PP_DSP}}
+          {0, {0, 0}},
+          {1, {1, 0}},
+          {2, {2, 0}},
+          {3, {3, 0}},
+      };
+
+  return kCpuPortsCoreAndPortIdx;
+}
 } // namespace facebook::fboss

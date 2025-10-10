@@ -157,6 +157,8 @@ struct ArpEntryThrift {
   11: optional i64 resolvedSince;
   12: i32 interfaceID;
   13: switch_config.PortDescriptor portDescriptor;
+  14: optional i32 probesLeft;
+  15: optional i32 maxNeighborProbes;
 }
 
 enum L2EntryType {
@@ -248,6 +250,8 @@ struct InterfaceDetail {
   8: optional common.RemoteInterfaceType remoteIntfType;
   9: optional common.LivenessStatus remoteIntfLivenessStatus;
   10: switch_config.Scope scope = switch_config.Scope.LOCAL;
+  // PortId populated only for interfaces of type PORT
+  11: i32 portId;
 }
 
 /*
@@ -441,6 +445,8 @@ struct SystemPortThrift {
   15: bool shelDestinationEnabled_DEPRECATED = false;
   16: optional bool shelDestinationEnabled;
   17: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;
+  // VoQs under this system port do not need credits to send traffic out
+  18: optional bool pushQueueEnabled;
 }
 
 struct PortHardwareDetails {
@@ -465,6 +471,8 @@ struct NdpEntryThrift {
   11: optional i64 resolvedSince;
   12: i32 interfaceID;
   13: switch_config.PortDescriptor portDescriptor;
+  14: optional i32 probesLeft;
+  15: optional i32 maxNeighborProbes;
 }
 
 enum BootType {

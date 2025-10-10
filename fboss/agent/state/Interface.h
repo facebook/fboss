@@ -495,6 +495,29 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     return std::nullopt;
   }
 
+  void setDesiredPeerName(const std::string& desiredPeerName) {
+    set<switch_state_tags::desiredPeerName>(desiredPeerName);
+  }
+
+  void setDesiredPeerAddressIPv6(const std::string& desiredPeerAddressIPv6) {
+    set<switch_state_tags::desiredPeerAddressIPv6>(desiredPeerAddressIPv6);
+  }
+
+  std::optional<std::string> getDesiredPeerName() const {
+    if (auto desiredPeerName = cref<switch_state_tags::desiredPeerName>()) {
+      return desiredPeerName->cref();
+    }
+    return std::nullopt;
+  }
+
+  std::optional<std::string> getDesiredPeerAddressIPv6() const {
+    if (auto desiredPeerAddressIPv6 =
+            cref<switch_state_tags::desiredPeerAddressIPv6>()) {
+      return desiredPeerAddressIPv6->cref();
+    }
+    return std::nullopt;
+  }
+
   /*
    * Inherit the constructors required for clone().
    * This needs to be public, as std::make_shared requires

@@ -49,6 +49,12 @@ std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
   return nullptr;
 }
 
+std::unique_ptr<PhyManager> createPhyManager(
+    PlatformType mode,
+    const PlatformMapping* platformMapping) {
+  return nullptr;
+}
+
 bool isElbert8DD() {
   return false;
 }

@@ -1076,8 +1076,8 @@ void IPv6Handler::floodNeighborAdvertisements() {
         continue;
       }
 
-      for (auto iter : std::as_const(*intf->getAddresses())) {
-        auto addrEntry = folly::IPAddress(iter.first);
+      for (auto addrIter : std::as_const(*intf->getAddresses())) {
+        auto addrEntry = folly::IPAddress(addrIter.first);
         if (!addrEntry.isV6()) {
           continue;
         }

@@ -30,5 +30,9 @@ void setCreditWatchdogAndPortTx(
     bool enable);
 void enableCreditWatchdog(TestEnsembleIf* ensemble, bool enable);
 void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable);
+void resetQueueCreditBalance(
+    TestEnsembleIf* ensemble,
+    PortID port,
+    bool enable);
 } // namespace utility
 } // namespace facebook::fboss

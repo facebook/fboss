@@ -118,8 +118,20 @@ struct SwitchAsicTemp {
   2: optional string deviceId;
 }
 
+struct PowerConsumptionConfig {
+  // This name should be the unique name of each PSU, PEM, etc. in the platform
+  // e.g. PSU1, PSU2, PEM1, PEM2, etc
+  1: string name;
+  // If there is power sensor, this should be set
+  2: optional string powerSensorName;
+  // If no power sensor, the following two fields should be set
+  3: optional string voltageSensorName;
+  4: optional string currentSensorName;
+}
+
 // The configuration for sensor mapping.
 struct SensorConfig {
   1: list<PmUnitSensors> pmUnitSensorsList;
   2: optional SwitchAsicTemp switchAsicTemp;
+  3: list<PowerConsumptionConfig> powerConsumptionConfigs;
 }

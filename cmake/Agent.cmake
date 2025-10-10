@@ -257,6 +257,7 @@ add_library(core
   fboss/agent/DsfSubscription.cpp
   fboss/agent/DsfUpdateValidator.cpp
   fboss/agent/FabricConnectivityManager.cpp
+  fboss/agent/FabricLinkMonitoring.cpp
   fboss/agent/EncapIndexAllocator.cpp
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
@@ -628,6 +629,7 @@ add_library(split_agent_thrift_syncer
   fboss/agent/mnpu/SplitAgentThriftSyncer.cpp
   fboss/agent/mnpu/SplitAgentThriftSyncerClient.cpp
   fboss/agent/mnpu/TxPktEventSyncer.cpp
+  fboss/agent/mnpu/IpcHealthMonitor.cpp
 )
 
 target_link_libraries(split_agent_thrift_syncer

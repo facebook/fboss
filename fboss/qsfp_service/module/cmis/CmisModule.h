@@ -21,8 +21,10 @@ enum class CmisPages : int {
   PAGE00 = 0,
   PAGE01 = 1,
   PAGE02 = 2,
+  PAGE04 = 4,
   PAGE10 = 0x10,
   PAGE11 = 0x11,
+  PAGE12 = 0x12,
   PAGE13 = 0x13,
   PAGE14 = 0x14,
   PAGE20 = 0x20,
@@ -177,20 +179,22 @@ class CmisModule : public QsfpModule {
   // referenced information, including vendor identifiers.  There are
   // three other optional pages;  the third provides a bunch of
   // alarm and warning thresholds which we are interested in.
-  uint8_t lowerPage_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page0_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page01_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page02_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page10_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page11_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page13_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page14_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page20_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page21_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page22_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page24_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page25_[MAX_QSFP_PAGE_SIZE];
-  uint8_t page26_[MAX_QSFP_PAGE_SIZE];
+  uint8_t lowerPage_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page0_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page01_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page02_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page04_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page10_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page11_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page12_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page13_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page14_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page22_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page24_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
@@ -451,6 +455,10 @@ class CmisModule : public QsfpModule {
 
   void resetDataPath() override;
 
+  /*
+   * returns whether optics frequency is tunable or not
+   */
+  bool isTunableOptics() const;
   /*
    * Returns the ApplicationAdvertisingField corresponding to the application or
    * nullopt if it doesn't exist

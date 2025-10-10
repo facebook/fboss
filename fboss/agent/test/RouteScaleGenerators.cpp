@@ -508,4 +508,25 @@ bool TurboFSWRouteScaleGenerator::isSupported(PlatformType type) const {
       type == PlatformType::PLATFORM_FUJI ||
       type == PlatformType::PLATFORM_ELBERT);
 }
+
+NSFRouteScaleGenerator::NSFRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth,
+    const RouterID& routerId)
+    : RouteDistributionGenerator(
+          startingState,
+          // v6 distribution
+          {
+              {128, 3082}, // 6k is desired scale, remaining 3062 are generated
+                           // internally
+              {64, 68856}, // 75,000 -
+          },
+          {},
+          chunkSize,
+          ecmpWidth,
+          needL2EntryForNeighbor,
+          routerId) {}
+
 } // namespace facebook::fboss::utility

@@ -29,6 +29,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentNSFScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNeighborTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosSchedulerTests.cpp
@@ -136,6 +137,7 @@ target_link_libraries(agent_hw_test_src
   ecmp_test_utils
   scale_test_utils
   neighbor_test_utils
+  system_scale_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test

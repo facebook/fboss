@@ -12,8 +12,10 @@ target_link_libraries(hw_qsfp_ensemble
   resourcelibutil
   phy_management_base
   transceiver_manager
+  port_manager
   qsfp_handler
   qsfp_core
+  qsfp_platforms_wedge
 )
 
 add_library(hw_transceiver_utils
@@ -49,6 +51,8 @@ add_executable(qsfp_hw_test
 
 target_link_libraries(qsfp_hw_test
   hw_qsfp_ensemble
+  qsfp_module
+  qsfp_lib
   hw_transceiver_utils
   port_test_utils
   ${GTEST}

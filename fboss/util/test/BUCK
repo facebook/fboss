@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
@@ -7,6 +8,7 @@ cpp_unittest(
     srcs = [
         "QsfpUtilTest.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "//common/init:init",
         "//fboss/util:wedge_qsfp_util_module",

@@ -96,6 +96,8 @@ class SaiPhyManager : public PhyManager {
   phy::PhyInfo getPhyInfo(PortID swPort) override;
   void updateAllXphyPortsStats() override;
 
+  bool isXphyStatsCollectionDone(PortID portID) const override;
+
   bool getSdkState(const std::string& fileName) override;
 
   bool setupMacsecState(
@@ -234,7 +236,12 @@ class SaiPhyManager : public PhyManager {
   const folly::MacAddress localMac_;
   std::map<PimID, std::map<GlobalXphyID, std::unique_ptr<PlatformInfo>>>
       saiPlatforms_;
-  std::map<PimID, std::optional<folly::Future<folly::Unit>>>
+
+  // pim2OngoingStatsCollection_ needs to be synchronized because it's updated
+  // in the updateAllXphyPortsStats loop and can be read from in the main
+  // thread through isXphyStatsCollectionDone
+  folly::Synchronized<
+      std::map<PimID, std::optional<folly::Future<folly::Unit>>>>
       pim2OngoingStatsCollection_;
 };
 

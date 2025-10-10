@@ -788,6 +788,24 @@ class SwitchSettings
     }
   }
 
+  void setFabricLinkMonitoringSystemPortOffset(
+      std::optional<int32_t> fabricLinkMonitoringSystemPortOffset) {
+    if (!fabricLinkMonitoringSystemPortOffset) {
+      ref<switch_state_tags::fabricLinkMonitoringSystemPortOffset>().reset();
+    } else {
+      set<switch_state_tags::fabricLinkMonitoringSystemPortOffset>(
+          *fabricLinkMonitoringSystemPortOffset);
+    }
+  }
+
+  std::optional<int32_t> getFabricLinkMonitoringSystemPortOffset() const {
+    if (auto fabricLinkMonitoringSystemPortOffset =
+            cref<switch_state_tags::fabricLinkMonitoringSystemPortOffset>()) {
+      return fabricLinkMonitoringSystemPortOffset->toThrift();
+    }
+    return std::nullopt;
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

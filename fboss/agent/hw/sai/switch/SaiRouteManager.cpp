@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/Utils.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -296,13 +297,12 @@ void SaiRouteManager::addOrUpdateRoute(
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
 
-      // Read ARS class ID from next hop group metadata and set it in route
-      // metadata
-      auto arsClassId =
-          managerTable_->nextHopGroupManager().getNextHopGroupArsClassId(
-              nextHopGroupHandle);
-      if (arsClassId != 0) {
-        // Override the existing metadata with ARS class ID if it's non-zero
+      if (FLAGS_enable_th5_ars_scale_mode) {
+        // Read ARS class ID from next hop group metadata and set it in route
+        // metadata
+        auto arsClassId =
+            managerTable_->nextHopGroupManager().getNextHopGroupArsClassId(
+                nextHopGroupHandle);
         metadata = arsClassId;
         XLOG(DBG3) << "Route with ECMP: " << newRoute->str()
                    << " setting metadata to ARS class ID: " << arsClassId;
@@ -409,6 +409,19 @@ void SaiRouteManager::addOrUpdateRoute(
         }
       }
 
+      if (FLAGS_enable_th5_ars_scale_mode) {
+        // if route metadata is not set and it was previously set to ars
+        // alternate meta data, set it to zero to reset in hardware since
+        // metadata is an optional attribute and setting it to std::nullopt
+        // will not clear old value from hardware
+        if (!metadata.has_value() && routeHandle->metadata_.has_value() &&
+            routeHandle->metadata_.value() ==
+                static_cast<uint32_t>(
+                    cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS)) {
+          metadata = 0;
+        }
+      }
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, nextHopId, metadata, counterID};
@@ -460,6 +473,7 @@ void SaiRouteManager::addOrUpdateRoute(
   if (!newRoute->isConnected()) {
     checkMetadata(entry);
   }
+  routeHandle->metadata_ = metadata;
 }
 
 template <typename AddrT>

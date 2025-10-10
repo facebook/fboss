@@ -49,8 +49,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     std::vector<folly::IPAddressV6> ips{};
     auto portIds = masterLogicalInterfacePortIds();
     for (int idx = 1; idx <= portIds.size(); idx++) {
-      ips.push_back(
-          folly::IPAddressV6(folly::to<std::string>(2401, "::", idx)));
+      ips.emplace_back(folly::to<std::string>(2401, "::", idx));
     }
     return ips;
   }
@@ -61,7 +60,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     std::vector<PortDescriptor> portDescriptors;
     std::vector<flat_set<PortDescriptor>> portDescSets;
     for (auto& portId : masterLogicalInterfacePortIds()) {
-      portDescriptors.push_back(PortDescriptor(portId));
+      portDescriptors.emplace_back(portId);
       portDescSets.push_back(flat_set<PortDescriptor>{PortDescriptor(portId)});
     }
     applyNewState([&portDescriptors,
@@ -75,7 +74,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
 
     std::vector<RoutePrefixV6> routePrefixes;
     for (auto prefix : getOneRemoteHostIpPerInterfacePort()) {
-      routePrefixes.push_back(RoutePrefixV6{prefix, 128});
+      routePrefixes.emplace_back(prefix, 128);
     }
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(&routeUpdater, portDescSets, routePrefixes);

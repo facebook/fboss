@@ -148,7 +148,7 @@ class MultiNodeOpenrTest : public MultiNodeTest {
     std::vector<folly::IPAddress> nbrs;
     auto makeIps = [&nbrs](const std::vector<std::string>& nbrStrs) {
       for (auto& nbr : nbrStrs) {
-        nbrs.push_back(folly::IPAddress(nbr));
+        nbrs.emplace_back(nbr);
       }
     };
     if (isDUT()) {

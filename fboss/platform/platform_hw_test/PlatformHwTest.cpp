@@ -16,7 +16,6 @@
 #include <sys/ioctl.h>
 #include <filesystem>
 #include <memory>
-#include <set>
 #include <sstream>
 
 #include "fboss/platform/helpers/Init.h"

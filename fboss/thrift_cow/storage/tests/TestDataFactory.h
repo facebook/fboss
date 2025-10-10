@@ -66,11 +66,13 @@ enum RoleSelector {
   EDSW = 14,
 };
 
-struct FibScale {
+struct SwitchStateScale {
   int fibV4Size;
   int fibV6Size;
   int v4Nexthops;
   int v6Nexthops;
+  int remoteSystemPortMapSize;
+  int remoteInterfaceMapSize;
 };
 
 struct AgentStatsScale {
@@ -120,7 +122,7 @@ class FsdbStateDataFactory : public IDataGenerator {
   fsdb::FsdbOperStateRoot buildFsdbOperStateRoot();
   SwitchState buildSwitchState();
   FibContainerFields buildFibData();
-  FibScale getRoleScale(RoleSelector role);
+  SwitchStateScale getRoleScale(RoleSelector role);
 
   RouteFields createRouteFields(
       const std::string& prefix,
@@ -134,6 +136,9 @@ class FsdbStateDataFactory : public IDataGenerator {
       bool isV6 = false,
       const std::string& baseIf = "eth");
   BinaryAddress createBinaryAddress(const folly::IPAddress& addr);
+
+  // Helper methods for remote system ports and remote interfaces
+  void populateRemoteSystemPortsAndInterfaces(SwitchState& switchState);
 
   RoleSelector selector_;
   OperProtocol protocol_{OperProtocol::COMPACT};

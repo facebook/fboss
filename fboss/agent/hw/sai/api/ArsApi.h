@@ -71,7 +71,6 @@ struct SaiArsTraits {
       std::optional<Attributes::AlternatePathBias>>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   using AdapterHostKey = std::tuple<
-      Attributes::Mode,
       std::optional<Attributes::AlternatePathCost>,
       std::optional<Attributes::AlternatePathBias>>;
 #else
@@ -90,7 +89,6 @@ inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   return SaiArsTraits::AdapterHostKey{
-      std::get<SaiArsTraits::Attributes::Mode>(createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathCost>>(
           createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathBias>>(

@@ -115,7 +115,8 @@ sai_port_media_type_t getSaiPortMediaType(
         case cfg::PortSpeed::FORTYG:
         case cfg::PortSpeed::HUNDREDG:
           return SAI_PORT_MEDIA_TYPE_FIBER;
-
+        case cfg::PortSpeed::THREEPOINTTWOT:
+          return SAI_PORT_MEDIA_TYPE_NOT_PRESENT;
         default:
           return SAI_PORT_MEDIA_TYPE_COPPER;
       }

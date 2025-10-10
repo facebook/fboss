@@ -13,17 +13,10 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 
-#include <re2/re2.h>
-
 namespace {
-constexpr std::array<int, 4> kSingleStageCpuUcodePorts = {0, 44, 45, 46};
-constexpr std::array<int, 4> kDualStageCpuUcodePorts = {0, 45, 46, 47};
 constexpr auto kCpuPortSpeed = 10000;
 constexpr auto kSingleStageCpuPortNumVoqs = 8;
 constexpr auto kDualStageCpuPortNumVoqs = 3;
-constexpr auto kCpuPortConfig =
-    "CPU.([0-9]{1,2})\\:core_([0-3])\\.([0-9]{1,2})";
-static const re2::RE2 kCpuPortConfigRegex(kCpuPortConfig);
 } // namespace
 
 namespace facebook::fboss {
@@ -51,36 +44,6 @@ HwAsic* SaiMeru800biaPlatform::getAsic() const {
   return asic_.get();
 }
 
-std::map<uint32_t, std::pair<uint32_t, uint32_t>>
-SaiMeru800biaPlatform::getCpuPortsCoreAndPortIdx() const {
-  std::map<uint32_t, std::pair<uint32_t, uint32_t>> cpuPortsCoreAndPortIdx;
-  const auto& bcmConfig = getConfig()
-                              ->thrift.platform()
-                              ->chip()
-                              ->get_asicConfig()
-                              .common()
-                              ->get_config();
-  const auto& cpuUcodePorts = isDualStage3Q2QMode() ? kDualStageCpuUcodePorts
-                                                    : kSingleStageCpuUcodePorts;
-  for (const auto& [key, value] : std::as_const(bcmConfig)) {
-    for (auto cpuPortID = 0; cpuPortID < cpuUcodePorts.size(); cpuPortID++) {
-      auto cpuUcodePort = cpuUcodePorts[cpuPortID];
-      if (key ==
-          folly::to<std::string>("ucode_port_", cpuUcodePort, ".BCM8889X")) {
-        uint32_t channel = 0, coreIdx = 0, corePortIdx = 0;
-        if (re2::RE2::PartialMatch(
-                value, kCpuPortConfigRegex, &channel, &coreIdx, &corePortIdx)) {
-        } else {
-          XLOG(FATAL) << "Failed to match CPU port config: " << value;
-        }
-        cpuPortsCoreAndPortIdx[cpuPortID] =
-            std::make_pair(coreIdx, corePortIdx);
-      }
-    }
-  }
-  return cpuPortsCoreAndPortIdx;
-}
-
 std::vector<sai_system_port_config_t>
 SaiMeru800biaPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
@@ -90,7 +53,8 @@ SaiMeru800biaPlatform::getInternalSystemPortConfig() const {
   const uint32_t speed = kCpuPortSpeed;
   const uint32_t numVoqs = isDualStage3Q2QMode() ? kDualStageCpuPortNumVoqs
                                                  : kSingleStageCpuPortNumVoqs;
-  auto cpuPortsCoreAndPortIdx = getCpuPortsCoreAndPortIdx();
+  auto cpuPortsCoreAndPortIdx =
+      getPlatformMapping()->getCpuPortsCoreAndPortIdx();
 
   CHECK(
       cpuPortsCoreAndPortIdx.size() == 1 || cpuPortsCoreAndPortIdx.size() == 4)

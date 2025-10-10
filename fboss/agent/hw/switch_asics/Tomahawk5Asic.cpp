@@ -78,6 +78,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::ARS:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
+    case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -118,6 +119,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -143,7 +145,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
@@ -272,6 +274,12 @@ std::optional<uint32_t> Tomahawk5Asic::getMaxArsGroups() const {
 }
 
 std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
-  return getMaxEcmpGroups().value() - getMaxArsGroups().value();
+  // ideally this needs to be dynamic based on getMaxArsGroups
+  // getMaxEcmpGroups().value() - getMaxArsGroups().value();
+  //
+  // BRCM SAI SDK has this hard-coded for TH5 to not allow base index
+  // >(4096-256)
+  // So setting default start index as 3840
+  return getMaxEcmpGroups().value() - 256;
 }
 } // namespace facebook::fboss

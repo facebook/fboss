@@ -38,6 +38,9 @@ class FsdbSubManagerBase {
 
   SubscriptionKey addPathImpl(const std::vector<std::string>& pathTokens);
 
+  SubscriptionKey addExtendedPathImpl(
+      const std::vector<OperPathElem>& pathTokens);
+
   void subscribeImpl(
       std::function<void(SubscriberChunk&&)> chunkHandler,
       std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb);
@@ -51,6 +54,8 @@ class FsdbSubManagerBase {
   std::unique_ptr<FsdbPatchSubscriber> subscriber_;
   SubscriptionKey nextKey_{0};
   std::map<SubscriptionKey, RawOperPath> subscribePaths_;
+  std::unique_ptr<FsdbExtPatchSubscriber> extSubscriber_;
+  std::map<SubscriptionKey, ExtendedOperPath> extSubscribePaths_;
 
  private:
   // Delete copy operations

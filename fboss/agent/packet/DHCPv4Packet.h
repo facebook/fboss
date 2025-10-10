@@ -60,7 +60,7 @@ struct DHCPv4Packet {
   }
   static bool isOptionWithoutLength(uint8_t op);
 
-  size_t appendOption(uint8_t op, uint8_t len, const uint8_t* bytes);
+  size_t appendOption(uint8_t optionCode, uint8_t len, const uint8_t* bytes);
 
   void appendPadding(size_t length);
 

@@ -604,11 +604,13 @@ class AgentEgressPortErspanMirroringTruncateTest
       return {
           ProductionFeature::MIRROR_PACKET_TRUNCATION,
           ProductionFeature::EGRESS_MIRRORING,
+          ProductionFeature::EGRESS_MIRROR_PACKET_TRUNCATION,
           ProductionFeature::ERSPANV6_MIRRORING};
     }
     return {
         ProductionFeature::MIRROR_PACKET_TRUNCATION,
-        ProductionFeature::EGRESS_MIRRORING};
+        ProductionFeature::EGRESS_MIRRORING,
+        ProductionFeature::EGRESS_MIRROR_PACKET_TRUNCATION};
   }
 
   cfg::SwitchConfig initialConfig(

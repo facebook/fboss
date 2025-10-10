@@ -10,12 +10,14 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/mka_service/handlers/MacsecHandler.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 DECLARE_string(sak_list_warmboot_config);
 DECLARE_int32(phy_service_macsec_port);
+DECLARE_bool(port_manager_mode);
 
 namespace facebook {
 namespace fboss {
@@ -25,7 +27,8 @@ class QsfpServiceHandler
       public ::facebook::fb303::FacebookBase2DeprecationMigration {
  public:
   QsfpServiceHandler(
-      std::unique_ptr<TransceiverManager> manager,
+      std::unique_ptr<TransceiverManager> tcvrManager,
+      std::unique_ptr<PortManager> portManager,
       std::shared_ptr<mka::MacsecHandler> handler);
   ~QsfpServiceHandler() override;
 
@@ -84,7 +87,11 @@ class QsfpServiceHandler
    * Return a pointer to the transceiver manager.
    */
   TransceiverManager* getTransceiverManager() const {
-    return manager_.get();
+    return tcvrManager_.get();
+  }
+
+  PortManager* getPortManager() const {
+    return portManager_.get();
   }
 
   void resetTransceiver(
@@ -287,6 +294,20 @@ class QsfpServiceHandler
           supportedPortProfiles,
       bool checkOptics) override;
 
+  void refreshStateMachines();
+
+  void gracefulExit();
+
+  PhyManager* getPhyManager() const;
+
+  void setOverrideAgentPortStatusForTesting(
+      bool up,
+      bool enabled,
+      bool clearOnly = false);
+
+  std::optional<PortID> getPortIdByPortName(
+      const std::string& portNameStr) const;
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,
@@ -342,7 +363,8 @@ class QsfpServiceHandler
 
   void validateHandler() const;
 
-  std::unique_ptr<TransceiverManager> manager_{nullptr};
+  std::unique_ptr<TransceiverManager> tcvrManager_{nullptr};
+  std::unique_ptr<PortManager> portManager_{nullptr};
   std::shared_ptr<mka::MacsecHandler> macsecHandler_;
 
   std::unique_ptr<QsfpFsdbSubscriber> fsdbSubscriber_;

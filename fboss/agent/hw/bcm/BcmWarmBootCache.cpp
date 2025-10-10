@@ -1022,8 +1022,10 @@ void BcmWarmBootCache::removeUnclaimedStations() {
 
 void BcmWarmBootCache::removeUnclaimedVlans() {
   bcm_vlan_t defaultVlan;
-  auto rv = bcm_vlan_default_get(hw_->getUnit(), &defaultVlan);
-  bcmLogFatal(rv, hw_, "failed to get default VLAN");
+  {
+    auto rv = bcm_vlan_default_get(hw_->getUnit(), &defaultVlan);
+    bcmLogFatal(rv, hw_, "failed to get default VLAN");
+  }
   // Finally delete the vlans
   for (auto vlanItr = vlan2VlanInfo_.begin();
        vlanItr != vlan2VlanInfo_.end();) {

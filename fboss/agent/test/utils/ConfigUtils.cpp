@@ -258,6 +258,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         case cfg::PortType::EVENTOR_PORT:
         case cfg::PortType::CPU_PORT:
         case cfg::PortType::HYPER_PORT:
+        case cfg::PortType::HYPER_PORT_MEMBER:
           break;
       }
     } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
@@ -642,7 +643,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       // If current vlan has portsPerIntf port,
       // then add a new vlan
       if (idx % portsPerIntf == 0) {
-        vlans.push_back(VlanID(vlan));
+        vlans.emplace_back(vlan);
         vlan++;
       }
     } else {
@@ -672,7 +673,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           cfg::Scope scope,
                           std::optional<int32_t> port = std::nullopt) {
     auto i = config.interfaces()->size();
-    config.interfaces()->push_back(cfg::Interface{});
+    config.interfaces()->emplace_back();
     config.interfaces()[i].name() = folly::to<std::string>(intfId);
     *config.interfaces()[i].intfID() = intfId;
     *config.interfaces()[i].vlanID() = vlanId;
@@ -740,7 +741,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         cfg::PortType::INTERFACE_PORT,
         cfg::PortType::RECYCLE_PORT,
         cfg::PortType::MANAGEMENT_PORT,
-        cfg::PortType::EVENTOR_PORT};
+        cfg::PortType::EVENTOR_PORT,
+        cfg::PortType::HYPER_PORT};
     for (const auto& port : *config.ports()) {
       if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
         continue;
@@ -904,8 +906,7 @@ cfg::SwitchConfig genPortVlanCfg(
     portCfg->loopbackMode() = iter->second;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
       portCfg->ingressVlan() = 0;
-      portCfg->maxFrameSize() =
-          asic->isSupported(HwAsic::Feature::FABRIC_PORT_MTU) ? kPortMTU : 0;
+      portCfg->maxFrameSize() = 0;
       portCfg->state() = enableFabricPorts ? cfg::PortState::ENABLED
                                            : cfg::PortState::DISABLED;
 
@@ -994,12 +995,14 @@ void populateSwitchInfo(
   std::map<long, cfg::SwitchInfo> newSwitchIdToSwitchInfo;
   std::map<long, cfg::DsfNode> newDsfNodes;
   // save the firsthwAsic to create dsfNodeConfig
-  SwitchID switchId{0};
-  auto firstHwAsicTableItr = hwAsicTable.find(switchId);
-  if (firstHwAsicTableItr == hwAsicTable.end()) {
-    throw FbossError("HwAsic not found for SwitchID: ", switchId);
-  }
-  const auto& firstHwAsic = firstHwAsicTableItr->second;
+  const auto& firstHwAsic = [&hwAsicTable]() {
+    SwitchID switchId{0};
+    auto firstHwAsicTableItr = hwAsicTable.find(switchId);
+    if (firstHwAsicTableItr == hwAsicTable.end()) {
+      throw FbossError("HwAsic not found for SwitchID: ", switchId);
+    }
+    return firstHwAsicTableItr->second;
+  }();
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
@@ -1135,7 +1138,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     // tagging packet at port ingress.
     if (switchType == cfg::SwitchType::NPU) {
       port2vlan[port] = VlanID(kBaseVlanId);
-      vlans.push_back(VlanID(vlan++));
+      vlans.emplace_back(vlan++);
     } else {
       port2vlan[port] = VlanID(0);
     }
@@ -1385,7 +1388,7 @@ std::vector<PortID> getAllPortsInGroup(
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(*port.mapping()->id()));
+      allPortsinGroup.emplace_back(*port.mapping()->id());
     }
   }
   return allPortsinGroup;

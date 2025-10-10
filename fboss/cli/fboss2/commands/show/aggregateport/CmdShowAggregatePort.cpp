@@ -38,11 +38,20 @@ void CmdShowAggregatePort::printOutput(
   for (const auto& entry : model.aggregatePortEntries().value()) {
     out << fmt::format("\nPort name: {}\n", entry.name().value());
     out << fmt::format("Description: {}\n", entry.description().value());
-    out << fmt::format(
-        "Active members/Configured members/Min members: {}/{}/{}\n",
-        folly::copy(entry.activeMembers().value()),
-        folly::copy(entry.configuredMembers().value()),
-        folly::copy(entry.minMembers().value()));
+    if (entry.minMembersToUp().has_value()) {
+      out << fmt::format(
+          "Active members/Configured members/Min members: {}/{}/[{}, {}]\n",
+          folly::copy(entry.activeMembers().value()),
+          folly::copy(entry.configuredMembers().value()),
+          folly::copy(entry.minMembers().value()),
+          folly::copy(entry.minMembersToUp().value()));
+    } else {
+      out << fmt::format(
+          "Active members/Configured members/Min members: {}/{}/{}\n",
+          folly::copy(entry.activeMembers().value()),
+          folly::copy(entry.configuredMembers().value()),
+          folly::copy(entry.minMembers().value()));
+    }
     for (const auto& member : entry.members().value()) {
       out << fmt::format(
           "\t Member: {:>10}, id: {:>3}, Up: {:>5}, Rate: {}\n",
@@ -71,6 +80,9 @@ RetType CmdShowAggregatePort::createModel(
       aggPortDetails.description() = *entry.description();
       aggPortDetails.minMembers() = *entry.minimumLinkCount();
       aggPortDetails.configuredMembers() = entry.memberPorts()->size();
+      if (auto minLinkCountToUp = entry.minimumLinkCountToUp()) {
+        aggPortDetails.minMembersToUp() = *minLinkCountToUp;
+      }
       int32_t activeMemberCount = 0;
       for (const auto& subport : *entry.memberPorts()) {
         cli::AggregateMemberPortEntry memberDetails;

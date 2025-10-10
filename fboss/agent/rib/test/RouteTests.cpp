@@ -64,22 +64,6 @@ void EXPECT_ROUTES_MATCH(
   }
 }
 
-void EXPECT_MPLS_ROUTES_MATCH(
-    const LabelToRouteMap* routesA,
-    const LabelToRouteMap* routesB) {
-  EXPECT_EQ(routesA->size(), routesB->size());
-  for (const auto& entryA : *routesA) {
-    auto routeA = entryA.second;
-    auto labelA = routeA->prefix().label();
-
-    auto iterB = routesB->find(labelA);
-    ASSERT_NE(routesB->end(), iterB);
-    auto routeB = iterB->second;
-
-    EXPECT_TRUE(routeB->isSame(routeA.get()));
-  }
-}
-
 } // namespace
 
 namespace facebook::fboss {

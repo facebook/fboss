@@ -198,6 +198,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly/hash:hash",
         "//folly/json:dynamic",
         "//thrift/lib/cpp/util:enum_utils",
     ],

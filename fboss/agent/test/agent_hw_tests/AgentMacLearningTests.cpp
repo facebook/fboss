@@ -778,6 +778,66 @@ class AgentMacLearningAndMyStationInteractionTestSw
   }
 };
 
+class AgentMacLearnDisabledTest : public AgentMacLearningTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentMacLearningTest::initialConfig(ensemble);
+    cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::DISABLED;
+    return cfg;
+  }
+
+ protected:
+  void testDisabledLearningHelper(const PortDescriptor& portDescr) {
+    auto setup = [this, portDescr]() {
+      if (portDescr.isAggregatePort()) {
+        auto newCfg = initialConfig(*getAgentEnsemble());
+        utility::findCfgPort(newCfg, masterLogicalPortIds()[0])->state() =
+            cfg::PortState::ENABLED;
+        addAggPort(
+            std::numeric_limits<AggregatePortID>::max(),
+            {masterLogicalPortIds()[0]},
+            &newCfg);
+        applyNewConfig(newCfg);
+        applyNewState(
+            [&](const std::shared_ptr<SwitchState>& in) {
+              auto newState = enableTrunkPorts(in);
+              return newState;
+            },
+            "enableTrunkPorts");
+      }
+      bringDownPort(masterLogicalPortIds()[1]);
+      // Disable aging, so if any entry gets learned, it stays in L2 table
+      utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+    };
+
+    auto verify = [this, portDescr]() {
+      // Send multiple packets that would normally trigger MAC learning
+      sendPkt(kSourceMac());
+      sendPkt(kSourceMac2());
+
+      // Give the system some time to process any potential learning
+      std::this_thread::sleep_for(std::chrono::seconds(2));
+
+      // Verify that no MAC addresses were learned in hardware
+      EXPECT_TRUE(
+          wasMacLearnt(portDescr, kSourceMac(), false /* shouldNotExist */));
+      EXPECT_TRUE(
+          wasMacLearnt(portDescr, kSourceMac2(), false /* shouldNotExist */));
+
+      // Verify that the L2 table is empty for this port
+      auto isTrunk = portDescr.isAggregatePort();
+      int portId = isTrunk ? portDescr.aggPortID() : portDescr.phyPortID();
+      auto macs = getMacsForPort(getSw(), portId, isTrunk);
+      EXPECT_EQ(macs.size(), 0)
+          << "Expected no MACs to be learned when L2 learning is disabled";
+    };
+
+    // Disabled learning should work consistently across warm boots
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
 TEST_F(
     AgentMacLearningAndMyStationInteractionTestHw,
     verifyInteractionHwMacLearning) {
@@ -803,6 +863,14 @@ TEST_F(AgentMacLearningTest, VerifyHwAgingForPort) {
 
 TEST_F(AgentMacLearningTest, VerifyHwAgingForTrunk) {
   testHwAgingHelper(aggPortDescr());
+}
+
+TEST_F(AgentMacLearnDisabledTest, VerifyDisabledLearningForPort) {
+  testDisabledLearningHelper(physPortDescr());
+}
+
+TEST_F(AgentMacLearnDisabledTest, VerifyDisabledLearningForTrunk) {
+  testDisabledLearningHelper(aggPortDescr());
 }
 
 TEST_F(AgentMacSwLearningModeTest, VerifySwLearningForPort) {
@@ -1269,11 +1337,11 @@ class AgentMacOverFlowTest : public AgentMacLearningBatchEntriesTest {
         (VlanID)*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID();
 
     for (auto& mac : macs) {
-      l2Entries.push_back(L2Entry(
+      l2Entries.emplace_back(
           mac,
           vlanId,
           portDescr,
-          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED));
+          L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
     }
     return l2Entries;
   }

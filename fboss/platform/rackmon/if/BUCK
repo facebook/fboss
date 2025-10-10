@@ -27,5 +27,6 @@ thrift_library(
     thrift_srcs = {"rackmonsvc.thrift": ["RackmonCtrl"]},
     deps = [
         "//fboss/agent/if:fboss",
+        "//thrift/annotation:thrift",
     ],
 )

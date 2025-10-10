@@ -25,6 +25,7 @@
 #endif
 
 #include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/agent/mnpu/IpcHealthMonitor.h"
 #include "fboss/lib/CommonThriftUtils.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
@@ -43,6 +44,9 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
       uint16_t serverPort,
       const SwitchID& switchId);
   std::shared_ptr<ThreadHeartbeat> getThriftClientHeartbeat();
+  IpcHealthMonitor* getHealthMonitor() const {
+    return ipcHealthMonitor_.get();
+  }
   ~SplitAgentThriftClient() override;
 
  protected:
@@ -64,6 +68,9 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> serviceLoopWrapper() override;
 #endif
+  // Helper method to map ReconnectingThriftClient states to IpcConnectionState
+  IpcConnectionState mapToIpcConnectionState(State state);
+
   std::shared_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
   uint32_t serverPort_;
   SwitchID switchId_;
@@ -71,6 +78,7 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
       multiSwitchClient_;
 
   std::shared_ptr<ThreadHeartbeat> thriftClientHeartbeat_;
+  std::unique_ptr<IpcHealthMonitor> ipcHealthMonitor_;
 };
 
 #if FOLLY_HAS_COROUTINES
@@ -152,7 +160,11 @@ class ThriftSinkClient : public SplitAgentThriftClient {
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> enqueueImpl(CallbackObjectT callbackObject) {
     if (!isConnectedToServer() || exiting_.load()) {
+      // TODO: remove old counter once new counter is rolled out
       eventsDroppedCount_.add(1);
+      if (getHealthMonitor()) {
+        getHealthMonitor()->trackEventDropped();
+      }
     } else {
       if constexpr (std::is_same_v<
                         EventQueueT,
@@ -168,12 +180,20 @@ class ThriftSinkClient : public SplitAgentThriftClient {
         } catch (const std::exception& e) {
           XLOG(ERR) << "Exception while enqueuing event: " << e.what();
           eventsDroppedCount_.add(1);
+          if (getHealthMonitor()) {
+            getHealthMonitor()->trackEventDropped();
+          }
           co_return;
         }
       } else {
         eventsQueue_.enqueue(std::move(callbackObject));
       }
       eventSentCount_.add(1);
+
+      // Track successful operation in health monitor
+      if (getHealthMonitor()) {
+        getHealthMonitor()->trackEventSent();
+      }
     }
   }
 #endif

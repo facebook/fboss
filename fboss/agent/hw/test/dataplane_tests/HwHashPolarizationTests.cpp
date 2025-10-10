@@ -46,7 +46,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
   }
   void packetReceived(RxPacket* pkt) noexcept override {
     folly::io::Cursor cursor{pkt->buf()};
-    pktsReceived_.wlock()->emplace_back(utility::EthFrame{cursor});
+    pktsReceived_.wlock()->emplace_back(cursor);
   }
   std::vector<PortID> getEcmpPorts() const {
     auto masterLogicalInterfacePorts = masterLogicalInterfacePortIds();

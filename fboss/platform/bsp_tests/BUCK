@@ -58,6 +58,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
         "//fboss/platform/bsp_tests:bsp_tests_runtime_config-cpp2-types",
         "//fboss/platform/bsp_tests:fbiob_device_config-cpp2-types",
         "//fboss/platform/helpers:platform_utils",
@@ -69,9 +70,6 @@ cpp_library(
         "//folly:file_util",
         "//folly:format",
         "//folly/logging:logging",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 
@@ -92,6 +90,7 @@ cpp_binary(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
         ":bsp_test_environment",
         ":utils",
         "//fboss/platform/bsp_tests:bsp_tests_config-cpp2-types",
@@ -104,7 +103,6 @@ cpp_binary(
     ],
     external_deps = [
         "gflags",
-        "re2",
     ],
 )
 

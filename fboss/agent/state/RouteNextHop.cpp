@@ -195,4 +195,23 @@ UnresolvedNextHop::UnresolvedNextHop(
   }
 }
 
+bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b) {
+  return (
+      a.intfID() == b.intfID() && a.addr() == b.addr() &&
+      a.weight() == b.weight() &&
+      a.labelForwardingAction() == b.labelForwardingAction() &&
+      a.disableTTLDecrement() == b.disableTTLDecrement() &&
+      a.adjustedWeight() == b.adjustedWeight() &&
+      a.topologyInfo() == b.topologyInfo());
+}
+
+bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b) {
+  return (
+      a.addr() == b.addr() && a.weight() == b.weight() &&
+      a.labelForwardingAction() == b.labelForwardingAction() &&
+      a.disableTTLDecrement() == b.disableTTLDecrement() &&
+      a.adjustedWeight() == b.adjustedWeight() &&
+      a.topologyInfo() == b.topologyInfo());
+}
+
 } // namespace facebook::fboss

@@ -115,6 +115,8 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   // Forbidden copy constructor and assignment operator
   BaseWedgeI2CBus(BaseWedgeI2CBus const&) = delete;
   BaseWedgeI2CBus& operator=(BaseWedgeI2CBus const&) = delete;
+  BaseWedgeI2CBus(BaseWedgeI2CBus&&) = delete;
+  BaseWedgeI2CBus& operator=(BaseWedgeI2CBus&&) = delete;
 };
 
 } // namespace facebook::fboss

@@ -42,7 +42,7 @@ class CmdShowFabricTopology
 
   RetType queryClient(const HostInfo& hostInfo) {
     std::map<int64_t, std::map<int64_t, std::vector<RemoteEndpoint>>> entries;
-    if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+    if (utils::isMultiSwitchEnabled(hostInfo)) {
       auto hwAgentQueryFn =
           [&entries](
               apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {

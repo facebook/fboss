@@ -87,6 +87,8 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // AmIdles
         std::nullopt, // FabricSystemPort
         std::nullopt, // StaticModuleId
+        std::nullopt, // IsHyperPortMember
+        std::nullopt, // HyperPortMemberList
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }

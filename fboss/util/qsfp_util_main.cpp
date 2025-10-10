@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
 #include "fboss/util/qsfp/QsfpUtilContainer.h"
@@ -63,7 +64,7 @@ void listCommands() {
 }
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  const folly::Init init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
   folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
   std::vector<unsigned int> ports;
   std::vector<std::string> portNames;
   bool good = true;
-  std::unique_ptr<WedgeManager> wedgeManager = createWedgeManager();
+  auto [wedgeManager, _] = createQsfpManagers();
   if (argc == 1) {
     folly::gen::range(1, wedgeManager->getNumQsfpModules() + 1) |
         folly::gen::appendTo(ports);

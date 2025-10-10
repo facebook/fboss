@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
@@ -174,7 +175,8 @@ void addFlowletAcl(
     bool isSai,
     const std::string& aclName,
     const std::string& aclCounterName,
-    bool udfFlowlet) {
+    bool udfFlowlet,
+    bool enableAlternateArsMembers) {
   cfg::AclEntry acl;
   acl.name() = aclName;
   acl.actionType() = cfg::AclActionType::PERMIT;
@@ -183,6 +185,11 @@ void addFlowletAcl(
   acl.dstIp() = "2001::/16";
   if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
     acl.etherType() = cfg::EtherType::IPv6;
+  }
+  if (FLAGS_enable_th5_ars_scale_mode) {
+    acl.lookupClassRoute() = enableAlternateArsMembers
+        ? cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS
+        : cfg::AclLookupClass(0);
   }
   if (udfFlowlet) {
     if (isSai) {
@@ -202,6 +209,9 @@ void addFlowletAcl(
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
   matchAction.counter() = aclCounterName;
+  if (enableAlternateArsMembers) {
+    matchAction.enableAlternateArsMembers() = true;
+  }
   std::vector<cfg::CounterType> counterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   auto counter = cfg::TrafficCounter();
@@ -220,6 +230,11 @@ void addFlowletConfigs(
   cfg::FlowletSwitchingConfig flowletCfg =
       utility::getDefaultFlowletSwitchingConfig(
           isSai, switchingMode, backupSwitchingMode);
+  if (FLAGS_enable_th5_ars_scale_mode) {
+    flowletCfg.primaryPathQualityThreshold() = 7;
+    flowletCfg.alternatePathCost() = 0;
+    flowletCfg.alternatePathBias() = 7;
+  }
   cfg.flowletSwitchingConfig() = flowletCfg;
 
   std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
@@ -235,7 +250,7 @@ void addFlowletConfigs(
   cfg.portFlowletConfigs() = portFlowletCfgMap;
 
   std::vector<PortID> portIds(ports.begin(), ports.begin() + ports.size());
-  for (auto portId : portIds) {
+  for (const auto& portId : portIds) {
     auto portCfg = utility::findCfgPort(cfg, portId);
     portCfg->flowletConfigName() = "default";
   }
@@ -349,6 +364,18 @@ std::pair<uint64_t, uint64_t> getHighestAndLowestBytesIncrement(
   return std::make_pair(highest, lowest);
 }
 
+bool isDeviationWithinThreshold(
+    int64_t lowest,
+    int64_t highest,
+    int maxDeviationPct) {
+  auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
+  // Don't tolerate a deviation of more than maxDeviationPct
+  XLOG(DBG2) << "Percent Deviation: " << percentDev
+             << ", Maximum Deviation: " << maxDeviationPct;
+
+  return percentDev <= maxDeviationPct;
+}
+
 template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
@@ -391,11 +418,7 @@ bool isLoadBalancedImpl(
       }
     }
   } else {
-    auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
-    // Don't tolerate a deviation of more than maxDeviationPct
-    XLOG(DBG2) << "Percent Deviation: " << percentDev
-               << ", Maximum Deviation: " << maxDeviationPct;
-    if (percentDev > maxDeviationPct) {
+    if (!isDeviationWithinThreshold(lowest, highest, maxDeviationPct)) {
       return false;
     }
   }
@@ -535,10 +558,10 @@ size_t pumpRoCETraffic(
  *   Please see P827101297 for an example of how this file should be formatted.
  */
 size_t pumpTrafficWithSourceFile(
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
+    const std::optional<VlanID>& vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int hopLimit,
     std::optional<folly::MacAddress> srcMacAddr) {
@@ -608,10 +631,10 @@ size_t pumpTrafficWithSourceFile(
 
 size_t pumpTraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
+    const std::optional<VlanID>& vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int hopLimit,
     int numPackets,
@@ -661,15 +684,15 @@ size_t pumpTraffic(
 }
 
 void pumpTraffic(
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress dstMac,
-    std::vector<folly::IPAddress> srcIps,
-    std::vector<folly::IPAddress> dstIps,
+    const std::vector<folly::IPAddress>& srcIps,
+    const std::vector<folly::IPAddress>& dstIps,
     uint16_t srcPort,
     uint16_t dstPort,
     uint8_t streams,
-    std::optional<VlanID> vlan,
+    const std::optional<VlanID>& vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int hopLimit,
     std::optional<folly::MacAddress> srcMacAddr,
@@ -719,7 +742,7 @@ void pumpTraffic(
  */
 void pumpDeterministicRandomTraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     folly::MacAddress intfMac,
     VlanID vlan,
@@ -782,11 +805,11 @@ void pumpDeterministicRandomTraffic(
 
 void pumpMplsTraffic(
     bool isV6,
-    AllocatePktFunc allocateFn,
+    const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
     uint32_t label,
     folly::MacAddress intfMac,
-    VlanID vlanId,
+    const VlanID& vlanId,
     std::optional<PortID> frontPanelPortToLoopTraffic) {
   MPLSHdr::Label mplsLabel{label, 0, true, 128};
   std::unique_ptr<TxPacket> pkt;
@@ -866,9 +889,9 @@ SendPktFunc getSendPktFunc(SwSwitch* sw) {
 }
 
 void pumpTrafficAndVerifyLoadBalanced(
-    std::function<void()> pumpTraffic,
-    std::function<void()> clearPortStats,
-    std::function<bool()> isLoadBalanced,
+    const std::function<void()>& pumpTraffic,
+    const std::function<void()>& clearPortStats,
+    const std::function<bool()>& isLoadBalanced,
     bool loadBalanceExpected) {
   clearPortStats();
   pumpTraffic();

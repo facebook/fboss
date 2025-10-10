@@ -30,6 +30,18 @@ class TestThriftHandler : public ThriftHandler,
       std::unique_ptr<std::string> serviceName,
       int32_t delayInSeconds) override;
 
+  void addNeighbor(
+      int32_t interfaceID,
+      std::unique_ptr<BinaryAddress> ip,
+      std::unique_ptr<std::string> mac,
+      int32_t portID) override;
+
+  void setSwitchDrainState(cfg::SwitchDrainState switchDrainState) override;
+
+  void setSelfHealingLagState(int32_t portId, bool enable) override;
+
+  void setConditionalEntropyRehash(int32_t portId, bool enable) override;
+
  private:
   // Forbidden copy constructor and assignment operator
   TestThriftHandler(TestThriftHandler const&) = delete;

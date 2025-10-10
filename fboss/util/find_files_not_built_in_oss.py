@@ -11,20 +11,36 @@
 #   - parse all cmakes to find the files are built.
 #   - diff and print output.
 
+import argparse
 import getpass
 import os
 
 
-FBCODE_DIR = os.path.join("/data/users", getpass.getuser(), "fbsource/fbcode")
-FBOSS_DIR = os.path.join(FBCODE_DIR, "fboss")
+DEFAULT_FBCODE_DIR = os.path.join("/data/users", getpass.getuser(), "fbsource/fbcode")
+SKIPPED_DIRPATH_LIST = [
+    "facebook",  # not open sourced
+    "agent/hw/bcm",  # only work with native Brcm SDK
+]
 
 
-def get_expected_oss_files():
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--fbcode_dir",
+        help=f"FBCode directory. Default={DEFAULT_FBCODE_DIR}",
+        default=DEFAULT_FBCODE_DIR,
+    )
+    return parser.parse_args()
+
+
+def get_expected_oss_files(fbcode_dir, fboss_dir):
     expected_oss_files = []
 
-    prefix_len = len(FBCODE_DIR) + 1  # strip off FBCODE_DIR/
-    for dirpath, _, filenames in os.walk(FBOSS_DIR):
-        if "facebook" not in dirpath:
+    prefix_len = len(fbcode_dir) + 1  # strip off FBCODE_DIR/
+    for dirpath, _, filenames in os.walk(fboss_dir):
+        if all(
+            skipped_dirpath not in dirpath for skipped_dirpath in SKIPPED_DIRPATH_LIST
+        ):
             source_files = [
                 os.path.join(dirpath[prefix_len:], f)
                 for f in filenames
@@ -47,9 +63,9 @@ def get_built_oss_files_in_file(cmake_file):
     return sorted(set(built_oss_files_for_file))
 
 
-def get_built_oss_files():
-    CMAKELISTS_FILE = os.path.join(FBOSS_DIR, "github/CMakeLists.txt")
-    CMAKE_DIR = os.path.join(FBOSS_DIR, "github/cmake")
+def get_built_oss_files(fboss_dir):
+    CMAKELISTS_FILE = os.path.join(fboss_dir, "github/CMakeLists.txt")
+    CMAKE_DIR = os.path.join(fboss_dir, "github/cmake")
 
     built_oss_files = []
 
@@ -63,12 +79,18 @@ def get_built_oss_files():
     return sorted(set(built_oss_files))
 
 
-def main() -> None:
-    not_built_in_oss = set(get_expected_oss_files()) - set(get_built_oss_files())
+def main(args) -> None:
+    fbcode_dir = args.fbcode_dir
+    fboss_dir = os.path.join(fbcode_dir, "fboss")
+    not_built_in_oss = sorted(
+        set(get_expected_oss_files(fbcode_dir, fboss_dir))
+        - set(get_built_oss_files(fboss_dir))
+    )
     print(f"Number of OSS files not built in OSS: {len(not_built_in_oss)}")
     print("List of missing files:")
     print(*not_built_in_oss, sep="\n")
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)

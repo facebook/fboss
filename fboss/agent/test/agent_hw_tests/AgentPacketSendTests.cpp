@@ -7,11 +7,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
-
-#include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
 #include <chrono>
 
@@ -441,10 +440,19 @@ class AgentPacketFloodTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
+    auto asic = checkSameAndGetAsic(l3Asics);
+    // Use multiplePortsPerIntfConfig with portsPerVlan=2 to put both ports in
+    // same VLAN
+    auto cfg = utility::multiplePortsPerIntfConfig(
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
         ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        true /*interfaceHasSubnet*/,
+        true /*setInterfaceMac*/,
+        utility::kBaseVlanId, /*baseVlanId*/
+        2 /*portsPerVlan - both ports in same VLAN*/);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
     return cfg;
@@ -517,7 +525,7 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto suceess = false;
+    auto success = false;
     while (retries--) {
       auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
       auto txPacket = utility::makeNeighborSolicitation(
@@ -529,13 +537,13 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
       getAgentEnsemble()->ensureSendPacketOutOfPort(
           std::move(txPacket), masterLogicalPortIds()[0]);
       if (checkPacketFlooding(portStatsBefore, true)) {
-        suceess = true;
+        success = true;
         break;
       }
       std::this_thread::sleep_for(1s);
       XLOG(DBG2) << " Retrying ... ";
     }
-    EXPECT_TRUE(suceess);
+    EXPECT_TRUE(success);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

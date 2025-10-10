@@ -153,4 +153,16 @@ fboss_fbpkg_builder(
     split_debuginfo = True,
 )
 
-build_test_artifacts_fbpkg(product_line = ProductLine.NVIDIA_SAI_SDK)
+build_test_artifacts_fbpkg(product_lines = [ProductLine.NVIDIA_SAI_SDK])
+
+#Build LEABA test artifacts fbpkg
+build_test_artifacts_fbpkg(product_lines = [ProductLine.LEABA])
+
+#Build BCM test artifacts fbpkg (All three product lines use the same product name (brcm))
+build_test_artifacts_fbpkg(product_lines = [
+    ProductLine.SAI_SDK_BCM,
+    ProductLine.BCM_DSF_SDK,
+])
+
+#Build BCM_native_sdk test artifacts fbpkg (native_bcm)
+build_test_artifacts_fbpkg(product_lines = [ProductLine.BCM_NATIVE_SDK])

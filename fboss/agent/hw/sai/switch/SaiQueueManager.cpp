@@ -347,8 +347,10 @@ void SaiQueueManager::changeQueue(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
     if (portType && (*portType == cfg::PortType::CPU_PORT) &&
-        platform_->getAsic()->isSupported(
-            HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL)) {
+        (platform_->getAsic()->isSupported(
+             HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL) ||
+         (platform_->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK6))) {
       // Skip configuring a buffer pool on CPU queues for platforms like
       // YUBA where a dedicated buffer pool is used for CPU traffic. As
       // of now, the same buffer pool used for data traffic on all ports
@@ -359,6 +361,11 @@ void SaiQueueManager::changeQueue(
       // or configs on CPU queues for such platforms, need to provide an
       // option to use a dedicated CPU queue config with buffer pool
       // specified explicitly as the reserved buffer pool.
+      //
+      //
+      // TODO(ruinanhu): Avoid applying buffer profile as buffer profile
+      // application on CPU queues is failing for TH6. Working with Broadcom in
+      // CS00012418940 to address the same.
     } else if (!swPort) {
       changeQueueBufferProfile(queueHandle, newPortQueue, *portType);
     } else if (

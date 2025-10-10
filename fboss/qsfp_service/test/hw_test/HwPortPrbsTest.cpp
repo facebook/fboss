@@ -101,6 +101,7 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
     const auto& availableXphyPorts = findAvailableXphyPorts();
 
     auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    auto phyManager = getHwQsfpEnsemble()->getPhyManager();
     auto platformType = wedgeManager->getPlatformType();
     auto ipModToPolynominalListIt = kSupportedPolynominal.find(platformType);
     if (ipModToPolynominalListIt == kSupportedPolynominal.end()) {
@@ -152,8 +153,7 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
       }
     };
 
-    auto verify = [wedgeManager, enable, &portToProfileAndPoly]() {
-      auto* phyManager = wedgeManager->getPhyManager();
+    auto verify = [wedgeManager, phyManager, enable, &portToProfileAndPoly]() {
       phy::PortComponent component =
           (Side == phy::Side::SYSTEM ? phy::PortComponent::GB_SYSTEM
                                      : phy::PortComponent::GB_LINE);

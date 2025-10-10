@@ -490,6 +490,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         ":cli-cpp2-types",
         ":cmd-common-utils",
         ":cmd-global-options",
@@ -712,7 +713,6 @@ cpp_library(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
-        "re2",
         ("boost", None, "boost_algorithm"),
     ],
 )

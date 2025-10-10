@@ -315,25 +315,24 @@ TEST_F(HwTest, transceiverIOStats) {
    *    change pages during refresh on them.
    *    readFailed and writeFailed should not increment at all
    */
-  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  wedgeManager->refreshStateMachines();
+  auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+  auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+  qsfpServiceHandler->refreshStateMachines();
   auto tcvrs = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
 
   std::unordered_map<int32_t, TransceiverStats> tcvrStatsBefore;
 
   for (auto tcvrID : tcvrs) {
-    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-        TransceiverID(tcvrID));
+    auto tcvrInfo = wedgeMgr->getTransceiverInfo(TransceiverID(tcvrID));
     auto& tcvrStats = *tcvrInfo.tcvrStats();
     CHECK(tcvrStats.stats());
     tcvrStatsBefore[tcvrID] = *tcvrStats.stats();
   }
 
-  wedgeManager->refreshStateMachines();
+  qsfpServiceHandler->refreshStateMachines();
   for (auto tcvrID : tcvrs) {
-    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
-        TransceiverID(tcvrID));
+    auto tcvrInfo = wedgeMgr->getTransceiverInfo(TransceiverID(tcvrID));
     auto& tcvrState = *tcvrInfo.tcvrState();
     auto& tcvrStats = *tcvrInfo.tcvrStats();
     TransceiverStats& tcvrStatsAfter = tcvrStats.stats().ensure();
@@ -386,7 +385,6 @@ TEST_F(PhyIOTest, phyIOStats) {
    *    readFailed and writeFailed should not increment at all
    */
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-
   std::unordered_map<PortID, phy::PhyInfo> phyInfoBefore;
   const auto& availableXphyPorts = findAvailableXphyPorts();
 

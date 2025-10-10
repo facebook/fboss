@@ -76,8 +76,8 @@ EthHdr
 makeEthHdr(MacAddress srcMac, MacAddress dstMac, std::optional<VlanID> vlan) {
   VlanTags_t vlanTags;
   if (vlan.has_value()) {
-    vlanTags.push_back(VlanTag(
-        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+    vlanTags.emplace_back(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
   }
 
   return EthHdr(

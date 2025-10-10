@@ -65,14 +65,14 @@ class HwMacsecTest : public HwExternalPhyPortTest {
       mka::MKASak& sak,
       mka::MKASci& sci,
       sai_macsec_direction_t direction,
-      PhyManager* phyManager,
+      PhyManager* phyMgr,
       bool expectAbsent = false,
       bool expectKeyMismatch = false) {
     if (!getHwQsfpEnsemble()->isSaiPlatform()) {
       throw FbossError("Cannot verify Macsec programming on non-sai platform");
     }
 
-    auto saiPhyManager = static_cast<SaiPhyManager*>(phyManager);
+    auto saiPhyManager = static_cast<SaiPhyManager*>(phyMgr);
     auto saiApiTable = SaiApiTable::getInstance();
     auto* managerTable =
         static_cast<SaiSwitch*>(
@@ -282,14 +282,14 @@ class HwMacsecTest : public HwExternalPhyPortTest {
   void verifyMacsecAclSetup(
       PortID portId,
       sai_macsec_direction_t direction,
-      PhyManager* phyManager,
+      PhyManager* phyMgr,
       bool macsecDesired = true,
       bool dropUnencrypted = false) {
     if (!getHwQsfpEnsemble()->isSaiPlatform()) {
       throw FbossError("Cannot verify Macsec programming on non-sai platform");
     }
 
-    auto saiPhyManager = static_cast<SaiPhyManager*>(phyManager);
+    auto saiPhyManager = static_cast<SaiPhyManager*>(phyMgr);
     auto* managerTable =
         static_cast<SaiSwitch*>(
             saiPhyManager->getSaiPlatform(portId)->getHwSwitch())
@@ -789,7 +789,7 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
 
 void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
   auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+  auto* phyMgr = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
   auto macGen = facebook::fboss::utility::MacAddressGenerator();
@@ -801,7 +801,7 @@ void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
         << " Could not find platform port with ID " << port;
     auto sci = makeSci(macGen.getNext().toString(), port);
     wedgeManager->programXphyPort(port, profile);
-    auto installKeys = [=, this, port = port](auto direction) mutable {
+    auto installKeys = [=, this, currentPort = port](auto direction) mutable {
       std::optional<mka::MKASak> prevSak;
       bool isIngress = direction == SAI_MACSEC_DIRECTION_INGRESS;
       // 5 rotations to overflow 2 bit AN space
@@ -815,19 +815,18 @@ void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
             sakKeyGen.getNext(),
             sakKeyIdGen.getNext(),
             an);
-        isIngress ? phyManager->sakInstallRx(sak, sci)
-                  : phyManager->sakInstallTx(sak);
+        isIngress ? phyMgr->sakInstallRx(sak, sci) : phyMgr->sakInstallTx(sak);
 
-        verifyMacsecProgramming(port, sak, sci, direction, phyManager);
+        verifyMacsecProgramming(currentPort, sak, sci, direction, phyMgr);
         if (prevSak) {
-          XLOG(INFO) << "Verifying removal of old SAK for port " << port;
+          XLOG(INFO) << "Verifying removal of old SAK for port " << currentPort;
           bool expectAbsent = !isIngress && circleThroughAN;
           verifyMacsecProgramming(
-              port,
+              currentPort,
               *prevSak,
               sci,
               direction,
-              phyManager,
+              phyMgr,
               expectAbsent,
               // When circling through AN, if the key is not absent (RX)
               // it will still match in HW, since the key with old AN
@@ -837,11 +836,16 @@ void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
         prevSak = sak;
       }
       // Delete keys
-      isIngress ? phyManager->sakDeleteRx(*prevSak, sci)
-                : phyManager->sakDelete(*prevSak);
-      XLOG(INFO) << "Verifying removal of old SAK for port " << port;
+      isIngress ? phyMgr->sakDeleteRx(*prevSak, sci)
+                : phyMgr->sakDelete(*prevSak);
+      XLOG(INFO) << "Verifying removal of old SAK for port " << currentPort;
       verifyMacsecProgramming(
-          port, *prevSak, sci, direction, phyManager, true /*expect absent*/);
+          currentPort,
+          *prevSak,
+          sci,
+          direction,
+          phyMgr,
+          true /*expect absent*/);
     };
     installKeys(SAI_MACSEC_DIRECTION_INGRESS);
     installKeys(SAI_MACSEC_DIRECTION_EGRESS);

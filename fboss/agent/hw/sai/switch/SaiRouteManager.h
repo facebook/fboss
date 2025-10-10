@@ -91,6 +91,7 @@ struct SaiRouteHandle {
   std::shared_ptr<SaiRoute> route;
   sai_object_id_t nextHopAdapterKey() const;
   std::shared_ptr<SaiNextHopGroupHandle> nextHopGroupHandle() const;
+  std::optional<SaiRouteTraits::Attributes::Metadata> metadata_{std::nullopt};
 };
 
 using SwitchStateRoutesMap = folly::F14FastMap<

@@ -38,10 +38,12 @@ int main(int argc, char* argv[]) {
       "Firmware Options",
       "Specify firmware action, target, and optional binary file");
 
-  fwGroup->add_option(
-      "--fw_target_name",
-      fw_target_name,
-      "Firmware target name, to see list of targets, run fw_util --list");
+  fwGroup
+      ->add_option(
+          "--fw_target_name",
+          fw_target_name,
+          "Firmware target name, to see list of targets, run fw_util --list")
+      ->default_val("all");
 
   fwGroup
       ->add_option(
@@ -50,7 +52,7 @@ int main(int argc, char* argv[]) {
           "Firmware action (program, verify, read, version, list, audit)")
       ->check(CLI::IsMember(
           {"program", "verify", "read", "version", "list", "audit"}))
-      ->required();
+      ->default_val("version");
 
   fwGroup->add_option(
       "--fw_binary_file",
@@ -70,6 +72,7 @@ int main(int argc, char* argv[]) {
   // Add examples in the footer/help
   app.footer(
       "Examples:\n"
+      "  fw_util  (defaults to --fw_action=version --fw_target_name=all)\n"
       "  fw_util --fw_action=program --fw_target_name=bios --fw_binary_file=/path/to/firmware.bin\n"
       "  fw_util --fw_action=verify --fw_target_name=FPGA --fw_binary_file=/path/to/firmware.bin\n"
       "  fw_util --fw_action=version --fw_target_name=CPLD\n"

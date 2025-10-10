@@ -91,4 +91,16 @@ void processRemoteInterfaceRoutes(
     }
   }
 }
+
+// Check if the remote device connected to the local device over
+// a port is a VoQ switch.
+bool isConnectedToVoqSwitch(
+    const cfg::SwitchConfig* config,
+    const SwitchID& remoteSwitchId) {
+  auto dsfNodeIt = config->dsfNodes()->find(remoteSwitchId);
+  CHECK(dsfNodeIt != config->dsfNodes()->end())
+      << "DSF node missing for switchId: " << remoteSwitchId;
+  const auto& dsfNode = dsfNodeIt->second;
+  return *dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE;
+}
 } // namespace facebook::fboss

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <folly/hash/Hash.h>
 #include <folly/json/dynamic.h>
 #include <optional>
 #include <vector>
@@ -113,3 +114,22 @@ class LabelForwardingAction {
 };
 
 } // namespace facebook::fboss
+
+namespace std {
+
+template <>
+struct hash<facebook::fboss::LabelForwardingAction> {
+  size_t operator()(
+      const facebook::fboss::LabelForwardingAction& action) const {
+    size_t swapWith =
+        action.swapWith() ? std::hash<int32_t>{}(*action.swapWith()) : 0;
+    size_t pushStack = action.pushStack()
+        ? folly::hash::hash_range(
+              action.pushStack()->begin(), action.pushStack()->end())
+        : 0;
+
+    return folly::hash::hash_combine(action.type(), swapWith, pushStack);
+  }
+};
+
+} // namespace std

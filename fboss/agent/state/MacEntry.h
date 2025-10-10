@@ -36,11 +36,13 @@ class MacEntry : public ThriftStructNode<MacEntry, state::MacEntryFields> {
       folly::MacAddress mac,
       PortDescriptor portDescr,
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
-      MacEntryType type = MacEntryType::DYNAMIC_ENTRY) {
+      MacEntryType type = MacEntryType::DYNAMIC_ENTRY,
+      std::optional<bool> isConfigured = std::nullopt) {
     setMac(mac);
     setPort(portDescr);
     setClassID(classID);
     setType(type);
+    setConfigured(isConfigured);
   }
 
   bool operator!=(const MacEntry& other) const {
@@ -93,6 +95,21 @@ class MacEntry : public ThriftStructNode<MacEntry, state::MacEntryFields> {
 
   void setType(MacEntryType type) {
     set<switch_state_tags::type>(static_cast<state::MacEntryType>(type));
+  }
+
+  std::optional<bool> getConfigured() const {
+    if (auto configured = get<switch_state_tags::configured>()) {
+      return configured->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setConfigured(std::optional<bool> configured = std::nullopt) {
+    if (configured) {
+      set<switch_state_tags::configured>(configured.value());
+    } else {
+      ref<switch_state_tags::configured>().reset();
+    }
   }
 
   std::string str() const;

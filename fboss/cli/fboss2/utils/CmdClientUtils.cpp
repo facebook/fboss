@@ -59,6 +59,14 @@ int getNumHwSwitches(const HostInfo& hostInfo) {
   return runState.hwIndexToRunState()->size();
 }
 
+bool isMultiSwitchEnabled(const HostInfo& hostInfo) {
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  MultiSwitchRunState runState;
+  client->sync_getMultiSwitchRunState(runState);
+  return *runState.multiSwitchEnabled();
+}
+
 void runOnAllHwAgents(const HostInfo& hostInfo, RunForHwAgentFn fn) {
   auto numHwSwitches = getNumHwSwitches(hostInfo);
   for (int i = 0; i < numHwSwitches; i++) {

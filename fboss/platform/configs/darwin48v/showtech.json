@@ -1,5 +1,9 @@
 {
   "i2cBusIgnore": [],
+  "i2cDumpDevices": [
+    "/run/devmap/cplds/BLACKHAWK_CPLD",
+    "/run/devmap/cplds/FAN_CPLD"
+  ],
   "psus": [
     "/run/devmap/sensors/PSU_PMBUS"
   ],
@@ -73,5 +77,42 @@
       "statusSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_status",
       "inputOkSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_input_ok"
     }
-  ]
+  ],
+  "fanspinners": [
+    {
+      "path": "/run/devmap/sensors/FS_FAN_SLG4F4527",
+      "sysfsAttributes": [
+        {
+          "name": "pwm",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/pwm"
+        },
+        {
+          "name": "fs_fan_rpm",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/fan1_input"
+        },
+        {
+          "name": "idprom_wp",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/idprom_wp"
+        },
+        {
+          "name": "rackmon_idprom_wp",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/rm_idprom_wp"
+        },
+        {
+          "name": "led_green",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/led_green"
+        },
+        {
+          "name": "led_red",
+          "path": "/run/devmap/sensors/FS_FAN_SLG4F4527/led_red"
+        }
+      ]
+    }
+  ],
+  "scPowerGood": {
+    "sysfsAttribute": {
+      "name": "SMB_POWERGOOD",
+      "path": "/run/devmap/cplds/BLACKHAWK_CPLD/switch_card_pwr_status"
+    }
+  }
 }

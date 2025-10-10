@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -463,4 +464,34 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
         cfg::PacketRxReason::ARP);
     EXPECT_EQ(entry1->cref<switch_config_tags::queueId>()->toThrift(), 9);
   }
+}
+
+TEST(ControlPlane, rxReasonToQueueValidate) {
+  auto platform = createMockPlatform();
+  auto stateV0 = genCPUSwitchState();
+
+  cfg::SwitchConfig config;
+  config.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig();
+
+  // Case 1: Only TTL_0, should not throw
+  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = {
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::TTL_0, 0)};
+  EXPECT_NO_THROW(publishAndApplyConfig(stateV0, &config, platform.get()));
+
+  // Case 2: Only TTL_1, should not throw
+  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = {
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::TTL_1, 0)};
+  EXPECT_NO_THROW(publishAndApplyConfig(stateV0, &config, platform.get()));
+
+  // Case 3: Neither TTL_0, nor TTL_1, but some other rxReason, should not throw
+  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = {
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::ARP, 0)};
+  EXPECT_NO_THROW(publishAndApplyConfig(stateV0, &config, platform.get()));
+
+  // Case 4: Both TTL_0 and TTL_1, should throw
+  config.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = {
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::TTL_0, 0),
+      ControlPlane::makeRxReasonToQueueEntry(cfg::PacketRxReason::TTL_1, 0)};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }

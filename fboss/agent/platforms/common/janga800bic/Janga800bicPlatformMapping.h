@@ -18,6 +18,10 @@ class Janga800bicPlatformMapping : public PlatformMapping {
   Janga800bicPlatformMapping();
   explicit Janga800bicPlatformMapping(const std::string& platformMappingStr);
   explicit Janga800bicPlatformMapping(bool multiNpuPlatformMapping);
+  // For CPU system port number as key, get the core for CPU port and
+  // the port ID within the core.
+  virtual std::map<uint32_t, std::pair<uint32_t, uint32_t>>
+  getCpuPortsCoreAndPortIdx() const override;
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -73,7 +73,7 @@ void ProdInvariantTest::SetUp() {
                                 is_mmu_lossless_mode())
                                 .first;
   for (auto& uplinkPort : ecmpUplinlinkPorts) {
-    ecmpPorts_.push_back(PortDescriptor(uplinkPort));
+    ecmpPorts_.emplace_back(uplinkPort);
   }
 
   if (ecmpPorts_.size() >= kEcmpWidth) {
@@ -463,7 +463,7 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
             getSw()->getPlatformType(), getSw()->getConfig(), kEcmpWidth, false)
             .first;
     for (auto& uplinkPort : ecmpUplinlinkPorts) {
-      ecmpPorts_.push_back(PortDescriptor(uplinkPort));
+      ecmpPorts_.emplace_back(uplinkPort);
     }
     setupRSWMhnicEcmpV4(ecmpPorts_);
     XLOG(DBG2) << "ProdInvariantTest setup done";

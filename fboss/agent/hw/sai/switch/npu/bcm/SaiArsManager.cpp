@@ -26,9 +26,12 @@ void SaiArsManager::addArs(
   std::optional<SaiArsTraits::Attributes::AlternatePathBias>
       alternatePathBiasForArs = std::nullopt;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  // Need to set default values as these attributes are part of host adapter key
-  alternatePathCostForArs = SaiArsTraits::Attributes::AlternatePathCost{0};
-  alternatePathBiasForArs = SaiArsTraits::Attributes::AlternatePathBias{0};
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ARS_ALTERNATE_MEMBERS)) {
+    // Need to set default values as these attributes are part of adapter key
+    alternatePathCostForArs = SaiArsTraits::Attributes::AlternatePathCost{0};
+    alternatePathBiasForArs = SaiArsTraits::Attributes::AlternatePathBias{0};
+  }
 #endif
   SaiArsTraits::CreateAttributes attributes{
       SaiArsTraits::Attributes::Mode{

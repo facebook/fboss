@@ -56,7 +56,6 @@ std::vector<StateDelta> EcmpResourceManagerDsfScaleTest::consolidate(
   auto newEcmpResourceMgr = makeResourceMgr();
   newEcmpResourceMgr->reconstructFromSwitchState(state_);
   assertResourceMgrCorrectness(*newEcmpResourceMgr, state_);
-
   return deltas;
 }
 
@@ -128,4 +127,36 @@ TEST_F(EcmpResourceManagerDsfScaleTest, addRemoveMaxScaleRoutes) {
   }
   EXPECT_EQ(ecmpResourceMgr_->getMergedGids().size(), 0);
 }
+
+TEST_F(EcmpResourceManagerDsfScaleTest, maxScaleInterfaceRoutes) {
+  {
+    auto newState = state_->clone();
+    auto fib6 = fib(newState);
+    for (auto i = numStartRoutes(); i < kMaxRoutes; ++i) {
+      fib6->addNode(makeRoute(makePrefix(i), getNhops(i)));
+    }
+    consolidate(newState);
+  }
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  auto intfNhops = makeNextHops(20 * 1024);
+  XLOG(DBG2) << " Adding : " << intfNhops.size() << " interface routes";
+  for (const auto& nhop : intfNhops) {
+    RouteNextHopEntry nextHop(
+        static_cast<NextHop>(nhop), AdminDistance::DIRECTLY_CONNECTED);
+    RouteV6::Prefix pfx(nhop.addr().asV6(), 64);
+    auto rt = std::make_shared<RouteV6>(
+        RouteV6::makeThrift(pfx, ClientID::INTERFACE_ROUTE, nextHop));
+    rt->setResolved(nextHop);
+    rt->publish();
+    fib6->addNode(std::move(rt));
+  }
+
+  // Reconstruct from switch state with maximal scale + 20K
+  // interface routes. This simulates what happens
+  // during warm boot
+  auto resourceMgr = makeResourceMgr();
+  resourceMgr->reconstructFromSwitchState(newState);
+}
+
 } // namespace facebook::fboss

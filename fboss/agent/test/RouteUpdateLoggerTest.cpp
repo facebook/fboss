@@ -65,7 +65,7 @@ class MockMplsRouteLogger : public MplsRouteLogger {
       const std::shared_ptr<LabelForwardingEntry>& oldEntry,
       const std::shared_ptr<LabelForwardingEntry>& newEntry,
       const std::vector<std::string>& identifiers) override {
-    changed.push_back({oldEntry->str(), newEntry->str()});
+    changed.emplace_back(oldEntry->str(), newEntry->str());
     changedFor.insert(changedFor.end(), identifiers.begin(), identifiers.end());
   }
 

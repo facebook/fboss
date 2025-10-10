@@ -12,11 +12,11 @@ class MockAgentNetWhoAmI : public AgentNetWhoAmI {
  public:
   MOCK_CONST_METHOD0(isSai, bool());
   MOCK_CONST_METHOD0(isBcmSaiPlatform, bool());
-  MOCK_CONST_METHOD0(isCiscoSaiPlatform, bool());
+  MOCK_CONST_METHOD0(isTajoSaiPlatform, bool());
   MOCK_CONST_METHOD0(isChenabPlatform, bool());
   MOCK_CONST_METHOD0(isBcmPlatform, bool());
-  MOCK_CONST_METHOD0(isCiscoPlatform, bool());
-  MOCK_CONST_METHOD0(isCiscoMorgan800ccPlatform, bool());
+  MOCK_CONST_METHOD0(isTajoPlatform, bool());
+  MOCK_CONST_METHOD0(isTajoMorgan800ccPlatform, bool());
   MOCK_CONST_METHOD0(isBcmVoqPlatform, bool());
   MOCK_CONST_METHOD0(isFdsw, bool());
   MOCK_CONST_METHOD0(isSdsw, bool());

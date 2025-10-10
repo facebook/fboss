@@ -552,6 +552,7 @@ std::optional<QueueConfigAndName> getNameAndDefaultVoqCfg(
     cfg::PortType portType) {
   switch (portType) {
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       return QueueConfigAndName{"defaultVoqCofig", getDefaultNifVoqCfg()};
     case cfg::PortType::CPU_PORT:
       if (isDualStage3Q2QMode()) {

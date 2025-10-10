@@ -271,7 +271,7 @@ void AgentWrapperTest<T>::cleanupDrainFiles() {
 
 template <typename T>
 bool AgentWrapperTest<T>::isSai() const {
-  if (whoami_->isCiscoSaiPlatform()) {
+  if (whoami_->isTajoSaiPlatform()) {
     return true;
   }
   if (auto sdkVersion = config_->thrift.sw()->sdkVersion()) {

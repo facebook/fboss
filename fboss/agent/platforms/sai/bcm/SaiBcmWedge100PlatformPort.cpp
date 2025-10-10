@@ -52,12 +52,12 @@ void SaiBcmWedge100PlatformPort::compactLEDStateChange(uint32_t status) {
   std::vector<PortID> compactModePorts{};
   if (Wedge100LedUtils::isTop(getTransceiverID())) {
     compactModePorts.push_back(getPortID());
-    compactModePorts.push_back(PortID(static_cast<uint32_t>(getPortID()) + 4));
+    compactModePorts.emplace_back(static_cast<uint32_t>(getPortID()) + 4);
   } else {
     auto target = quadMode ? static_cast<uint32_t>(getPortID()) + 2
                            : static_cast<uint32_t>(getPortID());
     for (auto neighborPort : {target + 1, target - 3}) {
-      compactModePorts.push_back(PortID(neighborPort));
+      compactModePorts.emplace_back(neighborPort);
     }
   }
 

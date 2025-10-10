@@ -62,6 +62,7 @@ HEADER_INCLUDES = """
 INCLUDES_EXTERN = """
 extern "C" {
 #include <sai.h>
+#include "fboss/agent/hw/sai/tracer/SaiExtensionsIncludes.h"
 }
 """
 NAMESPACE_START = "namespace facebook::fboss {"

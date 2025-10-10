@@ -26,10 +26,14 @@ class FakeWedge40Platform : public Wedge40Platform {
     return agentDirUtil_.get();
   }
 
+  ~FakeWedge40Platform() override = default;
+
  private:
   // Forbidden copy constructor and assignment operator
   FakeWedge40Platform(FakeWedge40Platform const&) = delete;
   FakeWedge40Platform& operator=(FakeWedge40Platform const&) = delete;
+  FakeWedge40Platform(FakeWedge40Platform&&) = delete;
+  FakeWedge40Platform& operator=(FakeWedge40Platform&&) = delete;
 
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<AgentDirectoryUtil> agentDirUtil_{new AgentDirectoryUtil(

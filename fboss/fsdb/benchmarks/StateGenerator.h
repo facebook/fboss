@@ -8,6 +8,10 @@
 
 namespace facebook::fboss::fsdb::test {
 
+// Utility functions for generating test data
+state::SystemPortFields fillSystemPortMap(int switchId, int portId);
+state::InterfaceFields fillInterfaceMap(int portId, int numInterfaces);
+
 class StateGenerator {
  public:
   static void fillVoqStats(

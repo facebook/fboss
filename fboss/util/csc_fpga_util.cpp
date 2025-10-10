@@ -118,7 +118,7 @@ bool cscWriteReg(struct csc_info_s* pMem, uint32_t regAddr, uint32_t regVal) {
  * allows user to read/write to the SMB/PIM FPGA registers
  */
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  const folly::Init init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 

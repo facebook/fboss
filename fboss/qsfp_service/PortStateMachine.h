@@ -47,9 +47,25 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(std::string, portName)
 // agent coldboot and reset the iphy.
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, xphyNeedResetDataPath)
 
+BOOST_MSM_EUML_ACTION(updatePortCache){
+    template <class Event, class Fsm, class State>
+    void
+    operator()(const Event& /* event */, Fsm& fsm, State& currState)
+        const {auto portId = fsm.get_attribute(portID);
+auto portMgr = fsm.get_attribute(portMgrPtr);
+auto newState = portStateToStateEnum(currState);
+bool isEnabled = newState == PortStateMachineState::INITIALIZED;
+XLOG(DBG2) << "[Port:" << portId << "] State changed to "
+           << apache::thrift::util::enumNameSafe(newState);
+
+portMgr->setPortEnabledStatusInCache(portId, isEnabled);
+} // namespace facebook::fboss
+}
+;
+
 // Port State Machine States
-BOOST_MSM_EUML_STATE((), PORT_STATE_UNINITIALIZED)
-BOOST_MSM_EUML_STATE((), PORT_STATE_INITIALIZED)
+BOOST_MSM_EUML_STATE((updatePortCache), PORT_STATE_UNINITIALIZED)
+BOOST_MSM_EUML_STATE((updatePortCache), PORT_STATE_INITIALIZED)
 BOOST_MSM_EUML_STATE((), PORT_STATE_IPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), PORT_STATE_XPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), PORT_STATE_TRANSCEIVERS_PROGRAMMED)
@@ -165,16 +181,27 @@ if (!portMgr) {
 }
 
 try {
-  portMgr->programExternalPhyPort(
-      portId, fsm.get_attribute(xphyNeedResetDataPath));
+  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
+    // Port should orchestrate PHY programming.
+    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
+      portMgr->programExternalPhyPorts(
+          tcvrID, fsm.get_attribute(xphyNeedResetDataPath));
+    }
+  } else {
+    // Port shouldn't orchestrate PHY programming. Port needs to check state
+    // of orchestrating port to proceed to next stage.
+    auto lowestIdxPort =
+        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
+    return portMgr->hasPortFinishedXphyProgramming(lowestIdxPort);
+  }
   return true;
 } catch (const std::exception& ex) {
   // We have retry mechanism to handle failure. No crash here
   XLOG(WARN) << "[Port:" << name
-             << "] programExternalPhyPort failed:" << folly::exceptionStr(ex);
+             << "] programExternalPhyPorts failed:" << folly::exceptionStr(ex);
   return false;
 }
-} // namespace facebook::fboss
+}
 }
 ;
 
@@ -191,17 +218,7 @@ if (!portMgr) {
   return false;
 }
 
-for (auto tcvrId : portMgr->getTransceiverIdsForPort(portId)) {
-  if (portMgr->getTransceiverState(tcvrId) !=
-      TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-    XLOG(INFO) << "[PortID: " << portId << "] Assigned Transceiver " << tcvrId
-               << " state is not TRANSCEIVER_PROGRAMMED: "
-               << apache::thrift::util::enumNameSafe(
-                      portMgr->getTransceiverState(tcvrId));
-    return false;
-  }
-}
-return true;
+return portMgr->arePortTcvrsProgrammed(portId);
 }
 }
 ;
@@ -232,6 +249,7 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     PORT_STATE_IPHY_PORTS_PROGRAMMED      + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
     PORT_STATE_XPHY_PORTS_PROGRAMMED      + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
     PORT_STATE_TRANSCEIVERS_PROGRAMMED    + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
+    PORT_STATE_PORT_UP                    + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
     PORT_STATE_PORT_DOWN                  + RESET_TO_UNINITIALIZED                                         / portLogStateChanged == PORT_STATE_UNINITIALIZED,
 
     // When we reset transceiver, remove transceiver, firmware upgrade, etc., port needs to be reset to initialized

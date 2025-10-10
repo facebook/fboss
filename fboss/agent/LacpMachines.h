@@ -230,7 +230,10 @@ class Selector {
   };
   using PortIDToSelection = boost::container::flat_map<PortID, Selection>;
 
-  Selector(LacpController& controller, uint8_t minLinkCount = 1);
+  explicit Selector(
+      LacpController& controller,
+      uint8_t minLinkCount = 1,
+      std::optional<uint8_t> minLinkCountToUp = std::nullopt);
 
   void start();
   void stop();
@@ -255,6 +258,7 @@ class Selector {
 
   LacpController& controller_;
   uint8_t minLinkCount_{0};
+  std::optional<uint8_t> minLinkCountToUp_;
 };
 
 } // namespace facebook::fboss

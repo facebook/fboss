@@ -15,6 +15,7 @@
 
 extern "C" {
 #include <sai.h>
+#include "fboss/agent/hw/sai/tracer/SaiExtensionsIncludes.h"
 }
 
 namespace facebook::fboss {

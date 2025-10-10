@@ -47,6 +47,7 @@ LacpController::LacpController(
     uint16_t systemPriority,
     folly::MacAddress systemID,
     uint8_t minLinkCount,
+    std::optional<uint8_t> minimumLinkCountToUp,
     LacpServicerIf* servicer)
     : aggPortID_(aggPortID),
       portID_(portID),
@@ -56,7 +57,7 @@ LacpController::LacpController(
       rx_(*this, evb, servicer, holdTimerMultiplier),
       periodicTx_(*this, evb),
       mux_(*this, evb, servicer),
-      selector_(*this, minLinkCount),
+      selector_(*this, minLinkCount, minimumLinkCountToUp),
       evb_(evb),
       servicer_(servicer) {
   std::memcpy(systemID_.begin(), systemID.bytes(), systemID_.size());

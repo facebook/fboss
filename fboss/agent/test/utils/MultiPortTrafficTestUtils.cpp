@@ -11,7 +11,7 @@ std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort(
   std::vector<folly::IPAddressV6> ips;
   for (int idx = 1; idx <= ensemble->masterLogicalInterfacePortIds().size();
        idx++) {
-    ips.push_back(folly::IPAddressV6(folly::to<std::string>("2401::", idx)));
+    ips.emplace_back(folly::to<std::string>("2401::", idx));
   }
   return ips;
 }
@@ -27,7 +27,7 @@ void setupEcmpDataplaneLoopOnAllPorts(
   std::vector<PortDescriptor> portDescriptors;
   std::vector<flat_set<PortDescriptor>> portDescSets;
   for (auto& portId : ensemble->masterLogicalInterfacePortIds()) {
-    portDescriptors.push_back(PortDescriptor(portId));
+    portDescriptors.emplace_back(portId);
     portDescSets.push_back(flat_set<PortDescriptor>{PortDescriptor(portId)});
   }
   ensemble->applyNewState(
@@ -41,7 +41,7 @@ void setupEcmpDataplaneLoopOnAllPorts(
 
   std::vector<RoutePrefixV6> routePrefixes;
   for (auto prefix : getOneRemoteHostIpPerInterfacePort(ensemble)) {
-    routePrefixes.push_back(RoutePrefixV6{prefix, 128});
+    routePrefixes.emplace_back(prefix, 128);
   }
   auto routeUpdater = ensemble->getSw()->getRouteUpdater();
   ecmpHelper.programRoutes(&routeUpdater, portDescSets, routePrefixes);

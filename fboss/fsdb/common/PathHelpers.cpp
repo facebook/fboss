@@ -44,12 +44,27 @@ std::string PathHelpers::toString(
   return folly::join("_", PathHelpers::toStringList(paths));
 }
 
+std::string PathHelpers::toString(
+    const std::map<SubscriptionKey, ExtendedOperPath>& paths) {
+  return folly::join("_", PathHelpers::toStringList(paths));
+}
+
 std::vector<std::string> PathHelpers::toStringList(
     const std::map<SubscriptionKey, RawOperPath>& paths) {
   std::vector<std::string> strPaths;
   strPaths.reserve(paths.size());
   for (const auto& [_, path] : paths) {
     strPaths.push_back(PathHelpers::toString(path));
+  }
+  return strPaths;
+}
+
+std::vector<std::string> PathHelpers::toStringList(
+    const std::map<SubscriptionKey, ExtendedOperPath>& extPaths) {
+  std::vector<std::string> strPaths;
+  strPaths.reserve(extPaths.size());
+  for (const auto& [_, extPath] : extPaths) {
+    strPaths.push_back(PathHelpers::toString(extPath));
   }
   return strPaths;
 }

@@ -390,7 +390,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
                          folly::IPAddressV4>(switchState, vlan))) {
         auto neighborEntry = iter.second;
         if (neighborEntry->getMac() == blockedNeighborMac) {
-          neighborIPAddr.push_back(neighborEntry->getIP());
+          neighborIPAddr.emplace_back(neighborEntry->getIP());
         }
       }
 
@@ -400,7 +400,7 @@ void LookupClassRouteUpdater::processInterfaceAdded(
         auto neighborEntry = iter.second;
         if (neighborEntry->getMac() == blockedNeighborMac &&
             !isNoHostRoute(neighborEntry)) {
-          neighborIPAddr.push_back(neighborEntry->getIP());
+          neighborIPAddr.emplace_back(neighborEntry->getIP());
         }
       }
 
@@ -586,8 +586,7 @@ void LookupClassRouteUpdater::processNeighborAdded(
     withoutClassIDPrefixes.erase(ridAndCidr);
     withClassIDPrefixes.insert(ridAndCidr);
     allPrefixesWithClassID_.insert(ridAndCidr);
-    toUpdateRoutesAndClassIDs_.emplace_back(
-        std::make_pair(ridAndCidr, routeClassID));
+    toUpdateRoutesAndClassIDs_.emplace_back(ridAndCidr, routeClassID);
   }
 }
 
@@ -671,8 +670,7 @@ void LookupClassRouteUpdater::processNeighborRemoved(
       }
     }
 
-    toUpdateRoutesAndClassIDs_.push_back(
-        std::make_pair(ridAndCidr, routeClassID));
+    toUpdateRoutesAndClassIDs_.emplace_back(ridAndCidr, routeClassID);
   }
 }
 

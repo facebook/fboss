@@ -11,7 +11,6 @@ cpp_library(
     exported_deps = [
         "//fboss/platform/sensor_service:service",
         "//folly:file_util",
-        "//folly/json:dynamic",
         "//folly/testing:test_util",
     ],
 )
@@ -65,5 +64,17 @@ cpp_unittest(
         "//fboss/platform/helpers:mock_platform_utils",
         "//fboss/platform/sensor_service:service",
         "//fboss/platform/sensor_service:utils",
+    ],
+)
+
+cpp_unittest(
+    name = "sensor_service_power_consumption_test",
+    srcs = [
+        "SensorServiceImplPowerConsumptionTest.cpp",
+    ],
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/sensor_service:service",
+        "//folly:file_util",
     ],
 )

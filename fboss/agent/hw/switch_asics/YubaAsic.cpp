@@ -51,7 +51,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::ROUTE_METADATA:
@@ -225,6 +225,8 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
       return false;
   }
   return false;
@@ -275,6 +277,7 @@ std::set<cfg::StreamType> YubaAsic::getQueueStreamTypes(
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
     case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       // TODO: handle when we start modeling
       // recycle port for Ebro ASIC
       break;

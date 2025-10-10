@@ -17,9 +17,13 @@ class PathHelpers {
   static std::string toString(const std::vector<ExtendedOperPath>& paths);
   static std::string toString(
       const std::map<SubscriptionKey, RawOperPath>& paths);
+  static std::string toString(
+      const std::map<SubscriptionKey, ExtendedOperPath>& paths);
 
   static std::vector<std::string> toStringList(
       const std::map<SubscriptionKey, RawOperPath>& paths);
+  static std::vector<std::string> toStringList(
+      const std::map<SubscriptionKey, ExtendedOperPath>& extPaths);
   static std::vector<std::string> toStringList(
       const std::vector<ExtendedOperPath>& paths);
   static std::vector<std::string> toStringList(

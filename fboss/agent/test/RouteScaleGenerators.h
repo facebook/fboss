@@ -148,4 +148,14 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
   boost::container::flat_set<PortDescriptor> labeledPorts_;
 };
 
+class NSFRouteScaleGenerator : public RouteDistributionGenerator {
+ public:
+  explicit NSFRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      const RouterID& routerId = RouterID(0));
+};
+
 } // namespace facebook::fboss::utility

@@ -237,10 +237,10 @@ bool Sff8472Module::getMediaInterfaceId(
         it != mediaInterfaceMapping.end()) {
       mediaInterface[lane].code() = it->second;
       media.ethernet10GComplianceCode() = ethernet10GCompliance;
-    } else if (auto it =
+    } else if (auto extIt =
                    mediaInterfaceMappingForExtSpec.find(extSpecComplianceCode);
-               it != mediaInterfaceMappingForExtSpec.end()) {
-      mediaInterface[lane].code() = it->second;
+               extIt != mediaInterfaceMappingForExtSpec.end()) {
+      mediaInterface[lane].code() = extIt->second;
       media.extendedSpecificationComplianceCode() = extSpecComplianceCode;
     } else {
       QSFP_LOG(ERR, this)

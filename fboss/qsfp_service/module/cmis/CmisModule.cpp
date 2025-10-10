@@ -43,7 +43,7 @@ constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWait = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
-constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
+constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 // We may need special handling for scenarios where Init time takes
 // more than 120 seconds. we will likely need to refactor code.
 constexpr int kUsecDatapathStateUpdateTimeMaxFboss = 120000000; // 120 seconds
@@ -63,6 +63,7 @@ constexpr int kMaxFecTailRs544 = 15;
 // Datapath init/deinit variables
 constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
+constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
@@ -169,6 +170,35 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::TX_BIAS_THRESH, {CmisPages::PAGE02, 184, 8}},
     {CmisField::RX_PWR_THRESH, {CmisPages::PAGE02, 192, 8}},
     {CmisField::PAGE2_CSUM, {CmisPages::PAGE02, 255, 1}},
+    // Page 04h
+    {CmisField::PAGE_UPPER04H, {CmisPages::PAGE04, 128, 128}},
+    {CmisField::LASER_GRIDS_ADVER, {CmisPages::PAGE04, 128, 1}},
+    {CmisField::FINE_TUNING_ADVER, {CmisPages::PAGE04, 129, 1}},
+    {CmisField::LASER_3P125_GHZ_LO_CHAN, {CmisPages::PAGE04, 130, 2}},
+    {CmisField::LASER_3P125_GHZ_HI_CHAN, {CmisPages::PAGE04, 132, 2}},
+    {CmisField::LASER_6P25_GHZ_LO_CHAN, {CmisPages::PAGE04, 134, 2}},
+    {CmisField::LASER_6P25_GHZ_HI_CHAN, {CmisPages::PAGE04, 136, 2}},
+    {CmisField::LASER_12P5_GHZ_LO_CHAN, {CmisPages::PAGE04, 138, 2}},
+    {CmisField::LASER_12P5_GHZ_HI_CHAN, {CmisPages::PAGE04, 140, 2}},
+    {CmisField::LASER_25_GHZ_LO_CHAN, {CmisPages::PAGE04, 142, 2}},
+    {CmisField::LASER_25_GHZ_HI_CHAN, {CmisPages::PAGE04, 144, 2}},
+    {CmisField::LASER_50_GHZ_LO_CHAN, {CmisPages::PAGE04, 146, 2}},
+    {CmisField::LASER_50_GHZ_HI_CHAN, {CmisPages::PAGE04, 148, 2}},
+    {CmisField::LASER_100_GHZ_LO_CHAN, {CmisPages::PAGE04, 150, 2}},
+    {CmisField::LASER_100_GHZ_HI_CHAN, {CmisPages::PAGE04, 152, 2}},
+    {CmisField::LASER_33_GHZ_LO_CHAN, {CmisPages::PAGE04, 154, 2}},
+    {CmisField::LASER_33_GHZ_HI_CHAN, {CmisPages::PAGE04, 156, 2}},
+    {CmisField::LASER_75_GHZ_LO_CHAN, {CmisPages::PAGE04, 158, 2}},
+    {CmisField::LASER_75_GHZ_HI_CHAN, {CmisPages::PAGE04, 160, 2}},
+    {CmisField::LASER_150_GHZ_LO_CHAN, {CmisPages::PAGE04, 162, 2}},
+    {CmisField::LASER_150_GHZ_HI_CHAN, {CmisPages::PAGE04, 164, 2}},
+    {CmisField::LASER_FINE_TUNE_RES, {CmisPages::PAGE04, 190, 2}},
+    {CmisField::LASER_FINE_TUNE_LO_OFFSET, {CmisPages::PAGE04, 192, 2}},
+    {CmisField::LASER_FINE_TUNE_HI_OFFSET, {CmisPages::PAGE04, 194, 2}},
+    {CmisField::MEDIA_TX_PROG_OUT_PWR_ADVER, {CmisPages::PAGE04, 196, 1}},
+    {CmisField::MEDIA_MIN_TX_PROG_OUT_PWR, {CmisPages::PAGE04, 198, 2}},
+    {CmisField::MEDIA_MAX_TX_PROG_OUT_PWR, {CmisPages::PAGE04, 200, 2}},
+    {CmisField::PAGE4_CSUM, {CmisPages::PAGE04, 255, 1}},
     // Page 10h
     {CmisField::PAGE_UPPER10H, {CmisPages::PAGE10, 128, 128}},
     {CmisField::DATA_PATH_DEINIT, {CmisPages::PAGE10, 128, 1}},
@@ -225,6 +255,17 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_OUT_PRE_CURSOR, {CmisPages::PAGE11, 223, 4}},
     {CmisField::RX_OUT_POST_CURSOR, {CmisPages::PAGE11, 227, 4}},
     {CmisField::RX_OUT_MAIN, {CmisPages::PAGE11, 231, 4}},
+    // Page 12h
+    {CmisField::PAGE_UPPER12H, {CmisPages::PAGE12, 128, 128}},
+    {CmisField::MEDIA_TX_1_GRID_AND_FINE_TUNE_ENA, {CmisPages::PAGE12, 128, 1}},
+    {CmisField::MEDIA_TX_1_CHAN_NBR_SEL, {CmisPages::PAGE12, 136, 2}},
+    {CmisField::MEDIA_TX_1_FINE_TUNE_FREQ_OFFSET, {CmisPages::PAGE12, 152, 2}},
+    {CmisField::MEDIA_TX_1_CURR_LAS_FREQ, {CmisPages::PAGE12, 168, 4}},
+    {CmisField::MEDIA_TX_1_TGT_OUTPUT_PWR, {CmisPages::PAGE12, 200, 2}},
+    {CmisField::MEDIA_TX_1_LAS_STAT, {CmisPages::PAGE12, 222, 1}},
+    {CmisField::MEDIA_TX_LAS_TUNE_SUM, {CmisPages::PAGE12, 230, 1}},
+    {CmisField::MEDIA_TX_1_LAS_STAT_FLAGS, {CmisPages::PAGE12, 231, 1}},
+    {CmisField::MEDIA_TX_1_LAS_STAT_MASKS, {CmisPages::PAGE12, 239, 1}},
     // Page 13h
     {CmisField::PAGE_UPPER13H, {CmisPages::PAGE13, 128, 128}},
     {CmisField::LOOPBACK_CAPABILITY, {CmisPages::PAGE13, 128, 1}},
@@ -1939,12 +1980,18 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE02:
         CHECK_LE(offset + length, sizeof(page02_));
         return (page02_ + offset);
+      case CmisPages::PAGE04:
+        CHECK_LE(offset + length, sizeof(page04_));
+        return (page04_ + offset);
       case CmisPages::PAGE10:
         CHECK_LE(offset + length, sizeof(page10_));
         return (page10_ + offset);
       case CmisPages::PAGE11:
         CHECK_LE(offset + length, sizeof(page11_));
         return (page11_ + offset);
+      case CmisPages::PAGE12:
+        CHECK_LE(offset + length, sizeof(page12_));
+        return (page12_ + offset);
       case CmisPages::PAGE13:
         CHECK_LE(offset + length, sizeof(page13_));
         return (page13_ + offset);
@@ -2437,15 +2484,14 @@ void CmisModule::setApplicationCodeLocked(
     if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
         !isRequestValidMultiportSpeedConfig(
             speed, startHostLane, numHostLanes)) {
-      resetDataPathWithFunc(
-          std::bind(
-              &CmisModule::setApplicationSelectCodeAllPorts,
-              this,
-              speed,
-              startHostLane,
-              numHostLanes,
-              hostLaneMask),
-          hostLaneMask);
+      resetDataPathWithFunc(std::bind(
+          &CmisModule::setApplicationSelectCodeAllPorts,
+          this,
+          speed,
+          startHostLane,
+          numHostLanes,
+          hostLaneMask)); // To use the default hostLaneMask = 0xFF for
+                          // all the lanes datapath reset.
     } else {
       resetDataPathWithFunc(
           std::bind(
@@ -2823,8 +2869,12 @@ bool CmisModule::ensureTransceiverReadyLocked() {
 
   if (currentModuleControl & POWER_CONTROL_MASK) {
     powerState = PowerControlState::POWER_LPMODE;
+    QSFP_LOG(INFO, this)
+        << "ensureTransceiverReadyLocked: Current power state is LOW POWER MODE (LP bit set)";
   } else {
     powerState = PowerControlState::HIGH_POWER_OVERRIDE;
+    QSFP_LOG(INFO, this)
+        << "ensureTransceiverReadyLocked: Current power state is HIGH POWER MODE";
   }
 
   // If Optics current power configuration is High Power then the config is
@@ -2837,6 +2887,15 @@ bool CmisModule::ensureTransceiverReadyLocked() {
     bool isReady =
         ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >>
                            MODULE_STATUS_BITSHIFT) == CmisModuleState::READY);
+
+    if (isReady) {
+      QSFP_LOG(INFO, this)
+          << "ensureTransceiverReadyLocked: Module is in high power and READY state";
+    } else {
+      QSFP_LOG(INFO, this)
+          << "ensureTransceiverReadyLocked: Module in high power but not ready yet - need more time to be ready";
+    }
+
     return isReady;
   }
 
@@ -2847,6 +2906,10 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // Set to 0x60 = (SquelchControl=Reduce Pave | LowPwr)
   uint8_t newModuleControl = SQUELCH_CONTROL | LOW_PWR_BIT;
 
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "ensureTransceiverReadyLocked: Setting module to low power mode with squelch control: {:#x}",
+      newModuleControl);
+
   // first set to low power
   writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
 
@@ -2856,13 +2919,11 @@ bool CmisModule::ensureTransceiverReadyLocked() {
 
   // Clear low power bit (set to 0x20)
   newModuleControl = SQUELCH_CONTROL;
-
-  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
-
   QSFP_LOG(INFO, this) << folly::sformat(
-      "ensureTransceiverReadyLocked: QSFP module control set to {:#x}",
+      "ensureTransceiverReadyLocked: Clearing low power bit to enable high power mode: {:#x}",
       newModuleControl);
 
+  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
   return false;
 }
 
@@ -2921,6 +2982,21 @@ void CmisModule::configureModule(uint8_t startHostLane) {
 
   QSFP_LOG(INFO, this)
       << "Rx Equalizer configuration not specified in the QSFP config";
+}
+
+bool CmisModule::isTunableOptics() const {
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, CmisField::MEDIA_INTERFACE_TECHNOLOGY);
+  const uint8_t* data =
+      getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+
+  uint8_t transTech = *data;
+  if ((transTech == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS) ||
+      (transTech == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS)) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
@@ -3754,12 +3830,14 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
     // Read the datapath init/deinit max time from module.
     uint8_t specVal;
     readCmisField(CmisField::MAX_DPINIT_TIME, &specVal);
-
+    // MAX_DP_DEINIT_TIME: bits 7-4
+    // MAX_DP_INIT_TIME: bits 3-0
     uint8_t spec = 0;
     if (init) {
       spec = specVal & DP_INIT_MAX_MASK;
     } else {
       spec = specVal & DP_DINIT_MAX_MASK;
+      spec >>= DP_DINIT_BITSHIFT;
     }
     auto itr = DpInitValToTimeMap.find(spec);
     if (itr != DpInitValToTimeMap.end()) {
@@ -3778,6 +3856,11 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
             maxTime,
             kUsecDatapathStateUpdateTimeMaxFboss);
       }
+    } else {
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Datapath max {:s} time unable to retreive from val map spec {:x}",
+          init ? "init" : "deinit",
+          spec);
     }
   }
   QSFP_LOG(INFO, this) << fmt::format(

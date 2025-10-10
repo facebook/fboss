@@ -122,6 +122,6 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return portDescs;
   }
 
-  std::string getSdkMajorVersion();
+  std::string getSdkMajorVersion(const SwitchID& switchId);
 };
 } // namespace facebook::fboss

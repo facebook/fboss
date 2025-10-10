@@ -27,7 +27,9 @@
 namespace {
 
 std::string getRif(const std::string& name, int32_t port) {
-  if (port != 0 && (name.rfind("eth", 0) == 0 || name.rfind("evt", 0) == 0)) {
+  if (port != 0 &&
+      (name.rfind("eth", 0) == 0 || name.rfind("evt", 0) == 0 ||
+       name.rfind("hyp", 0) == 0)) {
     return "fboss" + std::to_string(port);
   }
   return "";
@@ -162,6 +164,15 @@ class CmdShowInterface
           if (vlanToPrefixes.contains(vlan)) {
             ifModel.prefixes() = vlanToPrefixes[vlan];
           }
+        } else if (portInfo.vlans()->size() == 0) {
+          // Chenab has no vlans. Putting the equivalent port here for now
+          ifModel.vlan() = *portInfo.portId();
+          if (vlanToMtu.contains(*portInfo.portId())) {
+            ifModel.mtu() = vlanToMtu[*portInfo.portId()];
+          }
+          if (vlanToPrefixes.contains(*portInfo.portId())) {
+            ifModel.prefixes() = vlanToPrefixes[*portInfo.portId()];
+          }
         }
 
         if (localSysPortOffset.has_value() && globalSysPortOffset.has_value()) {
@@ -203,7 +214,12 @@ class CmdShowInterface
       std::unordered_map<int32_t, int32_t>& vlanToMtu,
       const std::map<int32_t, facebook::fboss::InterfaceDetail>& intfDetails) {
     for (const auto& [intfId, intfDetail] : intfDetails) {
-      vlanToMtu[*intfDetail.vlanId()] = *intfDetail.mtu();
+      // NO_VLAN = -1 in switch config
+      if (*intfDetail.vlanId() <= 0) {
+        vlanToMtu[*intfDetail.portId()] = *intfDetail.mtu();
+      } else {
+        vlanToMtu[*intfDetail.vlanId()] = *intfDetail.mtu();
+      }
     }
   }
 
@@ -215,7 +231,8 @@ class CmdShowInterface
         continue; // Only search for local interfaces
       }
 
-      const auto& vlan = *intfDetail.vlanId();
+      const auto& vlan = (*intfDetail.vlanId() <= 0) ? *intfDetail.portId()
+                                                     : *intfDetail.vlanId();
       for (const auto& ifAddr : *intfDetail.address()) {
         cli::IpPrefix prefix;
         prefix.ip() = folly::IPAddress::fromBinary(
@@ -242,7 +259,7 @@ class CmdShowInterface
         model.interfaces()->begin(),
         model.interfaces()->end(),
         [&nameToPortPosition](cli::Interface& a, cli::Interface b) {
-          if (nameToPortPosition.contains(*a.name()) and
+          if (nameToPortPosition.contains(*a.name()) &&
               nameToPortPosition.contains(*b.name())) {
             const auto& aPos = nameToPortPosition[*a.name()];
             const auto& bPos = nameToPortPosition[*b.name()];

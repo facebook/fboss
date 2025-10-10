@@ -29,6 +29,41 @@ TEST(ConfigValidatorTest, FanConfig) {
   EXPECT_TRUE(ConfigValidator().isValidFanConfig(fan));
 }
 
+TEST(ConfigValidatorTest, FanConfigLedPaths) {
+  // Create a valid fan configuration first
+  auto fan = Fan();
+  fan.rpmSysfsPath() = "/run/devmap/sensors/ABC/fan0_rpm";
+  fan.pwmSysfsPath() = "/run/devmap/sensors/ABC/fan0_pwm";
+  fan.presenceSysfsPath() = "/run/devmap/sensors/ABC/fan0_presence";
+  EXPECT_TRUE(ConfigValidator().isValidFanConfig(fan));
+
+  // Test goodLedSysfsPath validation
+  // Test with invalid prefix (should fail)
+  fan.goodLedSysfsPath() = "/invalid/path/fan0:blue:status";
+  EXPECT_FALSE(ConfigValidator().isValidFanConfig(fan));
+
+  // Test with invalid suffix (should fail)
+  fan.goodLedSysfsPath() = "/sys/class/leds/fan0:invalid:status";
+  EXPECT_FALSE(ConfigValidator().isValidFanConfig(fan));
+
+  // Test with valid path (should pass)
+  fan.goodLedSysfsPath() = "/sys/class/leds/fan0:blue:status";
+  EXPECT_TRUE(ConfigValidator().isValidFanConfig(fan));
+
+  // Test failLedSysfsPath validation
+  // Test with invalid prefix (should fail)
+  fan.failLedSysfsPath() = "/invalid/path/fan0:amber:status";
+  EXPECT_FALSE(ConfigValidator().isValidFanConfig(fan));
+
+  // Test with invalid suffix (should fail)
+  fan.failLedSysfsPath() = "/sys/class/leds/fan0:invalid:status";
+  EXPECT_FALSE(ConfigValidator().isValidFanConfig(fan));
+
+  // Test with valid path (should pass)
+  fan.failLedSysfsPath() = "/sys/class/leds/fan0:amber:status";
+  EXPECT_TRUE(ConfigValidator().isValidFanConfig(fan));
+}
+
 TEST(ConfigValidatorTest, OpticConfig) {
   auto optic = Optic();
   EXPECT_FALSE(ConfigValidator().isValidOpticConfig(optic));

@@ -838,6 +838,15 @@ struct SaiSwitchTraits {
         std::vector<sai_object_id_t>,
         AttributeModuleIdFabricPortList,
         SaiObjectIdListDefault>;
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+    struct AttributeLocalSystemPortIdRangeList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LocalSystemPortIdRangeList = SaiExtensionAttribute<
+        std::vector<sai_u16_range_t>,
+        AttributeLocalSystemPortIdRangeList,
+        SaiListDefault<sai_u16_range_list_t>>;
+#endif
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -935,7 +944,12 @@ struct SaiSwitchTraits {
       std::optional<Attributes::PfcTcDldTimerGranularityInterval>,
       std::optional<Attributes::DisableSllAndHllTimeout>,
       std::optional<Attributes::CreditRequestProfileSchedulerMode>,
-      std::optional<Attributes::ModuleIdToCreditRequestProfileParamList>>;
+      std::optional<Attributes::ModuleIdToCreditRequestProfileParamList>
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+      ,
+      std::optional<Attributes::LocalSystemPortIdRangeList>
+#endif
+      >;
 
   // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
   // both DramPacketError and EgressRcvPacketError. As we now have a
@@ -1125,6 +1139,9 @@ SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+SAI_ATTRIBUTE_NAME(Switch, LocalSystemPortIdRangeList)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};

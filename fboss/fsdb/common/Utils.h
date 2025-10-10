@@ -103,6 +103,8 @@ std::string fsdbClient2string(const FsdbClient& clientId);
 
 ClientId subscriberId2ClientId(const SubscriberId& subscriberId);
 
+std::string clientIdToString(const ClientId& clientId);
+
 SubscriberId clientId2SubscriberId(const ClientId& clientId);
 
 } // namespace facebook::fboss::fsdb

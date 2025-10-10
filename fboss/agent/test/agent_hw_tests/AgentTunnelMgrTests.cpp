@@ -10,17 +10,20 @@
  * This macro contains friend class declarations needed to access private
  * members of TunManager for testing.
  */
-#define AGENT_TUNNEL_MGR_FRIEND_TESTS \
-  friend class AgentTunnelMgrTest;    \
-  FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanup);
+#define AGENT_TUNNEL_MGR_FRIEND_TESTS                      \
+  friend class AgentTunnelMgrTest;                         \
+  FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanup); \
+  FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown);
 
 #include <sstream>
 #include <string>
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -37,9 +40,24 @@ class AgentTunnelMgrTest : public AgentHwTest {
     FLAGS_cleanup_probed_kernel_data = true;
   }
 
+ public:
   void SetUp() override {
-    // clear all kernel entries before starting the test
-    clearAllKernelEntries();
+    // Check for warmboot flag before any processing using the helper function
+    bool isWarmbootSetup = isWarmbootSetupRequested();
+
+    XLOG(INFO) << "Setup requested for "
+               << (isWarmbootSetup ? "warmboot" : "coldboot");
+
+    // Clear kernel entries for coldboot only, BEFORE agent initialization
+    if (isWarmbootSetup) {
+      XLOG(INFO)
+          << "Coldboot detected: clearing all kernel entries before agent initialization";
+      clearAllKernelEntries();
+    } else {
+      XLOG(INFO) << "Warmboot detected: skipping kernel entries cleanup";
+    }
+
+    // Now call parent SetUp to initialize the agent
     AgentHwTest::SetUp();
   }
 
@@ -406,8 +424,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
   void checkKernelEntriesNotExist(
       const std::string& intfIp,
       bool isIPv4 = true,
-      bool checkRouteEntry = true,
-      bool sourceRuleCleared = true) {
+      bool checkRouteEntry = true) {
     // Check that the source route rule entries are present in the kernel
 
     std::string cmd;
@@ -423,15 +440,8 @@ class AgentTunnelMgrTest : public AgentHwTest {
     XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
     XLOG(DBG2) << "checkKernelEntriesNotExist Output: \n" << output;
 
-    if (sourceRuleCleared) {
-      EXPECT_TRUE(
-          output.find(folly::to<std::string>(searchIntfIp)) ==
-          std::string::npos);
-    } else {
-      EXPECT_FALSE(
-          output.find(folly::to<std::string>(searchIntfIp)) ==
-          std::string::npos);
-    }
+    EXPECT_TRUE(
+        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
 
     if (isIPv4) {
       // Check that the tunnel address entries are present in the kernel
@@ -466,6 +476,21 @@ class AgentTunnelMgrTest : public AgentHwTest {
       EXPECT_TRUE(
           output.find(folly::to<std::string>(searchIntfIp)) ==
           std::string::npos);
+
+      // Additional check for fboss routes in all tables
+      if (isIPv4) {
+        cmd = folly::to<std::string>("ip route list table all | grep fboss");
+      } else {
+        cmd = folly::to<std::string>("ip -6 route list table all | grep fboss");
+      }
+
+      output = runShellCmd(cmd);
+
+      XLOG(DBG2) << "checkKernelEntriesExist Additional Cmd: " << cmd;
+      XLOG(DBG2) << "checkKernelEntriesExist Additional Output: " << output;
+
+      EXPECT_TRUE(
+          output.find(folly::to<std::string>("fboss")) == std::string::npos);
     }
   }
 
@@ -751,6 +776,88 @@ class AgentTunnelMgrTest : public AgentHwTest {
     }
   }
 
+  void printProbedInterfaceDetails() {
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+
+    XLOG(INFO) << "=== Probed Interface Details ===";
+
+    for (const auto& [interfaceId, intf] : tunMgr_->intfs_) {
+      std::vector<std::string> intfIPv4s;
+      std::vector<std::string> intfIPv6s;
+
+      // Categorize addresses by IP version
+      for (const auto& [addr, mask] : intf->getAddresses()) {
+        if (addr.isV6()) {
+          intfIPv6s.push_back(addr.str());
+        } else {
+          intfIPv4s.push_back(addr.str());
+        }
+      }
+
+      // Convert vectors to comma-separated strings for logging
+      std::string ipv4List = folly::join(", ", intfIPv4s);
+      std::string ipv6List = folly::join(", ", intfIPv6s);
+
+      XLOG(INFO) << "Interface ID: " << interfaceId
+                 << ", Name: " << intf->getName()
+                 << ", IfIndex: " << intf->getIfIndex()
+                 << ", Status: " << (intf->getStatus() ? "UP" : "DOWN")
+                 << ", IPv4: [" << ipv4List << "]" << ", IPv6: [" << ipv6List
+                 << "]";
+    }
+
+    XLOG(INFO) << "=== End Probed Interface Details ===";
+  }
+
+  void printKernelInformation() {
+    XLOG(INFO) << "=== Kernel Network Information ===";
+
+    // IPv4 route table (all tables)
+    XLOG(INFO) << "--- IPv4 Routes (All Tables) ---";
+    std::string cmd = "ip route show table all";
+    auto output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv6 route table (all tables)
+    XLOG(INFO) << "--- IPv6 Routes (All Tables) ---";
+    cmd = "ip -6 route show table all";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv4 rule table
+    XLOG(INFO) << "--- IPv4 Rules ---";
+    cmd = "ip rule";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv6 rule table
+    XLOG(INFO) << "--- IPv6 Rules ---";
+    cmd = "ip -6 rule";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv4 addresses
+    XLOG(INFO) << "--- IPv4 Addresses ---";
+    cmd = "ip -4 a";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    // IPv6 addresses
+    XLOG(INFO) << "--- IPv6 Addresses ---";
+    cmd = "ip -6 a";
+    output = runShellCmd(cmd);
+    XLOG(INFO) << "Command: " << cmd;
+    XLOG(INFO) << "Output:\n" << output;
+
+    XLOG(INFO) << "=== End Kernel Network Information ===";
+  }
+
   void checkKernelIpEntriesRemoved(
       const InterfaceID& ifId,
       const std::string& intfIP,
@@ -772,30 +879,21 @@ class AgentTunnelMgrTest : public AgentHwTest {
   }
 
   /**
-   * Check kernel entries are removed, for interfaces that are down.
-   *
-   * This method can be called for interfaces that are down and will not
-   * enforce that source route rules are removed for down interfaces, see
-   * https://fburl.com/code/b0am2ok2
-   * Unlike existing checkKernelEntriesNotExist, which is selectively called for
-   * interfaces that are up, this method can be check that all kernel entries
-   * (interfaces, addresses and routes)  other than source rule are cleaned up.
+   * Check kernel entries are removed, irrespective of interace status.
    *
    * @param ifId Interface ID to check
    * @param intfIP Interface IP address to check
    * @param isIPv4 True for IPv4, false for IPv6
    */
-  void checkKernelIpEntriesRemovedSkipSourceRule(
+  void checkKernelIpEntriesRemovedStrict(
       const InterfaceID& ifId,
       const std::string& intfIP,
       bool isIPv4) {
     // Check kernel entries regardless of interface status
     if (isIPv4) {
-      checkKernelEntriesNotExist(
-          folly::to<std::string>(intfIP), true, true, false);
+      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), true, true);
     } else {
-      checkKernelEntriesNotExist(
-          folly::to<std::string>(intfIP), false, true, false);
+      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), false, true);
     }
   }
 };
@@ -930,6 +1028,7 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
     auto config = initialConfig(*getAgentEnsemble());
 
     printInterfaceDetails(config);
+    printKernelInformation();
 
     // Apply the config
     applyNewConfig(config);
@@ -978,11 +1077,49 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
     auto socketExists = tunMgr_->isValidNlSocket();
 
     if (socketExists) {
+      // Verify probe data is not cleaned up during warmboot, since interfaces
+      // in kernel and switchState are same. During the coldboot case for tests,
+      // the kernel will have nothing, while switchState will have the
+      // interfacs, so cleanup will run.
+      if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
+        // Access thread local status from appropriate thread.
+        int64_t statsValue = 0;
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 0);
+      } else {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        // Flush thread-local stats to make them immediately available
+        ThriftHandler handler(getSw());
+        handler.flushCountersNow();
+        // Access thread local status from appropriate thread.
+        int64_t statsValue = 0;
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 1);
+      }
+      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+
       // Set probeDone_ to false before calling probe()
       tunMgr_->probeDone_ = false;
 
+      // Temporarily unregister TunManager from state observation to eliminate
+      // interfaces being created.
+      if (tunMgr_->observingState_) {
+        getSw()->unregisterStateObserver(tunMgr_);
+      }
+
       XLOG(INFO) << "Starting probe and cleanup of kernel data";
-      tunMgr_->probe();
+      tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+        tunMgr_->probe();
+        // Force cleanup by calling deleteAllProbedData directly to ensure it
+        // happens regardless of interface mapping comparison
+        tunMgr_->deleteAllProbedData();
+      });
+
       XLOG(INFO) << "Stopping probe and clean up of probe data";
 
       // Check that the kernel entries are removed after probe
@@ -998,11 +1135,194 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
         checkKernelIpEntriesRemoved(intfID, ipv6Addr.str(), false);
       }
+
+      // Re-register TunManager for state observation after test verification
+      if (tunMgr_->observingState_) {
+        getSw()->registerStateObserver(tunMgr_, "TunManager");
+      }
     } else {
       XLOG(INFO) << "Socket does not exist";
     }
 
+    // Recreate interfaces after deleting probed data
+    printProbedInterfaceDetails();
     printInterfaceDetails(config);
+    printKernelInformation();
+    // Set probeDone_ to false before calling probe()
+    tunMgr_->probeDone_ = false;
+
+    XLOG(INFO) << "Recreate kernel data";
+    tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+        [&]() { tunMgr_->probe(); });
+
+    auto state = getAgentEnsemble()->getSw()->getState();
+    tunMgr_->evb_->runInFbossEventBaseThread(
+        [tunMgr_, state]() { tunMgr_->sync(state); });
+    printProbedInterfaceDetails();
+    printInterfaceDetails(config);
+    printKernelInformation();
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+/**
+ * Test verifies tunnel manager's probe and cleanup functionality for DOWN
+ * interfaces:
+ * - Creates state (interfaces, addresses, source rules, default routes) for 2
+ * interfaces with ports disabled (interfaces DOWN)
+ * - Verifies state exists in kernel
+ * - Verifies kernel has clean state after cleanup, skipping source rule
+ * validation for down interfaces (source rules persist for down interfaces
+ * per kernel limitation)
+ */
+TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    printInterfaceDetails(config);
+    printKernelInformation();
+
+    std::string intfIPv4;
+    std::string intfIPv6;
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        std::string intfIP = folly::to<std::string>(
+            folly::IPAddress::createNetwork(
+                config.interfaces()[i].ipAddresses()[j], -1, false)
+                .first);
+
+        if (intfIP.find("::") != std::string::npos) {
+          intfIPv6 = std::move(intfIP);
+        } else {
+          intfIPv4 = std::move(intfIP);
+        }
+      }
+
+      // Get TunManager pointer
+      auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+      auto status = tunMgr_->getIntfStatus(
+          getProgrammedState(),
+          (InterfaceID)config.interfaces()[i].intfID().value());
+
+      XLOG(INFO) << "Interface ID: "
+                 << (InterfaceID)config.interfaces()[i].intfID().value()
+                 << ", Status: " << (status ? "UP" : "DOWN")
+                 << ", IPv4: " << intfIPv4 << ", IPv6: " << intfIPv6;
+      // There could be a race condition where the interface is up, but the
+      // socket is not created. So, checking for the socket existence.
+      auto socketExists = tunMgr_->isValidNlSocket();
+
+      // There is a known limitation in the kernel that the source route rule
+      // entries are not created if the interface is not up. So, checking for
+      // the kernel entries if the interface is  up
+      if (status && socketExists) {
+        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+      }
+    }
+
+    for (int i = 0; i < config.ports()->size(); i++) {
+      XLOG(DBG2) << "Disabling port at index: " << i;
+      config.ports()[i].state() = cfg::PortState::DISABLED;
+    }
+
+    // Apply the config
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    printInterfaceDetails(config);
+
+    // Get TunManager pointer
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
+    auto socketExists = tunMgr_->isValidNlSocket();
+
+    if (socketExists) {
+      // Verify probe data is not cleaned up during warmboot, since interfaces
+      // in kernel and switchState are same. During the coldboot case for tests,
+      // the kernel will have nothing, while switchState will have the
+      if (getAgentEnsemble()->getBootType() == BootType::WARM_BOOT) {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, false);
+        int64_t statsValue = 0;
+        // Access thread local status from appropriate thread.
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 0);
+      } else {
+        EXPECT_EQ(tunMgr_->probedStateCleanedUp_, true);
+        // Flush thread-local stats to make them immediately available
+        ThriftHandler handler(getSw());
+        handler.flushCountersNow();
+        int64_t statsValue = 0;
+        // Access thread local status from appropriate thread.
+        tunMgr_->evb_->runInFbossEventBaseThreadAndWait([&]() {
+          statsValue = getSw()->stats()->getProbedStateCleanupStatus();
+        });
+        EXPECT_EQ(statsValue, 1);
+      }
+      EXPECT_EQ(tunMgr_->initialCleanupDone_, true);
+      // Unregister TunManager from state observation to eliminate interfaces
+      // from being created.
+      if (tunMgr_->observingState_) {
+        getSw()->unregisterStateObserver(tunMgr_);
+      }
+
+      // Set probeDone_ to false before calling probe()
+      tunMgr_->probeDone_ = false;
+
+      XLOG(INFO) << "Starting probe and cleanup of kernel data";
+      tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+          [&]() { tunMgr_->probe(); });
+      printProbedInterfaceDetails();
+      printKernelInformation();
+
+      // Force cleanup by calling deleteAllProbedData directly to ensure it
+      // happens regardless of interface mapping comparison
+      tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+          [&]() { tunMgr_->deleteAllProbedData(); });
+
+      XLOG(INFO) << "Stopping probe and clean up of probe data";
+
+      // Check that the kernel entries are removed after probe
+      for (int i = 0; i < config.interfaces()->size(); i++) {
+        InterfaceID intfID =
+            InterfaceID(config.interfaces()[i].intfID().value());
+
+        // Get IPv4 address for this interface
+        auto ipv4Addr = getSwitchIntfIP(getProgrammedState(), intfID);
+        checkKernelIpEntriesRemovedStrict(intfID, ipv4Addr.str(), true);
+
+        // Get IPv6 address for this interface
+        auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
+        checkKernelIpEntriesRemovedStrict(intfID, ipv6Addr.str(), false);
+      }
+
+      // Re-register TunManager for cleanup
+      if (tunMgr_->observingState_) {
+        getSw()->registerStateObserver(tunMgr_, "TunManager");
+      }
+    } else {
+      XLOG(INFO) << "Socket does not exist";
+    }
+
+    // Recreate interfaces after deleting probed data
+    printProbedInterfaceDetails();
+    printInterfaceDetails(config);
+    printKernelInformation();
+    // Set probeDone_ to false before calling probe()
+    tunMgr_->probeDone_ = false;
+
+    XLOG(INFO) << "Recreate kernel data";
+    tunMgr_->evb_->runInFbossEventBaseThreadAndWait(
+        [&]() { tunMgr_->probe(); });
+
+    auto state = getAgentEnsemble()->getSw()->getState();
+    tunMgr_->evb_->runInFbossEventBaseThread(
+        [tunMgr_, state]() { tunMgr_->sync(state); });
+    printProbedInterfaceDetails();
+    printInterfaceDetails(config);
+    printKernelInformation();
   };
 
   verifyAcrossWarmBoots(setup, verify);

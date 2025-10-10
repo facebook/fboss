@@ -102,6 +102,8 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::BUFFER_POOL:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -112,7 +114,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::MEDIA_TYPE:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
@@ -137,7 +138,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
@@ -221,6 +222,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
       return false;
   }
   return false;

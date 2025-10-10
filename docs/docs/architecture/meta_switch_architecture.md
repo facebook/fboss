@@ -279,6 +279,17 @@ Controller has 2+ root ports):
       3. Solid Blue
       4. Blinking Blue
       5. Blinking Amber
+4. Fan LEDs
+   1. The Fan LEDs must support the following colors:
+      1. Blue
+      2. Amber
+   2. Each fan LED shall be able to support the following fan LED behaviors
+      controlled by FBOSS Software
+      1. No light
+      2. Solid Amber
+      3. Solid Blue
+      4. Blinking Blue
+      5. Blinking Amber
 
 ## 3. Power Sequencing
 

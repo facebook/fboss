@@ -1,5 +1,15 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("//fboss/agent/hw/sai/tracer:tracer.bzl", "sai_tracer_apis")
 
 oncall("fboss_agent_push")
 
 sai_tracer_apis()
+
+cpp_library(
+    name = "recursive_glob_headers",
+    headers = ["SaiExtensionsIncludes.h"],
+    labels = ["noautodeps"],
+    exported_deps = [
+        "//fboss/agent/hw/sai/api:sai_version",
+    ],
+)

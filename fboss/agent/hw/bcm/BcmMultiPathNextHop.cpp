@@ -305,7 +305,7 @@ cfg::SwitchingMode BcmMultiPathNextHopTable::getFwdSwitchingMode(
   auto multipathNextHop =
       getNextHopIf(BcmMultiPathNextHopKey(vrf, nextHopSet, std::nullopt));
   if (!multipathNextHop) {
-    std::string str = "";
+    std::string str;
     for (const auto& nhop : nextHopSet) {
       str += folly::to<std::string>(nhop.str(), ",");
     }

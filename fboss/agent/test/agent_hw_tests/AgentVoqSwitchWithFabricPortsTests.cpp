@@ -50,19 +50,19 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     // Setup neighbor entry
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-    addRemoveNeighbor(kPort, NeighborOp::ADD);
+    const auto testPort = ecmpHelper.ecmpPortDescriptorAt(0);
+    addRemoveNeighbor(testPort, NeighborOp::ADD);
     auto sendPktAndVerify = [&](bool isFrontPanel) {
       auto beforeOutPkts = folly::copy(
-          getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
+          getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value());
       std::optional<PortID> frontPanelPort;
       if (isFrontPanel) {
         frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
       }
-      sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+      sendPacket(ecmpHelper.ip(testPort), frontPanelPort);
       WITH_RETRIES({
         auto afterOutPkts =
-            getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+            getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
         XLOG(DBG2) << " Before out pkts: " << beforeOutPkts
                    << " After out pkts: " << afterOutPkts;
         EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + 1);
@@ -415,15 +415,15 @@ TEST_F(
 TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(
       getProgrammedState(), getSw()->needL2EntryForNeighbor());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort, ecmpHelper]() {
+  const auto testPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, testPort, ecmpHelper]() {
     setForceTrafficOverFabric(true);
-    addRemoveNeighbor(kPort, NeighborOp::ADD);
+    addRemoveNeighbor(testPort, NeighborOp::ADD);
   };
 
-  auto verify = [this, kPort, ecmpHelper]() {
+  auto verify = [this, testPort, ecmpHelper]() {
     auto beforePkts = folly::copy(
-        getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
+        getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value());
 
     // Drain a fabric port
     auto fabricPortId =
@@ -439,17 +439,18 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
     // Send 10K packets and spray on fabric ports
     for (auto i = 0; i < 10000; ++i) {
       sendPacket(
-          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+          ecmpHelper.ip(testPort),
+          ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
-      auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto nifBytes = getLatestPortStats(testPort.phyPortID()).get_outBytes_();
       auto switchId =
-          getSw()->getScopeResolver()->scope(kPort.phyPortID()).switchId();
+          getSw()->getScopeResolver()->scope(testPort.phyPortID()).switchId();
       auto fabricPortStats =
           getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
@@ -478,28 +479,29 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(
       getProgrammedState(), getSw()->needL2EntryForNeighbor());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort, ecmpHelper]() {
+  const auto testPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, testPort, ecmpHelper]() {
     setForceTrafficOverFabric(true);
-    addRemoveNeighbor(kPort, NeighborOp::ADD);
+    addRemoveNeighbor(testPort, NeighborOp::ADD);
   };
 
-  auto verify = [this, kPort, ecmpHelper]() {
+  auto verify = [this, testPort, ecmpHelper]() {
     auto beforePkts = folly::copy(
-        getLatestPortStats(kPort.phyPortID()).outUnicastPkts_().value());
+        getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value());
     for (auto i = 0; i < 10000; ++i) {
       sendPacket(
-          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+          ecmpHelper.ip(testPort),
+          ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
-      auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto nifBytes = getLatestPortStats(testPort.phyPortID()).get_outBytes_();
       auto switchId =
-          getSw()->getScopeResolver()->scope(kPort.phyPortID()).switchId();
+          getSw()->getScopeResolver()->scope(testPort.phyPortID()).switchId();
       auto fabricPortStats =
           getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
@@ -518,9 +520,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(
       getProgrammedState(), getSw()->needL2EntryForNeighbor());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort]() {
-    addRemoveNeighbor(kPort, NeighborOp::ADD);
+  const auto testPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, testPort]() {
+    addRemoveNeighbor(testPort, NeighborOp::ADD);
     setForceTrafficOverFabric(true);
     std::string out;
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
@@ -532,11 +534,11 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
     }
   };
 
-  auto verify = [this, kPort, &ecmpHelper]() {
-    auto sendPkts = [this, kPort, &ecmpHelper]() {
+  auto verify = [this, testPort, &ecmpHelper]() {
+    auto sendPkts = [this, testPort, &ecmpHelper]() {
       for (auto i = 0; i < 1000; ++i) {
         sendPacket(
-            ecmpHelper.ip(kPort),
+            ecmpHelper.ip(testPort),
             std::nullopt,
             std::vector<uint8_t>(1024, 0xff));
       }

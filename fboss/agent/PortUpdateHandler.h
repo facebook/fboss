@@ -35,7 +35,9 @@ class PortUpdateHandler : public StateObserver {
   PortUpdateHandler(PortUpdateHandler const&) = delete;
   PortUpdateHandler& operator=(PortUpdateHandler const&) = delete;
   void computeFabricOverdrainPct(const StateDelta& delta);
-
+  void handlePortUp(
+      const std::shared_ptr<Port>& newPort,
+      const std::shared_ptr<SwitchState>& state);
   SwSwitch* sw_{nullptr};
 };
 

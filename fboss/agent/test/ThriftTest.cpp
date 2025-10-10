@@ -78,23 +78,6 @@ IpPrefix ipPrefix(StringPiece prefixStr) {
   return ipPrefix(IPAddress::createNetwork(prefixStr));
 }
 
-FlowEntry makeFlow(
-    std::string dstIp,
-    std::string nhip = kNhopAddrA,
-    std::string counter = "counter0",
-    std::string nhopAddr = "fboss1") {
-  FlowEntry flowEntry;
-  flowEntry.flow()->srcPort() = 100;
-  flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, 64);
-  flowEntry.counterID() = counter;
-  std::vector<NextHopThrift> nexthops;
-  NextHopThrift nexthop;
-  nexthop.address() = toBinaryAddress(IPAddress(nhip));
-  nexthop.address()->ifName() = nhopAddr;
-  nexthops.push_back(nexthop);
-  flowEntry.nexthops() = nexthops;
-  return flowEntry;
-}
 } // unnamed namespace
 
 class ThriftTest : public ::testing::Test {
@@ -313,6 +296,9 @@ TEST(ThriftEnum, assertPortSpeeds) {
         break;
       case PortSpeed::EIGHTHUNDREDG:
         EXPECT_EQ(static_cast<int>(key), 800000);
+        break;
+      case PortSpeed::THREEPOINTTWOT:
+        EXPECT_EQ(static_cast<int>(key), 3200000);
         break;
     }
   }
@@ -999,17 +985,17 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   auto blockListVerify =
       [&handler](
           std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock) {
-        auto cfgMacAddrsToBlock =
+        auto lambdaCfgMacAddrsToBlock =
             std::make_unique<std::vector<cfg::MacAndVlan>>();
 
         for (const auto& [vlanID, macAddress] : macAddrsToBlock) {
           cfg::MacAndVlan macAndVlan;
           macAndVlan.vlanID() = vlanID;
           macAndVlan.macAddress() = macAddress.toString();
-          cfgMacAddrsToBlock->emplace_back(macAndVlan);
+          lambdaCfgMacAddrsToBlock->emplace_back(macAndVlan);
         }
-        auto expectedCfgMacAddrsToBlock = *cfgMacAddrsToBlock;
-        handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock));
+        auto expectedCfgMacAddrsToBlock = *lambdaCfgMacAddrsToBlock;
+        handler.setMacAddrsToBlock(std::move(lambdaCfgMacAddrsToBlock));
         waitForStateUpdates(handler.getSw());
 
         auto gotMacAddrsToBlock =

@@ -36,6 +36,7 @@ cpp_unittest(
         "QcmConfigTests.cpp",
         "QosPolicyTests.cpp",
         "RouteNextHopEntryTests.cpp",
+        "RouteNextHopTests.cpp",
         "RouteTests.cpp",
         "SflowCollectorTests.cpp",
         "SwitchSettingsTests.cpp",

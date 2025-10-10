@@ -799,6 +799,7 @@ class QsfpModule : public Transceiver {
       std::optional<ModuleStatus> /* curModuleStatus */ = std::nullopt) {}
 
   friend class TransceiverStateMachineTest;
+  friend class PortStateMachineTest;
 
   std::map<uint8_t, std::string> hostLaneToPortName_;
   std::map<uint8_t, std::string> mediaLaneToPortName_;

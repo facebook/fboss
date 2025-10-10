@@ -115,6 +115,8 @@ class PortStats {
   // Forbidden copy constructor and assignment operator
   PortStats(PortStats const&) = delete;
   PortStats& operator=(PortStats const&) = delete;
+  PortStats(PortStats&&) = delete;
+  PortStats& operator=(PortStats&&) = delete;
 
   std::string getCounterKey(const std::string& key) const;
   void updateLoadBearingTLStatValue(

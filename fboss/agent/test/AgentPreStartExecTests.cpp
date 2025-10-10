@@ -122,12 +122,12 @@ class AgentPreStartExecTests : public ::testing::Test {
     ON_CALL(*netwhoami, isSai()).WillByDefault(Return(TestAttr::kSai));
     ON_CALL(*netwhoami, isBcmSaiPlatform())
         .WillByDefault(Return(TestAttr::kBrcm && TestAttr::kSai));
-    ON_CALL(*netwhoami, isCiscoSaiPlatform())
+    ON_CALL(*netwhoami, isTajoSaiPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
-    ON_CALL(*netwhoami, isCiscoMorgan800ccPlatform())
+    ON_CALL(*netwhoami, isTajoMorgan800ccPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isBcmPlatform()).WillByDefault(Return(TestAttr::kBrcm));
-    ON_CALL(*netwhoami, isCiscoPlatform())
+    ON_CALL(*netwhoami, isTajoPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isBcmVoqPlatform()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, isFdsw()).WillByDefault(Return(fdsw));
@@ -157,7 +157,7 @@ class AgentPreStartExecTests : public ::testing::Test {
       EXPECT_CALL(*netwhoami, isBcmPlatform())
           .WillOnce(Return(TestAttr::kBrcm));
       if (!TestAttr::kBrcm) {
-        EXPECT_CALL(*netwhoami, isCiscoPlatform()).WillOnce(Return(true));
+        EXPECT_CALL(*netwhoami, isTajoPlatform()).WillOnce(Return(true));
       }
 
       std::string kmodsInstaller = (TestAttr::kBrcm)

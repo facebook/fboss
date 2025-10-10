@@ -210,7 +210,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
     for (auto route : *config.staticRoutesWithNhops()) {
       if (*route.prefix() == prefix.str()) {
         for (auto nexthop : *route.nexthops()) {
-          nexthops.push_back(folly::IPAddress(nexthop));
+          nexthops.emplace_back(nexthop);
         }
         break;
       }

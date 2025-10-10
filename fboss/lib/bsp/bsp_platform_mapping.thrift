@@ -21,12 +21,16 @@ struct BspPhyMapping {
   1: i32 phyId; // unique ID across the system
   2: i32 phyIOControllerId;
   3: i32 phyAddr; // 5 bit phy address
+  4: i32 phyCoreId;
+  5: i32 pimId;
+  6: optional string phyResetPath;
 }
 
 struct BspPhyIOControllerInfo {
   1: i32 controllerId; // unique ID for controllers on a PIM
   2: PhyIOType type;
   3: string devicePath; // file path for io access
+  4: optional string resetPath; // reset path for the IO controller
 }
 
 enum PhyIOType {
@@ -92,6 +96,18 @@ struct TransceiverConfigRow {
   15: optional i32 ledId;
   16: optional string ledBluePath;
   17: optional string ledYellowPath;
+}
+
+struct PhyConfigRow {
+  1: i32 phyId;
+  2: i32 phyCoreId;
+  3: i32 pimId;
+  4: string phyResetPath;
+  5: PhyIOType ioControlType;
+  6: i32 ioControllerId;
+  7: string ioControllerResetPath;
+  8: string ioPath;
+  9: i32 phyAddr;
 }
 
 enum ResetAndPresenceAccessType {

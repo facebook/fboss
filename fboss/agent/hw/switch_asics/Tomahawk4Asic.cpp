@@ -125,6 +125,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -151,7 +152,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
@@ -238,6 +239,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
       return false;
   }
   return false;

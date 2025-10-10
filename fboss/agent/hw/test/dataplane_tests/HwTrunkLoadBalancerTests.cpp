@@ -80,8 +80,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
   std::vector<PortDescriptor> getPhysicalPorts(AggPortInfo aggInfo) const {
     std::vector<PortDescriptor> physicalPorts;
     for (auto i = 0; i < aggInfo.numPhysicalPorts(); ++i) {
-      physicalPorts.push_back(
-          PortDescriptor(PortID(masterLogicalPortIds()[i])));
+      physicalPorts.emplace_back(PortID(masterLogicalPortIds()[i]));
     }
     return physicalPorts;
   }

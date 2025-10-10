@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
@@ -8,6 +9,7 @@ cpp_library(
         "QsfpClient.cpp",
         "facebook/QsfpClient.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//common/fbwhoami:fb_who_am_i",
         "//common/services/cpp:facebook_identity_verifier",
@@ -32,6 +34,7 @@ cpp_library(
     srcs = [
         "QsfpCache.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         ":qsfp-service-client",
         "//fboss/agent:fboss-types",
@@ -58,6 +61,7 @@ cpp_library(
     headers = [
         "QsfpConfigParserHelper.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",

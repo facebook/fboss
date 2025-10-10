@@ -37,6 +37,7 @@ class LacpController : public std::enable_shared_from_this<LacpController> {
       uint16_t systemPriority,
       folly::MacAddress systemID,
       uint8_t minLinkCount,
+      std::optional<uint8_t> minLinkCountToUp,
       LacpServicerIf* servicer);
 
   ~LacpController();

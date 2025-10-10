@@ -829,8 +829,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
 
   // Update nexthops
   nexthops.pop_back();
-  nexthops.push_back("1000:db00:e112:9103:1028::1b");
-  nexthops.push_back("10.0.0.3");
+  nexthops.emplace_back("1000:db00:e112:9103:1028::1b");
+  nexthops.emplace_back("10.0.0.3");
   redirectToNextHop.first.redirectNextHops()->clear();
   intfID = 0;
   for (auto nh : nexthops) {
@@ -846,8 +846,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
 
   nhAddrs.pop_back();
   nhAddrs.pop_back();
-  nhAddrs.push_back(folly::IPAddress("fe80:db00:e113:9103:1028::2a"));
-  nhAddrs.push_back(folly::IPAddress("100.0.0.3"));
+  nhAddrs.emplace_back("fe80:db00:e113:9103:1028::2a");
+  nhAddrs.emplace_back("100.0.0.3");
   nhset = MatchAction::NextHopSet();
   setNhAddrs(nhset, nhAddrs);
 

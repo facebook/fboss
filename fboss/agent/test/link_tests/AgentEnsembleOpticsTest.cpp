@@ -128,6 +128,9 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
    * 4. Set ASIC port status to true on A side
    * 5. Expect TX_LOS, TX_LOL, RX_LOL to be cleared on A and Z sides
    * 6. Repeat steps 2-5 by flipping A and Z sides
+   * Note: Bypass LPO Transceivers for this test since the LPO
+   *       transceivers don't have a DSP and there is no detection
+   *       for LOS/LOL
    */
   auto opticalPortPairs = getConnectedOpticalPortPairs();
   EXPECT_FALSE(opticalPortPairs.empty())
@@ -144,7 +147,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
   }
 
   auto allTcvrInfos = utility::waitForTransceiverInfo(
-      std::vector<int32_t>(allTcvrIds.begin(), allTcvrIds.end()));
+      std::vector<int32_t>(allTcvrIds.begin(), allTcvrIds.end()),
+      /*includeLpo*/ false);
 
   // Cache the host and media lanes for each port because once the ports are
   // disabled, transceiver state machine moves to discovered state and we would
@@ -176,7 +180,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
           onlyTcvrIds.push_back(int32_t(tcvrId.first));
         }
         WITH_RETRIES_N_TIMED(10, std::chrono::seconds(10), {
-          auto transceiverInfos = utility::waitForTransceiverInfo(onlyTcvrIds);
+          auto transceiverInfos = utility::waitForTransceiverInfo(
+              onlyTcvrIds, /*includeLpo*/ false);
           for (const auto& tcvrId : onlyTcvrIds) {
             auto& portName = transceiverIds[TransceiverID(tcvrId)];
             auto tcvrInfoInfoItr = transceiverInfos.find(tcvrId);
@@ -306,6 +311,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  * 3. Get the TransceiverInfo from qsfp_service
  * 4. validate the VDM Performance Monitoring parameters within the thresholds
  *    defined in spec
+ * Note: Bypass LPO Transceivers for this test since the LPO
+ *       transceivers don't have a DSP and there are no VDM stats.
  */
 TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
   // 1. Find the list of optical ports with VDM supported optics
@@ -328,16 +335,16 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
   }
   std::vector<int32_t> transceiverIds(
       transceiverIdSet.begin(), transceiverIdSet.end());
-  auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
-
-  transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
+  auto transceiverInfos =
+      utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
 
   std::time_t startTime = std::time(nullptr);
   // 2. Wait for a VDM interval to begin starting now and a transceiverInfo
   // update to finish after the start of VDM interval. This skips any noise from
   // the initial interval during the time of link up
   WITH_RETRIES_N_TIMED(20, std::chrono::seconds(5), {
-    transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
+    transceiverInfos =
+        utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
     auto vdmStat =
         transceiverInfos.begin()->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_EVENTUALLY_TRUE(vdmStat.has_value());
@@ -351,6 +358,7 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
   do {
     validateVdm(transceiverInfos, transceiverIds);
     /* sleep override */ std::this_thread::sleep_for(10s);
-    transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
+    transceiverInfos =
+        utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
   } while (testIterations-- && !::testing::Test::HasFailure());
 }

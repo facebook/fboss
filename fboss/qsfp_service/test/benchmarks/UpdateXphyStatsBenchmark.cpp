@@ -75,10 +75,11 @@ size_t updateXphyStats() {
   };
   suspender.dismiss();
   // Start benchmarking
+
   wedgeMgr->updateAllXphyPortsStats();
   checkWithRetry(
       waitForStatsCollectionDone,
-      90 * 1000 /* retry for 90 seconds */,
+      180 * 1000 /* retry for 3 minutes */,
       std::chrono::milliseconds(1) /* msBetweenRetry */,
       "Never got xphy stats collection done");
   // End benchmarking

@@ -363,6 +363,16 @@ ResolvedNextHop makeResolvedNextHop(
     uint32_t weight = 1,
     std::optional<NetworkTopologyInformation> topologyInfo = std::nullopt);
 
+/*
+ * Generate UCMP next hop groups with weighted next hops.
+ *
+ * This utility function creates UCMP (Unequal Cost Multi-Path) next hop groups
+ * with alternating weights. Each group's total weight will not exceed maxWidth.
+ *
+ */
+std::vector<RouteNextHopSet>
+getUcmpNextHops(int maxWidth, int numGroups, uint32_t seed = 0);
+
 RoutePrefixV4 makePrefixV4(std::string str);
 
 RoutePrefixV6 makePrefixV6(std::string str);

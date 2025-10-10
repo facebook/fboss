@@ -169,6 +169,11 @@ SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeResetQueueCreditBalance::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePgDropStatus::operator()() {
   return std::nullopt;
 }

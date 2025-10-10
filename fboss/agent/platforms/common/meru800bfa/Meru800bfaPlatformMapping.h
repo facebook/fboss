@@ -17,7 +17,9 @@ class Meru800bfaPlatformMapping : public PlatformMapping {
  public:
   Meru800bfaPlatformMapping();
   explicit Meru800bfaPlatformMapping(const std::string& platformMappingStr);
-  explicit Meru800bfaPlatformMapping(bool multiNpuPlatformMapping);
+  explicit Meru800bfaPlatformMapping(
+      bool multiNpuPlatformMapping,
+      std::optional<int> version = std::nullopt);
 
  private:
   // Forbidden copy constructor and assignment operator

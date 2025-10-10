@@ -630,7 +630,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
   std::vector<std::vector<NextHopWeight>> hopWeights = weights;
   if (!weights.size()) {
     for (int i = 0; i < portDescriptors.size(); i++) {
-      hopWeights.push_back(std::vector<NextHopWeight>());
+      hopWeights.emplace_back();
     }
   }
   CHECK_EQ(portDescriptors.size(), hopWeights.size());

@@ -8,6 +8,8 @@ namespace facebook::fboss::thrift_cow {
 // Constructors
 ThriftTraverseResult::ThriftTraverseResult() : code_(Code::OK) {}
 
+ThriftTraverseResult::ThriftTraverseResult(Code code) : code_(code) {}
+
 ThriftTraverseResult::ThriftTraverseResult(
     Code code,
     const std::string& message)

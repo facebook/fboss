@@ -201,7 +201,11 @@ class AgentLoadBalancerTestSpray
       const override {
     auto features = AgentLoadBalancerTest<EcmpDataPlateUtils, false>::
         getProductionFeaturesVerified();
-    features.push_back(ProductionFeature::ARS_SPRAY);
+    if constexpr (loadAware) {
+      features.push_back(ProductionFeature::ARS_SPRAY);
+    } else {
+      features.push_back(ProductionFeature::ECMP_RANDOM_SPRAY);
+    }
     return features;
   }
 

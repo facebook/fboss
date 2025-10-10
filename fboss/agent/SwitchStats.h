@@ -461,6 +461,14 @@ class SwitchStats : public boost::noncopyable {
     coldBoot_.addValue(1);
   }
 
+  void probedStateCleanedUp() {
+    probedStateCleanupStatus_.incrementValue(1);
+  }
+
+  int64_t getProbedStateCleanupStatus() const {
+    return getCumulativeValue(probedStateCleanupStatus_, false);
+  }
+
   void multiSwitchStatus(bool enabled) {
     multiSwitchStatus_.addValue(enabled ? 1 : 0);
   }
@@ -1113,10 +1121,11 @@ class SwitchStats : public boost::noncopyable {
   TLCounter failedDsfSubscription_;
   // Failed Dsf subscriptions by peer SwitchID
   std::map<std::string, TLCounter> failedDsfSubscriptionByPeerSwitchName_;
-
   TLTimeseries txBufferLimitExceedDrop_;
+
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
+  TLCounter probedStateCleanupStatus_;
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;
   TLTimeseries dsfUpdateFailed_;

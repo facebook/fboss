@@ -104,6 +104,8 @@ class NeighborUpdaterImpl {
   // Forbidden copy constructor and assignment operator
   NeighborUpdaterImpl(NeighborUpdaterImpl const&) = delete;
   NeighborUpdaterImpl& operator=(NeighborUpdaterImpl const&) = delete;
+  NeighborUpdaterImpl(NeighborUpdaterImpl&&) = delete;
+  NeighborUpdaterImpl& operator=(NeighborUpdaterImpl&&) = delete;
 
   // TODO(skhare) Remove after completely migrating to intfCaches_
   boost::container::flat_map<VlanID, std::shared_ptr<NeighborCaches>> caches_;

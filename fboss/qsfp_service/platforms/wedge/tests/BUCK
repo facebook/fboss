@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
@@ -8,6 +9,7 @@ cpp_unittest(
     srcs = [
         "WedgeManagerTest.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/agent:switch_config-cpp2-types",

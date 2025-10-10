@@ -1313,6 +1313,45 @@ ResolvedNextHop makeResolvedNextHop(
       topologyInfo);
 }
 
+std::vector<RouteNextHopSet>
+getUcmpNextHops(int maxWidth, int numGroups, uint32_t seed) {
+  // Weight constants for alternating pattern
+  constexpr auto oddWeight = 3;
+  constexpr auto evenWeight = 2;
+  constexpr auto kMaxOctetValue = 255;
+
+  std::vector<RouteNextHopSet> result;
+  for (int i = 0; i < numGroups; ++i) {
+    RouteNextHopSet ecmpNexthopsCur;
+    int groupWeight = 0;
+
+    // We need Ip address of NextHops to be unique across calls.
+    // Using 4096 separation to avoid IP collisions when called sequentially
+    int totalGroupIndex = seed * 4096 + i;
+    int firstOctet = ((totalGroupIndex / kMaxOctetValue) + 1) % kMaxOctetValue;
+    int secondOctet = (totalGroupIndex % kMaxOctetValue) + 1;
+
+    for (int j = 0; j < maxWidth; j++) {
+      int ucmpWeight = j % 2 == 0 ? oddWeight : evenWeight;
+      if (groupWeight + ucmpWeight > maxWidth) {
+        ucmpWeight = 1;
+      }
+      groupWeight += ucmpWeight;
+      ecmpNexthopsCur.insert(ResolvedNextHop(
+          folly::IPAddress(folly::to<std::string>(
+              firstOctet, ".", secondOctet, ".1.", j + 1)),
+          InterfaceID(j + 1),
+          ucmpWeight));
+      if (groupWeight == maxWidth) {
+        break;
+      }
+    }
+    result.push_back(std::move(ecmpNexthopsCur));
+  }
+
+  return result;
+}
+
 RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;
   folly::split('/', str, vec);

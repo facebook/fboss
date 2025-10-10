@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 load("//fboss/qsfp_service/platforms/wedge:platform.bzl", "all_platform_libs")
 
 oncall("fboss_optics_phy")
@@ -8,6 +9,7 @@ oncall("fboss_optics_phy")
 # without SAI
 cpp_library(
     name = "wedge-platform-default",
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
     ],
@@ -19,6 +21,7 @@ cpp_library(
         "WedgeI2CBusLock.cpp",
         "WedgeQsfp.cpp",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/lib:io_stats_recorder",
         "//fboss/lib/usb:base-i2c-dependencies",

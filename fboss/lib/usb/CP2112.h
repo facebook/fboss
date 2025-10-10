@@ -28,6 +28,10 @@ class CP2112Intf : public I2cController {
   CP2112Intf()
       : I2cController(folly::to<std::string>("i2cController.cp2112")) {}
   virtual ~CP2112Intf() = default;
+  CP2112Intf(const CP2112Intf&) = delete;
+  CP2112Intf& operator=(const CP2112Intf&) = delete;
+  CP2112Intf(CP2112Intf&&) = delete;
+  CP2112Intf& operator=(CP2112Intf&&) = delete;
 
   virtual void open(bool setSmbusConfig = true) = 0;
   virtual void close() = 0;
@@ -402,6 +406,8 @@ class CP2112 : public CP2112Intf {
   // Forbidden copy constructor and assignment operator
   CP2112(CP2112 const&) = delete;
   CP2112& operator=(CP2112 const&) = delete;
+  CP2112(CP2112&&) = delete;
+  CP2112& operator=(CP2112&&) = delete;
 
   void openDevice();
   void initSettings();

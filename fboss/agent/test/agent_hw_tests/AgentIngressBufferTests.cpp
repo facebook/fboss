@@ -23,6 +23,7 @@ constexpr int kPgMinLimitCells = 6;
 constexpr int kPgHeadroomLimitCells = 2;
 constexpr int kPoolHeadroomLimitCells = 10;
 constexpr int kPoolSharedCells = 10000;
+constexpr int kPoolReservedCells = 200;
 /*
  * SDK has the expectation that pool_total_size - delta <= shared size,
  * where delta is the difference between old and new pool limits, if
@@ -75,6 +76,7 @@ cfg::BufferPoolConfig getBufferPoolHighDefaultConfig(int mmuBytesInCell) {
   cfg::BufferPoolConfig tmpCfg;
   tmpCfg.headroomBytes() = 12432 * mmuBytesInCell;
   tmpCfg.sharedBytes() = kPoolSharedSizeBytesHighValue * mmuBytesInCell;
+  tmpCfg.reservedBytes() = 1000 * mmuBytesInCell;
   return tmpCfg;
 }
 
@@ -87,6 +89,7 @@ cfg::BufferPoolConfig getBufferPoolConfig(
   tmpCfg.headroomBytes() =
       (kPoolHeadroomLimitCells + deltaValue) * mmuBytesInCell;
   tmpCfg.sharedBytes() = (kPoolSharedCells + deltaValue) * mmuBytesInCell;
+  tmpCfg.reservedBytes() = (kPoolReservedCells + deltaValue) * mmuBytesInCell;
   return tmpCfg;
 }
 

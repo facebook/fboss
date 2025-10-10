@@ -97,14 +97,14 @@ std::vector<PortID> BcmTestPlatform::getAllPortsInGroup(PortID portID) const {
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(*port.mapping()->id()));
+      allPortsinGroup.emplace_back(*port.mapping()->id());
     }
   } else {
     auto portItr = std::find(
         masterLogicalPortIds_.begin(), masterLogicalPortIds_.end(), portID);
     CHECK(portItr != masterLogicalPortIds_.end());
     for (int i = 0; i < numPortsPerTranceiver_; ++i) {
-      allPortsinGroup.push_back(PortID(portID + i));
+      allPortsinGroup.emplace_back(portID + i);
     }
   }
   return allPortsinGroup;

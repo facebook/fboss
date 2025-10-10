@@ -115,6 +115,7 @@ bool HwTestThriftHandler::verifyPortLedStatus(int portId, bool status) {
 bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
   auto swPort = hwSwitch_->getProgrammedState()->getPorts()->getNodeIf(portId);
   auto swPgConfig = swPort->getPortPgConfigs();
+  SaiPlatform* platform = static_cast<SaiPlatform*>(hwSwitch_->getPlatform());
 
   auto portHandle = static_cast<const SaiSwitch*>(hwSwitch_)
                         ->managerTable()
@@ -205,6 +206,33 @@ bool HwTestThriftHandler::verifyPGSettings(int portId, bool pfcEnabled) {
         XLOG(DBG2) << "Headroom mismatch for buffer pool, got=" << got
                    << ", want=" << want;
         return false;
+      }
+      if (platform->getAsic()->isSupported(
+              HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL)) {
+        auto shared = bufferPool->cref<common_if_tags::sharedBytes>()->cref() *
+            static_cast<const SaiSwitch*>(hwSwitch_)
+                ->getPlatform()
+                ->getAsic()
+                ->getNumMemoryBuffers();
+        auto reserved =
+            bufferPool->cref<common_if_tags::reservedBytes>()->cref() *
+            static_cast<const SaiSwitch*>(hwSwitch_)
+                ->getPlatform()
+                ->getAsic()
+                ->getNumMemoryBuffers();
+        want += shared + reserved;
+        got = SaiApiTable::getInstance()->bufferApi().getAttribute(
+            static_cast<const SaiSwitch*>(hwSwitch_)
+                ->managerTable()
+                ->bufferManager()
+                .getIngressBufferPoolHandle()
+                ->bufferPool->adapterKey(),
+            SaiBufferPoolTraits::Attributes::Size{});
+        if (got != want) {
+          XLOG(DBG2) << "Shared size mismatch for buffer pool, got=" << got
+                     << ", want=" << want;
+          return false;
+        }
       }
     }
 

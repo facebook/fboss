@@ -278,18 +278,6 @@ std::string runCmd(const std::string& cmd) {
   return result;
 }
 
-bool isFbossFeatureEnabled(
-    const std::string& hostname,
-    const std::string& feature) {
-  auto featureCheckCmd = utils::getCmdToRun(
-      hostname,
-      folly::to<std::string>(
-          "file -b /etc/coop/.METADATA/features/", feature, "/current/on"));
-  auto result = utils::runCmd(featureCheckCmd);
-  // An empty file should be present if the feature is enabled
-  return result.find("empty") != std::string::npos ? true : false;
-}
-
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
   if (apache::thrift::get_pointer(subscriber.path())) {
     return folly::join(
@@ -415,7 +403,7 @@ std::map<std::string, int64_t> getAgentFb303RegexCounters(
   std::map<std::string, int64_t> counters;
 #ifndef IS_OSS
   // TODO: sync_getRegexCounters is not available in OSS
-  if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+  if (utils::isMultiSwitchEnabled(hostInfo)) {
     auto hwAgentQueryFn =
         [&counters,
          &regex](apache::thrift::Client<facebook::fboss::FbossCtrl>& client) {

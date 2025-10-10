@@ -18,6 +18,7 @@ cpp_binary(
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/led_service:led_manager",
+        "//fboss/led_service:led_utils",
         "//fboss/lib:common_file_utils",
         "//folly/init:init",
         "//folly/logging:logging",

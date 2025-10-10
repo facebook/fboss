@@ -33,6 +33,9 @@ void BcmSwitchSettings::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
     case cfg::L2LearningMode::SOFTWARE:
       enableL2LearningSoftware();
       break;
+    case cfg::L2LearningMode::DISABLED:
+      throw FbossError(
+          "L2LearningMode::DISABLED is not supported on BCM switch");
   }
 
   l2LearningMode_ = l2LearningMode;

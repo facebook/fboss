@@ -220,7 +220,7 @@ class EcmpSetupTargetedPorts
             std::nullopt,
             routerId,
             false,
-            {cfg::PortType::INTERFACE_PORT}) {}
+            {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}) {}
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
@@ -242,7 +242,8 @@ class EcmpSetupTargetedPorts
       RouterID routerId = RouterID(0),
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes = {
-          cfg::PortType::INTERFACE_PORT});
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT});
 
   virtual ~EcmpSetupTargetedPorts() override {}
   EcmpNextHopT nhop(PortDescriptor portDesc) const override;
@@ -315,7 +316,8 @@ class EcmpSetupTargetedPorts
       std::optional<folly::MacAddress> mac = std::nullopt,
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes = {
-          cfg::PortType::INTERFACE_PORT}) override;
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT}) override;
   RouteNextHopSet setupMplsNexthops(
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
       std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
@@ -353,7 +355,7 @@ class MplsEcmpSetupTargetedPorts
       LabelForwardingAction::LabelForwardingType actionType,
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes =
-          {cfg::PortType::INTERFACE_PORT})
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})
       : BaseEcmpSetupHelper<IPAddrT, EcmpMplsNextHop<IPAddrT>>(
             needL2EntryForNeighbor),
         topLabel_(topLabel),
@@ -378,7 +380,8 @@ class MplsEcmpSetupTargetedPorts
       std::optional<folly::MacAddress> mac = std::nullopt,
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes = {
-          cfg::PortType::INTERFACE_PORT}) override;
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT}) override;
 
   Label topLabel_;
   LabelForwardingAction::LabelForwardingType actionType_;
@@ -394,7 +397,7 @@ class EcmpSetupAnyNPorts {
       bool needL2EntryForNeighbor,
       RouterID routerId = RouterID(0),
       const std::set<cfg::PortType>& portTypes =
-          {cfg::PortType::INTERFACE_PORT})
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})
       : EcmpSetupAnyNPorts(
             inputState,
             needL2EntryForNeighbor,
@@ -410,7 +413,7 @@ class EcmpSetupAnyNPorts {
       RouterID routerId = RouterID(0),
       bool forProdConfig = false,
       const std::set<cfg::PortType>& portTypes =
-          {cfg::PortType::INTERFACE_PORT})
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})
       : ecmpSetupTargetedPorts_(
             inputState,
             needL2EntryForNeighbor,

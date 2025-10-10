@@ -728,7 +728,7 @@ class SaiSwitch : public HwSwitch {
   int64_t watermarkStatsUpdateTime_{0};
   int64_t voqStatsUpdateTime_{0};
   int64_t cableLengthStatsUpdateTime_{0};
-  time_t lastSerdesParamsReadTime_;
+  time_t lastSerdesParamsReadTime_{0};
   cfg::AsicType asicType_;
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;

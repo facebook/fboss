@@ -29,7 +29,7 @@ static void usage(const char* cmd) {
 }
 
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  const folly::Init init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 

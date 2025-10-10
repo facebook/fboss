@@ -35,6 +35,10 @@ class SlotThreadHelper {
     return heartbeat_;
   }
 
+  bool isThreadActive() const {
+    return isThreadActive_;
+  }
+
  private:
   //  For logging purposes.
   TransceiverID id_;
@@ -44,5 +48,7 @@ class SlotThreadHelper {
   std::unique_ptr<std::thread> updateThread_;
   std::unique_ptr<folly::EventBase> updateEventBase_;
   std::shared_ptr<ThreadHeartbeat> heartbeat_;
+
+  bool isThreadActive_{false};
 };
 } // namespace facebook::fboss

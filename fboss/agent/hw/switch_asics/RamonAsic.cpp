@@ -41,6 +41,7 @@ std::set<cfg::StreamType> RamonAsic::getQueueStreamTypes(
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
     case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       break;
     case cfg::PortType::FABRIC_PORT:
       return {cfg::StreamType::FABRIC_TX};

@@ -54,11 +54,11 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
       folly::makePromiseContract<HwSwitchStateUpdateResult>();
 
   hwSwitchManagerEvb_.runInFbossEventBaseThread(
-      [promise = std::move(promise),
+      [capturedPromise = std::move(promise),
        update = std::move(update),
        hwWriteBehavior = hwWriteBehavior,
        this]() mutable {
-        promise.setWith([update, hwWriteBehavior, this]() {
+        capturedPromise.setWith([update, hwWriteBehavior, this]() {
           return stateChangedImpl(update, hwWriteBehavior);
         });
       });

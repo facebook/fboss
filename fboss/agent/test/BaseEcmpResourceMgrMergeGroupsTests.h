@@ -41,6 +41,10 @@ class BaseEcmpResourceMgrMergeGroupsTest : public BaseEcmpResourceManagerTest {
   std::vector<RouteNextHopSet> nextNhopSets(
       int numSets = kNumStartRoutes) const;
   void SetUp() override;
+  void TearDown() override;
+
+ private:
+  std::shared_ptr<SwitchState> setupState;
 };
 
 } // namespace facebook::fboss

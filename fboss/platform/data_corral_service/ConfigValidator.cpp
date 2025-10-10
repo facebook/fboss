@@ -34,6 +34,20 @@ bool ConfigValidator::isValidLedConfig(const LedConfig& ledConfig) {
     XLOG(ERR) << "Absent LED sysfs path cannot be empty";
     return false;
   }
+  const std::string ledPathPrefix = "/sys/class/leds";
+  if (!ledConfig.presentLedSysfsPath()->starts_with(ledPathPrefix)) {
+    XLOG(ERR)
+        << "Present LED sysfs path must start with '/sys/class/leds', got: "
+        << *ledConfig.presentLedSysfsPath();
+    return false;
+  }
+  if (!ledConfig.absentLedSysfsPath()->starts_with(ledPathPrefix)) {
+    XLOG(ERR)
+        << "Absent LED sysfs path must start with '/sys/class/leds', got: "
+        << *ledConfig.absentLedSysfsPath();
+    return false;
+  }
+
   return true;
 }
 

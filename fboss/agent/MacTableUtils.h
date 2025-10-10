@@ -39,7 +39,8 @@ class MacTableUtils {
       const std::shared_ptr<SwitchState>& state,
       const PortDescriptor& port,
       VlanID vlan,
-      folly::MacAddress mac);
+      folly::MacAddress mac,
+      std::optional<bool> configured = std::nullopt);
 
   static std::shared_ptr<SwitchState> removeEntry(
       const std::shared_ptr<SwitchState>& state,

@@ -116,8 +116,8 @@ std::map<PortID, HwPortStats> AgentEnsembleTest::getPortStats(
       [&portStats, &ports, this]() {
         portStats = getSw()->getHwPortStats(ports);
         // Check collect timestamp is valid
-        for (const auto& [portId, portStats] : portStats) {
-          if (*portStats.timestamp_() ==
+        for (const auto& [portId, portStat] : portStats) {
+          if (*portStat.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }
@@ -349,8 +349,8 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
           return false;
         }
         // Make sure that the other ports have valid stats
-        for (const auto& [port, portStats] : portStats) {
-          if (*portStats.timestamp_() ==
+        for (const auto& [port, portStat] : portStats) {
+          if (*portStat.timestamp_() ==
               hardware_stats_constants::STAT_UNINITIALIZED()) {
             return false;
           }

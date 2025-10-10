@@ -198,7 +198,7 @@
           "loopbackIps": [
             
           ],
-          "nodeMac": "18*800G-8",
+          "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
           "platformType": 28,
           "localSystemPortOffset": 10,

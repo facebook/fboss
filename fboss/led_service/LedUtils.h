@@ -8,4 +8,6 @@ namespace facebook::fboss::utility {
 facebook::fboss::led::LedState constructLedState(
     facebook::fboss::led::LedColor ledColor,
     facebook::fboss::led::Blink blink);
+
+void initFlagDefaults(int argc, char** argv);
 } // namespace facebook::fboss::utility

@@ -519,7 +519,7 @@ SaiAclTableManager::addAclCounter(
 
     auto statName =
         folly::to<std::string>(*trafficCount.name(), ".", statSuffix);
-    aclCounterTypeAndName.push_back(std::make_pair(counterType, statName));
+    aclCounterTypeAndName.emplace_back(counterType, statName);
     if (aclCounterRefMap.find(statName) == aclCounterRefMap.end()) {
       // Create fb303 counter since stat is being added/readded again
       aclStats_.reinitStat(statName, std::nullopt);

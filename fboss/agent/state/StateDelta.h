@@ -112,6 +112,8 @@ class StateDelta {
   // Remote object deltas
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getRemoteSystemPortsDelta()
       const;
+  MultiSwitchMapDelta<MultiSwitchSystemPortMap>
+  getFabricLinkMonitoringSystemPortsDelta() const;
   MultiSwitchInterfaceMapDelta getRemoteIntfsDelta() const;
   MultiSwitchMapDelta<MultiSwitchDsfNodeMap> getDsfNodesDelta() const;
 

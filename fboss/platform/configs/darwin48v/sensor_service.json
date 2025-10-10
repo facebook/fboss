@@ -859,5 +859,11 @@
         }
       ]
     }
+  ],
+  "powerConsumptionConfigs": [
+    {
+      "name": "PSU1",
+      "powerSensorName": "PSU_PIN"
+    }
   ]
 }
