@@ -140,6 +140,7 @@ struct SampleDatagram {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleDatagram deserialize(folly::io::Cursor& cursor);
 };
 
 /* Proposed standard sFlow data formats (draft 14) */

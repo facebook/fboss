@@ -2041,4 +2041,607 @@ TEST(SflowStructsTest, SampleDatagramMultipleSamples) {
   EXPECT_EQ(actualVersion5, 5);
 }
 
+TEST(SflowStructsTest, SampleDatagramDeserialization) {
+  // Test SampleDatagram deserialization functionality
+
+  // Create a buffer with serialized SampleDatagram data
+  std::vector<uint8_t> serializedData = {
+      // sFlow version (5) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x05,
+      // IP address type (IPv4 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // IPv4 address: 192.168.1.100 (4 bytes)
+      0xc0,
+      0xa8,
+      0x01,
+      0x64,
+      // subAgentID (12345) as big-endian
+      0x00,
+      0x00,
+      0x30,
+      0x39,
+      // sequenceNumber (67890) as big-endian
+      0x00,
+      0x01,
+      0x09,
+      0x32,
+      // uptime (98765) as big-endian
+      0x00,
+      0x01,
+      0x81,
+      0xcd,
+      // samplesCount (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+
+      // SampleRecord:
+      // sampleType (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // sampleDataLen (32 bytes) as big-endian - size of the FlowSample below
+      0x00,
+      0x00,
+      0x00,
+      0x20,
+
+      // FlowSample data (32 bytes total - no flow records):
+      // sequenceNumber (111) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x6f,
+      // sourceID (222) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0xde,
+      // samplingRate (333) as big-endian
+      0x00,
+      0x00,
+      0x01,
+      0x4d,
+      // samplePool (444) as big-endian
+      0x00,
+      0x00,
+      0x01,
+      0xbc,
+      // drops (555) as big-endian
+      0x00,
+      0x00,
+      0x02,
+      0x2b,
+      // input (666) as big-endian
+      0x00,
+      0x00,
+      0x02,
+      0x9a,
+      // output (777) as big-endian
+      0x00,
+      0x00,
+      0x03,
+      0x09,
+      // flowRecordsCnt (0) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x00};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampleDatagram
+  sflow::SampleDatagram datagram = sflow::SampleDatagram::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(
+      datagram.datagramV5.agentAddress, folly::IPAddress("192.168.1.100"));
+  EXPECT_EQ(datagram.datagramV5.subAgentID, 12345);
+  EXPECT_EQ(datagram.datagramV5.sequenceNumber, 67890);
+  EXPECT_EQ(datagram.datagramV5.uptime, 98765);
+  EXPECT_EQ(datagram.datagramV5.samples.size(), 1);
+
+  // Verify the SampleRecord
+  const auto& sampleRecord = datagram.datagramV5.samples[0];
+  EXPECT_EQ(sampleRecord.sampleType, 1);
+  EXPECT_EQ(sampleRecord.sampleData.size(), 1);
+
+  // Verify the FlowSample data
+  const auto& flowSample =
+      std::get<sflow::FlowSample>(sampleRecord.sampleData[0]);
+  EXPECT_EQ(flowSample.sequenceNumber, 111);
+  EXPECT_EQ(flowSample.sourceID, 222);
+  EXPECT_EQ(flowSample.samplingRate, 333);
+  EXPECT_EQ(flowSample.samplePool, 444);
+  EXPECT_EQ(flowSample.drops, 555);
+  EXPECT_EQ(flowSample.input, 666);
+  EXPECT_EQ(flowSample.output, 777);
+  EXPECT_EQ(flowSample.flowRecords.size(), 0);
+}
+
+TEST(SflowStructsTest, SampleDatagramDeserializationIPv6) {
+  // Test SampleDatagram deserialization with IPv6 address
+
+  std::vector<uint8_t> serializedData = {
+      // sFlow version (5) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x05,
+      // IP address type (IPv6 = 2) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x02,
+      // IPv6 address: 2001:db8::1 (16 bytes)
+      0x20,
+      0x01,
+      0x0d,
+      0xb8,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // subAgentID (1000) as big-endian
+      0x00,
+      0x00,
+      0x03,
+      0xe8,
+      // sequenceNumber (2000) as big-endian
+      0x00,
+      0x00,
+      0x07,
+      0xd0,
+      // uptime (3000) as big-endian
+      0x00,
+      0x00,
+      0x0b,
+      0xb8,
+      // samplesCount (0) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x00};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampleDatagram
+  sflow::SampleDatagram datagram = sflow::SampleDatagram::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(datagram.datagramV5.agentAddress, folly::IPAddress("2001:db8::1"));
+  EXPECT_EQ(datagram.datagramV5.subAgentID, 1000);
+  EXPECT_EQ(datagram.datagramV5.sequenceNumber, 2000);
+  EXPECT_EQ(datagram.datagramV5.uptime, 3000);
+  EXPECT_EQ(datagram.datagramV5.samples.size(), 0);
+}
+
+TEST(SflowStructsTest, SampleDatagramSerializeDeserializeRoundTrip) {
+  // Test serialize-deserialize round trip for SampleDatagram
+
+  // Create original SampleDatagram with complex data
+  sflow::SampleDatagram original;
+  original.datagramV5.agentAddress = folly::IPAddress("2401:db00:116:3016::1b");
+  original.datagramV5.subAgentID = 99999;
+  original.datagramV5.sequenceNumber = 88888;
+  original.datagramV5.uptime = 77777;
+
+  // Create sample record with FlowSample
+  sflow::SampleRecord record;
+  record.sampleType = 1;
+
+  sflow::FlowSample flowSample;
+  flowSample.sequenceNumber = 1111;
+  flowSample.sourceID = 2222;
+  flowSample.samplingRate = 3333;
+  flowSample.samplePool = 4444;
+  flowSample.drops = 5555;
+  flowSample.input = 6666;
+  flowSample.output = 7777;
+
+  // Add flow records with different data sizes
+  sflow::FlowRecord flowRecord1;
+  flowRecord1.flowFormat = 1;
+  flowRecord1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+
+  sflow::FlowRecord flowRecord2;
+  flowRecord2.flowFormat = 1;
+  flowRecord2.flowData = {0xCA, 0xFE, 0xBA}; // 3 bytes, 1 byte padding
+
+  flowSample.flowRecords = {flowRecord1, flowRecord2};
+  record.sampleData.emplace_back(std::move(flowSample));
+
+  original.datagramV5.samples = {record};
+
+  // Serialize
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto rwCursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  original.serialize(rwCursor.get());
+  size_t serializedSize = bufSize - rwCursor->length();
+
+  // Deserialize
+  auto readBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
+  folly::io::Cursor readCursor(readBuf.get());
+
+  sflow::SampleDatagram deserialized =
+      sflow::SampleDatagram::deserialize(readCursor);
+
+  // Verify round-trip correctness
+  EXPECT_EQ(
+      deserialized.datagramV5.agentAddress, original.datagramV5.agentAddress);
+  EXPECT_EQ(deserialized.datagramV5.subAgentID, original.datagramV5.subAgentID);
+  EXPECT_EQ(
+      deserialized.datagramV5.sequenceNumber,
+      original.datagramV5.sequenceNumber);
+  EXPECT_EQ(deserialized.datagramV5.uptime, original.datagramV5.uptime);
+  EXPECT_EQ(
+      deserialized.datagramV5.samples.size(),
+      original.datagramV5.samples.size());
+
+  // Verify the sample record
+  const auto& originalSample = original.datagramV5.samples[0];
+  const auto& deserializedSample = deserialized.datagramV5.samples[0];
+
+  EXPECT_EQ(deserializedSample.sampleType, originalSample.sampleType);
+  EXPECT_EQ(
+      deserializedSample.sampleData.size(), originalSample.sampleData.size());
+
+  // Verify FlowSample data
+  const auto& originalFlowSample =
+      std::get<sflow::FlowSample>(originalSample.sampleData[0]);
+  const auto& deserializedFlowSample =
+      std::get<sflow::FlowSample>(deserializedSample.sampleData[0]);
+
+  EXPECT_EQ(
+      deserializedFlowSample.sequenceNumber, originalFlowSample.sequenceNumber);
+  EXPECT_EQ(deserializedFlowSample.sourceID, originalFlowSample.sourceID);
+  EXPECT_EQ(
+      deserializedFlowSample.samplingRate, originalFlowSample.samplingRate);
+  EXPECT_EQ(deserializedFlowSample.samplePool, originalFlowSample.samplePool);
+  EXPECT_EQ(deserializedFlowSample.drops, originalFlowSample.drops);
+  EXPECT_EQ(deserializedFlowSample.input, originalFlowSample.input);
+  EXPECT_EQ(deserializedFlowSample.output, originalFlowSample.output);
+  EXPECT_EQ(
+      deserializedFlowSample.flowRecords.size(),
+      originalFlowSample.flowRecords.size());
+
+  // Verify each flow record
+  for (size_t i = 0; i < originalFlowSample.flowRecords.size(); ++i) {
+    EXPECT_EQ(
+        deserializedFlowSample.flowRecords[i].flowFormat,
+        originalFlowSample.flowRecords[i].flowFormat)
+        << "FlowFormat mismatch for record " << i;
+    EXPECT_THAT(
+        deserializedFlowSample.flowRecords[i].flowData,
+        ContainerEq(originalFlowSample.flowRecords[i].flowData))
+        << "FlowData content mismatch for record " << i;
+  }
+}
+
+TEST(SflowStructsTest, SampleDatagramDeserializeInvalidVersion) {
+  // Test SampleDatagram deserialization with invalid version - should throw
+  // exception
+
+  std::vector<uint8_t> serializedData = {
+      // Invalid sFlow version (4) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x04,
+      // Rest of data doesn't matter since version check should fail
+      0x00,
+      0x00,
+      0x00,
+      0x01};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize should throw exception for unsupported version
+  EXPECT_THROW(sflow::SampleDatagram::deserialize(cursor), std::runtime_error);
+}
+
+TEST(SflowStructsTest, SampleDatagramDeserializeEmptyDatagramV5) {
+  // Test SampleDatagram deserialization with empty SampleDatagramV5
+
+  std::vector<uint8_t> serializedData = {
+      // sFlow version (5) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x05,
+      // IP address type (IPv4 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // IPv4 address: 10.0.0.1 (4 bytes)
+      0x0a,
+      0x00,
+      0x00,
+      0x01,
+      // subAgentID (100) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x64,
+      // sequenceNumber (200) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0xc8,
+      // uptime (300) as big-endian
+      0x00,
+      0x00,
+      0x01,
+      0x2c,
+      // samplesCount (0) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x00};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampleDatagram
+  sflow::SampleDatagram datagram = sflow::SampleDatagram::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(datagram.datagramV5.agentAddress, folly::IPAddress("10.0.0.1"));
+  EXPECT_EQ(datagram.datagramV5.subAgentID, 100);
+  EXPECT_EQ(datagram.datagramV5.sequenceNumber, 200);
+  EXPECT_EQ(datagram.datagramV5.uptime, 300);
+  EXPECT_EQ(datagram.datagramV5.samples.size(), 0);
+}
+
+TEST(SflowStructsTest, SampleDatagramDeserializeComplexNested) {
+  // Test SampleDatagram deserialization with complex nested data
+
+  // Create original complex SampleDatagram
+  sflow::SampleDatagram original;
+  original.datagramV5.agentAddress = folly::IPAddress("10.0.0.1");
+  original.datagramV5.subAgentID = 54321;
+  original.datagramV5.sequenceNumber = 98765;
+  original.datagramV5.uptime = 1234567;
+
+  // Create first sample record
+  sflow::SampleRecord record1;
+  record1.sampleType = 1;
+
+  sflow::FlowSample flowSample1;
+  flowSample1.sequenceNumber = 1111;
+  flowSample1.sourceID = 2222;
+  flowSample1.samplingRate = 3333;
+  flowSample1.samplePool = 4444;
+  flowSample1.drops = 5555;
+  flowSample1.input = 6666;
+  flowSample1.output = 7777;
+
+  sflow::FlowRecord flowRecord1;
+  flowRecord1.flowFormat = 1;
+  flowRecord1.flowData = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding
+
+  flowSample1.flowRecords = {flowRecord1};
+  record1.sampleData.emplace_back(std::move(flowSample1));
+
+  // Create second sample record
+  sflow::SampleRecord record2;
+  record2.sampleType = 1;
+
+  sflow::FlowSample flowSample2;
+  flowSample2.sequenceNumber = 8888;
+  flowSample2.sourceID = 9999;
+  flowSample2.samplingRate = 1010;
+  flowSample2.samplePool = 2020;
+  flowSample2.drops = 3030;
+  flowSample2.input = 4040;
+  flowSample2.output = 5050;
+
+  sflow::FlowRecord flowRecord2;
+  flowRecord2.flowFormat = 1;
+  flowRecord2.flowData = {0xAA, 0xBB, 0xCC}; // 3 bytes, 1 byte padding
+
+  flowSample2.flowRecords = {flowRecord2};
+  record2.sampleData.emplace_back(std::move(flowSample2));
+
+  original.datagramV5.samples = {record1, record2};
+
+  // Serialize
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto rwCursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  original.serialize(rwCursor.get());
+  size_t serializedSize = bufSize - rwCursor->length();
+
+  // Deserialize
+  auto readBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
+  folly::io::Cursor readCursor(readBuf.get());
+
+  sflow::SampleDatagram deserialized =
+      sflow::SampleDatagram::deserialize(readCursor);
+
+  // Verify complex deserialization
+  EXPECT_EQ(
+      deserialized.datagramV5.agentAddress, original.datagramV5.agentAddress);
+  EXPECT_EQ(deserialized.datagramV5.subAgentID, original.datagramV5.subAgentID);
+  EXPECT_EQ(
+      deserialized.datagramV5.sequenceNumber,
+      original.datagramV5.sequenceNumber);
+  EXPECT_EQ(deserialized.datagramV5.uptime, original.datagramV5.uptime);
+  EXPECT_EQ(deserialized.datagramV5.samples.size(), 2);
+
+  // Verify first sample
+  const auto& sample1 = deserialized.datagramV5.samples[0];
+  EXPECT_EQ(sample1.sampleType, 1);
+  EXPECT_EQ(sample1.sampleData.size(), 1);
+
+  const auto& flow1 = std::get<sflow::FlowSample>(sample1.sampleData[0]);
+  EXPECT_EQ(flow1.sequenceNumber, 1111);
+  EXPECT_EQ(flow1.sourceID, 2222);
+  EXPECT_EQ(flow1.flowRecords.size(), 1);
+  EXPECT_THAT(
+      flow1.flowRecords[0].flowData, ElementsAre(0x11, 0x22, 0x33, 0x44));
+
+  // Verify second sample
+  const auto& sample2 = deserialized.datagramV5.samples[1];
+  EXPECT_EQ(sample2.sampleType, 1);
+  EXPECT_EQ(sample2.sampleData.size(), 1);
+
+  const auto& flow2 = std::get<sflow::FlowSample>(sample2.sampleData[0]);
+  EXPECT_EQ(flow2.sequenceNumber, 8888);
+  EXPECT_EQ(flow2.sourceID, 9999);
+  EXPECT_EQ(flow2.flowRecords.size(), 1);
+  EXPECT_THAT(flow2.flowRecords[0].flowData, ElementsAre(0xAA, 0xBB, 0xCC));
+}
+
+TEST(SflowStructsTest, SampleDatagramDeserializeWithMultipleFlowRecords) {
+  // Test SampleDatagram deserialization with FlowSample containing multiple
+  // FlowRecords
+
+  // Create original SampleDatagram
+  sflow::SampleDatagram original;
+  original.datagramV5.agentAddress = folly::IPAddress("192.168.10.50");
+  original.datagramV5.subAgentID = 777;
+  original.datagramV5.sequenceNumber = 888;
+  original.datagramV5.uptime = 999;
+
+  // Create sample record with FlowSample
+  sflow::SampleRecord record;
+  record.sampleType = 1;
+
+  sflow::FlowSample flowSample;
+  flowSample.sequenceNumber = 123;
+  flowSample.sourceID = 456;
+  flowSample.samplingRate = 789;
+  flowSample.samplePool = 101;
+  flowSample.drops = 202;
+  flowSample.input = 303;
+  flowSample.output = 404;
+
+  // Add multiple flow records with different sizes to test XDR padding
+  sflow::FlowRecord flowRecord1;
+  flowRecord1.flowFormat = 1;
+  flowRecord1.flowData = {0x01}; // 1 byte, 3 bytes padding
+
+  sflow::FlowRecord flowRecord2;
+  flowRecord2.flowFormat = 2;
+  flowRecord2.flowData = {0x02, 0x03}; // 2 bytes, 2 bytes padding
+
+  sflow::FlowRecord flowRecord3;
+  flowRecord3.flowFormat = 3;
+  flowRecord3.flowData = {0x04, 0x05, 0x06}; // 3 bytes, 1 byte padding
+
+  sflow::FlowRecord flowRecord4;
+  flowRecord4.flowFormat = 4;
+  flowRecord4.flowData = {0x07, 0x08, 0x09, 0x0A}; // 4 bytes, no padding
+
+  sflow::FlowRecord flowRecord5;
+  flowRecord5.flowFormat = 5;
+  flowRecord5.flowData = {
+      0x0B, 0x0C, 0x0D, 0x0E, 0x0F}; // 5 bytes, 3 bytes padding
+
+  flowSample.flowRecords = {
+      flowRecord1, flowRecord2, flowRecord3, flowRecord4, flowRecord5};
+  record.sampleData.emplace_back(std::move(flowSample));
+
+  original.datagramV5.samples = {record};
+
+  // Serialize
+  int bufSize = 2048;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto rwCursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  original.serialize(rwCursor.get());
+  size_t serializedSize = bufSize - rwCursor->length();
+
+  // Deserialize
+  auto readBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
+  folly::io::Cursor readCursor(readBuf.get());
+
+  sflow::SampleDatagram deserialized =
+      sflow::SampleDatagram::deserialize(readCursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(
+      deserialized.datagramV5.agentAddress, original.datagramV5.agentAddress);
+  EXPECT_EQ(deserialized.datagramV5.subAgentID, original.datagramV5.subAgentID);
+  EXPECT_EQ(
+      deserialized.datagramV5.sequenceNumber,
+      original.datagramV5.sequenceNumber);
+  EXPECT_EQ(deserialized.datagramV5.uptime, original.datagramV5.uptime);
+  EXPECT_EQ(deserialized.datagramV5.samples.size(), 1);
+
+  // Verify the sample record
+  const auto& sampleRecord = deserialized.datagramV5.samples[0];
+  EXPECT_EQ(sampleRecord.sampleType, 1);
+  EXPECT_EQ(sampleRecord.sampleData.size(), 1);
+
+  // Verify the FlowSample data
+  const auto& deserializedFlowSampleMultiple =
+      std::get<sflow::FlowSample>(sampleRecord.sampleData[0]);
+  EXPECT_EQ(deserializedFlowSampleMultiple.sequenceNumber, 123);
+  EXPECT_EQ(deserializedFlowSampleMultiple.sourceID, 456);
+  EXPECT_EQ(deserializedFlowSampleMultiple.samplingRate, 789);
+  EXPECT_EQ(deserializedFlowSampleMultiple.samplePool, 101);
+  EXPECT_EQ(deserializedFlowSampleMultiple.drops, 202);
+  EXPECT_EQ(deserializedFlowSampleMultiple.input, 303);
+  EXPECT_EQ(deserializedFlowSampleMultiple.output, 404);
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords.size(), 5);
+
+  // Verify each flow record
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[0].flowFormat, 1);
+  EXPECT_THAT(
+      deserializedFlowSampleMultiple.flowRecords[0].flowData,
+      ElementsAre(0x01));
+
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[1].flowFormat, 2);
+  EXPECT_THAT(
+      deserializedFlowSampleMultiple.flowRecords[1].flowData,
+      ElementsAre(0x02, 0x03));
+
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[2].flowFormat, 3);
+  EXPECT_THAT(
+      deserializedFlowSampleMultiple.flowRecords[2].flowData,
+      ElementsAre(0x04, 0x05, 0x06));
+
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[3].flowFormat, 4);
+  EXPECT_THAT(
+      deserializedFlowSampleMultiple.flowRecords[3].flowData,
+      ElementsAre(0x07, 0x08, 0x09, 0x0A));
+
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[4].flowFormat, 5);
+  EXPECT_THAT(
+      deserializedFlowSampleMultiple.flowRecords[4].flowData,
+      ElementsAre(0x0B, 0x0C, 0x0D, 0x0E, 0x0F));
+}
+
 } // namespace facebook::fboss::sflow

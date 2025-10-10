@@ -295,6 +295,22 @@ uint32_t SampleDatagram::size() const {
   return 4 + this->datagramV5.size();
 }
 
+SampleDatagram SampleDatagram::deserialize(Cursor& cursor) {
+  SampleDatagram datagram;
+
+  // Read and verify the version
+  uint32_t version = cursor.readBE<uint32_t>();
+  if (version != SampleDatagram::VERSION5) {
+    throw std::runtime_error(
+        "Unsupported sFlow version: " + std::to_string(version));
+  }
+
+  // Deserialize the v5 datagram
+  datagram.datagramV5 = SampleDatagramV5::deserialize(cursor);
+
+  return datagram;
+}
+
 void SampledHeader::serialize(RWPrivateCursor* cursor) const {
   cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->protocol));
   cursor->writeBE<uint32_t>(this->frameLength);
