@@ -162,10 +162,28 @@ void waitForStateMachineState(
       apache::thrift::util::enumNameSafe(stateMachineState));
 }
 
+void includeLpoTransceivers(
+    std::map<int32_t, TransceiverInfo>& infos,
+    bool includeLpo) {
+  if (includeLpo) {
+    return;
+  }
+  // Remove LPO modules from the map
+  auto itr = infos.begin();
+  while (itr != infos.end()) {
+    if (itr->second.tcvrState()->lpoModule().value()) {
+      itr = infos.erase(itr);
+    } else {
+      itr++;
+    }
+  }
+}
+
 // Wait until we have successfully fetched transceiver info (and thus know
 // which transceivers are available for testing)
 std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
     std::vector<int32_t> transceiverIds,
+    bool includeLpo,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
   std::map<int32_t, TransceiverInfo> info;
@@ -180,6 +198,7 @@ std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
     // Make sure we have at least one present transceiver
     for (const auto& it : info) {
       if (*it.second.tcvrState()->present()) {
+        includeLpoTransceivers(info, includeLpo);
         return info;
       }
     }

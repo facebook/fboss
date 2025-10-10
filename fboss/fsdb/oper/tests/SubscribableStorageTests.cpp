@@ -16,7 +16,6 @@
 #include <folly/coro/GtestHelpers.h>
 #include <folly/coro/Task.h>
 #include <folly/coro/Timeout.h>
-#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/oper/tests/TestHelpers.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
@@ -422,12 +421,12 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
   EXPECT_EQ(patchGroups.size(), 2);
   for (auto& [key, patchGroup] : patchGroups) {
     EXPECT_EQ(patchGroup.size(), 1); // only one patch per raw path
-    auto& patch = patchGroup.front();
-    EXPECT_EQ(patch.basePath()[1], fmt::format("test{}", key));
-    auto rootPatch = patch.patch()->move_val();
+    auto& currentPatch = patchGroup.front();
+    EXPECT_EQ(currentPatch.basePath()[1], fmt::format("test{}", key));
+    auto currentRootPatch = currentPatch.patch()->move_val();
     deserialized = facebook::fboss::thrift_cow::
         deserializeBuf<apache::thrift::type_class::integral, int32_t>(
-            *patch.protocol(), std::move(rootPatch));
+            *currentPatch.protocol(), std::move(currentRootPatch));
     // above we set values such that it's sub key * 100 for easier testing
     EXPECT_EQ(deserialized, key * 100);
   }
@@ -1197,6 +1196,8 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
   storage.setConvertToIDPaths(true);
   storage.start();
 
+  auto tgtStorage = this->createCowStorage(this->testStruct);
+
   const auto& path =
       ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
   auto generator = storage.subscribe_patch_extended(
@@ -1211,11 +1212,19 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
         folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
     EXPECT_FALSE(ret.hasException());
 
+    for (auto& patch : ret->chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+    }
+
     // update value
     EXPECT_EQ(storage.set(setPath, 10), std::nullopt);
     ret = co_await co_awaitTry(
         folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
     EXPECT_FALSE(ret.hasException());
+
+    for (auto& patch : ret->chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+    }
 
     // remove value
     storage.remove(this->root.stringToStruct()["test1"]);
@@ -1230,6 +1239,9 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchUpdate) {
     EXPECT_EQ(
         patch.patch()->getType(),
         facebook::fboss::thrift_cow::PatchNode::Type::del);
+    for (auto& subPatch : ret->chunk_ref()->patchGroups()->at(0)) {
+      EXPECT_EQ(tgtStorage.patch(std::move(subPatch)), std::nullopt);
+    }
   }
 }
 

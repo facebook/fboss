@@ -73,18 +73,18 @@ void BcmYamlConfig::setBaseConfig(const std::string& baseConfig) {
   configStr_ = baseConfig;
   nodes_ = YAML::LoadAll(configStr_);
   for (auto yamlNode : nodes_) {
-    if (auto node = yamlNode[kHSDKBcmDeviceKey]) {
-      if (auto deviceNode = node[kHSDKDevice0Key]) {
+    if (auto bcmDeviceNode = yamlNode[kHSDKBcmDeviceKey]) {
+      if (auto deviceNode = bcmDeviceNode[kHSDKDevice0Key]) {
         if (auto globalNode = deviceNode[kHSDKBcmDeviceGlobalKey]) {
           globalNode_ = globalNode;
         }
       }
-    } else if (auto node = yamlNode[kHSDKDeviceKey]) {
-      if (auto deviceNode = node[kHSDKDevice0Key]) {
-        if (auto thresholdNode = deviceNode[kHSDKTMTHDConfigKey]) {
+    } else if (auto deviceNode = yamlNode[kHSDKDeviceKey]) {
+      if (auto deviceSubNode = deviceNode[kHSDKDevice0Key]) {
+        if (auto thresholdNode = deviceSubNode[kHSDKTMTHDConfigKey]) {
           thresholdNode_ = thresholdNode;
         }
-        if (auto coresNode = deviceNode[kHSDKCoresMapKey]) {
+        if (auto coresNode = deviceSubNode[kHSDKCoresMapKey]) {
           coreMapNode_ = coresNode;
         }
       }

@@ -116,6 +116,7 @@ enum PortSpeed {
   TWOHUNDREDG = 200000, // 200G
   FOURHUNDREDG = 400000, // 400G
   EIGHTHUNDREDG = 800000, // 800G
+  THREEPOINTTWOT = 3200000, // 3.2T
 }
 
 // <speed>_<num_lanes>_<modulation>_<fec>
@@ -177,6 +178,9 @@ enum PortProfileID {
   PROFILE_400G_2_PAM4_RS544X2N_OPTICAL = 51,
   PROFILE_800G_4_PAM4_RS544X2N_OPTICAL = 52,
   PROFILE_200G_1_PAM4_RS544X2N_OPTICAL = 53,
+  PROFILE_200G_2_PAM4_RS544_COPPER = 54,
+  PROFILE_100G_2_PAM4_RS544_COPPER = 55,
+  PROFILE_100G_1_PAM4_RS544_COPPER = 56,
 }
 
 enum Scope {
@@ -1097,6 +1101,7 @@ enum PortType {
   MANAGEMENT_PORT = 4,
   EVENTOR_PORT = 5,
   HYPER_PORT = 6,
+  HYPER_PORT_MEMBER = 7,
 }
 
 struct PortNeighbor {
@@ -1691,6 +1696,7 @@ struct TrafficCounter {
 enum L2LearningMode {
   HARDWARE = 0,
   SOFTWARE = 1,
+  DISABLED = 2,
 }
 
 enum SwitchDrainState {
@@ -1949,6 +1955,10 @@ struct SwitchSettings {
   // PFC watchdog timer granularity which can be 1ms, 10ms or 100ms.
   32: optional i32 pfcWatchdogTimerGranularityMsec;
   33: optional i32 ecmpCompressionThresholdPct;
+  // Offset from where to start connected system port ID allocation from.
+  // Connected system ports are for fabric links and used in fabric link
+  // monitoring feature.
+  34: optional i32 fabricLinkMonitoringSystemPortOffset;
 }
 
 // Global buffer pool
@@ -2222,6 +2232,15 @@ struct FlowletSwitchingConfig {
   16: optional i32 alternatePathBias;
 }
 
+/*
+ * configuration for a static MAC entry
+ */
+struct StaticMacEntry {
+  1: i32 vlanID;
+  2: string macAddress;
+  3: i32 egressLogicalPortID;
+}
+
 /**
  * The configuration for a switch.
  *
@@ -2356,4 +2375,5 @@ struct SwitchConfig {
   // list of ACL table groups, prefer this over aclTableGroup, aclTableGroup will be deprecated
   56: optional list<AclTableGroup> aclTableGroups;
   57: list<MirrorOnDropReport> mirrorOnDropReports = [];
+  58: optional list<StaticMacEntry> staticMacAddrs;
 }

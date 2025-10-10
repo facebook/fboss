@@ -180,6 +180,14 @@ service FsdbService extends fb303.FacebookService {
     1: fsdb_common.FsdbException e,
   );
 
+  fsdb_oper.OperSubInitResponse, stream<
+    fsdb_oper.SubscriberMessage throws (1: fsdb_common.FsdbException e)
+  > subscribeStateExtended(1: fsdb_oper.SubRequest request);
+
+  fsdb_oper.OperSubInitResponse, stream<
+    fsdb_oper.SubscriberMessage throws (1: fsdb_common.FsdbException e)
+  > subscribeStatsExtended(1: fsdb_oper.SubRequest request);
+
   // Custom Oper getters: add specific state getters here if
   // desired.
 

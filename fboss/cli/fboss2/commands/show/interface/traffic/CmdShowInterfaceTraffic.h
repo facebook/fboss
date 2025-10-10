@@ -62,7 +62,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
         client->semifuture_getAllPortInfo().via(executor.getEventBase());
 
     std::map<std::string, int64_t> counters;
-    if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+    if (utils::isMultiSwitchEnabled(hostInfo)) {
 #ifndef IS_OSS
       auto hwAgentQueryFn =
           [&counters](

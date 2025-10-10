@@ -67,6 +67,7 @@ cpp_library(
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         ":platform_manager_validators-cpp2-types",
+        ":utils",
         "//folly/logging:logging",
     ],
     exported_external_deps = [
@@ -193,6 +194,7 @@ cpp_library(
         "Utils.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/exprtk:exprtk",
         "//fboss/lib:gpiod_line",
         "//folly/logging:logging",
     ],

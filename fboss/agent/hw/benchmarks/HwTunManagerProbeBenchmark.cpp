@@ -8,17 +8,12 @@
  *
  */
 
-#include "fboss/agent/hw/benchmarks/HwVoqRemoteNeighborBenchmarkHelper.h"
-
-#include <folly/Benchmark.h>
+#include "fboss/agent/hw/benchmarks/HwTunManagerProbeBenchmarkHelper.h"
 
 namespace facebook::fboss {
 
-BENCHMARK(HwVoqRemoteNeighborAdd) {
-  remoteNeighborBenchmark(true /*add*/);
+BENCHMARK(HwTunManagerProbeAndCleanup) {
+  runTunManagerProbeBenchmark();
 }
 
-BENCHMARK(HwVoqRemoteNeighborDel) {
-  remoteNeighborBenchmark(false /*add*/);
-}
 } // namespace facebook::fboss

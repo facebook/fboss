@@ -51,7 +51,7 @@ class SaiLagManager {
 
   SaiLagHandle* getLagHandleIf(AggregatePortID aggregatePortID) const;
   SaiLagHandle* getLagHandle(AggregatePortID aggregatePortID) const;
-  bool isMinimumLinkMet(AggregatePortID aggregatePortID) const;
+  bool isLagUp(const AggregatePortID& aggregatePortID) const;
 
   uint8_t getLagCount() const {
     return handles_.size();

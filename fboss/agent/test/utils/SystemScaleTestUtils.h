@@ -3,7 +3,9 @@
 
 namespace facebook::fboss::utility {
 
-void initSystemScaleTest(AgentEnsemble* ensemble);
+void initSystemScaleTest(
+    AgentEnsemble* ensemble,
+    const RouteDistributionGenerator& routeGenerator);
 void initSystemScaleChurnTest(AgentEnsemble* ensemble);
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble);

@@ -287,6 +287,13 @@ StateDelta::getRemoteSystemPortsDelta() const {
       old_->getRemoteSystemPorts().get(), new_->getRemoteSystemPorts().get());
 }
 
+MultiSwitchMapDelta<MultiSwitchSystemPortMap>
+StateDelta::getFabricLinkMonitoringSystemPortsDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchSystemPortMap>(
+      old_->getFabricLinkMonitoringSystemPorts().get(),
+      new_->getFabricLinkMonitoringSystemPorts().get());
+}
+
 ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
   return getFirstMapDelta<IpTunnelMap>(old_->getTunnels(), new_->getTunnels());
 }

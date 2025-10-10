@@ -37,8 +37,12 @@ class AgentArsBase : public AgentHwTest {
   void SetUp() override;
   void TearDown() override;
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
-  std::string getAclName(AclType aclType) const;
-  std::string getCounterName(AclType aclType) const;
+  std::string getAclName(
+      AclType aclType,
+      bool enableArsAlternateMembers = false) const;
+  std::string getCounterName(
+      AclType aclType,
+      bool enableAlternateArsMembers = false) const;
   void setup(int ecmpWidth = 1);
   void addSamplingConfig(cfg::SwitchConfig& config);
   void addAclTableConfig(

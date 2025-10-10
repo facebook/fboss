@@ -168,6 +168,34 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     STSW_HybridCow,
     test_data::RoleSelector::STSW,
     true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    RDSW_ThriftCow,
+    test_data::RoleSelector::RDSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    RDSW_HybridCow,
+    test_data::RoleSelector::RDSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    EDSW_ThriftCow,
+    test_data::RoleSelector::EDSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    EDSW_HybridCow,
+    test_data::RoleSelector::EDSW,
+    true);
 } // namespace facebook::fboss::thrift_cow::test
 
 int main(int argc, char* argv[]) {

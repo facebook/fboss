@@ -158,6 +158,16 @@ class ServiceHandler : public FsdbServiceSvIf,
       SubscriberMessage>>
   co_subscribeStats(std::unique_ptr<SubRequest> request) override;
 
+  folly::coro::Task<apache::thrift::ResponseAndServerStream<
+      OperSubInitResponse,
+      SubscriberMessage>>
+  co_subscribeStateExtended(std::unique_ptr<SubRequest> request) override;
+
+  folly::coro::Task<apache::thrift::ResponseAndServerStream<
+      OperSubInitResponse,
+      SubscriberMessage>>
+  co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) override;
+
   // Management Plane related ---------------------------------------
 
   folly::coro::Task<std::unique_ptr<PublisherIdToOperPublisherInfo>>

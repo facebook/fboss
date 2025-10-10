@@ -53,9 +53,14 @@
 
 #define SM_LOG(level, tcvrID) MODULE_LOG(level, "[SM]", tcvrID)
 
+#define PORT_MGR_SKIP_LOG(func) \
+  XLOG(DBG2) << func << " called in Port Manager mode. Skipping."
+
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
 DECLARE_bool(enable_tcvr_validation);
+DECLARE_bool(port_manager_mode);
+DECLARE_bool(firmware_upgrade_on_link_down);
 
 namespace facebook::fboss {
 struct TransceiverConfig;
@@ -84,6 +89,13 @@ class TransceiverManager {
       BlockingStateMachineUpdate<TransceiverStateMachineEvent>;
 
  public:
+  static constexpr const char* kPhyStateKey = "phy";
+  static constexpr const char* kAgentConfigAppliedInfoStateKey =
+      "agentConfigAppliedInfo";
+  static constexpr const char* kAgentConfigLastAppliedInMsKey =
+      "agentConfigLastAppliedInMs";
+  static constexpr const char* kAgentConfigLastColdbootAppliedInMsKey =
+      "agentConfigLastColdbootAppliedInMs";
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
@@ -190,6 +202,11 @@ class TransceiverManager {
   virtual void publishI2cTransactionStats() = 0;
 
   void publishPhyIOStats() const {
+    if (FLAGS_port_manager_mode) {
+      PORT_MGR_SKIP_LOG("publishPhyIOStats");
+      return;
+    }
+
     if (!phyManager_) {
       return;
     }
@@ -291,6 +308,12 @@ class TransceiverManager {
       std::string /* portName */,
       phy::PortComponent /* component */,
       bool /* setLoopback */);
+
+  void setPortLoopbackStateTransceiver(
+      PortID portId,
+      std::string portName,
+      phy::PortComponent component,
+      bool setLoopback);
 
   void setPortAdminState(
       std::string /* portName */,
@@ -419,6 +442,9 @@ class TransceiverManager {
 
   void resetProgrammedIphyPortToPortInfo(TransceiverID id);
 
+  void resetProgrammedIphyPortToPortInfoForPorts(
+      const std::unordered_set<PortID>& portIds);
+
   std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
 
   phy::PhyInfo getPhyInfo(const std::string& portName);
@@ -482,6 +508,10 @@ class TransceiverManager {
           supportedPortProfiles,
       bool checkOptics);
 
+  bool isTransceiverPortStateSupported(
+      TransceiverID tcvrID,
+      TransceiverPortState& tcvrPortState);
+
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
 
@@ -531,10 +561,6 @@ class TransceiverManager {
 
   static std::string warmBootFlagFileName();
 
-  bool canWarmBoot() const {
-    return canWarmBoot_;
-  }
-
   void setPortPrbs(
       PortID portId,
       phy::PortComponent component,
@@ -543,7 +569,15 @@ class TransceiverManager {
   phy::PrbsStats getPortPrbsStats(PortID portId, phy::PortComponent component)
       const;
 
+  phy::PrbsStats getPortPrbsStatsTransceiver(PortID portId, phy::Side side)
+      const;
+
   void clearPortPrbsStats(PortID portId, phy::PortComponent component);
+
+  void clearPortPrbsStatsTransceiver(
+      PortID portId,
+      const std::string& portName,
+      phy::Side side);
 
   std::vector<prbs::PrbsPolynomial> getTransceiverPrbsCapabilities(
       TransceiverID tcvrID,
@@ -559,8 +593,20 @@ class TransceiverManager {
       phy::PortComponent component,
       const prbs::InterfacePrbsState& state);
 
+  void setInterfacePrbsTransceiver(
+      PortID portId,
+      const std::string& portName,
+      phy::PortComponent component,
+      const prbs::InterfacePrbsState& state);
+
   void getInterfacePrbsState(
       prbs::InterfacePrbsState& prbsState,
+      const std::string& portName,
+      phy::PortComponent component) const;
+
+  void getInterfacePrbsStateTransceiver(
+      prbs::InterfacePrbsState& prbsState,
+      PortID portId,
       const std::string& portName,
       phy::PortComponent component) const;
 
@@ -674,10 +720,77 @@ class TransceiverManager {
   TcvrIdToTcvrNameMap getTcvrIdToTcvrNameMap() const {
     return tcvrIdToTcvrName_;
   }
+  void triggerTransceiverEventsForAgentConfigChangeEvent(
+      bool resetDataPath,
+      ConfigAppliedInfo newConfigAppliedInfo);
 
   static bool opticalOrActiveCmisCable(const TcvrState& tcvrState);
   static bool opticalOrActiveCable(const TcvrState& tcvrState);
   static bool activeCable(const TcvrState& tcvrState);
+
+  void triggerResetEvents(const std::unordered_set<TransceiverID>& tcvrs);
+
+  void triggerFirmwareUpgradeEvents(
+      const std::unordered_set<TransceiverID>& tcvrs);
+
+  // Check whether iphy/xphy/transceiver programmed is done. If not, then
+  // trigger the corresponding program event to program the component.
+  // Return the list of transceivers that have programming events
+  std::vector<TransceiverID> triggerProgrammingEvents();
+
+  void findAndTriggerPotentialFirmwareUpgradeEvents(
+      const std::vector<TransceiverID>& presentXcvrIds);
+
+  void clearEvbsRunningFirmwareUpgrade() {
+    // Clear the map that tracks the firmware upgrades in progress per evb
+    evbsRunningFirmwareUpgrade_.wlock()->clear();
+  }
+
+  void markTransceiverReadyForProgramming(TransceiverID tcvrId, bool ready);
+
+  // Set the can_warm_boot flag for qsfp service. Done after successful
+  // initialization to avoid cold booting non-XPhy systems in case of a
+  // non-graceful exit and also set during graceful exit.
+  void setCanWarmBoot();
+
+  void completeRefresh();
+
+  // Store the warmboot state for qsfp_service. This will be updated
+  // periodically after Transceiver State machine updates to maintain
+  // the state if graceful shutdown did not happen.
+  // Will also be called during graceful exit for qsfp_service once the state
+  // machine stops.
+
+  // phyWarmbootState can be optionally passed in if called by another class (in
+  // our case, this is PortManager).
+  void setWarmBootState(
+      const folly::dynamic& phyWarmbootState = folly::dynamic(nullptr));
+
+  bool canWarmBoot() const {
+    return canWarmBoot_;
+  }
+
+  folly::dynamic getWarmBootState() const {
+    return warmBootState_;
+  }
+
+  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
+    phyManager_ = std::move(phyManager);
+    phyManager_->setPublishPhyCb(
+        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
+          if (newInfo.has_value()) {
+            publishPhyStateToFsdb(
+                std::string(portName), std::move(*newInfo->state()));
+            publishPhyStatToFsdb(
+                std::string(portName), std::move(*newInfo->stats()));
+          } else {
+            publishPhyStateToFsdb(std::string(portName), std::nullopt);
+          }
+          if (portStats.has_value()) {
+            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
+          }
+        });
+  }
 
  protected:
   /*
@@ -697,24 +810,6 @@ class TransceiverManager {
   virtual void initTransceiverMap() = 0;
 
   virtual void loadConfig() = 0;
-
-  void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
-    phyManager_ = std::move(phyManager);
-    phyManager_->setPublishPhyCb(
-        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
-          if (newInfo.has_value()) {
-            publishPhyStateToFsdb(
-                std::string(portName), std::move(*newInfo->state()));
-            publishPhyStatToFsdb(
-                std::string(portName), std::move(*newInfo->stats()));
-          } else {
-            publishPhyStateToFsdb(std::string(portName), std::nullopt);
-          }
-          if (portStats.has_value()) {
-            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
-          }
-        });
-  }
 
   // Update the cached PortStatus of TransceiverToPortInfo based on the input
   // This will only change the active state of the state machine.
@@ -805,9 +900,9 @@ class TransceiverManager {
    * This is the private class to capture all information a
    * TransceiverStateMachine needs
    * A Synchronized state_machine to keep track of the state
-   * thread and EventBase so that we can operate multiple different transceivers
-   * StateMachine update at the same time and also better starting and
-   * terminating these threads.
+   * thread and EventBase so that we can operate multiple different
+   * transceivers StateMachine update at the same time and also better
+   * starting and terminating these threads.
    */
   class TransceiverThreadHelper {
    public:
@@ -863,15 +958,7 @@ class TransceiverManager {
   static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
 
-  // Check whether iphy/xphy/transceiver programmed is done. If not, then
-  // trigger the corresponding program event to program the component.
-  // Return the list of transceivers that have programming events
-  std::vector<TransceiverID> triggerProgrammingEvents();
-
   void triggerAgentConfigChangeEvent();
-
-  void triggerFirmwareUpgradeEvents(
-      const std::unordered_set<TransceiverID>& tcvrs);
 
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
@@ -890,18 +977,6 @@ class TransceiverManager {
    */
   void removeWarmBootFlag();
 
-  // Store the warmboot state for qsfp_service. This will be updated
-  // periodically after Transceiver State machine updates to maintain
-  // the state if graceful shutdown did not happen.
-  // Will also be called during graceful exit for qsfp_service once the state
-  // machine stops.
-  void setWarmBootState();
-
-  // Set the can_warm_boot flag for qsfp service. Done after successful
-  // initialization to avoid cold booting non-XPhy systems in case of a
-  // non-graceful exit and also set during graceful exit.
-  void setCanWarmBoot();
-
   void readWarmBootStateFile();
   void restoreAgentConfigAppliedInfo();
 
@@ -918,6 +993,8 @@ class TransceiverManager {
   void ensureTransceiversMapLocked(std::string message) const;
 
   void drainAllStateMachineUpdates();
+
+  std::unordered_set<TransceiverID> getTcvrsReadyForProgramming() const;
 
   // Store the QSFP service state for warm boots.
   // Updated on every refresh of the state machine as well as during graceful
@@ -1054,10 +1131,13 @@ class TransceiverManager {
   setupTransceiverToStateMachineControllerMap();
 
   /*
-   * Map of TransceiverID to StateMachineController object, which contains state
-   * machine and queue of updates to execute.
+   * Map of TransceiverID to StateMachineController object, which contains
+   * state machine and queue of updates to execute.
    */
   const TransceiverToStateMachineControllerMap stateMachineControllers_;
+
+  folly::Synchronized<std::unordered_set<TransceiverID>>
+      tcvrsReadyForProgramming_;
 
   friend class TransceiverStateMachineTest;
 };

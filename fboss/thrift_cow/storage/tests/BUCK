@@ -41,6 +41,7 @@ cpp_library(
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/fsdb/benchmarks:state_generator",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/lib/if:fboss_io_stats-cpp2-types",

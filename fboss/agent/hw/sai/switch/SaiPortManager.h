@@ -326,6 +326,10 @@ class SaiPortManager {
       const PortID& portId,
       HwPortStats& currPortStats,
       const HwPortStats& prevPortStats);
+  void setFabricLinkMonitoringSystemPortId(
+      const PortID& portId,
+      sai_object_id_t sysPortObj);
+  void resetFabricLinkMonitoringSystemPortId(const PortID& portId);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
@@ -453,6 +457,9 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void changeTxEnable(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+  void changeResetQueueCreditBalance(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void reloadSixTapAttributes(

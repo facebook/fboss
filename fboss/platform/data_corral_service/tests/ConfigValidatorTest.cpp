@@ -76,6 +76,23 @@ TEST(ConfigValidatorTest, InvalidLedConfig) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, InvalidLedPathPrefix) {
+  auto config = getValidLedManagerConfig();
+  config.systemLedConfig()->presentLedSysfsPath() = "/invalid/path";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  config = getValidLedManagerConfig();
+  config.systemLedConfig()->absentLedSysfsPath() = "/invalid/path";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidLedPathPrefix) {
+  auto config = getValidLedManagerConfig();
+  config.systemLedConfig()->presentLedSysfsPath() = "/sys/class/leds/present";
+  config.systemLedConfig()->absentLedSysfsPath() = "/sys/class/leds/absent";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
 TEST(ConfigValidatorTest, InvalidFruConfig) {
   auto config = getValidLedManagerConfig();
   config.fruConfigs()->at(0).fruName() = "";

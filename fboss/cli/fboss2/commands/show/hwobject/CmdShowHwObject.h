@@ -34,7 +34,7 @@ class CmdShowHwObject
       const ObjectArgType& queriedHwObjectTypes) {
     std::string hwObjectInfo;
 
-    if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+    if (utils::isMultiSwitchEnabled(hostInfo)) {
       auto hwAgentQueryFn =
           [&hwObjectInfo, queriedHwObjectTypes](
               apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {

@@ -18,7 +18,7 @@ using namespace facebook::fboss;
  *   firmware_storage --dump_fw_info --module_name <module-name>
  */
 int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
+  const folly::Init init(&argc, &argv, true);
 
   // Check the arguments
   if (!FLAGS_dump_fw_info || FLAGS_module_name.empty()) {

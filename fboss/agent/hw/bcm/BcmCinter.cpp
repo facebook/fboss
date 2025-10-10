@@ -2385,7 +2385,7 @@ int BcmCinter::bcm_l3_ecmp_member_add(
     bcm_if_t ecmp_group_id,
     bcm_l3_ecmp_member_t* ecmp_member) {
   vector<string> cintLines;
-  cintLines.push_back("bcm_l3_ecmp_member_t_init(&member)");
+  cintLines.emplace_back("bcm_l3_ecmp_member_t_init(&member)");
   cintLines.push_back(to<string>(
       "member.egress_if=", getCintVar(l3IntfIdVars, ecmp_member->egress_if)));
   cintLines.push_back(to<string>("member.weight=", ecmp_member->weight));
@@ -2423,7 +2423,7 @@ int BcmCinter::bcm_l3_ecmp_member_delete(
     bcm_if_t ecmp_group_id,
     bcm_l3_ecmp_member_t* ecmp_member) {
   vector<string> cintLines;
-  cintLines.push_back("bcm_l3_ecmp_member_t_init(&member)");
+  cintLines.emplace_back("bcm_l3_ecmp_member_t_init(&member)");
   cintLines.push_back(to<string>(
       "member.egress_if=", getCintVar(l3IntfIdVars, ecmp_member->egress_if)));
   auto cintForFn = wrapFunc(to<string>(
@@ -3455,7 +3455,7 @@ int BcmCinter::bcm_pktio_tx(int unit, bcm_pktio_pkt_t* tx_pkt) {
 
   bcm_pktio_pkt_data_get(unit, tx_pkt, &data, &length);
 
-  cint.push_back("pktio_pkt = NULL");
+  cint.emplace_back("pktio_pkt = NULL");
   auto allocFuncCint = wrapFunc(to<string>(
       "bcm_pktio_alloc(", makeParamStr(unit, length, 0, "&pktio_pkt"), ")"));
 

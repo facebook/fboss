@@ -102,8 +102,6 @@
       "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 4100
     },
     {
@@ -115,8 +113,6 @@
       "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 4100
     },
     {
@@ -128,8 +124,6 @@
       "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 4100
     },
     {
@@ -141,8 +135,6 @@
       "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
-      "fanGoodLedVal": 1,
-      "fanFailLedVal": 2,
       "rpmMin": 4100
     }
   ],

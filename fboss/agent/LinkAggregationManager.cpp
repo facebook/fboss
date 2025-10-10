@@ -92,6 +92,8 @@ std::shared_ptr<SwitchState> ProgramForwardingAndPartnerState::operator()(
   XLOG(DBG2) << "Updated " << aggPort->getName()
              << " forwardingSubportCount: " << aggPort->forwardingSubportCount()
              << ", minLinkCount: " << aggPort->getMinimumLinkCount()
+             << ", minLinkCountToUp:"
+             << aggPort->getMinimumLinkCountToUp().value_or(0)
              << ", up: " << static_cast<int>(aggPort->isUp());
   return nextState;
 }
@@ -169,6 +171,7 @@ void LinkAggregationManager::aggregatePortAdded(
             aggPort->getSystemPriority(),
             aggPort->getSystemID(),
             aggPort->getMinimumLinkCount(),
+            aggPort->getMinimumLinkCountToUp(),
             this));
     CHECK(inserted);
     // Warm boot LACP restore - restore state machines if member was in

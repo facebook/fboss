@@ -72,11 +72,14 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_NOFEC_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER:
       return cfg::PortSpeed::HUNDREDG;
 
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
       return cfg::PortSpeed::TWOHUNDREDG;
 
@@ -110,10 +113,13 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_NOFEC_COPPER:
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER:
     case cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC_COPPER:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
@@ -194,7 +200,7 @@ void setCreditWatchdogAndPortTx(
     TestEnsembleIf* ensemble,
     PortID port,
     bool enable) {
-  bool setCreditWatchdog =
+  bool isVoqSwitch =
       ensemble->getHwAsicTable()
           ->getHwAsic(ensemble->scopeResolver().scope(port).switchId())
           ->getSwitchType() == cfg::SwitchType::VOQ;
@@ -204,8 +210,14 @@ void setCreditWatchdogAndPortTx(
         auto newPort =
             switchState->getPorts()->getNodeIf(port)->modify(&switchState);
         newPort->setTxEnable(enable);
-
-        if (setCreditWatchdog) {
+        // VoQ switch specific handling
+        if (isVoqSwitch) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+          // For VoQ switches, TX disable should be accompanied by the
+          // port initial credits being reset to avoid leaking of data
+          // due to the residual credit.
+          newPort->setResetQueueCreditBalance(!enable);
+#endif
           for (const auto& [_, switchSetting] :
                std::as_const(*switchState->getSwitchSettings())) {
             auto newSwitchSettings = switchSetting->modify(&switchState);
@@ -235,8 +247,35 @@ void setPortTx(TestEnsembleIf* ensemble, PortID port, bool enable) {
     auto newPort =
         switchState->getPorts()->getNodeIf(port)->modify(&switchState);
     newPort->setTxEnable(enable);
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    // For VoQ switches, TX disable should be accompanied by the
+    // port initial credits being reset to avoid leaking of data
+    // due to the residual credit.
+    if (ensemble->getHwAsicTable()
+            ->getHwAsic(ensemble->scopeResolver().scope(port).switchId())
+            ->getSwitchType() == cfg::SwitchType::VOQ) {
+      newPort->setResetQueueCreditBalance(!enable);
+    }
+#endif
     return switchState;
   };
   ensemble->applyNewState(updatePortTx);
+}
+
+void resetQueueCreditBalance(
+    TestEnsembleIf* ensemble,
+    PortID port,
+    bool enable) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  auto updateResetQueueCreditBalance =
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto switchState = in->clone();
+        auto newPort =
+            switchState->getPorts()->getNodeIf(port)->modify(&switchState);
+        newPort->setResetQueueCreditBalance(enable);
+        return switchState;
+      };
+  ensemble->applyNewState(updateResetQueueCreditBalance);
+#endif
 }
 } // namespace facebook::fboss::utility

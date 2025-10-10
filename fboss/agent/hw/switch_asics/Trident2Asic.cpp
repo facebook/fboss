@@ -115,7 +115,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::FABRIC_PORT_MTU:
+
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
@@ -219,6 +219,8 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
       return false;
   }
   return false;

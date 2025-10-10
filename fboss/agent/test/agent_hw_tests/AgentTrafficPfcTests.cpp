@@ -36,6 +36,7 @@ static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
 static const std::vector<int> kLossyPgIds{0};
+static const auto kTxForVlanForChenab = facebook::fboss::VlanID(4094);
 
 // On DNX, PFC deadlock cannot be triggered by our test, instead we have to
 // force constant PFC generation by setting the N-th bit of FRC_NIF_ETH_PFC,
@@ -240,6 +241,17 @@ namespace facebook::fboss {
 
 class AgentTrafficPfcTest : public AgentHwTest {
  public:
+  void TearDown() override {
+    if (!FLAGS_list_production_feature) {
+      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+        auto ports = masterLogicalInterfacePortIds();
+        getAgentEnsemble()->bringDownPorts(ports);
+      }
+    }
+    AgentHwTest::TearDown();
+  }
+
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     /*
@@ -279,6 +291,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
+
+    if (checkSameAndGetAsicType(config) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      FLAGS_num_packets_to_trigger_pfc = 2000;
+      FLAGS_setup_for_warmboot = false;
+    }
     return config;
   }
 
@@ -431,10 +448,10 @@ class AgentTrafficPfcTest : public AgentHwTest {
 
   void pumpTraffic(
       const int priority,
+      const std::optional<VlanID>& vlan,
       const std::optional<uint8_t> queue,
       const std::vector<PortID>& portIds,
       const std::vector<folly::IPAddressV6>& ips) {
-    auto vlanId = getVlanIDForTx();
     auto intfMac = getIntfMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     // pri = 7 => dscp 56
@@ -453,7 +470,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
       for (int j = 0; j < ips.size(); j++) {
         auto txPacket = utility::makeUDPTxPacket(
             getSw(),
-            vlanId,
+            vlan,
             srcMac,
             intfMac,
             folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
@@ -466,8 +483,18 @@ class AgentTrafficPfcTest : public AgentHwTest {
 
         // TODO(maxgg): Investigate TH3/4 WithScaleCfg failure when queue is
         // set to losslessPriority (2).
-        getAgentEnsemble()->sendPacketAsync(
-            std::move(txPacket), PortDescriptor(portIds[j]), queue);
+
+        auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB &&
+            vlan.has_value()) {
+          // If we want to use a provided vlan ID, we need to send packets out
+          // switched, so that they egress out of the correct traffic class.
+          getAgentEnsemble()->sendPacketAsync(
+              std::move(txPacket), std::nullopt, queue);
+        } else {
+          getAgentEnsemble()->sendPacketAsync(
+              std::move(txPacket), PortDescriptor(portIds[j]), queue);
+        }
       }
     }
   }
@@ -475,7 +502,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void pumpTraffic(const int priority, bool scaleTest) {
     std::vector<PortID> portIds = portIdsForTest(scaleTest);
     pumpTraffic(
-        priority, std::nullopt, portIds, getDestinationIps(portIds.size()));
+        priority,
+        std::nullopt /* vlanId */,
+        std::nullopt /* queue */,
+        portIds,
+        getDestinationIps(static_cast<int>(portIds.size())));
   }
 
   void stopTraffic(const std::vector<PortID>& portIds) {
@@ -700,8 +731,75 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
         kLossyPgIds,
         {},
         buffer);
+
+    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
+
     applyNewConfig(cfg);
     setupEcmpTraffic(txOffPortId, ip);
+  }
+
+  void setupTxVlanForChenab(
+      cfg::SwitchConfig& cfg,
+      const PortID& portId,
+      const VlanID& vlanId) {
+    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      return;
+    }
+    // For Chenab, we need to create a VLAN so that packets that are switched
+    // hit the VLAN before hitting the route, egressing out of the first port.
+
+    cfg::Vlan vlan;
+    vlan.id() = vlanId;
+    vlan.name() = folly::sformat("vlan{}", static_cast<int>(vlanId));
+    vlan.routable() = false; // No routing needed, just isolation
+    // Set the interface ID for the VLAN
+    vlan.intfID() = kTxForVlanForChenab;
+    cfg.vlans()->push_back(vlan);
+
+    // Max: we need to add an interface, otherwise warmboot will fail.
+    cfg::Interface interface;
+    interface.name() = folly::to<std::string>(vlanId);
+    interface.type() = cfg::InterfaceType::VLAN;
+    interface.scope() = cfg::Scope::LOCAL;
+    interface.intfID() = kTxForVlanForChenab;
+    interface.vlanID() = vlanId;
+    interface.routerID() = 0;
+    // Deliberately choose MAC that doesn't match local CPU MAC used for other
+    // Router Interfaces (utility::kLocalCpuMac().toString()) This ensures
+    // switched packet from CPU gets forwarded by VLAN out of front panel port
+    // and not to this RIF.
+    interface.mac() = "00:11:22:33:44:55";
+    interface.mtu() = 9000;
+    interface.ipAddresses().ensure().emplace_back("200.0.0.1/24");
+    interface.ipAddresses().ensure().emplace_back("200::1/64");
+    cfg.interfaces()->push_back(interface);
+
+    // Change vlan port mapping so the portId is an untagged member
+    // of the test VLAN.
+    auto vlanPort = std::find_if(
+        cfg.vlanPorts()->begin(),
+        cfg.vlanPorts()->end(),
+        [portId](auto vlanPort) {
+          return vlanPort.logicalPort() == static_cast<int>(portId);
+        });
+
+    if (vlanPort != cfg.vlanPorts()->end()) {
+      XLOG(INFO) << "Found existing VLAN port entry for portId " << portId
+                 << ", changing from VLAN " << *vlanPort->vlanID()
+                 << " to VLAN " << vlanId;
+      vlanPort->vlanID() = vlanId;
+      vlanPort->spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+      vlanPort->emitTags() = false; // Untagged port
+    } else {
+      XLOG(INFO) << "No existing VLAN port entry found for portId " << portId
+                 << ", creating new entry for VLAN " << vlanId;
+      cfg::VlanPort testVlanPort;
+      testVlanPort.vlanID() = vlanId;
+      testVlanPort.logicalPort() = static_cast<int>(portId);
+      testVlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+      testVlanPort.emitTags() = false; // Untagged port
+      cfg.vlanPorts()->push_back(testVlanPort);
+    }
   }
 
   void setupWatchdog(const std::vector<PortID>& portIds, bool enable) {
@@ -785,7 +883,12 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       // doesn't increase. Tx counters should work for all platforms.
       auto txPfcCtrOld = folly::get_default(
           *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
-      pumpTraffic(kLosslessTrafficClass, kLosslessPriority, {port}, {ip});
+      // pass vlan id for chenab to trigger deadlock detection
+      auto vlanId = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB
+          ? std::make_optional<VlanID>(kTxForVlanForChenab)
+          : getVlanIDForTx();
+      pumpTraffic(
+          kLosslessTrafficClass, vlanId, kLosslessPriority, {port}, {ip});
       WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
         auto txPfcCtrNew = folly::get_default(
             *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
@@ -795,6 +898,23 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
   }
 
   std::tuple<int, int> getPfcDeadlockCounters(const PortID& portId) {
+#ifdef IS_OSS
+    auto portStats = getLatestPortStats(portId);
+    auto pfcDeadlockDetection = 0;
+    auto pfcDeadlockRecovery = 0;
+    if (portStats.pfcDeadlockDetection_().has_value()) {
+      pfcDeadlockDetection = *portStats.pfcDeadlockDetection_();
+    }
+    if (portStats.pfcDeadlockRecovery_().has_value()) {
+      pfcDeadlockRecovery = *portStats.pfcDeadlockRecovery_();
+    }
+
+    XLOG(INFO) << "Port " << portId
+               << " pfcDeadlockDetection: " << pfcDeadlockDetection
+               << " pfcDeadlockRecovery: " << pfcDeadlockRecovery;
+
+    return {pfcDeadlockDetection, pfcDeadlockRecovery};
+#else
     const auto& portName = getAgentEnsemble()
                                ->getProgrammedState()
                                ->getPorts()
@@ -810,6 +930,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
                 portId, portName + ".pfc_deadlock_recovery.sum")
             .value_or(0),
     };
+#endif
   }
 
   std::tuple<int, int> getSwitchPfcDeadlockCounters() {

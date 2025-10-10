@@ -300,3 +300,60 @@ NextHop nextHopFromFollyDynamic(const folly::dynamic& nhopJson);
 } // namespace util
 
 } // namespace facebook::fboss
+
+namespace std {
+
+template <>
+struct hash<facebook::fboss::NetworkTopologyInformation> {
+  size_t operator()(
+      const facebook::fboss::NetworkTopologyInformation& info) const {
+    size_t rack_id = info.rack_id() ? std::hash<int32_t>{}(*info.rack_id()) : 0;
+    size_t plane_id =
+        info.plane_id() ? std::hash<int32_t>{}(*info.plane_id()) : 0;
+    size_t remote_rak_capacity = info.remote_rack_capacity()
+        ? std::hash<int32_t>{}(*info.remote_rack_capacity())
+        : 0;
+    size_t spine_capacity = info.spine_capacity()
+        ? std::hash<int32_t>{}(*info.spine_capacity())
+        : 0;
+    size_t local_rack_capacity = info.local_rack_capacity()
+        ? std::hash<int32_t>{}(*info.local_rack_capacity())
+        : 0;
+    return folly::hash::hash_combine(
+        rack_id,
+        plane_id,
+        remote_rak_capacity,
+        spine_capacity,
+        local_rack_capacity);
+  }
+};
+
+template <>
+struct hash<facebook::fboss::NextHop> {
+  size_t operator()(const facebook::fboss::NextHop& nexthop) const {
+    return folly::hash::hash_combine(
+        nexthop.intfID(),
+        nexthop.addr(),
+        nexthop.weight(),
+        nexthop.labelForwardingAction(),
+        nexthop.disableTTLDecrement(),
+        nexthop.adjustedWeight(),
+        nexthop.topologyInfo());
+  }
+};
+
+template <>
+struct hash<facebook::fboss::ResolvedNextHop> {
+  size_t operator()(const facebook::fboss::ResolvedNextHop& nexthop) const {
+    return folly::hash::hash_combine(
+        nexthop.intfID(),
+        nexthop.addr(),
+        nexthop.weight(),
+        nexthop.labelForwardingAction(),
+        nexthop.disableTTLDecrement(),
+        nexthop.adjustedWeight(),
+        nexthop.topologyInfo());
+  }
+};
+
+} // namespace std

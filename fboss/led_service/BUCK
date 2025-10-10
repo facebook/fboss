@@ -30,7 +30,13 @@ cpp_library(
         "LedUtils.cpp",
     ],
     exported_deps = [
+        ":led-config",
+        "//fboss/agent:fboss-error",
         "//fboss/led_service/if:led_structs-cpp2-types",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
@@ -156,6 +162,7 @@ cpp_binary(
     headers = [],
     deps = [
         ":led_core",
+        ":led_utils",
         "//fb303:logging",
         "//fboss/platform/helpers:init",
         "//folly/logging:init",

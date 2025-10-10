@@ -15,7 +15,7 @@ LED tests help verify that the LEDs on the switch are working correctly. Our LED
       "defaultCommandLineArgs": {
         "mode": "PLATFORM_NAME"
       },
-      "ledControlledThroughService": true
+      "ledControlledThroughService": false
     }
     ```
 

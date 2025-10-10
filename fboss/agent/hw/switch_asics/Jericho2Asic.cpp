@@ -134,7 +134,6 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     // TODO - get the features working on Jericho2 ASIC
-    case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
@@ -230,6 +229,8 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
       return false;
   }
   return false;
@@ -245,6 +246,7 @@ std::set<cfg::StreamType> Jericho2Asic::getQueueStreamTypes(
     case cfg::PortType::RECYCLE_PORT:
     case cfg::PortType::EVENTOR_PORT:
     case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       return {cfg::StreamType::UNICAST};
     case cfg::PortType::FABRIC_PORT:
       return {cfg::StreamType::FABRIC_TX};
@@ -300,6 +302,7 @@ std::optional<uint64_t> Jericho2Asic::getDefaultReservedBytes(
     case cfg::PortType::FABRIC_PORT:
     case cfg::PortType::EVENTOR_PORT:
     case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
       return 0;
   }
   throw FbossError(

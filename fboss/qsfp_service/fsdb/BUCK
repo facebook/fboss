@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
@@ -19,6 +20,7 @@ cpp_library(
         "//fboss/lib/phy:phy-cpp2-reflection",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:port_state-cpp2-types",
         "//fboss/qsfp_service/if:state-cpp2-reflection",
         "//fboss/qsfp_service/if:state-cpp2-types",
         "//fboss/qsfp_service/if:stats-cpp2-reflection",
@@ -34,6 +36,7 @@ cpp_library(
     headers = [
         "QsfpFsdbSubscriber.h",
     ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
@@ -41,6 +44,7 @@ cpp_library(
         "//fboss/fsdb/client:fsdb_sub_manager",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service:transceiver-manager",
         "//fboss/thrift_cow/nodes:serializer",
         "//folly/logging:logging",

@@ -2924,5 +2924,15 @@
   "switchAsicTemp": {
     "vendorId": "0x15b3",
     "deviceId": "0xcf80"
-  }
+  },
+  "powerConsumptionConfigs": [
+    {
+      "name": "PSU1",
+      "powerSensorName": "PSU1_L_PIN"
+    },
+    {
+      "name": "PSU2",
+      "powerSensorName": "PSU2_R_PIN"
+    }
+  ]
 }

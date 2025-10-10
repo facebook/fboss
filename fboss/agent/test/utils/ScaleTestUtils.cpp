@@ -44,8 +44,6 @@ uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics) {
   }
   return maxUcmpMembers.value();
 }
-constexpr auto oddUcmpWeight = 3;
-constexpr auto evenUcmpWeight = 2;
 
 // Generate all possible combinations of k selections of the input
 // vector.
@@ -121,8 +119,8 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
           currCombination.begin(),
           currCombination.begin() + remainingGrp);
       if (remainingMem % i > 0) {
-        allCombinations.push_back(std::vector<PortDescriptor>(
-            inputs.begin(), inputs.begin() + (remainingMem % i)));
+        allCombinations.emplace_back(
+            inputs.begin(), inputs.begin() + (remainingMem % i));
       }
       membersGenerated += remainingMem;
       break;
@@ -197,11 +195,13 @@ std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(
 // Currently used for TH4
 void assignUcmpWeights(
     const std::vector<std::vector<PortDescriptor>>& inputs,
-    std::vector<std::vector<NextHopWeight>>& weightsOutput) {
+    std::vector<std::vector<NextHopWeight>>& weightsOutput,
+    int oddWeight,
+    int evenWeight) {
   for (int i = 0; i < inputs.size(); i++) {
     std::vector<NextHopWeight> temp;
     for (int j = 0; j < inputs[i].size(); j++) {
-      int num = (j % 2) ? oddUcmpWeight : evenUcmpWeight;
+      int num = (j % 2) ? oddWeight : evenWeight;
       temp.push_back(num);
     }
     weightsOutput.push_back(std::move(temp));

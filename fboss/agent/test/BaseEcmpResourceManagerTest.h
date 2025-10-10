@@ -100,11 +100,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   std::set<NextHopGroupId> getNhopGroupIds() const;
   std::optional<EcmpResourceManager::NextHopGroupId> getNhopId(
       const RouteNextHopSet& nhops) const;
-  virtual std::shared_ptr<EcmpResourceManager> makeResourceMgr() const {
-    static constexpr auto kEcmpGroupHwLimit = 100;
-    return std::make_shared<EcmpResourceManager>(
-        kEcmpGroupHwLimit, std::optional<cfg::SwitchingMode>());
-  };
+  virtual std::shared_ptr<EcmpResourceManager> makeResourceMgr() const;
   std::shared_ptr<EcmpResourceManager> makeResourceMgrWithEcmpLimit(
       int ecmpGroupLimit) const;
   virtual int numStartRoutes() const {
@@ -130,6 +126,10 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops) {
     return addOrUpdateRoute(prefix6, nhops);
+  }
+  std::vector<StateDelta> addRoutes(
+      const std::map<RoutePrefixV6, RouteNextHopSet>& route2Nhops) {
+    return addOrUpdateRoutes(route2Nhops);
   }
   std::vector<StateDelta> updateRoute(
       const RoutePrefixV6& prefix6,
@@ -162,7 +162,13 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
  private:
   std::vector<StateDelta> addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
-      const RouteNextHopSet& nhops);
+      const RouteNextHopSet& nhops) {
+    std::map<RoutePrefixV6, RouteNextHopSet> prefix2Nhops;
+    prefix2Nhops.insert({prefix6, nhops});
+    return addOrUpdateRoutes(prefix2Nhops);
+  }
+  std::vector<StateDelta> addOrUpdateRoutes(
+      const std::map<RoutePrefixV6, RouteNextHopSet>& prefix2Nhops);
   virtual void setupFlags() const;
 
  public:

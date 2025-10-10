@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/FbossError.h"
@@ -115,7 +116,7 @@ SaiSystemPortManager::attributesFromSwSystemPort(
       qosTcToQueueMap,
       std::nullopt /* shelPktDstEnable */,
       tcRateLimitExclude,
-      std::nullopt /* pushQueueEnable */};
+      swSystemPort->getPushQueueEnabled()};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
@@ -310,6 +311,45 @@ void SaiSystemPortManager::removeSystemPort(
   XLOG(DBG2) << "removed system port: " << swId;
 }
 
+// Additional processing needed when system ports associated with fabric ports
+// for fabric link monitoring are added
+SystemPortSaiId SaiSystemPortManager::addFabricLinkMonitoringSystemPort(
+    const std::shared_ptr<SystemPort>& swSystemPort) {
+  auto sysPortSaiId = addSystemPort(swSystemPort);
+  CHECK(swSystemPort->getPortType() == cfg::PortType::FABRIC_PORT)
+      << "Fabric link monitoring system ports should have port type as FABRIC!";
+  CHECK(fabricLinkMonitoringSystemPortOffset_.has_value())
+      << "Fabric link monitoring system port offset is not configured!";
+  auto portId = getPortIdFromFabricLinkMonSystemPortID(
+      swSystemPort->getID(), *fabricLinkMonitoringSystemPortOffset_);
+  managerTable_->portManager().setFabricLinkMonitoringSystemPortId(
+      portId, sysPortSaiId);
+  return sysPortSaiId;
+}
+
+// No special handling needed for fabric link monitoring sys ports
+void SaiSystemPortManager::changeFabricLinkMonitoringSystemPort(
+    const std::shared_ptr<SystemPort>& oldSystemPort,
+    const std::shared_ptr<SystemPort>& newSystemPort) {
+  CHECK(newSystemPort->getPortType() == cfg::PortType::FABRIC_PORT)
+      << "Fabric link monitoring system ports should have port type as FABRIC!";
+  changeSystemPort(oldSystemPort, newSystemPort);
+}
+
+// Additional processing needed when system ports associated with fabric ports
+// for fabric link monitoring are removed
+void SaiSystemPortManager::removeFabricLinkMonitoringSystemPort(
+    const std::shared_ptr<SystemPort>& swSystemPort) {
+  CHECK(swSystemPort->getPortType() == cfg::PortType::FABRIC_PORT)
+      << "Fabric link monitoring system ports should have port type as FABRIC!";
+  CHECK(fabricLinkMonitoringSystemPortOffset_.has_value())
+      << "Fabric link monitoring system port offset is not configured!";
+  auto portId = getPortIdFromFabricLinkMonSystemPortID(
+      swSystemPort->getID(), *fabricLinkMonitoringSystemPortOffset_);
+  managerTable_->portManager().resetFabricLinkMonitoringSystemPortId(portId);
+  removeSystemPort(swSystemPort);
+}
+
 void SaiSystemPortManager::resetQueues() {
   for (auto& idAndHandle : handles_) {
     idAndHandle.second->resetQueues();
@@ -369,7 +409,9 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
       cfg::PortType::MANAGEMENT_PORT,
-      cfg::PortType::EVENTOR_PORT};
+      cfg::PortType::EVENTOR_PORT,
+      cfg::PortType::HYPER_PORT,
+      cfg::PortType::HYPER_PORT_MEMBER};
   for (const auto& portMap : std::as_const(*ports)) {
     for (const auto& port : std::as_const(*portMap.second)) {
       if (kCreateSysPortsFor.find(port.second->getPortType()) ==

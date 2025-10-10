@@ -37,16 +37,18 @@ EcmpResourceManagerConfig::EcmpResourceManagerConfig(
 bool EcmpResourceManagerConfig::ecmpLimitReached(
     uint32_t primaryEcmpGroups,
     uint32_t ecmpGroupMembers) const {
-  CHECK_LE(primaryEcmpGroups, maxHwEcmpGroups_);
-  CHECK(!maxHwEcmpMembers_ || ecmpGroupMembers <= *maxHwEcmpMembers_);
-  return primaryEcmpGroups == maxHwEcmpGroups_ ||
-      (maxHwEcmpMembers_.has_value() && ecmpGroupMembers == *maxHwEcmpMembers_);
+  DCHECK_LE(primaryEcmpGroups, maxHwEcmpGroups_);
+  DCHECK(!maxHwEcmpMembers_ || ecmpGroupMembers <= *maxHwEcmpMembers_);
+  return primaryEcmpGroups >= maxHwEcmpGroups_ ||
+      (maxHwEcmpMembers_.has_value() && ecmpGroupMembers >= *maxHwEcmpMembers_);
 }
 
 uint32_t EcmpResourceManagerConfig::computeMaxHwEcmpGroups(
     uint32_t maxHwEcmpGroups) {
   CHECK_GT(
       maxHwEcmpGroups, FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  // We keep a buffer of 2 for transient increment in ECMP groups when
+  // pushing updates down to HW
   return maxHwEcmpGroups - FLAGS_ecmp_resource_manager_make_before_break_buffer;
 }
 

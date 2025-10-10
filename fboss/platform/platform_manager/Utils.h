@@ -39,6 +39,16 @@ class Utils {
 
   virtual int getGpioLineValue(const std::string& charDevPath, int lineIndex)
       const;
+
+  // Compute the expression and return the result as a string.
+  std::string computeHexExpression(
+      const std::string& expression,
+      int port,
+      int led,
+      int startPort = 1);
+
+  // Replace hex literals with decimal values in expression string
+  std::string convertHexLiteralsToDecimal(const std::string& expression);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

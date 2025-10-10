@@ -46,7 +46,8 @@ void MacTable::updateEntry(
     folly::MacAddress mac,
     PortDescriptor portDescr,
     std::optional<cfg::AclLookupClass> classID,
-    std::optional<MacEntryType> type) {
+    std::optional<MacEntryType> type,
+    std::optional<bool> isConfigured) {
   CHECK(!this->isPublished());
   auto entry = getMacIf(mac);
   if (!entry) {
@@ -60,6 +61,7 @@ void MacTable::updateEntry(
   if (type) {
     entry->setType(type.value());
   }
+  entry->setConfigured(isConfigured);
   updateNode(entry);
 }
 

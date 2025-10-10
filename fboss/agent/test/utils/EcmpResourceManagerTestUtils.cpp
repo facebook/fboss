@@ -10,8 +10,10 @@
 
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -26,6 +28,25 @@ const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
     const std::shared_ptr<SwitchState>& newState) {
   return newState->getFibs()->getNode(RouterID(0))->getFibV4();
 }
+
+std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupId>
+getNhops2IdSansMergedOnlyGroups(const EcmpResourceManager& resourceMgr) {
+  const auto& nhops2Id = resourceMgr.getNhopsToId();
+  auto nonMergedNhops2Id = nhops2Id;
+  std::for_each(
+      nhops2Id.begin(),
+      nhops2Id.end(),
+      [&resourceMgr, &nonMergedNhops2Id](const auto& nhopsAndId) {
+        auto grpInfo = resourceMgr.getGroupInfo(nhopsAndId.second);
+        ASSERT_NE(grpInfo, nullptr);
+        if (grpInfo->getState() ==
+            NextHopGroupInfo::NextHopGroupState::MERGED_NHOPS_ONLY) {
+          nonMergedNhops2Id.erase(nhopsAndId.first);
+        }
+      });
+  return nonMergedNhops2Id;
+}
+
 } // namespace
 
 std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
@@ -188,7 +209,7 @@ void assertAllGidsClaimed(
   auto allMergedAndUnmergedGids = resourceMgr.getMergedGids();
   allMergedAndUnmergedGids.insert(
       allUnmergedGids.begin(), allUnmergedGids.end());
-  auto nhops2Id = resourceMgr.getNhopsToId();
+  auto nhops2Id = getNhops2IdSansMergedOnlyGroups(resourceMgr);
   EcmpResourceManager::NextHopGroupIds allGids;
   std::for_each(
       nhops2Id.begin(), nhops2Id.end(), [&allGids](const auto& nhopsAndId) {
@@ -203,7 +224,7 @@ void assertAllGidsClaimed(
 void assertFibAndGroupsMatch(
     const EcmpResourceManager& resourceMgr,
     const std::shared_ptr<SwitchState>& state) {
-  auto nhops2Id = resourceMgr.getNhopsToId();
+  auto nhops2Id = getNhops2IdSansMergedOnlyGroups(resourceMgr);
   auto nhopsToMergedGroups = getNhopsToMergedGroups(resourceMgr);
   std::map<EcmpResourceManager::NextHopGroupId, int> unmergedGroupToRouteRef;
   std::map<EcmpResourceManager::NextHopGroupIds, int> mergedGroupToRouteRef;
@@ -318,7 +339,7 @@ void assertNumRoutesWithNhopOverrides(
 std::set<RouteV6::Prefix> getPrefixesForGroups(
     const EcmpResourceManager& resourceMgr,
     const EcmpResourceManager::NextHopGroupIds& grpIds) {
-  auto grpId2Prefixes = resourceMgr.getGroupIdToPrefix();
+  auto grpId2Prefixes = resourceMgr.getGidToPrefixes();
   std::set<RouteV6::Prefix> prefixes;
   for (auto grpId : grpIds) {
     for (const auto& [_, pfx] : grpId2Prefixes.at(grpId)) {
@@ -398,7 +419,7 @@ void assertDeltasForOverflow(
   auto idx = 1;
   for (const auto& delta : deltas) {
     XLOG(DBG2) << " Processing delta #" << idx++;
-    forEachChangedRoute<folly::IPAddressV6>(
+    processFibsDeltaInHwSwitchOrder(
         delta,
         [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
           if (!oldRoute->isResolved() && !newRoute->isResolved()) {
@@ -432,7 +453,49 @@ void assertDeltasForOverflow(
         });
     EXPECT_LE(
         primaryEcmpTypeGroups2RefCnt.size(),
-        resourceManager.getMaxPrimaryEcmpGroups());
+        resourceManager.getMaxPrimaryEcmpGroups() +
+            FLAGS_ecmp_resource_manager_make_before_break_buffer);
   }
+  EXPECT_LE(
+      primaryEcmpTypeGroups2RefCnt.size(),
+      resourceManager.getMaxPrimaryEcmpGroups());
+}
+
+void assertRollbacks(
+    EcmpResourceManager& newEcmpResourceMgr,
+    const std::shared_ptr<SwitchState>& startState,
+    const std::shared_ptr<SwitchState>& endState) {
+  auto applyDelta = [&newEcmpResourceMgr](
+                        const StateDelta& delta, bool failUpdate = false) {
+    auto deltas = newEcmpResourceMgr.consolidate(delta);
+    facebook::fboss::assertDeltasForOverflow(newEcmpResourceMgr, deltas);
+    assertResourceMgrCorrectness(newEcmpResourceMgr, deltas.back().newState());
+    if (failUpdate) {
+      newEcmpResourceMgr.updateFailed(delta.oldState());
+      assertResourceMgrCorrectness(newEcmpResourceMgr, delta.oldState());
+    } else {
+      newEcmpResourceMgr.updateDone();
+    }
+    return deltas;
+  };
+  auto emptyState = std::make_shared<SwitchState>();
+  addSwitchInfo(emptyState);
+  emptyState = setupMinAlpmRouteState(emptyState);
+
+  // Get to the startState - essentially the state post ::SetUp
+  XLOG(DBG2) << " Updating to start";
+  applyDelta(StateDelta(emptyState, startState));
+  // Get to the current test state, assert no overflow and mgr correctness
+  // Now mark the latest update as failed and assert that resourceMgr reverts
+  // to setup state
+  XLOG(DBG2) << " Updating to end state, failing update";
+  applyDelta(StateDelta(startState, endState), true /*failUpdate*/);
+  // Now once again goto current state, and then revert back to
+  // startState. This time assert that deltas for this revert did not cause a
+  // overflow
+  XLOG(DBG2) << " Updating to end state";
+  auto deltas = applyDelta(StateDelta(startState, endState));
+  XLOG(DBG2) << " Rolling back to start state";
+  applyDelta(StateDelta(deltas.back().newState(), startState));
 }
 } // namespace facebook::fboss

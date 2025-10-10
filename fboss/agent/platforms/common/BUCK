@@ -7,8 +7,10 @@ cpp_library(
     srcs = [
         "MultiPimPlatformMapping.cpp",
         "PlatformMapping.cpp",
+        "facebook/PlatformMapping.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
@@ -18,9 +20,6 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 
@@ -60,6 +59,7 @@ cpp_library(
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_utils",
         "//fboss/agent/platforms/common/wedge400c:wedge400c_platform_mapping",
         "//fboss/agent/platforms/common/wedge800ba:wedge800ba_platform_mapping",
+        "//fboss/agent/platforms/common/wedge800ca:wedge800ca_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
         "//fboss/agent/platforms/common/yangra:yangra_platform_mapping",
         "//fboss/lib/platforms:platform_mode",

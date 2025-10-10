@@ -1392,16 +1392,16 @@ void SwSwitch::init(
   auto origInitialState = initialState;
   emptyState->publish();
   auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
 
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
   notifyStateModifierUpdateDone();
@@ -1476,22 +1476,21 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   auto origInitialState = initialState;
   auto deltas = reconstructStateModifierFromSwitchState(initialState);
-  const auto initialStateDelta =
-      StateDelta(emptyState, deltas.back().newState());
   // Notify resource accountant of the initial state.
-  if (!resourceAccountant_->isValidUpdate(initialStateDelta)) {
-    stats()->resourceAccountantRejectedUpdates();
-    throw FbossError(
-        "Not enough resource to apply initialState. ",
-        "This should not happen given the state was previously applied, ",
-        "but possible if calculation or threshold changes across warmboot.");
+  for (const auto& delta : deltas) {
+    if (!resourceAccountant_->isValidUpdate(delta)) {
+      stats()->resourceAccountantRejectedUpdates();
+      throw FbossError(
+          "Not enough resource to apply initialState. ",
+          "This should not happen given the state was previously applied, ",
+          "but possible if calculation or threshold changes across warmboot.");
+    }
   }
   // Do not send cold boot state to hwswitch. This is to avoid
   // deleting any cold boot state entries that hwswitch has learned from sdk
   if (bootType_ == BootType::WARM_BOOT) {
     try {
-      getHwSwitchHandler()->stateChanged(
-          initialStateDelta, false, hwWriteBehavior);
+      getHwSwitchHandler()->stateChanged(deltas, false, hwWriteBehavior);
     } catch (const std::exception& ex) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }
@@ -1520,42 +1519,34 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   postInit();
 }
 
-void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
-  setSwitchRunState(SwitchRunState::CONFIGURED);
-
-  if (flags_ & SwitchFlags::ENABLE_TUN) {
-    // skip if mock tun manager was set by tests or during monolithic agent
+void SwSwitch::initialConfigApplied(
+    const std::chrono::steady_clock::time_point& startTime) {
+  if (FLAGS_cleanup_probed_kernel_data) {
+    // New behavior: perform blocking initial sync (that may cleanup) before
+    // transitioning to CONFIGURED state
+    createAndProbeTunManager();
+    initializeTunManager(/*useBlocking=*/true);
+    setSwitchRunState(SwitchRunState::CONFIGURED);
+  } else {
+    // Legacy behavior: Transition to configured state before Tunnel manager
     // initialization.
-    // this is created only for split software agent after config is applied
-    if (!tunMgr_) {
-      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
-      tunMgr_->probe();
-    }
-  }
-
-  if (tunMgr_) {
-    // We check for syncing tun interface only on state changes after the
-    // initial configuration is applied. This is really a hack to get around
-    // 2 issues
-    // a) On warm boot the initial state constructed from warm boot cache
-    // does not know of interface addresses. This means if we sync tun
-    // interface on applying initial boot up state we would blow away tunnel
-    // interferace addresses, causing connectivity disruption. Once t4155406
-    // is fixed we should be able to remove this check. b) Even if we were
-    // willing to live with the above, the TunManager code does not properly
-    // track deleting of interface addresses, viz. when we delete a
-    // interface's primary address, secondary addresses get blown away as
-    // well. TunManager does not track this and tries to delete the
-    // secondaries as well leading to errors, t4746261 is tracking this.
-    tunMgr_->startObservingUpdates();
-
-    // Perform initial sync of interfaces
-    tunMgr_->forceInitialSync();
+    setSwitchRunState(SwitchRunState::CONFIGURED);
+    createAndProbeTunManager();
+    initializeTunManager(/*useBlocking=*/false);
   }
 
   if (lldpManager_) {
     lldpManager_->start();
   }
+
+  // Send neighbor solicitation for configured interfaces after
+  // initialConfigApplied existing interfaces with desiredPeerAddressIPv6
+  // need to send neighbor solicitation. By this time we should have all
+  // interface configured, and this also handle warmboot case, when agent
+  // do not get port UP event from SDK
+  XLOG(DBG4)
+      << "SwSwitch::initialConfigApplied - Checking for existing interfaces that need neighbor solicitation after warm boot";
+  sendNeighborSolicitationForConfiguredInterfaces("warm boot");
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
     stats()->switchConfiguredMs(duration_cast<std::chrono::milliseconds>(
@@ -2730,13 +2721,13 @@ void SwSwitch::validateSwitchReachabilityInformation(
       inactivePortsWithSwitchReachability) {
     // Increment the number of switch reachability inconsistency seen!
     stats()->switchReachabilityInconsistencyDetected(switchIndex);
-    XLOG(WARN) << "Switch reachability inconsistency seen on switch"
+    XLOG(WARN) << "Switch reachability inconsistency seen on switch index"
                << switchIndex << ", active ports w/o reachability: "
                << activePortsWithoutSwitchReachability
                << ", inactive ports w/ reachability: "
                << inactivePortsWithSwitchReachability;
   } else {
-    XLOG(DBG2) << "No switch reachability inconsistency seen for switch"
+    XLOG(DBG2) << "No switch reachability inconsistency seen for switch index"
                << switchIndex;
   }
 }
@@ -2899,6 +2890,47 @@ void SwSwitch::postInit() {
 void SwSwitch::initLldpManager() {
   if (flags_ & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
+  }
+}
+
+void SwSwitch::createAndProbeTunManager() {
+  if (flags_ & SwitchFlags::ENABLE_TUN) {
+    // skip if mock tun manager was set by tests or during monolithic agent
+    // initialization.
+    // this is created only for split software agent after config is applied
+    if (!tunMgr_) {
+      tunMgr_ = std::make_unique<TunManager>(this, &packetTxEventBase_);
+      tunMgr_->probe();
+    }
+  }
+}
+
+void SwSwitch::initializeTunManager(bool useBlocking) {
+  if (tunMgr_) {
+    // We check for syncing tun interface only on state changes after the
+    // initial configuration is applied. This is really a hack to get around
+    // 2 issues
+    // a) On warm boot the initial state constructed from warm boot cache
+    // does not know of interface addresses. This means if we sync tun
+    // interface on applying initial boot up state we would blow away tunnel
+    // interferace addresses, causing connectivity disruption. Once t4155406
+    // is fixed we should be able to remove this check. b) Even if we were
+    // willing to live with the above, the TunManager code does not properly
+    // track deleting of interface addresses, viz. when we delete a
+    // interface's primary address, secondary addresses get blown away as
+    // well. TunManager does not track this and tries to delete the
+    // secondaries as well leading to errors, t4746261 is tracking this.
+
+    if (useBlocking) {
+      // New behavior: blocking sync first, then start observing
+      tunMgr_->forceInitialSyncBlocking();
+      tunMgr_->startObservingUpdates();
+    } else {
+      // Legacy behavior: start observing first, then async sync
+      tunMgr_->startObservingUpdates();
+      // Perform initial sync of interfaces
+      tunMgr_->forceInitialSync();
+    }
   }
 }
 
@@ -4195,4 +4227,137 @@ template std::optional<VlanID> SwSwitch::getVlanIDForTx(
 template std::optional<VlanID> SwSwitch::getVlanIDForTx(
     const std::shared_ptr<Interface>& vlanOrIntf) const;
 
+void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
+    const std::string& reason,
+    const std::optional<folly::IPAddressV6>& targetIP) {
+  // Check if NDP static neighbor is enabled
+  if (!FLAGS_ndp_static_neighbor) {
+    return;
+  }
+
+  auto currentState = getState();
+  if (!currentState) {
+    XLOG(WARN)
+        << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - No current state available";
+    return;
+  }
+
+  auto interfaces = currentState->getInterfaces();
+  for (const auto& [_, intfMap] : std::as_const(*interfaces)) {
+    for (const auto& [_, intf] : std::as_const(*intfMap)) {
+      // Check if this interface has desiredPeerAddressIPv6 configured
+      // and RA enabled
+      if (intf->getDesiredPeerAddressIPv6().has_value()) {
+        auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+        // Use folly's built-in network parsing for CIDR notation
+        auto cidrNetwork = folly::IPAddress::createNetwork(
+            *desiredPeerAddressString, -1, false);
+        auto desiredPeerAddressIPv6 = cidrNetwork.first.asV6();
+
+        // If targetIP is specified, only process that specific IP
+        if (targetIP.has_value() && desiredPeerAddressIPv6 != targetIP) {
+          continue;
+        }
+
+        // Check if desiredPeer is reachable from this interface
+        if (!intf->canReachAddress(desiredPeerAddressIPv6)) {
+          continue;
+        }
+
+        // Check if interface is operationally UP
+        bool isInterfaceOperationallyUp = false;
+
+        switch (intf->getType()) {
+          case cfg::InterfaceType::PORT: {
+            break;
+          }
+          case cfg::InterfaceType::VLAN: {
+            if (auto vlanID = intf->getVlanID()) {
+              // Check if any port is a member of this VLAN and is UP
+              auto vlanMap = currentState->getVlans();
+              if (vlanMap) {
+                auto vlan = vlanMap->getNodeIf(vlanID);
+                if (vlan) {
+                  for (auto memberPort : vlan->getPorts()) {
+                    auto port =
+                        currentState->getPorts()->getNodeIf(memberPort.first);
+                    if (port && port->isPortUp()) {
+                      isInterfaceOperationallyUp = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            break;
+          }
+          case cfg::InterfaceType::SYSTEM_PORT: {
+            if (auto sysPortID = intf->getSystemPortID()) {
+              if (sysPortID.has_value()) {
+                auto physPortID = getPortID(sysPortID.value(), getState());
+                auto port = currentState->getPorts()->getNodeIf(physPortID);
+                if (port && port->isPortUp()) {
+                  isInterfaceOperationallyUp = true;
+                }
+              }
+            }
+            break;
+          }
+        }
+
+        if (isInterfaceOperationallyUp) {
+          XLOG(DBG4)
+              << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - Sending neighbor solicitation for interface "
+              << intf->getID() << " (" << intf->getName()
+              << ") with desiredPeerAddressIPv6 "
+              << desiredPeerAddressIPv6.str() << " - reason: " << reason;
+
+          try {
+            sendNdpSolicitationHelper(
+                intf, currentState, desiredPeerAddressIPv6);
+          } catch (const std::exception& e) {
+            XLOG(ERR)
+                << "SwSwitch::sendNeighborSolicitationForConfiguredInterfaces - Failed to send neighbor solicitation for interface "
+                << intf->getID() << " - reason: " << reason << ": " << e.what();
+            folly::rethrow_current_exception();
+          }
+        }
+      }
+    }
+  }
+}
+
+bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
+  auto switchState = getState();
+  auto* intf = switchState->getInterfaces()->getNode(intfId).get();
+  if (intf->getDesiredPeerAddressIPv6().has_value()) {
+    auto desiredPeerAddressString = intf->getDesiredPeerAddressIPv6();
+    // check if this is correct ipv6 address
+    // Check if desiredPeerAddressString is a valid IPv6 address or CIDR
+    auto cidrNetwork =
+        folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+    if (!cidrNetwork.first.isV6()) {
+      XLOG(ERR) << "Desired peer address is not a valid IPv6 address: "
+                << *desiredPeerAddressString;
+      return false;
+    }
+    // Check if interface has any operational ports
+    auto portIds = getPortsForInterface(intfId, switchState);
+    bool hasOperationalPort = false;
+    for (auto portId : portIds) {
+      auto port = switchState->getPorts()->getNodeIf(portId);
+      if (port && port->isUp()) {
+        hasOperationalPort = true;
+        break;
+      }
+    }
+    if (!hasOperationalPort) {
+      XLOG(DBG4) << "Interface " << intfId
+                 << " has no operational ports, skipping desired peer check";
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
 } // namespace facebook::fboss

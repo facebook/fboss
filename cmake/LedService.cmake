@@ -30,6 +30,7 @@ add_library(led_utils
 )
 
 target_link_libraries(led_utils
+  led_config
   led_structs_types_cpp2
 )
 

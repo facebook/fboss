@@ -11,6 +11,7 @@ struct AggregatePortEntry {
   4: i32 configuredMembers;
   5: i32 minMembers;
   6: list<AggregateMemberPortEntry> members;
+  7: optional i32 minMembersToUp;
 }
 
 struct AggregateMemberPortEntry {

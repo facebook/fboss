@@ -64,6 +64,13 @@ void HwTest::SetUp() {
   ensemble_ = std::make_unique<HwQsfpEnsemble>();
   ensemble_->init();
 
+  if (FLAGS_port_manager_mode) {
+    // In PortManager mode, we need ports to be enabled to bring ports /
+    // transceivers to programmed state.
+    ensemble_->getQsfpServiceHandler()->setOverrideAgentPortStatusForTesting(
+        false /* up */, true /* enabled */);
+  }
+
   // Allow back to back refresh and customizations in test
   gflags::SetCommandLineOptionWithMode(
       "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
@@ -184,17 +191,27 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
   // at least can secure TRANSCEIVER_PROGRAMMED after `numRetries` times.
   auto refreshStateMachinesTillTcvrProgrammed = [this, &expectedIds]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->refreshStateMachines();
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
+    std::vector<TransceiverID> notProgrammedTcvrs;
+    bool retval{true};
+
     for (auto id : expectedIds) {
       auto curState = wedgeMgr->getCurrentState(id);
       // Statemachine can support transceiver programming (iphy/xphy/tcvr) when
       // `setupOverrideTcvrToPortAndProfile_` is true.
       if (setupOverrideTcvrToPortAndProfile_ &&
           curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
-        return false;
+        notProgrammedTcvrs.push_back(id);
+        retval = false;
       }
     }
-    return true;
+
+    if (!notProgrammedTcvrs.empty()) {
+      XLOG(ERR) << "Transceivers that should be programmed but are not: "
+                << folly::join(",", notProgrammedTcvrs);
+    }
+
+    return retval;
   };
 
   // Retry until all state machines reach TRANSCEIVER_PROGRAMMED

@@ -13,7 +13,13 @@ class MinipackBaseSystemContainer : public MultiPimPlatformSystemContainer {
   explicit MinipackBaseSystemContainer(std::unique_ptr<FpgaDevice> fpgaDevice)
       : MultiPimPlatformSystemContainer(std::move(fpgaDevice)) {}
 
-  virtual ~MinipackBaseSystemContainer() {}
+  ~MinipackBaseSystemContainer() override = default;
+  MinipackBaseSystemContainer(const MinipackBaseSystemContainer&) = delete;
+  MinipackBaseSystemContainer& operator=(const MinipackBaseSystemContainer&) =
+      delete;
+  MinipackBaseSystemContainer(MinipackBaseSystemContainer&&) = delete;
+  MinipackBaseSystemContainer& operator=(MinipackBaseSystemContainer&&) =
+      delete;
   const static int kPimStartNum = 2;
   const static int kNumberPim = 8;
   /*

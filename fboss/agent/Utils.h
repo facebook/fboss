@@ -264,9 +264,17 @@ SystemPortID getSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId);
 
+SystemPortID getFabricLinkMonitoringSystemPortID(
+    const PortID& portId,
+    const std::shared_ptr<SwitchSettings>& switchSettings);
+
 SystemPortID getInbandSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId);
+
+PortID getPortIdFromFabricLinkMonSystemPortID(
+    const SystemPortID& systemPortId,
+    const int32_t fabricLinkMonitoringSystemPortOffset);
 
 SystemPortID getInbandSystemPortID(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,

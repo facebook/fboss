@@ -56,6 +56,7 @@ cpp_library(
         "AgentMirroringScaleTests.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
+        "AgentNSFScaleTests.cpp",
         "AgentNeighborTests.cpp",
         "AgentNetworkAIQosSchedulerTests.cpp",
         "AgentNetworkAIQosTests.cpp",
@@ -105,6 +106,7 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
         "//fboss/agent:agent_dir_util",
@@ -186,6 +188,7 @@ cpp_library(
         "//fboss/agent/test/utils:queue_test_utils",
         "//fboss/agent/test/utils:route_test_utils",
         "//fboss/agent/test/utils:scale_test_utils",
+        "//fboss/agent/test/utils:system_scale_test_utils",
         "//fboss/agent/test/utils:traffic_policy_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
         "//fboss/agent/test/utils:trunk_test_utils",
@@ -208,7 +211,6 @@ cpp_library(
         "//thrift/lib/cpp2/test:matcher",
     ],
     exported_external_deps = [
-        "re2",
         ("boost", None, "boost_container"),
         ("boost", None, "boost_range"),
     ],
@@ -433,7 +435,7 @@ _sai_agent_multi_node_test_prefix = "sai_agent_multi_node"
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
-            "//fboss/agent:setup_thrift_prod",
+            "//fboss/agent:setup_thrift_test",
         ] + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
     for sai_impl in SAI_BRCM_DNX_IMPLS

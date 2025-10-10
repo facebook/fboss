@@ -460,9 +460,6 @@ std::vector<std::string> getBgpDrainedInterafces(const HostInfo& hostInfo);
 std::string getBgpSwitchDrainState(const HostInfo& hostInfo);
 
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber);
-bool isFbossFeatureEnabled(
-    const std::string& hostname,
-    const std::string& feature);
 std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
     const HostInfo& hostInfo,
     const std::vector<std::string>& interfaces);

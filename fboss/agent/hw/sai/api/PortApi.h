@@ -75,7 +75,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_QUEUE_LIST,
         std::vector<sai_object_id_t>,
         SaiObjectIdListDefault>;
-    using FecMode = SaiAttribute<EnumType, SAI_PORT_ATTR_FEC_MODE, sai_int32_t>;
+    using FecMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FEC_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
     using OperStatus =
         SaiAttribute<EnumType, SAI_PORT_ATTR_OPER_STATUS, sai_int32_t>;
     using InternalLoopbackMode = SaiAttribute<
@@ -348,8 +352,10 @@ struct SaiPortTraits {
     struct AttributeRxLaneSquelchEnable {
       std::optional<sai_attr_id_t> operator()();
     };
-    using RxLaneSquelchEnable =
-        SaiExtensionAttribute<bool, AttributeRxLaneSquelchEnable>;
+    using RxLaneSquelchEnable = SaiExtensionAttribute<
+        bool,
+        AttributeRxLaneSquelchEnable,
+        SaiBoolDefaultFalse>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     using PfcTcDldInterval = SaiAttribute<
         EnumType,
@@ -476,6 +482,13 @@ struct SaiPortTraits {
     };
     using AmIdles =
         SaiExtensionAttribute<bool, AttributeAmIdles, SaiBoolDefaultFalse>;
+    struct AttributeResetQueueCreditBalance {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ResetQueueCreditBalance = SaiExtensionAttribute<
+        bool,
+        AttributeResetQueueCreditBalance,
+        SaiBoolDefaultFalse>;
     struct AttributeFabricSystemPort {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -510,7 +523,7 @@ struct SaiPortTraits {
     using HyperPortMemberList = SaiExtensionAttribute<
         std::vector<sai_object_id_t>,
         AttributeHyperPortMemberList,
-        SaiBoolDefaultFalse>;
+        SaiObjectIdListDefault>;
   };
   using AdapterKey = PortSaiId;
 
@@ -630,7 +643,9 @@ struct SaiPortTraits {
       std::optional<Attributes::FecErrorDetectEnable>,
       std::optional<Attributes::AmIdles>,
       std::optional<Attributes::FabricSystemPort>,
-      std::optional<Attributes::StaticModuleId>>;
+      std::optional<Attributes::StaticModuleId>,
+      std::optional<Attributes::IsHyperPortMember>,
+      std::optional<Attributes::HyperPortMemberList>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -795,6 +810,7 @@ SAI_ATTRIBUTE_NAME(Port, CondEntropyRehashSeed)
 SAI_ATTRIBUTE_NAME(Port, ShelEnable)
 SAI_ATTRIBUTE_NAME(Port, FecErrorDetectEnable)
 SAI_ATTRIBUTE_NAME(Port, AmIdles)
+SAI_ATTRIBUTE_NAME(Port, ResetQueueCreditBalance)
 SAI_ATTRIBUTE_NAME(Port, FabricSystemPort)
 SAI_ATTRIBUTE_NAME(Port, StaticModuleId)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)

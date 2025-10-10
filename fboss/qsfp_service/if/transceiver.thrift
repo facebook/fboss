@@ -229,6 +229,8 @@ enum MediaInterfaceCode {
   DR1_200G = 24,
   FR4_LPO_2x400G = 25,
   ZR_800G = 26,
+  DR2_400G = 27,
+  DR1_100G = 28,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -287,7 +289,9 @@ enum SMFMediaInterfaceCode {
   FR4_400G = 0x1D,
   LR4_10_400G = 0x1E,
   DR1_200G = 0x73,
+  DR2_400G = 0x75,
   DR4_800G = 0x77,
+  DR1_100G = 0x14,
   FR8_800G = 0xC1,
   ZR_OIF_ZRA_800G = 0x6C,
   ZR_OROADM_FLEXO_8E_DPO_800G = 0x68,
@@ -363,6 +367,19 @@ enum CmisLaneState {
   TX_ON = 0x5,
   TX_OFF = 0x6,
   DATAPATH_INITIALIZED = 0x7,
+}
+
+// Supported frequency grids for tunable optics as per the CMIS spec
+enum FrequencyGrid {
+  LASER_3P125GHZ = 0,
+  LASER_6P25GHZ = 1,
+  LASER_12P5GHZ = 2,
+  LASER_25GHZ = 3,
+  LASER_33GHZ = 4,
+  LASER_50GHZ = 5,
+  LASER_75GHZ = 6,
+  LASER_100GHZ = 7,
+  LASER_150GHZ = 8,
 }
 
 struct FirmwareStatus {

@@ -10,8 +10,8 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
+
 #include "fboss/platform/helpers/InitCli.h"
-#include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/platform/showtech/Utils.h"
 #include "fboss/platform/showtech/gen-cpp2/showtech_config_types.h"
 
@@ -25,15 +25,20 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
     DETAIL_FUNCTIONS = {
         {"host", [](Utils& util) { util.printHostDetails(); }},
         {"fboss", [](Utils& util) { util.printFbossDetails(); }},
+        {"powergood", [](Utils& util) { util.printPowerGoodDetails(); }},
         {"weutil", [](Utils& util) { util.printWeutilDetails(); }},
         {"fwutil", [](Utils& util) { util.printFwutilDetails(); }},
         {"lspci", [](Utils& util) { util.printLspciDetails(); }},
         {"port", [](Utils& util) { util.printPortDetails(); }},
         {"sensor", [](Utils& util) { util.printSensorDetails(); }},
         {"psu", [](Utils& util) { util.printPsuDetails(); }},
-        {"gpio", [](Utils& util) { util.printGpioDetails(); }},
         {"pem", [](Utils& util) { util.printPemDetails(); }},
+        {"fan", [](Utils& util) { util.printFanDetails(); }},
+        {"fanspinner", [](Utils& util) { util.printFanspinnerDetails(); }},
+        {"gpio", [](Utils& util) { util.printGpioDetails(); }},
         {"i2c", [](Utils& util) { util.printI2cDetails(); }},
+        {"i2cdump", [](Utils& util) { util.printI2cDumpDetails(); }},
+        {"nvme", [](Utils& util) { util.printNvmeDetails(); }},
 };
 
 std::unordered_set<std::string> getValidDetailNames() {
@@ -86,16 +91,7 @@ int main(int argc, char** argv) {
   }
 
   try {
-    auto platformNameOpt = helpers::PlatformNameLib().getPlatformName();
-    if (!platformNameOpt.has_value()) {
-      XLOG(ERR) << "Failed to get platform name";
-      return 1;
-    }
-
-    const auto& platformName = platformNameOpt.value();
-    XLOG(INFO) << "Running showtech for platform: " << platformName;
-
-    std::string showtechConfJson = ConfigLib().getShowtechConfig(platformName);
+    std::string showtechConfJson = ConfigLib().getShowtechConfig();
     auto config =
         apache::thrift::SimpleJSONSerializer::deserialize<ShowtechConfig>(
             showtechConfJson);

@@ -112,7 +112,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::DR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
-      case MediaInterfaceCode::DR4_800G:
         expectedMediaLanes = {0, 1, 2, 3};
         break;
       case MediaInterfaceCode::FR4_2x400G:
@@ -144,6 +143,34 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
             break;
           case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
             expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+            break;
+          case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
+            if (std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    0) != hostLaneMap[portName].end()) {
+              // When lane 0 is one of the host lanes, the media lanes are
+              // expected to be 0,1
+              expectedMediaLanes = {0, 1};
+            } else if (
+                std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    2) != hostLaneMap[portName].end()) {
+              // When lane 2 is one of the host lanes, the media lanes are
+              // expected to be 2,3
+              expectedMediaLanes = {2, 3};
+            } else if (
+                std::find(
+                    hostLaneMap[portName].begin(),
+                    hostLaneMap[portName].end(),
+                    4) != hostLaneMap[portName].end()) {
+              // When lane 4 is one of the host lanes, the media lanes are
+              // expected to be 4,5
+              expectedMediaLanes = {4, 5};
+            } else {
+              expectedMediaLanes = {6, 7};
+            }
             break;
           default:
             throw FbossError(
@@ -179,7 +206,6 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::SR_10G:
       case MediaInterfaceCode::BASE_T_10G:
       case MediaInterfaceCode::CR_10G:
-      case MediaInterfaceCode::DR1_200G:
       case MediaInterfaceCode::ZR_800G:
         expectedMediaLanes = {0};
         break;
@@ -192,6 +218,15 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         break;
       case MediaInterfaceCode::FR8_800G:
         expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
+        break;
+      case MediaInterfaceCode::DR2_400G:
+      case MediaInterfaceCode::DR4_800G:
+      case MediaInterfaceCode::DR1_200G:
+      case MediaInterfaceCode::DR1_100G: {
+        throw FbossError(
+            "Unsupported moduleMediaInterface ",
+            apache::thrift::util::enumNameSafe(moduleMediaInterface));
+      }
     }
 
     XLOG(INFO) << "Verifying that " << portName << " uses media lanes "
@@ -298,7 +333,12 @@ void HwTransceiverUtils::verifyOpticsSettings(
     // TODO: T236126124 - Disable checking this in Molex AEC cables
     // until we get EEPROM fix.
     auto vendor = apache::thrift::can_throw(*tcvrState.vendor());
-    if (!(vendor.name() == "Molex" && vendor.partNumber() == "2253611207")) {
+    bool isMolex =
+        (vendor.name() == "Molex" && vendor.partNumber() == "2253611207");
+
+    // LPO Modules dont have a DSP, so we dont need to check for CDR.
+    bool isLpoModule = tcvrState.lpoModule().value();
+    if (!(isMolex || isLpoModule)) {
       EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
       EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
     }
@@ -370,11 +410,13 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL:
+    case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
       verify200gProfile(mgmtInterface, mediaInterfaces);
       break;
 
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
       verify400gProfile(mgmtInterface, mediaInterfaces);
       break;
 
@@ -468,10 +510,12 @@ void HwTransceiverUtils::verify100gProfile(
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
       EXPECT_TRUE(
           *mediaId.media()->smfCode() == SMFMediaInterfaceCode::CWDM4_100G ||
-          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_100G);
+          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_100G ||
+          *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_100G);
       EXPECT_TRUE(
           *mediaId.code() == MediaInterfaceCode::CWDM4_100G ||
-          *mediaId.code() == MediaInterfaceCode::FR1_100G);
+          *mediaId.code() == MediaInterfaceCode::FR1_100G ||
+          *mediaId.code() == MediaInterfaceCode::DR1_100G);
     }
   }
 }
@@ -502,11 +546,13 @@ void HwTransceiverUtils::verify400gProfile(
     EXPECT_TRUE(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_400G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_10_400G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_400G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_400G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_400G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_400G ||
         *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM ||
-        *mediaId.code() == MediaInterfaceCode::DR4_400G);
+        *mediaId.code() == MediaInterfaceCode::DR4_400G ||
+        *mediaId.code() == MediaInterfaceCode::DR2_400G);
   }
 }
 

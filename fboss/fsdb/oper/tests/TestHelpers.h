@@ -32,13 +32,13 @@ dynamic createTestDynamic() {
   return dyn;
 }
 
-TestStruct initializeTestStruct() {
+inline TestStruct initializeTestStruct() {
   dynamic dyn = createTestDynamic();
   return facebook::thrift::from_dynamic<TestStruct>(
       dyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
-TestStruct createTestStructForExtendedTests() {
+inline TestStruct createTestStructForExtendedTests() {
   auto testDyn = createTestDynamic();
   for (int i = 0; i <= 20; ++i) {
     testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;

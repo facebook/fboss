@@ -101,6 +101,7 @@ enum ProductionFeature {
   INTER_PACKET_GAP = 88,
   AM_IDLES = 89,
   ALTERNATE_ARS_MEMBERS = 90,
+  EGRESS_MIRROR_PACKET_TRUNCATION = 91,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
