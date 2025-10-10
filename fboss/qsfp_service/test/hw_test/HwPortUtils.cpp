@@ -197,14 +197,16 @@ IphyAndXphyPorts findAvailableCabledPorts(
 std::map<PortID, cfg::PortProfileID> getCabledPortsAndProfiles(
     const HwQsfpEnsemble* ensemble) {
   std::map<PortID, cfg::PortProfileID> cabledPorts;
-  auto wedgeManager = ensemble->getWedgeManager();
+  const auto* wedgeManager = ensemble->getWedgeManager();
   auto qsfpTestConfig = wedgeManager->getQsfpConfig()->thrift.qsfpTestConfig();
   CHECK(qsfpTestConfig.has_value());
   for (const auto& cabledPairs : *qsfpTestConfig->cabledPortPairs()) {
-    auto& aPortName = *cabledPairs.aPortName();
-    auto& zPortName = *cabledPairs.zPortName();
-    auto aPortId = wedgeManager->getPortIDByPortName(aPortName);
-    auto zPortId = wedgeManager->getPortIDByPortName(zPortName);
+    const auto& aPortName = *cabledPairs.aPortName();
+    const auto& zPortName = *cabledPairs.zPortName();
+    auto aPortId =
+        ensemble->getQsfpServiceHandler()->getPortIdByPortName(aPortName);
+    auto zPortId =
+        ensemble->getQsfpServiceHandler()->getPortIdByPortName(zPortName);
     CHECK(aPortId.has_value());
     CHECK(zPortId.has_value());
     cabledPorts[*aPortId] = *cabledPairs.profileID();

@@ -70,7 +70,7 @@ class HwQsfpEnsemble {
   const WedgeManager* getWedgeManager() const {
     return const_cast<HwQsfpEnsemble*>(this)->getWedgeManager();
   }
-  std::shared_ptr<QsfpServiceHandler> getQsfpServiceHandler() {
+  std::shared_ptr<QsfpServiceHandler> getQsfpServiceHandler() const {
     return qsfpServiceHandler_;
   }
 

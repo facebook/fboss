@@ -601,6 +601,15 @@ void QsfpServiceHandler::setOverrideAgentPortStatusForTesting(
         up, enabled, clearOnly);
   }
 }
+std::optional<PortID> QsfpServiceHandler::getPortIdByPortName(
+    const std::string& portNameStr) const {
+  if (FLAGS_port_manager_mode) {
+    return getPortManager()->getPortIDByPortName(portNameStr);
+  } else {
+    return getTransceiverManager()->getPortIDByPortName(portNameStr);
+  }
+}
+
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(
