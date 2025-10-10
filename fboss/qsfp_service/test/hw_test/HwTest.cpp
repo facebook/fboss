@@ -184,7 +184,7 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
   // at least can secure TRANSCEIVER_PROGRAMMED after `numRetries` times.
   auto refreshStateMachinesTillTcvrProgrammed = [this, &expectedIds]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->refreshStateMachines();
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
     for (auto id : expectedIds) {
       auto curState = wedgeMgr->getCurrentState(id);
       // Statemachine can support transceiver programming (iphy/xphy/tcvr) when

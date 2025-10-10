@@ -153,7 +153,7 @@ class HwStateMachineTest : public HwTest {
       bool isRemediated,
       bool isAgentColdboot) {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
-    wedgeMgr->refreshStateMachines();
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
     int numFailedTransceivers = 0;
     for (auto& idToExpectStates : expectedStates) {
       auto id = idToExpectStates.first;
@@ -283,9 +283,16 @@ TEST_F(HwStateMachineTest, CheckPortStatusUpdated) {
         [this, &lastDownTimes](
             bool up, TransceiverStateMachineState expectedState) {
           auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+          auto qsfpServiceHandler =
+              getHwQsfpEnsemble()->getQsfpServiceHandler();
           wedgeMgr->setOverrideAgentPortStatusForTesting(
               up, true /* enabled */);
-          wedgeMgr->refreshStateMachines();
+          qsfpServiceHandler->refreshStateMachines();
+          // Adding extra refresh cycle to account for PortManager differences.
+          if (FLAGS_port_manager_mode) {
+            qsfpServiceHandler->refreshStateMachines();
+          }
+
           for (auto id : getPresentTransceivers()) {
             auto curState = wedgeMgr->getCurrentState(id);
             if (wedgeMgr->getProgrammedIphyPortToPortInfo(id).empty()) {
@@ -331,7 +338,7 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     wedgeMgr->setOverrideAgentPortStatusForTesting(
         false /* up */, true /* enabled */);
-    wedgeMgr->refreshStateMachines();
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
     // Reset all present transceivers
     for (auto tcvrID : getPresentTransceivers()) {
       wedgeMgr->triggerQsfpHardReset(tcvrID);
@@ -353,7 +360,7 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
         true /* up */, true /* enabled */);
     // Remove pause remediation
     setPauseRemediation(false);
-    wedgeMgr->refreshStateMachines();
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
     for (auto id : getPresentTransceivers()) {
       auto curState = wedgeMgr->getCurrentState(id);
       bool isEnabled = !wedgeMgr->getProgrammedIphyPortToPortInfo(id).empty();

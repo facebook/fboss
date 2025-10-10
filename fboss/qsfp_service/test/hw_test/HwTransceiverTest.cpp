@@ -26,7 +26,7 @@ void HwTransceiverTest::SetUp() {
     if (!isPortUp_) {
       wedgeManager->setPauseRemediation(600, nullptr);
     }
-    wedgeManager->refreshStateMachines();
+    getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
     wedgeManager->setOverrideAgentPortStatusForTesting(
         isPortUp_ /* up */, true /* enabled */, true /* clearOnly */);
 

@@ -443,13 +443,14 @@ TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   // ensure transceivers come back to ACTIVE state
 
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
 
   XLOG(INFO) << "Step 1. Bring the ports Up";
   // By default the modules are in TransceiverProgrammed state. Bring the ports
   // up now
   wedgeManager->setOverrideAgentPortStatusForTesting(
       true /* up */, true /* enabled */);
-  wedgeManager->refreshStateMachines();
+  qsfpServiceHandler->refreshStateMachines();
 
   XLOG(INFO) << "Step 2. Confirm transceivers are in ACTIVE state";
   for (auto id : getExpectedTransceivers()) {

@@ -17,6 +17,7 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace apache::thrift {
@@ -28,7 +29,6 @@ class PhyManager;
 class WedgeManager;
 class MultiPimPlatformMapping;
 class PlatformMapping;
-class QsfpServiceHandler;
 
 namespace phy {
 class ExternalPhy;
