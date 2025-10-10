@@ -337,6 +337,7 @@ class PortManager {
 
   const std::unordered_set<PortID> getXphyPortsCache();
 
+  void stopThreads();
   void threadLoop(folly::StringPiece name, folly::EventBase* eventBase);
 
   // Restore phy state from the last cached warm boot qsfp_service state
@@ -361,6 +362,11 @@ class PortManager {
       const PortID& portID,
       std::unique_ptr<PortStateMachineUpdate> update);
   void executeStateUpdates();
+  void drainAllStateMachineUpdates();
+
+  void setGracefulExitingFlag() {
+    isExiting_ = true;
+  }
 
   static void handlePendingUpdatesHelper(PortManager* mgr);
   void handlePendingUpdates();

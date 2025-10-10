@@ -20,8 +20,17 @@ class PortManagerTest : public ::testing::Test {
   std::string qsfpCfgPath = qsfpSvcVolatileDir + "/fakeQsfpConfig";
 
   void SetUp() override {
-    initManagers();
+    gflags::SetCommandLineOptionWithMode(
+        "port_manager_mode", "t", gflags::SET_FLAGS_DEFAULT);
+
+    gflags::SetCommandLineOptionWithMode(
+        "qsfp_service_volatile_dir",
+        qsfpSvcVolatileDir.c_str(),
+        gflags::SET_FLAGS_DEFAULT);
+
     setupFakeQsfpConfig(qsfpCfgPath);
+
+    initManagers();
   }
 
  protected:
@@ -100,7 +109,7 @@ class PortManagerTest : public ::testing::Test {
 
   // Keeping as raw pointer only for testing mocks.
   MockPhyManager* phyManager_{};
-  std::shared_ptr<TransceiverManager> transceiverManager_;
+  std::shared_ptr<MockWedgeManager> transceiverManager_;
   std::unique_ptr<MockPortManager> portManager_;
 };
 
@@ -424,8 +433,15 @@ TEST_F(PortManagerTest, initAndExit) {
   initManagers();
   transceiverManager_->init();
   portManager_->init();
+}
+
+TEST_F(PortManagerTest, initAndExitGracefully) {
+  initManagers();
+  transceiverManager_->init();
+  portManager_->init();
 
   portManager_->gracefulExit();
+  transceiverManager_->gracefulExit();
 }
 
 TEST_F(PortManagerTest, tcvrToInitializedPortsCacheValidation) {

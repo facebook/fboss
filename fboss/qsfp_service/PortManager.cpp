@@ -116,17 +116,39 @@ PortManager::PortManager(
 }
 
 PortManager::~PortManager() {
-  if (updateThread_) {
-    updateEventBase_->runInEventBaseThread(
-        [this] { updateEventBase_->terminateLoopSoon(); });
-    updateThread_->join();
-    XLOG(DBG2) << "Terminated PortStateMachineUpdateThread";
+  if (!isExiting_) {
+    setGracefulExitingFlag();
+    stopThreads();
   }
 }
 
 void PortManager::gracefulExit() {
+  XLOG(INFO) << "[Exit] Starting PortManager graceful exit";
+  setGracefulExitingFlag();
+
+  setWarmBootState();
+
+  stopThreads();
+
   if (phyManager_) {
     phyManager_->gracefulExit();
+  }
+
+  XLOG(INFO) << "[Exit] Ending PortManager graceful exit";
+}
+
+void PortManager::stopThreads() {
+  drainAllStateMachineUpdates();
+
+  if (updateThread_) {
+    updateEventBase_->runInEventBaseThreadAndWait(
+        [this] { updateEventBase_->terminateLoopSoon(); });
+    updateThread_->join();
+    XLOG(DBG2) << "Terminated PortStateMachineUpdateThread";
+  }
+
+  if (updateThreadHeartbeat_) {
+    updateThreadHeartbeat_.reset();
   }
 }
 
@@ -1263,6 +1285,40 @@ void PortManager::waitForAllBlockingStateUpdateDone(
     result->wait();
   }
 };
+
+void PortManager::drainAllStateMachineUpdates() {
+  // Enforce no updates can be added while draining.
+  for (auto& [_, stateMachineController] : stateMachineControllers_) {
+    stateMachineController->blockNewUpdates();
+  }
+
+  // Make sure threads are actually active before we start draining.
+  bool allStateMachineThreadsActive{true};
+  for (auto& threadHelper : *threads_) {
+    if (!threadHelper.second.isThreadActive()) {
+      allStateMachineThreadsActive = false;
+      break;
+    }
+  }
+
+  if (!allStateMachineThreadsActive) {
+    XLOG(INFO) << "All state machine threads are not active. Skip draining.";
+    return;
+  }
+
+  // Drain any pending updates by calling handlePendingUpdates directly.
+  bool updatesDrained = false;
+  do {
+    updatesDrained = true;
+    executeStateUpdates();
+    for (auto& [_, stateMachineController] : stateMachineControllers_) {
+      if (stateMachineController->arePendingUpdates()) {
+        updatesDrained = false;
+        break;
+      }
+    }
+  } while (!updatesDrained);
+}
 
 void PortManager::updatePortActiveState(
     const std::map<int32_t, PortStatus>& portStatusMap) noexcept {
