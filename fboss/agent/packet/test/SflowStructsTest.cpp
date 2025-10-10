@@ -560,6 +560,260 @@ TEST(SflowStructsTest, FlowSampleSizeCalculation) {
   EXPECT_EQ(sample.size(), 32 + record1.size() + record2.size());
 }
 
+TEST(SflowStructsTest, SampleRecordDeserialization) {
+  // Test SampleRecord deserialization functionality
+
+  // Create a buffer with serialized SampleRecord data containing a FlowSample
+  std::vector<uint8_t> serializedData = {
+      // sampleType (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // sampleDataLen (56 bytes) as big-endian - size of the FlowSample below
+      0x00,
+      0x00,
+      0x00,
+      0x38,
+
+      // FlowSample data (56 bytes total):
+      // sequenceNumber (12345) as big-endian
+      0x00,
+      0x00,
+      0x30,
+      0x39,
+      // sourceID (67890) as big-endian
+      0x00,
+      0x01,
+      0x09,
+      0x32,
+      // samplingRate (100) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x64,
+      // samplePool (200) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0xC8,
+      // drops (5) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x05,
+      // input (42) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x2A,
+      // output (24) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x18,
+      // flowRecordsCnt (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+
+      // FlowRecord:
+      // flowFormat (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // flowDataLen (4) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x04,
+      // flowData: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
+      0x11,
+      0x22,
+      0x33,
+      0x44};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampleRecord
+  sflow::SampleRecord sampleRecord = sflow::SampleRecord::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(sampleRecord.sampleType, 1);
+  EXPECT_EQ(sampleRecord.sampleData.size(), 1);
+
+  // Verify the FlowSample data
+  const auto& flowSample =
+      std::get<sflow::FlowSample>(sampleRecord.sampleData[0]);
+  EXPECT_EQ(flowSample.sequenceNumber, 12345);
+  EXPECT_EQ(flowSample.sourceID, 67890);
+  EXPECT_EQ(flowSample.samplingRate, 100);
+  EXPECT_EQ(flowSample.samplePool, 200);
+  EXPECT_EQ(flowSample.drops, 5);
+  EXPECT_EQ(flowSample.input, 42);
+  EXPECT_EQ(flowSample.output, 24);
+  EXPECT_EQ(flowSample.flowRecords.size(), 1);
+
+  // Verify the FlowRecord
+  EXPECT_EQ(flowSample.flowRecords[0].flowFormat, 1);
+  EXPECT_EQ(flowSample.flowRecords[0].flowData.size(), 4);
+  EXPECT_THAT(
+      flowSample.flowRecords[0].flowData, ElementsAre(0x11, 0x22, 0x33, 0x44));
+}
+
+TEST(SflowStructsTest, SampleRecordSerializeDeserializeRoundTrip) {
+  // Test serialize-deserialize round trip for SampleRecord
+
+  // Create original SampleRecord with FlowSample data
+  sflow::SampleRecord original;
+  original.sampleType = 1; // FlowSample type
+
+  // Create a FlowSample
+  sflow::FlowSample flowSample;
+  flowSample.sequenceNumber = 99999;
+  flowSample.sourceID = 88888;
+  flowSample.samplingRate = 77777;
+  flowSample.samplePool = 66666;
+  flowSample.drops = 55555;
+  flowSample.input = 44444;
+  flowSample.output = 33333;
+
+  // Add flow records with different data sizes
+  sflow::FlowRecord record1;
+  record1.flowFormat = 1;
+  record1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+
+  sflow::FlowRecord record2;
+  record2.flowFormat = 1;
+  record2.flowData = {0xCA, 0xFE}; // 2 bytes, 2 bytes padding
+
+  flowSample.flowRecords = {record1, record2};
+  original.sampleData.emplace_back(std::move(flowSample));
+
+  // Serialize
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto rwCursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  original.serialize(rwCursor.get());
+  size_t serializedSize = bufSize - rwCursor->length();
+
+  // Deserialize
+  auto readBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
+  folly::io::Cursor readCursor(readBuf.get());
+
+  sflow::SampleRecord deserialized =
+      sflow::SampleRecord::deserialize(readCursor);
+
+  // Verify round-trip correctness
+  EXPECT_EQ(deserialized.sampleType, original.sampleType);
+  EXPECT_EQ(deserialized.sampleData.size(), original.sampleData.size());
+
+  // Verify the FlowSample data
+  const auto& originalFlowSample =
+      std::get<sflow::FlowSample>(original.sampleData[0]);
+  const auto& deserializedFlowSample =
+      std::get<sflow::FlowSample>(deserialized.sampleData[0]);
+
+  EXPECT_EQ(
+      deserializedFlowSample.sequenceNumber, originalFlowSample.sequenceNumber);
+  EXPECT_EQ(deserializedFlowSample.sourceID, originalFlowSample.sourceID);
+  EXPECT_EQ(
+      deserializedFlowSample.samplingRate, originalFlowSample.samplingRate);
+  EXPECT_EQ(deserializedFlowSample.samplePool, originalFlowSample.samplePool);
+  EXPECT_EQ(deserializedFlowSample.drops, originalFlowSample.drops);
+  EXPECT_EQ(deserializedFlowSample.input, originalFlowSample.input);
+  EXPECT_EQ(deserializedFlowSample.output, originalFlowSample.output);
+  EXPECT_EQ(
+      deserializedFlowSample.flowRecords.size(),
+      originalFlowSample.flowRecords.size());
+
+  // Verify each flow record
+  for (size_t i = 0; i < originalFlowSample.flowRecords.size(); ++i) {
+    EXPECT_EQ(
+        deserializedFlowSample.flowRecords[i].flowFormat,
+        originalFlowSample.flowRecords[i].flowFormat)
+        << "FlowFormat mismatch for record " << i;
+    EXPECT_EQ(
+        deserializedFlowSample.flowRecords[i].flowData.size(),
+        originalFlowSample.flowRecords[i].flowData.size())
+        << "FlowData size mismatch for record " << i;
+    EXPECT_THAT(
+        deserializedFlowSample.flowRecords[i].flowData,
+        ContainerEq(originalFlowSample.flowRecords[i].flowData))
+        << "FlowData content mismatch for record " << i;
+  }
+}
+
+TEST(SflowStructsTest, SampleRecordDeserializeEmptyData) {
+  // Test SampleRecord deserialization with empty sample data
+
+  std::vector<uint8_t> serializedData = {// sampleType (1) as big-endian
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x01,
+                                         // sampleDataLen (0) as big-endian
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampleRecord
+  sflow::SampleRecord sampleRecord = sflow::SampleRecord::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(sampleRecord.sampleType, 1);
+  EXPECT_EQ(sampleRecord.sampleData.size(), 0);
+}
+
+TEST(SflowStructsTest, SampleRecordDeserializeUnknownSampleType) {
+  // Test SampleRecord deserialization with unknown sample type
+
+  std::vector<uint8_t> serializedData = {
+      // sampleType (999 = unknown) as big-endian
+      0x00,
+      0x00,
+      0x03,
+      0xE7,
+      // sampleDataLen (8) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x08,
+      // sample data (8 bytes of dummy data)
+      0x11,
+      0x22,
+      0x33,
+      0x44,
+      0x55,
+      0x66,
+      0x77,
+      0x88};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampleRecord
+  sflow::SampleRecord sampleRecord = sflow::SampleRecord::deserialize(cursor);
+
+  // Verify the deserialized data - should skip unknown sample type
+  EXPECT_EQ(sampleRecord.sampleType, 999);
+  EXPECT_EQ(
+      sampleRecord.sampleData.size(),
+      0); // Should be empty since we skip unknown types
+}
+
 TEST(SflowStructsTest, SampleRecord) {
   // Test comprehensive functionality of SampleRecord with detailed
   // serialization verification

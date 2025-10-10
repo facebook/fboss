@@ -115,6 +115,7 @@ struct SampleRecord {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleRecord deserialize(folly::io::Cursor& cursor);
 };
 
 /* Header information for sFlow version 5 datagrams */
