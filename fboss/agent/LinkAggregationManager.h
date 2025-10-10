@@ -115,6 +115,10 @@ class LinkAggregationManager : public StateObserver, public LacpServicerIf {
       const std::shared_ptr<AggregatePort>& oldAggPort,
       const std::shared_ptr<AggregatePort>& newAggPort);
 
+  void updateHyperPortState(
+      const std::shared_ptr<AggregatePort>& oldAggPort,
+      const std::shared_ptr<AggregatePort>& newAggPort);
+
   // Forbidden copy constructor and assignment operator
   LinkAggregationManager(LinkAggregationManager const&) = delete;
   LinkAggregationManager& operator=(LinkAggregationManager const&) = delete;
