@@ -112,6 +112,30 @@ uint32_t FlowSample::size() const {
       4 /* flowRecordCnt */ + recordsSize;
 }
 
+FlowSample FlowSample::deserialize(Cursor& cursor) {
+  FlowSample flowSample;
+
+  // Read the basic fields
+  flowSample.sequenceNumber = cursor.readBE<uint32_t>();
+  flowSample.sourceID = cursor.readBE<SflowDataSource>();
+  flowSample.samplingRate = cursor.readBE<uint32_t>();
+  flowSample.samplePool = cursor.readBE<uint32_t>();
+  flowSample.drops = cursor.readBE<uint32_t>();
+  flowSample.input = cursor.readBE<SflowPort>();
+  flowSample.output = cursor.readBE<SflowPort>();
+
+  // Read the flow records count
+  uint32_t flowRecordsCount = cursor.readBE<uint32_t>();
+
+  // Read each flow record
+  flowSample.flowRecords.reserve(flowRecordsCount);
+  for (uint32_t i = 0; i < flowRecordsCount; ++i) {
+    flowSample.flowRecords.push_back(FlowRecord::deserialize(cursor));
+  }
+
+  return flowSample;
+}
+
 void SampleRecord::serialize(RWPrivateCursor* cursor) const {
   serializeDataFormat(cursor, this->sampleType);
 

@@ -81,6 +81,7 @@ struct FlowSample {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static FlowSample deserialize(folly::io::Cursor& cursor);
 };
 
 /* Format of a single counter sample */
