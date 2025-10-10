@@ -38,12 +38,13 @@ QsfpFsdbSubscriber::QsfpFsdbSubscriber()
               : nullptr} {}
 
 void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
-    TransceiverManager* tcvrManager) {
+    TransceiverManager* tcvrManager,
+    PortManager* portManager) {
   const auto& path = switchStatePortMapPath;
   using T = std::map<
       fboss::state::SwitchIdList,
       std::map<int16_t, fboss::state::PortFields>>;
-  auto processData = [tcvrManager](const T& swPortMaps) {
+  auto processData = [tcvrManager, portManager](const T& swPortMaps) {
     std::map<int, facebook::fboss::NpuPortStatus> newPortStatus;
     for (auto& [switchStr, oneSwPortMap] : swPortMaps) {
       for (auto& [onePortId, onePortInfo] : oneSwPortMap) {
@@ -59,7 +60,11 @@ void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
         newPortStatus.emplace(onePortId, portStatus);
       }
     }
-    tcvrManager->syncNpuPortStatusUpdate(newPortStatus);
+    if (FLAGS_port_manager_mode) {
+      portManager->syncNpuPortStatusUpdate(newPortStatus);
+    } else {
+      tcvrManager->syncNpuPortStatusUpdate(newPortStatus);
+    }
   };
 
   if (fsdbPubSubMgr_) {
