@@ -1,6 +1,12 @@
 FROM quay.io/centos/centos:stream9
 
-RUN dnf install git sudo lsof -y
+# Build arguments for user creation
+ARG USERNAME=root
+ARG USER_UID=0
+ARG USER_GID=0
+ARG USER_SHELL=/bin/bash
+
+RUN dnf install git sudo lsof `basename "$USER_SHELL"` -y
 
 # Use /var/FBOSS as the set location to clone the git repository and store the outputs of the build.
 WORKDIR /var/FBOSS/
@@ -36,12 +42,10 @@ RUN sudo dnf install -y autoconf automake binutils binutils-devel bzip2 \
 RUN ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss
 RUN dnf install bison flex -y
 RUN dnf group install "Development Tools" -y
-RUN python3 -m pip install gitpython
-RUN python3 -m pip install meson
-RUN python3 -m pip install jinja2
+RUN python3 -m pip install gitpython meson jinja2
 RUN dnf install gperf libcap-devel libmount-devel -y
-RUN dnf install gcc-toolset-12 gcc-toolset-12-libasan-devel gcc-toolset-12-libubsan-devel -y
-RUN echo "source /opt/rh/gcc-toolset-12/enable" >> ~/.bashrc
+RUN dnf install gcc-toolset-12 gcc-toolset-12-libasan-devel gcc-toolset-12-libubsan-devel -y && \
+    echo "source /opt/rh/gcc-toolset-12/enable" >> /etc/profile.d/gcc-toolset-12.sh
 
 RUN rm -rf /var/FBOSS/fboss/*
 
@@ -55,3 +59,15 @@ RUN dnf install -y libxml2-devel expat-devel wget
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN pip install pyyaml filelock
 # ============================================================
+
+# Configure sudoers to allow wheel group passwordless sudo
+RUN echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Create user if USERNAME is not root
+RUN if [ "$USERNAME" != "root" ] && [ "$USER_UID" != "0" ]; then \
+    groupadd -g $USER_GID $USERNAME && \
+    useradd -m -u $USER_UID -g $USER_GID -G root,adm,wheel,users -s $USER_SHELL $USERNAME && \
+    chown -R $USERNAME /var/FBOSS; \
+    fi
+
+USER ${USERNAME}
