@@ -22,9 +22,38 @@ namespace facebook::fboss::sflow {
 
 void serializeIP(RWPrivateCursor* cursor, folly::IPAddress ip) {
   // We first push the address type
-  cursor->writeBE<uint32_t>(static_cast<uint32_t>(AddressType::IP_V6));
+  if (ip.isV4()) {
+    cursor->writeBE<uint32_t>(static_cast<uint32_t>(AddressType::IP_V4));
+  } else if (ip.isV6()) {
+    cursor->writeBE<uint32_t>(static_cast<uint32_t>(AddressType::IP_V6));
+  } else {
+    cursor->writeBE<uint32_t>(static_cast<uint32_t>(AddressType::UNKNOWN));
+  }
   // then push the address in bytes
   cursor->push(ip.bytes(), ip.byteCount());
+}
+
+folly::IPAddress deserializeIP(Cursor& cursor) {
+  // Read the address type first
+  uint32_t addressType = cursor.readBE<uint32_t>();
+
+  if (addressType == static_cast<uint32_t>(AddressType::IP_V4)) {
+    // IPv4 address (4 bytes)
+    uint8_t addressBytes[4];
+    cursor.pull(addressBytes, 4);
+    return folly::IPAddress(
+        folly::IPAddressV4::fromBinary(folly::ByteRange(addressBytes, 4)));
+  } else if (addressType == static_cast<uint32_t>(AddressType::IP_V6)) {
+    // IPv6 address (16 bytes)
+    uint8_t addressBytes[16];
+    cursor.pull(addressBytes, 16);
+    return folly::IPAddress(
+        folly::IPAddressV6::fromBinary(folly::ByteRange(addressBytes, 16)));
+  } else {
+    // Unknown address type
+    throw std::runtime_error(
+        "Unknown IP address type: " + std::to_string(addressType));
+  }
 }
 
 uint32_t sizeIP(folly::IPAddress const& ip) {
@@ -189,22 +218,21 @@ SampleRecord SampleRecord::deserialize(Cursor& cursor) {
   // Read the sample data length
   uint32_t sampleDataLen = cursor.readBE<uint32_t>();
 
-  // For SampleRecord, the sampleDataLen tells us how many bytes of sample data
-  // to read We need to read exactly sampleDataLen bytes of sample data Based on
-  // the tests, it seems there's typically only one FlowSample per SampleRecord
-
-  if (sampleDataLen > 0) {
-    if (sampleRecord.sampleType == 1) {
-      // FlowSample type
-      FlowSample flowSample = FlowSample::deserialize(cursor);
-      sampleRecord.sampleData.emplace_back(std::move(flowSample));
-    } else {
-      // Unknown sample type - skip the sample data bytes
-      cursor.skip(sampleDataLen);
-    }
+  // Process the sample data if there is any
+  if (sampleDataLen == 0) {
+    return sampleRecord;
+  }
+  if (sampleRecord.sampleType == 1) {
+    // FlowSample type - deserialize the FlowSample directly
+    // The FlowSample::deserialize will read exactly what it needs
+    FlowSample flowSample = FlowSample::deserialize(cursor);
+    sampleRecord.sampleData.emplace_back(std::move(flowSample));
+  } else {
+    // Unknown sample type - skip the sample data bytes
+    cursor.skip(sampleDataLen);
   }
 
-  // Skip XDR padding if needed
+  // Skip XDR padding if needed to align to 4-byte boundary
   if (sampleDataLen % XDR_BASIC_BLOCK_SIZE > 0) {
     uint32_t paddingBytes =
         XDR_BASIC_BLOCK_SIZE - (sampleDataLen % XDR_BASIC_BLOCK_SIZE);
@@ -233,6 +261,29 @@ uint32_t SampleDatagramV5::size() const {
   return 4 /* IP address type */ + this->agentAddress.byteCount() +
       4 /* subAgentID */ + 4 /*sequenceNumber */ + 4 /*uptime*/ +
       4 /*samplesCnt */ + samplesSize;
+}
+
+SampleDatagramV5 SampleDatagramV5::deserialize(Cursor& cursor) {
+  SampleDatagramV5 datagram;
+
+  // Deserialize the agent IP address
+  datagram.agentAddress = deserializeIP(cursor);
+
+  // Read the basic fields
+  datagram.subAgentID = cursor.readBE<uint32_t>();
+  datagram.sequenceNumber = cursor.readBE<uint32_t>();
+  datagram.uptime = cursor.readBE<uint32_t>();
+
+  // Read the samples count
+  uint32_t samplesCount = cursor.readBE<uint32_t>();
+
+  // Read each sample record
+  datagram.samples.reserve(samplesCount);
+  for (uint32_t i = 0; i < samplesCount; ++i) {
+    datagram.samples.push_back(SampleRecord::deserialize(cursor));
+  }
+
+  return datagram;
 }
 
 void SampleDatagram::serialize(RWPrivateCursor* cursor) const {

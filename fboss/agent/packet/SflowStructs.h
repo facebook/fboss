@@ -33,6 +33,7 @@ using byte = uint8_t;
 enum struct AddressType : uint32_t { UNKNOWN = 0, IP_V4 = 1, IP_V6 = 2 };
 
 void serializeIP(folly::io::RWPrivateCursor* cursor, folly::IPAddress ip);
+folly::IPAddress deserializeIP(folly::io::Cursor& cursor);
 uint32_t sizeIP(folly::IPAddress ip);
 
 /* Data Format */
@@ -128,6 +129,7 @@ struct SampleDatagramV5 {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleDatagramV5 deserialize(folly::io::Cursor& cursor);
 };
 
 // Here we skip sample_datagram_type, since only v5 is used
