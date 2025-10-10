@@ -17,11 +17,15 @@ class Elbert16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
   Elbert16QPimPlatformMapping();
   explicit Elbert16QPimPlatformMapping(const std::string& platformMappingStr);
+  ~Elbert16QPimPlatformMapping() = default;
 
  private:
   // Forbidden copy constructor and assignment operator
   Elbert16QPimPlatformMapping(Elbert16QPimPlatformMapping const&) = delete;
   Elbert16QPimPlatformMapping& operator=(Elbert16QPimPlatformMapping const&) =
+      delete;
+  Elbert16QPimPlatformMapping(Elbert16QPimPlatformMapping&&) = delete;
+  Elbert16QPimPlatformMapping& operator=(Elbert16QPimPlatformMapping&&) =
       delete;
 };
 } // namespace facebook::fboss
