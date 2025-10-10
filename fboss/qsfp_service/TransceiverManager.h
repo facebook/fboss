@@ -760,7 +760,11 @@ class TransceiverManager {
   // the state if graceful shutdown did not happen.
   // Will also be called during graceful exit for qsfp_service once the state
   // machine stops.
-  void setWarmBootState();
+
+  // phyWarmbootState can be optionally passed in if called by another class (in
+  // our case, this is PortManager).
+  void setWarmBootState(
+      const folly::dynamic& phyWarmbootState = folly::dynamic(nullptr));
 
   bool canWarmBoot() const {
     return canWarmBoot_;

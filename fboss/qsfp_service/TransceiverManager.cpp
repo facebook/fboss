@@ -456,12 +456,16 @@ void TransceiverManager::gracefulExit() {
   XLOG(INFO) << "[Exit] Stopped all state machine threads. Stop time: "
              << duration_cast<duration<float>>(stopThreadsDone - begin).count();
 
-  // Set all warm boot related files before gracefully shut down
-  setWarmBootState();
+  // In Port Manager mode, PortManager will be responsible for cleaning up PHY
+  // state.
+  if (!FLAGS_port_manager_mode) {
+    // Set all warm boot related files before gracefully shut down
+    setWarmBootState();
 
-  // Do a graceful shutdown of the phy.
-  if (phyManager_ && !FLAGS_port_manager_mode) {
-    phyManager_->gracefulExit();
+    // Do a graceful shutdown of the phy.
+    if (phyManager_) {
+      phyManager_->gracefulExit();
+    }
   }
 
   setCanWarmBoot();
@@ -2235,6 +2239,9 @@ void TransceiverManager::refreshStateMachines() {
 
   completeRefresh();
 
+  // Update the warmboot state if there is a change.
+  setWarmBootState();
+
   XLOG(INFO) << "refreshStateMachines ended";
 }
 
@@ -2262,9 +2269,6 @@ void TransceiverManager::completeRefresh() {
 
     restart_time::mark(RestartEvent::CONFIGURED);
   }
-
-  // Update the warmboot state if there is a change.
-  setWarmBootState();
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {
@@ -2683,14 +2687,20 @@ std::string TransceiverManager::xphyWarmBootStateDirectory() const {
       FLAGS_qsfp_service_volatile_dir, "/", kPhyStateKey);
 }
 
-void TransceiverManager::setWarmBootState() {
+void TransceiverManager::setWarmBootState(
+    const folly::dynamic& phyWarmbootState) {
   // Store necessary information of qsfp_service state into the warmboot state
   // file. This can be the lane id vector of each port from PhyManager or
   // transceiver info or the last config applied timestamp from agent
   folly::dynamic qsfpServiceState = folly::dynamic::object;
   steady_clock::time_point begin = steady_clock::now();
+  // If phyManager_ is set in TransceiverManager, then we know it's not set in
+  // PortManager.
+
   if (phyManager_) {
     qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
+  } else if (!phyWarmbootState.isNull()) {
+    qsfpServiceState[kPhyStateKey] = phyWarmbootState;
   }
 
   folly::dynamic agentConfigAppliedWbState = folly::dynamic::object;

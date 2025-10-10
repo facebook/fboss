@@ -1466,6 +1466,14 @@ void PortManager::restoreWarmBootPhyState() {
   }
 }
 
+void PortManager::setWarmBootState() {
+  folly::dynamic phyWarmbootState = folly::dynamic(nullptr);
+  if (phyManager_) {
+    phyWarmbootState = phyManager_->getWarmbootState();
+  }
+  transceiverManager_->setWarmBootState(phyWarmbootState);
+}
+
 void PortManager::refreshStateMachines() {
   XLOG(INFO) << "refreshStateMachines started";
 
@@ -1495,6 +1503,7 @@ void PortManager::refreshStateMachines() {
 
   // Step 7: Mark full initialization complete.
   transceiverManager_->completeRefresh();
+  setWarmBootState();
 
   XLOG(INFO) << "refreshStateMachines ended";
 }
