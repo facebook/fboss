@@ -14,8 +14,8 @@ autoconf
 autoconf
 
 [download]
-url = http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
-sha256 = 954bd69b391edc12d6a4a51a2dd1476543da5c6bbf05a95b59dc0dd6fd4c2969
+url = https://github.com/autotools-mirror/autoconf/archive/refs/tags/v2.69.tar.gz
+sha256 = 06f099f060d9a35081192170231307a2ae4b6a4da1d66ec2137f6a31f80e3150
 
 [build]
 builder = autoconf
