@@ -154,6 +154,17 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logBulkGetAttrFn(
+      const std::string& fn_name,
+      uint32_t object_count,
+      const sai_object_id_t* object_id,
+      const uint32_t* attr_count,
+      sai_attribute_t** attr_list,
+      sai_bulk_op_error_mode_t mode,
+      sai_status_t* object_statuses,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
   void logSetAttrFn(
       const std::string& fn_name,
       sai_object_id_t set_object_id,
@@ -744,7 +755,17 @@ class SaiTracer {
             attr_list,                                                         \
             mode,                                                              \
             object_statuses);                                                  \
-    /* TODO add logBulkGetAttrFn */                                            \
+                                                                               \
+    SaiTracer::getInstance()->logBulkGetAttrFn(                                \
+        "get_" #obj_type "s_attribute",                                        \
+        object_count,                                                          \
+        object_id,                                                             \
+        attr_count,                                                            \
+        attr_list,                                                             \
+        mode,                                                                  \
+        object_statuses,                                                       \
+        sai_obj_type,                                                          \
+        rv);                                                                   \
     return rv;                                                                 \
   }
 
