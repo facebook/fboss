@@ -1107,7 +1107,8 @@ void SaiTracer::logGetAttrFn(
   lines.insert(lines.end(), runtimeAttr.begin(), runtimeAttr.end());
 
   // Compare values
-  lines.push_back(to<string>("attrCheck(get_attribute, s_a, ", numCalls_, ")"));
+  lines.push_back(to<string>(
+      "attrCheck(get_attribute, s_a, ", maxAttrCount_, ", ", numCalls_, ")"));
   writeToFile(lines, /*linefeed*/ false);
 }
 
