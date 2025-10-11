@@ -335,6 +335,14 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv = 0);
 
+  // Dedicated method for operations with 2D attribute arrays
+  std::vector<std::string> setBulkAttrList(
+      uint32_t object_count,
+      const uint32_t* attr_count,
+      sai_attribute_t** attr_list,
+      sai_object_type_t object_type,
+      sai_status_t rv = 0);
+
   std::string createFnCall(
       const std::string& fn_name,
       const std::string& var1,
