@@ -66,6 +66,24 @@ cpp_library(
 )
 
 cpp_library(
+    name = "config_utils_lib",
+    srcs = [
+        "ConfigUtils.cpp",
+    ],
+    headers = [
+        "ConfigUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly:format",
+        "//folly:string",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
     name = "eeprom_content_validator",
     srcs = [
         "ContentValidator.cpp",
