@@ -252,6 +252,7 @@ struct InterfaceDetail {
   10: switch_config.Scope scope = switch_config.Scope.LOCAL;
   // PortId populated only for interfaces of type PORT
   11: i32 portId;
+  12: string desiredPeerAddressIPv6;
 }
 
 /*

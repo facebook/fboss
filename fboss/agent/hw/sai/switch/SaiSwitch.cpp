@@ -4194,6 +4194,21 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         switchApi.setAttribute(saiSwitchId_, sdkRegDumpLogPath);
       }
 
+      /*
+       * Cold boot system init results in a lot of events like interrupts.
+       * These needs to be cleared once system is up and running as it will
+       * help ensure that tech support dumps done at a later point in time
+       * will yield good data and we dont need to worry about events being
+       * left over from cold boot system init. Ideally, we need to clear the
+       * cold boot system init events once system is stable. However, it is
+       * hard to define the criteria for system stability, hence the decision
+       * to perform this init post cold boot and config complete.
+       */
+      if (bootType_ == BootType::COLD_BOOT &&
+          platform_->getAsic()->isSupported(HwAsic::Feature::TECH_SUPPORT)) {
+        initTechSupport();
+      }
+
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
         /*
          * Post warmboot synchronize hw link state with switch state

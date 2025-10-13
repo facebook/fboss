@@ -50,7 +50,10 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   MOCK_METHOD(void, stopPktCapture, (std::unique_ptr<std::string>));
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
   MOCK_METHOD(void, getProductInfo, (ProductInfo&));
-  MOCK_METHOD(void, getCpuPortStats, (facebook::fboss::CpuPortStats&));
+  MOCK_METHOD(
+      void,
+      getAllCpuPortStats,
+      ((std::map<int32_t, facebook::fboss::CpuPortStats>&)));
   MOCK_METHOD(void, getPortStatus, (PortStatusMap, Ports));
   MOCK_METHOD(void, getHwAgentConnectionStatus, (HwAgentStatusMap));
   MOCK_METHOD(void, getMultiSwitchRunState, (MultiSwitchRunState&));

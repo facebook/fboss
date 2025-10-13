@@ -36,6 +36,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
         "//fboss/platform/helpers:platform_fs_utils",
@@ -47,9 +48,6 @@ cpp_library(
         "//folly/logging:logging",
         "//folly/system:shell",
         "//thrift/lib/cpp2/protocol:protocol",
-    ],
-    exported_external_deps = [
-        "re2",
     ],
 )
 
