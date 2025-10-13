@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <chrono>
 #include <memory>
 
 #include <fboss/thrift_cow/storage/CowStorage.h>
@@ -44,11 +45,25 @@ class CowStateUpdate {
       const std::shared_ptr<CowState>&)>;
 
   explicit CowStateUpdate(folly::StringPiece name, int behaviorFlags)
-      : name_(name.str()), behaviorFlags_(behaviorFlags) {}
+      : name_(name.str()),
+        behaviorFlags_(behaviorFlags),
+        queuedTimestamp_(std::chrono::steady_clock::now()) {}
   virtual ~CowStateUpdate() = default;
 
   const std::string& getName() const {
     return name_;
+  }
+
+  std::chrono::steady_clock::time_point getQueuedTimestamp() const {
+    return queuedTimestamp_;
+  }
+
+  void setPrintUpdateDelay(bool printUpdateDelay) {
+    printUpdateDelay_ = printUpdateDelay;
+  }
+
+  bool shouldPrintUpdateDelay() const {
+    return printUpdateDelay_;
   }
 
   bool allowsCoalescing() const {
@@ -92,6 +107,8 @@ class CowStateUpdate {
 
   std::string name_;
   int behaviorFlags_{static_cast<int>(BehaviorFlags::NONE)};
+  std::chrono::steady_clock::time_point queuedTimestamp_;
+  bool printUpdateDelay_{false};
 
   // An intrusive list hook for maintaining the list of pending updates.
   folly::IntrusiveListHook listHook_;

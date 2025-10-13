@@ -49,7 +49,11 @@ class CowStorageMgr {
    * thread in order to update the CowState
    *
    */
-  void updateState(std::unique_ptr<CowStateUpdate<Root>> update) {
+  void updateState(
+      std::unique_ptr<CowStateUpdate<Root>> update,
+      bool printUpdateDelay = false) {
+    // Set the print update delay flag on the update
+    update->setPrintUpdateDelay(printUpdateDelay);
     pendingUpdates_.wlock()->push_back(*update.release());
     XLOG(DBG2) << "[FSDB] # Pending updates "
                << pendingUpdates_.rlock()->size();
@@ -81,10 +85,13 @@ class CowStorageMgr {
    * subscribers.  Therefore the CowStateUpdateFn may be called with an
    * unpublished CowState in some cases.
    */
-  void updateState(folly::StringPiece name, CowStateUpdateFn fn) {
+  void updateState(
+      folly::StringPiece name,
+      CowStateUpdateFn fn,
+      bool printUpdateDelay = false) {
     auto update =
         std::make_unique<FunctionCowStateUpdate<Root>>(name, std::move(fn));
-    updateState(std::move(update));
+    updateState(std::move(update), printUpdateDelay);
   }
   /**
    * Schedule an update to the CowState.
@@ -171,7 +178,7 @@ class CowStorageMgr {
       ++iter;
 
       std::shared_ptr<CowState> intermediateState;
-      XLOG(DBG3) << "preparing state update " << update->getName();
+
       try {
         intermediateState = update->applyUpdate(newDesiredState);
       } catch (const std::exception& ex) {
@@ -191,6 +198,20 @@ class CowStorageMgr {
         // existing state, leaving it in an invalid state.
         intermediateState->publish();
         newDesiredState = intermediateState;
+      }
+
+      // Calculate processing delay in microseconds
+      auto now = std::chrono::steady_clock::now();
+      auto delayUs = std::chrono::duration_cast<std::chrono::microseconds>(
+                         now - update->getQueuedTimestamp())
+                         .count();
+
+      if (update->shouldPrintUpdateDelay()) {
+        XLOG(DBG2) << "Applied state update " << update->getName()
+                   << " (processing delay: " << delayUs << " μs)";
+      } else {
+        XLOG(DBG3) << "Applied state update " << update->getName()
+                   << " (processing delay: " << delayUs << " μs)";
       }
     }
     // Invoke callback on change
