@@ -494,7 +494,12 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
     auto constexpr kLocalIntfTableStart = 1;
     auto constexpr kGlobalIntfTableStart = 200;
     if (intf->getScope() == cfg::Scope::LOCAL) {
-      return kLocalIntfTableStart + ifID;
+      if (FLAGS_dsf_single_stage_r128_f40_e16_uniform_local_offset) {
+        auto constexpr kLocalSystemPortIdStart = 6058;
+        return kLocalIntfTableStart + ifID - kLocalSystemPortIdStart;
+      } else {
+        return kLocalIntfTableStart + ifID;
+      }
     } else {
       auto firstSwitchSysPortRange =
           getFirstSwitchSystemPortIdRange(switchIdToSwitchInfo);

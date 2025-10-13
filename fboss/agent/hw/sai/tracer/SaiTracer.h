@@ -154,6 +154,17 @@ class SaiTracer {
       sai_object_type_t object_type,
       sai_status_t rv);
 
+  void logBulkGetAttrFn(
+      const std::string& fn_name,
+      uint32_t object_count,
+      const sai_object_id_t* object_id,
+      const uint32_t* attr_count,
+      sai_attribute_t** attr_list,
+      sai_bulk_op_error_mode_t mode,
+      sai_status_t* object_statuses,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
   void logSetAttrFn(
       const std::string& fn_name,
       sai_object_id_t set_object_id,
@@ -332,6 +343,14 @@ class SaiTracer {
   std::vector<std::string> setAttrList(
       const sai_attribute_t* attr_list,
       uint32_t attr_count,
+      sai_object_type_t object_type,
+      sai_status_t rv = 0);
+
+  // Dedicated method for operations with 2D attribute arrays
+  std::vector<std::string> setBulkAttrList(
+      uint32_t object_count,
+      const uint32_t* attr_count,
+      sai_attribute_t** attr_list,
       sai_object_type_t object_type,
       sai_status_t rv = 0);
 
@@ -597,8 +616,8 @@ class SaiTracer {
       "  else if (rv != 0) printf(\"Non 0 rv at %d with status %d\\n\", count, rv);\n"
       "}\n"
       "\n"
-      "inline void attrCheck(sai_attribute_t *expected, sai_attribute_t *actual, int count) {\n"
-      "  if (memcmp((void*)expected, (void*)actual, ATTR_SIZE * 1024)) printf(\"Diff in GET attribute %d\\n\", count);\n"
+      "inline void attrCheck(sai_attribute_t *expected, sai_attribute_t *actual, int32_t num, int count) {\n"
+      "  if (memcmp((void*)expected, (void*)actual, ATTR_SIZE * num)) printf(\"Diff in GET attribute %d\\n\", count);\n"
       "}\n"
       "\n"
       "sai_object_id_t assignObject(sai_object_key_t* object_list, int object_count, int i, sai_object_id_t default_id) {\n"
@@ -736,7 +755,17 @@ class SaiTracer {
             attr_list,                                                         \
             mode,                                                              \
             object_statuses);                                                  \
-    /* TODO add logBulkGetAttrFn */                                            \
+                                                                               \
+    SaiTracer::getInstance()->logBulkGetAttrFn(                                \
+        "get_" #obj_type "s_attribute",                                        \
+        object_count,                                                          \
+        object_id,                                                             \
+        attr_count,                                                            \
+        attr_list,                                                             \
+        mode,                                                                  \
+        object_statuses,                                                       \
+        sai_obj_type,                                                          \
+        rv);                                                                   \
     return rv;                                                                 \
   }
 

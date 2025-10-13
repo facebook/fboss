@@ -1107,8 +1107,107 @@ void SaiTracer::logGetAttrFn(
   lines.insert(lines.end(), runtimeAttr.begin(), runtimeAttr.end());
 
   // Compare values
-  lines.push_back(to<string>("attrCheck(get_attribute, s_a, ", numCalls_, ")"));
+  lines.push_back(to<string>(
+      "attrCheck(get_attribute, s_a, ", maxAttrCount_, ", ", numCalls_, ")"));
   writeToFile(lines, /*linefeed*/ false);
+}
+
+void SaiTracer::logBulkGetAttrFn(
+    const std::string& fn_name,
+    uint32_t object_count,
+    const sai_object_id_t* object_id,
+    const uint32_t* attr_count,
+    sai_attribute_t** attr_list,
+    sai_bulk_op_error_mode_t mode,
+    sai_status_t* object_statuses,
+    sai_object_type_t object_type,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer || !FLAGS_enable_get_attr_log) {
+    return;
+  }
+
+  vector<string> lines;
+
+  // Reserve minimum predictable size: 4*object_count (for the 4 main loops)
+  lines.reserve(object_count * 4);
+  for (int i = 0; i < object_count; ++i) {
+    lines.push_back(
+        to<string>("obj_list[", i, "]=", getVariable(object_id[i])));
+  }
+
+  for (int i = 0; i < object_count; ++i) {
+    lines.push_back(to<string>("attr_count_list[", i, "]=", attr_count[i]));
+  }
+
+  // Setup attr_list_ptrs and prepare attributes for bulk GET (rv=0 for pre-GET
+  // setup)
+  auto attrSetupLines =
+      setBulkAttrList(object_count, attr_count, attr_list, object_type, 0);
+  lines.insert(lines.end(), attrSetupLines.begin(), attrSetupLines.end());
+
+  // Log current timestamp and return value
+  lines.push_back(logTimeAndRv(rv, SAI_NULL_OBJECT_ID));
+
+  // Make get bulk attribute call
+  lines.push_back(to<string>(
+      "rv=",
+      folly::get_or_throw(
+          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
+      fn_name,
+      "(",
+      object_count,
+      ",obj_list,attr_count_list,attr_list_ptrs,(sai_bulk_op_error_mode_t)",
+      mode,
+      ",object_statuses)"));
+
+  // Copy results for validation
+  lines.push_back(
+      to<string>("memcpy(get_attribute, s_a, ATTR_SIZE*", maxAttrCount_, ")"));
+
+  lines.push_back(to<string>(
+      "memset(get_attr_list_ptrs,0,sizeof(sai_attribute_t*)*",
+      FLAGS_default_list_size,
+      ")"));
+
+  // Point get_attr_list_ptrs to preserved attribute copy
+  int globalAttrIndex = 0;
+  for (int i = 0; i < object_count; ++i) {
+    lines.push_back(to<string>(
+        "get_attr_list_ptrs[", i, "]=&get_attribute[", globalAttrIndex, "]"));
+    globalAttrIndex += attr_count[i];
+  }
+
+  // Setup attr_list_ptrs with runtime values for comparison (rv=actual return
+  // value)
+  vector<string> runtimeAttr =
+      setBulkAttrList(object_count, attr_count, attr_list, object_type, rv);
+  lines.insert(lines.end(), runtimeAttr.begin(), runtimeAttr.end());
+
+  // Log object status
+  string objectStatusStr = "// Status:";
+  for (int i = 0; i < object_count; ++i) {
+    objectStatusStr += to<string>(" ", object_statuses[i]);
+  }
+  lines.push_back(objectStatusStr);
+
+  // Compare values for each object separately using the structured pointers
+  for (int i = 0; i < object_count; ++i) {
+    lines.push_back(to<string>(
+        "attrCheck((sai_attribute_t*)get_attr_list_ptrs[",
+        i,
+        "], (sai_attribute_t*)attr_list_ptrs[",
+        i,
+        "], attr_count_list[",
+        i,
+        "], ",
+        numCalls_,
+        ")"));
+  }
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
 }
 
 void SaiTracer::logSetAttrFn(
@@ -1641,6 +1740,68 @@ vector<string> SaiTracer::setAttrList(
   return attrLines;
 }
 
+vector<string> SaiTracer::setBulkAttrList(
+    uint32_t object_count,
+    const uint32_t* attr_count,
+    sai_attribute_t** attr_list,
+    sai_object_type_t object_type,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return {};
+  }
+
+  // Calculate total attributes needed for all objects
+  uint32_t totalAttrs = 0;
+  for (int i = 0; i < object_count; ++i) {
+    totalAttrs += attr_count[i];
+  }
+  checkAttrCount(totalAttrs);
+
+  vector<string> attrLines;
+  attrLines.push_back(
+      to<string>("memset(s_a,0,ATTR_SIZE*", maxAttrCount_, ")"));
+  attrLines.push_back(to<string>(
+      "memset(attr_list_ptrs,0,sizeof(sai_attribute_t*)*",
+      FLAGS_default_list_size,
+      ")"));
+
+  // Set up attr_list_ptrs array to point to the correct positions in s_a
+  int attributeIndexInSa = 0;
+  for (int i = 0; i < object_count; ++i) {
+    attrLines.push_back(
+        to<string>("attr_list_ptrs[", i, "]=&s_a[", attributeIndexInSa, "]"));
+    attributeIndexInSa += attr_count[i];
+  }
+
+  // Process each object
+  for (int i = 0; i < object_count; ++i) {
+    attrLines.push_back(to<string>("// Object ", i, " attributes:"));
+
+    // Get attribute values for this object using setAttrList
+    auto objAttrLines =
+        setAttrList(attr_list[i], attr_count[i], object_type, rv);
+
+    // Skip the first line (memset) and replace s_a with attr_list_ptrs[i]
+    // Example transformation for object i=1:
+    //   setAttrList() returns:
+    //                "s_a[0].id=166";
+    //                "s_a[0].value.u32=100";
+    //   After replacement:
+    //                "attr_list_ptrs[1][0].id=166",
+    //                "attr_list_ptrs[1][0].value.u32=100"
+    for (size_t lineIdx = 1; lineIdx < objAttrLines.size(); ++lineIdx) {
+      string line = objAttrLines[lineIdx];
+      size_t pos = line.find("s_a");
+      if (pos != string::npos) {
+        line.replace(pos, 3, to<string>("attr_list_ptrs[", i, "]"));
+      }
+      attrLines.push_back(line);
+    }
+  }
+
+  return attrLines;
+}
+
 string SaiTracer::createFnCall(
     const string& fn_name,
     const string& var1,
@@ -1887,6 +2048,11 @@ void SaiTracer::setupGlobals() {
         "[[maybe_unused]] sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
         FLAGS_default_list_size,
         ")"));
+    // For bulk operations - preserve the array structure
+    globalVar.push_back(to<string>(
+        "[[maybe_unused]] sai_attribute_t* get_attr_list_ptrs[",
+        FLAGS_default_list_size,
+        "]"));
   }
 
   for (int i = 0; i < FLAGS_default_list_count; i++) {
@@ -1919,6 +2085,14 @@ void SaiTracer::setupGlobals() {
       "]"));
   globalVar.push_back(to<string>(
       "[[maybe_unused]] uint64_t counter_vals[", FLAGS_default_list_size, "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] uint32_t attr_count_list[",
+      FLAGS_default_list_size,
+      "]"));
+  globalVar.push_back(to<string>(
+      "[[maybe_unused]] sai_attribute_t* attr_list_ptrs[",
+      FLAGS_default_list_size,
+      "]"));
   globalVar.push_back(to<string>(kGlobalVarEnd));
   writeToFile(globalVar);
 
