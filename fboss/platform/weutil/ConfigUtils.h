@@ -15,7 +15,8 @@ struct FruEeprom {
 
 class ConfigUtils {
  public:
-  explicit ConfigUtils(const std::optional<std::string>& platformName);
+  explicit ConfigUtils(
+      const std::optional<std::string>& platformName = std::nullopt);
 
   std::unordered_map<std::string, FruEeprom> getFruEepromList();
   std::string getChassisEepromName();

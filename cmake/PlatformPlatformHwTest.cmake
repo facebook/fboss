@@ -13,4 +13,5 @@ target_link_libraries(platform_hw_test
   Folly::folly
   weutil_fboss_eeprom_interface
   weutil_lib
+  weutil_config_utils
 )
