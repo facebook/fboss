@@ -7,6 +7,8 @@
 #       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
 # To run script, send email and create task for user
 #       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba --user  --send_email --create_task
+# To run script and specify test class
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --test_class fboss_qsfp
 # in stack diff
 # sample usage:
 # To run script and create output json file
@@ -93,6 +95,12 @@ TEST_CONFIGS = {
         job_name_regex=".*ensemble_link.*l2_known_bad_test.*",
         oncall="fboss_agent_push",
         description="Agent Ensemble Link L2 known bad tests",
+    ),
+    "fboss_qsfp": TestConfig(
+        name="fboss_qsfp",
+        job_name_regex=".*qsfp.*known_bad.*",
+        oncall="fboss_optics_phy",
+        description="Qsfp Hw known bad tests",
     ),
 }
 
