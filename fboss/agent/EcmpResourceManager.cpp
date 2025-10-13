@@ -194,9 +194,9 @@ int computePenalty(int numGroupNhops, int numMergedNhops, int routeRefCount) {
 bool checkDeltasPublished(const std::vector<StateDelta>& deltas) {
   bool published{true};
   for (auto i = 0; i < deltas.size() && published; ++i) {
-    auto published = deltas[i].oldState()->isPublished() &&
+    auto deltaPublished = deltas[i].oldState()->isPublished() &&
         deltas[i].newState()->isPublished();
-    XLOG(DBG4) << " Checking delta: " << i << " published: " << published;
+    XLOG(DBG4) << " Checking delta: " << i << " published: " << deltaPublished;
   }
   return published;
 }

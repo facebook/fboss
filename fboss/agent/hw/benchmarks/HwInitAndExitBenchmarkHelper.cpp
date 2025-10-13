@@ -142,6 +142,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
       asicType == cfg::AsicType::ASIC_TYPE_GARONNE ||
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||

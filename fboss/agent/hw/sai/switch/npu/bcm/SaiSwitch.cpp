@@ -1009,4 +1009,13 @@ void SaiSwitch::hardResetSwitchEventNotificationCallback(
 #endif
 }
 
+void SaiSwitch::initTechSupport() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  switchApi.setAttribute(
+      saiSwitchId_,
+      SaiSwitchTraits::Attributes::TechSupportType{
+          SAI_SWITCH_TECH_SUPPORT_TYPE_SDK_INIT});
+#endif
+}
 } // namespace facebook::fboss

@@ -179,6 +179,7 @@ void LldpManager::sendLldpOnAllPorts() {
       switch (port->getPortType()) {
         case cfg::PortType::INTERFACE_PORT:
         case cfg::PortType::MANAGEMENT_PORT:
+        case cfg::PortType::HYPER_PORT_MEMBER:
           sendLldp = true;
           break;
         case cfg::PortType::FABRIC_PORT:
@@ -186,7 +187,6 @@ void LldpManager::sendLldpOnAllPorts() {
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::EVENTOR_PORT:
         case cfg::PortType::HYPER_PORT:
-        case cfg::PortType::HYPER_PORT_MEMBER:
           break;
       }
       if (sendLldp && port->isPortUp()) {

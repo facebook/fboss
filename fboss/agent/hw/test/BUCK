@@ -378,6 +378,7 @@ cpp_library(
     undefined_symbols = True,
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
         ":config_factory",
         ":golden_data",
         ":hw_copp_utils",
@@ -462,7 +463,6 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
-        "re2",
         ("boost", None, "boost_container"),
     ],
 )

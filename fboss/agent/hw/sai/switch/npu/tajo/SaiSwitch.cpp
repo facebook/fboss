@@ -218,4 +218,6 @@ void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
       SaiSwitchTraits::Attributes::WarmBootTargetVersion{targetVersion});
   XLOG(DBG2) << "Downgrade SDK version set as " << downgradeVersion;
 }
+
+void SaiSwitch::initTechSupport() {}
 } // namespace facebook::fboss

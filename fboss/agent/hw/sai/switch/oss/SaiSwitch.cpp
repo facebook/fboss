@@ -24,4 +24,6 @@ void SaiSwitch::hardResetSwitchEventNotificationCallback(
     const void* /*buffer*/) {
   // noop;
 }
+
+void SaiSwitch::initTechSupport() {}
 } // namespace facebook::fboss

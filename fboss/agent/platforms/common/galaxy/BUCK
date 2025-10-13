@@ -15,6 +15,7 @@ cpp_library(
         "GalaxyLCPlatformMapping.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         "//fboss/agent:fboss-error",
         "//fboss/agent:utils",
         "//fboss/agent/platforms/common:platform_mapping",
@@ -23,7 +24,6 @@ cpp_library(
         "//neteng/netwhoami/lib/cpp:recover",
     ],
     exported_external_deps = [
-        "re2",
         ("boost", None, "boost_algorithm"),
     ],
 )

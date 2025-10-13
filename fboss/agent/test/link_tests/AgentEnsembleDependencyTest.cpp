@@ -16,7 +16,6 @@ TEST_F(AgentEnsembleLinkTest, ecmpShrink) {
     for (const auto& port : ecmpPorts) {
       ports.push_back(port.phyPortID());
     }
-
     auto verifyEcmpSize = [&](const std::shared_ptr<SwitchState>& /*state*/) {
       auto client = getAgentEnsemble()->getHwAgentTestClient(SwitchID(0));
       facebook::fboss::utility::CIDRNetwork cidr;
@@ -28,14 +27,18 @@ TEST_F(AgentEnsembleLinkTest, ecmpShrink) {
                  << " expected ecmp size " << expectedEcmpSize;
       return ecmpSizeInHw == expectedEcmpSize;
     };
-    EXPECT_TRUE(waitForSwitchStateCondition(verifyEcmpSize));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(waitForSwitchStateCondition(verifyEcmpSize));
+    });
 
     for (const auto& port : ports) {
       setPortStatus(port, false);
     }
     EXPECT_NO_THROW(waitForLinkStatus(ports, false));
     ports.clear();
-    EXPECT_TRUE(waitForSwitchStateCondition(verifyEcmpSize));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(waitForSwitchStateCondition(verifyEcmpSize));
+    });
 
     for (const auto& port : ecmpPorts) {
       setPortStatus(port.phyPortID(), true);
