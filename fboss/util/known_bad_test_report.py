@@ -53,7 +53,7 @@ logging.basicConfig(
 
 # Constants
 DEFAULT_MAX_RECORDS = "200"  # Default number of records returned from scuba
-DEFAULT_OUTPUT_FILE = "known_bad_tests_data.json"
+DEFAULT_OUTPUT_FILE = "~/known_bad_tests_data.json"
 DEFAULT_CLUSTER = "gp"
 PASSED = 1
 FAILED = 0
@@ -765,9 +765,12 @@ def main() -> Optional[int]:
 
         # Write test data to a separate JSON file
         if args.json:
-            with open(DEFAULT_OUTPUT_FILE, "w") as f:
-                json.dump(tests, f, indent=2, default=str)
-                json.dump(known_bad_jobs, f, indent=2, default=str)
+            with open(os.path.expanduser(DEFAULT_OUTPUT_FILE), "w") as f:
+                test_structure = {
+                    "passing_tests": tests,
+                    "job_test_count": known_bad_jobs,
+                }
+                json.dump(test_structure, f, indent=2, default=str)
             logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
 
         # send email to user or oncall
