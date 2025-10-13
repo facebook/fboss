@@ -58,14 +58,16 @@ AgentFsdbSyncManager::AgentFsdbSyncManager(
           pubSubMgr,
           kAgentPath.tokens(),
           false /* isStats */,
-          getPubType()) {}
+          getPubType(),
+          "agent" /* clientCounterPrefix */) {}
 
 AgentFsdbSyncManager::AgentFsdbSyncManager()
     : fsdb::FsdbSyncManager<fsdb::AgentData, true /* EnablePatchAPIs */>(
           "agent",
           kAgentPath.tokens(),
           false /* isStats */,
-          getPubType()) {}
+          getPubType(),
+          "agent" /* clientCounterPrefix */) {}
 
 void AgentFsdbSyncManager::stateUpdated(const StateDelta& delta) {
   if (!FLAGS_agent_fsdb_sync) {

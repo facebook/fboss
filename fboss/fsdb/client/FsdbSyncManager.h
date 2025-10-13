@@ -35,12 +35,14 @@ class FsdbSyncManager {
       const std::vector<std::string>& basePath,
       bool isStats,
       PubSubType pubType,
+      std::optional<std::string> clientCounterPrefix = std::nullopt,
       bool useIdPaths = FLAGS_publish_use_id_paths)
       : FsdbSyncManager(
             std::make_shared<fsdb::FsdbPubSubManager>(clientId),
             basePath,
             isStats,
             pubType,
+            clientCounterPrefix,
             useIdPaths) {
     XLOG_IF(FATAL, pubType == PubSubType::PATCH && !EnablePatchAPIs)
         << "Patch pub requested but not enabled";
@@ -51,14 +53,17 @@ class FsdbSyncManager {
       const std::vector<std::string>& basePath,
       bool isStats,
       PubSubType pubType,
+      std::optional<std::string> clientCounterPrefix = std::nullopt,
       bool useIdPaths = FLAGS_publish_use_id_paths)
       : pubSubMgr_(pubSubMr),
         basePath_(basePath),
         isStats_(isStats),
         pubType_(pubType),
-        storage_([this](const auto& oldState, const auto& newState) {
-          processDelta(oldState, newState);
-        }),
+        storage_(
+            [this](const auto& oldState, const auto& newState) {
+              processDelta(oldState, newState);
+            },
+            clientCounterPrefix),
         useIdPaths_(useIdPaths) {
     CHECK(pubSubMr);
     // make sure publisher is not already created for shared pubSubMgr
