@@ -342,6 +342,10 @@ class SwitchStats : public boost::noncopyable {
     thriftRequestCompletionTimeMs_.addValue(ms.count());
   }
 
+  void dsfSubscriptionServeDelayMs(int64_t delayMs) {
+    dsfSubscriptionServeDelayWatermark_.addValue(delayMs);
+  }
+
   void linkStateChange() {
     linkStateChange_.addValue(1);
   }
@@ -964,6 +968,11 @@ class SwitchStats : public boost::noncopyable {
    * Histogram for time used for thrift request completion time (milliseconds)
    */
   fb303::detail::QuantileStatWrapper thriftRequestCompletionTimeMs_;
+
+  /**
+   * Histogram for DSF subscription serve delay watermark (milliseconds)
+   */
+  fb303::detail::QuantileStatWrapper dsfSubscriptionServeDelayWatermark_;
 
   /**
    * Background thread heartbeat delay (ms)

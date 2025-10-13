@@ -174,6 +174,17 @@ void DsfSubscription::setupSubscription() {
             queueRemoteStateChanged(
                 *switchState->getSystemPorts(), *switchState->getInterfaces());
           }
+          // Update the DSF subscription serve delay metric
+          if (update.lastServedAt.has_value()) {
+            auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+            auto delay = now - *update.lastServedAt;
+            XLOG(DBG2) << "DsfSubscription patch subscription delay: " << delay
+                       << " ms from remote node: " << this->remoteNodeName_;
+
+            this->sw_->stats()->dsfSubscriptionServeDelayMs(delay);
+          }
         },
         std::move(subscriptionStateCb));
   } else {
@@ -330,6 +341,11 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
 
   if (portsOrIntfsChanged) {
     queueRemoteStateChanged(curMswitchSysPorts_, curMswitchIntfs_);
+  }
+
+  // Update the DSF subscription serve delay metric if we computed any delays
+  if (maxServedDelay.has_value()) {
+    sw_->stats()->dsfSubscriptionServeDelayMs(*maxServedDelay);
   }
 }
 
