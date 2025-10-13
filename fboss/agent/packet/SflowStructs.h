@@ -33,6 +33,7 @@ using byte = uint8_t;
 enum struct AddressType : uint32_t { UNKNOWN = 0, IP_V4 = 1, IP_V6 = 2 };
 
 void serializeIP(folly::io::RWPrivateCursor* cursor, folly::IPAddress ip);
+folly::IPAddress deserializeIP(folly::io::Cursor& cursor);
 uint32_t sizeIP(folly::IPAddress ip);
 
 /* Data Format */
@@ -58,6 +59,7 @@ struct FlowRecord {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static FlowRecord deserialize(folly::io::Cursor& cursor);
 };
 
 // TODO (sgwang)
@@ -80,6 +82,7 @@ struct FlowSample {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static FlowSample deserialize(folly::io::Cursor& cursor);
 };
 
 /* Format of a single counter sample */
@@ -113,6 +116,7 @@ struct SampleRecord {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleRecord deserialize(folly::io::Cursor& cursor);
 };
 
 /* Header information for sFlow version 5 datagrams */
@@ -125,6 +129,7 @@ struct SampleDatagramV5 {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleDatagramV5 deserialize(folly::io::Cursor& cursor);
 };
 
 // Here we skip sample_datagram_type, since only v5 is used
@@ -135,6 +140,7 @@ struct SampleDatagram {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampleDatagram deserialize(folly::io::Cursor& cursor);
 };
 
 /* Proposed standard sFlow data formats (draft 14) */

@@ -18,11 +18,11 @@ using utils::Table;
 using RetType = CmdShowCpuPortTraits::RetType;
 
 RetType CmdShowCpuPort::queryClient(const HostInfo& hostInfo) {
-  facebook::fboss::CpuPortStats cpuPortStats;
+  std::map<int32_t, facebook::fboss::CpuPortStats> cpuPortStatEntries;
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-  client->sync_getCpuPortStats(cpuPortStats);
-  return createModel(cpuPortStats);
+  client->sync_getAllCpuPortStats(cpuPortStatEntries);
+  return createModel(cpuPortStatEntries);
 }
 
 void CmdShowCpuPort::printOutput(const RetType& model, std::ostream& out) {
@@ -30,40 +30,47 @@ void CmdShowCpuPort::printOutput(const RetType& model, std::ostream& out) {
 
   Table table;
   table.setHeader(
-      {"CPU Queue ID", "Queue Name", "Ingress Packets", "Discard Packets"});
-
-  for (auto const& cpuQueueEntry : model.cpuQueueEntries().value()) {
-    table.addRow(
-        {folly::to<std::string>(folly::copy(cpuQueueEntry.id().value())),
-         cpuQueueEntry.name().value(),
-         folly::to<std::string>(
-             folly::copy(cpuQueueEntry.ingressPackets().value())),
-         folly::to<std::string>(
-             folly::copy(cpuQueueEntry.discardPackets().value()))});
+      {"Switch ID",
+       "CPU Queue ID",
+       "Queue Name",
+       "Ingress Packets",
+       "Discard Packets"});
+  for (const auto& cpuPortEntry : model.cpuPortStatEntries().value()) {
+    for (const auto& cpuQueueEntry : cpuPortEntry.second) {
+      table.addRow(
+          {folly::to<std::string>(folly::copy(cpuPortEntry.first)),
+           folly::to<std::string>(folly::copy(cpuQueueEntry.id().value())),
+           cpuQueueEntry.name().value(),
+           folly::to<std::string>(
+               folly::copy(cpuQueueEntry.ingressPackets().value())),
+           folly::to<std::string>(
+               folly::copy(cpuQueueEntry.discardPackets().value()))});
+    }
   }
   out << table << std::endl;
 }
 
 RetType CmdShowCpuPort::createModel(
-    facebook::fboss::CpuPortStats& cpuPortStats) {
+    std::map<int32_t, facebook::fboss::CpuPortStats>& cpuPortStatEntries) {
   RetType model;
 
-  for (const auto& queueId2Name : cpuPortStats.queueToName_().value()) {
-    cli::CpuPortQueueEntry cpuPortQueueEntry;
-
-    cpuPortQueueEntry.id() = queueId2Name.first;
-    cpuPortQueueEntry.name() = queueId2Name.second;
-    const auto& ingressPktMap = cpuPortStats.queueInPackets_().value();
-    const auto& ingressPktIter = ingressPktMap.find(queueId2Name.first);
-    if (ingressPktIter != cpuPortStats.queueInPackets_().value().end()) {
-      cpuPortQueueEntry.ingressPackets() = ingressPktIter->second;
+  for (auto& [switchId, cpuPortStats] : cpuPortStatEntries) {
+    for (const auto& queueId2Name : cpuPortStats.queueToName_().value()) {
+      cli::CpuPortQueueEntry cpuPortQueueEntry;
+      cpuPortQueueEntry.id() = queueId2Name.first;
+      cpuPortQueueEntry.name() = queueId2Name.second;
+      const auto& ingressPktMap = cpuPortStats.queueInPackets_().value();
+      const auto& ingressPktIter = ingressPktMap.find(queueId2Name.first);
+      if (ingressPktIter != cpuPortStats.queueInPackets_().value().end()) {
+        cpuPortQueueEntry.ingressPackets() = ingressPktIter->second;
+      }
+      const auto& discardPktMap = cpuPortStats.queueDiscardPackets_().value();
+      const auto& discardPktIter = discardPktMap.find(queueId2Name.first);
+      if (discardPktIter != cpuPortStats.queueDiscardPackets_().value().end()) {
+        cpuPortQueueEntry.discardPackets() = discardPktIter->second;
+      }
+      model.cpuPortStatEntries()[switchId].push_back(cpuPortQueueEntry);
     }
-    const auto& discardPktMap = cpuPortStats.queueDiscardPackets_().value();
-    const auto& discardPktIter = discardPktMap.find(queueId2Name.first);
-    if (discardPktIter != cpuPortStats.queueDiscardPackets_().value().end()) {
-      cpuPortQueueEntry.discardPackets() = discardPktIter->second;
-    }
-    model.cpuQueueEntries()->push_back(cpuPortQueueEntry);
   }
   return model;
 }

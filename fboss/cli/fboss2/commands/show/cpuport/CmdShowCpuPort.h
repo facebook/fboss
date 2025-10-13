@@ -37,7 +37,8 @@ class CmdShowCpuPort : public CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits> {
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 
-  RetType createModel(facebook::fboss::CpuPortStats& cpuPortStats);
+  RetType createModel(
+      std::map<int32_t, facebook::fboss::CpuPortStats>& cpuPortStats);
 };
 
 } // namespace facebook::fboss

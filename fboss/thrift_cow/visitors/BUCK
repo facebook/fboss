@@ -56,6 +56,7 @@ cpp_library(
         "VisitorUtils.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":common",
         ":results-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
@@ -77,6 +78,5 @@ cpp_library(
     exported_external_deps = [
         "boost",
         "glog",
-        "re2",
     ],
 )
