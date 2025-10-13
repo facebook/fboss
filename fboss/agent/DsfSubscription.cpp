@@ -13,6 +13,8 @@
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/util/Logging.h"
 
+#include <chrono>
+
 DEFINE_int32(
     dsf_subscription_chunk_timeout,
     15,
@@ -262,10 +264,13 @@ void DsfSubscription::handleFsdbSubscriptionStateUpdate(
     processGRHoldTimerExpired();
   }
 }
-
 void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
   bool portsOrIntfsChanged{false};
+  std::optional<int64_t> maxServedDelay;
+
+  // Single pass: compute max delay and process changes
   for (const auto& change : *operStateUnit.changes()) {
+    // Process the actual state changes
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got sys port update from : " << remoteNodeName_;
       curMswitchSysPorts_.fromThrift(thrift_cow::deserialize<
@@ -300,7 +305,29 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
           " from node: ",
           remoteNodeName_);
     }
+
+    // Calculate served delay if metadata is available
+    if (change.state()->metadata().has_value()) {
+      const auto& metadata = *change.state()->metadata();
+
+      if (metadata.lastServedAt().has_value()) {
+        auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::system_clock::now().time_since_epoch())
+                       .count();
+        auto delay = now - *metadata.lastServedAt();
+
+        XLOG(DBG2) << "DsfSubscription handleFsdbUpdate delay: " << delay
+                   << " ms for path: "
+                   << folly::join("/", *change.path()->path())
+                   << " from remote node: " << remoteNodeName_;
+
+        if (!maxServedDelay.has_value() || delay > *maxServedDelay) {
+          maxServedDelay = delay;
+        }
+      }
+    }
   }
+
   if (portsOrIntfsChanged) {
     queueRemoteStateChanged(curMswitchSysPorts_, curMswitchIntfs_);
   }
