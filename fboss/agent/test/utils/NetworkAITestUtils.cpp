@@ -331,8 +331,8 @@ void applyBackendAsicConfig(
       config,
       [](std::string& yamlCfg) {
         std::string toReplace("LOSSY");
-        std::size_t pos = yamlCfg.find(toReplace);
-        if (pos != std::string::npos) {
+        if (std::size_t pos = yamlCfg.find(toReplace);
+            pos != std::string::npos) {
           yamlCfg.replace(
               pos,
               toReplace.length(),
