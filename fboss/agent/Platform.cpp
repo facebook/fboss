@@ -253,6 +253,8 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544_OPTICAL:
+    case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL:
@@ -260,6 +262,8 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544_OPTICAL:
+    case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544_COPPER:
     case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
       return 4;
 
@@ -268,6 +272,8 @@ int Platform::getLaneCount(cfg::PortProfileID profile) const {
     case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544_OPTICAL:
+    case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544_COPPER:
       return 8;
 
     case cfg::PortProfileID::PROFILE_DEFAULT:

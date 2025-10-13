@@ -65,6 +65,8 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     if profile in [
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
     ]:
@@ -72,6 +74,8 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     if profile in [
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
     ]:
@@ -79,6 +83,8 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     if profile in [
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
     ]:
         return [PortSpeed.EIGHTHUNDREDG]
@@ -140,8 +146,12 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
     ]:
         return 4
@@ -149,6 +159,8 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544_COPPER,
     ]:
         return 8
     if profile in [PortProfileID.PROFILE_DEFAULT]:
@@ -785,8 +797,11 @@ def transmitter_tech_from_profile(
     if profile in [
         PortProfileID.PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL,
         PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
         PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
@@ -815,9 +830,12 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544_COPPER,
     ]:
         return [TransmitterTechnology.COPPER]
     if profile in [PortProfileID.PROFILE_DEFAULT]:
