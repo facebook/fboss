@@ -301,4 +301,36 @@ TEST_F(TransceiverManagerTest, resetProgrammedIPhyPortToPortInfoForPorts) {
   transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(std::nullopt);
 }
 
+TEST_F(TransceiverManagerTest, programTransceiverWithNullQsfpConfig) {
+  // Set up test data using the override mechanism first
+  TransceiverManager::OverrideTcvrToPortAndProfile testOverride = {
+      {TransceiverID(0),
+       {{PortID(1), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL}}}};
+
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(testOverride);
+
+  // Program internal PHY ports to populate tcvrToPortInfo_
+  transceiverManager_->programInternalPhyPorts(TransceiverID(0));
+
+  // Reset the transceiver manager to create one without a qsfp config
+  // This will make qsfpConfig_ NULL, which will test the untested lines in
+  // getOpticalChannelConfig
+  resetTransceiverManager();
+
+  // Set up the override again since resetTransceiverManager creates a new
+  // instance
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(testOverride);
+  transceiverManager_->programInternalPhyPorts(TransceiverID(0));
+
+  // Call programTransceiver which internally calls getOpticalChannelConfig
+  // This should handle the NULL qsfpConfig_ case gracefully without crashing
+  // The getOpticalChannelConfig method will return std::nullopt when
+  // qsfpConfig_ is NULL
+  EXPECT_NO_THROW(
+      transceiverManager_->programTransceiver(TransceiverID(0), false));
+
+  // Clean up override
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(std::nullopt);
+}
+
 } // namespace facebook::fboss
