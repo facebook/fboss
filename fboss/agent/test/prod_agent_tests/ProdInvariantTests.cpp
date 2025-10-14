@@ -589,13 +589,14 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
   }
 
   void verifyFlowletAcls() {
+    auto config = getSw()->getConfig();
     // verify udf roce opcode ACL
     sendAndVerifyRoCETraffic(
         utility::kUdfRoceOpcodeAck,
         utility::kUdfAclRoceOpcodeName,
-        utility::kUdfAclRoceOpcodeStats);
+        utility::isSaiConfig(config) ? utility::kUdfAclRoceOpcodeName
+                                     : utility::kUdfAclRoceOpcodeStats);
 
-    auto config = getSw()->getConfig();
     // verify flowlet ACL to enable DLB
     sendAndVerifyRoCETraffic(
         utility::kUdfRoceOpcodeWriteImmediate,
