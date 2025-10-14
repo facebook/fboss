@@ -141,8 +141,9 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
       std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
 
   int maxRouteCounters = numRouteCounters;
-  if (checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
-          ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+  if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches() &&
+      checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
+              ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
     // MT-762: counter Id 254 is preserved internally in SDK
     // >= 24.8.3001 for EBRO
     maxRouteCounters = 254;
