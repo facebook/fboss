@@ -213,7 +213,13 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_SQUELCH_DISABLE, {CmisPages::PAGE10, 139, 1}},
     {CmisField::STAGE_CTRL_SET_0, {CmisPages::PAGE10, 143, 1}},
     {CmisField::STAGE_CTRL_SET0_IMMEDIATE, {CmisPages::PAGE10, 144, 1}},
-    {CmisField::APP_SEL_ALL_LANES, {CmisPages::PAGE10, 145, 8}},
+    {CmisField::APP_SEL_LANE_1_8, {CmisPages::PAGE10, 145, 8}},
+    {CmisField::APP_SEL_LANE_1_2, {CmisPages::PAGE10, 145, 2}},
+    {CmisField::APP_SEL_LANE_3_4, {CmisPages::PAGE10, 147, 2}},
+    {CmisField::APP_SEL_LANE_5_6, {CmisPages::PAGE10, 149, 2}},
+    {CmisField::APP_SEL_LANE_7_8, {CmisPages::PAGE10, 151, 2}},
+    {CmisField::APP_SEL_LANE_1_4, {CmisPages::PAGE10, 145, 4}},
+    {CmisField::APP_SEL_LANE_5_8, {CmisPages::PAGE10, 149, 4}},
     {CmisField::APP_SEL_LANE_1, {CmisPages::PAGE10, 145, 1}},
     {CmisField::APP_SEL_LANE_2, {CmisPages::PAGE10, 146, 1}},
     {CmisField::APP_SEL_LANE_3, {CmisPages::PAGE10, 147, 1}},
@@ -358,16 +364,30 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
 };
 
-static std::unordered_map<int, CmisField> laneToAppSelField = {
-    {0, CmisField::APP_SEL_LANE_1},
-    {1, CmisField::APP_SEL_LANE_2},
-    {2, CmisField::APP_SEL_LANE_3},
-    {3, CmisField::APP_SEL_LANE_4},
-    {4, CmisField::APP_SEL_LANE_5},
-    {5, CmisField::APP_SEL_LANE_6},
-    {6, CmisField::APP_SEL_LANE_7},
-    {7, CmisField::APP_SEL_LANE_8},
-};
+CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
+  const std::map<std::set<uint8_t>, CmisField> kLanesToCmisField = {
+      {{0}, CmisField::APP_SEL_LANE_1},
+      {{1}, CmisField::APP_SEL_LANE_2},
+      {{2}, CmisField::APP_SEL_LANE_3},
+      {{3}, CmisField::APP_SEL_LANE_4},
+      {{4}, CmisField::APP_SEL_LANE_5},
+      {{5}, CmisField::APP_SEL_LANE_6},
+      {{6}, CmisField::APP_SEL_LANE_7},
+      {{7}, CmisField::APP_SEL_LANE_8},
+      {{0, 1}, CmisField::APP_SEL_LANE_1_2},
+      {{2, 3}, CmisField::APP_SEL_LANE_3_4},
+      {{4, 5}, CmisField::APP_SEL_LANE_5_6},
+      {{6, 7}, CmisField::APP_SEL_LANE_7_8},
+      {{0, 1, 2, 3}, CmisField::APP_SEL_LANE_1_4},
+      {{4, 5, 6, 7}, CmisField::APP_SEL_LANE_5_8},
+      {{0, 1, 2, 3, 4, 5, 6, 7}, CmisField::APP_SEL_LANE_1_8},
+  };
+  if (const auto& it = kLanesToCmisField.find(lanes);
+      it != kLanesToCmisField.end()) {
+    return it->second;
+  }
+  throw FbossError("Can't find app sel for lanes ", folly::join(",", lanes));
+}
 
 static std::unordered_map<int, CmisField> laneToActiveCtrlField = {
     {0, CmisField::ACTIVE_CTRL_LANE_1},
@@ -2185,78 +2205,17 @@ void CmisModule::setApplicationSelectCode(
   // that function relies on the configured application select but at
   // this point appSel hasn't been updated.
   uint8_t applySetForConfigureLanes = hostLaneMask;
-  uint8_t applySetForReleaseLanes = 0;
-
-  std::unordered_set<uint8_t> lanesToRelease, lanesToConfigure;
-  // Read and cache all laneToActiveCtrlField. We can't rely on existing
-  // cache because we may not have got a chance to update in between
-  // programming different ports in a sequence
-  std::array<uint8_t, 8> laneToActiveCtrlFieldVals;
-  for (auto it = laneToActiveCtrlField.begin();
-       it != laneToActiveCtrlField.end();
-       it++) {
-    readCmisField(it->second, &laneToActiveCtrlFieldVals[it->first]);
-  }
+  std::set<uint8_t> lanesToProgramAppSel;
+  std::vector<uint8_t> appSelCode;
   for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
        lane++) {
-    lanesToConfigure.insert(lane);
-    lanesToRelease.insert(lane);
-    applySetForReleaseLanes |= (1 << lane);
-    // Get all lanes with the same data path ID as this lane
-    uint8_t currDataPathId =
-        (laneToActiveCtrlFieldVals[lane] & DATA_PATH_ID_MASK) >>
-        DATA_PATH_ID_BITSHIFT;
-    uint8_t currAppSel =
-        (laneToActiveCtrlFieldVals[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
-    // If currently App Sel is 0, it means this lane is not part of any
-    // active data path yet. No need to find other lanes to release
-    if (currAppSel == 0) {
-      continue;
-    }
-    // If we are here, it means that this lane is part of an active data
-    // path. Find out which other lanes are active with the same data path
-    // id and then release them
-    for (auto it = laneToActiveCtrlField.begin();
-         it != laneToActiveCtrlField.end();
-         it++) {
-      auto otherLane = it->first;
-      uint8_t otherAppSel =
-          (laneToActiveCtrlFieldVals[otherLane] & APP_SEL_MASK) >>
-          APP_SEL_BITSHIFT;
-      // Ignore lanes with app sel 0 as that means that the lane is not part
-      // of any data path
-      if (otherAppSel == 0) {
-        continue;
-      }
-      uint8_t otherDataPathId =
-          (laneToActiveCtrlFieldVals[otherLane] & DATA_PATH_ID_MASK) >>
-          DATA_PATH_ID_BITSHIFT;
-      if (currDataPathId == otherDataPathId) {
-        lanesToRelease.insert(otherLane);
-        applySetForReleaseLanes |= (1 << otherLane);
-      }
-    }
-  }
-  // First release the lanes if they are already part of any datapath
-  for (auto it = lanesToRelease.begin(); it != lanesToRelease.end(); it++) {
-    QSFP_LOG(INFO, this) << folly::sformat("Releasing lane {:#x}", *it);
-    uint8_t zeroApSelCode = 0;
-    // Assign ApSel code of 0 to each lane to indicate that the lane is
-    // not part of any datapath
-    writeCmisField(laneToAppSelField[*it], &zeroApSelCode);
-  }
-  // We don't need to check if lanesToRelease is empty or not before setting
-  // stage_ctrl_set_0 because there will always be lanes to release. At the
-  // minimum, we'll try to release the same lane we are trying to configure
-  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForReleaseLanes);
-
-  // Now assign the correct ApSel code to all relevant lanes
-  for (auto it = lanesToConfigure.begin(); it != lanesToConfigure.end(); it++) {
     // Assign ApSel code to each lane
     QSFP_LOG(INFO, this) << folly::sformat(
-        "Configuring lane {:#x} with apsel code {:#x}", *it, newApSelCode);
-    writeCmisField(laneToAppSelField[*it], &newApSelCode);
+        "Configuring lane {:#x} with apsel code {:#x}", lane, newApSelCode);
+    lanesToProgramAppSel.insert(lane);
+    appSelCode.push_back(newApSelCode);
   }
+  writeCmisField(laneToAppSelField(lanesToProgramAppSel), appSelCode.data());
 
   writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForConfigureLanes);
 
@@ -2319,7 +2278,7 @@ void CmisModule::setApplicationSelectCodeAllPorts(
         stageSet0Config[lane++] = 0;
       }
     }
-    writeCmisField(CmisField::APP_SEL_ALL_LANES, stageSet0Config.data());
+    writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
 
     // Trigger the Set 0 application code setting to be applied on data
     // path init for all the lanes. The actual data-path init will be
@@ -2454,7 +2413,11 @@ void CmisModule::setApplicationCodeLocked(
     }
 
     auto numHostLanes = capability->hostLaneCount;
-    if (speed == cfg::PortSpeed::HUNDREDG &&
+    // We could support 100G-1 or 100G-4, 200G-1, 200G-2 or 200G-4, 400G-2 or
+    // 400G-4. Thus compare both speed and number of host lanes
+    if ((speed == cfg::PortSpeed::HUNDREDG ||
+         speed == cfg::PortSpeed::TWOHUNDREDG ||
+         speed == cfg::PortSpeed::FOURHUNDREDG) &&
         numHostLanesForPort != numHostLanes) {
       continue;
     }
@@ -2484,6 +2447,7 @@ void CmisModule::setApplicationCodeLocked(
     if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
         !isRequestValidMultiportSpeedConfig(
             speed, startHostLane, numHostLanes)) {
+      QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
       resetDataPathWithFunc(std::bind(
           &CmisModule::setApplicationSelectCodeAllPorts,
           this,
@@ -2493,6 +2457,8 @@ void CmisModule::setApplicationCodeLocked(
           hostLaneMask)); // To use the default hostLaneMask = 0xFF for
                           // all the lanes datapath reset.
     } else {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Programming App sel on lanes {:#x}", hostLaneMask);
       resetDataPathWithFunc(
           std::bind(
               &CmisModule::setApplicationSelectCode,
@@ -3145,12 +3111,18 @@ void CmisModule::setModuleRxEqualizerLocked(
 
     // Apply the change using stage 0 control
     uint8_t stage0Control[8];
-    readCmisField(CmisField::APP_SEL_ALL_LANES, stage0Control);
+    readCmisField(CmisField::APP_SEL_LANE_1_8, stage0Control);
+    std::set<uint8_t> lanesToConfigure;
+    std::vector<uint8_t> stageControlToWrite;
     for (int i = startHostLane; i < startHostLane + hostLaneCount; i++) {
       stage0Control[i] |= 1;
-      writeCmisField(
-          laneToAppSelField[i], stage0Control, true /* skipPageChange */);
+      lanesToConfigure.insert(i);
+      stageControlToWrite.push_back(stage0Control[i]);
     }
+    writeCmisField(
+        laneToAppSelField(lanesToConfigure),
+        stageControlToWrite.data(),
+        true /* skipPageChange */);
 
     // Trigger the stage 0 control values to be operational in optics
     uint8_t stage0ControlTrigger = laneMask(startHostLane, hostLaneCount);

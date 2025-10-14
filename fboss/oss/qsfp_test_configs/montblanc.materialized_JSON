@@ -118,6 +118,26 @@
         "profileID": 38
       },
       {
+        "aPortName": "eth1/41/1",
+        "zPortName": "eth1/42/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/41/5",
+        "zPortName": "eth1/42/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/43/1",
+        "zPortName": "eth1/44/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/43/5",
+        "zPortName": "eth1/44/5",
+        "profileID": 38
+      },
+      {
         "aPortName": "eth1/45/1",
         "zPortName": "eth1/49/1",
         "profileID": 25
@@ -126,31 +146,6 @@
         "aPortName": "eth1/45/5",
         "zPortName": "eth1/49/5",
         "profileID": 38
-      },
-      {
-        "aPortName": "eth1/50/1",
-        "zPortName": "eth1/51/1",
-        "profileID": 45
-      },
-      {
-        "aPortName": "eth1/50/5",
-        "zPortName": "eth1/51/5",
-        "profileID": 45
-      },
-      {
-        "aPortName": "eth1/52/1",
-        "zPortName": "eth1/53/1",
-        "profileID": 45
-      },
-      {
-        "aPortName": "eth1/52/5",
-        "zPortName": "eth1/53/5",
-        "profileID": 45
-      },
-      {
-        "aPortName": "eth1/54/1",
-        "zPortName": "eth1/55/1",
-        "profileID": 50
       },
       {
         "aPortName": "eth1/58/1",
@@ -226,6 +221,22 @@
             {
               "fwType": 1,
               "version": "3.5"
+            }
+          ]
+      },
+      "EOLO-13T-5H-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.1"
+            }
+          ]
+      },
+      "EOLO-13T-5H-SDR1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.1"
             }
           ]
       },
@@ -353,7 +364,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.9"
+              "version": "2.11"
             }
           ]
       },
@@ -378,6 +389,14 @@
             {
               "fwType": 1,
               "version": "1.16"
+            }
+          ]
+      },
+      "FTCF2519E3PCA-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.4"
             }
           ]
       },
@@ -590,6 +609,22 @@
             {
               "fwType": 1,
               "version": "103.137"
+            }
+          ]
+      },
+      "T-RH8ENH-N00": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.245"
+            }
+          ]
+      },
+      "T-RH8ENH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.245"
             }
           ]
       }

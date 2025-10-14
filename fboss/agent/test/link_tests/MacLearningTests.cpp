@@ -1,9 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/SwitchState.h"

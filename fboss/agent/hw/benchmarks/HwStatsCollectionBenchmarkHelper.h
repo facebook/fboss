@@ -140,10 +140,19 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
   ports.resize(
       std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
 
+  int maxRouteCounters = numRouteCounters;
+  if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches() &&
+      checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
+              ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+    // MT-762: counter Id 254 is preserved internally in SDK
+    // >= 24.8.3001 for EBRO
+    maxRouteCounters = 254;
+  }
+
   if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::ROUTE_COUNTERS)) {
     auto updater = ensemble->getSw()->getRouteUpdater();
-    for (auto i = 0; i < numRouteCounters; i++) {
+    for (auto i = 0; i < maxRouteCounters; i++) {
       folly::CIDRNetwork nw{
           folly::IPAddress(folly::sformat("2401:db00:0021:{:x}::", i)), 64};
       std::optional<RouteCounterID> counterID(std::to_string(i));

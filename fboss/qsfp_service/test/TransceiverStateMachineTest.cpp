@@ -473,14 +473,17 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state))
         .Times(callTimes)
         .InSequence(s);
+    EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
     if (multiPort) {
       TransceiverPortState state2{
           kPortName3, 2 /* startHostLane */, portSpeed, 4};
       EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state2))
           .Times(callTimes)
           .InSequence(s);
+      EXPECT_CALL(*mockXcvr, updateQsfpData(true))
+          .Times(callTimes)
+          .InSequence(s);
     }
-    EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
     EXPECT_CALL(*mockXcvr, configureModule(0 /* startHostLane */))
         .Times(callTimes)
         .InSequence(s);

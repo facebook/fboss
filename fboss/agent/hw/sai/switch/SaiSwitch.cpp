@@ -4309,7 +4309,7 @@ SaiManagerTable* SaiSwitch::managerTableLocked(
 void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  XLOG(DBG2) << "Received " << count << " learn notifications";
+  XLOG(DBG4) << "Received " << count << " learn notifications";
   if (runState_ < SwitchRunState::CONFIGURED) {
     // receive learn events after switch is configured to prevent
     // fdb entries from being created against ports  which would
@@ -4350,7 +4350,7 @@ void SaiSwitch::fdbEventCallback(
     }
     fdbEventNotificationDataTmp.emplace_back(
         data[i].event_type, data[i].fdb_entry, bridgePortSaiId, fdbMetaData);
-    XLOG(DBG2) << "Received FDB event: " << fdbEventToString(data[i].event_type)
+    XLOG(DBG4) << "Received FDB event: " << fdbEventToString(data[i].event_type)
                << " for bridge port: " << bridgePortSaiId;
   }
   fdbEventBottomHalfEventBase_.runInFbossEventBaseThread(
@@ -4369,6 +4369,7 @@ void SaiSwitch::fdbEventCallbackLockedBottomHalf(
         cfg::L2LearningMode::SOFTWARE) {
       // Some platforms call fdb callback even when mode is set to HW. In
       // keeping with our native SDK approach, don't send these events up.
+      XLOG(DBG4) << "Ignoring FDB learn notification as mode is not software";
       return;
     }
 

@@ -996,6 +996,10 @@ class TransceiverManager {
 
   std::unordered_set<TransceiverID> getTcvrsReadyForProgramming() const;
 
+  // Helper function to get optical channel config from qsfp config
+  std::optional<cfg::OpticalChannelConfig> getOpticalChannelConfig(
+      TransceiverID id) const;
+
   // Store the QSFP service state for warm boots.
   // Updated on every refresh of the state machine as well as during graceful
   // exit.

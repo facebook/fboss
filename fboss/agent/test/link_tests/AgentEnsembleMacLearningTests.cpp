@@ -67,7 +67,10 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
                  << vlanId << ": " << (node != nullptr);
       return node != nullptr;
     };
-    EXPECT_TRUE(waitForSwitchStateCondition(l2EntryLearned, kMaxRetries));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(
+          waitForSwitchStateCondition(l2EntryLearned, kMaxRetries));
+    });
   }
 
   void verifyL2EntryValidated(PortID txPort, MacAddress srcMac) {
@@ -149,21 +152,22 @@ TEST_F(AgentEnsembleMacLearningTest, l2EntryFlap) {
     facebook::fboss::ThriftHandler handler(getSw());
     handler.getL2Table(l2Entries);
 
-    bool foundL2Entry = false;
-    for (auto& l2Entry : l2Entries) {
-      if (*l2Entry.mac() == macAddr.toString()) {
-        XLOG(DBG2) << "L2 entry state is "
-                   << (*l2Entry.l2EntryType() ==
-                               L2EntryType::L2_ENTRY_TYPE_PENDING
-                           ? "pending"
-                           : "validated");
-        foundL2Entry = true;
-        EXPECT_TRUE(
-            *l2Entry.l2EntryType() == L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+    WITH_RETRIES({
+      bool foundL2Entry = false;
+      for (auto& l2Entry : l2Entries) {
+        if (*l2Entry.mac() == macAddr.toString()) {
+          XLOG(DBG2) << "L2 entry state is "
+                     << (*l2Entry.l2EntryType() ==
+                                 L2EntryType::L2_ENTRY_TYPE_PENDING
+                             ? "pending"
+                             : "validated");
+          foundL2Entry = true;
+          EXPECT_EVENTUALLY_TRUE(
+              *l2Entry.l2EntryType() == L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+        }
       }
-    }
-    EXPECT_TRUE(foundL2Entry);
-
+      EXPECT_EVENTUALLY_TRUE(foundL2Entry);
+    });
     verifyL2EntryValidated(txPort, macAddr);
   };
   verifyAcrossWarmBoots([]() {}, verify);

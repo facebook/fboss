@@ -32,6 +32,7 @@ cpp_library(
         "facebook/PlatformProductInfo.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":fruid_fields",
         "//common/fbwhoami:fb_who_am_i",
         "//fboss/agent:fboss-error",
@@ -45,7 +46,6 @@ cpp_library(
         "//folly/testing:test_util",
     ],
     exported_external_deps = [
-        "re2",
         ("boost", None, "boost_algorithm"),
     ],
 )

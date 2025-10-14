@@ -2,11 +2,16 @@
 
 #pragma once
 
+#include <fb303/ExportType.h>
+#include <fb303/ThreadCachedServiceData.h>
+#include <fb303/detail/QuantileStatWrappers.h>
 #include <fboss/thrift_cow/storage/CowStateUpdate.h>
 #include <fboss/thrift_cow/storage/CowStorage.h>
+#include <fmt/format.h>
 #include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/xlog.h>
+#include <optional>
 
 namespace facebook::fboss::fsdb {
 
@@ -23,15 +28,23 @@ class CowStorageMgr {
   explicit CowStorageMgr(
       CowStorage<Root>&& storage,
       CowStateUpdateCb cb = [](const auto& /*oldState*/,
-                               const auto& /*newState*/) {})
+                               const auto& /*newState*/) {},
+      std::optional<std::string> clientCounterPrefix = std::nullopt)
       : storage_(std::make_unique<CowStorage<Root>>(std::move(storage))),
-        stateUpdateCb_(cb) {}
+        stateUpdateCb_(cb),
+        clientCounterPrefix_(clientCounterPrefix) {
+    initCowStateUpdateCounter();
+  }
 
   // Create blank published state
   explicit CowStorageMgr(
       CowStateUpdateCb cb = [](const auto& /*oldState*/,
-                               const auto& /*newState*/) {})
-      : CowStorageMgr(CowStorage<Root>(Root()), std::move(cb)) {
+                               const auto& /*newState*/) {},
+      std::optional<std::string> clientCounterPrefix = std::nullopt)
+      : CowStorageMgr(
+            CowStorage<Root>(Root()),
+            std::move(cb),
+            clientCounterPrefix) {
     (*storage_.wlock())->publish();
   }
 
@@ -49,7 +62,12 @@ class CowStorageMgr {
    * thread in order to update the CowState
    *
    */
-  void updateState(std::unique_ptr<CowStateUpdate<Root>> update) {
+  void updateState(
+      std::unique_ptr<CowStateUpdate<Root>> update,
+      bool printUpdateDelay = false) {
+    // Set the print update delay flag on the update
+    update->setPrintUpdateDelay(printUpdateDelay);
+
     pendingUpdates_.wlock()->push_back(*update.release());
     XLOG(DBG2) << "[FSDB] # Pending updates "
                << pendingUpdates_.rlock()->size();
@@ -81,10 +99,13 @@ class CowStorageMgr {
    * subscribers.  Therefore the CowStateUpdateFn may be called with an
    * unpublished CowState in some cases.
    */
-  void updateState(folly::StringPiece name, CowStateUpdateFn fn) {
+  void updateState(
+      folly::StringPiece name,
+      CowStateUpdateFn fn,
+      bool printUpdateDelay = false) {
     auto update =
         std::make_unique<FunctionCowStateUpdate<Root>>(name, std::move(fn));
-    updateState(std::move(update));
+    updateState(std::move(update), printUpdateDelay);
   }
   /**
    * Schedule an update to the CowState.
@@ -130,6 +151,28 @@ class CowStorageMgr {
   }
 
  private:
+  void initCowStateUpdateCounter() {
+    // Only create the quantile stat if a client counter prefix is provided
+    if (clientCounterPrefix_.has_value()) {
+      std::string clientCounterName =
+          fmt::format("{}.cow_state_update.us", *clientCounterPrefix_);
+
+      quantileStat_.emplace(
+          clientCounterName,
+          fb303::ExportTypeConsts::kAvg,
+          fb303::QuantileConsts::kP95_P99_P100);
+    }
+  }
+
+  void markCowStateUpdateCounter(int64_t delayUs) {
+    /*
+     * Counter would have been created only if the clientCounterPrefix is passed
+     */
+    if (quantileStat_.has_value()) {
+      quantileStat_->addValue(delayUs);
+    }
+  }
+
   static void handlePendingUpdatesHelper(CowStorageMgr<Root>* mgr) {
     mgr->handlePendingUpdates();
   }
@@ -171,7 +214,7 @@ class CowStorageMgr {
       ++iter;
 
       std::shared_ptr<CowState> intermediateState;
-      XLOG(DBG3) << "preparing state update " << update->getName();
+
       try {
         intermediateState = update->applyUpdate(newDesiredState);
       } catch (const std::exception& ex) {
@@ -191,6 +234,22 @@ class CowStorageMgr {
         // existing state, leaving it in an invalid state.
         intermediateState->publish();
         newDesiredState = intermediateState;
+      }
+
+      // Calculate processing delay in microseconds
+      auto now = std::chrono::steady_clock::now();
+      auto delayUs = std::chrono::duration_cast<std::chrono::microseconds>(
+                         now - update->getQueuedTimestamp())
+                         .count();
+
+      markCowStateUpdateCounter(delayUs);
+
+      if (update->shouldPrintUpdateDelay()) {
+        XLOG(DBG2) << "Applied state update " << update->getName()
+                   << " (processing delay: " << delayUs << " μs)";
+      } else {
+        XLOG(DBG3) << "Applied state update " << update->getName()
+                   << " (processing delay: " << delayUs << " μs)";
       }
     }
     // Invoke callback on change
@@ -213,6 +272,8 @@ class CowStorageMgr {
    */
   folly::Synchronized<CowStateUpdateList> pendingUpdates_;
   folly::ScopedEventBaseThread updateEvbThread_{"CowStorageMgrUpdateThread"};
+  std::optional<fb303::detail::QuantileStatWrapper> quantileStat_;
+  std::optional<std::string> clientCounterPrefix_;
 };
 
 } // namespace facebook::fboss::fsdb

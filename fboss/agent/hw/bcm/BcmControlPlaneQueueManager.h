@@ -54,6 +54,9 @@ class BcmControlPlaneQueueManager : public BcmCosQueueManager {
   BcmControlPlaneQueueManager(BcmControlPlaneQueueManager const&) = delete;
   BcmControlPlaneQueueManager& operator=(BcmControlPlaneQueueManager const&) =
       delete;
+  BcmControlPlaneQueueManager(BcmControlPlaneQueueManager&&) = delete;
+  BcmControlPlaneQueueManager& operator=(BcmControlPlaneQueueManager&&) =
+      delete;
 
   std::pair<bcm_gport_t, bcm_cos_queue_t> getQueueStatIDPair(
       bcm_cos_queue_t cosQ,

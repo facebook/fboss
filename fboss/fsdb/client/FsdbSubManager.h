@@ -8,6 +8,8 @@
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
+#include <chrono>
+
 namespace facebook::fboss::fsdb {
 
 /*
@@ -53,6 +55,9 @@ class FsdbSubManager : public FsdbSubManagerBase {
     std::vector<SubscriptionKey> updatedKeys;
     // concrete paths that changed
     std::vector<std::vector<std::string>> updatedPaths;
+    // Minimum lastServedAt timestamp in milliseconds across all paths
+    // (optional, only if metadata available)
+    std::optional<int64_t> lastServedAt;
   };
 
   using DataCallback = std::function<void(SubUpdate)>;
@@ -128,8 +133,27 @@ class FsdbSubManager : public FsdbSubManagerBase {
     changedKeys.reserve(chunk.patchGroups()->size());
     std::vector<std::vector<std::string>> changedPaths;
     changedPaths.reserve(chunk.patchGroups()->size());
+    std::optional<int64_t> lastServedAt;
+
     for (auto& [key, patchGroup] : *chunk.patchGroups()) {
       for (auto& patch : patchGroup) {
+        // Calculate served delay and track minimum lastServedAt timestamp
+        const auto& metadata = *patch.metadata();
+
+        if (metadata.lastServedAt().has_value()) {
+          auto patchLastServedAt = *metadata.lastServedAt();
+          auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
+          auto delay = now - patchLastServedAt;
+
+          XLOG(DBG2) << "FsdbSubManager subscription delay: " << delay
+                     << " ms for path: " << folly::join("/", *patch.basePath());
+
+          if (!lastServedAt.has_value() || patchLastServedAt < *lastServedAt) {
+            lastServedAt = patchLastServedAt;
+          }
+        }
         changedKeys.push_back(key);
         changedPaths.emplace_back(*patch.basePath());
         root_.patch(std::move(patch));
@@ -137,7 +161,10 @@ class FsdbSubManager : public FsdbSubManagerBase {
     }
     root_.publish();
     SubUpdate update{
-        root_.root(), std::move(changedKeys), std::move(changedPaths)};
+        root_.root(),
+        std::move(changedKeys),
+        std::move(changedPaths),
+        lastServedAt};
     cb(std::move(update));
   }
 

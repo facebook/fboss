@@ -112,14 +112,15 @@ int main(int argc, char* argv[]) {
           portNames.emplace_back(portStr);
         } else {
           portNum = folly::to<unsigned int>(argv[n]);
-          auto portName =
+          auto portNameList =
               wedgeManager->getPortNames(TransceiverID(portNum - 1));
-          if (portName.empty()) {
+          if (portNameList.empty()) {
             throw FbossError(
                 "Couldn't find a portName for transceiverID (1-indexed):",
                 portNum);
           }
-          portNames.insert(portNames.end(), portName.begin(), portName.end());
+          portNames.insert(
+              portNames.end(), portNameList.begin(), portNameList.end());
         }
         ports.push_back(portNum);
       } catch (const std::exception& ex) {
