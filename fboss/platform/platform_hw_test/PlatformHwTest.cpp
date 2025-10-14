@@ -21,20 +21,20 @@
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
+#include "fboss/platform/weutil/ConfigUtils.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
-#include "fboss/platform/weutil/Weutil.h"
 
 namespace facebook::fboss::platform {
 
 class PlatformHwTest : public ::testing::Test {
  public:
   void SetUp() override {
-    weutilConfig_ = getWeUtilConfig();
     platformConfig_ = platform_manager::ConfigUtils().getConfig();
+    fruEepromList_ = weutil::ConfigUtils().getFruEepromList();
   }
 
  protected:
-  weutil_config::WeutilConfig weutilConfig_;
+  std::unordered_map<std::string, weutil::FruEeprom> fruEepromList_;
   platform_manager::PlatformConfig platformConfig_;
 
   folly::MacAddress getMacAddress(const std::string& interface) {
@@ -74,10 +74,9 @@ TEST_F(PlatformHwTest, CorrectMacX86) {
   EXPECT_NE(eth0Mac, folly::MacAddress::ZERO);
 
   // Get SCM/COME mac address
-  const auto eeprom_name =
-      (*weutilConfig_.fruEepromList()).contains("SCM") ? "SCM" : "COME";
-  auto eeprom = (*weutilConfig_.fruEepromList()).at(eeprom_name);
-  FbossEepromInterface eepromInterface(*eeprom.path(), *eeprom.offset());
+  const auto eeprom_name = fruEepromList_.contains("SCM") ? "SCM" : "COME";
+  auto eeprom = fruEepromList_.at(eeprom_name);
+  FbossEepromInterface eepromInterface(eeprom.path, eeprom.offset);
   std::string eepromMacStr = (*eepromInterface.getEepromContents().x86CpuMac());
   eepromMacStr = eepromMacStr.substr(0, eepromMacStr.find(','));
   auto eepromMac = folly::MacAddress::fromString(eepromMacStr);

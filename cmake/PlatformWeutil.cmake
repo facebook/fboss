@@ -42,6 +42,7 @@ add_library(weutil_lib
 )
 
 target_link_libraries(weutil_lib
+  weutil_config_utils
   platform_utils
   Folly::folly
   eeprom_content_validator
@@ -50,6 +51,17 @@ target_link_libraries(weutil_lib
   platform_manager_config_utils
   platform_name_lib
   ioctl_smbus_eeprom_reader
+)
+
+add_library(weutil_config_utils
+  fboss/platform/weutil/ConfigUtils.cpp
+)
+
+target_link_libraries(weutil_config_utils
+  platform_config_lib
+  platform_manager_config_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
   ${RE2}
 )
 
