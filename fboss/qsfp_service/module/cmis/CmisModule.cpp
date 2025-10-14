@@ -2413,7 +2413,11 @@ void CmisModule::setApplicationCodeLocked(
     }
 
     auto numHostLanes = capability->hostLaneCount;
-    if (speed == cfg::PortSpeed::HUNDREDG &&
+    // We could support 100G-1 or 100G-4, 200G-1, 200G-2 or 200G-4, 400G-2 or
+    // 400G-4. Thus compare both speed and number of host lanes
+    if ((speed == cfg::PortSpeed::HUNDREDG ||
+         speed == cfg::PortSpeed::TWOHUNDREDG ||
+         speed == cfg::PortSpeed::FOURHUNDREDG) &&
         numHostLanesForPort != numHostLanes) {
       continue;
     }
