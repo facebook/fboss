@@ -213,7 +213,13 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_SQUELCH_DISABLE, {CmisPages::PAGE10, 139, 1}},
     {CmisField::STAGE_CTRL_SET_0, {CmisPages::PAGE10, 143, 1}},
     {CmisField::STAGE_CTRL_SET0_IMMEDIATE, {CmisPages::PAGE10, 144, 1}},
-    {CmisField::APP_SEL_ALL_LANES, {CmisPages::PAGE10, 145, 8}},
+    {CmisField::APP_SEL_LANE_1_8, {CmisPages::PAGE10, 145, 8}},
+    {CmisField::APP_SEL_LANE_1_2, {CmisPages::PAGE10, 145, 2}},
+    {CmisField::APP_SEL_LANE_3_4, {CmisPages::PAGE10, 147, 2}},
+    {CmisField::APP_SEL_LANE_5_6, {CmisPages::PAGE10, 149, 2}},
+    {CmisField::APP_SEL_LANE_7_8, {CmisPages::PAGE10, 151, 2}},
+    {CmisField::APP_SEL_LANE_1_4, {CmisPages::PAGE10, 145, 4}},
+    {CmisField::APP_SEL_LANE_5_8, {CmisPages::PAGE10, 149, 4}},
     {CmisField::APP_SEL_LANE_1, {CmisPages::PAGE10, 145, 1}},
     {CmisField::APP_SEL_LANE_2, {CmisPages::PAGE10, 146, 1}},
     {CmisField::APP_SEL_LANE_3, {CmisPages::PAGE10, 147, 1}},
@@ -358,16 +364,30 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
 };
 
-static std::unordered_map<int, CmisField> laneToAppSelField = {
-    {0, CmisField::APP_SEL_LANE_1},
-    {1, CmisField::APP_SEL_LANE_2},
-    {2, CmisField::APP_SEL_LANE_3},
-    {3, CmisField::APP_SEL_LANE_4},
-    {4, CmisField::APP_SEL_LANE_5},
-    {5, CmisField::APP_SEL_LANE_6},
-    {6, CmisField::APP_SEL_LANE_7},
-    {7, CmisField::APP_SEL_LANE_8},
-};
+CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
+  const std::map<std::set<uint8_t>, CmisField> kLanesToCmisField = {
+      {{0}, CmisField::APP_SEL_LANE_1},
+      {{1}, CmisField::APP_SEL_LANE_2},
+      {{2}, CmisField::APP_SEL_LANE_3},
+      {{3}, CmisField::APP_SEL_LANE_4},
+      {{4}, CmisField::APP_SEL_LANE_5},
+      {{5}, CmisField::APP_SEL_LANE_6},
+      {{6}, CmisField::APP_SEL_LANE_7},
+      {{7}, CmisField::APP_SEL_LANE_8},
+      {{0, 1}, CmisField::APP_SEL_LANE_1_2},
+      {{2, 3}, CmisField::APP_SEL_LANE_3_4},
+      {{4, 5}, CmisField::APP_SEL_LANE_5_6},
+      {{6, 7}, CmisField::APP_SEL_LANE_7_8},
+      {{0, 1, 2, 3}, CmisField::APP_SEL_LANE_1_4},
+      {{4, 5, 6, 7}, CmisField::APP_SEL_LANE_5_8},
+      {{0, 1, 2, 3, 4, 5, 6, 7}, CmisField::APP_SEL_LANE_1_8},
+  };
+  if (const auto& it = kLanesToCmisField.find(lanes);
+      it != kLanesToCmisField.end()) {
+    return it->second;
+  }
+  throw FbossError("Can't find app sel for lanes ", folly::join(",", lanes));
+}
 
 static std::unordered_map<int, CmisField> laneToActiveCtrlField = {
     {0, CmisField::ACTIVE_CTRL_LANE_1},
@@ -2185,13 +2205,17 @@ void CmisModule::setApplicationSelectCode(
   // that function relies on the configured application select but at
   // this point appSel hasn't been updated.
   uint8_t applySetForConfigureLanes = hostLaneMask;
+  std::set<uint8_t> lanesToProgramAppSel;
+  std::vector<uint8_t> appSelCode;
   for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
        lane++) {
     // Assign ApSel code to each lane
     QSFP_LOG(INFO, this) << folly::sformat(
         "Configuring lane {:#x} with apsel code {:#x}", lane, newApSelCode);
-    writeCmisField(laneToAppSelField[lane], &newApSelCode);
+    lanesToProgramAppSel.insert(lane);
+    appSelCode.push_back(newApSelCode);
   }
+  writeCmisField(laneToAppSelField(lanesToProgramAppSel), appSelCode.data());
 
   writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForConfigureLanes);
 
@@ -2254,7 +2278,7 @@ void CmisModule::setApplicationSelectCodeAllPorts(
         stageSet0Config[lane++] = 0;
       }
     }
-    writeCmisField(CmisField::APP_SEL_ALL_LANES, stageSet0Config.data());
+    writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
 
     // Trigger the Set 0 application code setting to be applied on data
     // path init for all the lanes. The actual data-path init will be
@@ -3083,12 +3107,18 @@ void CmisModule::setModuleRxEqualizerLocked(
 
     // Apply the change using stage 0 control
     uint8_t stage0Control[8];
-    readCmisField(CmisField::APP_SEL_ALL_LANES, stage0Control);
+    readCmisField(CmisField::APP_SEL_LANE_1_8, stage0Control);
+    std::set<uint8_t> lanesToConfigure;
+    std::vector<uint8_t> stageControlToWrite;
     for (int i = startHostLane; i < startHostLane + hostLaneCount; i++) {
       stage0Control[i] |= 1;
-      writeCmisField(
-          laneToAppSelField[i], stage0Control, true /* skipPageChange */);
+      lanesToConfigure.insert(i);
+      stageControlToWrite.push_back(stage0Control[i]);
     }
+    writeCmisField(
+        laneToAppSelField(lanesToConfigure),
+        stageControlToWrite.data(),
+        true /* skipPageChange */);
 
     // Trigger the stage 0 control values to be operational in optics
     uint8_t stage0ControlTrigger = laneMask(startHostLane, hostLaneCount);
