@@ -1507,6 +1507,66 @@ bool TransceiverManager::isTransceiverPortStateSupported(
       tcvrIt->second->tcvrPortStateSupported(tcvrPortState);
 }
 
+/*
+ * getOpticalChannelConfig - Retrieve optical channel configuration for a
+ * transceiver
+ *
+ * This function retrieves the optical channel configuration from the QSFP
+ * service configuration for a specific transceiver. The configuration contains
+ * frequency, transmit power and AppSel code settings that are used for tunable
+ * optics programming.
+ *
+ * Function workflow:
+ * 1. Validates that the QSFP configuration exists
+ * 2. Checks if tunable optics configuration is available in the QSFP config
+ * 3. Iterates through all port names associated with the given transceiver ID
+ * 4. Searches for optical channel configuration matching each port name
+ * 5. If found, extracts and logs the frequency configuration details
+ * 6. Returns the optical channel configuration object if found, otherwise a
+ * nullopt
+ *
+ * @param id The TransceiverID to look up optical channel config for
+ * @return std::optional<cfg::OpticalChannelConfig> - The optical channel
+ * configuration if found, std::nullopt if no configuration exists or if QSFP
+ * config is unavailable
+ */
+
+std::optional<cfg::OpticalChannelConfig>
+TransceiverManager::getOpticalChannelConfig(TransceiverID id) const {
+  if (!qsfpConfig_) {
+    XLOG(DBG2) << "QsfpConfig is NULL.";
+    return std::nullopt;
+  }
+
+  const auto& qsfpCfg = qsfpConfig_->thrift;
+  auto qsfpCfgTunableOptics = qsfpCfg.tunableOpticsConfig();
+  if (!qsfpCfgTunableOptics.has_value()) {
+    return std::nullopt;
+  }
+
+  XLOG(DBG2) << "Tunable Optics config is present id " << id;
+  auto portNames = getPortNames(id);
+  for (const auto& portName : portNames) {
+    XLOG(DBG2) << "Tunable Optics config is present id " << id << " port_name "
+               << folly::join(",", portNames);
+    auto tunableOpticsConfigInCfgIt = qsfpCfgTunableOptics->find(portName);
+    if (tunableOpticsConfigInCfgIt != qsfpCfgTunableOptics->end()) {
+      const auto& opticalChannelConfig = tunableOpticsConfigInCfgIt->second;
+      const auto& freqConfig = opticalChannelConfig.frequencyConfig();
+      const auto& centerFreq = freqConfig->centerFrequencyConfig();
+      if (centerFreq->getType() ==
+          facebook::fboss::cfg::CenterFrequencyConfig::Type::frequencyMhz) {
+        int freqMhz = centerFreq->get_frequencyMhz();
+        XLOG(DBG2) << "The frequency is  " << freqMhz << " id " << id
+                   << " port_name " << portName;
+      }
+      // Use the frequency config from tunable optics config
+      return opticalChannelConfig;
+    }
+  }
+  return std::nullopt;
+}
+
 void TransceiverManager::programTransceiver(
     TransceiverID id,
     bool needResetDataPath) {
@@ -1518,6 +1578,9 @@ void TransceiverManager::programTransceiver(
                << ". Can't find programmed iphy port and port info";
     return;
   }
+
+  // Try to get frequency config from tunable optics config if available
+  const auto opticalChannelConfig = getOpticalChannelConfig(id);
 
   ProgramTransceiverState programTcvrState;
   for (const auto& portToPortInfo : programmedPortToPortInfo) {
@@ -1561,6 +1624,7 @@ void TransceiverManager::programTransceiver(
     portState.startHostLane = tcvrStartLane;
     portState.speed = speed;
     portState.numHostLanes = tcvrHostLanes.size();
+    portState.opticalChannelConfig = opticalChannelConfig;
     programTcvrState.ports.emplace(*portName, portState);
   }
 
