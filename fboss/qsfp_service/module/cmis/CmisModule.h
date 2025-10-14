@@ -265,6 +265,10 @@ class CmisModule : public QsfpModule {
    */
   virtual TransmitterTechnology getQsfpTransmitterTechnology() const override;
   /*
+   * Convert FrequencyGrid enum to grid selection byte value for CMIS register
+   */
+  uint8_t frequencyGridToGridSelection(FrequencyGrid grid) const;
+  /*
    * Extract sensor flag levels
    */
   FlagLevels getQsfpSensorFlags(CmisField fieldName, int offset);

@@ -2811,6 +2811,42 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   }
 }
 
+uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
+  uint8_t gridSelection = 0x0;
+  switch (grid) {
+    case FrequencyGrid::LASER_3P125GHZ:
+      gridSelection = 0x00;
+      break;
+    case FrequencyGrid::LASER_6P25GHZ:
+      gridSelection = 0x10;
+      break;
+    case FrequencyGrid::LASER_12P5GHZ:
+      gridSelection = 0x20;
+      break;
+    case FrequencyGrid::LASER_25GHZ:
+      gridSelection = 0x30;
+      break;
+    case FrequencyGrid::LASER_50GHZ:
+      gridSelection = 0x40;
+      break;
+    case FrequencyGrid::LASER_100GHZ:
+      gridSelection = 0x50;
+      break;
+    case FrequencyGrid::LASER_33GHZ:
+      gridSelection = 0x60;
+      break;
+    case FrequencyGrid::LASER_75GHZ:
+      gridSelection = 0x70;
+      break;
+    case FrequencyGrid::LASER_150GHZ:
+      gridSelection = 0x80;
+      break;
+    default:
+      throw FbossError("Invalid FrequencyGrid value: ", static_cast<int>(grid));
+  }
+  return gridSelection;
+}
+
 /*
  * ensureTransceiverReadyLocked
  *

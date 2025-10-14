@@ -44,6 +44,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(getModuleStateChanged, bool());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 
+  using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
   using CmisModule::isTunableOptics;
 
@@ -1205,6 +1206,26 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
 
   // tunable optics check
   EXPECT_TRUE(xcvr->isTunableOptics());
+
+  // Test all supported frequency grids map to correct grid selection values
+  EXPECT_EQ(
+      0x00, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_3P125GHZ));
+  EXPECT_EQ(
+      0x10, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_6P25GHZ));
+  EXPECT_EQ(
+      0x20, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_12P5GHZ));
+  EXPECT_EQ(
+      0x30, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_25GHZ));
+  EXPECT_EQ(
+      0x40, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_50GHZ));
+  EXPECT_EQ(
+      0x50, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_100GHZ));
+  EXPECT_EQ(
+      0x60, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_33GHZ));
+  EXPECT_EQ(
+      0x70, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_75GHZ));
+  EXPECT_EQ(
+      0x80, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_150GHZ));
 }
 
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {
