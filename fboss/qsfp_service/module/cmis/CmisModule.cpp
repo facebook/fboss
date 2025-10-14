@@ -65,6 +65,10 @@ constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
+// Tunable module const expr
+constexpr int32_t kDefaultFrequencyMhz = 193100000;
+constexpr double kMhzToGhzFactor = 0.000001;
+
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -2845,6 +2849,55 @@ uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
       throw FbossError("Invalid FrequencyGrid value: ", static_cast<int>(grid));
   }
   return gridSelection;
+}
+
+int16_t CmisModule::getChannelNumFromFrequency(
+    int32_t frequencyMhz,
+    FrequencyGrid frequencyGrid) {
+  int32_t channelNum = 0;
+  switch (frequencyGrid) {
+    case FrequencyGrid::LASER_150GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40) - 3);
+      break;
+    case FrequencyGrid::LASER_100GHZ:
+      channelNum =
+          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 10);
+      break;
+    case FrequencyGrid::LASER_75GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      break;
+    case FrequencyGrid::LASER_50GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 20));
+      break;
+    case FrequencyGrid::LASER_33GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 30));
+      break;
+    case FrequencyGrid::LASER_25GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      break;
+    case FrequencyGrid::LASER_12P5GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 80));
+      break;
+    case FrequencyGrid::LASER_6P25GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 160));
+      break;
+    case FrequencyGrid::LASER_3P125GHZ:
+      channelNum =
+          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 320);
+      break;
+    default:
+      throw FbossError(
+          "Unsupported frequency grid: ",
+          apache::thrift::util::enumNameOrThrow(frequencyGrid));
+  }
+  return channelNum;
 }
 
 /*

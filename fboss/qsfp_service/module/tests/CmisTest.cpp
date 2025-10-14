@@ -46,6 +46,7 @@ class MockCmisModule : public CmisModule {
 
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
+  using CmisModule::getChannelNumFromFrequency;
   using CmisModule::isTunableOptics;
 
  private:
@@ -1226,6 +1227,12 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
       0x70, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_75GHZ));
   EXPECT_EQ(
       0x80, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_150GHZ));
+
+  // Test 3P125GHZ getChannelNumFromFrequency conversion
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(
+          193100000, FrequencyGrid::LASER_3P125GHZ),
+      0);
 }
 
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {
