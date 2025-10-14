@@ -175,7 +175,7 @@ std::string getViaStr(
       vlanId = vlanId.substr(fbossStr.length());
     }
     if (vlanAggregatePortMap.find(vlanId) != vlanAggregatePortMap.end()) {
-      viaStr = fmt::format(" dev {}", vlanAggregatePortMap.at(*ifNamePtr));
+      viaStr = fmt::format(" dev {}", vlanAggregatePortMap.at(vlanId));
     } else if (vlanPortMap.find(vlanId) != vlanPortMap.end()) {
       std::vector<std::string> port_names;
       for (const auto& ports : vlanPortMap.at(vlanId)) {
