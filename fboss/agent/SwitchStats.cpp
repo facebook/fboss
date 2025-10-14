@@ -125,6 +125,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "thrift_request_completion_time.ms",
           facebook::fb303::ExportTypeConsts::kCountAvg,
           facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
+      dsfSubscriptionServeDelayWatermark_(
+          kCounterPrefix + "dsf_subscription_serve_delay_watermark_ms",
+          facebook::fb303::ExportTypeConsts::kNone,
+          kP100),
       bgHeartbeatDelay_(
           map,
           kCounterPrefix + "bg_heartbeat_delay.ms",

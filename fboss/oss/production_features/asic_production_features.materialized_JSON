@@ -128,7 +128,8 @@
         70,
         75,
         76,
-        77
+        77,
+        89
     ],
     "ramon3": [
         1,
@@ -595,7 +596,8 @@
         "SELF_HEALING_ECMP_LAG",
         "GLOBAL_TC_RATE_LIMIT",
         "COPP_SHAPER",
-        "COPP_SCHEDULER"
+        "COPP_SCHEDULER",
+        "AM_IDLES"
     ],
     "ramon3": [
         "FABRIC",
