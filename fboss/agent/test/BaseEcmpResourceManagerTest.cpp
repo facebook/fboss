@@ -330,35 +330,35 @@ void BaseEcmpResourceManagerTest::updateFlowletSwitchingConfig(
 
 void BaseEcmpResourceManagerTest::updateRoutes(
     const std::shared_ptr<SwitchState>& newState) {
-  auto updater = sw_->getRouteUpdater();
   auto constexpr kClientID(ClientID::BGPD);
   StateDelta delta(sw_->getState(), newState);
+
+  auto routesToAddOrUpdate = std::make_unique<std::vector<UnicastRoute>>();
+  auto prefixesToDelete = std::make_unique<std::vector<IpPrefix>>();
+
   processFibsDeltaInHwSwitchOrder(
       delta,
-      [&updater](RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
-        updater.addRoute(
-            rid,
-            newRoute->prefix().network(),
-            newRoute->prefix().mask(),
-            kClientID,
-            newRoute->getForwardInfo());
+      [&routesToAddOrUpdate](
+          RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
+        routesToAddOrUpdate->emplace_back(util::toUnicastRoute(
+            newRoute->prefix().toCidrNetwork(), newRoute->getForwardInfo()));
       },
-      [&updater](RouterID rid, const auto& newRoute) {
-        updater.addRoute(
-            rid,
-            newRoute->prefix().network(),
-            newRoute->prefix().mask(),
-            kClientID,
-            newRoute->getForwardInfo());
+      [&routesToAddOrUpdate](RouterID rid, const auto& newRoute) {
+        routesToAddOrUpdate->emplace_back(util::toUnicastRoute(
+            newRoute->prefix().toCidrNetwork(), newRoute->getForwardInfo()));
       },
-      [&updater](RouterID rid, const auto& oldRoute) {
+      [&prefixesToDelete](RouterID rid, const auto& oldRoute) {
         IpPrefix pfx;
         pfx.ip() = network::toBinaryAddress(oldRoute->prefix().network());
         pfx.prefixLength() = oldRoute->prefix().mask();
-        updater.delRoute(rid, pfx, kClientID);
+        prefixesToDelete->push_back(pfx);
       });
 
-  updater.program();
+  ThriftHandler handler(sw_);
+  handler.deleteUnicastRoutes(
+      static_cast<int16_t>(kClientID), std::move(prefixesToDelete));
+  handler.addUnicastRoutes(
+      static_cast<int16_t>(kClientID), std::move(routesToAddOrUpdate));
   assertRibFibEquivalence();
 }
 
