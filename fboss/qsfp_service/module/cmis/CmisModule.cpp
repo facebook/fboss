@@ -2209,6 +2209,67 @@ void CmisModule::setApplicationSelectCode(
   // that function relies on the configured application select but at
   // this point appSel hasn't been updated.
   uint8_t applySetForConfigureLanes = hostLaneMask;
+  uint8_t applySetForReleaseLanes = 0;
+
+  std::set<uint8_t> lanesToRelease;
+  // Read and cache all laneToActiveCtrlField. We can't rely on existing
+  // cache because we may not have got a chance to update in between
+  // programming different ports in a sequence
+  std::array<uint8_t, 8> laneToActiveCtrlFieldVals{};
+  readCmisField(
+      CmisField::ACTIVE_CTRL_ALL_LANES, laneToActiveCtrlFieldVals.data());
+
+  for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
+       lane++) {
+    lanesToRelease.insert(lane);
+    applySetForReleaseLanes |= (1 << lane);
+    // Get all lanes with the same data path ID as this lane
+    uint8_t currDataPathId =
+        (laneToActiveCtrlFieldVals[lane] & DATA_PATH_ID_MASK) >>
+        DATA_PATH_ID_BITSHIFT;
+    uint8_t currAppSel =
+        (laneToActiveCtrlFieldVals[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
+    // If currently App Sel is 0, it means this lane is not part of any
+    // active data path yet. No need to find other lanes to release
+    if (currAppSel == 0) {
+      continue;
+    }
+    // If we are here, it means that this lane is part of an active data
+    // path. Find out which other lanes are active with the same data path
+    // id and then release them
+    for (auto it = laneToActiveCtrlField.begin();
+         it != laneToActiveCtrlField.end();
+         it++) {
+      auto otherLane = it->first;
+      uint8_t otherAppSel =
+          (laneToActiveCtrlFieldVals[otherLane] & APP_SEL_MASK) >>
+          APP_SEL_BITSHIFT;
+      // Ignore lanes with app sel 0 as that means that the lane is not part
+      // of any data path
+      if (otherAppSel == 0) {
+        continue;
+      }
+      uint8_t otherDataPathId =
+          (laneToActiveCtrlFieldVals[otherLane] & DATA_PATH_ID_MASK) >>
+          DATA_PATH_ID_BITSHIFT;
+      if (currDataPathId == otherDataPathId) {
+        lanesToRelease.insert(otherLane);
+        applySetForReleaseLanes |= (1 << otherLane);
+      }
+    }
+  }
+
+  // First release the lanes if they are already part of any datapath
+  std::vector<uint8_t> zeroApSelCode(lanesToRelease.size(), 0);
+  for (auto it = lanesToRelease.begin(); it != lanesToRelease.end(); it++) {
+    QSFP_LOG(INFO, this) << folly::sformat("Releasing lane {:#x}", *it);
+  }
+  writeCmisField(laneToAppSelField(lanesToRelease), zeroApSelCode.data());
+  // We don't need to check if lanesToRelease is empty or not before setting
+  // stage_ctrl_set_0 because there will always be lanes to release. At the
+  // minimum, we'll try to release the same lane we are trying to configure
+  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForReleaseLanes);
+
   std::set<uint8_t> lanesToProgramAppSel;
   std::vector<uint8_t> appSelCode;
   for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
