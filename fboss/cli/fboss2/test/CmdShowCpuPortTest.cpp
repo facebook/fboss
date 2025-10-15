@@ -99,7 +99,7 @@ TEST_F(CmdShowCpuPortTestFixture, queryClient) {
   auto cmd = CmdShowCpuPort();
   auto model = cmd.queryClient(localhost());
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 } // namespace facebook::fboss

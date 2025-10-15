@@ -183,6 +183,6 @@ TEST_F(CmdShowInterfaceTrafficTestFixture, printOutput) {
       " eth3/1/1        fsw003.p001  0:60   9876.54   2.47%  6.00    79012.35   19.75%  15.00   \n"
       " Total           --           --     29629.63  4.23%  18.00   237037.04  33.86%  45.00   \n\n";
 
-  EXPECT_EQ(output, expectedOutput);
+  EXPECT_EQ(expectedOutput, output);
 }
 } // namespace facebook::fboss

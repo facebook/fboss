@@ -81,7 +81,7 @@ TEST_F(CmdShowFlowletTestFixture, queryClient) {
   auto cmd = CmdShowFlowlet();
   auto model = cmd.queryClient(localhost());
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowFlowletTestFixture, printOutput) {

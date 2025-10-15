@@ -72,7 +72,7 @@ TEST_F(CmdShowInterfaceFlapsTestFixture, queryClient) {
   duplicate test as the one below but still worth checking */
   auto cmd = CmdShowInterfaceFlaps();
   auto model = cmd.createModel(ifNames, queriedData, queriedPorts);
-  EXPECT_THRIFT_EQ(results, model);
+  EXPECT_THRIFT_EQ(model, results);
 }
 
 TEST_F(CmdShowInterfaceFlapsTestFixture, createModel) {
