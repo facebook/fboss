@@ -142,19 +142,6 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
 
-#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
-    defined(BRCM_SAI_SDK_XGS)
-  // Read ARS class ID from the next hop group metadata attribute
-  auto arsClassId = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
-      nextHopGroupId,
-      SaiNextHopGroupTraits::Attributes::ArsNextHopGroupMetaData{});
-  nextHopGroupHandle->arsClassId = arsClassId;
-  XLOG(DBG3) << "NexthopGroup OID: " << nextHopGroupId
-             << " ARS class ID: " << arsClassId;
-#else
-  nextHopGroupHandle->arsClassId = 0;
-#endif
-
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
@@ -356,14 +343,6 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
     return nextHopGroupHandle->desiredArsMode_.value();
   }
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
-}
-
-uint32_t SaiNextHopGroupManager::getNextHopGroupArsClassId(
-    const std::shared_ptr<SaiNextHopGroupHandle>& handle) {
-  if (handle) {
-    return handle->arsClassId;
-  }
-  return 0;
 }
 
 NextHopGroupMember::NextHopGroupMember(
