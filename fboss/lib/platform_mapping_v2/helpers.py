@@ -825,7 +825,7 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
     ]:
-        return [TransmitterTechnology.COPPER]
+        return [TransmitterTechnology.COPPER, TransmitterTechnology.BACKPLANE]
     if profile in [PortProfileID.PROFILE_DEFAULT]:
         return [TransmitterTechnology.UNKNOWN]
     raise Exception("Can't figure out transmitter tech for profile ", profile)
