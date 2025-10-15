@@ -345,27 +345,23 @@ class CmdShowInterfaceTraffic : public CmdHandler<
     Table errorTable;
     Table trafficTable;
 
-    // If Global option for color is yes (default) then print color.  Otherwise
-    // suppress color
+    // If Global option for color is yes (default) and we're printing to stdout
+    // and stdout is a tty, then print color.  Otherwise suppress color
     bool printColor = false;
     if ((CmdGlobalOptions::getInstance()->getColor() == "yes") &&
-        isatty(fileno(stdout))) {
+        &out == &std::cout && isatty(fileno(stdout))) {
       printColor = true;
     }
 
     if (model.error_counters().value().size() != 0) {
-      constexpr std::string_view errorsString =
-          "ERRORS {} interfaces, watch for any incrementing counters:\n";
+      const std::string errorMessage = fmt::format(
+          "ERRORS {} interfaces, watch for any incrementing counters:\n",
+          std::to_string(model.error_counters().value().size()));
 
       if (printColor) {
-        fmt::print(
-            fg(fmt::color::red),
-            errorsString,
-            std::to_string(model.error_counters().value().size()));
+        fmt::print(fg(fmt::color::red), "{}", errorMessage);
       } else {
-        out << fmt::format(
-            errorsString,
-            std::to_string(model.error_counters().value().size()));
+        out << errorMessage;
       }
 
       errorTable.setHeader({
@@ -414,7 +410,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
       constexpr std::string_view noErrorString =
           "No interfaces with In/Out errors - all-clear!\n";
       if (printColor) {
-        fmt::print(fg(fmt::color::green), noErrorString);
+        fmt::print(fg(fmt::color::green), "{}", noErrorString);
       } else {
         out << noErrorString;
       }
