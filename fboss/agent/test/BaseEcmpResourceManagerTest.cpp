@@ -241,6 +241,7 @@ void BaseEcmpResourceManagerTest::SetUp() {
       getEcmpCompressionThresholdPct());
   handle_ = createTestHandle(&cfg);
   sw_ = handle_->getSw();
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
   // Taken from mock asic
   auto asic = *sw_->getHwAsicTable()->getL3Asics().begin();
