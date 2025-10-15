@@ -621,10 +621,10 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
     EXPECT_EQ(entry, nullptr);
   } else {
     // pending entry is not created for vlan neighbors
-    auto ndpTable =
+    auto vlanNdpTable =
         this->sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
     auto entry =
-        ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+        vlanNdpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
     ASSERT_NE(entry, nullptr);
     EXPECT_EQ(entry->isPending(), true);
   }
