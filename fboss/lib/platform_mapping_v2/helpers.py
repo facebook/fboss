@@ -822,6 +822,9 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+    ]:
+        return [TransmitterTechnology.COPPER]
+    if profile in [
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
     ]:
