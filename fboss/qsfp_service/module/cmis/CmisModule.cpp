@@ -65,6 +65,10 @@ constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
+// Tunable module const expr
+constexpr int32_t kDefaultFrequencyMhz = 193100000;
+constexpr double kMhzToGhzFactor = 0.000001;
+
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -213,7 +217,13 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_SQUELCH_DISABLE, {CmisPages::PAGE10, 139, 1}},
     {CmisField::STAGE_CTRL_SET_0, {CmisPages::PAGE10, 143, 1}},
     {CmisField::STAGE_CTRL_SET0_IMMEDIATE, {CmisPages::PAGE10, 144, 1}},
-    {CmisField::APP_SEL_ALL_LANES, {CmisPages::PAGE10, 145, 8}},
+    {CmisField::APP_SEL_LANE_1_8, {CmisPages::PAGE10, 145, 8}},
+    {CmisField::APP_SEL_LANE_1_2, {CmisPages::PAGE10, 145, 2}},
+    {CmisField::APP_SEL_LANE_3_4, {CmisPages::PAGE10, 147, 2}},
+    {CmisField::APP_SEL_LANE_5_6, {CmisPages::PAGE10, 149, 2}},
+    {CmisField::APP_SEL_LANE_7_8, {CmisPages::PAGE10, 151, 2}},
+    {CmisField::APP_SEL_LANE_1_4, {CmisPages::PAGE10, 145, 4}},
+    {CmisField::APP_SEL_LANE_5_8, {CmisPages::PAGE10, 149, 4}},
     {CmisField::APP_SEL_LANE_1, {CmisPages::PAGE10, 145, 1}},
     {CmisField::APP_SEL_LANE_2, {CmisPages::PAGE10, 146, 1}},
     {CmisField::APP_SEL_LANE_3, {CmisPages::PAGE10, 147, 1}},
@@ -358,16 +368,30 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
 };
 
-static std::unordered_map<int, CmisField> laneToAppSelField = {
-    {0, CmisField::APP_SEL_LANE_1},
-    {1, CmisField::APP_SEL_LANE_2},
-    {2, CmisField::APP_SEL_LANE_3},
-    {3, CmisField::APP_SEL_LANE_4},
-    {4, CmisField::APP_SEL_LANE_5},
-    {5, CmisField::APP_SEL_LANE_6},
-    {6, CmisField::APP_SEL_LANE_7},
-    {7, CmisField::APP_SEL_LANE_8},
-};
+CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
+  const std::map<std::set<uint8_t>, CmisField> kLanesToCmisField = {
+      {{0}, CmisField::APP_SEL_LANE_1},
+      {{1}, CmisField::APP_SEL_LANE_2},
+      {{2}, CmisField::APP_SEL_LANE_3},
+      {{3}, CmisField::APP_SEL_LANE_4},
+      {{4}, CmisField::APP_SEL_LANE_5},
+      {{5}, CmisField::APP_SEL_LANE_6},
+      {{6}, CmisField::APP_SEL_LANE_7},
+      {{7}, CmisField::APP_SEL_LANE_8},
+      {{0, 1}, CmisField::APP_SEL_LANE_1_2},
+      {{2, 3}, CmisField::APP_SEL_LANE_3_4},
+      {{4, 5}, CmisField::APP_SEL_LANE_5_6},
+      {{6, 7}, CmisField::APP_SEL_LANE_7_8},
+      {{0, 1, 2, 3}, CmisField::APP_SEL_LANE_1_4},
+      {{4, 5, 6, 7}, CmisField::APP_SEL_LANE_5_8},
+      {{0, 1, 2, 3, 4, 5, 6, 7}, CmisField::APP_SEL_LANE_1_8},
+  };
+  if (const auto& it = kLanesToCmisField.find(lanes);
+      it != kLanesToCmisField.end()) {
+    return it->second;
+  }
+  throw FbossError("Can't find app sel for lanes ", folly::join(",", lanes));
+}
 
 static std::unordered_map<int, CmisField> laneToActiveCtrlField = {
     {0, CmisField::ACTIVE_CTRL_LANE_1},
@@ -2187,19 +2211,16 @@ void CmisModule::setApplicationSelectCode(
   uint8_t applySetForConfigureLanes = hostLaneMask;
   uint8_t applySetForReleaseLanes = 0;
 
-  std::unordered_set<uint8_t> lanesToRelease, lanesToConfigure;
+  std::set<uint8_t> lanesToRelease;
   // Read and cache all laneToActiveCtrlField. We can't rely on existing
   // cache because we may not have got a chance to update in between
   // programming different ports in a sequence
-  std::array<uint8_t, 8> laneToActiveCtrlFieldVals;
-  for (auto it = laneToActiveCtrlField.begin();
-       it != laneToActiveCtrlField.end();
-       it++) {
-    readCmisField(it->second, &laneToActiveCtrlFieldVals[it->first]);
-  }
+  std::array<uint8_t, 8> laneToActiveCtrlFieldVals{};
+  readCmisField(
+      CmisField::ACTIVE_CTRL_ALL_LANES, laneToActiveCtrlFieldVals.data());
+
   for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
        lane++) {
-    lanesToConfigure.insert(lane);
     lanesToRelease.insert(lane);
     applySetForReleaseLanes |= (1 << lane);
     // Get all lanes with the same data path ID as this lane
@@ -2237,26 +2258,29 @@ void CmisModule::setApplicationSelectCode(
       }
     }
   }
+
   // First release the lanes if they are already part of any datapath
+  std::vector<uint8_t> zeroApSelCode(lanesToRelease.size(), 0);
   for (auto it = lanesToRelease.begin(); it != lanesToRelease.end(); it++) {
     QSFP_LOG(INFO, this) << folly::sformat("Releasing lane {:#x}", *it);
-    uint8_t zeroApSelCode = 0;
-    // Assign ApSel code of 0 to each lane to indicate that the lane is
-    // not part of any datapath
-    writeCmisField(laneToAppSelField[*it], &zeroApSelCode);
   }
+  writeCmisField(laneToAppSelField(lanesToRelease), zeroApSelCode.data());
   // We don't need to check if lanesToRelease is empty or not before setting
   // stage_ctrl_set_0 because there will always be lanes to release. At the
   // minimum, we'll try to release the same lane we are trying to configure
   writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForReleaseLanes);
 
-  // Now assign the correct ApSel code to all relevant lanes
-  for (auto it = lanesToConfigure.begin(); it != lanesToConfigure.end(); it++) {
+  std::set<uint8_t> lanesToProgramAppSel;
+  std::vector<uint8_t> appSelCode;
+  for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
+       lane++) {
     // Assign ApSel code to each lane
     QSFP_LOG(INFO, this) << folly::sformat(
-        "Configuring lane {:#x} with apsel code {:#x}", *it, newApSelCode);
-    writeCmisField(laneToAppSelField[*it], &newApSelCode);
+        "Configuring lane {:#x} with apsel code {:#x}", lane, newApSelCode);
+    lanesToProgramAppSel.insert(lane);
+    appSelCode.push_back(newApSelCode);
   }
+  writeCmisField(laneToAppSelField(lanesToProgramAppSel), appSelCode.data());
 
   writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForConfigureLanes);
 
@@ -2319,7 +2343,7 @@ void CmisModule::setApplicationSelectCodeAllPorts(
         stageSet0Config[lane++] = 0;
       }
     }
-    writeCmisField(CmisField::APP_SEL_ALL_LANES, stageSet0Config.data());
+    writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
 
     // Trigger the Set 0 application code setting to be applied on data
     // path init for all the lanes. The actual data-path init will be
@@ -2454,7 +2478,11 @@ void CmisModule::setApplicationCodeLocked(
     }
 
     auto numHostLanes = capability->hostLaneCount;
-    if (speed == cfg::PortSpeed::HUNDREDG &&
+    // We could support 100G-1 or 100G-4, 200G-1, 200G-2 or 200G-4, 400G-2 or
+    // 400G-4. Thus compare both speed and number of host lanes
+    if ((speed == cfg::PortSpeed::HUNDREDG ||
+         speed == cfg::PortSpeed::TWOHUNDREDG ||
+         speed == cfg::PortSpeed::FOURHUNDREDG) &&
         numHostLanesForPort != numHostLanes) {
       continue;
     }
@@ -2484,6 +2512,7 @@ void CmisModule::setApplicationCodeLocked(
     if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
         !isRequestValidMultiportSpeedConfig(
             speed, startHostLane, numHostLanes)) {
+      QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
       resetDataPathWithFunc(std::bind(
           &CmisModule::setApplicationSelectCodeAllPorts,
           this,
@@ -2493,6 +2522,8 @@ void CmisModule::setApplicationCodeLocked(
           hostLaneMask)); // To use the default hostLaneMask = 0xFF for
                           // all the lanes datapath reset.
     } else {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Programming App sel on lanes {:#x}", hostLaneMask);
       resetDataPathWithFunc(
           std::bind(
               &CmisModule::setApplicationSelectCode,
@@ -2845,6 +2876,91 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   }
 }
 
+uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
+  uint8_t gridSelection = 0x0;
+  switch (grid) {
+    case FrequencyGrid::LASER_3P125GHZ:
+      gridSelection = 0x00;
+      break;
+    case FrequencyGrid::LASER_6P25GHZ:
+      gridSelection = 0x10;
+      break;
+    case FrequencyGrid::LASER_12P5GHZ:
+      gridSelection = 0x20;
+      break;
+    case FrequencyGrid::LASER_25GHZ:
+      gridSelection = 0x30;
+      break;
+    case FrequencyGrid::LASER_50GHZ:
+      gridSelection = 0x40;
+      break;
+    case FrequencyGrid::LASER_100GHZ:
+      gridSelection = 0x50;
+      break;
+    case FrequencyGrid::LASER_33GHZ:
+      gridSelection = 0x60;
+      break;
+    case FrequencyGrid::LASER_75GHZ:
+      gridSelection = 0x70;
+      break;
+    case FrequencyGrid::LASER_150GHZ:
+      gridSelection = 0x80;
+      break;
+    default:
+      throw FbossError("Invalid FrequencyGrid value: ", static_cast<int>(grid));
+  }
+  return gridSelection;
+}
+
+int16_t CmisModule::getChannelNumFromFrequency(
+    int32_t frequencyMhz,
+    FrequencyGrid frequencyGrid) {
+  int32_t channelNum = 0;
+  switch (frequencyGrid) {
+    case FrequencyGrid::LASER_150GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40) - 3);
+      break;
+    case FrequencyGrid::LASER_100GHZ:
+      channelNum =
+          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 10);
+      break;
+    case FrequencyGrid::LASER_75GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      break;
+    case FrequencyGrid::LASER_50GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 20));
+      break;
+    case FrequencyGrid::LASER_33GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 30));
+      break;
+    case FrequencyGrid::LASER_25GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      break;
+    case FrequencyGrid::LASER_12P5GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 80));
+      break;
+    case FrequencyGrid::LASER_6P25GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 160));
+      break;
+    case FrequencyGrid::LASER_3P125GHZ:
+      channelNum =
+          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 320);
+      break;
+    default:
+      throw FbossError(
+          "Unsupported frequency grid: ",
+          apache::thrift::util::enumNameOrThrow(frequencyGrid));
+  }
+  return channelNum;
+}
+
 /*
  * ensureTransceiverReadyLocked
  *
@@ -3145,12 +3261,18 @@ void CmisModule::setModuleRxEqualizerLocked(
 
     // Apply the change using stage 0 control
     uint8_t stage0Control[8];
-    readCmisField(CmisField::APP_SEL_ALL_LANES, stage0Control);
+    readCmisField(CmisField::APP_SEL_LANE_1_8, stage0Control);
+    std::set<uint8_t> lanesToConfigure;
+    std::vector<uint8_t> stageControlToWrite;
     for (int i = startHostLane; i < startHostLane + hostLaneCount; i++) {
       stage0Control[i] |= 1;
-      writeCmisField(
-          laneToAppSelField[i], stage0Control, true /* skipPageChange */);
+      lanesToConfigure.insert(i);
+      stageControlToWrite.push_back(stage0Control[i]);
     }
+    writeCmisField(
+        laneToAppSelField(lanesToConfigure),
+        stageControlToWrite.data(),
+        true /* skipPageChange */);
 
     // Trigger the stage 0 control values to be operational in optics
     uint8_t stage0ControlTrigger = laneMask(startHostLane, hostLaneCount);

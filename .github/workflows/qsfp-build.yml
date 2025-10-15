@@ -32,7 +32,7 @@ jobs:
           --no-system-deps
           --local
           --num-jobs
-          24
+          20
       - name: Package FBOSS binaries and library dependencies
         run: >
           sudo

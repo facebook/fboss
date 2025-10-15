@@ -1260,6 +1260,14 @@
     {
       "name": "PSU2",
       "powerSensorName": "PSU2_PIN"
+    },
+    {
+      "name": "PSU3",
+      "powerSensorName": "PSU3_PIN"
+    },
+    {
+      "name": "PSU4",
+      "powerSensorName": "PSU4_PIN"
     }
   ]
 }

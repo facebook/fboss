@@ -1416,11 +1416,11 @@ void QsfpModule::programTransceiver(
       // Rx equalizer setting based on QSFP config
       for (auto portIt : programTcvrState.ports) {
         customizeTransceiverLocked(portIt.second);
+        // updateQsfpData so that we can make sure the new application code in
+        // cache or the new host settings ges updated before calling
+        // configureModule() or programming other datapaths
+        updateQsfpData(true);
       }
-      // updateQsfpData so that we can make sure the new application code in
-      // cache or the new host settings ges updated before calling
-      // configureModule()
-      updateQsfpData(true);
       // Current configureModule() actually assumes the locked is obtained.
       // See CmisModule::configureModule(). Need to clean it up in the future.
       for (auto portIt : programTcvrState.ports) {
