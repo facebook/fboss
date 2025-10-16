@@ -44,16 +44,9 @@ std::vector<NdpEntryThrift> createMockNdpEntries() {
   ndpEntry2.port() = 1;
   ndpEntry2.classID() = 0;
 
-  NdpEntryThrift ndpEntry3;
-  folly::IPAddressV6 ipv6_3("2401:db00:e13d:846::41");
-  network::thrift::BinaryAddress binaryAddr3 =
-      facebook::network::toBinaryAddress(ipv6_3);
-
-  ndpEntry3.ip() = binaryAddr3;
-  ndpEntry3.port() = 51;
-  ndpEntry3.classID() = 0;
-
-  std::vector<NdpEntryThrift> entries{ndpEntry1, ndpEntry2, ndpEntry3};
+  // Only return entries that will be in the final model to avoid unnecessary
+  // DNS lookups during tests
+  std::vector<NdpEntryThrift> entries{ndpEntry1, ndpEntry2};
   return entries;
 }
 
