@@ -82,6 +82,7 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.EIGHTHUNDREDG]
     if profile in [
@@ -147,6 +148,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return 4
     if profile in [
@@ -827,6 +829,7 @@ def transmitter_tech_from_profile(
     if profile in [
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return [TransmitterTechnology.COPPER, TransmitterTechnology.BACKPLANE]
     if profile in [PortProfileID.PROFILE_DEFAULT]:
