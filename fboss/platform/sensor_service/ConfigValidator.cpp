@@ -26,6 +26,31 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   return true;
 }
 
+bool ConfigValidator::isValidPmSensor(const sensor_config::PmSensor& pmSensor) {
+  if (!pmSensor.name().has_value() || pmSensor.name()->empty()) {
+    XLOG(ERR) << "PmSensor name must be non-empty";
+    return false;
+  }
+
+  // Check if sensor name is all uppercase with underscores and digits
+  const auto& name = *pmSensor.name();
+  for (char c : name) {
+    if (!std::isupper(c) && c != '_' && !std::isdigit(c)) {
+      XLOG(ERR) << fmt::format(
+          "PmSensor name '{}' must contain only uppercase letters, digits, and "
+          " underscores ",
+          name);
+      return false;
+    }
+  }
+
+  if (!pmSensor.sysfsPath().has_value() || pmSensor.sysfsPath()->empty()) {
+    XLOG(ERR) << "PmSensor sysfsPath must be non-empty";
+    return false;
+  }
+  return true;
+}
+
 bool ConfigValidator::isValidPmUnitSensorsList(
     const std::vector<sensor_config::PmUnitSensors>& pmUnitSensorsList) {
   std::unordered_set<std::pair<std::string, std::string>> usedSlotPaths;
@@ -55,8 +80,7 @@ bool ConfigValidator::isValidPmUnitSensorsList(
 bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
   std::unordered_set<std::string> usedSensorNames;
   for (const auto& pmSensor : pmSensors) {
-    if (pmSensor.name()->empty()) {
-      XLOG(ERR) << "PmSensor name must be non-empty";
+    if (!isValidPmSensor(pmSensor)) {
       return false;
     }
     if (usedSensorNames.contains(*pmSensor.name())) {
@@ -166,6 +190,7 @@ bool ConfigValidator::isValidPowerConsumptionConfig(
 bool ConfigValidator::isValidAsicCommand(
     const sensor_config::SensorConfig& sensorConfig) {
   if (!sensorConfig.asicCommand().has_value()) {
+    // AsicCommand is optional, so it's valid if not present
     return true;
   }
 
@@ -173,16 +198,19 @@ bool ConfigValidator::isValidAsicCommand(
 
   const auto& asicCommand = *sensorConfig.asicCommand();
 
+  // Check if sensorName is non-empty
   if (asicCommand.sensorName()->empty()) {
     XLOG(ERR) << "AsicCommand sensorName must be non-empty";
     return false;
   }
 
+  // Check if cmd is non-empty
   if (asicCommand.cmd()->empty()) {
     XLOG(ERR) << "AsicCommand cmd must be non-empty";
     return false;
   }
 
+  // Check if sensor name conflicts with existing sensor names
   std::unordered_set<std::string> sensorNames = getAllSensorNames(sensorConfig);
   if (sensorNames.find(*asicCommand.sensorName()) != sensorNames.end()) {
     XLOG(ERR) << fmt::format(

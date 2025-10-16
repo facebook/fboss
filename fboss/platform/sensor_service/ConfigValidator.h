@@ -12,6 +12,7 @@ class ConfigValidator {
   bool isValidPmUnitSensorsList(
       const std::vector<sensor_config::PmUnitSensors>& pmUnitSensorsList);
   bool isValidPmSensors(const std::vector<sensor_config::PmSensor>& pmSensor);
+  bool isValidPmSensor(const sensor_config::PmSensor& pmSensor);
   bool isValidSlotPath(const std::string& slotPath);
   // Cross service validation
   bool isValidSensorName(
