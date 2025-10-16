@@ -80,6 +80,7 @@ cpp_unittest(
         "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
+        "//fboss/lib/bsp/wedge800bact:wedge800bact_bsp",
         "//folly/testing:test_util",
     ],
 )
