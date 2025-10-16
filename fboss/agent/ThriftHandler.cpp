@@ -928,6 +928,11 @@ static void populateInterfaceDetail(
   }
 
   interfaceDetail.scope() = intf->getScope();
+
+  if (intf->getDesiredPeerAddressIPv6().has_value()) {
+    interfaceDetail.desiredPeerAddressIPv6() =
+        intf->getDesiredPeerAddressIPv6().value();
+  }
 }
 
 void ThriftHandler::getAllInterfaces(
