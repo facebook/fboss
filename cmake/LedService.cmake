@@ -71,6 +71,7 @@ add_library(led_manager_lib
   fboss/led_service/Janga800bicLedManager.cpp
   fboss/led_service/Tahan800bcLedManager.cpp
   fboss/led_service/Tahansb800bcLedManager.cpp
+  fboss/led_service/Wedge800bActLedManager.cpp
 )
 
 target_link_libraries(led_manager_lib
@@ -105,6 +106,7 @@ target_link_libraries(led_manager_lib
   tahan800bc_platform_mapping
   tahansb800bc_platform_mapping
   wedge400_platform_mapping
+  wedge800b_act_platform_mapping
   yamp_platform_mapping
   product_info
   Folly::folly

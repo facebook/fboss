@@ -173,6 +173,15 @@ target_link_libraries(tahansb800bc_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(wedge800b_act_bsp
+  fboss/lib/bsp/wedge800b_act/Wedge800bActBspPlatformMapping.cpp
+)
+
+target_link_libraries(wedge800b_act_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -208,6 +217,7 @@ target_link_libraries(qsfp_bsp_core
   janga800bic_bsp
   tahan800bc_bsp
   tahansb800bc_bsp
+  wedge800b_act_bsp
   device_mdio
   fpga_device
   phy_management_base
