@@ -243,21 +243,97 @@ TEST(ConfigValidatorTest, ValidPowerConsumptionConfigWithVersionedSensors) {
       createPmSensor("base_voltage", "/run/devmap/sensors/BASE_VOLTAGE"),
       createPmSensor("base_current", "/run/devmap/sensors/BASE_CURRENT")};
 
-  // Add versioned sensors
-  VersionedPmSensor versionedSensor;
-  versionedSensor.productProductionState() = 1;
-  versionedSensor.productVersion() = 2;
-  versionedSensor.productSubVersion() = 3;
-  versionedSensor.sensors() = {
+  VersionedPmSensor versionedPmSensor;
+  versionedPmSensor.sensors() = {
       createPmSensor("versioned_power", "/run/devmap/sensors/VERSIONED_POWER")};
-  pmUnitSensors.versionedSensors() = {versionedSensor};
+  pmUnitSensors.versionedSensors() = {versionedPmSensor};
 
   config.pmUnitSensorsList() = {pmUnitSensors};
-
   config.powerConsumptionConfigs() = {
       createPowerConsumptionConfig(
           "PSU1", std::nullopt, "base_voltage", "base_current"),
       createPowerConsumptionConfig("PSU2", "versioned_power")};
 
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidAsicCommand) {
+  auto config = createBasicSensorConfig();
+
+  // Test 1: Valid config without AsicCommand (optional field)
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 2: Valid config with AsicCommand
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "MGET_TEMP_CMD";
+  asicCommand.cmd() = "mget_temp -d 0000:01:00.0";
+  config.asicCommand() = asicCommand;
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidAsicCommand) {
+  auto config = createBasicSensorConfig();
+  AsicCommand asicCommand;
+
+  // Test 1: Empty sensorName
+  asicCommand.sensorName() = "";
+  asicCommand.cmd() = "mget_temp -d 0000:01:00.0";
+  config.asicCommand() = asicCommand;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: Empty cmd
+  asicCommand.sensorName() = "MGET_TEMP_CMD";
+  asicCommand.cmd() = "";
+  config.asicCommand() = asicCommand;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 3: Missing sensorName
+  asicCommand = AsicCommand();
+  asicCommand.cmd() = "mget_temp -d 0000:01:00.0";
+  config.asicCommand() = asicCommand;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Missing cmd
+  asicCommand = AsicCommand();
+  asicCommand.sensorName() = "MGET_TEMP_CMD";
+  config.asicCommand() = asicCommand;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 5: Sensor name conflicts with existing sensor
+  asicCommand.sensorName() = "voltage_sensor";
+  asicCommand.cmd() = "mget_temp -d 0000:01:00.0";
+  config.asicCommand() = asicCommand;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, AsicCommandWithVersionedSensors) {
+  SensorConfig config;
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors.pmUnitName() = "BCB";
+
+  pmUnitSensors.sensors() = {
+      createPmSensor("BASE_SENSOR", "/run/devmap/sensors/BASE")};
+
+  // Add versioned sensor
+  VersionedPmSensor versionedSensor;
+  versionedSensor.productProductionState() = 1;
+  versionedSensor.sensors() = {
+      createPmSensor("VERSIONED_SENSOR", "/run/devmap/sensors/VERSIONED")};
+  pmUnitSensors.versionedSensors() = {versionedSensor};
+
+  config.pmUnitSensorsList() = {pmUnitSensors};
+
+  // AsicCommand should not conflict with versioned sensor names
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "VERSIONED_SENSOR";
+  asicCommand.cmd() = "echo 42";
+  asicCommand.sensorType() = SensorType::TEMPERTURE;
+  config.asicCommand() = asicCommand;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Non-conflicting name should work
+  asicCommand.sensorName() = "ASIC_CMD_SENSOR";
+  config.asicCommand() = asicCommand;
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }

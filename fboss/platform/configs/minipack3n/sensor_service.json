@@ -2921,9 +2921,10 @@
       ]
     }
   ],
-  "switchAsicTemp": {
-    "vendorId": "0x15b3",
-    "deviceId": "0xcf80"
+  "asicCommand": {
+    "sensorName": "ASIC_TEMP_MGET_TEMP",
+    "cmd": "/usr/bin/mget_temp -d /dev/mst/mt53120_pciconf0",
+    "sensorType": 3
   },
   "powerConsumptionConfigs": [
     {

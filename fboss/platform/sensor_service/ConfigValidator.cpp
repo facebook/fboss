@@ -20,6 +20,9 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   if (!isValidPowerConsumptionConfig(sensorConfig)) {
     return false;
   }
+  if (!isValidAsicCommand(sensorConfig)) {
+    return false;
+  }
   return true;
 }
 
@@ -155,6 +158,37 @@ bool ConfigValidator::isValidPowerConsumptionConfig(
           " and currentSensorName should be defined");
       return false;
     }
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidAsicCommand(
+    const sensor_config::SensorConfig& sensorConfig) {
+  if (!sensorConfig.asicCommand().has_value()) {
+    return true;
+  }
+
+  XLOG(DBG1) << "Validating AsicCommand config";
+
+  const auto& asicCommand = *sensorConfig.asicCommand();
+
+  if (asicCommand.sensorName()->empty()) {
+    XLOG(ERR) << "AsicCommand sensorName must be non-empty";
+    return false;
+  }
+
+  if (asicCommand.cmd()->empty()) {
+    XLOG(ERR) << "AsicCommand cmd must be non-empty";
+    return false;
+  }
+
+  std::unordered_set<std::string> sensorNames = getAllSensorNames(sensorConfig);
+  if (sensorNames.find(*asicCommand.sensorName()) != sensorNames.end()) {
+    XLOG(ERR) << fmt::format(
+        "AsicCommand sensorName {} conflicts with existing sensor name",
+        *asicCommand.sensorName());
+    return false;
   }
 
   return true;

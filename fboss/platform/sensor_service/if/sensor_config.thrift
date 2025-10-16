@@ -108,14 +108,17 @@ struct PmUnitSensors {
   4: list<VersionedPmSensor> versionedSensors;
 }
 
-// `SwitchAsicTemp`: The temperature sensor configuration for the switch ASIC.
+// `AsicCommand`: Describes the command to get sensor data from Switch ASIC.
 //
-// `vendorId`: The PCI vendor ID of ASIC PCI device
+// `sensorName`: Name of the sensor.
 //
-// `deviceId`: The PCI device ID of ASIC PCI device
-struct SwitchAsicTemp {
-  1: optional string vendorId;
-  2: optional string deviceId;
+// `cmd`: Command to get sensor data from ASIC.
+//
+// `sensorType`: See SensorType definition above.
+struct AsicCommand {
+  1: string sensorName;
+  2: string cmd;
+  3: SensorType sensorType;
 }
 
 struct PowerConsumptionConfig {
@@ -132,6 +135,6 @@ struct PowerConsumptionConfig {
 // The configuration for sensor mapping.
 struct SensorConfig {
   1: list<PmUnitSensors> pmUnitSensorsList;
-  2: optional SwitchAsicTemp switchAsicTemp;
+  2: optional AsicCommand asicCommand;
   3: list<PowerConsumptionConfig> powerConsumptionConfigs;
 }

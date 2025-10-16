@@ -114,14 +114,15 @@ void SensorServiceImpl::fetchSensorData() {
     }
   }
 
-  if (sensorConfig_.switchAsicTemp()) {
-    XLOG(INFO) << "Processing Asic Temperature";
-    auto sensorData = getAsicTemp(sensorConfig_.switchAsicTemp().value());
-    polledData[kAsicTemp] = sensorData;
+  if (sensorConfig_.asicCommand()) {
+    XLOG(INFO) << "Processing Asic Command";
+    auto sensorData = processAsicCmd(sensorConfig_.asicCommand().value());
+    const auto& sensorName = *sensorConfig_.asicCommand()->sensorName();
+    polledData[sensorName] = sensorData;
     if (!sensorData.value()) {
       readFailures++;
     }
-    publishPerSensorStats(kAsicTemp, sensorData.value().to_optional());
+    publishPerSensorStats(sensorName, sensorData.value().to_optional());
   }
 
   processPowerConsumption(polledData, *sensorConfig_.powerConsumptionConfigs());
@@ -234,36 +235,32 @@ void SensorServiceImpl::publishDerivedStats(
   }
 }
 
-SensorData SensorServiceImpl::getAsicTemp(const SwitchAsicTemp& asicTemp) {
+SensorData SensorServiceImpl::processAsicCmd(const AsicCommand& asicCommand) {
   SensorData sensorData{};
-  sensorData.name() = kAsicTemp;
-  sensorData.sensorType() = SensorType::TEMPERTURE;
-  if (!asicTemp.vendorId() || !asicTemp.deviceId()) {
-    return sensorData;
-  }
-  auto sbdf = utils_->getPciAddress(*asicTemp.vendorId(), *asicTemp.deviceId());
-  if (!sbdf) {
-    XLOG(ERR) << fmt::format(
-        "Could not find asic device with vendorId: {}, deviceId: {}",
-        *asicTemp.vendorId(),
-        *asicTemp.deviceId());
+  sensorData.name() = *asicCommand.sensorName();
+  sensorData.sensorType() = *asicCommand.sensorType();
+
+  if (asicCommand.cmd()->empty()) {
+    XLOG(ERR) << "AsicCommand cmd is empty";
     return sensorData;
   }
 
-  sensorData.sysfsPath() = fmt::format("/usr/bin/mget_temp -d {}", *sbdf);
+  const auto& cmd = *asicCommand.cmd();
 
-  auto [exitStatus, output] =
-      platformUtils_->runCommand({"/usr/bin/mget_temp", "-d", *sbdf});
+  auto [exitStatus, output] = platformUtils_->execCommand(cmd);
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format(
-        "Failed to get ASIC temperature for PCI device {} with error: {}",
-        *sbdf,
-        output);
+        "Failed to run AsicCommand '{}' with exit status: {}", cmd, exitStatus);
     return sensorData;
   }
 
   sensorData.timeStamp() = Utils::nowInSecs();
-  sensorData.value() = folly::to<uint16_t>(output);
+  try {
+    sensorData.value() = folly::to<uint16_t>(output);
+  } catch (const std::exception& e) {
+    XLOG(ERR) << fmt::format(
+        "Failed to parse AsicCommand '{}' output: {}", output, e.what());
+  }
   return sensorData;
 }
 
