@@ -339,6 +339,35 @@ TEST(ConfigValidatorTest, AsicCommandWithVersionedSensors) {
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, IsValidSensorName) {
+  auto config = createBasicSensorConfig();
+
+  ConfigValidator validator;
+
+  // Test 1: Regular sensor names should be valid
+  EXPECT_TRUE(validator.isValidSensorName(config, "VOLTAGE_SENSOR"));
+  EXPECT_TRUE(validator.isValidSensorName(config, "CURRENT_SENSOR"));
+  EXPECT_TRUE(validator.isValidSensorName(config, "POWER_SENSOR"));
+
+  // Test 2: Non-existent sensor name should be invalid
+  EXPECT_FALSE(validator.isValidSensorName(config, "NONEXISTENT_SENSOR"));
+
+  // Test 3: AsicCommand sensor name should be valid
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "ASIC_TEMP_SENSOR";
+  asicCommand.cmd() = "echo 42";
+  config.asicCommand() = asicCommand;
+
+  EXPECT_TRUE(validator.isValidSensorName(config, "ASIC_TEMP_SENSOR"));
+  EXPECT_TRUE(validator.isValidSensorName(config, "VOLTAGE_SENSOR"));
+  EXPECT_FALSE(validator.isValidSensorName(config, "NONEXISTENT_SENSOR"));
+
+  // Test 4: After removing AsicCommand, its sensor name should be invalid
+  config.asicCommand().reset();
+  EXPECT_FALSE(validator.isValidSensorName(config, "ASIC_TEMP_SENSOR"));
+  EXPECT_TRUE(validator.isValidSensorName(config, "VOLTAGE_SENSOR"));
+}
+
 // Test sensor name uppercase validation
 TEST(ConfigValidatorTest, isValidPmSensor) {
   SensorConfig config;

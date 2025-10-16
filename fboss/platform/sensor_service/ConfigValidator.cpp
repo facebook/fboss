@@ -107,6 +107,11 @@ bool ConfigValidator::isValidSensorName(
       }
     }
   }
+  if (const auto& asicCmd = sensorConfig.asicCommand()) {
+    if (sensorName == asicCmd->sensorName()) {
+      return true;
+    }
+  }
   XLOG(ERR) << fmt::format(
       "Sensor `{}` is not defined in SensorConfig", sensorName);
   return false;
