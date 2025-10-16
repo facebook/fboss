@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import argparse
+import json
 import os
 import re
 import shlex
@@ -19,6 +20,8 @@ OPT_ARG_NO_SYSTEM_DEPS = "--no-system-deps"
 OPT_ARG_ADD_BUILD_ENV_VAR = "--env-var"
 OPT_ARG_LOCAL = "--local"
 OPT_ARG_NUM_JOBS = "--num-jobs"
+OPT_ARG_EXTRAS_DIR = "--extras-dir"
+OPT_ARG_EXTRA_CMAKE_DEFINES = "--extra-cmake-defines"
 
 FBOSS_IMAGE_NAME = "fboss_image"
 FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
@@ -157,6 +160,26 @@ def parse_args():
             "If unspecified, the default is the number of cpus. (CPU(s) in lspcu output)"
         ),
     )
+    parser.add_argument(
+        OPT_ARG_EXTRAS_DIR,
+        type=str,
+        required=False,
+        help=(
+            "The contents of this directory will be mounted into the docker "
+            "image at /var/extras."
+        ),
+    )
+    parser.add_argument(
+        OPT_ARG_EXTRA_CMAKE_DEFINES,
+        type=str,
+        required=False,
+        help=(
+            "Extra cmake defines passed to getdeps.py: "
+            "Input json map that contains extra cmake defines to be used "
+            "when compiling the current project and all its deps. "
+            'e.g: \'{"CMAKE_CXX_FLAGS": "--bla"}\''
+        ),
+    )
 
     return parser.parse_args()
 
@@ -236,6 +259,8 @@ def run_fboss_build(
     env_vars: List[str],
     use_local: bool,
     num_jobs: Optional[int],
+    extras_dir: Optional[str],
+    extra_cmake_defines: Optional[str],
 ):
     use_stable_hashes()
 
@@ -261,15 +286,26 @@ def run_fboss_build(
     # Add TTY flags
     if docker_output:
         cmd_args.append("-it")
+    if extras_dir:
+        cmd_args.extend(["-v", f"{extras_dir}:/var/extras:rw"])
     # Add args for docker container name
     cmd_args.append(f"--name={FBOSS_CONTAINER_NAME}")
     # Add args for image name
     cmd_args.append(f"{FBOSS_IMAGE_NAME}:latest")
     # Add build command args
+    extra_defines = {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/g++",
+    }
+    if extra_cmake_defines:
+        for k, v in json.loads(extra_cmake_defines).items():
+            extra_defines[k] = v
     build_cmd = [
         "./build/fbcode_builder/getdeps.py",
         "build",
-        '--extra-cmake-defines={"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20", "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/gcc", "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-12/root/usr/bin/g++"}',
+        f"--extra-cmake-defines={json.dumps(extra_defines)}",
         "--scratch-path",
         f"{CONTAINER_SCRATCH_PATH}",
     ]
@@ -336,6 +372,8 @@ def main():
         args.env_vars,
         args.local,
         args.num_jobs,
+        args.extras_dir,
+        args.extra_cmake_defines,
     )
 
     cleanup_fboss_build_container()

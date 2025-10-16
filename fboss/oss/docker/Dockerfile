@@ -5,6 +5,16 @@ RUN dnf install git sudo lsof -y
 # Use /var/FBOSS as the set location to clone the git repository and store the outputs of the build.
 WORKDIR /var/FBOSS/
 
+# Download and install sccache
+RUN version=v0.11.0 && \
+    curl -L https://github.com/mozilla/sccache/releases/download/$version/sccache-$version-x86_64-unknown-linux-musl.tar.gz -o sccache.tar.gz && \
+    tar xzf sccache.tar.gz && \
+    mv sccache-$version-x86_64-unknown-linux-musl/sccache /usr/local/bin/ && \
+    rm -rf sccache-$version-x86_64-unknown-linux-musl sccache.tar.gz
+
+# Mount point for extra files.
+RUN mkdir -p /var/extras
+
 RUN mkdir -p /var/FBOSS/fboss
 COPY . fboss
 WORKDIR fboss
