@@ -127,3 +127,4 @@ Global_PortID,Logical_PortID,Port_Name,Supported_Port_Profiles,Attached_CoreID,A
 126,126,eth1/63/5,25-38-52,,,,0,0
 127,127,eth1/64/1,25-38-52,,,,0,0
 128,128,eth1/64/5,25-38-52,,,,0,0
+129,129,eth1/65/1,22-23,,,,4,0
