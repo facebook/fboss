@@ -273,6 +273,11 @@ class TransceiverManager {
       PortID portId,
       cfg::PortProfileID portProfileId) = 0;
 
+  virtual void programXphyPortPrbs(
+      PortID portID,
+      phy::Side side,
+      const phy::PortPrbsState& prbs) = 0;
+
   virtual phy::PhyInfo getXphyInfo(PortID portId) = 0;
 
   virtual void updateAllXphyPortsStats() = 0;

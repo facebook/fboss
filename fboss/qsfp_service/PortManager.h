@@ -312,6 +312,11 @@ class PortManager {
 
   bool getXphyNeedResetDataPath(PortID id) const;
 
+  void programXphyPortPrbs(
+      PortID portId,
+      phy::Side side,
+      const phy::PortPrbsState& prbs);
+
  protected:
   /*
    * function to initialize all the Phy in the system

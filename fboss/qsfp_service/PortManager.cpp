@@ -1577,4 +1577,16 @@ bool PortManager::getXphyNeedResetDataPath(PortID id) const {
       xphyNeedResetDataPath);
 }
 
+void PortManager::programXphyPortPrbs(
+    PortID portId,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  if (!phyManager_) {
+    throw FbossError(
+        "Unable to programXphyPortPrbs when PhyManager is not set");
+  }
+
+  phyManager_->setPortPrbs(portId, side, prbs);
+}
+
 } // namespace facebook::fboss

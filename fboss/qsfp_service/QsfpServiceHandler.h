@@ -312,6 +312,15 @@ class QsfpServiceHandler
   std::optional<PortID> getPortIdByPortName(
       const std::string& portNameStr) const;
 
+  void programXphyPort(PortID portId, cfg::PortProfileID portProfileId);
+
+  void updateAllXphyPortsStats();
+
+  void programXphyPortPrbs(
+      PortID portID,
+      phy::Side side,
+      const phy::PortPrbsState& prbs);
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,

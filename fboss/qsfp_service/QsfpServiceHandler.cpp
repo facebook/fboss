@@ -636,6 +636,35 @@ std::optional<PortID> QsfpServiceHandler::getPortIdByPortName(
   }
 }
 
+void QsfpServiceHandler::programXphyPort(
+    PortID portId,
+    cfg::PortProfileID portProfileId) {
+  if (FLAGS_port_manager_mode) {
+    return getPortManager()->programXphyPort(portId, portProfileId);
+  } else {
+    return getTransceiverManager()->programXphyPort(portId, portProfileId);
+  }
+}
+
+void QsfpServiceHandler::updateAllXphyPortsStats() {
+  if (FLAGS_port_manager_mode) {
+    return getPortManager()->updateAllXphyPortsStats();
+  } else {
+    return getTransceiverManager()->updateAllXphyPortsStats();
+  }
+}
+
+void QsfpServiceHandler::programXphyPortPrbs(
+    PortID portId,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  if (FLAGS_port_manager_mode) {
+    portManager_->programXphyPortPrbs(portId, side, prbs);
+  } else {
+    tcvrManager_->programXphyPortPrbs(portId, side, prbs);
+  }
+}
+
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(
