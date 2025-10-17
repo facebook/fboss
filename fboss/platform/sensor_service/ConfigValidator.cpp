@@ -256,8 +256,11 @@ bool ConfigValidator::isValidAsicCommand(
     return false;
   }
 
-  // Check if sensor name conflicts with existing sensor names
-  auto sensorNames = getAllSensorNames(sensorConfig);
+  // Check if sensor name conflicts with existing sensor names (excluding the
+  // asicCmd struct)
+  auto sensorConfigCopy = sensorConfig;
+  sensorConfigCopy.asicCommand().reset();
+  auto sensorNames = getAllSensorNames(sensorConfigCopy);
   if (sensorNames.count(*asicCommand.sensorName()) != 0) {
     XLOG(ERR) << fmt::format(
         "AsicCommand sensorName {} conflicts with existing sensor name",
@@ -283,6 +286,9 @@ std::unordered_set<std::string> ConfigValidator::getAllSensorNames(
       }
     }
   }
+  if (const auto& asicCmd = sensorConfig.asicCommand()) {
+    sensorNames.emplace(*asicCmd->sensorName());
+  }
   return sensorNames;
 }
 
@@ -293,6 +299,9 @@ std::unordered_set<std::string> ConfigValidator::getAllUniversalSensorNames(
     for (const auto& pmSensor : *pmUnitSensors.sensors()) {
       sensorNames.emplace(*pmSensor.name());
     }
+  }
+  if (const auto& asicCmd = sensorConfig.asicCommand()) {
+    sensorNames.emplace(*asicCmd->sensorName());
   }
   return sensorNames;
 }

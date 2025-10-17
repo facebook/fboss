@@ -232,24 +232,60 @@ TEST(ConfigValidatorTest, InValidPowerConsumptionConfigWithVersionedSensors) {
 }
 
 TEST(ConfigValidatorTest, GetAllSensorNames) {
-  auto config = createBasicSensorConfig();
+  SensorConfig config;
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors.pmUnitName() = "BCB";
+  pmUnitSensors.sensors() = {
+      createPmSensor("BASE_SENSOR_1", "/run/devmap/sensors/BASE_1"),
+      createPmSensor("BASE_SENSOR_2", "/run/devmap/sensors/BASE_2")};
+  VersionedPmSensor versionedPmSensor;
+  versionedPmSensor.productProductionState() = 1;
+  versionedPmSensor.sensors() = {
+      createPmSensor("VERSIONED_SENSOR_1", "/run/devmap/sensors/VERSIONED_1"),
+      createPmSensor("VERSIONED_SENSOR_2", "/run/devmap/sensors/VERSIONED_2")};
+  pmUnitSensors.versionedSensors() = {versionedPmSensor};
+  config.pmUnitSensorsList() = {pmUnitSensors};
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "ASIC_TEMP_CMD";
+  asicCommand.cmd() = "echo 42";
+  config.asicCommand() = asicCommand;
 
-  PmUnitSensors pmUnitSensors2;
-  pmUnitSensors2.slotPath() = "/SCB_SLOT@0";
-  pmUnitSensors2.pmUnitName() = "SCB";
-  pmUnitSensors2.sensors() = {
+  auto allSensorNames = ConfigValidator().getAllSensorNames(config);
+  EXPECT_EQ(allSensorNames.size(), 5);
+  EXPECT_TRUE(allSensorNames.contains("BASE_SENSOR_1"));
+  EXPECT_TRUE(allSensorNames.contains("BASE_SENSOR_2"));
+  EXPECT_TRUE(allSensorNames.contains("VERSIONED_SENSOR_1"));
+  EXPECT_TRUE(allSensorNames.contains("VERSIONED_SENSOR_2"));
+  EXPECT_TRUE(allSensorNames.contains("ASIC_TEMP_CMD"));
+}
+
+TEST(ConfigValidatorTest, GetAllUniversalSensorNames) {
+  SensorConfig config;
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/SCB_SLOT@0";
+  pmUnitSensors.pmUnitName() = "SCB";
+  pmUnitSensors.sensors() = {
       createPmSensor("TEMP_SENSOR", "/run/devmap/sensors/TEMP"),
       createPmSensor("FAN_SENSOR", "/run/devmap/sensors/FAN")};
-  config.pmUnitSensorsList()->emplace_back(pmUnitSensors2);
+  VersionedPmSensor versionedPmSensor;
+  versionedPmSensor.productProductionState() = 1;
+  versionedPmSensor.sensors() = {
+      createPmSensor("VERSIONED_TEMP", "/run/devmap/sensors/VERSIONED_TEMP"),
+      createPmSensor("VERSIONED_FAN", "/run/devmap/sensors/VERSIONED_FAN")};
+  pmUnitSensors.versionedSensors() = {versionedPmSensor};
+  config.pmUnitSensorsList() = {pmUnitSensors};
+  AsicCommand asicCommand;
+  asicCommand.sensorName() = "ASIC_TEMP_CMD";
+  asicCommand.cmd() = "echo 42";
+  config.asicCommand() = asicCommand;
 
-  auto sensorNames = ConfigValidator().getAllSensorNames(config);
-
-  EXPECT_EQ(sensorNames.size(), 5);
-  EXPECT_TRUE(sensorNames.contains("VOLTAGE_SENSOR"));
-  EXPECT_TRUE(sensorNames.contains("CURRENT_SENSOR"));
-  EXPECT_TRUE(sensorNames.contains("POWER_SENSOR"));
-  EXPECT_TRUE(sensorNames.contains("TEMP_SENSOR"));
-  EXPECT_TRUE(sensorNames.contains("FAN_SENSOR"));
+  auto universalSensorNames =
+      ConfigValidator().getAllUniversalSensorNames(config);
+  EXPECT_EQ(universalSensorNames.size(), 3);
+  EXPECT_TRUE(universalSensorNames.contains("TEMP_SENSOR"));
+  EXPECT_TRUE(universalSensorNames.contains("FAN_SENSOR"));
+  EXPECT_TRUE(universalSensorNames.contains("ASIC_TEMP_CMD"));
 }
 
 TEST(ConfigValidatorTest, ValidPowerConsumptionConfigComplexScenario) {
