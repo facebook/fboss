@@ -19,6 +19,10 @@ class ConfigValidator {
   bool isValidAsicCommand(const sensor_config::SensorConfig& sensorConfig);
   std::unordered_set<std::string> getAllSensorNames(
       const sensor_config::SensorConfig& sensorConfig);
+  // Returns sensor names that are present in all versions of the platform. In
+  // other words, does not include versionedSensors
+  std::unordered_set<std::string> getAllUniversalSensorNames(
+      const sensor_config::SensorConfig& sensorConfig);
 
   // Cross service validation
   bool isValidSensorName(

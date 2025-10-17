@@ -198,6 +198,30 @@ TEST(ConfigValidatorTest, InvalidPowerConsumptionConfigMissingSensors) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, InValidPowerConsumptionConfigWithVersionedSensors) {
+  SensorConfig config;
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors.pmUnitName() = "BCB";
+
+  pmUnitSensors.sensors() = {
+      createPmSensor("BASE_VOLTAGE", "/run/devmap/sensors/BASE_VOLTAGE"),
+      createPmSensor("BASE_CURRENT", "/run/devmap/sensors/BASE_CURRENT")};
+
+  VersionedPmSensor versionedPmSensor;
+  versionedPmSensor.sensors() = {
+      createPmSensor("VERSIONED_POWER", "/run/devmap/sensors/VERSIONED_POWER")};
+  pmUnitSensors.versionedSensors() = {versionedPmSensor};
+
+  config.pmUnitSensorsList() = {pmUnitSensors};
+  config.powerConsumptionConfigs() = {
+      createPowerConsumptionConfig(
+          "PSU1", std::nullopt, "BASE_VOLTAGE", "BASE_CURRENT"),
+      createPowerConsumptionConfig("PSU2", "VERSIONED_POWER")};
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
 TEST(ConfigValidatorTest, GetAllSensorNames) {
   auto config = createBasicSensorConfig();
 
@@ -237,30 +261,6 @@ TEST(ConfigValidatorTest, ValidPowerConsumptionConfigComplexScenario) {
       createPowerConsumptionConfig(
           "PEM1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR"),
       createPowerConsumptionConfig("PEM10", "POWER_SENSOR")};
-
-  EXPECT_TRUE(ConfigValidator().isValid(config));
-}
-
-TEST(ConfigValidatorTest, ValidPowerConsumptionConfigWithVersionedSensors) {
-  SensorConfig config;
-  PmUnitSensors pmUnitSensors;
-  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
-  pmUnitSensors.pmUnitName() = "BCB";
-
-  pmUnitSensors.sensors() = {
-      createPmSensor("BASE_VOLTAGE", "/run/devmap/sensors/BASE_VOLTAGE"),
-      createPmSensor("BASE_CURRENT", "/run/devmap/sensors/BASE_CURRENT")};
-
-  VersionedPmSensor versionedPmSensor;
-  versionedPmSensor.sensors() = {
-      createPmSensor("VERSIONED_POWER", "/run/devmap/sensors/VERSIONED_POWER")};
-  pmUnitSensors.versionedSensors() = {versionedPmSensor};
-
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  config.powerConsumptionConfigs() = {
-      createPowerConsumptionConfig(
-          "PSU1", std::nullopt, "BASE_VOLTAGE", "BASE_CURRENT"),
-      createPowerConsumptionConfig("PSU2", "VERSIONED_POWER")};
 
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }

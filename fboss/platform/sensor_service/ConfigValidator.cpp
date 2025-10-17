@@ -103,7 +103,8 @@ bool ConfigValidator::isValidPowerConsumptionConfig(
 
   XLOG(DBG1) << "Validating Power Consumption Config config";
 
-  std::unordered_set<std::string> sensorNames = getAllSensorNames(sensorConfig);
+  auto sensorNames = getAllSensorNames(sensorConfig);
+  auto universalSensorNames = getAllUniversalSensorNames(sensorConfig);
   std::unordered_set<std::string> powerConsumptionConfigNames;
 
   for (const auto& pcConfig : *sensorConfig.powerConsumptionConfigs()) {
@@ -133,7 +134,7 @@ bool ConfigValidator::isValidPowerConsumptionConfig(
     }
 
     if (pcConfig.powerSensorName().has_value()) {
-      if (sensorNames.find(*pcConfig.powerSensorName()) == sensorNames.end()) {
+      if (universalSensorNames.count(*pcConfig.powerSensorName()) == 0) {
         XLOG(ERR) << fmt::format(
             "powerConsumptionConfig powerSensorName {} is not defined in"
             " SensorConfig",
@@ -143,8 +144,7 @@ bool ConfigValidator::isValidPowerConsumptionConfig(
     } else if (
         pcConfig.voltageSensorName().has_value() &&
         pcConfig.currentSensorName().has_value()) {
-      if (sensorNames.find(*pcConfig.voltageSensorName()) ==
-          sensorNames.end()) {
+      if (universalSensorNames.count(*pcConfig.voltageSensorName()) == 0) {
         XLOG(ERR) << fmt::format(
             "powerConsumptionConfig voltageSensorName {} is not defined in"
             " SensorConfig",
@@ -152,8 +152,7 @@ bool ConfigValidator::isValidPowerConsumptionConfig(
         return false;
       }
 
-      if (sensorNames.find(*pcConfig.currentSensorName()) ==
-          sensorNames.end()) {
+      if (universalSensorNames.count(*pcConfig.currentSensorName()) == 0) {
         XLOG(ERR) << fmt::format(
             "powerConsumptionConfig currentSensorName {} is not defined in"
             " SensorConfig",
@@ -196,8 +195,8 @@ bool ConfigValidator::isValidAsicCommand(
   }
 
   // Check if sensor name conflicts with existing sensor names
-  std::unordered_set<std::string> sensorNames = getAllSensorNames(sensorConfig);
-  if (sensorNames.find(*asicCommand.sensorName()) != sensorNames.end()) {
+  auto sensorNames = getAllSensorNames(sensorConfig);
+  if (sensorNames.count(*asicCommand.sensorName()) != 0) {
     XLOG(ERR) << fmt::format(
         "AsicCommand sensorName {} conflicts with existing sensor name",
         *asicCommand.sensorName());
@@ -220,6 +219,17 @@ std::unordered_set<std::string> ConfigValidator::getAllSensorNames(
       for (const auto& pmSensor : *versionedPmSensor.sensors()) {
         sensorNames.emplace(*pmSensor.name());
       }
+    }
+  }
+  return sensorNames;
+}
+
+std::unordered_set<std::string> ConfigValidator::getAllUniversalSensorNames(
+    const sensor_config::SensorConfig& sensorConfig) {
+  std::unordered_set<std::string> sensorNames;
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    for (const auto& pmSensor : *pmUnitSensors.sensors()) {
+      sensorNames.emplace(*pmSensor.name());
     }
   }
   return sensorNames;
