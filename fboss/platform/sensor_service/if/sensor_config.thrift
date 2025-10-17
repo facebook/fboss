@@ -121,21 +121,43 @@ struct AsicCommand {
   3: SensorType sensorType;
 }
 
+// `PowerConsumptionConfig`: Describes power consumption of components.
+//
+// `name`: Unique name of the power component (e.g., PSU1, PSU2, PEM1, HSC).
+//
+// `powerSensorName`: Name of the power sensor if available. This should be set
+//                    if the component has a direct power measurement sensor.
+//
+// `voltageSensorName`: Name of the voltage sensor. This should be set if no
+//                      direct power sensor is available and power needs to be
+//                      calculated from voltage and current.
+//
+// `currentSensorName`: Name of the current sensor. This should be set if no
+//                      direct power sensor is available and power needs to be
+//                      calculated from voltage and current.
 struct PowerConsumptionConfig {
-  // This name should be the unique name of each PSU, PEM, HSC in the platform
-  // e.g. PSU1, PSU2, PEM1, PEM2, HSC etc.
-  // We currently only expect one HSC in the platform.
   1: string name;
-  // If there is power sensor, this should be set
   2: optional string powerSensorName;
-  // If no power sensor, the following two fields should be set
   3: optional string voltageSensorName;
   4: optional string currentSensorName;
+}
+
+// `TemperatureConfig`: Describes temperature of components.
+//
+// `name`: Unique name of the component (e.g., ASIC, ASIC1).
+//
+// `temperatureSensorNames`: List of temperature sensors for this component.
+//                           The maximum value among these sensors will be used
+//                           to determine the overall temperature.
+struct TemperatureConfig {
+  1: string name;
+  2: list<string> temperatureSensorNames;
 }
 
 // The configuration for sensor mapping.
 struct SensorConfig {
   1: list<PmUnitSensors> pmUnitSensorsList;
   2: optional AsicCommand asicCommand;
-  3: list<PowerConsumptionConfig> powerConsumptionConfigs;
+  11: list<PowerConsumptionConfig> powerConsumptionConfigs;
+  12: list<TemperatureConfig> temperatureConfigs;
 }

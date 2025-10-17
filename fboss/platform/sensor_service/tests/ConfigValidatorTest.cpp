@@ -14,6 +14,42 @@ PmSensor createPmSensor(const std::string& name, const std::string& sysfsPath) {
   pmSensor.sysfsPath() = sysfsPath;
   return pmSensor;
 }
+
+PowerConsumptionConfig createPowerConsumptionConfig(
+    const std::string& name,
+    const std::optional<std::string>& powerSensorName = std::nullopt,
+    const std::optional<std::string>& voltageSensorName = std::nullopt,
+    const std::optional<std::string>& currentSensorName = std::nullopt) {
+  PowerConsumptionConfig config;
+  config.name() = name;
+
+  config.powerSensorName().from_optional(powerSensorName);
+  config.voltageSensorName().from_optional(voltageSensorName);
+  config.currentSensorName().from_optional(currentSensorName);
+  return config;
+}
+
+SensorConfig createBasicSensorConfig() {
+  SensorConfig config;
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors.pmUnitName() = "BCB";
+  pmUnitSensors.sensors() = {
+      createPmSensor("VOLTAGE_SENSOR", "/run/devmap/sensors/VOLTAGE"),
+      createPmSensor("CURRENT_SENSOR", "/run/devmap/sensors/CURRENT"),
+      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER")};
+  config.pmUnitSensorsList() = {pmUnitSensors};
+  return config;
+}
+
+TemperatureConfig createTemperatureConfig(
+    const std::string& name,
+    const std::vector<std::string>& temperatureSensorNames) {
+  TemperatureConfig config;
+  config.name() = name;
+  config.temperatureSensorNames() = temperatureSensorNames;
+  return config;
+}
 } // namespace
 
 TEST(ConfigValidatorTest, ValidConfig) {
@@ -62,33 +98,6 @@ TEST(ConfigValidatorTest, InvalidPmSensors) {
       createPmSensor("SENSOR1", "/run/devmap/sensors/CPU_CORE_TEMP2")};
   config.pmUnitSensorsList() = {pmUnitSensors};
   EXPECT_FALSE(ConfigValidator().isValid(config));
-}
-
-PowerConsumptionConfig createPowerConsumptionConfig(
-    const std::string& name,
-    const std::optional<std::string>& powerSensorName = std::nullopt,
-    const std::optional<std::string>& voltageSensorName = std::nullopt,
-    const std::optional<std::string>& currentSensorName = std::nullopt) {
-  PowerConsumptionConfig config;
-  config.name() = name;
-
-  config.powerSensorName().from_optional(powerSensorName);
-  config.voltageSensorName().from_optional(voltageSensorName);
-  config.currentSensorName().from_optional(currentSensorName);
-  return config;
-}
-
-SensorConfig createBasicSensorConfig() {
-  SensorConfig config;
-  PmUnitSensors pmUnitSensors;
-  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
-  pmUnitSensors.pmUnitName() = "BCB";
-  pmUnitSensors.sensors() = {
-      createPmSensor("VOLTAGE_SENSOR", "/run/devmap/sensors/VOLTAGE"),
-      createPmSensor("CURRENT_SENSOR", "/run/devmap/sensors/CURRENT"),
-      createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER")};
-  config.pmUnitSensorsList() = {pmUnitSensors};
-  return config;
 }
 
 TEST(ConfigValidatorTest, ValidPowerConsumptionConfig) {
@@ -344,6 +353,204 @@ TEST(ConfigValidatorTest, AsicCommandWithVersionedSensors) {
   // Non-conflicting name should work
   asicCommand.sensorName() = "ASIC_CMD_SENSOR";
   config.asicCommand() = asicCommand;
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidTemperatureConfig) {
+  auto config = createBasicSensorConfig();
+
+  // Add temperature sensors
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_1", "/run/devmap/sensors/TEMP1"));
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_2", "/run/devmap/sensors/TEMP2"));
+
+  // Test 1: Valid ASIC config
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC", {"TEMP_SENSOR_1"})};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 2: Valid ASIC1 config
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC1", {"TEMP_SENSOR_1"})};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 3: Valid ASIC with multiple sensors
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC", {"TEMP_SENSOR_1", "TEMP_SENSOR_2"})};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 4: Multiple ASIC configs
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC1", {"TEMP_SENSOR_1"}),
+      createTemperatureConfig("ASIC2", {"TEMP_SENSOR_2"})};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 5: Higher numbered ASIC
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC100", {"TEMP_SENSOR_1"})};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidTemperatureConfigNaming) {
+  auto config = createBasicSensorConfig();
+
+  // Add temperature sensors
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_1", "/run/devmap/sensors/TEMP1"));
+
+  // Test 1: Invalid name pattern - lowercase
+  config.temperatureConfigs() = {
+      createTemperatureConfig("asic1", {"TEMP_SENSOR_1"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: Invalid name pattern - wrong prefix
+  config.temperatureConfigs() = {
+      createTemperatureConfig("CHIP1", {"TEMP_SENSOR_1"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 3: Invalid name pattern - ASIC0
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC0", {"TEMP_SENSOR_1"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Invalid name pattern - ASIC with underscore
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC_1", {"TEMP_SENSOR_1"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 5: Invalid name pattern - just a number
+  config.temperatureConfigs() = {
+      createTemperatureConfig("1", {"TEMP_SENSOR_1"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidTemperatureConfigDuplicateName) {
+  auto config = createBasicSensorConfig();
+
+  // Add temperature sensors
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_1", "/run/devmap/sensors/TEMP1"));
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_2", "/run/devmap/sensors/TEMP2"));
+
+  // Duplicate temperature config name
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC1", {"TEMP_SENSOR_1"}),
+      createTemperatureConfig("ASIC1", {"TEMP_SENSOR_2"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidTemperatureConfigNameConflictWithSensor) {
+  auto config = createBasicSensorConfig();
+
+  // Add a sensor named "ASIC1"
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("ASIC1", "/run/devmap/sensors/ASIC1_SENSOR"));
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_1", "/run/devmap/sensors/TEMP1"));
+
+  // Temperature config name conflicts with existing sensor
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC1", {"TEMP_SENSOR_1"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidTemperatureConfigInvalidSensorReferences) {
+  auto config = createBasicSensorConfig();
+
+  // Add temperature sensors
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_1", "/run/devmap/sensors/TEMP1"));
+
+  // Test 1: Reference to non-existent sensor
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC", {"NONEXISTENT_TEMP_SENSOR"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: One valid and one invalid sensor reference
+  config.temperatureConfigs() = {createTemperatureConfig(
+      "ASIC", {"TEMP_SENSOR_1", "NONEXISTENT_TEMP_SENSOR"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidTemperatureConfigEmptySensorList) {
+  auto config = createBasicSensorConfig();
+
+  // Test 1: Empty temperature sensor list
+  config.temperatureConfigs() = {createTemperatureConfig("ASIC", {})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: Multiple configs, one with empty list
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("TEMP_SENSOR_1", "/run/devmap/sensors/TEMP1"));
+
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC1", {"TEMP_SENSOR_1"}),
+      createTemperatureConfig("ASIC2", {})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidTemperatureConfigWithVersionedSensors) {
+  SensorConfig config;
+  PmUnitSensors pmUnitSensors;
+  pmUnitSensors.slotPath() = "/BCB_SLOT@0";
+  pmUnitSensors.pmUnitName() = "BCB";
+
+  // Add base sensor
+  pmUnitSensors.sensors() = {
+      createPmSensor("BASE_TEMP", "/run/devmap/sensors/BASE_TEMP")};
+
+  // Add versioned sensor
+  VersionedPmSensor versionedPmSensor;
+  versionedPmSensor.sensors() = {
+      createPmSensor("VERSIONED_TEMP", "/run/devmap/sensors/VERSIONED_TEMP")};
+  pmUnitSensors.versionedSensors() = {versionedPmSensor};
+
+  config.pmUnitSensorsList() = {pmUnitSensors};
+
+  // Test 1: Valid config with base sensor
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC", {"BASE_TEMP"})};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 2: Invalid config with versioned sensor
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC", {"VERSIONED_TEMP"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 3: Invalid config with mix of base and versioned sensors
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC", {"BASE_TEMP", "VERSIONED_TEMP"})};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidTemperatureConfigComplexScenario) {
+  auto config = createBasicSensorConfig();
+
+  // Add multiple temperature sensors
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("ASIC1_TEMP_1", "/run/devmap/sensors/ASIC1_TEMP_1"));
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("ASIC1_TEMP_2", "/run/devmap/sensors/ASIC1_TEMP_2"));
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("ASIC2_TEMP_1", "/run/devmap/sensors/ASIC2_TEMP_1"));
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("ASIC2_TEMP_2", "/run/devmap/sensors/ASIC2_TEMP_2"));
+
+  // Multiple ASIC configs with multiple sensors each
+  config.temperatureConfigs() = {
+      createTemperatureConfig("ASIC1", {"ASIC1_TEMP_1", "ASIC1_TEMP_2"}),
+      createTemperatureConfig("ASIC2", {"ASIC2_TEMP_1", "ASIC2_TEMP_2"}),
+      createTemperatureConfig("ASIC", {"ASIC1_TEMP_1"})};
+
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 

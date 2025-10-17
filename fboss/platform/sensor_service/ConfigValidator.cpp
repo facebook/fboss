@@ -20,6 +20,9 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   if (!isValidPowerConsumptionConfig(sensorConfig)) {
     return false;
   }
+  if (!isValidTemperatureConfig(sensorConfig)) {
+    return false;
+  }
   if (!isValidAsicCommand(sensorConfig)) {
     return false;
   }
@@ -165,6 +168,65 @@ bool ConfigValidator::isValidPowerConsumptionConfig(
           "powerConsumptionConfig: Either powerSensorName, or voltageSensorName"
           " and currentSensorName should be defined");
       return false;
+    }
+  }
+
+  return true;
+}
+
+bool ConfigValidator::isValidTemperatureConfig(
+    const sensor_config::SensorConfig& sensorConfig) {
+  re2::RE2 asicPattern("ASIC([1-9][0-9]*)?");
+
+  XLOG(DBG1) << "Validating Temperature Config";
+
+  auto sensorNames = getAllSensorNames(sensorConfig);
+  auto universalSensorNames = getAllUniversalSensorNames(sensorConfig);
+  std::unordered_set<std::string> temperatureConfigNames;
+
+  for (const auto& tempConfig : *sensorConfig.temperatureConfigs()) {
+    // Check for duplicate temperature config names
+    if (temperatureConfigNames.find(*tempConfig.name()) !=
+        temperatureConfigNames.end()) {
+      XLOG(ERR) << fmt::format(
+          "temperatureConfig name {} is a duplicate", *tempConfig.name());
+      return false;
+    }
+    temperatureConfigNames.insert(*tempConfig.name());
+
+    // Check if temperature config name conflicts with existing sensor names
+    if (sensorNames.find(*tempConfig.name()) != sensorNames.end()) {
+      XLOG(ERR) << fmt::format(
+          "temperatureConfig name {} conflicts with existing sensor name",
+          *tempConfig.name());
+      return false;
+    }
+
+    // Validate temperature config name pattern (ASIC or ASIC[number])
+    if (!RE2::FullMatch(*tempConfig.name(), asicPattern)) {
+      XLOG(ERR) << fmt::format(
+          "temperatureConfig name {} should be ASIC or ASIC[number]",
+          *tempConfig.name());
+      return false;
+    }
+
+    // Validate that temperatureSensorNames list is non-empty
+    if (tempConfig.temperatureSensorNames()->empty()) {
+      XLOG(ERR) << fmt::format(
+          "temperatureConfig {} must have a non-empty temperatureSensorNames list",
+          *tempConfig.name());
+      return false;
+    }
+
+    // Validate that all temperature sensor names exist
+    for (const auto& sensorName : *tempConfig.temperatureSensorNames()) {
+      if (universalSensorNames.count(sensorName) == 0) {
+        XLOG(ERR) << fmt::format(
+            "temperatureConfig temperatureSensorName {} is not defined in"
+            " SensorConfig",
+            sensorName);
+        return false;
+      }
     }
   }
 

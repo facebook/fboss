@@ -16,6 +16,8 @@ class ConfigValidator {
   bool isValidSlotPath(const std::string& slotPath);
   bool isValidPowerConsumptionConfig(
       const sensor_config::SensorConfig& sensorConfig);
+  bool isValidTemperatureConfig(
+      const sensor_config::SensorConfig& sensorConfig);
   bool isValidAsicCommand(const sensor_config::SensorConfig& sensorConfig);
   std::unordered_set<std::string> getAllSensorNames(
       const sensor_config::SensorConfig& sensorConfig);
