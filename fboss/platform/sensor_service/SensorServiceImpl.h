@@ -62,6 +62,10 @@ class SensorServiceImpl {
       const std::map<std::string, SensorData>& polledData,
       const std::vector<PowerConsumptionConfig>& pcConfigs);
 
+  void processTemperature(
+      const std::map<std::string, SensorData>& polledData,
+      const std::vector<TemperatureConfig>& tempConfigs);
+
   SensorData processAsicCmd(const AsicCommand& asicCommand);
 
  private:

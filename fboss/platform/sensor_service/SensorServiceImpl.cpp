@@ -126,6 +126,7 @@ void SensorServiceImpl::fetchSensorData() {
   }
 
   processPowerConsumption(polledData, *sensorConfig_.powerConsumptionConfigs());
+  processTemperature(polledData, *sensorConfig_.temperatureConfigs());
 
   fb303::fbData->setCounter(kReadTotal, polledData.size());
   fb303::fbData->setCounter(kTotalReadFailure, readFailures);
@@ -308,5 +309,41 @@ void SensorServiceImpl::processPowerConsumption(
     }
   }
   publishDerivedStats(kTotalPower, totalPowerVal);
+}
+
+void SensorServiceImpl::processTemperature(
+    const std::map<std::string, SensorData>& polledData,
+    const std::vector<TemperatureConfig>& tempConfigs) {
+  auto getSensorValue = [&](const std::string& sensorName) {
+    auto it = polledData.find(sensorName);
+    if (it != polledData.end()) {
+      return it->second.value().to_optional();
+    }
+    return std::optional<float>(std::nullopt);
+  };
+
+  for (const auto& tempConfig : tempConfigs) {
+    std::optional<float> maxTemp{std::nullopt};
+    int numFailures{0};
+    std::optional<std::string> maxSensor{};
+    for (const auto& sensorName : *tempConfig.temperatureSensorNames()) {
+      auto sensorValue = getSensorValue(sensorName);
+      if (sensorValue) {
+        if (!maxTemp || *sensorValue > *maxTemp) {
+          maxTemp = sensorValue;
+          maxSensor = sensorName;
+        }
+      } else {
+        numFailures++;
+      }
+    }
+    publishDerivedStats(fmt::format("{}_TEMP", *tempConfig.name()), maxTemp);
+    XLOG(INFO) << fmt::format(
+        "{}: Temperature {}°C (Based on {}).  Failures: {}",
+        *tempConfig.name(),
+        maxTemp.value_or(0),
+        maxSensor.value_or("NONE"),
+        numFailures);
+  }
 }
 } // namespace facebook::fboss::platform::sensor_service
