@@ -590,18 +590,18 @@ void QsfpServiceHandler::gracefulExit() {
  */
 PhyManager* QsfpServiceHandler::getPhyManager() const {
   if (FLAGS_port_manager_mode) {
-    return getPortManager()->getPhyManager();
+    return portManager_->getPhyManager();
   } else {
-    return getTransceiverManager()->getPhyManager();
+    return tcvrManager_->getPhyManager();
   }
 }
 
 std::optional<std::string> QsfpServiceHandler::getPortNameByPortId(
     const PortID& portId) const {
   if (FLAGS_port_manager_mode) {
-    return getPortManager()->getPortNameByPortId(portId);
+    return portManager_->getPortNameByPortId(portId);
   } else {
-    return getTransceiverManager()->getPortNameByPortId(portId);
+    return tcvrManager_->getPortNameByPortId(portId);
   }
 }
 
@@ -610,29 +610,28 @@ void QsfpServiceHandler::setOverrideAgentPortStatusForTesting(
     bool enabled,
     bool clearOnly) {
   if (FLAGS_port_manager_mode) {
-    getPortManager()->setOverrideAllAgentPortStatusForTesting(
+    portManager_->setOverrideAllAgentPortStatusForTesting(
         up, enabled, clearOnly);
   } else {
-    getTransceiverManager()->setOverrideAgentPortStatusForTesting(
-        up, enabled, clearOnly);
+    tcvrManager_->setOverrideAgentPortStatusForTesting(up, enabled, clearOnly);
   }
 }
 
 void QsfpServiceHandler::setOverrideAgentConfigAppliedInfoForTesting(
     ConfigAppliedInfo info) {
   if (FLAGS_port_manager_mode) {
-    getPortManager()->setOverrideAgentConfigAppliedInfoForTesting(info);
+    portManager_->setOverrideAgentConfigAppliedInfoForTesting(info);
   } else {
-    getTransceiverManager()->setOverrideAgentConfigAppliedInfoForTesting(info);
+    tcvrManager_->setOverrideAgentConfigAppliedInfoForTesting(info);
   }
 }
 
 std::optional<PortID> QsfpServiceHandler::getPortIdByPortName(
     const std::string& portNameStr) const {
   if (FLAGS_port_manager_mode) {
-    return getPortManager()->getPortIDByPortName(portNameStr);
+    return portManager_->getPortIDByPortName(portNameStr);
   } else {
-    return getTransceiverManager()->getPortIDByPortName(portNameStr);
+    return tcvrManager_->getPortIDByPortName(portNameStr);
   }
 }
 
@@ -640,17 +639,17 @@ void QsfpServiceHandler::programXphyPort(
     PortID portId,
     cfg::PortProfileID portProfileId) {
   if (FLAGS_port_manager_mode) {
-    return getPortManager()->programXphyPort(portId, portProfileId);
+    return portManager_->programXphyPort(portId, portProfileId);
   } else {
-    return getTransceiverManager()->programXphyPort(portId, portProfileId);
+    return tcvrManager_->programXphyPort(portId, portProfileId);
   }
 }
 
 void QsfpServiceHandler::updateAllXphyPortsStats() {
   if (FLAGS_port_manager_mode) {
-    return getPortManager()->updateAllXphyPortsStats();
+    return portManager_->updateAllXphyPortsStats();
   } else {
-    return getTransceiverManager()->updateAllXphyPortsStats();
+    return tcvrManager_->updateAllXphyPortsStats();
   }
 }
 
