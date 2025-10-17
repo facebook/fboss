@@ -31,14 +31,14 @@ class ResourceAccountant {
   void stateChanged(const StateDelta& delta);
 
  private:
-  int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
+  size_t getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkArsResource(bool intermediateState) const;
   bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
   bool isValidRouteUpdate(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
   bool isEcmp(const RouteNextHopEntry& fwd) const;
-  int computeWeightedEcmpMemberCount(
+  size_t computeWeightedEcmpMemberCount(
       const RouteNextHopEntry& fwd,
       const cfg::AsicType& asicType) const;
 

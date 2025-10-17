@@ -581,7 +581,7 @@ TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
   EXPECT_EQ(
       this->resourceAccountant_->computeWeightedEcmpMemberCount(
           ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_TOMAHAWK4),
-      4 * ecmpNexthops.size());
+      4 * ecmpNextHopEntry.normalizedNextHops().size());
   // Assume ECMP replication for devices without specifying UCMP computation.
   uint32_t totalWeight = 0;
   for (const auto& nhop : ecmpNextHopEntry.normalizedNextHops()) {
