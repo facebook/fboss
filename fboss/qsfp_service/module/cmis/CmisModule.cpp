@@ -2874,6 +2874,54 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";
   }
+  return;
+}
+
+void CmisModule::programTunableModule(
+    const cfg::OpticalChannelConfig& opticalChannelConfig) {
+  int16_t channelNum = 0;
+  int32_t frequencyMhz = 0;
+  const auto& freqConfig = opticalChannelConfig.frequencyConfig();
+  const auto& centerFreq = freqConfig->centerFrequencyConfig();
+
+  QSFP_LOG(INFO, this) << "Program tunable optics module";
+
+  switch (centerFreq->getType()) {
+    case cfg::CenterFrequencyConfig::Type::frequencyMhz: {
+      frequencyMhz = centerFreq->frequencyMhz().value();
+      channelNum = getChannelNumFromFrequency(
+          frequencyMhz, *freqConfig->frequencyGrid());
+      break;
+    }
+    case cfg::CenterFrequencyConfig::Type::channelNumber:
+      channelNum = centerFreq->channelNumber().value();
+      break;
+    default:
+      // Handle error case - no field set
+      throw FbossError("No field set in CenterFrequencyConfig");
+  }
+
+  uint8_t gridSelection =
+      frequencyGridToGridSelection(*freqConfig->frequencyGrid());
+
+  // Write grid selection followed by channel number, which is the typical order
+  // recommended
+  writeCmisField(CmisField::MEDIA_TX_1_GRID_AND_FINE_TUNE_ENA, &gridSelection);
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Programmed gridSelection {} on the tunable optics", gridSelection);
+
+  uint8_t channelNumBytes[2];
+  channelNumBytes[1] = static_cast<uint8_t>(channelNum & 0XFF);
+  channelNumBytes[0] = static_cast<uint8_t>((channelNum >> 8) & 0XFF);
+
+  // Channel number programming
+  writeCmisField(CmisField::MEDIA_TX_1_CHAN_NBR_SEL, channelNumBytes);
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Programmed Channel number on the tunable optics. frequency {} channel_number {} channelNumBytes[0] {} channelNumBytes[1] {}",
+      frequencyMhz,
+      channelNum,
+      channelNumBytes[0],
+      channelNumBytes[1]);
 }
 
 uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {

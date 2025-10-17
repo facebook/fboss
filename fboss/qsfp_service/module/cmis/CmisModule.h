@@ -7,6 +7,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <optional>
@@ -242,6 +243,18 @@ class CmisModule : public QsfpModule {
    */
   virtual void setPowerOverrideIfSupportedLocked(
       PowerControlState currentState) override;
+  /*
+   * Program the tunable optics module
+   * Program following parameters
+   *    1. Frequency
+   *    2. Tx Power - TODO
+   *
+   * Convert the C or L band frequency and grid
+   * to Grid channel number. If channel number is provided directly
+   * pass the channel number directly
+   */
+  void programTunableModule(
+      const cfg::OpticalChannelConfig& opticalChannelConfig);
   /*
    * Set appropriate application code for PortSpeed, if supported
    */
