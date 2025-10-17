@@ -146,13 +146,64 @@ class HwStateMachineTest : public HwTest {
     return false;
   }
 
+  bool meetAllExpectedPortState(
+      PortID portId,
+      PortStateMachineState curState,
+      std::queue<PortStateMachineState>& portExpectedStates,
+      bool isAgentColdboot) {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    auto portMgr =
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortManager();
+    // Check whether current state matches the head of the expected state
+    // queue
+    if (portExpectedStates.empty()) {
+      // Already meet all expected states.
+      return true;
+    } else if (curState == portExpectedStates.front()) {
+      portExpectedStates.pop();
+
+      if (curState == PortStateMachineState::IPHY_PORTS_PROGRAMMED) {
+        // Check port is up
+        EXPECT_EQ(portMgr->getXphyNeedResetDataPath(portId), isAgentColdboot);
+      } else if (curState == PortStateMachineState::XPHY_PORTS_PROGRAMMED) {
+        // Check xphy programmed correctly
+        auto tcvrId = portMgr->getLowestIndexedTransceiverForPort(portId);
+        const auto programmedPortToPortInfo =
+            wedgeMgr->getProgrammedIphyPortToPortInfo(tcvrId);
+        const auto& transceiver = wedgeMgr->getTransceiverInfo(tcvrId);
+        for (const auto& [currPortId, portInfo] : programmedPortToPortInfo) {
+          if (currPortId != portId) {
+            continue;
+          }
+          utility::verifyXphyPort(
+              portId, portInfo.profile, transceiver, getHwQsfpEnsemble());
+        }
+
+        EXPECT_EQ(portMgr->getXphyNeedResetDataPath(portId), isAgentColdboot);
+      } else if (curState == PortStateMachineState::TRANSCEIVERS_PROGRAMMED) {
+        // After transceiver is programmed, needResetDataPath should be false
+        EXPECT_FALSE(portMgr->getXphyNeedResetDataPath(portId));
+      }
+      return portExpectedStates.empty();
+    }
+    XLOG(WARN) << "Port:" << portId << " doesn't have expected state="
+               << apache::thrift::util::enumNameSafe(portExpectedStates.front())
+               << " but actual state="
+               << apache::thrift::util::enumNameSafe(curState);
+    return false;
+  }
+
   bool refreshStateMachinesTillMeetAllStates(
       std::unordered_map<
           TransceiverID,
           std::queue<TransceiverStateMachineState>>& expectedStates,
+      std::unordered_map<PortID, std::queue<PortStateMachineState>>&
+          expectedPortStates,
       bool isRemediated,
       bool isAgentColdboot) {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    auto portMgr =
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortManager();
     getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
     int numFailedTransceivers = 0;
     for (auto& idToExpectStates : expectedStates) {
@@ -167,10 +218,23 @@ class HwStateMachineTest : public HwTest {
         ++numFailedTransceivers;
       }
     }
+
+    int numFailedPorts = 0;
+    for (auto& portToExpectStates : expectedPortStates) {
+      auto portId = portToExpectStates.first;
+      auto curState = portMgr->getPortState(portId);
+      if (!meetAllExpectedPortState(
+              portId, curState, portToExpectStates.second, isAgentColdboot)) {
+        ++numFailedPorts;
+      }
+    }
+
     XLOG_IF(WARN, numFailedTransceivers)
         << numFailedTransceivers
         << " transceivers don't meet the expected state";
-    return numFailedTransceivers == 0;
+    XLOG_IF(WARN, numFailedPorts)
+        << numFailedPorts << " ports don't meet the expected state";
+    return numFailedTransceivers == 0 && numFailedPorts == 0;
   }
 
  private:
@@ -405,11 +469,14 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
     // Due to some platforms are easy to have i2c issue which causes the current
     // refresh not work as expected. Adding enough retries to make sure that we
     // at least can meet all `expectedStates` after 10 times.
+    std::unordered_map<PortID, std::queue<PortStateMachineState>>
+        expectedPortStates;
     WITH_RETRIES_N_TIMED(
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
         EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
             expectedStates,
+            expectedPortStates,
             true /* isRemediated */,
             false /* isAgentColdboot */)));
   };
@@ -425,6 +492,8 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       std::
           unordered_map<TransceiverID, std::queue<TransceiverStateMachineState>>
               expectedStates;
+      std::unordered_map<PortID, std::queue<PortStateMachineState>>
+          expectedPortStates;
       bool hasXphy = (getHwQsfpEnsemble()->getPhyManager() != nullptr);
       // All tcvrs should go through no matter present or absent
       // IPHY_PORTS_PROGRAMMED -> XPHY_PORTS_PROGRAMMED ->
@@ -464,14 +533,19 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       // Due to some platforms are easy to have i2c issue which causes the
       // current refresh not work as expected. Adding enough retries to make
       // sure that we at least can meet all `expectedStates` after 10 times.
+
       WITH_RETRIES_N_TIMED(
           10 /* retries */,
           std::chrono::milliseconds(10000) /* msBetweenRetry */,
           EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
-              expectedStates, false /* isRemediated */, isAgentColdboot)));
+              expectedStates,
+              expectedPortStates,
+              false /* isRemediated */,
+              isAgentColdboot)));
 
       // Verify datapath reset happened on a config change that involved agent
       // cold boot and didn't happen for warmboot
+
       for (auto id : getPresentTransceivers()) {
         auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
         auto& tcvrState = tcvrInfo.tcvrState().value();
