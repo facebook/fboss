@@ -1589,4 +1589,10 @@ void PortManager::programXphyPortPrbs(
   phyManager_->setPortPrbs(portId, side, prbs);
 }
 
+phy::PortPrbsState PortManager::getXphyPortPrbs(
+    const PortID& portId,
+    phy::Side side) {
+  return phyManager_->getPortPrbs(portId, side);
+}
+
 } // namespace facebook::fboss

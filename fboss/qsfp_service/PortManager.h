@@ -88,6 +88,8 @@ class PortManager {
   // Marked virtual for MockPortManager testing.
   virtual phy::PhyInfo getXphyInfo(PortID portId);
 
+  phy::PortPrbsState getXphyPortPrbs(const PortID& portId, phy::Side side);
+
   void updateAllXphyPortsStats();
 
   std::vector<PortID> getMacsecCapablePorts() const;

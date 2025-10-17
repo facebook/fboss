@@ -665,6 +665,16 @@ void QsfpServiceHandler::programXphyPortPrbs(
   }
 }
 
+phy::PortPrbsState QsfpServiceHandler::getXphyPortPrbs(
+    const PortID& portId,
+    phy::Side side) {
+  if (FLAGS_port_manager_mode) {
+    return portManager_->getXphyPortPrbs(portId, side);
+  } else {
+    return tcvrManager_->getXphyPortPrbs(portId, side);
+  }
+}
+
 #if FOLLY_HAS_COROUTINES
 
 folly::coro::Task<bool> QsfpServiceHandler::co_sakInstallRx(

@@ -280,6 +280,8 @@ class TransceiverManager {
 
   virtual phy::PhyInfo getXphyInfo(PortID portId) = 0;
 
+  virtual phy::PortPrbsState getXphyPortPrbs(PortID portID, phy::Side side) = 0;
+
   virtual void updateAllXphyPortsStats() = 0;
 
   const PortGroups& getModuleToPortMap() const {

@@ -321,6 +321,8 @@ class QsfpServiceHandler
       phy::Side side,
       const phy::PortPrbsState& prbs);
 
+  phy::PortPrbsState getXphyPortPrbs(const PortID& portId, phy::Side side);
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,
