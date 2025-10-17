@@ -734,15 +734,17 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     swPort->setProfileId(
         platformPort->getProfileIDBySpeed(bcmPort->getSpeed()));
     // Coldboot state can assume transceiver doesn't exist
-    PlatformPortProfileConfigMatcher matcher{swPort->getProfileID(), portID};
-    if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
+    PlatformPortProfileConfigMatcher profileMatcher{
+        swPort->getProfileID(), portID};
+    if (auto profileConfig = platform_->getPortProfileConfig(profileMatcher)) {
       swPort->setProfileConfig(*profileConfig->iphy());
     } else {
       throw FbossError(
-          "No port profile config found with matcher:", matcher.toString());
+          "No port profile config found with matcher:",
+          profileMatcher.toString());
     }
     swPort->resetPinConfigs(
-        platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+        platform_->getPlatformMapping()->getPortIphyPinConfigs(profileMatcher));
     swPort->setSpeed(bcmPort->getSpeed());
     if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
       auto queues = bcmPort->getCurrentQueueSettings();
@@ -978,8 +980,7 @@ HwInitResult BcmSwitch::initImpl(
     // bcmSwitchL3EgressMode else the egress ids
     // in the host table don't show up correctly.
     // TODO: Use thrift representation for sw switch state.
-    auto switchStateJson =
-        getPlatform()->getWarmBootHelper()->getWarmBootState();
+    switchStateJson = getPlatform()->getWarmBootHelper()->getWarmBootState();
     warmBootCache_->populate(switchStateJson);
   }
   setupToCpuEgress();
