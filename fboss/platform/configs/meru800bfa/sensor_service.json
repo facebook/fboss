@@ -108,20 +108,20 @@
           "sysfsPath": "/run/devmap/sensors/CPU_MPS_PMBUS/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 10.5
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 10500.0
           },
-          "compute": "@/32000.0"
+          "compute": "@/32.0"
         },
         {
           "name": "SCM_ECB_VOUT",
           "sysfsPath": "/run/devmap/sensors/CPU_MPS_PMBUS/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
           },
-          "compute": "@/32000.0"
+          "compute": "@/32.0"
         },
         {
           "name": "SCM_ECB_IOUT",
@@ -220,20 +220,18 @@
           "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_CORE_VOUT_0V75",
           "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.008,
-            "lowerCriticalVal": 0.504
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1008.0,
+            "lowerCriticalVal": 504.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_CORE_TEMP",
@@ -250,40 +248,36 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG0_VOUT_0V9",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.08,
-            "lowerCriticalVal": 0.72
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1080.0,
+            "lowerCriticalVal": 720.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG0_VOUT_0V75",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.9,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG0_VOUT_1V2",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.44,
-            "lowerCriticalVal": 0.96
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1440.0,
+            "lowerCriticalVal": 960.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG0_TEMP_0V9",
@@ -320,40 +314,36 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG1_VOUT_0V9",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.08,
-            "lowerCriticalVal": 0.72
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1080.0,
+            "lowerCriticalVal": 720.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG1_VOUT_0V75",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.9,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG1_VOUT_1V8",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.16,
-            "lowerCriticalVal": 1.44
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 2160.0,
+            "lowerCriticalVal": 1440.0
+          }
         },
         {
           "name": "SMB_VRM_R3R0_ANLG1_TEMP_0V9",
@@ -390,20 +380,18 @@
           "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_CORE_VOUT_0V75",
           "sysfsPath": "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.008,
-            "lowerCriticalVal": 0.504
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1008.0,
+            "lowerCriticalVal": 504.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_CORE_TEMP",
@@ -420,40 +408,36 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG0_VOUT_0V9",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.08,
-            "lowerCriticalVal": 0.72
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1080.0,
+            "lowerCriticalVal": 720.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG0_VOUT_0V75",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.9,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG0_VOUT_1V2",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.44,
-            "lowerCriticalVal": 0.96
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1440.0,
+            "lowerCriticalVal": 960.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG0_TEMP_0V9",
@@ -490,40 +474,36 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG1_VOUT_0V9",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.08,
-            "lowerCriticalVal": 0.72
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1080.0,
+            "lowerCriticalVal": 720.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG1_VOUT_0V75",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.9,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 600.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG1_VOUT_1V8",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.16,
-            "lowerCriticalVal": 1.44
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 2160.0,
+            "lowerCriticalVal": 1440.0
+          }
         },
         {
           "name": "SMB_VRM_R3R1_ANLG1_TEMP_0V9",
@@ -560,20 +540,19 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_TL/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_OSFP_TL_VOUT_3V3",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_TL/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.96,
-            "lowerCriticalVal": 2.64
+            "upperCriticalVal": 3700.0,
+            "lowerCriticalVal": 2640.0
           },
-          "compute": "1.2*@/1000.0"
+          "compute": "1.2*@"
         },
         {
           "name": "SMB_VRM_OSFP_TL_TEMP_3V3",
@@ -590,20 +569,19 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_TR/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_OSFP_TR_VOUT_3V3",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_TR/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.96,
-            "lowerCriticalVal": 2.64
+            "upperCriticalVal": 3700.0,
+            "lowerCriticalVal": 2640.0
           },
-          "compute": "1.2*@/1000.0"
+          "compute": "1.2*@"
         },
         {
           "name": "SMB_VRM_OSFP_TR_TEMP_3V3",
@@ -620,20 +598,19 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_BL/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_OSFP_BL_VOUT_3V3",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_BL/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.96,
-            "lowerCriticalVal": 2.64
+            "upperCriticalVal": 3700.0,
+            "lowerCriticalVal": 2640.0
           },
-          "compute": "1.2*@/1000.0"
+          "compute": "1.2*@"
         },
         {
           "name": "SMB_VRM_OSFP_BL_TEMP_3V3",
@@ -650,20 +627,19 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_BR/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_VRM_OSFP_BR_VOUT_3V3",
           "sysfsPath": "/run/devmap/sensors/SMB_ISL68226_OSFP_BR/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.96,
-            "lowerCriticalVal": 2.64
+            "upperCriticalVal": 3700.0,
+            "lowerCriticalVal": 2640.0
           },
-          "compute": "1.2*@/1000.0"
+          "compute": "1.2*@"
         },
         {
           "name": "SMB_VRM_OSFP_BR_TEMP_3V3",
@@ -680,60 +656,54 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "SMB_DPM_3V3_DKR",
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.96,
-            "lowerCriticalVal": 2.64
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 3960.0,
+            "lowerCriticalVal": 2640.0
+          }
         },
         {
           "name": "SMB_DPM_1V9_DKR",
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.16,
-            "lowerCriticalVal": 1.44
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 2160.0,
+            "lowerCriticalVal": 1440.0
+          }
         },
         {
           "name": "SMB_DPM_1V2_DKR",
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.44,
-            "lowerCriticalVal": 0.96
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 1440.0,
+            "lowerCriticalVal": 960.0
+          }
         },
         {
           "name": "SMB_DPM_3V3",
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320/in7_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.96,
-            "lowerCriticalVal": 2.64
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 3960.0,
+            "lowerCriticalVal": 2640.0
+          }
         },
         {
           "name": "SMB_DPM_5V0",
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320/in8_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 6.0,
-            "lowerCriticalVal": 4.0
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 6000.0,
+            "lowerCriticalVal": 4000.0
+          }
         },
         {
           "name": "FAN_BOARD0_TEMP",
@@ -882,18 +852,16 @@
         {
           "name": "PSU1_VIN",
           "sysfsPath": "/run/devmap/sensors/PSU1_PMBUS/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
+          "type": 1
         },
         {
           "name": "PSU1_VOUT",
           "sysfsPath": "/run/devmap/sensors/PSU1_PMBUS/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "PSU1_FAN1_RPM",
@@ -976,18 +944,16 @@
         {
           "name": "PSU2_VIN",
           "sysfsPath": "/run/devmap/sensors/PSU2_PMBUS/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
+          "type": 1
         },
         {
           "name": "PSU2_VOUT",
           "sysfsPath": "/run/devmap/sensors/PSU2_PMBUS/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "PSU2_FAN1_RPM",
@@ -1070,18 +1036,16 @@
         {
           "name": "PSU3_VIN",
           "sysfsPath": "/run/devmap/sensors/PSU3_PMBUS/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
+          "type": 1
         },
         {
           "name": "PSU3_VOUT",
           "sysfsPath": "/run/devmap/sensors/PSU3_PMBUS/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "PSU3_FAN1_RPM",
@@ -1164,18 +1128,16 @@
         {
           "name": "PSU4_VIN",
           "sysfsPath": "/run/devmap/sensors/PSU4_PMBUS/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
+          "type": 1
         },
         {
           "name": "PSU4_VOUT",
           "sysfsPath": "/run/devmap/sensors/PSU4_PMBUS/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14.4,
-            "lowerCriticalVal": 9.6
-          },
-          "compute": "@/1000.0"
+            "upperCriticalVal": 14400.0,
+            "lowerCriticalVal": 9600.0
+          }
         },
         {
           "name": "PSU4_FAN1_RPM",
