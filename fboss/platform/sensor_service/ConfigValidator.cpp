@@ -97,26 +97,6 @@ bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
   return true;
 }
 
-bool ConfigValidator::isValidSensorName(
-    const sensor_config::SensorConfig& sensorConfig,
-    const std::string& sensorName) {
-  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
-    for (const auto& pmSensor : *pmUnitSensors.sensors()) {
-      if (sensorName == *pmSensor.name()) {
-        return true;
-      }
-    }
-  }
-  if (const auto& asicCmd = sensorConfig.asicCommand()) {
-    if (sensorName == asicCmd->sensorName()) {
-      return true;
-    }
-  }
-  XLOG(ERR) << fmt::format(
-      "Sensor `{}` is not defined in SensorConfig", sensorName);
-  return false;
-}
-
 bool ConfigValidator::isValidPowerConsumptionConfig(
     const sensor_config::SensorConfig& sensorConfig) {
   re2::RE2 psuPattern("((PSU|PEM)([1-9][0-9]*)|HSC)");
@@ -243,6 +223,26 @@ std::unordered_set<std::string> ConfigValidator::getAllSensorNames(
     }
   }
   return sensorNames;
+}
+
+bool ConfigValidator::isValidSensorName(
+    const sensor_config::SensorConfig& sensorConfig,
+    const std::string& sensorName) {
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    for (const auto& pmSensor : *pmUnitSensors.sensors()) {
+      if (sensorName == *pmSensor.name()) {
+        return true;
+      }
+    }
+  }
+  if (const auto& asicCmd = sensorConfig.asicCommand()) {
+    if (sensorName == asicCmd->sensorName()) {
+      return true;
+    }
+  }
+  XLOG(ERR) << fmt::format(
+      "Sensor `{}` is not defined in SensorConfig", sensorName);
+  return false;
 }
 
 } // namespace facebook::fboss::platform::sensor_service

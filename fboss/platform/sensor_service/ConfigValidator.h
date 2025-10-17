@@ -14,14 +14,15 @@ class ConfigValidator {
   bool isValidPmSensors(const std::vector<sensor_config::PmSensor>& pmSensor);
   bool isValidPmSensor(const sensor_config::PmSensor& pmSensor);
   bool isValidSlotPath(const std::string& slotPath);
-  // Cross service validation
-  bool isValidSensorName(
-      const sensor_config::SensorConfig& sensorConfig,
-      const std::string& sensorName);
   bool isValidPowerConsumptionConfig(
       const sensor_config::SensorConfig& sensorConfig);
   bool isValidAsicCommand(const sensor_config::SensorConfig& sensorConfig);
   std::unordered_set<std::string> getAllSensorNames(
       const sensor_config::SensorConfig& sensorConfig);
+
+  // Cross service validation
+  bool isValidSensorName(
+      const sensor_config::SensorConfig& sensorConfig,
+      const std::string& sensorName);
 };
 } // namespace facebook::fboss::platform::sensor_service
