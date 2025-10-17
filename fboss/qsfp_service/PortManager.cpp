@@ -998,6 +998,10 @@ void PortManager::triggerAgentConfigChangeEvent() {
 
   transceiverManager_->triggerTransceiverEventsForAgentConfigChangeEvent(
       resetDataPath, newConfigAppliedInfo);
+  for (auto& stateMachine : stateMachineControllers_) {
+    stateMachine.second->getStateMachine().wlock()->get_attribute(
+        xphyNeedResetDataPath) = resetDataPath;
+  }
 
   configAppliedInfo_ = newConfigAppliedInfo;
 }
@@ -1562,6 +1566,15 @@ void PortManager::refreshStateMachines() {
   setWarmBootState();
 
   XLOG(INFO) << "refreshStateMachines ended";
+}
+
+bool PortManager::getXphyNeedResetDataPath(PortID id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Port:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getStateMachine().rlock()->get_attribute(
+      xphyNeedResetDataPath);
 }
 
 } // namespace facebook::fboss

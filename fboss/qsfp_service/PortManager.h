@@ -310,6 +310,8 @@ class PortManager {
   // PortStateMachine.
   void refreshStateMachines();
 
+  bool getXphyNeedResetDataPath(PortID id) const;
+
  protected:
   /*
    * function to initialize all the Phy in the system

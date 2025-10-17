@@ -218,7 +218,11 @@ if (!portMgr) {
   return false;
 }
 
-return portMgr->arePortTcvrsProgrammed(portId);
+if (portMgr->arePortTcvrsProgrammed(portId)) {
+  fsm.get_attribute(xphyNeedResetDataPath) = false;
+  return true;
+}
+return false;
 }
 }
 ;
