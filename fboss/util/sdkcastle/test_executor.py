@@ -8,7 +8,7 @@
 
 import concurrent.futures
 import subprocess
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from .config import SdkcastleSpec
 from .enums import RunMode
@@ -22,7 +22,7 @@ class TestExecutor:
         self.config = config
         self.test_runner = create_test_runner(config)
 
-    def execute(self) -> Dict[str, any]:
+    def execute(self) -> Dict[str, Any]:
         """Main execution entry point"""
         print(f"Starting SDKCastle execution with run mode: {self.config.run_mode}")
 
@@ -37,7 +37,7 @@ class TestExecutor:
 
         raise ValueError(f"Unsupported run mode: {self.config.run_mode}")
 
-    def _list_test_commands(self) -> Dict[str, any]:
+    def _list_test_commands(self) -> Dict[str, Any]:
         """List all test runner commands without executing them"""
         commands = self._generate_all_test_commands()
 
@@ -53,7 +53,7 @@ class TestExecutor:
             "commands": commands,
         }
 
-    def _execute_all_tests(self) -> Dict[str, any]:
+    def _execute_all_tests(self) -> Dict[str, Any]:
         """Execute all tests in parallel using multithreading"""
         commands = self._generate_all_test_commands()
 
@@ -111,7 +111,7 @@ class TestExecutor:
             "results": results,
         }
 
-    def _execute_command(self, cmd: List[str]) -> Dict[str, any]:
+    def _execute_command(self, cmd: List[str]) -> Dict[str, Any]:
         """Execute a single command"""
         try:
             result = subprocess.run(
