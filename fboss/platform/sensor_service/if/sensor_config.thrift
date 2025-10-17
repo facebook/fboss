@@ -122,8 +122,9 @@ struct AsicCommand {
 }
 
 struct PowerConsumptionConfig {
-  // This name should be the unique name of each PSU, PEM, etc. in the platform
-  // e.g. PSU1, PSU2, PEM1, PEM2, etc
+  // This name should be the unique name of each PSU, PEM, HSC in the platform
+  // e.g. PSU1, PSU2, PEM1, PEM2, HSC etc.
+  // We currently only expect one HSC in the platform.
   1: string name;
   // If there is power sensor, this should be set
   2: optional string powerSensorName;

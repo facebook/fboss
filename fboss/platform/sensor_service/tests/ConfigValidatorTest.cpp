@@ -111,6 +111,10 @@ TEST(ConfigValidatorTest, ValidPowerConsumptionConfig) {
       createPowerConsumptionConfig(
           "PSU2", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")};
   EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  config.powerConsumptionConfigs() = {createPowerConsumptionConfig(
+      "HSC", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, InvalidPowerConsumptionConfigNaming) {
@@ -130,6 +134,10 @@ TEST(ConfigValidatorTest, InvalidPowerConsumptionConfigNaming) {
 
   config.powerConsumptionConfigs() = {
       createPowerConsumptionConfig("POWER_UNIT", "power_sensor")};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  config.powerConsumptionConfigs() = {
+      createPowerConsumptionConfig("HSC1", "power_sensor")};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 

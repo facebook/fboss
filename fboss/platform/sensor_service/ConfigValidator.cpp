@@ -119,7 +119,7 @@ bool ConfigValidator::isValidSensorName(
 
 bool ConfigValidator::isValidPowerConsumptionConfig(
     const sensor_config::SensorConfig& sensorConfig) {
-  re2::RE2 psuPattern("(PSU|PEM)([1-9][0-9]*)");
+  re2::RE2 psuPattern("((PSU|PEM)([1-9][0-9]*)|HSC)");
 
   XLOG(DBG1) << "Validating Power Consumption Config config";
 
