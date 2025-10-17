@@ -300,10 +300,14 @@ class QsfpServiceHandler
 
   PhyManager* getPhyManager() const;
 
+  std::optional<std::string> getPortNameByPortId(const PortID& portId) const;
+
   void setOverrideAgentPortStatusForTesting(
       bool up,
       bool enabled,
       bool clearOnly = false);
+
+  void setOverrideAgentConfigAppliedInfoForTesting(ConfigAppliedInfo config);
 
   std::optional<PortID> getPortIdByPortName(
       const std::string& portNameStr) const;

@@ -18,6 +18,42 @@
 
 namespace facebook::fboss {
 
+namespace {
+std::queue<TransceiverStateMachineState> getExpectedTransceiverStates(
+    bool hasXphy,
+    bool isPresent) {
+  std::queue<TransceiverStateMachineState> tcvrExpectedStates;
+  if (!FLAGS_port_manager_mode) {
+    tcvrExpectedStates.push(
+        TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED);
+  }
+  if (!FLAGS_port_manager_mode && hasXphy) {
+    tcvrExpectedStates.push(
+        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
+  }
+  tcvrExpectedStates.push(TransceiverStateMachineState::TRANSCEIVER_READY);
+  if (!FLAGS_port_manager_mode || isPresent) {
+    tcvrExpectedStates.push(
+        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
+  }
+  return tcvrExpectedStates;
+}
+
+std::queue<PortStateMachineState> getExpectedPortStates(
+    bool hasXphy,
+    bool isUp = false) {
+  std::queue<PortStateMachineState> portExpectedStates;
+  portExpectedStates.push(PortStateMachineState::IPHY_PORTS_PROGRAMMED);
+  if (hasXphy) {
+    portExpectedStates.push(PortStateMachineState::XPHY_PORTS_PROGRAMMED);
+  }
+  portExpectedStates.push(PortStateMachineState::TRANSCEIVERS_PROGRAMMED);
+  portExpectedStates.push(
+      isUp ? PortStateMachineState::PORT_UP : PortStateMachineState::PORT_DOWN);
+  return portExpectedStates;
+}
+} // namespace
+
 class HwStateMachineTest : public HwTest {
  public:
   HwStateMachineTest(bool setupOverrideTcvrToPortAndProfile = true)
@@ -51,8 +87,10 @@ class HwStateMachineTest : public HwTest {
           absentTransceivers_.emplace_back(id);
         }
       }
-      XLOG(DBG2) << "Transceivers num: [present:" << presentTransceivers_.size()
-                 << ", absent:" << absentTransceivers_.size() << "]";
+      XLOG(DBG2) << "Present transceivers: "
+                 << folly::join(",", presentTransceivers_);
+      XLOG(DBG2) << "Absent transceivers: "
+                 << folly::join(",", absentTransceivers_);
 
       // Set pause remdiation so it won't trigger remediation
       setPauseRemediation(true);
@@ -111,11 +149,11 @@ class HwStateMachineTest : public HwTest {
         }
         // Check xphy programmed correctly
         const auto& transceiver = wedgeMgr->getTransceiverInfo(id);
-        for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
-          if (std::find(xphyPorts.begin(), xphyPorts.end(), portID) !=
+        for (const auto& [portId, portInfo] : programmedPortToPortInfo) {
+          if (std::find(xphyPorts.begin(), xphyPorts.end(), portId) !=
               xphyPorts.end()) {
             utility::verifyXphyPort(
-                portID, portInfo.profile, transceiver, getHwQsfpEnsemble());
+                portId, portInfo.profile, transceiver, getHwQsfpEnsemble());
           }
         }
         EXPECT_EQ(wedgeMgr->getNeedResetDataPath(id), isAgentColdboot);
@@ -124,12 +162,14 @@ class HwStateMachineTest : public HwTest {
         // Just finished transceiver programming
         // Only care enabled ports
         if (!programmedPortToPortInfo.empty()) {
-          for (const auto& [portID, portInfo] : programmedPortToPortInfo) {
+          for (const auto& [portId, portInfo] : programmedPortToPortInfo) {
             const auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
-            auto portName = wedgeMgr->getPortNameByPortId(portID);
-            CHECK(portName.has_value());
+            auto portNameStr = getHwQsfpEnsemble()
+                                   ->getQsfpServiceHandler()
+                                   ->getPortNameByPortId(portId);
+            CHECK(portNameStr.has_value());
             utility::HwTransceiverUtils::verifyTransceiverSettings(
-                *tcvrInfo.tcvrState(), *portName, portInfo.profile);
+                *tcvrInfo.tcvrState(), *portNameStr, portInfo.profile);
             utility::HwTransceiverUtils::verifyDiagsCapability(
                 *tcvrInfo.tcvrState(), wedgeMgr->getDiagsCapability(id));
           }
@@ -495,29 +535,24 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       std::unordered_map<PortID, std::queue<PortStateMachineState>>
           expectedPortStates;
       bool hasXphy = (getHwQsfpEnsemble()->getPhyManager() != nullptr);
-      // All tcvrs should go through no matter present or absent
-      // IPHY_PORTS_PROGRAMMED -> XPHY_PORTS_PROGRAMMED ->
-      // -> TRANSCEIVER_READY -> TRANSCEIVER_PROGRAMMED
-      auto prepareExpectedStates = [hasXphy]() {
-        std::queue<TransceiverStateMachineState> tcvrExpectedStates;
-        tcvrExpectedStates.push(
-            TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED);
-        if (hasXphy) {
-          tcvrExpectedStates.push(
-              TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
-        }
-        tcvrExpectedStates.push(
-            TransceiverStateMachineState::TRANSCEIVER_READY);
-        tcvrExpectedStates.push(
-            TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
-        return tcvrExpectedStates;
-      };
 
       for (auto id : getPresentTransceivers()) {
-        expectedStates.emplace(id, prepareExpectedStates());
+        expectedStates.emplace(
+            id, getExpectedTransceiverStates(hasXphy, true /* isPresent */));
+
+        if (FLAGS_port_manager_mode) {
+          const auto programmedPortToPortInfo =
+              wedgeMgr->getProgrammedIphyPortToPortInfo(id);
+          for (const auto& [portId, portInfo] : programmedPortToPortInfo) {
+            expectedPortStates.emplace(
+                portId, getExpectedPortStates(hasXphy, false /* isUp */));
+          }
+        }
       }
+
       for (auto id : getAbsentTransceivers()) {
-        expectedStates.emplace(id, prepareExpectedStates());
+        expectedStates.emplace(
+            id, getExpectedTransceiverStates(hasXphy, false /* isPresent */));
       }
 
       // Override ConfigAppliedInfo
@@ -528,7 +563,10 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       if (isAgentColdboot) {
         configAppliedInfo.lastColdbootAppliedInMs() = currentInMs.count();
       }
-      wedgeMgr->setOverrideAgentConfigAppliedInfoForTesting(configAppliedInfo);
+
+      getHwQsfpEnsemble()
+          ->getQsfpServiceHandler()
+          ->setOverrideAgentConfigAppliedInfoForTesting(configAppliedInfo);
 
       // Due to some platforms are easy to have i2c issue which causes the
       // current refresh not work as expected. Adding enough retries to make
@@ -550,10 +588,15 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
         auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
         auto& tcvrState = tcvrInfo.tcvrState().value();
         auto& tcvrStats = tcvrInfo.tcvrStats().value();
-        for (auto& [portName, _] : tcvrStats.portNameToHostLanes().value()) {
-          XLOG(INFO) << "Verify datapath reset timestamp for port " << portName;
+        for (auto& [portNameStr, _] : tcvrStats.portNameToHostLanes().value()) {
+          XLOG(INFO) << "Verify datapath reset timestamp for port "
+                     << portNameStr;
           utility::HwTransceiverUtils::verifyDatapathResetTimestamp(
-              portName, tcvrState, tcvrStats, testStartTime, isAgentColdboot);
+              portNameStr,
+              tcvrState,
+              tcvrStats,
+              testStartTime,
+              isAgentColdboot);
         }
       }
     };

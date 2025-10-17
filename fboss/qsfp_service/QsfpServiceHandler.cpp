@@ -596,6 +596,15 @@ PhyManager* QsfpServiceHandler::getPhyManager() const {
   }
 }
 
+std::optional<std::string> QsfpServiceHandler::getPortNameByPortId(
+    const PortID& portId) const {
+  if (FLAGS_port_manager_mode) {
+    return getPortManager()->getPortNameByPortId(portId);
+  } else {
+    return getTransceiverManager()->getPortNameByPortId(portId);
+  }
+}
+
 void QsfpServiceHandler::setOverrideAgentPortStatusForTesting(
     bool up,
     bool enabled,
@@ -608,6 +617,16 @@ void QsfpServiceHandler::setOverrideAgentPortStatusForTesting(
         up, enabled, clearOnly);
   }
 }
+
+void QsfpServiceHandler::setOverrideAgentConfigAppliedInfoForTesting(
+    ConfigAppliedInfo info) {
+  if (FLAGS_port_manager_mode) {
+    getPortManager()->setOverrideAgentConfigAppliedInfoForTesting(info);
+  } else {
+    getTransceiverManager()->setOverrideAgentConfigAppliedInfoForTesting(info);
+  }
+}
+
 std::optional<PortID> QsfpServiceHandler::getPortIdByPortName(
     const std::string& portNameStr) const {
   if (FLAGS_port_manager_mode) {
