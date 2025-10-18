@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <ranges>
 
+#include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/testing/TestUtil.h>
 #include <gtest/gtest.h>
@@ -106,6 +107,36 @@ TEST_F(SensorServiceImplTest, getSomeSensors) {
   EXPECT_EQ(*sensorData[0].name(), mockSensorName);
   EXPECT_FLOAT_EQ(*sensorData[0].value(), mockSensorData[mockSensorName]);
   EXPECT_GE(*sensorData[0].timeStamp(), now);
+}
+
+TEST_F(SensorServiceImplTest, processTemperatureWithMockSensors) {
+  // Create a temperature configuration using mock sensors
+  using namespace facebook::fboss::platform::sensor_config;
+  TemperatureConfig tempConfig;
+  tempConfig.name() = "MOCK_TEMP";
+  tempConfig.temperatureSensorNames() = {
+      "MOCK_FRU_SENSOR1", "MOCK_FRU_SENSOR2", "MOCK_FRU_SENSOR3"};
+
+  // Add temperature configuration to the config
+  config_.temperatureConfigs() = {tempConfig};
+
+  // Create a new impl with the updated config
+  impl_ = std::make_shared<SensorServiceImpl>(config_);
+
+  // Fetch sensor data which will trigger processTemperature
+  impl_->fetchSensorData();
+
+  // Verify that temperature processing worked by checking the derived stats
+  // The maximum temperature should be from MOCK_FRU_SENSOR2 (11152°C)
+  // which gets truncated to 11152 when published as counter
+  auto derivedTempValue = fb303::fbData->getCounter(
+      fmt::format(SensorServiceImpl::kDerivedValue, "MOCK_TEMP_TEMP"));
+  EXPECT_EQ(derivedTempValue, 11152);
+
+  // Verify no failures occurred (all sensors should be found and have values)
+  auto derivedTempFailure = fb303::fbData->getCounter(
+      fmt::format(SensorServiceImpl::kDerivedFailure, "MOCK_TEMP_TEMP"));
+  EXPECT_EQ(derivedTempFailure, 0);
 }
 
 } // namespace facebook::fboss
