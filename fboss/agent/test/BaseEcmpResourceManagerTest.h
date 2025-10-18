@@ -142,6 +142,8 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   }
   std::unique_ptr<std::vector<UnicastRoute>> getClientRoutes(
       ClientID client) const;
+  void syncFib();
+  void replayAllRoutesViaThrift();
 
   void assertTargetState(
       const std::shared_ptr<SwitchState>& targetState,

@@ -384,6 +384,17 @@ BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
   return unicastRoutes;
 }
 
+void BaseEcmpResourceManagerTest::syncFib() {
+  ThriftHandler handler(sw_);
+  handler.syncFib(static_cast<int16_t>(kClientID), getClientRoutes(kClientID));
+}
+
+void BaseEcmpResourceManagerTest::replayAllRoutesViaThrift() {
+  ThriftHandler handler(sw_);
+  handler.addUnicastRoutes(
+      static_cast<int16_t>(kClientID), getClientRoutes(kClientID));
+}
+
 void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {
   waitForStateUpdates(sw_);
   for (const auto& [_, route] : std::as_const(*cfib(sw_->getState()))) {
