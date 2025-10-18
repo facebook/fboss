@@ -317,7 +317,7 @@ TeFlowStats BcmTeFlowTable::getFlowStats() const {
     auto statName = folly::to<std::string>(counterId, ".bytes");
     // returns default stat if statName does not exists
     auto statPtr = statMap->getStatPtrNoExport(statName);
-    auto lockedStatPtr = statPtr->lock();
+    auto lockedStatPtr = statPtr->wlock();
     auto numLevels = lockedStatPtr->numLevels();
     // Cumulative (ALLTIME) counters are at (numLevels - 1)
     HwTeFlowStats flowStat;
