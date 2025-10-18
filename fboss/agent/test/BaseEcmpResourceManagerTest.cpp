@@ -17,6 +17,10 @@
 
 namespace facebook::fboss {
 
+namespace {
+
+auto constexpr kClientID(ClientID::BGPD);
+}
 RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
@@ -330,7 +334,6 @@ void BaseEcmpResourceManagerTest::updateFlowletSwitchingConfig(
 
 void BaseEcmpResourceManagerTest::updateRoutes(
     const std::shared_ptr<SwitchState>& newState) {
-  auto constexpr kClientID(ClientID::BGPD);
   StateDelta delta(sw_->getState(), newState);
 
   auto routesToAddOrUpdate = std::make_unique<std::vector<UnicastRoute>>();
@@ -360,6 +363,25 @@ void BaseEcmpResourceManagerTest::updateRoutes(
   handler.addUnicastRoutes(
       static_cast<int16_t>(kClientID), std::move(routesToAddOrUpdate));
   assertRibFibEquivalence();
+}
+
+std::unique_ptr<std::vector<UnicastRoute>>
+BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
+  auto fibContainer =
+      sw_->getState()->getFibs()->getAllNodes()->getFibContainerIf(RouterID(0));
+  auto unicastRoutes = std::make_unique<std::vector<UnicastRoute>>();
+  auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
+    for (const auto& [_, route] : std::as_const(*fibIn)) {
+      auto forwardInfo = route->getEntryForClient(kClientID);
+      unicastRoutes->emplace_back(
+          util::toUnicastRoute(route->prefix().toCidrNetwork(), *forwardInfo));
+    }
+  };
+  fillInRoutes(fibContainer->getFibV4());
+  fillInRoutes(fibContainer->getFibV6());
+  XLOG(DBG2) << " For client : " << static_cast<int>(client)
+             << " got : " << unicastRoutes->size() << " routes";
+  return unicastRoutes;
 }
 
 void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {
