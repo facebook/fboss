@@ -162,7 +162,8 @@
             "maxAlarmVal": 63,
             "upperCriticalVal": 65
           },
-          "compute": "@/1000.0"
+          "__comment__": "Update the multiplier to 3 because the HW design has 3 milliohm resistors in parallel, giving an equivalent resistance of 0.333 milliohms",
+          "compute": "3*@/1000.0"
         },
         {
           "name": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
@@ -182,7 +183,8 @@
             "maxAlarmVal": 2800,
             "upperCriticalVal": 3000
           },
-          "compute": "@/1000000.0"
+          "__comment__": "Update the multiplier to 3 because the HW design has 3 milliohm resistors in parallel, giving an equivalent resistance of 0.333 milliohms",
+          "compute": "3*@/1000000.0"
         },
         {
           "name": "SMB_U279_MAIN_HSC_ADM1272_TEMP",
@@ -9896,6 +9898,13 @@
           "compute": "@/1000.0"
         }
       ]
+    }
+  ],
+  "powerConsumptionConfigs": [
+    {
+      "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
+      "name": "PSU1",
+      "powerSensorName": "SMB_U279_MAIN_HSC_ADM1272_POUT"
     }
   ]
 }
