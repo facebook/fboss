@@ -20,13 +20,6 @@
 
 namespace facebook::fboss {
 
-template <typename AddressT>
-using LegacyForwardingInformationBaseTraits = NodeMapTraits<
-    RoutePrefix<AddressT>,
-    Route<AddressT>,
-    NodeMapNoExtraFields,
-    std::map<RoutePrefix<AddressT>, std::shared_ptr<Route<AddressT>>>>;
-
 using ForwardingInformationBaseClass = apache::thrift::type_class::map<
     apache::thrift::type_class::string,
     apache::thrift::type_class::structure>;
