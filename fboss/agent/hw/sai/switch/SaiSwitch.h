@@ -134,7 +134,8 @@ class SaiSwitch : public HwSwitch {
 
   uint64_t getDeviceWatermarkBytes() const override;
 
-  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
+  void fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool sdk = false)
+      const override;
 
   folly::dynamic toFollyDynamic() const override;
 
@@ -351,7 +352,8 @@ class SaiSwitch : public HwSwitch {
 
   void fetchL2TableLocked(
       const std::lock_guard<std::mutex>& lock,
-      std::vector<L2EntryThrift>* l2Table) const;
+      std::vector<L2EntryThrift>* l2Table,
+      bool sdk = false) const;
 
   const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked(
       const std::lock_guard<std::mutex>& lock) const;

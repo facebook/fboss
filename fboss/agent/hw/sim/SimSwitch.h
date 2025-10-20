@@ -103,7 +103,8 @@ class SimSwitch : public HwSwitch {
     return {};
   }
 
-  void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
+  void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/, bool /*sdk*/)
+      const override {
     return;
   }
 

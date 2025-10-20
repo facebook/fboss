@@ -243,7 +243,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getHwDebugDump) {
 TYPED_TEST(ThriftTestAllSwitchTypes, getL2Table) {
   ThriftHandler handler(this->sw_);
   std::string out;
-  EXPECT_HW_CALL(this->sw_, fetchL2Table(testing::_))
+  EXPECT_HW_CALL(this->sw_, fetchL2Table(testing::_, testing::_))
       .Times(this->isNpu() ? 1 : 0);
 
   std::vector<L2EntryThrift> l2Entries;

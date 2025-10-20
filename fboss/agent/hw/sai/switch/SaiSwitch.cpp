@@ -2495,9 +2495,10 @@ SaiSwitch::getVirtualDeviceToRemoteConnectionGroupsLocked(
       lookupVirtualDeviceId);
 }
 
-void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
+void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool sdk)
+    const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  fetchL2TableLocked(lock, l2Table);
+  fetchL2TableLocked(lock, l2Table, sdk);
 }
 
 void SaiSwitch::gracefulExitImpl() {
@@ -4084,8 +4085,9 @@ bool SaiSwitch::sendPacketOutOfPortSync(
 
 void SaiSwitch::fetchL2TableLocked(
     const std::lock_guard<std::mutex>& /* lock */,
-    std::vector<L2EntryThrift>* l2Table) const {
-  *l2Table = managerTable_->fdbManager().getL2Entries();
+    std::vector<L2EntryThrift>* l2Table,
+    bool sdk) const {
+  *l2Table = managerTable_->fdbManager().getL2Entries(sdk);
 }
 
 folly::dynamic SaiSwitch::toFollyDynamicLocked(

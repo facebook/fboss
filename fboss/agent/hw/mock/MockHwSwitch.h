@@ -82,7 +82,9 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD0(getSysPortStats, std::map<std::string, HwSysPortStats>());
   MOCK_CONST_METHOD0(getFabricReachabilityStats, FabricReachabilityStats());
   MOCK_CONST_METHOD0(getSwitchDropStats, HwSwitchDropStats());
-  MOCK_CONST_METHOD1(fetchL2Table, void(std::vector<L2EntryThrift>* l2Table));
+  MOCK_CONST_METHOD2(
+      fetchL2Table,
+      void(std::vector<L2EntryThrift>* l2Table, bool sdk));
   MOCK_METHOD0(gracefulExitImpl, void());
   MOCK_CONST_METHOD0(toFollyDynamic, folly::dynamic());
   MOCK_CONST_METHOD0(exitFatal, void());

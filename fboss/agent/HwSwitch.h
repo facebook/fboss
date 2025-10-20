@@ -245,7 +245,9 @@ class HwSwitch {
   virtual folly::F14FastMap<std::string, HwRouterInterfaceStats>
   getRouterInterfaceStats() const = 0;
 
-  virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
+  virtual void fetchL2Table(
+      std::vector<L2EntryThrift>* l2Table,
+      bool sdk = false) const = 0;
 
   void updateAllPhyInfo();
   std::map<PortID, phy::PhyInfo> getAllPhyInfo() const {

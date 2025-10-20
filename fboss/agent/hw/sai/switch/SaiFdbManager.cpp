@@ -391,7 +391,7 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
   return entry;
 }
 
-std::vector<L2EntryThrift> SaiFdbManager::getL2Entries() const {
+std::vector<L2EntryThrift> SaiFdbManager::getL2Entries(bool /*sdk*/) const {
   std::vector<L2EntryThrift> entries;
   for (const auto& publisherAndFdbEntry : managedFdbEntries_) {
     /*

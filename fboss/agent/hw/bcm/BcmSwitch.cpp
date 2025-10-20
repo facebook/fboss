@@ -4068,7 +4068,8 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
   return 0;
 }
 
-void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
+void BcmSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table, bool /*sdk*/)
+    const {
   auto cookie = std::make_pair(this, l2Table);
   int rv = bcm_l2_traverse(unit_, _addL2Entry, &cookie);
   bcmCheckError(rv, "bcm_l2_traverse failed");

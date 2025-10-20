@@ -181,8 +181,9 @@ std::string MonolithicHwSwitchHandler::getDebugDump() const {
 }
 
 void MonolithicHwSwitchHandler::fetchL2Table(
-    std::vector<L2EntryThrift>* l2Table) const {
-  hw_->fetchL2Table(l2Table);
+    std::vector<L2EntryThrift>* l2Table,
+    bool sdk) const {
+  hw_->fetchL2Table(l2Table, sdk);
 }
 
 std::string MonolithicHwSwitchHandler::listObjects(
