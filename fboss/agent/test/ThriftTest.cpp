@@ -833,12 +833,12 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getVlanAddresses) {
   ThriftHandler handler(this->sw_);
   using Addresses = std::vector<facebook::network::thrift::Address>;
   using BinaryAddresses = std::vector<facebook::network::thrift::BinaryAddress>;
-  auto constexpr kVlan = 1;
+  auto constexpr kVlanId = 1;
   auto constexpr kVlanName = "Vlan1";
   if (this->isNpu()) {
     {
       Addresses addrs;
-      handler.getVlanAddresses(addrs, kVlan);
+      handler.getVlanAddresses(addrs, kVlanId);
       EXPECT_GT(addrs.size(), 0);
     }
     {
@@ -849,7 +849,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getVlanAddresses) {
     }
     {
       BinaryAddresses addrs;
-      handler.getVlanBinaryAddresses(addrs, kVlan);
+      handler.getVlanBinaryAddresses(addrs, kVlanId);
       EXPECT_GT(addrs.size(), 0);
     }
     {
