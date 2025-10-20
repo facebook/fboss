@@ -553,7 +553,9 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
 void WedgeManager::updateTcvrStateInFsdb(
     TransceiverID tcvrID,
     facebook::fboss::TcvrState&& newState) {
-  fsdbSyncManager_->updateTcvrState(tcvrID, std::move(newState));
+  QsfpFsdbSyncManager::TcvrStateMap states;
+  states[tcvrID] = std::move(newState);
+  fsdbSyncManager_->updateTcvrStates(std::move(states));
 }
 
 void WedgeManager::updatePimStateInFsdb(
@@ -593,10 +595,12 @@ void WedgeManager::publishTransceiversToFsdb() {
   TcvrInfoMap tcvrInfos;
   getTransceiversInfo(tcvrInfos, std::make_unique<std::vector<int32_t>>());
   QsfpFsdbSyncManager::TcvrStatsMap stats;
+  QsfpFsdbSyncManager::TcvrStateMap states;
   for (auto& [id, info] : tcvrInfos) {
-    updateTcvrStateInFsdb(TransceiverID(id), std::move(*info.tcvrState()));
     stats[id] = *info.tcvrStats();
+    states[id] = *info.tcvrState();
   }
+  fsdbSyncManager_->updateTcvrStates(std::move(states));
   fsdbSyncManager_->updateTcvrStats(std::move(stats));
 }
 
