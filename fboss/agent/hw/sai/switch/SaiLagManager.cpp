@@ -54,8 +54,9 @@ LagSaiId SaiLagManager::addLag(
   LagSaiId lagSaiId = lag->adapterKey();
   std::map<PortSaiId, std::shared_ptr<SaiLagMember>> members;
   for (auto iter : folly::enumerate(aggregatePort->subportAndFwdState())) {
-    auto [subPort, fwdState] = *iter;
-    auto member = addMember(lag, aggregatePort->getID(), subPort, fwdState);
+    auto [currentSubPort, fwdState] = *iter;
+    auto member =
+        addMember(lag, aggregatePort->getID(), currentSubPort, fwdState);
     members.emplace(std::move(member));
   }
   concurrentIndices_->vlanIds.emplace(
