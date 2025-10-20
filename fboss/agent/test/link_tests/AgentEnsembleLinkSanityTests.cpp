@@ -46,7 +46,7 @@ bool isEqual(
 // For some reason this flag always evaluates as false if we hardcode the string
 // So return it from a function instead
 const std::string qsfpUtilPrefix() {
-  std::string extraFlags = "";
+  std::string extraFlags;
   if (FLAGS_multi_npu_platform_mapping) {
     extraFlags += " --multi-npu-platform-mapping ";
   }
