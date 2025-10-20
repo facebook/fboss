@@ -166,7 +166,7 @@
           "compute": "3*@/1000.0"
         },
         {
-          "name": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
+          "name": "SMB_U279_MAIN_HSC_ADM1272_VIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/in1_input",
           "type": 1,
           "thresholds": {
@@ -176,7 +176,17 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_U279_MAIN_HSC_ADM1272_POUT",
+          "name": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
+          "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/in2_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 58,
+            "upperCriticalVal": 60
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_U279_MAIN_HSC_ADM1272_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_U279_ADM1272_1/power1_input",
           "type": 0,
           "thresholds": {
@@ -9903,8 +9913,9 @@
   "powerConsumptionConfigs": [
     {
       "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
-      "name": "PSU1",
-      "powerSensorName": "SMB_U279_MAIN_HSC_ADM1272_POUT"
+      "name": "HSC",
+      "voltageSensorName": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
+      "currentSensorName": "SMB_U279_MAIN_HSC_ADM1272_IOUT"
     }
   ]
 }
