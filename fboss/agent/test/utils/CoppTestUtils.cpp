@@ -708,8 +708,9 @@ std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
     const PortID& srcPort) {
   VlanID downlinkBaseVlanId(kDownlinkBaseVlanId);
   auto intfMap = swState->getInterfaces()->modify(&swState);
-  for (const auto& [_, intfMap] : *intfMap) {
-    for (auto iter = intfMap->begin(); iter != intfMap->end(); ++iter) {
+  for (const auto& [_, currentIntfMap] : *intfMap) {
+    for (auto iter = currentIntfMap->begin(); iter != currentIntfMap->end();
+         ++iter) {
       auto intf = iter->second;
       if (intf->getType() == cfg::InterfaceType::VLAN &&
           intf->getVlanID() >= downlinkBaseVlanId) {
