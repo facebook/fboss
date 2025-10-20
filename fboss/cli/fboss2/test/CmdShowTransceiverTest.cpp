@@ -337,6 +337,144 @@ TEST_F(CmdShowTransceiverTestFixture, queryClient) {
   EXPECT_THRIFT_EQ(model, normalizedModel);
 }
 
+TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByPort) {
+  setupMockedAgentServer();
+
+  // Query for a specific port
+  CmdShowTransceiverTraits::ObjectArgType queriedEntries = {"eth1/1/1"};
+
+  // getAllPortInfo should still return all ports
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = mockPortEntries; }));
+
+  // getPortStatus should be called with only the filtered port ID (port 1)
+  EXPECT_CALL(getMockAgent(), getPortStatus(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& portIds) {
+        // Verify that only port 1 is requested
+        EXPECT_EQ(portIds->size(), 1);
+        EXPECT_EQ((*portIds)[0], 1);
+
+        // Return only the status for port 1
+        std::map<int32_t, PortStatus> filteredStatuses;
+        filteredStatuses[1] = mockPortStatusEntries[1];
+        entries = filteredStatuses;
+      }));
+
+  // getTransceiverInfo should be called with only the transceiver ID for port 1
+  EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds) {
+        // Verify that only transceiver 1 is requested
+        EXPECT_EQ(transceiverIds->size(), 1);
+        EXPECT_EQ((*transceiverIds)[0], 1);
+
+        // Return only the transceiver info for transceiver 1
+        std::map<int32_t, TransceiverInfo> filteredTransceivers;
+        filteredTransceivers[1] = mockTransceiverEntries[1];
+        entries = filteredTransceivers;
+      }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds, auto) {
+        // Verify that only transceiver 1 is requested
+        EXPECT_EQ(transceiverIds->size(), 1);
+        EXPECT_EQ((*transceiverIds)[0], 1);
+
+        // Return only the validation info for transceiver 1
+        std::map<int32_t, std::string> filteredValidation;
+        filteredValidation[1] = mockTransceiverValidationEntries[1];
+        entries = filteredValidation;
+      }));
+
+  auto cmd = CmdShowTransceiver();
+  auto model = cmd.queryClient(localhost(), queriedEntries);
+
+  // Verify that the model contains only the requested interface
+  EXPECT_EQ(model.transceivers()->size(), 1);
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/1/1") != model.transceivers()->end());
+
+  // Verify it's the correct transceiver
+  auto& tcvrDetail = model.transceivers()->at("eth1/1/1");
+  EXPECT_EQ(tcvrDetail.name().value(), "eth1/1/1");
+  EXPECT_EQ(tcvrDetail.vendor().value(), "vendorOne");
+  EXPECT_EQ(tcvrDetail.serial().value(), "aa");
+  EXPECT_TRUE(tcvrDetail.isUp().value());
+}
+
+TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByMultiplePorts) {
+  setupMockedAgentServer();
+
+  // Query for multiple specific ports
+  CmdShowTransceiverTraits::ObjectArgType queriedEntries = {
+      "eth1/1/1", "eth1/6/1"};
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = mockPortEntries; }));
+
+  EXPECT_CALL(getMockAgent(), getPortStatus(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& portIds) {
+        // Verify that only ports 1 and 6 are requested
+        EXPECT_EQ(portIds->size(), 2);
+        EXPECT_TRUE(
+            std::find(portIds->begin(), portIds->end(), 1) != portIds->end());
+        EXPECT_TRUE(
+            std::find(portIds->begin(), portIds->end(), 6) != portIds->end());
+
+        // Return only the status for ports 1 and 6
+        std::map<int32_t, PortStatus> filteredStatuses;
+        filteredStatuses[1] = mockPortStatusEntries[1];
+        filteredStatuses[6] = mockPortStatusEntries[6];
+        entries = filteredStatuses;
+      }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds) {
+        // Verify that only transceivers 1 and 6 are requested
+        EXPECT_EQ(transceiverIds->size(), 2);
+        EXPECT_TRUE(
+            std::find(transceiverIds->begin(), transceiverIds->end(), 1) !=
+            transceiverIds->end());
+        EXPECT_TRUE(
+            std::find(transceiverIds->begin(), transceiverIds->end(), 6) !=
+            transceiverIds->end());
+
+        // Return only the transceiver info for transceivers 1 and 6
+        std::map<int32_t, TransceiverInfo> filteredTransceivers;
+        filteredTransceivers[1] = mockTransceiverEntries[1];
+        filteredTransceivers[6] = mockTransceiverEntries[6];
+        entries = filteredTransceivers;
+      }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds, auto) {
+        // Verify that only transceivers 1 and 6 are requested
+        EXPECT_EQ(transceiverIds->size(), 2);
+
+        // Return only the validation info for transceivers 1 and 6
+        std::map<int32_t, std::string> filteredValidation;
+        filteredValidation[1] = mockTransceiverValidationEntries[1];
+        filteredValidation[6] = mockTransceiverValidationEntries[6];
+        entries = filteredValidation;
+      }));
+
+  auto cmd = CmdShowTransceiver();
+  auto model = cmd.queryClient(localhost(), queriedEntries);
+
+  // Verify that the model contains only the requested interfaces
+  EXPECT_EQ(model.transceivers()->size(), 2);
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/1/1") != model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/6/1") != model.transceivers()->end());
+
+  // Verify the correct transceivers
+  auto& tcvr1 = model.transceivers()->at("eth1/1/1");
+  EXPECT_EQ(tcvr1.vendor().value(), "vendorOne");
+
+  auto& tcvr6 = model.transceivers()->at("eth1/6/1");
+  EXPECT_EQ(tcvr6.vendor().value(), "vendorThree");
+}
+
 TEST_F(CmdShowTransceiverTestFixture, printOutput) {
   std::stringstream ss;
   CmdShowTransceiver().printOutput(normalizedModel, ss);

@@ -52,7 +52,8 @@ class CmdShowTransceiver
     // TODO: explore performance improvement if we make all this parallel.
     auto portEntries = queryPortInfo(agent.get(), queriedPorts);
     auto portStatusEntries = queryPortStatus(agent.get(), portEntries);
-    auto transceiverEntries = queryTransceiverInfo(qsfpService.get(), {});
+    auto transceiverEntries =
+        queryTransceiverInfo(qsfpService.get(), portStatusEntries);
     auto transceiverValidationEntries =
         queryTransceiverValidationInfo(qsfpService.get(), portStatusEntries);
 
