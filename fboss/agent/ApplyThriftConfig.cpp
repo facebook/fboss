@@ -5640,7 +5640,7 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
     // TODO: For now we are allowing v4 LLs to be programmed because they
     // are used within Galaxy for LL routing. This hack should go away once
     // we move BGP sessions over non LL addresses
-    if (intfAddr.first.isV6() and intfAddr.first.isLinkLocal()) {
+    if (intfAddr.first.isV6() && intfAddr.first.isLinkLocal()) {
       continue;
     }
     auto ret2 = intfRouteTables_[RouterID(*config->routerID())].emplace(
