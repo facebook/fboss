@@ -85,7 +85,8 @@ class HwPortProfileTest : public HwTest {
       for (auto& [port, profile] : ports.xphyPorts) {
         // Program the same port with the same profile twice, the second time
         // should be idempotent.
-        getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+            port, profile);
       }
     };
     auto verify = [&]() {
@@ -113,7 +114,8 @@ class HwPortProfileTest : public HwTest {
             getHwQsfpEnsemble()->getWedgeManager()->getTransceiverID(port);
         CHECK(transceiverId.has_value());
         auto portName =
-            getHwQsfpEnsemble()->getWedgeManager()->getPortNameByPortId(port);
+            getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortNameByPortId(
+                port);
         CHECK(portName.has_value());
         portToTransceiverInfoMap[*portName] = transceivers[*transceiverId];
       }

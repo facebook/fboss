@@ -1026,4 +1026,27 @@ TEST_F(EcmpResourceMgrMergeGroupTest, mergeThenUnmerge) {
     restoreToOrigState();
   };
 }
+
+TEST_F(
+    EcmpResourceMgrMergeGroupTest,
+    triggerMergeThenShrinkOverflowedMemberGroup) {
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  auto deltas = addNextRoute();
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  auto mergedNhops =
+      sw_->getEcmpResourceManager()
+          ->getMergeGroupConsolidationInfo(*optimalMergeSet.begin())
+          ->mergedNhops;
+  RouteNextHopSet shrunkNhops;
+  for (auto i = 0; i < 2; ++i) {
+    shrunkNhops.insert(*mergedNhops.begin());
+    mergedNhops.erase(*mergedNhops.begin());
+  }
+  updateRoute(*overflowPrefixes.begin(), shrunkNhops);
+}
 } // namespace facebook::fboss

@@ -650,13 +650,13 @@
           "compute": "@/1000"
         },
         {
-          "name": "COME_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_IIN",
+          "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IIN",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON_3/curr1_input",
           "type": 2,
           "compute": "@/1000"
         },
         {
-          "name": "COME_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_IOUT",
+          "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IOUT",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON_3/curr2_input",
           "type": 2,
           "thresholds": {
@@ -665,19 +665,19 @@
           "compute": "@/1000"
         },
         {
-          "name": "COME_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_PIN",
+          "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_PIN",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON_3/power1_input",
           "type": 0,
           "compute": "@/1000000"
         },
         {
-          "name": "COME_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_POUT",
+          "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_POUT",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON_3/power2_input",
           "type": 0,
           "compute": "@/1000000"
         },
         {
-          "name": "COME_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_TEMP",
+          "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON_3/temp1_input",
           "type": 3,
           "thresholds": {
@@ -687,7 +687,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "COME_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_VIN",
+          "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VIN",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON_3/in1_input",
           "type": 1,
           "thresholds": {
@@ -696,7 +696,7 @@
           "compute": "@/1000"
         },
         {
-          "name": "COME_PU41_MP9941_1.2V_PVDDQ_ABC_CPU_VOUT",
+          "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VOUT",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON_3/in2_input",
           "type": 1,
           "thresholds": {

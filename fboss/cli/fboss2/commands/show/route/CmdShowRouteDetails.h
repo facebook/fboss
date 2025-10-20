@@ -197,7 +197,10 @@ class CmdShowRouteDetails
       if (entry.overridenNextHops()) {
         if (entry.overridenNextHops()->size()) {
           printNextHops(
-              "Forwarding via:", nextHops, true /*isOverride*/, nhToTopoInfo);
+              "Forwarding via:",
+              *entry.overridenNextHops(),
+              true /*isOverride*/,
+              nhToTopoInfo);
         } else if (!entry.overridenNextHops().has_value()) {
           out << "  No Forwarding Info\n";
         }

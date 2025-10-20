@@ -928,6 +928,11 @@ static void populateInterfaceDetail(
   }
 
   interfaceDetail.scope() = intf->getScope();
+
+  if (intf->getDesiredPeerAddressIPv6().has_value()) {
+    interfaceDetail.desiredPeerAddressIPv6() =
+        intf->getDesiredPeerAddressIPv6().value();
+  }
 }
 
 void ThriftHandler::getAllInterfaces(
@@ -2003,7 +2008,7 @@ void ThriftHandler::getRouteCounterBytes(
   for (const auto& statName : *counters) {
     // returns default stat if statName does not exists
     auto statPtr = statMap->getStatPtrNoExport(statName);
-    auto lockedStatPtr = statPtr->lock();
+    auto lockedStatPtr = statPtr->wlock();
     auto numLevels = lockedStatPtr->numLevels();
     // Cumulative (ALLTIME) counters are at (numLevels - 1)
     auto value = lockedStatPtr->sum(numLevels - 1);

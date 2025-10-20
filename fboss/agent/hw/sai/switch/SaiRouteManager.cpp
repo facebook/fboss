@@ -297,17 +297,6 @@ void SaiRouteManager::addOrUpdateRoute(
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
 
-      if (FLAGS_enable_th5_ars_scale_mode) {
-        // Read ARS class ID from next hop group metadata and set it in route
-        // metadata
-        auto arsClassId =
-            managerTable_->nextHopGroupManager().getNextHopGroupArsClassId(
-                nextHopGroupHandle);
-        metadata = arsClassId;
-        XLOG(DBG3) << "Route with ECMP: " << newRoute->str()
-                   << " setting metadata to ARS class ID: " << arsClassId;
-      }
-
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, nextHopGroupId, metadata, counterID};
@@ -409,19 +398,6 @@ void SaiRouteManager::addOrUpdateRoute(
         }
       }
 
-      if (FLAGS_enable_th5_ars_scale_mode) {
-        // if route metadata is not set and it was previously set to ars
-        // alternate meta data, set it to zero to reset in hardware since
-        // metadata is an optional attribute and setting it to std::nullopt
-        // will not clear old value from hardware
-        if (!metadata.has_value() && routeHandle->metadata_.has_value() &&
-            routeHandle->metadata_.value() ==
-                static_cast<uint32_t>(
-                    cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS)) {
-          metadata = 0;
-        }
-      }
-
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, nextHopId, metadata, counterID};
@@ -473,7 +449,6 @@ void SaiRouteManager::addOrUpdateRoute(
   if (!newRoute->isConnected()) {
     checkMetadata(entry);
   }
-  routeHandle->metadata_ = metadata;
 }
 
 template <typename AddrT>
@@ -663,6 +638,24 @@ void SaiRouteManager::checkMetadata(SaiRouteTraits::RouteEntry entry) {
   if (!route) {
     return;
   }
+
+  // Read ARS metadata from SDK and set it back to sync all layers
+  // This is needed because metadata is an optional SAI attribute
+  if (FLAGS_enable_th5_ars_scale_mode) {
+    auto& api = SaiApiTable::getInstance()->routeApi();
+    auto sdkMetadata = api.getAttribute(
+        route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
+    if (sdkMetadata ==
+            static_cast<sai_uint32_t>(
+                cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS) ||
+        sdkMetadata == 0) {
+      // Set it back to sync all layers
+      api.setAttribute(
+          route->adapterKey(),
+          SaiRouteTraits::Attributes::Metadata{sdkMetadata});
+    }
+  }
+
   auto attributes = route->attributes();
   auto metadata =
       std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(attributes);

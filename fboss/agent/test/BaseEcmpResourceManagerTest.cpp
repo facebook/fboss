@@ -17,6 +17,10 @@
 
 namespace facebook::fboss {
 
+namespace {
+
+auto constexpr kClientID(ClientID::BGPD);
+}
 RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
@@ -241,6 +245,7 @@ void BaseEcmpResourceManagerTest::SetUp() {
       getEcmpCompressionThresholdPct());
   handle_ = createTestHandle(&cfg);
   sw_ = handle_->getSw();
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
   ASSERT_NE(sw_->getEcmpResourceManager(), nullptr);
   // Taken from mock asic
   auto asic = *sw_->getHwAsicTable()->getL3Asics().begin();
@@ -329,36 +334,65 @@ void BaseEcmpResourceManagerTest::updateFlowletSwitchingConfig(
 
 void BaseEcmpResourceManagerTest::updateRoutes(
     const std::shared_ptr<SwitchState>& newState) {
-  auto updater = sw_->getRouteUpdater();
-  auto constexpr kClientID(ClientID::BGPD);
   StateDelta delta(sw_->getState(), newState);
+
+  auto routesToAddOrUpdate = std::make_unique<std::vector<UnicastRoute>>();
+  auto prefixesToDelete = std::make_unique<std::vector<IpPrefix>>();
+
   processFibsDeltaInHwSwitchOrder(
       delta,
-      [&updater](RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
-        updater.addRoute(
-            rid,
-            newRoute->prefix().network(),
-            newRoute->prefix().mask(),
-            kClientID,
-            newRoute->getForwardInfo());
+      [&routesToAddOrUpdate](
+          RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
+        routesToAddOrUpdate->emplace_back(util::toUnicastRoute(
+            newRoute->prefix().toCidrNetwork(), newRoute->getForwardInfo()));
       },
-      [&updater](RouterID rid, const auto& newRoute) {
-        updater.addRoute(
-            rid,
-            newRoute->prefix().network(),
-            newRoute->prefix().mask(),
-            kClientID,
-            newRoute->getForwardInfo());
+      [&routesToAddOrUpdate](RouterID rid, const auto& newRoute) {
+        routesToAddOrUpdate->emplace_back(util::toUnicastRoute(
+            newRoute->prefix().toCidrNetwork(), newRoute->getForwardInfo()));
       },
-      [&updater](RouterID rid, const auto& oldRoute) {
+      [&prefixesToDelete](RouterID rid, const auto& oldRoute) {
         IpPrefix pfx;
         pfx.ip() = network::toBinaryAddress(oldRoute->prefix().network());
         pfx.prefixLength() = oldRoute->prefix().mask();
-        updater.delRoute(rid, pfx, kClientID);
+        prefixesToDelete->push_back(pfx);
       });
 
-  updater.program();
+  ThriftHandler handler(sw_);
+  handler.deleteUnicastRoutes(
+      static_cast<int16_t>(kClientID), std::move(prefixesToDelete));
+  handler.addUnicastRoutes(
+      static_cast<int16_t>(kClientID), std::move(routesToAddOrUpdate));
   assertRibFibEquivalence();
+}
+
+std::unique_ptr<std::vector<UnicastRoute>>
+BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
+  auto fibContainer =
+      sw_->getState()->getFibs()->getAllNodes()->getFibContainerIf(RouterID(0));
+  auto unicastRoutes = std::make_unique<std::vector<UnicastRoute>>();
+  auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
+    for (const auto& [_, route] : std::as_const(*fibIn)) {
+      auto forwardInfo = route->getEntryForClient(kClientID);
+      unicastRoutes->emplace_back(
+          util::toUnicastRoute(route->prefix().toCidrNetwork(), *forwardInfo));
+    }
+  };
+  fillInRoutes(fibContainer->getFibV4());
+  fillInRoutes(fibContainer->getFibV6());
+  XLOG(DBG2) << " For client : " << static_cast<int>(client)
+             << " got : " << unicastRoutes->size() << " routes";
+  return unicastRoutes;
+}
+
+void BaseEcmpResourceManagerTest::syncFib() {
+  ThriftHandler handler(sw_);
+  handler.syncFib(static_cast<int16_t>(kClientID), getClientRoutes(kClientID));
+}
+
+void BaseEcmpResourceManagerTest::replayAllRoutesViaThrift() {
+  ThriftHandler handler(sw_);
+  handler.addUnicastRoutes(
+      static_cast<int16_t>(kClientID), getClientRoutes(kClientID));
 }
 
 void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {

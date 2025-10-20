@@ -8,7 +8,7 @@
 
 import json
 import logging
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from .config import (
     AgentTestsSpec,
@@ -103,7 +103,9 @@ class ConfigParser:
             ),
         )
 
-    def _parse_test_list(self, data: List[Dict[str, Any]], parser_func) -> List[T]:
+    def _parse_test_list(
+        self, data: List[Dict[str, Any]], parser_func: Callable[[Dict[str, Any]], T]
+    ) -> List[T]:
         """Parse list of test specifications"""
         return [parser_func(item) for item in data]
 

@@ -413,6 +413,13 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
         isMock);
   }
 
+  void verifyXphyNeedResetDataPath(bool multiPort, bool expected) {
+    EXPECT_EQ(portManager_->getXphyNeedResetDataPath(portId1_), expected);
+    if (multiPort) {
+      EXPECT_EQ(portManager_->getXphyNeedResetDataPath(portId3_), expected);
+    }
+  }
+
   // Manager Attributes
   int numPortsPerModule{8};
 
@@ -503,7 +510,9 @@ TEST_F(PortStateMachineTest, enablePorts) {
                  PortStateMachineState::INITIALIZED)}} /* expected state */,
         []() {} /* preUpdate */,
         [this]() { initializePortsThroughRefresh(); } /* stateUpdate */,
-        []() {} /* verify */,
+        [this, multiPort]() {
+          verifyXphyNeedResetDataPath(multiPort, false /* expected */);
+        } /* verify */,
         "portsInitialized");
     // Prepare for testing with next multiPort value
     resetManagers();
@@ -648,7 +657,9 @@ TEST_F(PortStateMachineTest, fullSimpleRefreshCycle) {
             refreshAndTriggerProgramming();
           }
         } /* stateUpdate */,
-        []() {} /* verify */,
+        [this, multiPort]() {
+          verifyXphyNeedResetDataPath(multiPort, false /* expected */);
+        } /* verify */,
         "allProgramming completes");
 
     // Prepare for testing with next multiPort value
@@ -777,11 +788,18 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBoot) {
                  PortStateMachineState::UNINITIALIZED)}} /* expected state */,
         []() {} /* preUpdate */,
         [this]() { triggerAgentConfigChanged(true); } /* stateUpdate */,
-        [this]() {
+        [this, multiPort]() {
           const auto& stateMachine =
               transceiverManager_->getStateMachineForTesting(tcvrId_);
           EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
           EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+          verifyXphyNeedResetDataPath(multiPort, true /* expected */);
+
+          portManager_->refreshStateMachines();
+          portManager_->refreshStateMachines();
+          portManager_->refreshStateMachines();
+
+          verifyXphyNeedResetDataPath(multiPort, false /* expected */);
         } /* verify */,
         "agentConfigChanged ColdBoot");
 
@@ -809,7 +827,7 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBoot) {
         ,
         []() {} /* preUpdate */,
         [this]() { triggerAgentConfigChanged(false); } /* stateUpdate */,
-        [this]() {
+        [this, multiPort]() {
           // Enter DISCOVERED will also call `resetProgrammingAttributes`
           const auto& stateMachine =
               transceiverManager_->getStateMachineForTesting(tcvrId_);
@@ -817,6 +835,8 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBoot) {
           EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
           EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
           EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+
+          verifyXphyNeedResetDataPath(multiPort, false /* expected */);
         } /* verify */,
         "agentConfigChanged WarmBoot");
 
@@ -848,6 +868,13 @@ TEST_F(PortStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
             transceiverManager_->getStateMachineForTesting(tcvrId_);
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        verifyXphyNeedResetDataPath(false /* multiPort */, true /* expected */);
+
+        portManager_->refreshStateMachines();
+        portManager_->refreshStateMachines();
+        portManager_->refreshStateMachines();
+        verifyXphyNeedResetDataPath(
+            false /* multiPort */, false /* expected */);
       } /* verify */,
       "agentConfigChanged ColdBoot",
       true /* isMock */);
@@ -882,6 +909,9 @@ TEST_F(PortStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
         EXPECT_FALSE(stateMachine.get_attribute(isXphyProgrammed));
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
         EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+
+        verifyXphyNeedResetDataPath(
+            false /* multiPort */, false /* expected */);
       } /* verify */,
       "agentConfigChanged ColdBoot",
       true /* isMock */);

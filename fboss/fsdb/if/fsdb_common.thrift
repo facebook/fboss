@@ -1,3 +1,5 @@
+package "facebook.com/fboss/fsdb"
+
 namespace py3 neteng.fboss
 namespace py neteng.fboss.fsdb_common
 namespace py.asyncio neteng.fboss.asyncio.fsdb_common

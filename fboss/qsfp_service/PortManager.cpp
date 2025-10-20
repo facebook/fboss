@@ -998,6 +998,10 @@ void PortManager::triggerAgentConfigChangeEvent() {
 
   transceiverManager_->triggerTransceiverEventsForAgentConfigChangeEvent(
       resetDataPath, newConfigAppliedInfo);
+  for (auto& stateMachine : stateMachineControllers_) {
+    stateMachine.second->getStateMachine().wlock()->get_attribute(
+        xphyNeedResetDataPath) = resetDataPath;
+  }
 
   configAppliedInfo_ = newConfigAppliedInfo;
 }
@@ -1562,6 +1566,33 @@ void PortManager::refreshStateMachines() {
   setWarmBootState();
 
   XLOG(INFO) << "refreshStateMachines ended";
+}
+
+bool PortManager::getXphyNeedResetDataPath(PortID id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Port:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getStateMachine().rlock()->get_attribute(
+      xphyNeedResetDataPath);
+}
+
+void PortManager::programXphyPortPrbs(
+    PortID portId,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  if (!phyManager_) {
+    throw FbossError(
+        "Unable to programXphyPortPrbs when PhyManager is not set");
+  }
+
+  phyManager_->setPortPrbs(portId, side, prbs);
+}
+
+phy::PortPrbsState PortManager::getXphyPortPrbs(
+    const PortID& portId,
+    phy::Side side) {
+  return phyManager_->getPortPrbs(portId, side);
 }
 
 } // namespace facebook::fboss

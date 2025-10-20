@@ -43,19 +43,19 @@ bool ResourceAccountant::isEcmp(const RouteNextHopEntry& fwd) const {
   return true;
 }
 
-int ResourceAccountant::computeWeightedEcmpMemberCount(
+size_t ResourceAccountant::computeWeightedEcmpMemberCount(
     const RouteNextHopEntry& fwd,
     const cfg::AsicType& asicType) const {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       // For TH4, UCMP members take 4x of ECMP members in the same table.
-      return 4 * fwd.getNextHopSet().size();
+      return 4 * fwd.normalizedNextHops().size();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       // For TH5, UCMP members take 4x of ECMP members in the same table.
-      return 4 * fwd.getNextHopSet().size();
+      return 4 * fwd.normalizedNextHops().size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
       // Yuba asic natively supports UCMP members with no extra cost.
-      return fwd.getNextHopSet().size();
+      return fwd.normalizedNextHops().size();
     default:
       XLOG(
           WARNING,
@@ -68,10 +68,10 @@ int ResourceAccountant::computeWeightedEcmpMemberCount(
   }
 }
 
-int ResourceAccountant::getMemberCountForEcmpGroup(
+size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const RouteNextHopEntry& fwd) const {
   if (isEcmp(fwd)) {
-    return fwd.getNextHopSet().size();
+    return fwd.normalizedNextHops().size();
   }
   if (nativeWeightedEcmp_) {
     // Different asic supports native WeightedEcmp in different ways.
@@ -157,10 +157,9 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
     bool add) {
   const auto& fwd = route->getForwardInfo();
 
+  const auto nhSet = fwd.normalizedNextHops();
   // Forwarding to nextHops and more than one nextHop - use ECMP
-  if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
-      fwd.getNextHopSet().size() > 1) {
-    const auto& nhSet = fwd.normalizedNextHops();
+  if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
     if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
       it->second = it->second + (add ? 1 : -1);
       CHECK(it->second >= 0);
@@ -186,10 +185,9 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
     bool add) {
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
     const auto& fwd = route->getForwardInfo();
-
+    const auto nhSet = fwd.normalizedNextHops();
     // Forwarding to nextHops and more than one nextHop - use ECMP
-    if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
-        fwd.getNextHopSet().size() > 1) {
+    if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
       // If ERM were disabled, then arsEcmpGroupRefMap_ and ecmpGroupRefMap_
       // will be identical since primary and backup groups are
       // indistinguishable.
@@ -199,7 +197,6 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
         return true;
       }
-      const auto& nhSet = fwd.normalizedNextHops();
       if (auto it = arsEcmpGroupRefMap_.find(nhSet);
           it != arsEcmpGroupRefMap_.end()) {
         it->second = it->second + (add ? 1 : -1);

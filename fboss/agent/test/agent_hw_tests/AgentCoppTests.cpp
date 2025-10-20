@@ -420,6 +420,21 @@ class AgentCoppTest : public AgentHwTest {
     }
   }
 
+  bool needL3EcmpLoop() {
+    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    // no l2 bridging, need to create L3 loop or chenab in which case l3 rifs
+    // are used
+    return !this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q) ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+  }
+
+  void setupL3EcmpLoopIf() {
+    if (!needL3EcmpLoop()) {
+      return;
+    }
+    setupEcmp(true);
+  }
+
   void sendArpPkts(
       int numPktsToSend,
       const folly::IPAddress& dstIpAddress,
@@ -934,16 +949,13 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
 TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
   auto setup = [=, this]() {
     this->setup();
-    if (!this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
-      // no l2 bridging, need to create L3 loop on DNX
-      this->setupEcmp(true);
-    }
+    this->setupL3EcmpLoopIf();
   };
 
   auto verify = [=, this]() {
     std::optional<folly::MacAddress> dstMac;
     bool skipTtlDecrement;
-    if (this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
+    if (!this->needL3EcmpLoop()) {
       // use random mac, packets would be flooded and loopback
       dstMac = folly::MacAddress("00:00:00:00:00:01");
       skipTtlDecrement = true;
@@ -1127,16 +1139,13 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
   // More explanation in the test plan section of - D34782575
   auto setup = [=, this]() {
     this->setup();
-    if (!this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
-      this->setupEcmp(true);
-    }
+    this->setupL3EcmpLoopIf();
   };
   auto verify = [=, this]() {
     XLOG(DBG2) << "verifying solicitation";
     // do not snoop when L2 is not supported, e.g. J3, where NDP packets goes
     // through L3 pipeline and might change ttl and dst mac
-    bool expectRxPacket =
-        this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q);
+    bool expectRxPacket = !this->needL3EcmpLoop();
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(
             checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())),

@@ -65,6 +65,10 @@ constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
+// Tunable module const expr
+constexpr int32_t kDefaultFrequencyMhz = 193100000;
+constexpr double kMhzToGhzFactor = 0.000001;
+
 // TODO @sanabani: Change To Map
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -2205,6 +2209,67 @@ void CmisModule::setApplicationSelectCode(
   // that function relies on the configured application select but at
   // this point appSel hasn't been updated.
   uint8_t applySetForConfigureLanes = hostLaneMask;
+  uint8_t applySetForReleaseLanes = 0;
+
+  std::set<uint8_t> lanesToRelease;
+  // Read and cache all laneToActiveCtrlField. We can't rely on existing
+  // cache because we may not have got a chance to update in between
+  // programming different ports in a sequence
+  std::array<uint8_t, 8> laneToActiveCtrlFieldVals{};
+  readCmisField(
+      CmisField::ACTIVE_CTRL_ALL_LANES, laneToActiveCtrlFieldVals.data());
+
+  for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
+       lane++) {
+    lanesToRelease.insert(lane);
+    applySetForReleaseLanes |= (1 << lane);
+    // Get all lanes with the same data path ID as this lane
+    uint8_t currDataPathId =
+        (laneToActiveCtrlFieldVals[lane] & DATA_PATH_ID_MASK) >>
+        DATA_PATH_ID_BITSHIFT;
+    uint8_t currAppSel =
+        (laneToActiveCtrlFieldVals[lane] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
+    // If currently App Sel is 0, it means this lane is not part of any
+    // active data path yet. No need to find other lanes to release
+    if (currAppSel == 0) {
+      continue;
+    }
+    // If we are here, it means that this lane is part of an active data
+    // path. Find out which other lanes are active with the same data path
+    // id and then release them
+    for (auto it = laneToActiveCtrlField.begin();
+         it != laneToActiveCtrlField.end();
+         it++) {
+      auto otherLane = it->first;
+      uint8_t otherAppSel =
+          (laneToActiveCtrlFieldVals[otherLane] & APP_SEL_MASK) >>
+          APP_SEL_BITSHIFT;
+      // Ignore lanes with app sel 0 as that means that the lane is not part
+      // of any data path
+      if (otherAppSel == 0) {
+        continue;
+      }
+      uint8_t otherDataPathId =
+          (laneToActiveCtrlFieldVals[otherLane] & DATA_PATH_ID_MASK) >>
+          DATA_PATH_ID_BITSHIFT;
+      if (currDataPathId == otherDataPathId) {
+        lanesToRelease.insert(otherLane);
+        applySetForReleaseLanes |= (1 << otherLane);
+      }
+    }
+  }
+
+  // First release the lanes if they are already part of any datapath
+  std::vector<uint8_t> zeroApSelCode(lanesToRelease.size(), 0);
+  for (auto it = lanesToRelease.begin(); it != lanesToRelease.end(); it++) {
+    QSFP_LOG(INFO, this) << folly::sformat("Releasing lane {:#x}", *it);
+  }
+  writeCmisField(laneToAppSelField(lanesToRelease), zeroApSelCode.data());
+  // We don't need to check if lanesToRelease is empty or not before setting
+  // stage_ctrl_set_0 because there will always be lanes to release. At the
+  // minimum, we'll try to release the same lane we are trying to configure
+  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForReleaseLanes);
+
   std::set<uint8_t> lanesToProgramAppSel;
   std::vector<uint8_t> appSelCode;
   for (uint8_t lane = startHostLane; lane < startHostLane + numHostLanes;
@@ -2809,6 +2874,139 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";
   }
+  return;
+}
+
+void CmisModule::programTunableModule(
+    const cfg::OpticalChannelConfig& opticalChannelConfig) {
+  int16_t channelNum = 0;
+  int32_t frequencyMhz = 0;
+  const auto& freqConfig = opticalChannelConfig.frequencyConfig();
+  const auto& centerFreq = freqConfig->centerFrequencyConfig();
+
+  QSFP_LOG(INFO, this) << "Program tunable optics module";
+
+  switch (centerFreq->getType()) {
+    case cfg::CenterFrequencyConfig::Type::frequencyMhz: {
+      frequencyMhz = centerFreq->frequencyMhz().value();
+      channelNum = getChannelNumFromFrequency(
+          frequencyMhz, *freqConfig->frequencyGrid());
+      break;
+    }
+    case cfg::CenterFrequencyConfig::Type::channelNumber:
+      channelNum = centerFreq->channelNumber().value();
+      break;
+    default:
+      // Handle error case - no field set
+      throw FbossError("No field set in CenterFrequencyConfig");
+  }
+
+  uint8_t gridSelection =
+      frequencyGridToGridSelection(*freqConfig->frequencyGrid());
+
+  // Write grid selection followed by channel number, which is the typical order
+  // recommended
+  writeCmisField(CmisField::MEDIA_TX_1_GRID_AND_FINE_TUNE_ENA, &gridSelection);
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Programmed gridSelection {} on the tunable optics", gridSelection);
+
+  uint8_t channelNumBytes[2];
+  channelNumBytes[1] = static_cast<uint8_t>(channelNum & 0XFF);
+  channelNumBytes[0] = static_cast<uint8_t>((channelNum >> 8) & 0XFF);
+
+  // Channel number programming
+  writeCmisField(CmisField::MEDIA_TX_1_CHAN_NBR_SEL, channelNumBytes);
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Programmed Channel number on the tunable optics. frequency {} channel_number {} channelNumBytes[0] {} channelNumBytes[1] {}",
+      frequencyMhz,
+      channelNum,
+      channelNumBytes[0],
+      channelNumBytes[1]);
+}
+
+uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
+  uint8_t gridSelection = 0x0;
+  switch (grid) {
+    case FrequencyGrid::LASER_3P125GHZ:
+      gridSelection = 0x00;
+      break;
+    case FrequencyGrid::LASER_6P25GHZ:
+      gridSelection = 0x10;
+      break;
+    case FrequencyGrid::LASER_12P5GHZ:
+      gridSelection = 0x20;
+      break;
+    case FrequencyGrid::LASER_25GHZ:
+      gridSelection = 0x30;
+      break;
+    case FrequencyGrid::LASER_50GHZ:
+      gridSelection = 0x40;
+      break;
+    case FrequencyGrid::LASER_100GHZ:
+      gridSelection = 0x50;
+      break;
+    case FrequencyGrid::LASER_33GHZ:
+      gridSelection = 0x60;
+      break;
+    case FrequencyGrid::LASER_75GHZ:
+      gridSelection = 0x70;
+      break;
+    case FrequencyGrid::LASER_150GHZ:
+      gridSelection = 0x80;
+      break;
+    default:
+      throw FbossError("Invalid FrequencyGrid value: ", static_cast<int>(grid));
+  }
+  return gridSelection;
+}
+
+int16_t CmisModule::getChannelNumFromFrequency(
+    int32_t frequencyMhz,
+    FrequencyGrid frequencyGrid) {
+  int32_t channelNum = 0;
+  switch (frequencyGrid) {
+    case FrequencyGrid::LASER_150GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40) - 3);
+      break;
+    case FrequencyGrid::LASER_100GHZ:
+      channelNum =
+          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 10);
+      break;
+    case FrequencyGrid::LASER_75GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      break;
+    case FrequencyGrid::LASER_50GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 20));
+      break;
+    case FrequencyGrid::LASER_33GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 30));
+      break;
+    case FrequencyGrid::LASER_25GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      break;
+    case FrequencyGrid::LASER_12P5GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 80));
+      break;
+    case FrequencyGrid::LASER_6P25GHZ:
+      channelNum =
+          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 160));
+      break;
+    case FrequencyGrid::LASER_3P125GHZ:
+      channelNum =
+          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 320);
+      break;
+    default:
+      throw FbossError(
+          "Unsupported frequency grid: ",
+          apache::thrift::util::enumNameOrThrow(frequencyGrid));
+  }
+  return channelNum;
 }
 
 /*

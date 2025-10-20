@@ -7,7 +7,9 @@
 #       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --json
 # To run script, send email and create task for user
 #       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba --user  --send_email --create_task
-# To run script and specify test class
+# To run script for all test classes (fboss_qsfp, fboss_agent_ensemble_link_l1, fboss_agent_ensemble_link_l2, sai_agent)
+#       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --test_class all
+# To run script for one test class only
 #       $buck run fbcode//fboss/util:known_bad_test_report -- --query_scuba  --test_class fboss_qsfp
 # in stack diff
 # sample usage:
@@ -716,108 +718,118 @@ def main() -> Optional[int]:
     parser.add_argument(
         "--test_class",
         type=str,
-        default="sai_agent",
-        choices=list(TEST_CONFIGS.keys()),
-        help=f"Test class to query. Options: {', '.join(TEST_CONFIGS.keys())}. Default: {"sai_agent"}",
+        default="all",
+        choices=list(TEST_CONFIGS.keys()) + ["all"],
+        help=f"Test class to query. Options: {', '.join(list(TEST_CONFIGS.keys()) + ["all"])}. Default: {"all"}",
     )
 
     args = parser.parse_args()
 
-    # Get the test configuration based on command line argument
-    test_config = TEST_CONFIGS[args.test_class]
-    logger.info(f"Using test configuration: {test_config.job_name_regex}")
+    test_configs = []
+    if args.test_class == "all":
+        test_configs = TEST_CONFIGS.values()
+    else:
+        test_configs = [TEST_CONFIGS[args.test_class]]
 
-    if args.query_scuba:
-        # Query Scuba for test result
-        logger.info("Querying Scuba for test results...")
-        sql_query = ScubaQueryBuilder().build_query_for_test_results(
-            job_name_regex=test_config.job_name_regex
-        )
-        df = ScubaQueryBuilder().execute_query(sql_query)
+    error_code = 0
+    for test_config in test_configs:
+        # Get the test configuration based on command line argument
+        logger.info(f"Using test configuration: {test_config.job_name_regex}")
 
-        if df is None:
-            logger.error("Error: Could not execute Scuba query")
-            return 1
-        logger.info(f"Scuba query returned {len(df)} rows")
-        tests = {}
-
-        for _, row in df.iterrows():
-            if row["status"] == PASSED and row["count"] == 7:
-                if row["test_name"] not in tests:
-                    tests[row["test_name"]] = row["status"]
-
-        logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
-
-        # query scuba for job ids
-        sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
-            job_name_regex=test_config.job_name_regex,
-            cluster=test_config.cluster,
-        )
-        df = ScubaQueryBuilder().execute_query(sql_query)
-        if df is None:
-            return 1
-
-        known_bad_jobs = {}
-        for _i, (job_id, job_name, instance_id) in enumerate(
-            zip(df["jobId"], df["jobname"], df["job_instance_id"])
-        ):
-            logger.info(
-                f"job id: {job_id}, job name: {job_name} instance id: {instance_id}"
+        if args.query_scuba:
+            # Query Scuba for test result
+            logger.info("Querying Scuba for test results...")
+            sql_query = ScubaQueryBuilder().build_query_for_test_results(
+                job_name_regex=test_config.job_name_regex
             )
-            known_bad_jobs[job_name] = asyncio.run(
-                ChronosJobExtractor().process_instance(int(instance_id), job_name)
+            df = ScubaQueryBuilder().execute_query(sql_query)
+
+            if df is None:
+                logger.error("Error: Could not execute Scuba query")
+                error_code = 1
+                continue
+            logger.info(f"Scuba query returned {len(df)} rows")
+            tests = {}
+
+            for _, row in df.iterrows():
+                if row["status"] == PASSED and row["count"] == 7:
+                    if row["test_name"] not in tests:
+                        tests[row["test_name"]] = row["status"]
+
+            logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
+
+            # query scuba for job ids
+            sql_query = ScubaQueryBuilder().build_query_for_chronos_job_id(
+                job_name_regex=test_config.job_name_regex,
+                cluster=test_config.cluster,
             )
+            df = ScubaQueryBuilder().execute_query(sql_query)
+            if df is None:
+                error_code = 1
 
-        for job_name, job_count in known_bad_jobs.items():
-            logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
-
-        # Write test data to a separate JSON file
-        if args.json:
-            with open(os.path.expanduser(DEFAULT_OUTPUT_FILE), "w") as f:
-                test_structure = {
-                    "passing_tests": tests,
-                    "job_test_count": known_bad_jobs,
-                }
-                json.dump(test_structure, f, indent=2, default=str)
-            logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
-
-        # send email to user or oncall
-        if args.send_email:
-            logger.info("Sending email...")
-            html = UserAndEmailHandler().HTTP_format_known_bad_list(
-                tests, known_bad_jobs, test_config.name
-            )
-
-            logger.info("html generated successfully for email body")
-            images = {}
-            return_code = asyncio.run(
-                UserAndEmailHandler().send_email(args.user, test_config, html, images)
-            )
-
-            if return_code == 0:
-                logger.error(
-                    f"Error: Failed to send email to user, return_code: {return_code}"
+            known_bad_jobs = {}
+            for _i, (job_id, job_name, instance_id) in enumerate(
+                zip(df["jobId"], df["jobname"], df["job_instance_id"])
+            ):
+                logger.info(
+                    f"job id: {job_id}, job name: {job_name} instance id: {instance_id}"
+                )
+                known_bad_jobs[job_name] = asyncio.run(
+                    ChronosJobExtractor().process_instance(int(instance_id), job_name)
                 )
 
-            logger.info(f"Email sent successfully return_code: {return_code}")
-        else:
-            logger.info("No email sent")
+            for job_name, job_count in known_bad_jobs.items():
+                logger.info(f"Job name: {job_name}, Known bad count: {job_count}")
 
-            # create task for user or oncall
-        if args.create_task:
-            logger.info("Creating task for oncall...")
-            task = asyncio.run(
-                UserAndEmailHandler().create_task(args.user, test_config, tests)
-            )
-            logger.info(f"Task created successfully: T{task.task_number}")
-        else:
-            logger.info("No task created")
+            # Write test data to a separate JSON file
+            if args.json:
+                with open(os.path.expanduser(DEFAULT_OUTPUT_FILE), "w") as f:
+                    test_structure = {
+                        "passing_tests": tests,
+                        "job_test_count": known_bad_jobs,
+                    }
+                    json.dump(test_structure, f, indent=2, default=str)
+                logger.info(f"Results written to {DEFAULT_OUTPUT_FILE}")
 
-    # Get monthly stats comparing today vs 1st of month.
-    if args.get_monthly_stats:
-        get_monthly_stats(args, test_config)
+            # send email to user or oncall
+            if args.send_email:
+                logger.info("Sending email...")
+                html = UserAndEmailHandler().HTTP_format_known_bad_list(
+                    tests, known_bad_jobs, test_config.name
+                )
 
-    return 0
+                logger.info("html generated successfully for email body")
+                images = {}
+                return_code = asyncio.run(
+                    UserAndEmailHandler().send_email(
+                        args.user, test_config, html, images
+                    )
+                )
+
+                if return_code == 0:
+                    logger.error(
+                        f"Error: Failed to send email to user, return_code: {return_code}"
+                    )
+
+                logger.info(f"Email sent successfully return_code: {return_code}")
+            else:
+                logger.info("No email sent")
+
+                # create task for user or oncall
+            if args.create_task:
+                logger.info("Creating task for oncall...")
+                task = asyncio.run(
+                    UserAndEmailHandler().create_task(args.user, test_config, tests)
+                )
+                logger.info(f"Task created successfully: T{task.task_number}")
+            else:
+                logger.info("No task created")
+
+        # Get monthly stats comparing today vs 1st of month.
+        if args.get_monthly_stats:
+            get_monthly_stats(args, test_config)
+
+    return error_code
 
 
 if __name__ == "__main__":

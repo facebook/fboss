@@ -31,6 +31,10 @@ class BcmUdfGroup {
  public:
   BcmUdfGroup(BcmSwitch* hw, const std::shared_ptr<UdfGroup>& udfGroup);
   ~BcmUdfGroup();
+  BcmUdfGroup(const BcmUdfGroup&) = delete;
+  BcmUdfGroup& operator=(const BcmUdfGroup&) = delete;
+  BcmUdfGroup(BcmUdfGroup&&) = delete;
+  BcmUdfGroup& operator=(BcmUdfGroup&&) = delete;
 
   bcm_udf_id_t getUdfId() const {
     return udfId_;

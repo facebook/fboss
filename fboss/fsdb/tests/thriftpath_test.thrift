@@ -1,5 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+package "facebook.com/fboss/fsdb"
+
 namespace cpp2 facebook.fboss.fsdb
 
 cpp_include "folly/container/F14Map.h"

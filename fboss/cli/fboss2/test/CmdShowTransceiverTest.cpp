@@ -101,12 +101,16 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   transceiverEntry1.tcvrState()->present() = true;
   transceiverEntry1.tcvrState()->moduleMediaInterface() =
       MediaInterfaceCode::FR4_400G;
+  transceiverEntry1.tcvrState()->interfaces() = {"eth1/1/1"};
+  transceiverEntry1.tcvrState()->port() = 1;
   transceiverEntry1.tcvrStats()->sensor() = makeSensor(50.0, 25.0);
   transceiverEntry1.tcvrStats()->channels() = {};
 
   TransceiverInfo transceiverEntry2;
   transceiverEntry2.tcvrState()->vendor() = makeVendor("vendorTwo", "b", "3");
   transceiverEntry2.tcvrState()->present() = true;
+  transceiverEntry2.tcvrState()->interfaces() = {"eth1/2/1"};
+  transceiverEntry2.tcvrState()->port() = 2;
   transceiverEntry2.tcvrStats()->sensor() = makeSensor(40.0, 25.0);
   transceiverEntry2.tcvrStats()->channels() = {};
 
@@ -115,12 +119,16 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   transceiverEntry3.tcvrState()->present() = false;
   transceiverEntry3.tcvrState()->moduleMediaInterface() =
       MediaInterfaceCode::UNKNOWN;
+  transceiverEntry3.tcvrState()->interfaces() = {"eth1/3/1"};
+  transceiverEntry3.tcvrState()->port() = 3;
   transceiverEntry3.tcvrStats()->sensor() = makeSensor(0.0, 0.0);
   transceiverEntry3.tcvrStats()->channels() = {};
 
   TransceiverInfo transceiverEntry4;
   transceiverEntry4.tcvrState()->vendor() = makeVendor("vendorOne", "ac", "1");
   transceiverEntry4.tcvrState()->present() = false;
+  transceiverEntry4.tcvrState()->interfaces() = {"eth1/4/1"};
+  transceiverEntry4.tcvrState()->port() = 4;
   transceiverEntry4.tcvrStats()->sensor() = makeSensor(0.0, 0.0);
   transceiverEntry4.tcvrStats()->channels() = {};
 
@@ -129,6 +137,8 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   transceiverEntry5.tcvrState()->present() = true;
   transceiverEntry5.tcvrState()->moduleMediaInterface() =
       MediaInterfaceCode::LR4_400G_10KM;
+  transceiverEntry5.tcvrState()->interfaces() = {"eth1/5/1"};
+  transceiverEntry5.tcvrState()->port() = 5;
   transceiverEntry5.tcvrStats()->sensor() = makeSensor(0.0, 0.0);
   transceiverEntry5.tcvrStats()->channels() = {};
 
@@ -138,8 +148,28 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   transceiverEntry6.tcvrState()->present() = true;
   transceiverEntry6.tcvrState()->moduleMediaInterface() =
       MediaInterfaceCode::FR4_LITE_2x400G;
+  transceiverEntry6.tcvrState()->interfaces() = {"eth1/6/1"};
+  transceiverEntry6.tcvrState()->port() = 6;
   transceiverEntry6.tcvrStats()->sensor() = makeSensor(30.0, 30.0);
   transceiverEntry6.tcvrStats()->channels() = {};
+
+  // Entry representing a bypass module, which doesn't have an agent port
+  TransceiverInfo bypassEntry;
+  bypassEntry.tcvrState()->vendor() = makeVendor("vendorBypass", "d", "5");
+  bypassEntry.tcvrState()->status() = makeModuleForFirmware("4", "5");
+  bypassEntry.tcvrState()->present() = true;
+  bypassEntry.tcvrState()->moduleMediaInterface() = MediaInterfaceCode::UNKNOWN;
+  bypassEntry.tcvrState()->interfaces() = {"eth1/7/1"};
+  bypassEntry.tcvrState()->port() = 7;
+  bypassEntry.tcvrStats()->sensor() = makeSensor(0.0, 0.0);
+  bypassEntry.tcvrStats()->channels() = {};
+
+  TransceiverInfo absentBypassEntry;
+  absentBypassEntry.tcvrState()->present() = false;
+  absentBypassEntry.tcvrState()->interfaces() = {"eth1/8/1"};
+  absentBypassEntry.tcvrState()->port() = 8;
+  absentBypassEntry.tcvrStats()->sensor() = makeSensor(0.0, 0.0);
+  absentBypassEntry.tcvrStats()->channels() = {};
 
   transceiverMap[1] = transceiverEntry1;
   transceiverMap[2] = transceiverEntry2;
@@ -147,6 +177,8 @@ std::map<int32_t, TransceiverInfo> createShowTransceiverTestEntries() {
   transceiverMap[4] = transceiverEntry4;
   transceiverMap[5] = transceiverEntry5;
   transceiverMap[6] = transceiverEntry6;
+  transceiverMap[7] = bypassEntry;
+  transceiverMap[8] = absentBypassEntry;
 
   return transceiverMap;
 }
@@ -161,12 +193,14 @@ std::map<int32_t, std::string> createTransceiverValidationEntries() {
 
 cli::ShowTransceiverModel createTransceiverModel() {
   auto makeDefaultTcvrDetail = [](std::string name,
-                                  bool isUp,
+                                  std::optional<bool> isUp,
                                   bool isPresent,
                                   MediaInterfaceCode media) {
     cli::TransceiverDetail detail;
     detail.name() = name;
-    detail.isUp() = isUp;
+    if (isUp.has_value()) {
+      detail.isUp() = *isUp;
+    }
     detail.isPresent() = isPresent;
     detail.mediaInterface() = media;
 
@@ -238,12 +272,26 @@ cli::ShowTransceiverModel createTransceiverModel() {
   setValidationStatus(entry6, "Validated", "--");
   setOperAttributes(entry6, 30.0, 30.0);
 
+  auto bypassEntry = makeDefaultTcvrDetail(
+      "eth1/7/1", std::nullopt, true, MediaInterfaceCode::UNKNOWN);
+  setConfigAttributes(bypassEntry, "vendorBypass", "d", "5", "4", "5");
+  setValidationStatus(bypassEntry, "--", "--");
+  setOperAttributes(bypassEntry, 0.0, 0.0);
+
+  auto absentBypassEntry = makeDefaultTcvrDetail(
+      "eth1/8/1", std::nullopt, false, MediaInterfaceCode::UNKNOWN);
+  setConfigAttributes(absentBypassEntry, "", "", "", "", "");
+  setValidationStatus(absentBypassEntry, "--", "--");
+  setOperAttributes(absentBypassEntry, 0.0, 0.0);
+
   model.transceivers()->emplace("eth1/1/1", std::move(entry1));
   model.transceivers()->emplace("eth1/2/1", std::move(entry2));
   model.transceivers()->emplace("eth1/3/1", std::move(entry3));
   model.transceivers()->emplace("eth1/4/1", std::move(entry4));
   model.transceivers()->emplace("eth1/5/1", std::move(entry5));
   model.transceivers()->emplace("eth1/6/1", std::move(entry6));
+  model.transceivers()->emplace("eth1/7/1", std::move(bypassEntry));
+  model.transceivers()->emplace("eth1/8/1", std::move(absentBypassEntry));
 
   return model;
 }
@@ -295,14 +343,16 @@ TEST_F(CmdShowTransceiverTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-      " Interface  Status  Transceiver      CfgValidated   Reason                        Vendor       Serial  Part Number  FW App Version  FW DSP Version  Temperature (C)  Voltage (V)  Current (mA)  Tx Power (dBm)  Rx Power (dBm)  Rx SNR \n"
-      "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      " eth1/1/1   Up      FR4_400G         Not Validated  nonValidatedVendorPartNumber  vendorOne    aa      1            1               2               50.00            25.00                                                             \n"
-      " eth1/2/1   Up      UNKNOWN          Not Validated  missingVendor                 vendorTwo    b       3                                            40.00            25.00                                                             \n"
-      " eth1/3/1   Down    Absent           --             --                            vendorOne    ab      1                                            0.00             0.00                                                              \n"
-      " eth1/4/1   Down    Absent           --             --                            vendorOne    ac      1                                            0.00             0.00                                                              \n"
-      " eth1/5/1   Up      LR4_400G_10KM    Not Validated  invalidEepromChecksums        vendorOne    ad      2                                            0.00             0.00                                                              \n"
-      " eth1/6/1   Up      FR4_LITE_2x400G  Validated      --                            vendorThree  c       4            3               4               30.00            30.00                                                             \n\n";
+      " Interface  Status  Transceiver      CfgValidated   Reason                        Vendor        Serial  Part Number  FW App Version  FW DSP Version  Temperature (C)  Voltage (V)  Current (mA)  Tx Power (dBm)  Rx Power (dBm)  Rx SNR \n"
+      "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " eth1/1/1   Up      FR4_400G         Not Validated  nonValidatedVendorPartNumber  vendorOne     aa      1            1               2               50.00            25.00                                                             \n"
+      " eth1/2/1   Up      UNKNOWN          Not Validated  missingVendor                 vendorTwo     b       3                                            40.00            25.00                                                             \n"
+      " eth1/3/1   Down    Absent           --             --                            vendorOne     ab      1                                            0.00             0.00                                                              \n"
+      " eth1/4/1   Down    Absent           --             --                            vendorOne     ac      1                                            0.00             0.00                                                              \n"
+      " eth1/5/1   Up      LR4_400G_10KM    Not Validated  invalidEepromChecksums        vendorOne     ad      2                                            0.00             0.00                                                              \n"
+      " eth1/6/1   Up      FR4_LITE_2x400G  Validated      --                            vendorThree   c       4            3               4               30.00            30.00                                                             \n"
+      " eth1/7/1   Bypass  UNKNOWN          --             --                            vendorBypass  d       5            4               5               0.00             0.00                                                              \n"
+      " eth1/8/1   Bypass  Absent           --             --                                                                                               0.00             0.00                                                              \n\n";
 
   EXPECT_EQ(output, expectOutput);
 }

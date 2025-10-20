@@ -300,13 +300,28 @@ class QsfpServiceHandler
 
   PhyManager* getPhyManager() const;
 
+  std::optional<std::string> getPortNameByPortId(const PortID& portId) const;
+
   void setOverrideAgentPortStatusForTesting(
       bool up,
       bool enabled,
       bool clearOnly = false);
 
+  void setOverrideAgentConfigAppliedInfoForTesting(ConfigAppliedInfo config);
+
   std::optional<PortID> getPortIdByPortName(
       const std::string& portNameStr) const;
+
+  void programXphyPort(PortID portId, cfg::PortProfileID portProfileId);
+
+  void updateAllXphyPortsStats();
+
+  void programXphyPortPrbs(
+      PortID portID,
+      phy::Side side,
+      const phy::PortPrbsState& prbs);
+
+  phy::PortPrbsState getXphyPortPrbs(const PortID& portId, phy::Side side);
 
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(

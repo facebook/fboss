@@ -52,10 +52,10 @@ class CmdShowTransceiver
     // TODO: explore performance improvement if we make all this parallel.
     auto portEntries = queryPortInfo(agent.get(), queriedPorts);
     auto portStatusEntries = queryPortStatus(agent.get(), portEntries);
-    auto transceiverEntries =
-        queryTransceiverInfo(qsfpService.get(), portStatusEntries);
+    auto transceiverEntries = queryTransceiverInfo(qsfpService.get(), {});
     auto transceiverValidationEntries =
         queryTransceiverValidationInfo(qsfpService.get(), portStatusEntries);
+
     return createModel(
         portStatusEntries,
         transceiverEntries,
@@ -87,7 +87,10 @@ class CmdShowTransceiver
     for (const auto& [portId, details] : model.transceivers().value()) {
       outTable.addRow({
           details.name().value(),
-          statusToString(folly::copy(details.isUp().value())),
+          statusToString(
+              details.isUp().has_value()
+                  ? std::make_optional<>(folly::copy(details.isUp().value()))
+                  : std::nullopt),
           (folly::copy(details.isPresent().value()))
               ? apache::thrift::util::enumNameSafe(
                     details.mediaInterface().value())
@@ -148,12 +151,18 @@ class CmdShowTransceiver
     return filteredPortEntries;
   }
 
-  Table::StyledCell statusToString(bool isUp) const {
+  Table::StyledCell statusToString(std::optional<bool> isUp) const {
     Table::Style cellStyle = Table::Style::GOOD;
-    if (!isUp) {
-      cellStyle = Table::Style::ERROR;
+    // Bypass modules don't have an associated port, so the concept of
+    // 'port up/down' doesn't apply
+    std::string valueStr = "Bypass";
+    if (isUp.has_value()) {
+      valueStr = *isUp ? "Up" : "Down";
+      if (!*isUp) {
+        cellStyle = Table::Style::ERROR;
+      }
     }
-    return Table::StyledCell(isUp ? "Up" : "Down", cellStyle);
+    return Table::StyledCell(valueStr, cellStyle);
   }
 
   Table::StyledCell listToString(
@@ -219,7 +228,7 @@ class CmdShowTransceiver
     return transceiverEntries;
   }
 
-  std::map<int, std::string> queryTransceiverValidationInfo(
+  std::map<int32_t, std::string> queryTransceiverValidationInfo(
       QsfpServiceAsyncClient* qsfpService,
       std::map<int, PortStatus> portStatusEntries) const {
     std::vector<int32_t> requiredTransceiverEntries;
@@ -248,6 +257,7 @@ class CmdShowTransceiver
     if (transceiverEntries.find(transceiverId) == transceiverEntries.end()) {
       return std::make_pair("--", "--");
     }
+
     return transceiverEntries[transceiverId] == ""
         ? std::make_pair("Validated", "--")
         : std::make_pair("Not Validated", transceiverEntries[transceiverId]);
@@ -260,69 +270,81 @@ class CmdShowTransceiver
       std::map<int32_t, std::string> transceiverValidationEntries) const {
     RetType model;
 
-    for (const auto& [portId, portEntry] : portStatusEntries) {
-      cli::TransceiverDetail details;
-      details.name() = portEntries[portId].name().value();
-      if (!portEntry.transceiverIdx().has_value()) {
-        // No transceiver information for this port. Skip printing
-        continue;
-      }
-      const auto transceiverId =
-          folly::copy(portEntry.transceiverIdx()->transceiverId().value());
-      const auto& transceiver = transceiverEntries[transceiverId];
-      const auto& tcvrState = *transceiver.tcvrState();
-      const auto& tcvrStats = *transceiver.tcvrStats();
-      details.isUp() = folly::copy(portEntry.up().value());
-      details.isPresent() = folly::copy(tcvrState.present().value());
-      details.mediaInterface() = tcvrState.moduleMediaInterface().value_or({});
-      const auto& validationStringPair = getTransceiverValidationStrings(
-          transceiverValidationEntries, transceiverId);
-      details.validationStatus() = validationStringPair.first;
-      details.notValidatedReason() = validationStringPair.second;
-      if (const auto& vendor = tcvrState.vendor()) {
-        details.vendor() = vendor->name().value();
-        details.serial() = vendor->serialNumber().value();
-        details.partNumber() = vendor->partNumber().value();
-        details.temperature() =
-            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
-                            ->temp()
-                            .value()
-                            .value()
-                            .value());
-        details.voltage() =
-            folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
-                            ->vcc()
-                            .value()
-                            .value()
-                            .value());
-        details.tempFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                  ->temp()
-                                  .value()
-                                  .flags()
-                                  .value_or({});
-        details.vccFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
-                                 ->vcc()
-                                 .value()
-                                 .flags()
-                                 .value_or({});
+    // Create lookup maps for interface name to ID
+    std::map<std::string, int32_t> interfaceToPortId;
+    for (const auto& [portId, portInfo] : portEntries) {
+      interfaceToPortId[portInfo.name().value()] = portId;
+    }
 
-        if (const auto& moduleStatus = tcvrState.status()) {
-          if (const auto& fwStatus = moduleStatus->fwStatus()) {
-            details.appFwVer() = fwStatus->version().value_or("N/A");
-            details.dspFwVer() = fwStatus->dspFwVer().value_or("N/A");
+    for (const auto& tcvrEntry : transceiverEntries) {
+      const auto& transceiver = tcvrEntry.second;
+      for (const auto& intf : *transceiver.tcvrState()->interfaces()) {
+        cli::TransceiverDetail details;
+        details.name() = intf;
+
+        std::optional<PortStatus> portEntry;
+        if (auto portIdIter = interfaceToPortId.find(intf);
+            portIdIter != interfaceToPortId.end()) {
+          if (auto portStatusIter = portStatusEntries.find(portIdIter->second);
+              portStatusIter != portStatusEntries.end()) {
+            portEntry = portStatusIter->second;
           }
         }
-        std::vector<double> current;
-        std::vector<double> txPower;
-        std::vector<double> rxPower;
-        std::vector<double> rxSnr;
-        for (const auto& channel : tcvrStats.channels().value()) {
-          // Check if the transceiverInfo is updated to have the
-          // portNameToMediaLanes field
-          if (tcvrStats.portNameToMediaLanes().is_set()) {
+
+        const auto& tcvrState = *transceiver.tcvrState();
+        const auto& tcvrStats = *transceiver.tcvrStats();
+
+        if (portEntry.has_value()) {
+          details.isUp() = folly::copy(portEntry->up().value());
+        }
+
+        details.isPresent() = folly::copy(tcvrState.present().value());
+        details.mediaInterface() =
+            tcvrState.moduleMediaInterface().value_or({});
+        const auto& validationStringPair = getTransceiverValidationStrings(
+            transceiverValidationEntries, *transceiver.tcvrState()->port());
+        details.validationStatus() = validationStringPair.first;
+        details.notValidatedReason() = validationStringPair.second;
+        if (const auto& vendor = tcvrState.vendor()) {
+          details.vendor() = vendor->name().value();
+          details.serial() = vendor->serialNumber().value();
+          details.partNumber() = vendor->partNumber().value();
+          details.temperature() =
+              folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                              ->temp()
+                              .value()
+                              .value()
+                              .value());
+          details.voltage() =
+              folly::copy(apache::thrift::get_pointer(tcvrStats.sensor())
+                              ->vcc()
+                              .value()
+                              .value()
+                              .value());
+          details.tempFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
+                                    ->temp()
+                                    .value()
+                                    .flags()
+                                    .value_or({});
+          details.vccFlags() = apache::thrift::get_pointer(tcvrStats.sensor())
+                                   ->vcc()
+                                   .value()
+                                   .flags()
+                                   .value_or({});
+
+          if (const auto& moduleStatus = tcvrState.status()) {
+            if (const auto& fwStatus = moduleStatus->fwStatus()) {
+              details.appFwVer() = fwStatus->version().value_or("N/A");
+              details.dspFwVer() = fwStatus->dspFwVer().value_or("N/A");
+            }
+          }
+          std::vector<double> current;
+          std::vector<double> txPower;
+          std::vector<double> rxPower;
+          std::vector<double> rxSnr;
+          for (const auto& channel : tcvrStats.channels().value()) {
             // Need to filter out the lanes for this specific port
-            auto portToLaneMapIt = tcvrStats.portNameToMediaLanes()->find(
-                portEntries[portId].name().value());
+            auto portToLaneMapIt = tcvrStats.portNameToMediaLanes()->find(intf);
             // If the port in question exists in the map and if the
             // channel number is not in the list, skip printing information
             // about this channel
@@ -334,30 +356,31 @@ class CmdShowTransceiver
                     portToLaneMapIt->second.end()) {
               continue;
             }
-            // If the port doesn't exist in the map, it's likely not configured
-            // yet. Display all channels in this case
+            // If the port doesn't exist in the map, it's likely not
+            // configured yet. Display all channels in this case
+            current.push_back(folly::copy(
+                channel.sensors().value().txBias().value().value().value()));
+            txPower.push_back(
+                folly::copy(apache::thrift::get_pointer(
+                                channel.sensors().value().txPwrdBm())
+                                ->value()
+                                .value()));
+            rxPower.push_back(
+                folly::copy(apache::thrift::get_pointer(
+                                channel.sensors().value().rxPwrdBm())
+                                ->value()
+                                .value()));
+            if (const auto& snr = channel.sensors().value().rxSnr()) {
+              rxSnr.push_back(folly::copy(snr->value().value()));
+            }
           }
-          current.push_back(folly::copy(
-              channel.sensors().value().txBias().value().value().value()));
-          txPower.push_back(folly::copy(
-              apache::thrift::get_pointer(channel.sensors().value().txPwrdBm())
-                  ->value()
-                  .value()));
-          rxPower.push_back(folly::copy(
-              apache::thrift::get_pointer(channel.sensors().value().rxPwrdBm())
-                  ->value()
-                  .value()));
-          if (const auto& snr = channel.sensors().value().rxSnr()) {
-            rxSnr.push_back(folly::copy(snr->value().value()));
-          }
+          details.currentMA() = current;
+          details.txPower() = txPower;
+          details.rxPower() = rxPower;
+          details.rxSnr() = rxSnr;
         }
-        details.currentMA() = current;
-        details.txPower() = txPower;
-        details.rxPower() = rxPower;
-        details.rxSnr() = rxSnr;
+        model.transceivers()->emplace(intf, std::move(details));
       }
-      model.transceivers()->emplace(
-          portEntries[portId].name().value(), std::move(details));
     }
 
     return model;

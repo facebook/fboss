@@ -581,7 +581,7 @@ TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
   EXPECT_EQ(
       this->resourceAccountant_->computeWeightedEcmpMemberCount(
           ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_TOMAHAWK4),
-      4 * ecmpNexthops.size());
+      4 * ecmpNextHopEntry.normalizedNextHops().size());
   // Assume ECMP replication for devices without specifying UCMP computation.
   uint32_t totalWeight = 0;
   for (const auto& nhop : ecmpNextHopEntry.normalizedNextHops()) {
@@ -635,6 +635,72 @@ TEST_F(ResourceAccountantTest, checkNeighborResource) {
   arpEntriesMap.insert_or_assign(SwitchID(0), asicArpMax + 1);
   ndpEntriesMap.clear();
   EXPECT_FALSE(this->resourceAccountant_->checkNeighborResource());
+}
+
+TEST_F(ResourceAccountantTest, routeWithAdjustedWeightZero) {
+  // Create route with ECMP next hops where one has adjustedWeight of 0
+  // The next hop with adjustedWeight 0 should not be counted towards ECMP
+  // member usage since ResourceAccountant tracks normalized next hops
+
+  // Create ECMP next hops: 3 next hops total, but one with adjustedWeight=0
+  RouteNextHopSet ecmpNexthops;
+  // Next hop 1: normal ECMP member with weight 1
+  ecmpNexthops.insert(ResolvedNextHop(
+      folly::IPAddress("1.1.1.1"),
+      InterfaceID(1),
+      ecmpWeight,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt));
+
+  // Next hop 2: normal ECMP member with weight 1
+  ecmpNexthops.insert(ResolvedNextHop(
+      folly::IPAddress("1.1.1.2"),
+      InterfaceID(2),
+      ecmpWeight,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt));
+
+  // Next hop 3: ECMP member with adjustedWeight=0 (should be filtered out)
+  ecmpNexthops.insert(ResolvedNextHop(
+      folly::IPAddress("1.1.1.3"),
+      InterfaceID(3),
+      ecmpWeight,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      NextHopWeight(0)));
+
+  RouteNextHopEntry ecmpNextHopEntry =
+      RouteNextHopEntry(ecmpNexthops, AdminDistance::EBGP);
+
+  // Only 2 next hops should be counted (the one with adjustedWeight=0 is
+  // filtered)
+  EXPECT_EQ(
+      2,
+      this->resourceAccountant_->getMemberCountForEcmpGroup(ecmpNextHopEntry));
+
+  // Add route with the ECMP next hop entry
+  auto route =
+      makeV6Route({folly::IPAddressV6("2001:db8::1"), 128}, ecmpNextHopEntry);
+
+  auto initialEcmpMemberUsage = this->resourceAccountant_->ecmpMemberUsage_;
+
+  // Validate the route via ResourceAccountant
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource(route, true));
+  // Check that we tracked only 2 ECMP members (not 3)
+  EXPECT_EQ(
+      initialEcmpMemberUsage + 2, this->resourceAccountant_->ecmpMemberUsage_);
+
+  // Test removing the route
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource(route, false));
+  EXPECT_EQ(
+      initialEcmpMemberUsage, this->resourceAccountant_->ecmpMemberUsage_);
 }
 
 } // namespace facebook::fboss

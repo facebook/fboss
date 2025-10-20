@@ -130,11 +130,11 @@ class WedgeManager : public TransceiverManager {
   void programXphyPortPrbs(
       PortID portID,
       phy::Side side,
-      const phy::PortPrbsState& prbs);
+      const phy::PortPrbsState& prbs) override;
 
   phy::PhyInfo getXphyInfo(PortID portID) override;
 
-  phy::PortPrbsState getXphyPortPrbs(PortID portID, phy::Side side);
+  phy::PortPrbsState getXphyPortPrbs(PortID portID, phy::Side side) override;
 
   void updateAllXphyPortsStats() override;
 

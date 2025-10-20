@@ -1247,7 +1247,7 @@ TeFlowStats SwSwitch::getTeFlowStats() {
         auto statName = folly::to<std::string>(counter->toThrift(), ".bytes");
         // returns default stat if statName does not exists
         auto statPtr = statMap->getStatPtrNoExport(statName);
-        auto lockedStatPtr = statPtr->lock();
+        auto lockedStatPtr = statPtr->wlock();
         auto numLevels = lockedStatPtr->numLevels();
         // Cumulative (ALLTIME) counters are at (numLevels - 1)
         HwTeFlowStats flowStat;

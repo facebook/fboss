@@ -132,6 +132,12 @@ class NetcastleTestRunner(BaseTestRunner):
         # TODO: Get the num jobs
         num_jobs = 4
 
+        build_mode_value = (
+            asic_options.build_mode.value
+            if asic_options.build_mode
+            else (self.config.build_mode.value if self.config.build_mode else "opt")
+        )
+
         # Build base netcastle command
         cmd = [
             "netcastle",
@@ -140,9 +146,7 @@ class NetcastleTestRunner(BaseTestRunner):
             "--test-config",
             test_config,
             "--buck-mode",
-            asic_options.build_mode.value
-            if asic_options.build_mode
-            else self.config.build_mode.value,
+            build_mode_value,
             "--basset-query",
             basset_query,
             "--jobs",
