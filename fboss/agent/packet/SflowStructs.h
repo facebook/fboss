@@ -172,6 +172,7 @@ struct SampledHeader {
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
+  static SampledHeader deserialize(folly::io::Cursor& cursor);
 };
 
 // .. We omit the spec definition below (including) "Ethernet Frame Data" on p36

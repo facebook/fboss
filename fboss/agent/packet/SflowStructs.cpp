@@ -335,4 +335,36 @@ uint32_t SampledHeader::size() const {
       4 /* headerLength */ + headerSize;
 }
 
+SampledHeader SampledHeader::deserialize(Cursor& cursor) {
+  SampledHeader sampledHeader;
+
+  // Read the protocol field
+  sampledHeader.protocol =
+      static_cast<HeaderProtocol>(cursor.readBE<uint32_t>());
+
+  // Read the frame length
+  sampledHeader.frameLength = cursor.readBE<uint32_t>();
+
+  // Read the stripped field
+  sampledHeader.stripped = cursor.readBE<uint32_t>();
+
+  // Read the header length
+  uint32_t headerLength = cursor.readBE<uint32_t>();
+
+  // Read the header data
+  sampledHeader.header.resize(headerLength);
+  if (headerLength > 0) {
+    cursor.pull(sampledHeader.header.data(), headerLength);
+  }
+
+  // Skip XDR padding if needed to align to 4-byte boundary
+  if (headerLength % XDR_BASIC_BLOCK_SIZE > 0) {
+    uint32_t paddingBytes =
+        XDR_BASIC_BLOCK_SIZE - (headerLength % XDR_BASIC_BLOCK_SIZE);
+    cursor.skip(paddingBytes);
+  }
+
+  return sampledHeader;
+}
+
 } // namespace facebook::fboss::sflow

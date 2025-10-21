@@ -2793,4 +2793,162 @@ TEST(SflowStructsTest, SampleDatagramDeserializeWithMultipleFlowRecords) {
       ElementsAre(0x0B, 0x0C, 0x0D, 0x0E, 0x0F));
 }
 
+TEST(SflowStructsTest, SampledHeaderDeserialization) {
+  // Test SampledHeader deserialization functionality
+
+  // Create a buffer with serialized SampledHeader data
+  std::vector<uint8_t> serializedData = {
+      // protocol (ETHERNET_ISO88023 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // frameLength (1500 = 0x5DC) as big-endian
+      0x00,
+      0x00,
+      0x05,
+      0xDC,
+      // stripped (42 = 0x2A) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x2A,
+      // headerLength (6) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x06,
+      // header data: 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE
+      0xDE,
+      0xAD,
+      0xBE,
+      0xEF,
+      0xCA,
+      0xFE,
+      // XDR padding (2 bytes) to align to 4-byte boundary
+      0x00,
+      0x00};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampledHeader
+  sflow::SampledHeader header = sflow::SampledHeader::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(header.protocol, sflow::HeaderProtocol::ETHERNET_ISO88023);
+  EXPECT_EQ(header.frameLength, 1500);
+  EXPECT_EQ(header.stripped, 42);
+  EXPECT_EQ(header.header.size(), 6);
+  EXPECT_THAT(header.header, ElementsAre(0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE));
+}
+
+TEST(SflowStructsTest, SampledHeaderSerializeDeserializeRoundTrip) {
+  // Test serialize-deserialize round trip for SampledHeader
+
+  std::vector<std::vector<uint8_t>> testHeaders = {
+      {}, // Empty header
+      {0x01}, // 1 byte
+      {0x02, 0x03}, // 2 bytes
+      {0x04, 0x05, 0x06}, // 3 bytes
+      {0x07, 0x08, 0x09, 0x0A}, // 4 bytes
+      {0x0B, 0x0C, 0x0D, 0x0E, 0x0F}, // 5 bytes
+      {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17} // 8 bytes
+  };
+
+  std::vector<sflow::HeaderProtocol> testProtocols = {
+      sflow::HeaderProtocol::ETHERNET_ISO88023,
+      sflow::HeaderProtocol::IPV4,
+      sflow::HeaderProtocol::IPV6,
+      sflow::HeaderProtocol::MPLS};
+
+  for (uint32_t i = 0; i < testHeaders.size(); ++i) {
+    for (uint32_t j = 0; j < testProtocols.size(); ++j) {
+      // Create original SampledHeader
+      sflow::SampledHeader original;
+      original.protocol = testProtocols[j];
+      original.frameLength = 1000 + i * 100;
+      original.stripped = 50 + i * 10;
+      original.header = testHeaders[i];
+
+      // Serialize
+      int bufSize = 1024;
+      std::vector<uint8_t> buffer(bufSize);
+      auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+      auto rwCursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+      original.serialize(rwCursor.get());
+      size_t serializedSize = bufSize - rwCursor->length();
+
+      // Deserialize
+      auto readBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
+      folly::io::Cursor readCursor(readBuf.get());
+
+      sflow::SampledHeader deserialized =
+          sflow::SampledHeader::deserialize(readCursor);
+
+      // Verify round-trip correctness
+      EXPECT_EQ(deserialized.protocol, original.protocol)
+          << "Protocol mismatch for header size " << i << ", protocol " << j;
+      EXPECT_EQ(deserialized.frameLength, original.frameLength)
+          << "Frame length mismatch for header size " << i << ", protocol "
+          << j;
+      EXPECT_EQ(deserialized.stripped, original.stripped)
+          << "Stripped mismatch for header size " << i << ", protocol " << j;
+      EXPECT_EQ(deserialized.header.size(), original.header.size())
+          << "Header size mismatch for header size " << i << ", protocol " << j;
+      EXPECT_THAT(deserialized.header, ContainerEq(original.header))
+          << "Header data mismatch for header size " << i << ", protocol " << j;
+
+      // Verify size calculation consistency
+      EXPECT_EQ(deserialized.size(), original.size())
+          << "Size calculation mismatch for header size " << i << ", protocol "
+          << j;
+    }
+  }
+}
+
+TEST(SflowStructsTest, SampledHeaderDeserializeEmptyHeader) {
+  // Test SampledHeader deserialization with empty header
+
+  std::vector<uint8_t> serializedData = {
+      // Protocol (PPP = 7)
+      0x00,
+      0x00,
+      0x00,
+      0x07,
+      // Frame length (64)
+      0x00,
+      0x00,
+      0x00,
+      0x40,
+      // Stripped (0)
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      // Header length (0)
+      0x00,
+      0x00,
+      0x00,
+      0x00
+      // No header data or padding
+  };
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampledHeader
+  sflow::SampledHeader header = sflow::SampledHeader::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(header.protocol, sflow::HeaderProtocol::PPP);
+  EXPECT_EQ(header.frameLength, 64);
+  EXPECT_EQ(header.stripped, 0);
+  EXPECT_EQ(header.header.size(), 0);
+  EXPECT_TRUE(header.header.empty());
+}
+
 } // namespace facebook::fboss::sflow
