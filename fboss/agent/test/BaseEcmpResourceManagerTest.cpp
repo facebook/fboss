@@ -373,8 +373,10 @@ BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
   auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
       auto forwardInfo = route->getEntryForClient(kClientID);
-      unicastRoutes->emplace_back(
-          util::toUnicastRoute(route->prefix().toCidrNetwork(), *forwardInfo));
+      if (forwardInfo) {
+        unicastRoutes->emplace_back(util::toUnicastRoute(
+            route->prefix().toCidrNetwork(), *forwardInfo));
+      }
     }
   };
   fillInRoutes(fibContainer->getFibV4());
