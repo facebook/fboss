@@ -790,10 +790,10 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
   // Test to reproduce race condition in queueDsfUpdate where:
   // 1. queueDsfUpdate is called - one update queued to hwUpdateEvb_
   // 2. processGRHoldTimerExpired is invoked - queues another event
-  // 3. queueDsfUpdate is called again - if update from 1 not yet processed,
-  //    it will update nextDsfUpdate_ instead of queuing to hwUpdateEvb_
-  // The effect is only 2 events in the queue instead of 3, and the last
-  // event clears all entries, so update from step 3 is lost.
+  // 3. queueDsfUpdate is called again - (prior to the fix) if update from 1 not
+  // yet processed, it will update nextDsfUpdate_ instead of queuing to
+  // hwUpdateEvb_ The effect is only 2 events in the queue instead of 3, and the
+  // last event clears all entries, so update from step 3 is lost.
 
   this->subscription_ = this->createSubscription();
 
@@ -844,12 +844,11 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
   // NOT queue a third event
   queueSysPortUpdate(2 /* numSysPorts */);
 
-  // Verify the race condition: there should still be only 2 events in the
-  // queue, not 3. This demonstrates the bug where the third update is lost.
+  // Verify the fix of race condition: there should be only 3 events in the
+  // queue. The GR expiry should not be the last event.
   auto finalQueueSize =
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
-  EXPECT_EQ(finalQueueSize, initialQueueSize + 2);
-  // If the bug is fixed, this should be initialQueueSize + 3
+  EXPECT_EQ(finalQueueSize, initialQueueSize + 3);
 
   // Wait for all events to be processed and exit
   WITH_RETRIES({
