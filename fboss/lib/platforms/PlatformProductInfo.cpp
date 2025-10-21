@@ -190,8 +190,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
     } else if (modelName.find("ICECUBE") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
-    } else if (modelName.find("WEDGE800BA") == 0) {
-      type_ = PlatformType::PLATFORM_WEDGE800BA;
+    } else if (modelName.find("WEDGE800B_ACT") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800B_ACT;
     } else if (modelName.find("ICETEA") == 0) {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
     } else if (modelName.find("WEDGE800C_ACT") == 0) {
@@ -265,7 +265,7 @@ void PlatformProductInfo::initMode() {
     } else if (FLAGS_mode == "minipack3n") {
       type_ = PlatformType::PLATFORM_MINIPACK3N;
     } else if (FLAGS_mode == "wedge800ba") {
-      type_ = PlatformType::PLATFORM_WEDGE800BA;
+      type_ = PlatformType::PLATFORM_WEDGE800B_ACT;
     } else if (FLAGS_mode == "tahansb800bc") {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_mode == "wedge800ca") {
