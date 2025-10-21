@@ -17,10 +17,6 @@
 
 namespace facebook::fboss {
 
-namespace {
-
-auto constexpr kClientID(ClientID::BGPD);
-}
 RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
@@ -67,8 +63,8 @@ std::shared_ptr<RouteV6> makeRoute(
     const RouteV6::Prefix& pfx,
     const RouteNextHopSet& nextHops) {
   RouteNextHopEntry nhopEntry(nextHops, kDefaultAdminDistance);
-  auto rt = std::make_shared<RouteV6>(
-      RouteV6::makeThrift(pfx, ClientID(0), nhopEntry));
+  auto rt =
+      std::make_shared<RouteV6>(RouteV6::makeThrift(pfx, kClientID, nhopEntry));
   rt->setResolved(nhopEntry);
   rt->publish();
   return rt;
@@ -78,8 +74,8 @@ std::shared_ptr<RouteV4> makeV4Route(
     const RouteV4::Prefix& pfx,
     const RouteNextHopSet& nextHops) {
   RouteNextHopEntry nhopEntry(nextHops, kDefaultAdminDistance);
-  auto rt = std::make_shared<RouteV4>(
-      RouteV4::makeThrift(pfx, ClientID(0), nhopEntry));
+  auto rt =
+      std::make_shared<RouteV4>(RouteV4::makeThrift(pfx, kClientID, nhopEntry));
   rt->setResolved(nhopEntry);
   rt->publish();
   return rt;

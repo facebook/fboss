@@ -24,6 +24,7 @@
 namespace facebook::fboss {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
+auto constexpr kClientID(ClientID::BGPD);
 
 RouteNextHopSet
 makeNextHops(int n, int numNhopsPerIntf = 1, int startOffset = 0);
