@@ -786,4 +786,76 @@ TYPED_TEST(DsfSubscriptionTest, RemoteEndpointString) {
   EXPECT_EQ(subscription2->remoteEndpointStr(), expectedEndpoint2Str);
 }
 
+TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
+  // Test to reproduce race condition in queueDsfUpdate where:
+  // 1. queueDsfUpdate is called - one update queued to hwUpdateEvb_
+  // 2. processGRHoldTimerExpired is invoked - queues another event
+  // 3. queueDsfUpdate is called again - if update from 1 not yet processed,
+  //    it will update nextDsfUpdate_ instead of queuing to hwUpdateEvb_
+  // The effect is only 2 events in the queue instead of 3, and the last
+  // event clears all entries, so update from step 3 is lost.
+
+  this->subscription_ = this->createSubscription();
+
+  // Enqueue a long running event to hwUpdateEvb_ to simulate the race
+  // condition
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { std::this_thread::sleep_for(std::chrono::seconds(5)); });
+  // Wait for the sleep event to be in progress
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  auto initialQueueSize =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    auto sysPorts = this->makeSysPorts(numSysPorts);
+    auto rifs = makeRifs(sysPorts.get());
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+    switchId2SystemPorts[SwitchID(kRemoteSwitchIdBegin)] = sysPorts;
+    switchId2Intfs[SwitchID(kRemoteSwitchIdBegin)] = rifs;
+    DsfSubscription::DsfUpdate update;
+    update.switchId2SystemPorts = switchId2SystemPorts;
+    update.switchId2Intfs = switchId2Intfs;
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Step 1: First queueDsfUpdate call - should queue one event
+  queueSysPortUpdate(1 /* numSysPorts */);
+
+  // Verify one event was queued
+  auto queueSizeAfterFirst =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+  EXPECT_EQ(queueSizeAfterFirst, initialQueueSize + 1);
+
+  // Step 2: Call processGRHoldTimerExpired - should queue another event
+  this->subscription_->processGRHoldTimerExpired();
+
+  // Verify second event was queued
+  auto queueSizeAfterGR =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+  EXPECT_EQ(queueSizeAfterGR, initialQueueSize + 2);
+
+  // Step 3: Second queueDsfUpdate call - should ideally queue a third event,
+  // but due to the race condition, it will only update nextDsfUpdate_ and
+  // NOT queue a third event
+  queueSysPortUpdate(2 /* numSysPorts */);
+
+  // Verify the race condition: there should still be only 2 events in the
+  // queue, not 3. This demonstrates the bug where the third update is lost.
+  auto finalQueueSize =
+      this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
+  EXPECT_EQ(finalQueueSize, initialQueueSize + 2);
+  // If the bug is fixed, this should be initialQueueSize + 3
+
+  // Wait for all events to be processed and exit
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+}
+
 } // namespace facebook::fboss
