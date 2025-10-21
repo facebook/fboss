@@ -485,6 +485,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             if (asic->getAsicMode() != HwAsic::AsicMode::ASIC_MODE_SIM) {
               // Account for Ethernet FCS being counted in TX out bytes.
               extraByteOffset = utility::EthFrame::FCS_SIZE;
+              if (FLAGS_hyper_port) {
+                extraByteOffset += utility::EthFrame::HYPER_PORT_HEADER_SIZE;
+              }
             }
             EXPECT_EVENTUALLY_EQ(
                 afterOutBytes - txPacketSize - extraByteOffset, beforeOutBytes);

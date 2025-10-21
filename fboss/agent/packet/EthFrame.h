@@ -21,6 +21,7 @@ namespace utility {
 class EthFrame {
  public:
   static constexpr size_t FCS_SIZE = 4;
+  static constexpr size_t HYPER_PORT_HEADER_SIZE = 2;
   // read entire ethernet frame, and populate payloads, useful to parse RxPacket
   explicit EthFrame(folly::io::Cursor& cursor);
 
