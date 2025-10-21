@@ -9897,5 +9897,22 @@
         }
       ]
     }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_U68_TMP422_J3_A_TEMPDIODE_NIF1",
+        "SMB_U68_TMP422_J3_A_TEMPDIODE_HBM_PHY0",
+        "SMB_U150_TMP422_J3_A_TEMPDIODE_FAB1",
+        "SMB_U150_TMP422_J3_A_TEMPDIODE_HBM_PHY2",
+        "SMB_U351_TMP422_J3_B_TEMPDIODE_PADS",
+        "SMB_U351_TMP422_J3_B_TEMPDIODE_NIF0",
+        "SMB_U352_TMP422_J3_B_TEMPDIODE_NIF1",
+        "SMB_U352_TMP422_J3_B_TEMPDIODE_HBM_PHY0",
+        "SMB_U152_TMP422_J3_B_TEMPDIODE_FAB1",
+        "SMB_U152_TMP422_J3_B_TEMPDIODE_HBM_PHY2"
+      ]
+    }
   ]
 }
