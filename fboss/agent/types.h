@@ -101,6 +101,16 @@ FBOSS_STRONG_TYPE(uint16_t, SwitchIndex);
 FBOSS_STRONG_TYPE(uint64_t, NodeID)
 
 /*
+ * Unique ID for a NextHop
+ */
+FBOSS_STRONG_TYPE(uint64_t, NextHopID)
+
+/*
+ * Unique ID for a set of NextHopIDs
+ */
+FBOSS_STRONG_TYPE(uint64_t, NextHopSetID)
+
+/*
  * Timestamp of a stat
  */
 FBOSS_STRONG_TYPE(int64_t, StatTimestamp)
