@@ -21,6 +21,155 @@ namespace facebook::fboss::sflow {
 using ::testing::ContainerEq;
 using ::testing::ElementsAre;
 
+TEST(SflowStructsTest, SampledHeader) {
+  // Test comprehensive functionality of SampledHeader with detailed
+  // serialization verification
+  sflow::SampledHeader header;
+  header.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header.frameLength = 1500; // 0x5DC
+  header.stripped = 42; // 0x2A
+  header.header = {0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE}; // 6 bytes
+
+  // Test size calculation
+  // protocol (4) + frameLength (4) + stripped (4) + headerLength (4) + header
+  // (6) + padding (2) = 24 bytes
+  uint32_t expectedSize =
+      4 + 4 + 4 + 4 + 8; // 8 aligned bytes for header (6 + 2 padding)
+  EXPECT_EQ(header.size(), expectedSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  header.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify serialized size matches expected
+  EXPECT_EQ(serializedSize, expectedSize);
+
+  // Verify the serialized content byte by byte
+  std::vector<uint8_t> actualData(
+      buffer.begin(), buffer.begin() + serializedSize);
+  EXPECT_THAT(
+      actualData,
+      ElementsAre(
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1500 = 0x5DC) as big-endian
+          0x00,
+          0x00,
+          0x05,
+          0xDC,
+          // stripped (42 = 0x2A) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x2A,
+          // headerLength (6) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x06,
+          // header data: 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE
+          0xDE,
+          0xAD,
+          0xBE,
+          0xEF,
+          0xCA,
+          0xFE,
+          // XDR padding (2 bytes) to align to 4-byte boundary
+          0x00,
+          0x00));
+}
+
+TEST(SflowStructsTest, SampledHeaderDifferentSizes) {
+  // Test SampledHeader with different header sizes to verify XDR padding
+
+  std::vector<std::vector<uint8_t>> testHeaders = {
+      {0xAA}, // 1 byte (3 bytes padding)
+      {0xBB, 0xCC}, // 2 bytes (2 bytes padding)
+      {0xDD, 0xEE, 0xFF}, // 3 bytes (1 byte padding)
+      {0x11, 0x22, 0x33, 0x44}, // 4 bytes (no padding)
+      {0x55, 0x66, 0x77, 0x88, 0x99} // 5 bytes (3 bytes padding)
+  };
+
+  for (uint32_t i = 0; i < testHeaders.size(); ++i) {
+    sflow::SampledHeader header;
+    header.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+    header.frameLength = 1000 + i;
+    header.stripped = 10 + i;
+    header.header = testHeaders[i];
+
+    // Calculate expected size with XDR padding
+    uint32_t headerSize = static_cast<uint32_t>(header.header.size());
+    if (headerSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
+      headerSize = ((headerSize / sflow::XDR_BASIC_BLOCK_SIZE) + 1) *
+          sflow::XDR_BASIC_BLOCK_SIZE;
+    }
+    uint32_t expectedSize = 4 + 4 + 4 + 4 + headerSize;
+    EXPECT_EQ(header.size(), expectedSize)
+        << "Size mismatch for test case " << i;
+
+    // Test serialization
+    int bufSize = 1024;
+    std::vector<uint8_t> buffer(bufSize);
+    auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+    auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+    header.serialize(cursor.get());
+    size_t serializedSize = bufSize - cursor->length();
+
+    // Verify serialized size matches calculated size
+    EXPECT_EQ(serializedSize, expectedSize)
+        << "Serialized size mismatch for test case " << i;
+
+    // Verify that the size() method matches actual serialized size
+    EXPECT_EQ(header.size(), serializedSize)
+        << "Size method mismatch for test case " << i;
+  }
+}
+
+TEST(SflowStructsTest, SampledHeaderSizeCalculation) {
+  // Test size calculation with various header data sizes
+  sflow::SampledHeader header;
+  header.protocol = sflow::HeaderProtocol::IPV4;
+  header.frameLength = 500;
+  header.stripped = 10;
+
+  // Test empty header
+  header.header = {};
+  EXPECT_EQ(header.size(), 16); // 4 + 4 + 4 + 4 + 0
+
+  // Test 1 byte (requires 3 bytes padding)
+  header.header = {0x01};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (1 + 3 padding)
+
+  // Test 2 bytes (requires 2 bytes padding)
+  header.header = {0x01, 0x02};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (2 + 2 padding)
+
+  // Test 3 bytes (requires 1 byte padding)
+  header.header = {0x01, 0x02, 0x03};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (3 + 1 padding)
+
+  // Test 4 bytes (no padding required)
+  header.header = {0x01, 0x02, 0x03, 0x04};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (4 + 0 padding)
+
+  // Test 5 bytes (requires 3 bytes padding)
+  header.header = {0x01, 0x02, 0x03, 0x04, 0x05};
+  EXPECT_EQ(header.size(), 24); // 4 + 4 + 4 + 4 + 8 (5 + 3 padding)
+
+  // Test 8 bytes (no padding required)
+  header.header = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+  EXPECT_EQ(header.size(), 24); // 4 + 4 + 4 + 4 + 8 (8 + 0 padding)
+}
+
 TEST(SflowStructsTest, FlowRecord) {
   // Test basic functionality of FlowRecord
   sflow::FlowRecord flowRecord;
