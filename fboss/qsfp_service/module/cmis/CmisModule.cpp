@@ -2500,8 +2500,9 @@ void CmisModule::setApplicationCodeLocked(
       if (datapathResetPendingMask_ & hostLaneMask) {
         resetDataPathWithFunc(std::nullopt, hostLaneMask);
         datapathResetPendingMask_ &= ~hostLaneMask;
-        QSFP_LOG(INFO, this) << "Reset datapath for lane mask " << hostLaneMask
-                             << " before returning";
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "Reset datapath for lane mask {:#x} before returning",
+            hostLaneMask);
       }
       return;
     }
