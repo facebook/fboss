@@ -7,6 +7,7 @@ cpp_library(
     name = "rib_header",
     headers = glob(["*.h"]),
     exported_deps = [
+        ":network_to_route_map",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
         "//fboss/agent:switch_config-cpp2-types",
@@ -31,27 +32,31 @@ cpp_library(
         "RouteUpdater.cpp",
         "RoutingInformationBase.cpp",
     ],
-    exported_deps = [
-        ":network_to_route_map",
+    deps = [
         "//fboss/agent:address_utils",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:utils",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/state:nodebase",
+        "//folly:scope_guard",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":network_to_route_map",
+        ":rib_header",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fboss_event_base",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-services",
-        "//fboss/agent/if:ctrl-cpp2-types",
-        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//folly:network_address",
         "//folly:range",
-        "//folly:scope_guard",
         "//folly:synchronized",
-        "//folly/logging:logging",
     ],
+    external_deps = ["boost"],
     exported_external_deps = [
-        "boost",
         ("boost", None, "boost_container"),
+        "boost",
     ],
 )
 

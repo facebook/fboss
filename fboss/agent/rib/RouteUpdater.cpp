@@ -309,11 +309,73 @@ void RibRouteUpdater::removeAllRoutesFromClientImpl(
   }
 }
 
+template <typename AddressT, typename FilterFunc>
+void RibRouteUpdater::removeAllUnclaimedRoutesFromClientImpl(
+    const FilterFunc& isClaimedFunc,
+    NetworkToRouteMap<AddressT>* routes,
+    ClientID clientID) {
+  std::vector<typename NetworkToRouteMap<AddressT>::Iterator> toDelete;
+
+  for (auto it = routes->begin(); it != routes->end(); ++it) {
+    auto route = value<AddressT>(it);
+    if (isClaimedFunc(*route)) {
+      continue;
+    }
+    auto nhopEntry = route->getEntryForClient(clientID);
+    if (!nhopEntry) {
+      continue;
+    }
+    if (route->numClientEntries() == 1) {
+      // This client's is the only entry avoid unnecessary cloning
+      // we are going to prune the route anyways
+      toDelete.push_back(it);
+    } else {
+      route = writableRoute<AddressT>(it);
+      route->delEntryForClient(clientID);
+      if (route->hasNoEntry()) {
+        // The nexthops we removed was the only one.  Delete the route->
+        toDelete.push_back(it);
+      }
+    }
+  }
+
+  // Now, delete whatever routes went from 1 nexthoplist to 0.
+  for (auto it : toDelete) {
+    routes->erase(it);
+  }
+}
 void RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
   removeAllRoutesFromClientImpl<IPAddressV4>(v4Routes_, clientID);
   removeAllRoutesFromClientImpl<IPAddressV6>(v6Routes_, clientID);
 }
 
+void RibRouteUpdater::removeAllUnclaimedRoutesForClient(
+    ClientID clientID,
+    const std::vector<RouteEntry>& claimed) {
+  std::unordered_set<folly::CIDRNetwork> v4Claimed, v6Claimed;
+  std::for_each(
+      claimed.begin(),
+      claimed.end(),
+      [&v4Claimed, &v6Claimed](const RouteEntry& route) {
+        if (route.prefix.first.isV6()) {
+          v6Claimed.insert(route.prefix);
+        } else {
+          v4Claimed.insert(route.prefix);
+        }
+      });
+  removeAllUnclaimedRoutesFromClientImpl<IPAddressV4>(
+      [&v4Claimed](const Route<folly::IPAddressV4>& inRoute) {
+        return v4Claimed.contains(inRoute.prefix().toCidrNetwork());
+      },
+      v4Routes_,
+      clientID);
+  removeAllUnclaimedRoutesFromClientImpl<IPAddressV6>(
+      [&v6Claimed](const Route<folly::IPAddressV6>& inRoute) {
+        return v6Claimed.contains(inRoute.prefix().toCidrNetwork());
+      },
+      v6Routes_,
+      clientID);
+}
 void RibRouteUpdater::removeAllMplsRoutesForClient(ClientID clientID) {
   removeAllRoutesFromClientImpl<LabelID>(mplsRoutes_, clientID);
 }
