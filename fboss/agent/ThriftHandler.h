@@ -496,7 +496,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   apache::thrift::SSLPolicy sslPolicy_;
 
-  std::unordered_set<uint16_t> syncedFibClients;
+  std::unordered_set<uint16_t> syncedFibClients_;
 };
 
 } // namespace facebook::fboss
