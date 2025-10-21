@@ -168,8 +168,7 @@ struct SampledHeader {
   HeaderProtocol protocol;
   uint32_t frameLength;
   uint32_t stripped;
-  uint32_t headerLength;
-  const byte* header;
+  std::vector<uint8_t> header;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;

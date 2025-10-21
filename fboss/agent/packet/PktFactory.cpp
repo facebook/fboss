@@ -834,8 +834,8 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
   hdr.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
   hdr.frameLength = 0;
   hdr.stripped = 0;
-  hdr.header = payload.data();
-  hdr.headerLength = payload.size();
+  hdr.header.resize(payload.size());
+  std::copy(payload.begin(), payload.end(), hdr.header.begin());
 
   // Calculate size needed for serialized header
   auto hdrSize = hdr.size();
@@ -944,8 +944,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   hdr.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
   hdr.frameLength = 0;
   hdr.stripped = 0;
-  hdr.header = payloadBytes.data();
-  hdr.headerLength = payloadBytes.size();
+  hdr.header.resize(payloadBytes.size());
+  std::copy(payloadBytes.begin(), payloadBytes.end(), hdr.header.begin());
 
   auto hdrSize = hdr.size();
   if (hdrSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
@@ -1035,8 +1035,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   hdr.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
   hdr.frameLength = 0;
   hdr.stripped = 0;
-  hdr.header = payloadBytes.data();
-  hdr.headerLength = payloadBytes.size();
+  hdr.header.resize(payloadBytes.size());
+  std::copy(payloadBytes.begin(), payloadBytes.end(), hdr.header.begin());
 
   auto hdrSize = hdr.size();
   if (hdrSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {

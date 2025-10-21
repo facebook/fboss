@@ -315,19 +315,24 @@ void SampledHeader::serialize(RWPrivateCursor* cursor) const {
   cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->protocol));
   cursor->writeBE<uint32_t>(this->frameLength);
   cursor->writeBE<uint32_t>(this->stripped);
-  cursor->writeBE<uint32_t>(this->headerLength);
-  cursor->push(this->header, this->headerLength);
-  if (this->headerLength % XDR_BASIC_BLOCK_SIZE > 0) {
+  cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->header.size()));
+  cursor->push(this->header.data(), this->header.size());
+  if (this->header.size() % XDR_BASIC_BLOCK_SIZE > 0) {
     int fillCnt =
-        XDR_BASIC_BLOCK_SIZE - this->headerLength % XDR_BASIC_BLOCK_SIZE;
+        XDR_BASIC_BLOCK_SIZE - this->header.size() % XDR_BASIC_BLOCK_SIZE;
     std::vector<byte> crud(XDR_BASIC_BLOCK_SIZE, 0);
     cursor->push(crud.data(), fillCnt);
   }
 }
 
 uint32_t SampledHeader::size() const {
+  uint32_t headerSize = static_cast<uint32_t>(this->header.size());
+  // Add XDR padding to align to 4-byte boundary (same as serialization does)
+  if (headerSize % XDR_BASIC_BLOCK_SIZE > 0) {
+    headerSize += XDR_BASIC_BLOCK_SIZE - (headerSize % XDR_BASIC_BLOCK_SIZE);
+  }
   return 4 /* protocol */ + 4 /* frameLength */ + 4 /* stripped */ +
-      4 /* headerLength */ + this->headerLength;
+      4 /* headerLength */ + headerSize;
 }
 
 } // namespace facebook::fboss::sflow
