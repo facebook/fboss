@@ -2275,5 +2275,13 @@
       "name": "PSU2",
       "powerSensorName": "PSU2_R_PIN"
     }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_TH5_TEMP"
+      ]
+    }
   ]
 }
