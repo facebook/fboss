@@ -115,6 +115,7 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, computeWeightedEcmpMemberCount);
   FRIEND_TEST(ResourceAccountantTest, checkNeighborResource);
   FRIEND_TEST(ResourceAccountantTest, routeWithAdjustedWeightZero);
+  FRIEND_TEST(ResourceAccountantTest, resolvedAndUnresolvedRoutes);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
 };
 } // namespace facebook::fboss
