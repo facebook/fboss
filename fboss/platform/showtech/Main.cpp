@@ -39,6 +39,7 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
         {"i2c", [](Utils& util) { util.printI2cDetails(); }},
         {"i2cdump", [](Utils& util) { util.printI2cDumpDetails(); }},
         {"nvme", [](Utils& util) { util.printNvmeDetails(); }},
+        {"logs", [](Utils& util) { util.printLogs(); }},
 };
 
 std::unordered_set<std::string> getValidDetailNames() {
