@@ -806,13 +806,6 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
   };
   EXPECT_FALSE(validator.isValidPortRanges(configs));
 
-  // Test case: Gap between ranges
-  configs = {
-      createLedCtrlBlockConfig(1, 8), // ports 1-8
-      createLedCtrlBlockConfig(11, 8) // ports 11-18 (gap: missing ports 9-10)
-  };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
-
   // Test case: Multiple overlapping ranges
   configs = {
       createLedCtrlBlockConfig(1, 8), // ports 1-8
@@ -852,13 +845,6 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
   configs = {
       createLedCtrlBlockConfig(1, 1), // port 1
       createLedCtrlBlockConfig(1, 1) // port 1 (duplicate)
-  };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
-
-  // Test case: Single port ranges with gap
-  configs = {
-      createLedCtrlBlockConfig(1, 1), // port 1
-      createLedCtrlBlockConfig(3, 1) // port 3 (missing port 2)
   };
   EXPECT_FALSE(validator.isValidPortRanges(configs));
 }

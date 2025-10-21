@@ -961,13 +961,6 @@ bool ConfigValidator::isValidPortRanges(
     portRanges.emplace_back(startPort, endPort);
   }
 
-  if (portRanges.begin()->first != 1) {
-    XLOG(ERR) << fmt::format(
-        "Port ranges must start at 1, but the first port starts at {}",
-        portRanges.begin()->first);
-    return false;
-  }
-
   // Check for sorting, overlaps and gaps
   for (size_t i = 1; i < portRanges.size(); i++) {
     int prevStart = portRanges[i - 1].first;
@@ -987,15 +980,6 @@ bool ConfigValidator::isValidPortRanges(
     if (currStart <= prevEnd) {
       XLOG(ERR) << fmt::format(
           "Overlapping port ranges detected: previous range ends at port {}, current range starts at port {}",
-          prevEnd,
-          currStart);
-      return false;
-    }
-
-    // Check for gap (missing ports)
-    if (currStart != prevEnd + 1) {
-      XLOG(ERR) << fmt::format(
-          "Missing ports detected between LedCtrlBlockConfigs: gap between ports {} and {}",
           prevEnd,
           currStart);
       return false;
