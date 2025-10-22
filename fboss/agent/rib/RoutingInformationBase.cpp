@@ -471,7 +471,6 @@ void RibRouteTables::setOverrideEcmpMode(
       }
     }
   });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
 void RibRouteTables::setOverrideEcmpNhops(
@@ -518,7 +517,6 @@ void RibRouteTables::setOverrideEcmpNhops(
       }
     }
   });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
 template <typename AddressT>
