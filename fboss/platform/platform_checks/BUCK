@@ -1,0 +1,12 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+# Thrift definitions for platform checks data structures
+thrift_library(
+    name = "check_types",
+    languages = [
+        "cpp2",
+    ],
+    thrift_srcs = {"check_types.thrift": []},
+)
