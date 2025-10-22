@@ -31,6 +31,34 @@ std::ostream& operator<<(
   return os;
 }
 
+template <typename AddressT>
+void updateRouteOverrides(
+    std::shared_ptr<Route<AddressT>>& route,
+    std::optional<cfg::SwitchingMode> backupSwitchingMode,
+    std::optional<EcmpResourceManager::GroupIds2ConsolidationInfoItr>
+        mergeInfoItr) {
+  const auto& curForwardInfo = route->getForwardInfo();
+  std::optional<RouteNextHopSet> overrideNhops;
+  if (mergeInfoItr) {
+    overrideNhops = (*mergeInfoItr)->second.mergedNhops;
+  }
+  auto newForwardInfo = RouteNextHopEntry(
+      curForwardInfo.getNextHopSet(),
+      curForwardInfo.getAdminDistance(),
+      curForwardInfo.getCounterID(),
+      curForwardInfo.getClassID(),
+      backupSwitchingMode,
+      overrideNhops);
+  XLOG(DBG2) << " Set : " << route->str()
+             << " backup switching mode to : " << backupSwitchingMode
+             << " override next hops to : "
+             << (overrideNhops.has_value()
+                     ? folly::to<std::string>(*overrideNhops)
+                     : "null");
+  route->setResolved(newForwardInfo);
+  route->publish();
+}
+
 void updateRouteOverrides(
     const EcmpResourceManager::Prefix& ridAndPfx,
     std::shared_ptr<SwitchState>& newState,
@@ -42,26 +70,7 @@ void updateRouteOverrides(
   auto updateFib = [backupSwitchingMode, mergeInfoItr](
                        const auto& routePfx, auto fib) {
     auto route = fib->exactMatch(routePfx)->clone();
-    const auto& curForwardInfo = route->getForwardInfo();
-    std::optional<RouteNextHopSet> overrideNhops;
-    if (mergeInfoItr) {
-      overrideNhops = (*mergeInfoItr)->second.mergedNhops;
-    }
-    auto newForwardInfo = RouteNextHopEntry(
-        curForwardInfo.getNextHopSet(),
-        curForwardInfo.getAdminDistance(),
-        curForwardInfo.getCounterID(),
-        curForwardInfo.getClassID(),
-        backupSwitchingMode,
-        overrideNhops);
-    XLOG(DBG2) << " Set : " << route->str()
-               << " backup switching mode to : " << backupSwitchingMode
-               << " override next hops to : "
-               << (overrideNhops.has_value()
-                       ? folly::to<std::string>(*overrideNhops)
-                       : "null");
-    route->setResolved(newForwardInfo);
-    route->publish();
+    updateRouteOverrides(route, backupSwitchingMode, mergeInfoItr);
     fib->updateNode(route);
   };
   const auto& [rid, pfx] = ridAndPfx;
