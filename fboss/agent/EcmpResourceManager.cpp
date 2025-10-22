@@ -834,7 +834,9 @@ EcmpResourceManager::getOptimalMergeGroupSet() const {
   if (!getEcmpCompressionThresholdPct()) {
     return {};
   }
-  CHECK(!candidateMergeGroups_.empty());
+  if (candidateMergeGroups_.empty()) {
+    throw FbossError("Hit ECMP group limit, but no candidate merge found");
+  }
   auto citr = std::min_element(
       candidateMergeGroups_.begin(),
       candidateMergeGroups_.end(),
