@@ -23,6 +23,7 @@ const std::string kGpioChip = "gpiochip";
 const re2::RE2 kWatchdogNameRe{"watchdog(\\d+)"};
 const std::string kWatchdog = "watchdog";
 constexpr auto kWatchdogDevCreationWaitSecs = std::chrono::seconds(5);
+constexpr auto kMdioBusCharDevCreationWaitSecs = std::chrono::seconds(5);
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -126,17 +127,19 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
   return charDevPath;
 }
 
-std::string Utils::resolveMdioBusCharDevPath(
-    std::string deviceName,
-    uint32_t instanceId) {
+std::string Utils::resolveMdioBusCharDevPath(uint32_t instanceId) {
   auto failMsg = "Failed to resolve mdio_bus CharDevPath";
-  auto charDevPath = fmt::format("/dev/ioc_{}.{}", deviceName, instanceId);
-  if (!fs::exists(charDevPath)) {
-    throw std::runtime_error(
-        fmt::format(
-            "{}. Reason: {} does not exist in the system",
-            failMsg,
-            charDevPath));
+  auto charDevPath = fmt::format("/dev/fb-mdio-{}", instanceId);
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(charDevPath); },
+          fmt::format(
+              "MdioBus CharDevPath is not created. Waited for at most {}s",
+              kMdioBusCharDevCreationWaitSecs.count()),
+          kMdioBusCharDevCreationWaitSecs)) {
+    throw std::runtime_error(fmt::format(
+        "{}. Reason: {} does not exist in the system",
+        failMsg,
+        charDevPath));
   }
   return charDevPath;
 }

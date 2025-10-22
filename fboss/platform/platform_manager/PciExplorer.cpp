@@ -774,7 +774,7 @@ std::string PciExplorer::getMdioBusSysfsPath(
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
     if (dirEntry.path().string().ends_with(expectedEnding)) {
-      return Utils().resolveMdioBusCharDevPath(*fpgaIpBlockConfig.deviceName(), instanceId);
+      return Utils().resolveMdioBusCharDevPath(instanceId);
     }
   }
   throw PciSubDeviceRuntimeError(
