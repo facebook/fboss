@@ -137,9 +137,6 @@ void RibRouteUpdater::updateImpl(
     const std::vector<MplsRouteEntry>& toAdd,
     const std::vector<LabelID>& toDel,
     bool resetClientsRoutes) {
-  if (resetClientsRoutes) {
-    removeAllMplsRoutesForClient(client);
-  }
   std::for_each(
       toAdd.begin(), toAdd.end(), [this, client](const auto& routeEntry) {
         addOrReplaceRoute(routeEntry.label, client, routeEntry.nhopEntry);
@@ -147,6 +144,9 @@ void RibRouteUpdater::updateImpl(
   std::for_each(toDel.begin(), toDel.end(), [this, client](const auto& label) {
     delRoute(label, client);
   });
+  if (resetClientsRoutes) {
+    removeAllUnclaimedMplsRoutesForClient(client, toAdd);
+  }
 }
 
 template <typename AddressT>
@@ -372,8 +372,22 @@ void RibRouteUpdater::removeAllUnclaimedRoutesForClient(
       v6Routes_,
       clientID);
 }
-void RibRouteUpdater::removeAllMplsRoutesForClient(ClientID clientID) {
-  removeAllRoutesFromClientImpl<LabelID>(mplsRoutes_, clientID);
+void RibRouteUpdater::removeAllUnclaimedMplsRoutesForClient(
+    ClientID clientID,
+    const std::vector<MplsRouteEntry>& claimed) {
+  std::unordered_set<LabelID> claimedMplsRoutes;
+  std::for_each(
+      claimed.begin(),
+      claimed.end(),
+      [&claimedMplsRoutes](const MplsRouteEntry& route) {
+        claimedMplsRoutes.insert(route.label);
+      });
+  removeAllUnclaimedRoutesFromClientImpl<LabelID>(
+      [&claimedMplsRoutes](const Route<LabelID>& inRoute) {
+        return claimedMplsRoutes.contains(inRoute.getID());
+      },
+      mplsRoutes_,
+      clientID);
 }
 
 // Some helper functions for recursive weight resolution
