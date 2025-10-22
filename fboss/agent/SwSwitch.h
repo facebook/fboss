@@ -81,7 +81,6 @@ class NeighborUpdater;
 class PacketLogger;
 class RouteUpdateLogger;
 class StateObserver;
-class PreUpdateStateModifier;
 class TunManager;
 class MirrorManager;
 class PhySnapshotManager;
@@ -1320,7 +1319,6 @@ class SwSwitch : public HwSwitchCallback {
   std::map<StateObserver*, std::string> stateObservers_;
   std::unique_ptr<PacketObservers> pktObservers_;
   std::unique_ptr<L2LearnEventObservers> l2LearnEventObservers_;
-  std::unordered_map<PreUpdateStateModifier*, std::string> stateModifiers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
