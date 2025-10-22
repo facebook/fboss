@@ -280,7 +280,7 @@ EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
     const StateDelta& delta,
-    bool /*rollingBack*/) {
+    bool rollingBack) {
   std::optional<InputOutputState> inOutState;
   StopWatch timeIt("EcmpResourceManager::consolidate", false /*json*/);
   SCOPE_EXIT {
@@ -304,7 +304,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   }
 
   handleSwitchSettingsDelta(delta);
-  auto switchingModeChangeResult = handleFlowletSwitchConfigDelta(delta);
+  auto switchingModeChangeResult =
+      handleFlowletSwitchConfigDelta(delta, rollingBack);
   if (switchingModeChangeResult) {
     switchingModeChangeResult->publishLastDelta();
   }
@@ -319,7 +320,8 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
 
   auto [primaryEcmpGroupsCnt, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
-    inOutState = InputOutputState(primaryEcmpGroupsCnt, ecmpMemberCnt, delta);
+    inOutState = InputOutputState(
+        primaryEcmpGroupsCnt, ecmpMemberCnt, delta, rollingBack);
   } else {
     inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
     inOutState->ecmpMemberCnt = ecmpMemberCnt;
@@ -2079,7 +2081,9 @@ void EcmpResourceManager::updateFailed(
 }
 
 std::optional<EcmpResourceManager::InputOutputState>
-EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
+EcmpResourceManager::handleFlowletSwitchConfigDelta(
+    const StateDelta& delta,
+    bool rollingBack) {
   auto oldBackupEcmpMode = getBackupEcmpSwitchingMode();
   config_.handleFlowletSwitchConfigDelta(delta);
   if (!oldBackupEcmpMode.has_value()) {
@@ -2089,7 +2093,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(const StateDelta& delta) {
     return std::nullopt;
   }
   InputOutputState inOutState(
-      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta);
+      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta, rollingBack);
   CHECK_EQ(inOutState.numDeltas(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue

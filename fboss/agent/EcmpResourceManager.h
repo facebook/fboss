@@ -250,7 +250,8 @@ class EcmpResourceManager {
       const InputOutputState& inOutState) const;
   bool checkNoUnitializedGroups() const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
-      const StateDelta& delta);
+      const StateDelta& delta,
+      bool rollingBack);
   void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
