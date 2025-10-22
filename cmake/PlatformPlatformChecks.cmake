@@ -1,0 +1,22 @@
+# CMake to build libraries and binaries in fboss/platform/platform_checks
+
+# In general, libraries and binaries in fboss/foo/bar are built by
+# cmake/FooBar.cmake
+
+add_fbthrift_cpp_library(
+  check_types_cpp2
+  fboss/platform/platform_checks/check_types.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+add_library(platform_check
+  fboss/platform/platform_checks/PlatformCheck.cpp
+)
+
+target_link_libraries(platform_check
+  check_types_cpp2
+  config_utils
+  platform_manager_config_cpp2
+)

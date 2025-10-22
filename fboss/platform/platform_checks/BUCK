@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_platform")
@@ -9,4 +10,21 @@ thrift_library(
         "cpp2",
     ],
     thrift_srcs = {"check_types.thrift": []},
+)
+
+cpp_library(
+    name = "platform_check",
+    srcs = [
+        "PlatformCheck.cpp",
+    ],
+    headers = [
+        "PlatformCheck.h",
+    ],
+    exported_deps = [
+        ":check_types-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
 )

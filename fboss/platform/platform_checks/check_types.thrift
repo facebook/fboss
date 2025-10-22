@@ -40,6 +40,7 @@ struct CheckResult {
   3: optional RemediationType remediation;
   4: optional string remediationMessage;
   5: optional string errorMessage;
+  6: optional string checkName;
 }
 
 struct CheckInfo {
