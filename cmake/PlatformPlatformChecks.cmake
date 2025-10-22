@@ -20,3 +20,26 @@ target_link_libraries(platform_check
   config_utils
   platform_manager_config_cpp2
 )
+
+add_library(platform_checks
+  fboss/platform/platform_checks/checks/MacAddressCheck.cpp
+)
+
+target_link_libraries(platform_checks
+  platform_check
+  weutil_fboss_eeprom_interface
+  weutil_config_utils
+  Folly::folly
+)
+
+add_executable(mac_address_check_test
+  fboss/platform/platform_checks/tests/MacAddressCheckTest.cpp
+)
+
+target_link_libraries(mac_address_check_test
+  platform_checks
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(mac_address_check_test)
