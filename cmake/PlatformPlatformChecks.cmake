@@ -23,10 +23,13 @@ target_link_libraries(platform_check
 
 add_library(platform_checks
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
+  fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
 )
 
 target_link_libraries(platform_checks
   platform_check
+  platform_fs_utils
+  platform_manager_config_cpp2
   weutil_fboss_eeprom_interface
   weutil_config_utils
   Folly::folly
@@ -43,3 +46,16 @@ target_link_libraries(mac_address_check_test
 )
 
 gtest_discover_tests(mac_address_check_test)
+
+add_executable(pci_device_check_test
+  fboss/platform/platform_checks/tests/PciDeviceCheckTest.cpp
+)
+
+target_link_libraries(pci_device_check_test
+  pci_device_check
+  mock_platform_fs_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(pci_device_check_test)
