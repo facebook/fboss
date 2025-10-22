@@ -477,7 +477,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
     auto vlanId =
         VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,

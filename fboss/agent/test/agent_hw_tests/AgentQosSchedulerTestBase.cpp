@@ -17,7 +17,7 @@ auto constexpr kRateSamplingInterval = 25;
 namespace facebook::fboss {
 std::unique_ptr<facebook::fboss::TxPacket>
 AgentQosSchedulerTestBase::createUdpPkt(uint8_t dscpVal) const {
-  auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
+  auto srcMac = utility::MacAddressGenerator().get(dstMac().u64HBO() + 1);
 
   return utility::makeUDPTxPacket(
       getSw(),

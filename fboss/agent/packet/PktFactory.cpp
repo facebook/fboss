@@ -765,7 +765,7 @@ std::unique_ptr<TxPacket> makeTCPTxPacket(
     // some arbitrary mac
     srcMac = folly::MacAddress("00:00:01:02:03:04");
   } else {
-    srcMac = folly::MacAddress::fromNBO(dstMac.u64NBO() + 1);
+    srcMac = folly::MacAddress::fromHBO(dstMac.u64HBO() + 1);
   }
 
   // arbit

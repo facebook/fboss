@@ -288,7 +288,7 @@ class AgentCoppTest : public AgentHwTest {
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.0.0.11" : "1::11");
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,
@@ -446,7 +446,7 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeARPTxPacket(
           getSw(),
@@ -508,7 +508,7 @@ class AgentCoppTest : public AgentHwTest {
     auto myAddr = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket =
@@ -578,7 +578,7 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
@@ -624,7 +624,7 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = (type == DHCPv6Type::DHCPv6_SOLICIT)
