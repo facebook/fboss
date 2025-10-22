@@ -658,14 +658,11 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   pktObservers_.reset();
   l2LearnEventObservers_.reset();
 
-  // Unregister and reset PreUpdateStateModifiers
   if (FLAGS_enable_ecmp_resource_manager && ecmpResourceManager_) {
-    unregisterStateModifier(ecmpResourceManager_.get());
     ecmpResourceManager_.reset();
   }
 
   if (!hwAsicTable_->getVoqAsics().empty() && shelManager_) {
-    unregisterStateModifier(shelManager_.get());
     shelManager_.reset();
   }
 
@@ -1346,14 +1343,10 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
       auto asic = checkSameAndGetAsic(l3Asics);
       ecmpResourceManager_ =
           makeEcmpResourceManager(state, asic, [this] { return stats(); });
-      registerStateModifier(
-          ecmpResourceManager_.get(), "Ecmp Resource Manager");
     }
   }
   if (!hwAsicTable_->getVoqAsics().empty()) {
-    // Register ShelManager
     shelManager_ = std::make_unique<ShelManager>();
-    registerStateModifier(shelManager_.get(), "Shel Manager");
   }
   XLOG(DBG2)
       << "Time to init switch and start all threads "
