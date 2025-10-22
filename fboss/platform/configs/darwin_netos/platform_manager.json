@@ -479,6 +479,7 @@
   "bspKmodsRpmVersion": "0.7.9-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
-    "scd"
+    "scd",
+    "scd_spi"
   ]
 }
