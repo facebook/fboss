@@ -1153,7 +1153,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VIN",
+          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VIN",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in1_input",
           "type": 1,
           "thresholds": {
@@ -1162,7 +1162,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_VOUT",
+          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VOUT",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in2_input",
           "type": 1,
           "thresholds": {
@@ -1172,7 +1172,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_TEMP",
+          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON3/temp1_input",
           "type": 3,
           "thresholds": {
@@ -1182,25 +1182,25 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_PIN",
+          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_PIN",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power1_input",
           "type": 0,
           "compute": "@/1000000.0"
         },
         {
-          "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_POUT",
+          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_POUT",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power2_input",
           "type": 0,
           "compute": "@/1000000.0"
         },
         {
-          "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IIN",
+          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IIN",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr1_input",
           "type": 2,
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_PU41_TDA38640_1.2V_PVDDQ_ABC_CPU_IOUT",
+          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IOUT",
           "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr2_input",
           "type": 2,
           "thresholds": {
@@ -3231,8 +3231,20 @@
           "compute": "@/1000000.0"
         },
         {
-          "name": "SMB_L_U29_TH6_SENSOR_TMP432A_1",
+          "name": "SMB_L_U29_LEFT_TMP432_1_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_1/temp1_input",
+          "type": 3,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_L_U29_LEFT_TMP432_1_TEMP2",
+          "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_1/temp2_input",
+          "type": 3,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_L_U29_LEFT_TMP432_1_TEMP3",
+          "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "compute": "@/1000.0"
         },
@@ -3459,8 +3471,14 @@
           "compute": "@/1000000.0"
         },
         {
-          "name": "SMB_L_U30_TH6_SENSOR_TMP432A_2",
+          "name": "SMB_L_U30_RIGHT_TMP432_2_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_2/temp1_input",
+          "type": 3,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_L_U30_RIGHT_TMP432_2_TEMP2",
+          "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "compute": "@/1000.0"
         },
@@ -4479,8 +4497,20 @@
           "compute": "@/1000000.0"
         },
         {
-          "name": "SMB_R_U29_TH6_SENSOR_TMP432A_1",
+          "name": "SMB_R_U29_LEFT_TMP432_1_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_1/temp1_input",
+          "type": 3,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_R_U29_LEFT_TMP432_1_TEMP2",
+          "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_1/temp2_input",
+          "type": 3,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_R_U29_LEFT_TMP432_1_TEMP3",
+          "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "compute": "@/1000.0"
         },
@@ -4707,8 +4737,14 @@
           "compute": "@/1000000.0"
         },
         {
-          "name": "SMB_R_U30_TH6_SENSOR_TMP432A_2",
+          "name": "SMB_R_U30_RIGHT_TMP432_2_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_2/temp1_input",
+          "type": 3,
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_R_U30_RIGHT_TMP432_2_TEMP2",
+          "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "compute": "@/1000.0"
         },
