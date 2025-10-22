@@ -7457,5 +7457,13 @@
         }
       ]
     }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SMB_TH5_TEMP"
+      ]
+    }
   ]
 }

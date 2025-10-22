@@ -254,7 +254,7 @@ class AgentAclCounterTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     int l4DstPort = kL4DstPort();
     if (aclType == AclType::L4_DST_PORT) {
       l4DstPort = kL4DstPort2();

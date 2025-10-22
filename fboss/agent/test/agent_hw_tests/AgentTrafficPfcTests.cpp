@@ -453,7 +453,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
       const std::vector<PortID>& portIds,
       const std::vector<folly::IPAddressV6>& ips) {
     auto intfMac = getIntfMac();
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     // pri = 7 => dscp 56
     int dscp = priority * 8;
     int numPacketsPerFlow = getAgentEnsemble()->getMinPktsForLineRate(

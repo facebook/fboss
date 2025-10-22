@@ -52,6 +52,7 @@ cpp_unittest(
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent/packet:sflow_structs",
         "//folly:network_address",
         "//folly/container:array",

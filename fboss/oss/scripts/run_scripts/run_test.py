@@ -798,6 +798,13 @@ class BcmTestRunner(TestRunner):
 
 class SaiTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
         pass
 
     def _get_config_path(self):
@@ -838,7 +845,15 @@ class SaiTestRunner(TestRunner):
         return AGENT_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if args.platform_mapping_override_path is not None:
+            args_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+        return args_list
 
     def _setup_coldboot_test(self):
         if args.setup_for_coldboot:
@@ -1037,6 +1052,13 @@ class SaiAgentTestRunner(TestRunner):
             help="Specify asic to filter production feature",
             default="mono",
         )
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
 
     def _get_config_path(self):
         # TOOO Not available in OSS
@@ -1076,7 +1098,14 @@ class SaiAgentTestRunner(TestRunner):
         return AGENT_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if args.platform_mapping_override_path is not None:
+            args_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
 
     def _setup_coldboot_test(self):
         if args.setup_for_coldboot:

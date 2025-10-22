@@ -58,6 +58,21 @@ class EcmpResourceMgrMergeGroupTest
           EXPECT_FALSE(removedGroups.contains(nhopsAndGid.second));
         });
   }
+  void assertReplayIsNoOp(bool syncFib) {
+    auto preAddState = state_;
+    ThriftHandler handler(sw_);
+    auto replayRoutes = getClientRoutes(kClientID);
+    XLOG(DBG2) << " Will replay: " << replayRoutes->size()
+               << " routes via: " << (syncFib ? "syncFib" : "addUnicastRoutes");
+    if (syncFib) {
+      handler.syncFib(static_cast<int16_t>(kClientID), std::move(replayRoutes));
+    } else {
+      handler.addUnicastRoutes(
+          static_cast<int16_t>(kClientID), std::move(replayRoutes));
+    }
+    state_ = sw_->getState();
+    ASSERT_EQ(preAddState, state_);
+  }
 };
 
 // Base class add 5 groups, which is within in the
@@ -77,6 +92,25 @@ TEST_F(EcmpResourceMgrMergeGroupTest, addRouteAboveEcmpLimit) {
   assertEndState(sw_->getState(), overflowPrefixes);
   assertMergedGroup(optimalMergeSet);
   assertCost(optimalMergeSet);
+}
+
+TEST_F(EcmpResourceMgrMergeGroupTest, replayRoutesViaAddIsNoOp) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  XLOG(DBG2) << " Asserting for replay noop before overflow and merge";
+  assertReplayIsNoOp(false /*syncFib*/);
+  auto deltas = addNextRoute();
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertMergedGroup(optimalMergeSet);
+  assertCost(optimalMergeSet);
+  XLOG(DBG2) << " Asserting for replay noop after overflow and merge";
+  assertReplayIsNoOp(false /*syncFib*/);
 }
 
 TEST_F(EcmpResourceMgrMergeGroupTest, swapNhopsForToBeMergedGroupsAndOverflow) {

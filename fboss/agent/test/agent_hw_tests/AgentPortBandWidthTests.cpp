@@ -98,7 +98,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
   void sendUdpPkt(uint8_t dscpVal, int payloadLen) {
     auto vlanId = getVlanIDForTx();
-    auto srcMac = utility::MacAddressGenerator().get(dstMac().u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(dstMac().u64HBO() + 1);
     std::optional<std::vector<uint8_t>> payload = payloadLen
         ? std::vector<uint8_t>(payloadLen, 0xff)
         : std::optional<std::vector<uint8_t>>();

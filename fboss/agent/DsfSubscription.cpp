@@ -566,7 +566,14 @@ void DsfSubscription::processGRHoldTimerExpired() {
     return std::shared_ptr<SwitchState>{};
   };
 
-  hwUpdateEvb_->runInEventBaseThread(
-      [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
+  {
+    // Hold the lock while enqueueing the GR expiry update. This is to avoid
+    // another DSF update comes in at the same time and not being enqueued
+    // because of the non-null nextDsfUpdate_.
+    auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+    hwUpdateEvb_->runInEventBaseThread(
+        [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
+    nextDsfUpdateWlock->reset();
+  }
 }
 } // namespace facebook::fboss

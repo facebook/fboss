@@ -83,7 +83,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
 
     // construct eth hdr
     const auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     EthHdr::VlanTags_t vlans{
         VlanTag(vlanId, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN))};
@@ -151,7 +151,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     auto vlanId = *vlan;
 
     const auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     utility::pumpTraffic(
         utility::getAllocatePktFn(getHwSwitchEnsemble()),

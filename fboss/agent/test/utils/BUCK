@@ -190,6 +190,8 @@ cpp_library(
     ],
     headers = ["MacTestUtils.h"],
     exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
         "//folly:network_address",

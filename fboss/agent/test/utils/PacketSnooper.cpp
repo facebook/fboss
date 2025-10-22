@@ -11,6 +11,43 @@
 DECLARE_bool(rx_vlan_untagged_packets);
 
 namespace facebook::fboss::utility {
+
+// comparator function for packet snooping to accept case that
+// received packet header fields are not equal to originFrame
+// but equal to passed in PacketMatchFields values
+PacketComparatorFn makePacketComparator(const PacketMatchFields& fields) {
+  return [fields](
+             const utility::EthFrame& originFrame,
+             const utility::EthFrame& receivedFrame) -> bool {
+    auto hdr1 = receivedFrame.header();
+    auto hdr2 = originFrame.header();
+
+    if (hdr1.getVlanTags() != hdr2.getVlanTags() ||
+        hdr1.getEtherType() != hdr2.getEtherType() ||
+        hdr1.getDstMac() != hdr2.getDstMac()) {
+      return false;
+    }
+
+    // chec src mac
+    if (hdr1.getSrcMac() != hdr2.getSrcMac()) {
+      if (!fields.expectedSrcMac ||
+          fields.expectedSrcMac.value() != hdr1.getSrcMac()) {
+        return false;
+      }
+    }
+
+    if (receivedFrame.v4PayLoad() != originFrame.v4PayLoad() ||
+        receivedFrame.v6PayLoad() != originFrame.v6PayLoad() ||
+        receivedFrame.mplsPayLoad() != originFrame.mplsPayLoad() ||
+        receivedFrame.arpHdr() != originFrame.arpHdr() ||
+        receivedFrame.macControlPayload() != originFrame.macControlPayload()) {
+      return false;
+    }
+
+    return true;
+  };
+}
+
 PacketSnooper::PacketSnooper(
     std::optional<PortID> port,
     std::optional<utility::EthFrame> expectedFrame,

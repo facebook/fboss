@@ -10,18 +10,21 @@
 
 #pragma once
 
-#include "fboss/agent/state/PortDescriptor.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include <folly/MacAddress.h>
 
 namespace facebook::fboss {
-class TestEnsembleIf;
-}
 
-namespace facebook::fboss::utility {
+class TestEnsembleIf;
+class SwSwitch;
+
+namespace utility {
 
 void setMacAgeTimerSeconds(
     facebook::fboss::TestEnsembleIf* ensemble,
     uint32_t seconds);
+std::vector<L2EntryThrift> getL2Table(SwSwitch* sw_, bool sdk = false);
 
-} // namespace facebook::fboss::utility
+} // namespace utility
+} // namespace facebook::fboss

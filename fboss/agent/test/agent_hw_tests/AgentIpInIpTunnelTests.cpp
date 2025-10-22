@@ -105,7 +105,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
     auto vlanId =
         VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     const folly::IPAddressV6 outerSrcIp("1000::1");
     const folly::IPAddressV6 outerDstIp(outerDstIpAddr);
     const folly::IPAddressV6 innerSrcIp("4004::23");

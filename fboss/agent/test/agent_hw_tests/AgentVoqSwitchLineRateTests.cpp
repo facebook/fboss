@@ -27,7 +27,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
           std::optional<std::vector<uint8_t>>()) {
     folly::IPAddressV6 kSrcIp("2402::1");
     const auto dstMac = getIntfMac();
-    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
 
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),

@@ -831,7 +831,7 @@ void ThriftHandler::syncFibInVrf(
   }
   // Only route updates in first syncFib for each client are logged
   auto firstClientSync =
-      syncedFibClients.find(client) == syncedFibClients.end();
+      syncedFibClients_.find(client) == syncedFibClients_.end();
   auto clientIdentifier = "fboss-agent-warmboot-" + clientName;
   if (firstClientSync && sw_->getBootType() == BootType::WARM_BOOT) {
     sw_->logRouteUpdates("::", 0, clientIdentifier);
@@ -848,7 +848,7 @@ void ThriftHandler::syncFibInVrf(
     sw_->setFibSyncTimeForClient(clientId);
   }
 
-  syncedFibClients.emplace(client);
+  syncedFibClients_.emplace(client);
 }
 
 void ThriftHandler::syncFib(

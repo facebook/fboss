@@ -141,7 +141,7 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
       getSw()->sendPacketSwitchedAsync(utility::makeUDPTxPacket(
           getSw(),
           getVlanIDForTx() /*vlan*/,
-          utility::MacAddressGenerator().get(intfMac.u64NBO() + 1) /*srcMac*/,
+          utility::MacAddressGenerator().get(intfMac.u64HBO() + 1) /*srcMac*/,
           intfMac /*dstMac*/,
           folly::IPAddressV6("2620:0:1cfe:face:b00c::3") /*srcIp*/,
           dstIp,

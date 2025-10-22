@@ -394,7 +394,7 @@ class AgentMacLearningAndNeighborResolutionTest
     auto firstVlanID = getProgrammedState()->getVlans()->getFirstVlanID();
 
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto srcIp =
         dstIp.isV6() ? folly::IPAddress("1::3") : folly::IPAddress("1.1.1.3");
     auto txPacket = utility::makeUDPTxPacket(

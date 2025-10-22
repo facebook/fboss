@@ -973,6 +973,7 @@ cpp_unittest(
         "BaseEcmpResourceMgrMergeGroupsTests.h",
     ],
     deps = [
+        "fbsource//third-party/googletest:gtest",
         ":hw_test_handle",
         ":utils",
         "//fboss/agent:address_utils",

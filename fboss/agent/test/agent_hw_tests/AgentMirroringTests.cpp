@@ -84,7 +84,7 @@ class AgentMirroringTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
         getAgentEnsemble()->getProgrammedState());
-    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
 
     std::vector<uint8_t> payload(payloadSize, 0xff);
     auto trafficPort = getTrafficPort(*getAgentEnsemble());
