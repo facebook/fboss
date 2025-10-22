@@ -8,21 +8,15 @@
  *
  */
 
-#include <folly/MacAddress.h>
 #include <gtest/gtest.h>
 
-#include <net/if.h>
-#include <net/if_arp.h>
-#include <sys/ioctl.h>
 #include <filesystem>
-#include <memory>
 #include <sstream>
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformFsUtils.h"
+#include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
-#include "fboss/platform/weutil/ConfigUtils.h"
-#include "fboss/platform/weutil/FbossEepromInterface.h"
 
 namespace facebook::fboss::platform {
 
@@ -30,59 +24,23 @@ class PlatformHwTest : public ::testing::Test {
  public:
   void SetUp() override {
     platformConfig_ = platform_manager::ConfigUtils().getConfig();
-    fruEepromList_ = weutil::ConfigUtils().getFruEepromList();
   }
 
  protected:
-  std::unordered_map<std::string, weutil::FruEeprom> fruEepromList_;
   platform_manager::PlatformConfig platformConfig_;
-
-  folly::MacAddress getMacAddress(const std::string& interface) {
-    auto sock_deleter = [](int* fd) {
-      if (*fd >= 0) {
-        close(*fd);
-      }
-      delete fd;
-    };
-    std::unique_ptr<int, decltype(sock_deleter)> sock(
-        new int(socket(AF_INET, SOCK_DGRAM, 0)), sock_deleter);
-    if (*sock < 0) {
-      throw std::runtime_error("Failed to create socket");
-    }
-
-    struct ifreq ifr = {};
-    std::strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1);
-    if (ioctl(*sock, SIOCGIFHWADDR, &ifr) < 0) {
-      throw std::runtime_error("Failed to get mac address");
-    }
-    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER) {
-      throw std::runtime_error("Invalid mac address");
-    }
-    return folly::MacAddress::fromBinary(
-        {reinterpret_cast<const unsigned char*>(ifr.ifr_hwaddr.sa_data), 6});
-  }
 };
 
 TEST_F(PlatformHwTest, CorrectMacX86) {
-  // Get eth0 mac address
-  auto eth0Mac = folly::MacAddress::ZERO;
-  try {
-    eth0Mac = getMacAddress("eth0");
-  } catch (const std::exception& e) {
-    ASSERT_TRUE(false) << "Failed to get mac address: " << e.what();
+  platform_checks::MacAddressCheck macCheck;
+  auto result = macCheck.run();
+
+  if (result.status() != platform_checks::CheckStatus::OK) {
+    std::string failureMsg = "MAC address check failed";
+    if (result.errorMessage().has_value()) {
+      failureMsg += ": " + *result.errorMessage();
+    }
+    FAIL() << failureMsg;
   }
-  EXPECT_NE(eth0Mac, folly::MacAddress::ZERO);
-
-  // Get SCM/COME mac address
-  const auto eeprom_name = fruEepromList_.contains("SCM") ? "SCM" : "COME";
-  auto eeprom = fruEepromList_.at(eeprom_name);
-  FbossEepromInterface eepromInterface(eeprom.path, eeprom.offset);
-  std::string eepromMacStr = (*eepromInterface.getEepromContents().x86CpuMac());
-  eepromMacStr = eepromMacStr.substr(0, eepromMacStr.find(','));
-  auto eepromMac = folly::MacAddress::fromString(eepromMacStr);
-
-  EXPECT_NE(eepromMac, folly::MacAddress::ZERO);
-  EXPECT_EQ(eepromMac, eth0Mac);
 }
 
 TEST_F(PlatformHwTest, PCIDevicesPresent) {
