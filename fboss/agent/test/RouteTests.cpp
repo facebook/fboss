@@ -799,10 +799,7 @@ TEST_F(RouteTest, InterfaceRoutes) {
   this->sw_->applyConfig("New config", config);
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
-  // With standalone rib config application will cause us to first
-  // blow away all the interface and static routes and then add them
-  // back based on new config. So generation will set back to 0
-  auto expectedGen = 0;
+  auto expectedGen = 1;
   // verify the ipv4 route
   {
     auto rt = this->findRoute4(stateV2, rid, "1.1.1.0/24");

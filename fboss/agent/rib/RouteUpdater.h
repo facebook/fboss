@@ -124,7 +124,6 @@ class RibRouteUpdater {
   void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
   void delRoute(const LabelID& label, const ClientID clientID);
-  void removeAllRoutesForClient(ClientID clientID);
   void removeAllMplsRoutesForClient(ClientID clientID);
   void removeAllUnclaimedRoutesForClient(
       ClientID clientID,

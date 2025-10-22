@@ -116,9 +116,6 @@ void RibRouteUpdater::updateImpl(
     const std::vector<RouteEntry>& toAdd,
     const std::vector<folly::CIDRNetwork>& toDel,
     bool resetClientsRoutes) {
-  if (resetClientsRoutes) {
-    removeAllRoutesForClient(client);
-  }
   std::for_each(
       toAdd.begin(), toAdd.end(), [this, client](const auto& routeEntry) {
         addOrReplaceRoute(
@@ -130,6 +127,9 @@ void RibRouteUpdater::updateImpl(
   std::for_each(toDel.begin(), toDel.end(), [this, client](const auto& prefix) {
     delRoute(prefix.first, prefix.second, client);
   });
+  if (resetClientsRoutes) {
+    removeAllUnclaimedRoutesForClient(client, toAdd);
+  }
 }
 
 void RibRouteUpdater::updateImpl(
@@ -343,10 +343,6 @@ void RibRouteUpdater::removeAllUnclaimedRoutesFromClientImpl(
   for (auto it : toDelete) {
     routes->erase(it);
   }
-}
-void RibRouteUpdater::removeAllRoutesForClient(ClientID clientID) {
-  removeAllRoutesFromClientImpl<IPAddressV4>(v4Routes_, clientID);
-  removeAllRoutesFromClientImpl<IPAddressV6>(v6Routes_, clientID);
 }
 
 void RibRouteUpdater::removeAllUnclaimedRoutesForClient(
