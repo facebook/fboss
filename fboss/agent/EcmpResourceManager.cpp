@@ -1598,6 +1598,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
     std::tie(grpInfo, grpInserted) =
         routeAddedNoOverrideNhops(rid, newRoute, ecmpLimitReached, inOutState);
   } else {
+    DCHECK(!oldRoute || inOutState->rollingBack())
+        << " Routes with override nhops "
+           "should only be seen during reconstructFromSwitchState (addRoute) or rollback";
     std::tie(grpInfo, grpInserted) = routeAddedWithOverrideNhops(
         rid, newRoute, ecmpLimitReached, inOutState);
   }
