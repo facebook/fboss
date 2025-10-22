@@ -66,7 +66,9 @@ class EcmpResourceManager {
       std::unordered_map<NextHopGroupId, std::vector<Prefix>>;
 
   std::vector<StateDelta> modifyState(const std::vector<StateDelta>& deltas);
-  std::vector<StateDelta> consolidate(const StateDelta& delta);
+  std::vector<StateDelta> consolidate(
+      const StateDelta& delta,
+      bool rollingBack = false);
   std::vector<StateDelta> reconstructFromSwitchState(
       const std::shared_ptr<SwitchState>& curState);
   const auto& getNhopsToId() const {

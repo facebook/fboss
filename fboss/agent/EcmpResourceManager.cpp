@@ -279,7 +279,8 @@ EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
-    const StateDelta& delta) {
+    const StateDelta& delta,
+    bool /*rollingBack*/) {
   std::optional<InputOutputState> inOutState;
   StopWatch timeIt("EcmpResourceManager::consolidate", false /*json*/);
   SCOPE_EXIT {
