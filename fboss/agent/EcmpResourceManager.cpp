@@ -1020,6 +1020,11 @@ void EcmpResourceManager::InputOutputState::deleteRoute(
   replaceLastDelta(StateDelta(oldState, newState));
 }
 
+StateDelta EcmpResourceManager::InputOutputState::getCurrentStateDelta() const {
+  CHECK(!out_.empty());
+  return StateDelta(out_.back().oldState(), out_.back().newState());
+}
+
 std::pair<std::shared_ptr<NextHopGroupInfo>, bool>
 EcmpResourceManager::getOrCreateGroupInfo(
     const RouteNextHopSet& nhops,
