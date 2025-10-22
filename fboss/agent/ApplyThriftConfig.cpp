@@ -3516,11 +3516,17 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       }
     }
 
+    std::optional<PcpMap> pcpMap;
+    if (qosMap->pcpMaps()) {
+      pcpMap = PcpMap(*qosMap->pcpMaps());
+    }
+
     auto qosPolicyNew = make_shared<QosPolicy>(
         *qosPolicy.name(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
-        *qosMap->trafficClassToQueueId());
+        *qosMap->trafficClassToQueueId(),
+        pcpMap);
 
     if (qosMap->pfcPriorityToQueueId().has_value()) {
       qosPolicyNew->setPfcPriorityToQueueIdMap(*qosMap->pfcPriorityToQueueId());
