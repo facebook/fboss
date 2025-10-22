@@ -3423,7 +3423,8 @@ std::pair<strings::trafficClassToQueueId, ChildThriftPath<::std::map<::std::int1
 std::pair<strings::pfcPriorityToQueueId, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::trafficClassToPgId, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::pfcPriorityToPgId, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::trafficClassToVoqId, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<strings::trafficClassToVoqId, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::pcpMap, ChildThriftPath<::facebook::fboss::state::TrafficClassToQosAttributeMap, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::facebook::fboss::state::TrafficClassToQosAttributeMap, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::state::TrafficClassToQosAttributeMap, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
@@ -3431,7 +3432,8 @@ std::pair<strings::trafficClassToVoqId, ChildThriftPath<::std::map<::std::int16_
    std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, ChildThriftPath<::std::map<::std::int16_t, ::std::int16_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, ChildThriftPath<::facebook::fboss::state::TrafficClassToQosAttributeMap, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::name, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::dscpMap, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -3440,7 +3442,8 @@ std::pair<strings::trafficClassToQueueId, std::integral_constant<apache::thrift:
 std::pair<strings::pfcPriorityToQueueId, std::integral_constant<apache::thrift::field_id_t, 5>>,
 std::pair<strings::trafficClassToPgId, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::pfcPriorityToPgId, std::integral_constant<apache::thrift::field_id_t, 7>>,
-std::pair<strings::trafficClassToVoqId, std::integral_constant<apache::thrift::field_id_t, 8>>>::template type_of<Name>;
+std::pair<strings::trafficClassToVoqId, std::integral_constant<apache::thrift::field_id_t, 8>>,
+std::pair<strings::pcpMap, std::integral_constant<apache::thrift::field_id_t, 9>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -3454,6 +3457,7 @@ std::pair<strings::trafficClassToVoqId, std::integral_constant<apache::thrift::f
     STRUCT_CHILD_GETTERS(trafficClassToPgId, 6);
     STRUCT_CHILD_GETTERS(pfcPriorityToPgId, 7);
     STRUCT_CHILD_GETTERS(trafficClassToVoqId, 8);
+    STRUCT_CHILD_GETTERS(pcpMap, 9);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -3465,6 +3469,7 @@ std::pair<strings::trafficClassToVoqId, std::integral_constant<apache::thrift::f
     else if constexpr (__id == 6) { return trafficClassToPgId(); }
     else if constexpr (__id == 7) { return pfcPriorityToPgId(); }
     else if constexpr (__id == 8) { return trafficClassToVoqId(); }
+    else if constexpr (__id == 9) { return pcpMap(); }
   }
 
   template <typename T, T... Values>
