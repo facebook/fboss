@@ -134,7 +134,8 @@ class EcmpResourceManager {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
-        const StateDelta& _in);
+        const StateDelta& _in,
+        bool rollingBack = false);
     /*
      * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
@@ -216,6 +217,9 @@ class EcmpResourceManager {
     std::vector<StateDelta> moveDeltas() {
       return std::move(out_);
     }
+    bool rollingBack() const {
+      return rollingBack_;
+    }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups
@@ -227,6 +231,7 @@ class EcmpResourceManager {
 
    private:
     std::vector<StateDelta> out_;
+    bool rollingBack_{false};
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,

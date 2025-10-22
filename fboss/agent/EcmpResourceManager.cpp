@@ -886,9 +886,11 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
-    const StateDelta& _in)
+    const StateDelta& _in,
+    bool rollingBack)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
-      ecmpMemberCnt(_ecmpMemberCnt) {
+      ecmpMemberCnt(_ecmpMemberCnt),
+      rollingBack_(rollingBack) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
