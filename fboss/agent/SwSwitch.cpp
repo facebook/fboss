@@ -1391,7 +1391,7 @@ void SwSwitch::init(
   auto emptyState = std::make_shared<SwitchState>();
   auto origInitialState = initialState;
   emptyState->publish();
-  auto deltas = reconstructStateModifierFromSwitchState(initialState);
+  auto deltas = reconstructStateFromErmAndShelManager(emptyState, initialState);
 
   // Notify resource accountant of the initial state.
   for (const auto& delta : deltas) {
@@ -1404,9 +1404,12 @@ void SwSwitch::init(
     }
   }
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
-  notifyStateModifierUpdateDone();
   if (ecmpResourceManager_) {
+    ecmpResourceManager_->updateDone();
     updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
+  }
+  if (shelManager_) {
+    shelManager_->updateDone();
   }
   // For cold boot there will be discripancy between applied state and state
   // that exists in hardware. this discrepancy is until config is applied, after
@@ -1475,7 +1478,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
     throw FbossError("Waiting for HwSwitch to be connected cancelled");
   }
   auto origInitialState = initialState;
-  auto deltas = reconstructStateModifierFromSwitchState(initialState);
+  auto deltas = reconstructStateFromErmAndShelManager(emptyState, initialState);
   // Notify resource accountant of the initial state.
   for (const auto& delta : deltas) {
     if (!resourceAccountant_->isValidUpdate(delta)) {
@@ -1495,9 +1498,12 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
       throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
     }
   }
-  notifyStateModifierUpdateDone();
   if (ecmpResourceManager_) {
+    ecmpResourceManager_->updateDone();
     updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
+  }
+  if (shelManager_) {
+    shelManager_->updateDone();
   }
   // for cold boot discrepancy may exist between applied state in software
   // switch and state that already exist in hardware. this discrepancy is
@@ -1674,12 +1680,18 @@ bool SwSwitch::preUpdateModifyState(std::vector<StateDelta>& deltas) {
   return true;
 }
 
-std::vector<StateDelta> SwSwitch::reconstructStateModifierFromSwitchState(
+std::vector<StateDelta> SwSwitch::reconstructStateFromErmAndShelManager(
+    const std::shared_ptr<SwitchState>& emptyState,
     const std::shared_ptr<SwitchState>& initialState) {
   std::vector<StateDelta> deltas;
-  deltas.emplace_back(std::make_shared<SwitchState>(), initialState);
-  for (auto [modifier, _] : stateModifiers_) {
-    deltas = modifier->reconstructFromSwitchState(deltas.back().newState());
+  deltas.emplace_back(emptyState, initialState);
+
+  if (ecmpResourceManager_) {
+    deltas = ecmpResourceManager_->reconstructFromSwitchState(
+        deltas.back().newState());
+  }
+  if (shelManager_) {
+    deltas = shelManager_->reconstructFromSwitchState(deltas.back().newState());
   }
   return deltas;
 }
@@ -1872,12 +1884,17 @@ void SwSwitch::handlePendingUpdates() {
         applyUpdate(oldAppliedState, newDesiredState, isTransaction);
     if (newDesiredState != newAppliedState) {
       /*
-       * Send newAppliedState to State Modifier to reconstruct its
-       * data structures from. In case of platforms where we have
-       * transactions newAppliedState will be the same as oldState. In
+       * Send newAppliedState to EcmpResourceManager and Shel Manager to
+       * reconstruct its data structures from. In case of platforms where we
+       * have transactions newAppliedState will be the same as oldState. In
        * others HW will get to the point of failure and return that state.
        */
-      notifyStateModifierUpdateFailed(newAppliedState);
+      if (ecmpResourceManager_) {
+        ecmpResourceManager_->updateFailed(newAppliedState);
+      }
+      if (shelManager_) {
+        shelManager_->updateFailed(newAppliedState);
+      }
       if (isExiting()) {
         /*
          * If we started exit, applyUpdate will reject updates leading
@@ -1917,7 +1934,12 @@ void SwSwitch::handlePendingUpdates() {
                "HW failure protection";
       }
     } else {
-      notifyStateModifierUpdateDone();
+      if (ecmpResourceManager_) {
+        ecmpResourceManager_->updateDone();
+      }
+      if (shelManager_) {
+        shelManager_->updateDone();
+      }
       // Update successful, update hw update counter to zero.
       fb303::fbData->setCounter(kHwUpdateFailures, 0);
     }
@@ -1972,10 +1994,25 @@ SwSwitch::applyUpdate(
   }
   std::vector<StateDelta> deltas;
   deltas.emplace_back(oldState, newDesiredState);
-  if (!preUpdateModifyState(deltas)) {
+
+  auto modifyState = [&deltas, &newDesiredState](
+                         auto& manager, const std::string& name) {
+    if (manager) {
+      try {
+        deltas = manager->modifyState(deltas);
+      } catch (const FbossError& e) {
+        XLOG(DBG2) << name << " rejected update: " << e.what();
+        return false;
+      }
+      CHECK(!deltas.empty());
+      newDesiredState = deltas.back().newState();
+    }
+    return true;
+  };
+  if (!modifyState(ecmpResourceManager_, "Ecmp Resource Manager") ||
+      !modifyState(shelManager_, "Shel Manager")) {
     return std::make_pair(oldState, newDesiredState);
   }
-  newDesiredState = deltas.back().newState();
 
   bool updateRejected{false};
   for (const auto& delta : deltas) {

@@ -1109,7 +1109,8 @@ class SwSwitch : public HwSwitchCallback {
   /*
    * Reconstruct state modifier from initial switch state.
    */
-  std::vector<StateDelta> reconstructStateModifierFromSwitchState(
+  std::vector<StateDelta> reconstructStateFromErmAndShelManager(
+      const std::shared_ptr<SwitchState>& emptyState,
       const std::shared_ptr<SwitchState>& initialState);
 
   void notifyStateModifierUpdateFailed(
