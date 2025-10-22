@@ -113,6 +113,25 @@ TEST_F(EcmpResourceMgrMergeGroupTest, replayRoutesViaAddIsNoOp) {
   assertReplayIsNoOp(false /*syncFib*/);
 }
 
+TEST_F(EcmpResourceMgrMergeGroupTest, replayRoutesViaSyncFibIsNoOp) {
+  // Cache prefixes to be affected by optimal merge grp selection.
+  // We will later assert that these start pointing to merged groups.
+  auto optimalMergeSet =
+      sw_->getEcmpResourceManager()->getOptimalMergeGroupSet();
+  auto overflowPrefixes = getPrefixesForGroups(optimalMergeSet);
+  EXPECT_EQ(overflowPrefixes.size(), 2);
+  XLOG(DBG2) << " Asserting for replay noop before overflow and merge";
+  assertReplayIsNoOp(true /*syncFib*/);
+  auto deltas = addNextRoute();
+  // Route delta + merge delta
+  EXPECT_EQ(deltas.size(), 2);
+  assertEndState(sw_->getState(), overflowPrefixes);
+  assertMergedGroup(optimalMergeSet);
+  assertCost(optimalMergeSet);
+  XLOG(DBG2) << " Asserting for replay noop before overflow and merge";
+  assertReplayIsNoOp(true /*syncFib*/);
+}
+
 TEST_F(EcmpResourceMgrMergeGroupTest, swapNhopsForToBeMergedGroupsAndOverflow) {
   // Cache prefixes to be affected by optimal merge grp selection.
   // We will later assert that these start pointing to merged groups.
