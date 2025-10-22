@@ -419,11 +419,6 @@ class SwSwitch : public HwSwitchCallback {
       override;
   void unregisterStateObserver(StateObserver* observer) override;
 
-  void registerStateModifier(
-      PreUpdateStateModifier* modifier,
-      const std::string& name);
-  void unregisterStateModifier(PreUpdateStateModifier* modifier);
-
   /*
    * Signal to the switch that initial config is applied.
    * The switch may then use this to start certain functions
@@ -1102,21 +1097,11 @@ class SwSwitch : public HwSwitchCallback {
   void notifyStateObservers(const StateDelta& delta);
 
   /*
-   * Invoke State modifier to modify state prior to update.
-   */
-  bool preUpdateModifyState(std::vector<StateDelta>& deltas);
-
-  /*
    * Reconstruct state modifier from initial switch state.
    */
   std::vector<StateDelta> reconstructStateFromErmAndShelManager(
       const std::shared_ptr<SwitchState>& emptyState,
       const std::shared_ptr<SwitchState>& initialState);
-
-  void notifyStateModifierUpdateFailed(
-      const std::shared_ptr<SwitchState>& state);
-
-  void notifyStateModifierUpdateDone();
 
   void logLinkStateEvent(PortID port, bool up);
 

@@ -1634,45 +1634,6 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
   runFsdbSyncFunction([&delta](auto& syncer) { syncer->stateUpdated(delta); });
 }
 
-void SwSwitch::registerStateModifier(
-    PreUpdateStateModifier* modifier,
-    const std::string& name) {
-  if (stateModifiers_.find(modifier) != stateModifiers_.end()) {
-    throw FbossError("State modifier add failed: ", name, " already exists");
-  }
-  stateModifiers_.emplace(modifier, name);
-}
-
-void SwSwitch::unregisterStateModifier(PreUpdateStateModifier* modifier) {
-  auto erased = stateModifiers_.erase(modifier);
-  if (!erased) {
-    throw FbossError("State modifier remove failed: modifier does not exist");
-  }
-}
-
-bool SwSwitch::preUpdateModifyState(std::vector<StateDelta>& deltas) {
-  CHECK_EQ(deltas.size(), 1);
-  auto oldState = deltas.begin()->oldState();
-  for (auto modifierIter = stateModifiers_.begin();
-       modifierIter != stateModifiers_.end();
-       modifierIter++) {
-    try {
-      deltas = modifierIter->first->modifyState(deltas);
-    } catch (const FbossError& e) {
-      XLOG(DBG2) << modifierIter->second
-                 << " StateModifier rejected update: " << e.what();
-      for (auto rollbackIter = stateModifiers_.begin();
-           rollbackIter != modifierIter;
-           rollbackIter++) {
-        XLOG(DBG2) << "Notify " << rollbackIter->second << " update failed";
-        rollbackIter->first->updateFailed(oldState);
-      }
-      return false;
-    }
-  }
-  return true;
-}
-
 std::vector<StateDelta> SwSwitch::reconstructStateFromErmAndShelManager(
     const std::shared_ptr<SwitchState>& emptyState,
     const std::shared_ptr<SwitchState>& initialState) {
@@ -1687,19 +1648,6 @@ std::vector<StateDelta> SwSwitch::reconstructStateFromErmAndShelManager(
     deltas = shelManager_->reconstructFromSwitchState(deltas.back().newState());
   }
   return deltas;
-}
-
-void SwSwitch::notifyStateModifierUpdateFailed(
-    const std::shared_ptr<SwitchState>& state) {
-  for (auto [modifier, _] : stateModifiers_) {
-    modifier->updateFailed(state);
-  }
-}
-
-void SwSwitch::notifyStateModifierUpdateDone() {
-  for (auto [modifier, _] : stateModifiers_) {
-    modifier->updateDone();
-  }
 }
 
 template <typename FsdbFunc>
