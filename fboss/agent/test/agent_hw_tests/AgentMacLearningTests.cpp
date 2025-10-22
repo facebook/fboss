@@ -69,9 +69,8 @@ int constexpr L2_LEARN_MAX_MAC_COUNT = 5000;
 std::set<folly::MacAddress>
 getMacsForPort(facebook::fboss::SwSwitch* sw, int port, bool isTrunk) {
   std::set<folly::MacAddress> macs;
-  std::vector<L2EntryThrift> l2Entries;
-  facebook::fboss::ThriftHandler handler(sw);
-  handler.getL2Table(l2Entries);
+  auto l2Entries = facebook::fboss::utility::getL2Table(sw);
+
   for (auto& l2Entry : l2Entries) {
     if ((isTrunk && l2Entry.trunk().value_or({}) == port) ||
         *l2Entry.port() == port) {

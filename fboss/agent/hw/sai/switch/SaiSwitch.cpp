@@ -5139,6 +5139,13 @@ HwSwitchTemperatureStats SaiSwitch::getSwitchTemperatureStats() const {
   return managerTable_->switchManager().getSwitchTemperatureStats();
 }
 
+HwSwitchHardResetStats SaiSwitch::getHwSwitchHardResetStats() const {
+  HwSwitchHardResetStats hardResetStats;
+  hardResetStats.hard_reset_notification_received() =
+      hardResetNotificationReceived_.load();
+  return hardResetStats;
+}
+
 /*
  * On a FABRIC switch, from each virtual device, we want equal
  * number of connections to the peer devices. In absence of this

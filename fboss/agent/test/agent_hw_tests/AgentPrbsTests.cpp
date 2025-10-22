@@ -3,7 +3,6 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
-#include "fboss/agent/test/utils/FabricTestUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 

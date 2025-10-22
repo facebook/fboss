@@ -286,11 +286,30 @@ void BaseEcmpResourceManagerTest::SetUp() {
 }
 
 void BaseEcmpResourceManagerTest::TearDown() {
+  // Assert route replays are noops
+  assertReplayIsNoOp(false /*syncFib*/);
+  assertReplayIsNoOp(true /*syncFib*/);
   if (!getEcmpCompressionThresholdPct()) {
     return;
   }
   assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
   assertResourceMgrCorrectness(*consolidator_, state_);
+}
+
+void BaseEcmpResourceManagerTest::assertReplayIsNoOp(bool syncFib) {
+  auto preAddState = state_;
+  ThriftHandler handler(sw_);
+  auto replayRoutes = getClientRoutes(kClientID);
+  XLOG(DBG2) << " Will replay: " << replayRoutes->size()
+             << " routes via: " << (syncFib ? "syncFib" : "addUnicastRoutes");
+  if (syncFib) {
+    handler.syncFib(static_cast<int16_t>(kClientID), std::move(replayRoutes));
+  } else {
+    handler.addUnicastRoutes(
+        static_cast<int16_t>(kClientID), std::move(replayRoutes));
+  }
+  state_ = sw_->getState();
+  ASSERT_EQ(preAddState, state_);
 }
 
 std::shared_ptr<EcmpResourceManager>

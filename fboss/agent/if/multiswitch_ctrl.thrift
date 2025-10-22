@@ -113,6 +113,7 @@ struct HwSwitchStats {
   20: hardware_stats.HwSwitchTemperatureStats switchTemperatureStats;
   @cpp.Type{template = "folly::F14FastMap"}
   21: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
+  22: hardware_stats.HwSwitchHardResetStats hardResetStats;
 }
 
 service MultiSwitchCtrl {

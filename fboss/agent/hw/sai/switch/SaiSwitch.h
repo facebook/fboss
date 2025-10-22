@@ -125,6 +125,7 @@ class SaiSwitch : public HwSwitch {
   HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
 
+  HwSwitchHardResetStats getHwSwitchHardResetStats() const override;
   std::map<int, cfg::PortState> getSysPortShelState() const override;
 
   folly::F14FastMap<std::string, HwRouterInterfaceStats>
@@ -740,6 +741,7 @@ class SaiSwitch : public HwSwitch {
   folly::Synchronized<int> switchReachabilityChangePending_{0};
   folly::Synchronized<bool> txReadyStatusChangePending_{false};
   std::optional<uint32_t> asicRevision_;
+  std::atomic<int16_t> hardResetNotificationReceived_{0};
 };
 
 } // namespace facebook::fboss

@@ -1011,6 +1011,7 @@ void SaiSwitch::hardResetSwitchEventNotificationCallback(
      << reasonStr;
   detailsStr = ss.str();
 #endif
+  hardResetNotificationReceived_.store(1);
   if (FLAGS_ignore_asic_hard_reset_notification) {
     XLOG(ERR) << "Ignoring ASIC hard reset event as configured. " << detailsStr;
     return;

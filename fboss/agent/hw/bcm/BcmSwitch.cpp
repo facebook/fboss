@@ -3311,6 +3311,10 @@ HwSwitchTemperatureStats BcmSwitch::getSwitchTemperatureStats() const {
   return HwSwitchTemperatureStats{};
 }
 
+HwSwitchHardResetStats BcmSwitch::getHwSwitchHardResetStats() const {
+  return HwSwitchHardResetStats{};
+}
+
 bcm_if_t BcmSwitch::getDropEgressId() const {
   return platform_->getAsic()->getDefaultDropEgressID();
 }

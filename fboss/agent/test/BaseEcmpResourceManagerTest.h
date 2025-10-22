@@ -165,6 +165,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   EcmpResourceManager::NextHopGroupIds getAllGroups() const;
 
  private:
+  void assertReplayIsNoOp(bool syncFib);
   std::vector<StateDelta> addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops) {

@@ -2,23 +2,25 @@
 
 #pragma once
 
-#include "fboss/agent/PreUpdateStateModifier.h"
-
 #include <folly/Synchronized.h>
 #include <gtest/gtest.h>
+
+#include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 class StateDelta;
 class SwitchState;
+template <typename AddrT>
+class Route;
 
-class ShelManager : public PreUpdateStateModifier {
+class ShelManager {
  public:
-  std::vector<StateDelta> modifyState(
-      const std::vector<StateDelta>& deltas) override;
+  std::vector<StateDelta> modifyState(const std::vector<StateDelta>& deltas);
   std::vector<StateDelta> reconstructFromSwitchState(
-      const std::shared_ptr<SwitchState>& curState) override;
-  void updateDone() override;
-  void updateFailed(const std::shared_ptr<SwitchState>& curState) override;
+      const std::shared_ptr<SwitchState>& curState);
+  void updateDone();
+  void updateFailed(const std::shared_ptr<SwitchState>& curState);
   bool ecmpOverShelDisabledPort(
       const std::map<int, cfg::PortState>& sysPortShelState);
 
