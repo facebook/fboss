@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
 
 extern "C" {
 #if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
@@ -991,22 +992,31 @@ void SaiSwitch::tamEventCallback(
 void SaiSwitch::hardResetSwitchEventNotificationCallback(
     sai_size_t /*bufferSize*/,
     const void* buffer) {
+  std::string detailsStr;
+// TODO(nivinl): Wait for support in BRCM_SAI_SDK_DNX_GTE_14_0 to enable
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  const auto* eventInfo =
+      static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
+  std::string reasonStr;
+  if (eventInfo->reason == SAI_SWITCH_HARD_RESET_EVENT_FLAG_DEVICE_INTERRUPT) {
+    // If reason is DEVICE_INTERRUPT, then reason_id translates to the
+    // interrupt ID. Print the interrupt name triggering the hard reset!
+    reasonStr = ", Interrupt: " +
+        managerTable_->vendorSwitchManager().getVendorSwitchEventName(
+            eventInfo->reason_id);
+  }
+  std::stringstream ss;
+  ss << "Flags: 0x" << std::hex << eventInfo->flags << ", Reason: 0x"
+     << eventInfo->reason << ", Reason ID: 0x" << eventInfo->reason_id
+     << reasonStr;
+  detailsStr = ss.str();
+#endif
   if (FLAGS_ignore_asic_hard_reset_notification) {
-    XLOG(INFO) << "Got hard reset event, but ignoring as configured!";
+    XLOG(ERR) << "Ignoring ASIC hard reset event as configured. " << detailsStr;
     return;
   }
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-  const sai_switch_hard_reset_event_info_t* eventInfo =
-      static_cast<const sai_switch_hard_reset_event_info_t*>(buffer);
-  /*
-   * Flags has the ORed value for all reason codes for hard resets
-   * For exact values, look at saiswitchextensions.h file
-   */
-  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset, with flag: "
-              << eventInfo->flags;
-#else
-  XLOG(FATAL) << "Abort !!!,  ASIC had a hard reset event";
-#endif
+  // FATAL: Unrecoverable hardware reset, abort process
+  XLOG(FATAL) << "ASIC HARD RESET DETECTED! " << detailsStr;
 }
 
 void SaiSwitch::initTechSupport() {
