@@ -456,6 +456,10 @@ struct HwSwitchFb303GlobalStats {
   38: optional i64 dram_quarantined_buffer_count;
 }
 
+struct HwSwitchHardResetStats {
+  1: i16 hard_reset_notification_received;
+}
+
 struct HwFlowletStats {
   1: i64 l3EcmpDlbFailPackets;
   2: i64 l3EcmpDlbPortReassignmentCount;
