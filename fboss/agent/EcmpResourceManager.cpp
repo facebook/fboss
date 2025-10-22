@@ -1601,8 +1601,18 @@ void EcmpResourceManager::routeAddedOrUpdated(
     DCHECK(!oldRoute || inOutState->rollingBack())
         << " Routes with override nhops "
            "should only be seen during reconstructFromSwitchState (addRoute) or rollback";
-    std::tie(grpInfo, grpInserted) = routeAddedWithOverrideNhops(
-        rid, newRoute, ecmpLimitReached, inOutState);
+    if (!oldRoute || inOutState->rollingBack()) {
+      std::tie(grpInfo, grpInserted) = routeAddedWithOverrideNhops(
+          rid, newRoute, ecmpLimitReached, inOutState);
+    } else {
+      XLOG(ERR)
+          << " Ingoring override nhop !!!. Routes with override nhops "
+             "should only be seen during reconstructFromSwitchState (addRoute) or rollback";
+      auto newerRoute = newRoute->clone();
+      updateRouteOverrides(newerRoute, std::nullopt, std::nullopt);
+      std::tie(grpInfo, grpInserted) = routeAddedNoOverrideNhops(
+          rid, newerRoute, ecmpLimitReached, inOutState);
+    }
   }
   CHECK(grpInfo);
   auto [pitr, pfxInserted] = prefixToGroupInfo_.insert(
