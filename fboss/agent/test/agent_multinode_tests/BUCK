@@ -10,9 +10,10 @@ cpp_library(
     name = "agent_multinode_test_src",
     srcs = [
         "AgentMultiNodeTest.cpp",
+        "TopologyInfo.cpp",
     ],
     deps = ["//fboss/agent/test:agent_hw_test"],
-    exported_deps = [],
+    exported_deps = ["//fboss/agent/state:state"],
 )
 
 _sai_agent_multinode_test_prefix = "sai_agent_multinode_test"
