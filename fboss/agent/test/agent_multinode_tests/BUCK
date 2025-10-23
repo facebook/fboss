@@ -1,9 +1,19 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "SAI_BRCM_DNX_IMPLS")
 load("//fboss/agent/hw/sai/impl:impl.bzl", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 
 oncall("fboss_agent_push")
+
+cpp_library(
+    name = "agent_multinode_test_src",
+    srcs = [
+        "AgentMultiNodeTest.cpp",
+    ],
+    deps = ["//fboss/agent/test:agent_hw_test"],
+    exported_deps = [],
+)
 
 _sai_agent_multinode_test_prefix = "sai_agent_multinode_test"
 
