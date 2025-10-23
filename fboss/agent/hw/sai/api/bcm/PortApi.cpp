@@ -281,7 +281,7 @@ SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
 #if defined(SAI_VERSION_11_7_0_0_ODP) ||     \
     defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
     defined(SAI_VERSION_13_0_EA_DNX_ODP) ||  \
-    defined(SAI_VERSION_13_3_0_0_DNX_ODP)
+    defined(SAI_VERSION_13_3_0_0_DNX_ODP) || defined(SAI_VERSION_13_0_EA_ODP)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
   return std::nullopt;
