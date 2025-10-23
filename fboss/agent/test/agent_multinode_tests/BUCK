@@ -11,6 +11,7 @@ cpp_library(
     srcs = [
         "AgentMultiNodeDsfTest.cpp",
         "AgentMultiNodeDsfUtils.cpp",
+        "AgentMultiNodeProcessRestartTest.cpp",
         "AgentMultiNodeTest.cpp",
         "TopologyInfo.cpp",
     ],
