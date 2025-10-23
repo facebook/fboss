@@ -21,11 +21,14 @@ class TopologyInfo {
 
   bool isTestDriver(const SwSwitch& sw) const;
 
- private:
   enum class TopologyType : uint8_t {
     DSF = 0,
   };
+  TopologyType getTopologyType() const {
+    return topologyType_;
+  }
 
+ private:
   void populateTopologyType(const std::shared_ptr<SwitchState>& switchState);
 
   TopologyType topologyType_;
