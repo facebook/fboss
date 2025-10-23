@@ -11,5 +11,6 @@
 namespace facebook::fboss::utility {
 
 void verifyDsfCluster();
+void verifyDsfAgentDownUp();
 
 } // namespace facebook::fboss::utility
