@@ -12,6 +12,11 @@ class AgentMultiNodeTest : public AgentHwTest {
     AgentHwTest::SetUp();
     topologyInfo_ =
         std::make_unique<utility::TopologyInfo>(getProgrammedState());
+
+    if (!topologyInfo_->isTestDriver(*getSw())) {
+      throw FbossError(
+          "Agent Multi Node test binary can be run on TestDriver only");
+    }
   }
 
   cfg::SwitchConfig initialConfig(
