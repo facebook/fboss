@@ -58,9 +58,17 @@ class AgentMultiNodeTest : public AgentHwTest {
     FLAGS_dsf_subscribe = true;
   }
 
+  void verifyDsfCluster() const {}
+
   std::unique_ptr<utility::TopologyInfo> topologyInfo_;
 };
 
-TEST_F(AgentMultiNodeTest, verifyCluster) {}
+TEST_F(AgentMultiNodeTest, verifyCluster) {
+  switch (topologyInfo_->getTopologyType()) {
+    case utility::TopologyInfo::TopologyType::DSF:
+      verifyDsfCluster();
+      break;
+  }
+}
 
 } // namespace facebook::fboss
