@@ -12,13 +12,16 @@ cpp_library(
         "AgentMultiNodeTest.cpp",
         "TopologyInfo.cpp",
     ],
+    headers = [
+        "AgentMultiNodeTest.h",
+    ],
     deps = [
         "//fboss/agent:asic_utils",
-        "//fboss/agent/test:agent_hw_test",
     ],
     exported_deps = [
         "//fboss/agent:core",
         "//fboss/agent/state:state",
+        "//fboss/agent/test:agent_hw_test",
     ],
 )
 
