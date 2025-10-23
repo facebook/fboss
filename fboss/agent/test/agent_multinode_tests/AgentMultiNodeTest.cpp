@@ -35,6 +35,21 @@ class AgentMultiNodeTest : public AgentHwTest {
       const override {
     return {ProductionFeature::VOQ};
   }
+
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_hide_fabric_ports = false;
+    // Allow disabling of looped ports. This should
+    // be a noop for VOQ switches
+    FLAGS_disable_looped_fabric_ports = true;
+    FLAGS_enable_lldp = true;
+    FLAGS_tun_intf = true;
+    FLAGS_disable_neighbor_updates = false;
+    FLAGS_publish_stats_to_fsdb = true;
+    FLAGS_publish_state_to_fsdb = true;
+    FLAGS_dsf_subscribe = true;
+  }
 };
 
 TEST_F(AgentMultiNodeTest, verifyCluster) {}
