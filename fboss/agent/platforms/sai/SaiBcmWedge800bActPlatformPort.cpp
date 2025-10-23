@@ -17,7 +17,8 @@ void SaiBcmWedge800bActPlatformPort::linkStatusChanged(
   // TODO: set led color
 }
 
-void SaiBcmWedge800bActPlatformPort::externalState(PortLedExternalState /*lfs*/) {
+void SaiBcmWedge800bActPlatformPort::externalState(
+    PortLedExternalState /*lfs*/) {
   // TODO: set led color
 }
 

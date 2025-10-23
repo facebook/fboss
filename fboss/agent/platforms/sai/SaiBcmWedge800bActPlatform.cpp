@@ -24,7 +24,8 @@ SaiBcmWedge800bActPlatform::SaiBcmWedge800bActPlatform(
           std::move(productInfo),
           platformMappingStr.empty()
               ? std::make_unique<Wedge800bActPlatformMapping>()
-              : std::make_unique<Wedge800bActPlatformMapping>(platformMappingStr),
+              : std::make_unique<Wedge800bActPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 void SaiBcmWedge800bActPlatform::setupAsic(
