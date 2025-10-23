@@ -10,10 +10,12 @@ cpp_library(
     name = "agent_multinode_test_src",
     srcs = [
         "AgentMultiNodeDsfTest.cpp",
+        "AgentMultiNodeDsfUtils.cpp",
         "AgentMultiNodeTest.cpp",
         "TopologyInfo.cpp",
     ],
     headers = [
+        "AgentMultiNodeDsfUtils.h",
         "AgentMultiNodeTest.h",
     ],
     deps = [

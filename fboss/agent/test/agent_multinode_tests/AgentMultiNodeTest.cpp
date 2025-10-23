@@ -3,6 +3,7 @@
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeTest.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 
 namespace facebook::fboss {
 
@@ -64,7 +65,7 @@ void AgentMultiNodeTest::verifyDsfCluster() const {}
 TEST_F(AgentMultiNodeTest, verifyCluster) {
   switch (topologyInfo_->getTopologyType()) {
     case utility::TopologyInfo::TopologyType::DSF:
-      verifyDsfCluster();
+      utility::verifyDsfCluster();
       break;
   }
 }
