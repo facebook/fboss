@@ -2962,7 +2962,7 @@
         },
         {
           "name": "SMB_L_PU2978_XP0R8V_TH6_VDDC_POUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/power2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
         },
@@ -2980,7 +2980,7 @@
         },
         {
           "name": "SMB_L_PU2978_XP0R8V_TH6_VDDC_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/in2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 0.927,
@@ -2992,7 +2992,7 @@
         },
         {
           "name": "SMB_L_PU2978_XP0R8V_TH6_VDDC_IOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/curr2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/curr3_input",
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 1100.0
@@ -4228,7 +4228,7 @@
         },
         {
           "name": "SMB_R_PU2978_XP0R8V_TH6_VDDC_POUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/power2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
         },
@@ -4246,7 +4246,7 @@
         },
         {
           "name": "SMB_R_PU2978_XP0R8V_TH6_VDDC_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/in2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 0.927,
@@ -4258,7 +4258,7 @@
         },
         {
           "name": "SMB_R_PU2978_XP0R8V_TH6_VDDC_IOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/curr2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/curr3_input",
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 1100.0
