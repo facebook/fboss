@@ -10,6 +10,7 @@
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800b_act/Wedge800bActBspPlatformMapping.h"
 
 namespace facebook::fboss {
 
@@ -50,6 +51,10 @@ TEST_F(BspPlatformMapTest, checkNumPimTransceivers) {
   auto tahansb800bcBspPlatformMap = Tahansb800bcBspPlatformMapping();
   EXPECT_EQ(tahansb800bcBspPlatformMap.numPims(), 1);
   EXPECT_EQ(tahansb800bcBspPlatformMap.numTransceivers(), 9);
+  // Check WEDGE800B_ACT
+  auto w800baBspPlatformMap = Wedge800bActBspPlatformMapping();
+  EXPECT_EQ(w800baBspPlatformMap.numPims(), 1);
+  EXPECT_EQ(w800baBspPlatformMap.numTransceivers(), 33);
 }
 
 } // namespace facebook::fboss

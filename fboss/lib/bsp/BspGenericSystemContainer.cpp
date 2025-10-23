@@ -16,6 +16,7 @@
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800b_act/Wedge800bActBspPlatformMapping.h"
 
 DEFINE_string(
     bsp_platform_mapping_override_path,
@@ -162,6 +163,15 @@ template <>
 std::shared_ptr<Tahansb800bcSystemContainer>
 Tahansb800bcSystemContainer::getInstance() {
   return _tahansb800bcSystemContainer.try_get();
+}
+
+using Wedge800bActSystemContainer =
+    BspGenericSystemContainer<Wedge800bActBspPlatformMapping>;
+folly::Singleton<Wedge800bActSystemContainer> _wedge800b_actSystemContainer;
+template <>
+std::shared_ptr<Wedge800bActSystemContainer>
+Wedge800bActSystemContainer::getInstance() {
+  return _wedge800b_actSystemContainer.try_get();
 }
 
 } // namespace fboss
