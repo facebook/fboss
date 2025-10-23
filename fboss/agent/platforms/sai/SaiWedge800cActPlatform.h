@@ -15,13 +15,13 @@ namespace facebook::fboss {
 
 class YubaAsic;
 
-class SaiWedge800caPlatform : public SaiTajoPlatform {
+class SaiWedge800cActPlatform : public SaiTajoPlatform {
  public:
-  SaiWedge800caPlatform(
+  SaiWedge800cActPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
-  ~SaiWedge800caPlatform() override;
+  ~SaiWedge800cActPlatform() override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
 

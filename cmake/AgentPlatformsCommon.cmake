@@ -52,6 +52,6 @@ target_link_libraries(platform_mapping_utils
   wedge800ba_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
-  wedge800ca_platform_mapping
+  wedge800c_act_platform_mapping
   ${RE2}
 )
