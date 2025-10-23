@@ -19,8 +19,11 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/EthFrame.h"
-#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/packet/SflowStructs.h"
 #include "fboss/agent/packet/UDPDatagram.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
@@ -48,6 +51,43 @@ const std::string kSflowMirror = "sflow_mirror";
 namespace facebook::fboss {
 
 namespace {
+
+// Struct to hold all headers and sFlow datagram
+struct SflowPacketParsed {
+  EthHdr ethHeader;
+  std::variant<IPv4Hdr, IPv6Hdr> ipHeader;
+  UDPHeader udpHeader;
+  sflow::SampleDatagram sflowDatagram;
+};
+
+// Function to deserialize an IOBuf containing an sFlow packet
+SflowPacketParsed deserializeSflowPacket(const folly::IOBuf* buf) {
+  SflowPacketParsed parsed;
+  folly::io::Cursor cursor(buf);
+
+  // Parse ethernet header
+  parsed.ethHeader = EthHdr(cursor);
+
+  // Parse IP header based on ethertype
+  if (parsed.ethHeader.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+    parsed.ipHeader = IPv4Hdr(cursor);
+  } else if (
+      parsed.ethHeader.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+    parsed.ipHeader = IPv6Hdr(cursor);
+  } else {
+    throw std::runtime_error("Unsupported ethertype");
+  }
+
+  // Parse UDP header
+  parsed.udpHeader.parse(&cursor);
+
+  // Parse sFlow datagram
+  parsed.sflowDatagram = sflow::SampleDatagram::deserialize(cursor);
+
+  return parsed;
+}
 
 std::unique_ptr<folly::IOBuf> maskSflowFields(folly::IOBuf* ioBuf) {
   std::unique_ptr<folly::IOBuf> maskedIoBuf{ioBuf->clone()};
