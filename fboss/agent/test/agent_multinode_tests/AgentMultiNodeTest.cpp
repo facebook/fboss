@@ -3,10 +3,17 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
 
 namespace facebook::fboss {
 
 class AgentMultiNodeTest : public AgentHwTest {
+  void SetUp() override {
+    AgentHwTest::SetUp();
+    topologyInfo_ =
+        std::make_unique<utility::TopologyInfo>(getProgrammedState());
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
@@ -50,6 +57,8 @@ class AgentMultiNodeTest : public AgentHwTest {
     FLAGS_publish_state_to_fsdb = true;
     FLAGS_dsf_subscribe = true;
   }
+
+  std::unique_ptr<utility::TopologyInfo> topologyInfo_;
 };
 
 TEST_F(AgentMultiNodeTest, verifyCluster) {}
