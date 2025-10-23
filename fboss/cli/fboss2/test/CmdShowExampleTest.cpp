@@ -73,7 +73,7 @@ TEST_F(CmdShowExampleTestFixture, queryClient) {
   CmdShowExampleTraits::ObjectArgType queriedEntries;
   auto results = CmdShowExample().queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(results, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, results);
 }
 
 TEST_F(CmdShowExampleTestFixture, printOutput) {

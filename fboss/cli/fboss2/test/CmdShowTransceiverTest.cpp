@@ -334,7 +334,7 @@ TEST_F(CmdShowTransceiverTestFixture, queryClient) {
   CmdShowTransceiverTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByPort) {

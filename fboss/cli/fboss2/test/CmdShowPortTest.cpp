@@ -398,7 +398,7 @@ TEST_F(CmdShowPortTestFixture, sortByName) {
       mockPeerPortInfo,
       mockDrainedInterfaces);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowPortTestFixture, invalidPortName) {
@@ -446,7 +446,7 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
   CmdShowPortTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 } // namespace facebook::fboss

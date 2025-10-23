@@ -147,7 +147,7 @@ TEST_F(CmdShowHostTestFixture, sortModel) {
   auto model = CmdShowHost().createModel(
       mockNdpEntries, mockPortInfoEntries, mockPortStatusEntries, queriedPorts);
 
-  EXPECT_THRIFT_EQ(model, expectedModel);
+  EXPECT_THRIFT_EQ(expectedModel, model);
 }
 
 TEST_F(CmdShowHostTestFixture, queryClient) {
@@ -163,7 +163,7 @@ TEST_F(CmdShowHostTestFixture, queryClient) {
   auto cmd = CmdShowHost();
   auto model = cmd.queryClient(localhost(), queriedPorts);
 
-  EXPECT_THRIFT_EQ(model, expectedModel);
+  EXPECT_THRIFT_EQ(expectedModel, model);
 }
 
 TEST_F(CmdShowHostTestFixture, printOutput) {

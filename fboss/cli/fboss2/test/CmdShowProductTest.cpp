@@ -52,7 +52,7 @@ TEST_F(CmdShowProductTestFixture, queryClient) {
 
   auto cmd = CmdShowProduct();
   auto model = cmd.queryClient(localhost());
-  EXPECT_THRIFT_EQ(model, expectedModel);
+  EXPECT_THRIFT_EQ(expectedModel, model);
 }
 
 TEST_F(CmdShowProductTestFixture, printOutput) {

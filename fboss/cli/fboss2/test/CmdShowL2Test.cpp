@@ -39,7 +39,7 @@ TEST_F(CmdShowL2TestFixture, printOutput) {
   std::string output = ss.str();
   std::string expectOutput =
       "Please run \"show mac details\" for L2 entries.\n";
-  EXPECT_EQ(output, expectOutput);
+  EXPECT_EQ(expectOutput, output);
 }
 
 } // namespace facebook::fboss
