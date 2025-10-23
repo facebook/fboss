@@ -895,7 +895,6 @@ void PortManager::
       if (shouldReinitPorts) {
         if (auto result = updateStateBlockingWithoutWait(
                 portId, PortStateMachineEvent::PORT_EV_RESET_TO_INITIALIZED)) {
-          XLOG(ERR) << "Reset port " << portId << " to initialized";
           results.push_back(result);
         }
       }
@@ -1541,12 +1540,12 @@ void PortManager::refreshStateMachines() {
   // transceivers and transceiver data.
   transceiverManager_->refreshTransceivers();
 
-  // Step 2: Reset port state machines for ports that have transceivers that are
+  // Step 2: Fetch current port status from wedge_agent.
+  updateTransceiverPortStatus();
+
+  // Step 3: Reset port state machines for ports that have transceivers that are
   // recently discovered to retrigger programming.
   detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
-
-  // Step 3: Fetch current port status from wedge_agent.
-  updateTransceiverPortStatus();
 
   // Step 4: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();

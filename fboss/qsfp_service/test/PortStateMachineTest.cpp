@@ -173,9 +173,9 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
 
   void refreshAndTriggerProgramming() {
     transceiverManager_->refreshTransceivers();
+    portManager_->updateTransceiverPortStatus();
     portManager_
         ->detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
-    portManager_->updateTransceiverPortStatus();
     portManager_->triggerProgrammingEvents();
     transceiverManager_->triggerProgrammingEvents();
   }
