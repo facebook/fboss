@@ -16,7 +16,10 @@ cpp_library(
         "//fboss/agent:asic_utils",
         "//fboss/agent/test:agent_hw_test",
     ],
-    exported_deps = ["//fboss/agent/state:state"],
+    exported_deps = [
+        "//fboss/agent:core",
+        "//fboss/agent/state:state",
+    ],
 )
 
 _sai_agent_multinode_test_prefix = "sai_agent_multinode_test"

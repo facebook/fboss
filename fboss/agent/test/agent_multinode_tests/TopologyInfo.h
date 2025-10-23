@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss::utility {
@@ -17,6 +18,8 @@ namespace facebook::fboss::utility {
 class TopologyInfo {
  public:
   explicit TopologyInfo(const std::shared_ptr<SwitchState>& switchState);
+
+  bool isTestDriver(const SwSwitch& sw) const;
 
  private:
   enum class TopologyType : uint8_t {
