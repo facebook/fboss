@@ -12,6 +12,17 @@
 
 namespace facebook::fboss::utility {
 
-TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState) {}
+TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState) {
+  populateTopologyType(switchState);
+}
+
+void TopologyInfo::populateTopologyType(
+    const std::shared_ptr<SwitchState>& switchState) {
+  if (switchState->getDsfNodes()->size() > 0) {
+    topologyType_ = TopologyType::DSF;
+  }
+
+  throw FbossError("Unsupported topology type");
+}
 
 } // namespace facebook::fboss::utility

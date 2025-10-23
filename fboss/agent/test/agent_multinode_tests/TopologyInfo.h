@@ -17,6 +17,15 @@ namespace facebook::fboss::utility {
 class TopologyInfo {
  public:
   explicit TopologyInfo(const std::shared_ptr<SwitchState>& switchState);
+
+ private:
+  enum class TopologyType : uint8_t {
+    DSF = 0,
+  };
+
+  void populateTopologyType(const std::shared_ptr<SwitchState>& switchState);
+
+  TopologyType topologyType_;
 };
 
 } // namespace facebook::fboss::utility
