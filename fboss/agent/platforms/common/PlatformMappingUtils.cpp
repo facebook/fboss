@@ -43,7 +43,7 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
-#include "fboss/agent/platforms/common/wedge800ba/Wedge800baPlatformMapping.h"
+#include "fboss/agent/platforms/common/Wedge800bAct/Wedge800bActPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge800ca/Wedge800caPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
@@ -190,8 +190,8 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           : std::make_unique<Icecube800bcPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE800B_ACT:
       return platformMappingStr.empty()
-          ? std::make_unique<Wedge800baPlatformMapping>()
-          : std::make_unique<Wedge800baPlatformMapping>(platformMappingStr);
+          ? std::make_unique<Wedge800bActPlatformMapping>()
+          : std::make_unique<Wedge800bActPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_ICETEA800BC:
       return platformMappingStr.empty()
           ? std::make_unique<Icetea800bcPlatformMapping>()

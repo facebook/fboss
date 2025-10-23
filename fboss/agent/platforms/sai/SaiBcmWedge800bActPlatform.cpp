@@ -8,26 +8,26 @@
  *
  */
 
-#include "fboss/agent/platforms/sai/SaiBcmWedge800baPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge800bActPlatform.h"
 
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
-#include "fboss/agent/platforms/common/wedge800ba/Wedge800baPlatformMapping.h"
+#include "fboss/agent/platforms/common/Wedge800bAct/Wedge800bActPlatformMapping.h"
 
 #include <cstring>
 namespace facebook::fboss {
 
-SaiBcmWedge800baPlatform::SaiBcmWedge800baPlatform(
+SaiBcmWedge800bActPlatform::SaiBcmWedge800bActPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
           platformMappingStr.empty()
-              ? std::make_unique<Wedge800baPlatformMapping>()
-              : std::make_unique<Wedge800baPlatformMapping>(platformMappingStr),
+              ? std::make_unique<Wedge800bActPlatformMapping>()
+              : std::make_unique<Wedge800bActPlatformMapping>(platformMappingStr),
           localMac) {}
 
-void SaiBcmWedge800baPlatform::setupAsic(
+void SaiBcmWedge800bActPlatform::setupAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
@@ -35,10 +35,10 @@ void SaiBcmWedge800baPlatform::setupAsic(
   asic_ = std::make_unique<Tomahawk5Asic>(switchId, switchInfo);
 }
 
-HwAsic* SaiBcmWedge800baPlatform::getAsic() const {
+HwAsic* SaiBcmWedge800bActPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmWedge800baPlatform::~SaiBcmWedge800baPlatform() = default;
+SaiBcmWedge800bActPlatform::~SaiBcmWedge800bActPlatform() = default;
 
 } // namespace facebook::fboss
