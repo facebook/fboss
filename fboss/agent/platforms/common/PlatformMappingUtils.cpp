@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
+#include "fboss/agent/platforms/common/Wedge800cAct/Wedge800cActPlatformMapping.h"
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
@@ -44,7 +45,6 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
 #include "fboss/agent/platforms/common/wedge800ba/Wedge800baPlatformMapping.h"
-#include "fboss/agent/platforms/common/Wedge800cAct/Wedge800cActPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 

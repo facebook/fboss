@@ -24,7 +24,8 @@ SaiWedge800cActPlatform::SaiWedge800cActPlatform(
           std::move(productInfo),
           platformMappingStr.empty()
               ? std::make_unique<Wedge800cActPlatformMapping>()
-              : std::make_unique<Wedge800cActPlatformMapping>(platformMappingStr),
+              : std::make_unique<Wedge800cActPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 void SaiWedge800cActPlatform::setupAsic(
