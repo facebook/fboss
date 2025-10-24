@@ -54,6 +54,7 @@ struct AsicConfigParameters {
   4: optional AsicConfigGenType configGenType;
   5: optional string portConfig;
   6: optional MultistageRole multistageRole;
+  7: optional bool hyperPort;
 }
 
 struct AsicVendorConfigParams {
