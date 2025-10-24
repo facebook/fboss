@@ -18,6 +18,7 @@ cpp_library(
     headers = [
         "AgentMultiNodeDsfUtils.h",
         "AgentMultiNodeTest.h",
+        "DsfTopologyInfo.h",
     ],
     deps = [
         "//fboss/agent:asic_utils",
