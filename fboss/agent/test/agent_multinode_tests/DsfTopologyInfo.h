@@ -11,13 +11,28 @@
 #pragma once
 
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
 
 namespace facebook::fboss::utility {
 
 class DsfTopologyInfo : public TopologyInfo {
  public:
   DsfTopologyInfo(const std::shared_ptr<SwitchState>& switchState)
-      : TopologyInfo(switchState) {}
+      : TopologyInfo(switchState) {
+    populateDsfNodeInfo(switchState->getDsfNodes());
+  }
+
+ private:
+  void populateDsfNodeInfo(
+      const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
+
+  std::map<int, std::vector<std::string>> clusterIdToRdsws_;
+  std::map<int, std::vector<std::string>> clusterIdToFdsws_;
+  std::set<std::string> sdsws_;
+
+  std::map<SwitchID, std::string> switchIdToSwitchName_;
+  std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
+  std::map<std::string, cfg::AsicType> switchNameToAsicType_;
 };
 
 } // namespace facebook::fboss::utility
