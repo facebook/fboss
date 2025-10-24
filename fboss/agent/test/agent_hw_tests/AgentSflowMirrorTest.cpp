@@ -61,7 +61,8 @@ struct SflowPacketParsed {
 };
 
 // Function to deserialize an IOBuf containing an sFlow packet
-SflowPacketParsed deserializeSflowPacket(const folly::IOBuf* buf) {
+__attribute__((unused)) SflowPacketParsed
+deserializeSflowPacket(const folly::IOBuf* buf) {
   SflowPacketParsed parsed;
   folly::io::Cursor cursor(buf);
 
