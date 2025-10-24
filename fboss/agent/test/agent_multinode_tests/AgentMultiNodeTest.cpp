@@ -9,7 +9,7 @@ namespace facebook::fboss {
 
 void AgentMultiNodeTest::SetUp() {
   AgentHwTest::SetUp();
-  topologyInfo_ = std::make_unique<utility::TopologyInfo>(getProgrammedState());
+  topologyInfo_ = utility::TopologyInfo::makeTopologyInfo(getProgrammedState());
 
   if (!topologyInfo_->isTestDriver(*getSw())) {
     throw FbossError(
