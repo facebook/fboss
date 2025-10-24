@@ -8,9 +8,11 @@
  *
  */
 
+#include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
+
 namespace facebook::fboss::utility {
 
-void verifyDsfCluster();
+void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo);
 void verifyDsfAgentDownUp();
 
 } // namespace facebook::fboss::utility

@@ -65,7 +65,7 @@ void AgentMultiNodeTest::verifyDsfCluster() const {}
 TEST_F(AgentMultiNodeTest, verifyCluster) {
   switch (topologyInfo_->getTopologyType()) {
     case utility::TopologyInfo::TopologyType::DSF:
-      utility::verifyDsfCluster();
+      utility::verifyDsfCluster(topologyInfo_);
       break;
   }
 }
