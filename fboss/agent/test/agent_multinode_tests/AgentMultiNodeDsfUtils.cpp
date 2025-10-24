@@ -6,8 +6,26 @@
 
 namespace facebook::fboss::utility {
 
+bool verifyFabricConnectivityForRdsw(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    int clusterId,
+    const std::string& rdswToVerify) {
+  return true;
+}
+
 bool verifyFabricConnectivityForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+
+  for (const auto& [clusterId, rdsws] :
+       std::as_const(topologyInfo->getClusterIdToRdsws())) {
+    for (const auto& rdsw : rdsws) {
+      if (!verifyFabricConnectivityForRdsw(topologyInfo, clusterId, rdsw)) {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
