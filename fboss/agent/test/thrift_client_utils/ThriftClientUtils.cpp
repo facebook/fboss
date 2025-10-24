@@ -16,6 +16,8 @@
 namespace facebook::fboss::utility {
 
 using facebook::fboss::TestCtrl;
+using RunForHwAgentFn = std::function<void(
+    apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client)>;
 
 std::unique_ptr<apache::thrift::Client<TestCtrl>> getSwAgentThriftClient(
     const std::string& switchName) {
@@ -53,6 +55,17 @@ MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
 int getNumHwSwitches(const std::string& switchName) {
   auto runState = getMultiSwitchRunState(switchName);
   return runState.hwIndexToRunState()->size();
+}
+
+void runOnAllHwAgents(
+    const std::string& switchName,
+    const RunForHwAgentFn& fn) {
+  static const std::vector kHwAgentPorts = {5931, 5932};
+  auto numHwSwitches = getNumHwSwitches(switchName);
+  for (int i = 0; i < numHwSwitches; i++) {
+    auto hwAgentClient = getHwAgentThriftClient(switchName, kHwAgentPorts[i]);
+    fn(*hwAgentClient);
+  }
 }
 
 } // namespace facebook::fboss::utility
