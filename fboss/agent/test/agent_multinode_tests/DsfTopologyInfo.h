@@ -22,28 +22,32 @@ class DsfTopologyInfo : public TopologyInfo {
     populateDsfNodeInfo(switchState->getDsfNodes());
   }
 
-  const std::map<int, std::vector<std::string>>& getClusterIdToRdsws() const {
+  const std::map<int, std::vector<std::string>>& getClusterIdToRdsws()
+      const override {
     return clusterIdToRdsws_;
   }
 
-  const std::map<int, std::vector<std::string>>& getClusterIdToFdsws() const {
+  const std::map<int, std::vector<std::string>>& getClusterIdToFdsws()
+      const override {
     return clusterIdToFdsws_;
   }
 
-  const std::set<std::string>& getSdsws() const {
+  const std::set<std::string>& getSdsws() const override {
     return sdsws_;
   }
 
-  const std::map<SwitchID, std::string>& getSwitchIdToSwitchName() const {
+  const std::map<SwitchID, std::string>& getSwitchIdToSwitchName()
+      const override {
     return switchIdToSwitchName_;
   }
 
   const std::map<std::string, std::set<SwitchID>>& getSwitchNameToSwitchIds()
-      const {
+      const override {
     return switchNameToSwitchIds_;
   }
 
-  const std::map<std::string, cfg::AsicType>& getSwitchNameToAsicType() const {
+  const std::map<std::string, cfg::AsicType>& getSwitchNameToAsicType()
+      const override {
     return switchNameToAsicType_;
   }
 

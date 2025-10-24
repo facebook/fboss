@@ -47,6 +47,8 @@ TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState) {
   populateTopologyType(switchState);
 }
 
+TopologyInfo::~TopologyInfo() {}
+
 void TopologyInfo::populateTopologyType(
     const std::shared_ptr<SwitchState>& switchState) {
   if (switchState->getDsfNodes()->size() > 0) {

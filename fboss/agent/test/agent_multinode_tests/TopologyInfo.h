@@ -21,6 +21,7 @@ class TopologyInfo {
       const std::shared_ptr<SwitchState>& switchState);
 
   explicit TopologyInfo(const std::shared_ptr<SwitchState>& switchState);
+  virtual ~TopologyInfo();
 
   bool isTestDriver(const SwSwitch& sw) const;
 
@@ -30,6 +31,18 @@ class TopologyInfo {
   TopologyType getTopologyType() const {
     return topologyType_;
   }
+
+  virtual const std::map<int, std::vector<std::string>>& getClusterIdToRdsws()
+      const = 0;
+  virtual const std::map<int, std::vector<std::string>>& getClusterIdToFdsws()
+      const = 0;
+  virtual const std::set<std::string>& getSdsws() const = 0;
+  virtual const std::map<SwitchID, std::string>& getSwitchIdToSwitchName()
+      const = 0;
+  virtual const std::map<std::string, std::set<SwitchID>>&
+  getSwitchNameToSwitchIds() const = 0;
+  virtual const std::map<std::string, cfg::AsicType>& getSwitchNameToAsicType()
+      const = 0;
 
  private:
   void populateTopologyType(const std::shared_ptr<SwitchState>& switchState);
