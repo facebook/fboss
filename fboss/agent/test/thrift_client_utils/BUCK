@@ -6,9 +6,9 @@ cpp_library(
     name = "thrift_client_utils",
     srcs = ["ThriftClientUtils.cpp"],
     headers = ["ThriftClientUtils.h"],
-    deps = [
+    exported_deps = [
         "//common/network:util",
+        "//fboss/agent/if:test_ctrl-cpp2-clients",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
-    exported_deps = ["//fboss/agent/if:test_ctrl-cpp2-clients"],
 )

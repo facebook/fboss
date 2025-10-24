@@ -29,4 +29,11 @@ std::unique_ptr<apache::thrift::Client<TestCtrl>> getSwAgentThriftClient(
   return std::make_unique<apache::thrift::Client<TestCtrl>>(std::move(channel));
 }
 
+MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  MultiSwitchRunState runState;
+  swAgentClient->sync_getMultiSwitchRunState(runState);
+  return runState;
+}
+
 } // namespace facebook::fboss::utility

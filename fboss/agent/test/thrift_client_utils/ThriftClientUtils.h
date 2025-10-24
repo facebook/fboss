@@ -17,4 +17,6 @@ namespace facebook::fboss::utility {
 std::unique_ptr<apache::thrift::Client<facebook::fboss::TestCtrl>>
 getSwAgentThriftClient(const std::string& switchName);
 
+MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName);
+
 } // namespace facebook::fboss::utility
