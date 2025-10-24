@@ -17,6 +17,9 @@ namespace facebook::fboss::utility {
 
 class TopologyInfo {
  public:
+  static std::unique_ptr<TopologyInfo> makeTopologyInfo(
+      const std::shared_ptr<SwitchState>& switchState);
+
   explicit TopologyInfo(const std::shared_ptr<SwitchState>& switchState);
 
   bool isTestDriver(const SwSwitch& sw) const;

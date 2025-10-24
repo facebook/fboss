@@ -10,6 +10,8 @@
 
 #include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
 
+#include "fboss/agent/test/agent_multinode_tests/DsfTopologyInfo.h"
+
 namespace {
 
 using facebook::fboss::FbossError;
@@ -28,6 +30,18 @@ TopologyInfo::TopologyType getDerivedTopologyInfo(
 } // namespace
 
 namespace facebook::fboss::utility {
+
+std::unique_ptr<TopologyInfo> TopologyInfo::makeTopologyInfo(
+    const std::shared_ptr<SwitchState>& switchState) {
+  auto topologyType = getDerivedTopologyInfo(switchState);
+
+  switch (topologyType) {
+    case TopologyType::DSF:
+      return std::make_unique<DsfTopologyInfo>(switchState);
+  }
+
+  throw FbossError("Unexcepted topologyInfo: ", topologyType);
+}
 
 TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState) {
   populateTopologyType(switchState);
