@@ -1594,4 +1594,17 @@ phy::PortPrbsState PortManager::getXphyPortPrbs(
   return phyManager_->getPortPrbs(portId, side);
 }
 
+void PortManager::getPortStates(
+    std::map<int32_t, PortStateMachineState>& states,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  for (const auto& id : *ids) {
+    auto portId = PortID(id);
+    try {
+      states.emplace(id, getPortState(portId));
+    } catch (const FbossError& /* e */) {
+      XLOG(WARN) << "Unrecognized Port:" << portId;
+    }
+  }
+}
+
 } // namespace facebook::fboss
