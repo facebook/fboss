@@ -136,6 +136,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using QosDot1pToTcMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_DOT1P_TO_TC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using QosTcToQueueMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP,
@@ -645,7 +650,8 @@ struct SaiPortTraits {
       std::optional<Attributes::FabricSystemPort>,
       std::optional<Attributes::StaticModuleId>,
       std::optional<Attributes::IsHyperPortMember>,
-      std::optional<Attributes::HyperPortMemberList>>;
+      std::optional<Attributes::HyperPortMemberList>,
+      std::optional<Attributes::QosDot1pToTcMap>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -718,6 +724,7 @@ SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
 SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
+SAI_ATTRIBUTE_NAME(Port, QosDot1pToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, DisableTtlDecrement)
 

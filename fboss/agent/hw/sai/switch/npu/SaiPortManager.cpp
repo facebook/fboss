@@ -832,6 +832,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         staticModuleId,
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
+        std::nullopt, // QosDot1pToTcMap
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -923,6 +924,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       staticModuleId,
       std::nullopt, // IsHyperPortMember
       std::nullopt, // HyperPortMemberList
+      std::nullopt, // QosDot1pToTcMap
   };
 }
 
