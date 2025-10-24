@@ -2333,6 +2333,10 @@ void SaiPortManager::setQosMapsOnPort(
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosDot1pToTcMap{mapping});
         break;
+      case SAI_QOS_MAP_TYPE_TC_AND_COLOR_TO_DOT1P:
+        port->setOptionalAttribute(
+            SaiPortTraits::Attributes::QosTcAndColorToDot1pMap{mapping});
+        break;
       case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
         /*
          * On certain platforms, applying TC to QUEUE mapping on front panel
@@ -2378,6 +2382,9 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
 
   auto qosMapHandle = managerTable_->qosMapManager().getQosMap();
   if (qosMapHandle) {
+    if (qosMapHandle->tcToPcpMap) {
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_AND_COLOR_TO_DOT1P, nullObjId);
+    }
     if (qosMapHandle->tcToPgMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId);
     }
@@ -2399,6 +2406,13 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
       qosMaps.emplace_back(
           SAI_QOS_MAP_TYPE_DOT1P_TO_TC, qosMapHandle->pcpToTcMap->adapterKey());
     }
+
+    if (qosMapHandle->tcToPcpMap) {
+      qosMaps.emplace_back(
+          SAI_QOS_MAP_TYPE_TC_AND_COLOR_TO_DOT1P,
+          qosMapHandle->tcToPcpMap->adapterKey());
+    }
+
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_TC_TO_QUEUE, qosMapHandle->tcToQueueMap->adapterKey());
   }
@@ -2442,6 +2456,9 @@ void SaiPortManager::setQosPolicy(
     if (qosMapHandle->pcpToTcMap) {
       handle->pcpToTcQosMap = qosMapHandle->pcpToTcMap;
     }
+    if (qosMapHandle->tcToPcpMap) {
+      handle->tcToPcpQosMap = qosMapHandle->tcToPcpMap;
+    }
     handle->tcToQueueQosMap = qosMapHandle->tcToQueueMap;
     handle->qosPolicy = qosMapHandle->name;
   }
@@ -2470,6 +2487,7 @@ void SaiPortManager::clearQosPolicy(PortID portID) {
     setQosMapsOnPort(portID, qosMaps);
     handle->dscpToTcQosMap.reset();
     handle->pcpToTcQosMap.reset();
+    handle->tcToPcpQosMap.reset();
     handle->tcToQueueQosMap.reset();
     handle->qosPolicy.reset();
   }
