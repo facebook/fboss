@@ -36,4 +36,9 @@ MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
   return runState;
 }
 
+int getNumHwSwitches(const std::string& switchName) {
+  auto runState = getMultiSwitchRunState(switchName);
+  return runState.hwIndexToRunState()->size();
+}
+
 } // namespace facebook::fboss::utility
