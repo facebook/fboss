@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 
+#include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss::utility {
@@ -10,7 +11,39 @@ bool verifyFabricConnectivityForRdsw(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     int clusterId,
     const std::string& rdswToVerify) {
-  return true;
+  // Every RDSW is connected to all FDSWs in its cluster
+  std::set<std::string> expectedConnectedSwitches(
+      std::begin(topologyInfo->getClusterIdToFdsws().at(clusterId)),
+      std::end(topologyInfo->getClusterIdToFdsws().at(clusterId)));
+
+  std::set<std::string> gotConnectedSwitches;
+  for (const auto& [portName, fabricEndpoint] :
+       getFabricPortToFabricEndpoint(rdswToVerify)) {
+    if (fabricEndpoint.isAttached().value()) {
+      auto actualRemoteSwitchId = fabricEndpoint.switchId().value();
+      auto expectedRemoteSwitchId =
+          fabricEndpoint.expectedSwitchId().value_or(-1);
+      auto actualRemoteSwitchName = fabricEndpoint.switchName();
+      auto expectedRemoteSwitchName = fabricEndpoint.expectedSwitchName();
+
+      auto actualRemotePortId = fabricEndpoint.portId().value();
+      auto expectedRemotePortId = fabricEndpoint.expectedPortId().value_or(-1);
+      auto actualRemotePortName = fabricEndpoint.portName();
+      auto expectedRemotePortName = fabricEndpoint.portName();
+
+      // Expected switch/port ID/name must match for every entry
+      if (!(expectedRemoteSwitchId == actualRemoteSwitchId &&
+            expectedRemoteSwitchName == actualRemoteSwitchName &&
+            expectedRemotePortId == actualRemotePortId &&
+            expectedRemotePortName == actualRemotePortName)) {
+        return false;
+      }
+      if (fabricEndpoint.switchName().has_value()) {
+        gotConnectedSwitches.insert(fabricEndpoint.switchName().value());
+      }
+    }
+  }
+  return expectedConnectedSwitches == gotConnectedSwitches;
 }
 
 bool verifyFabricConnectivityForRdsws(

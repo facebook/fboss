@@ -28,6 +28,7 @@ cpp_library(
         "//fboss/agent:core",
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test/thrift_client_utils:thrift_client_utils",
         "//fboss/lib:common_utils",
     ],
 )
