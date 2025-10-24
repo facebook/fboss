@@ -709,4 +709,30 @@ TEST_F(PortManagerTest, syncPorts) {
   // but we can at least verify the method doesn't crash and processes the input
 }
 
+TEST_F(PortManagerTest, getPortStates) {
+  initManagers(2, 4); // 2 transceivers, 4 ports each
+
+  // Create a vector of port IDs - mix of valid and invalid
+  auto portIds = std::make_unique<std::vector<int32_t>>();
+  portIds->push_back(1); // Valid port
+  portIds->push_back(3); // Valid port
+  portIds->push_back(999); // Invalid port - should be skipped
+
+  // Create states map to be populated
+  std::map<int32_t, PortStateMachineState> states;
+
+  // Call getPortStates
+  EXPECT_NO_THROW(portManager_->getPortStates(states, std::move(portIds)));
+
+  // Verify that valid ports are in the map
+  EXPECT_TRUE(states.find(1) != states.end());
+  EXPECT_TRUE(states.find(3) != states.end());
+
+  // Verify that invalid port is NOT in the map (it was caught and skipped)
+  EXPECT_TRUE(states.find(999) == states.end());
+
+  // Verify we got the expected number of entries (only valid ports)
+  EXPECT_EQ(states.size(), 2);
+}
+
 } // namespace facebook::fboss
