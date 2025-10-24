@@ -32,7 +32,7 @@ class VlanApiTest : public ::testing::Test {
     SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
         bridgePortId};
     return vlanApi->create<SaiVlanMemberTraits>(
-        {vlanIdAttribute, bridgePortIdAttribute}, 0);
+        {vlanIdAttribute, bridgePortIdAttribute, std::nullopt}, 0);
   }
 
   void checkVlan(VlanSaiId vlanId) const {
