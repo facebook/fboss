@@ -196,11 +196,15 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   fs::remove_all("/run/devmap/xcvrs");
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
+
+  uint maxOsfpXcvrNum = platformConfig_.numQsfpXcvrs().has_value()
+          ? std::max(0, *platformConfig_.numXcvrs() - *platformConfig_.numQsfpXcvrs() + 1)
+          : *platformConfig_.numXcvrs();
   // Note: We are not checking the LED files of the last xcvr (typically the
   // PIE/Management port). This PIE/Management port has different number of LEDs
   // on different platforms. We can augment this test later by reading from
   // `ledCtrlConfigs` and perform this check even for PIE ports.
-  for (auto xcvrNum = 1; xcvrNum < *platformConfig_.numXcvrs(); xcvrNum++) {
+  for (auto xcvrNum = 1; xcvrNum < maxOsfpXcvrNum; xcvrNum++) {
     auto blueLed1 = fs::path(
         fmt::format("/sys/class/leds/port{}_led1:blue:status", xcvrNum));
     auto blueLed2 = fs::path(
