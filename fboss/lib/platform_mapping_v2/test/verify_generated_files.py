@@ -51,6 +51,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "meru400bfu",
             "janga800bic_dctypef_prod",
             "janga800bic_dctypef_test_fixture",
+            "ladakh800bc",
         ],
     }
     _FBCODE_GENERATED_DIR: str = (
