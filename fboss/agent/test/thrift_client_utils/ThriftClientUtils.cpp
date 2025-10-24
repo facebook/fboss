@@ -68,4 +68,18 @@ void runOnAllHwAgents(
   }
 }
 
+std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
+    const std::string& switchName) {
+  std::map<std::string, FabricEndpoint> fabricPortToFabricEndpoint;
+  auto hwAgentQueryFn = [&fabricPortToFabricEndpoint](
+                            apache::thrift::Client<FbossHwCtrl>& client) {
+    std::map<std::string, FabricEndpoint> hwAgentEntries;
+    client.sync_getHwFabricConnectivity(hwAgentEntries);
+    fabricPortToFabricEndpoint.merge(hwAgentEntries);
+  };
+  runOnAllHwAgents(switchName, hwAgentQueryFn);
+
+  return fabricPortToFabricEndpoint;
+}
+
 } // namespace facebook::fboss::utility

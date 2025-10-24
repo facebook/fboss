@@ -24,4 +24,7 @@ std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> getHwAgentThriftClient(
 MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName);
 int getNumHwSwitches(const std::string& switchName);
 
+std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
+    const std::string& switchName);
+
 } // namespace facebook::fboss::utility
