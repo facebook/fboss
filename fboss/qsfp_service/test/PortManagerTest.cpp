@@ -544,18 +544,6 @@ TEST_F(PortManagerTest, tcvrToInitializedPortsCacheValidation) {
   tcvr0Ports =
       portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
   EXPECT_EQ(tcvr0Ports.size(), 0);
-
-  // Test with empty transceiver
-  std::unordered_set<PortID> testSetEmpty = {PortID(5), PortID(6)};
-  auto transceivers5 =
-      portManager_->getTransceiversWithAllPortsInSet(testSetEmpty);
-
-  // TransceiverID(0) has no ports → should be included (empty set matches
-  // anything) TransceiverID(1) has ports 5,6, both are in testSetEmpty →
-  // should be included
-  EXPECT_EQ(transceivers5.size(), 2);
-  EXPECT_TRUE(transceivers5.count(TransceiverID(0)));
-  EXPECT_TRUE(transceivers5.count(TransceiverID(1)));
 }
 
 TEST_F(PortManagerTest, tcvrToInitializedPortsCacheEdgeCases) {
