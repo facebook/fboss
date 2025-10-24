@@ -264,7 +264,7 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_YANGRA;
     } else if (FLAGS_mode == "minipack3n") {
       type_ = PlatformType::PLATFORM_MINIPACK3N;
-    } else if (FLAGS_mode == "wedge800ba") {
+    } else if (FLAGS_mode == "wedge800b_act") {
       type_ = PlatformType::PLATFORM_WEDGE800B_ACT;
     } else if (FLAGS_mode == "tahansb800bc") {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;

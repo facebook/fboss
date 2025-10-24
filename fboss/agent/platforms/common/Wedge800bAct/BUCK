@@ -3,12 +3,12 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
-    name = "wedge800ba_platform_mapping",
+    name = "wedge800b_act_platform_mapping",
     srcs = [
-        "Wedge800baPlatformMapping.cpp",
+        "Wedge800bActPlatformMapping.cpp",
     ],
     headers = [
-        "Wedge800baPlatformMapping.h",
+        "Wedge800bActPlatformMapping.h",
     ],
     exported_deps = [
         "//fboss/agent/platforms/common:platform_mapping",
