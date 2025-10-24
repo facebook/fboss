@@ -1291,8 +1291,9 @@ void SaiPortManager::changeQueue(
     const std::shared_ptr<Port>& swPort,
     const QueueConfig& oldQueueConfig,
     const QueueConfig& newQueueConfig) {
-  if (swPort->getPortType() == cfg::PortType::FABRIC_PORT &&
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) {
+  if ((swPort->getPortType() == cfg::PortType::FABRIC_PORT &&
+       !platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) ||
+      swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
     return;
   }
   auto swId = swPort->getID();
