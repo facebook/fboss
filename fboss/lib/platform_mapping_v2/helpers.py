@@ -38,7 +38,7 @@ from neteng.fboss.platform_mapping_config.ttypes import (
 
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed
 
-from neteng.fboss.transceiver.ttypes import TransmitterTechnology
+from neteng.fboss.transceiver.ttypes import TransmitterTechnology, Vendor
 
 
 def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
@@ -491,12 +491,22 @@ def _create_override_from_si_setting(
     chip_type: ChipType,
 ) -> PlatformPortConfigOverride:
     """Create platform port config override from SI setting factor."""
+    si_setting_vendor = si_setting_and_factor.factor.tcvr_override_setting.vendor
+    # we only care about the vendor name and part number for overrides.
+    vendor = Vendor(
+        name=si_setting_vendor.name,
+        oui=b"",
+        partNumber=si_setting_vendor.partNumber,
+        rev="",
+        serialNumber="",
+        dateCode="",
+    )
     override_factor = PlatformPortConfigOverrideFactor(
         ports=[port_id],
         profiles=[profile],
         transceiverManagementInterface=None,
         mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
-        vendor=si_setting_and_factor.factor.tcvr_override_setting.vendor,
+        vendor=vendor,
     )
 
     port_pin_config = PortPinConfig(
