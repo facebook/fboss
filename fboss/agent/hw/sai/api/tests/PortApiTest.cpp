@@ -90,7 +90,6 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
         std::nullopt, // QosDot1pToTcMap
-        std::nullopt, // QosTcAndColorToDot1pMap
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
