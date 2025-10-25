@@ -7,21 +7,21 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/platforms/sai/SaiWedge800caPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiWedge800cActPlatformPort.h"
 
 namespace facebook::fboss {
 
-void SaiWedge800caPlatformPort::linkStatusChanged(
+void SaiWedge800cActPlatformPort::linkStatusChanged(
     bool /*up*/,
     bool /*adminUp*/) {
   // TODO: set led color
 }
 
-void SaiWedge800caPlatformPort::externalState(PortLedExternalState /*lfs*/) {
+void SaiWedge800cActPlatformPort::externalState(PortLedExternalState /*lfs*/) {
   // TODO: set led color
 }
 
-uint32_t SaiWedge800caPlatformPort::getCurrentLedState() const {
+uint32_t SaiWedge800cActPlatformPort::getCurrentLedState() const {
   return static_cast<uint32_t>(currentLedState_);
 }
 

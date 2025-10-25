@@ -268,7 +268,7 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE800B_ACT;
     } else if (FLAGS_mode == "tahansb800bc") {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
-    } else if (FLAGS_mode == "wedge800ca") {
+    } else if (FLAGS_mode == "wedge800c_act") {
       type_ = PlatformType::PLATFORM_WEDGE800C_ACT;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
