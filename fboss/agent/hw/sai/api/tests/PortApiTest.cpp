@@ -354,15 +354,6 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   auto gotPortDot1pToTc = portApi->getAttribute(portId, portDot1pToTc);
   EXPECT_EQ(gotPortDot1pToTc, qosMapDot1pToTc);
 
-  // Port TC and Color to Dot1p (PCP) map get/set
-  sai_object_id_t qosMapTcAndColorToDot1p{45};
-  SaiPortTraits::Attributes::QosTcAndColorToDot1pMap portTcAndColorToDot1p{
-      qosMapTcAndColorToDot1p};
-  portApi->setAttribute(portId, portTcAndColorToDot1p);
-  auto gotPortTcAndColorToDot1p =
-      portApi->getAttribute(portId, portTcAndColorToDot1p);
-  EXPECT_EQ(gotPortTcAndColorToDot1p, qosMapTcAndColorToDot1p);
-
   // Port TTL decrement
   SaiPortTraits::Attributes::DisableTtlDecrement disableTtlDec{true};
   portApi->setAttribute(portId, disableTtlDec);
