@@ -278,10 +278,10 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
-#if defined(SAI_VERSION_11_7_0_0_ODP) ||     \
-    defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
-    defined(SAI_VERSION_13_0_EA_DNX_ODP) ||  \
-    defined(SAI_VERSION_13_3_0_0_DNX_ODP) || defined(SAI_VERSION_13_0_EA_ODP)
+#if (                                                                          \
+    defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
+    defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                     \
+    !defined(SAI_VERSION_14_0_EA_ODP) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
   return std::nullopt;
