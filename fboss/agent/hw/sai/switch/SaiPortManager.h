@@ -108,7 +108,6 @@ struct SaiPortHandle {
   std::shared_ptr<SaiSamplePacket> ingressSamplePacket;
   std::shared_ptr<SaiSamplePacket> egressSamplePacket;
   std::shared_ptr<SaiQosMap> dscpToTcQosMap;
-  std::shared_ptr<SaiQosMap> pcpToTcQosMap;
   std::shared_ptr<SaiQosMap> tcToQueueQosMap;
   std::optional<std::string> qosPolicy;
   SaiQueueHandles queues;

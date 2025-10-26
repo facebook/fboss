@@ -3852,15 +3852,10 @@ bool SaiSwitch::isValidStateUpdateLocked(
   auto isValid = true;
   if (globalQosDelta.getNew()) {
     auto& newPolicy = globalQosDelta.getNew();
-    bool hasDscpMap =
-        newPolicy->getDscpMap()->get<switch_state_tags::from>()->size() > 0;
-    auto pcpMap = newPolicy->getPcpMap();
-    bool hasPcpMap = pcpMap.has_value() && !pcpMap->empty();
-    bool hasTcToQueue = newPolicy->getTrafficClassToQueueId()->size() > 0;
-
-    if ((!hasDscpMap && !hasPcpMap) || !hasTcToQueue) {
+    if (newPolicy->getDscpMap()->get<switch_state_tags::from>()->size() == 0 ||
+        newPolicy->getTrafficClassToQueueId()->size() == 0) {
       XLOG(ERR)
-          << " Either DSCP to TC or PCP to TC map, along with TC to Queue map, must be provided in valid qos policies";
+          << " Both DSCP to TC and TC to Queue maps must be provided in valid qos policies";
       return false;
     }
     /*

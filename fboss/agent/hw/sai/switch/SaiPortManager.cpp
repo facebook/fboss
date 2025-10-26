@@ -2330,10 +2330,6 @@ void SaiPortManager::setQosMapsOnPort(
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosDscpToTcMap{mapping});
         break;
-      case SAI_QOS_MAP_TYPE_DOT1P_TO_TC:
-        port->setOptionalAttribute(
-            SaiPortTraits::Attributes::QosDot1pToTcMap{mapping});
-        break;
       case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
         /*
          * On certain platforms, applying TC to QUEUE mapping on front panel
@@ -2373,7 +2369,6 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
   auto nullObjId = QosMapSaiId(SAI_NULL_OBJECT_ID);
   if (!globalQosMapSupported_) {
     qosMaps.emplace_back(SAI_QOS_MAP_TYPE_DSCP_TO_TC, nullObjId);
-    qosMaps.emplace_back(SAI_QOS_MAP_TYPE_DOT1P_TO_TC, nullObjId);
     qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_QUEUE, nullObjId);
   }
 
@@ -2396,10 +2391,6 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
   if (!globalQosMapSupported_) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_DSCP_TO_TC, qosMapHandle->dscpToTcMap->adapterKey());
-    if (qosMapHandle->pcpToTcMap) {
-      qosMaps.emplace_back(
-          SAI_QOS_MAP_TYPE_DOT1P_TO_TC, qosMapHandle->pcpToTcMap->adapterKey());
-    }
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_TC_TO_QUEUE, qosMapHandle->tcToQueueMap->adapterKey());
   }
@@ -2440,9 +2431,6 @@ void SaiPortManager::setQosPolicy(
   auto handle = getPortHandle(portID);
   if (!globalQosMapSupported_) {
     handle->dscpToTcQosMap = qosMapHandle->dscpToTcMap;
-    if (qosMapHandle->pcpToTcMap) {
-      handle->pcpToTcQosMap = qosMapHandle->pcpToTcMap;
-    }
     handle->tcToQueueQosMap = qosMapHandle->tcToQueueMap;
     handle->qosPolicy = qosMapHandle->name;
   }
@@ -2470,7 +2458,6 @@ void SaiPortManager::clearQosPolicy(PortID portID) {
     auto qosMaps = getNullSaiIdsForQosMaps();
     setQosMapsOnPort(portID, qosMaps);
     handle->dscpToTcQosMap.reset();
-    handle->pcpToTcQosMap.reset();
     handle->tcToQueueQosMap.reset();
     handle->qosPolicy.reset();
   }
