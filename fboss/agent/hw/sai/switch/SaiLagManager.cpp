@@ -73,7 +73,7 @@ LagSaiId SaiLagManager::addLag(
       aggregatePort->getID(), aggregatePort->getName());
   handles_.emplace(aggregatePort->getID(), std::move(handle));
   managerTable_->vlanManager().createVlanMember(
-      vlanID, SaiPortDescriptor(aggregatePort->getID()), false);
+      vlanID, SaiPortDescriptor(aggregatePort->getID()));
 
   return lagSaiId;
 }

@@ -52,13 +52,11 @@ class ManagedVlanMember : public SaiObjectEventAggregateSubscriber<
       SaiVlanManager* manager,
       SaiPortDescriptor portDesc,
       VlanID vlanId,
-      SaiVlanMemberTraits::Attributes::VlanId saiVlanId,
-      bool tagged)
+      SaiVlanMemberTraits::Attributes::VlanId saiVlanId)
       : Base(portDesc),
         manager_(manager),
         vlanId_(vlanId),
-        saiVlanId_(saiVlanId),
-        tagged_(tagged) {}
+        saiVlanId_(saiVlanId) {}
 
   void createObject(PublisherObjects added);
 
@@ -70,7 +68,6 @@ class ManagedVlanMember : public SaiObjectEventAggregateSubscriber<
   SaiVlanManager* manager_;
   VlanID vlanId_;
   SaiVlanMemberTraits::Attributes::VlanId saiVlanId_;
-  bool tagged_;
 };
 
 struct SaiVlanHandle {
@@ -101,8 +98,7 @@ class SaiVlanManager {
     return handles_;
   }
 
-  void
-  createVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc, bool tagged);
+  void createVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc);
   void removeVlanMember(VlanID swVlanId, SaiPortDescriptor portDesc);
 
   std::shared_ptr<SaiVlanMember> createSaiObject(

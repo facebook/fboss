@@ -65,15 +65,15 @@ VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
 
   // Create VLAN members
   for (auto [swPortId, emitTags] : swVlan->getPorts()) {
-    createVlanMember(swVlanId, SaiPortDescriptor(PortID(swPortId)), emitTags);
+    std::ignore = emitTags;
+    createVlanMember(swVlanId, SaiPortDescriptor(PortID(swPortId)));
   }
   return saiVlan->adapterKey();
 }
 
 void SaiVlanManager::createVlanMember(
     VlanID swVlanId,
-    SaiPortDescriptor portDesc,
-    bool tagged) {
+    SaiPortDescriptor portDesc) {
   auto vlanHandle = getVlanHandle(swVlanId);
   if (!vlanHandle) {
     throw FbossError(
@@ -83,7 +83,7 @@ void SaiVlanManager::createVlanMember(
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
   auto vlanMember = std::make_shared<ManagedVlanMember>(
-      this, portDesc, swVlanId, vlanIdAttribute, tagged);
+      this, portDesc, swVlanId, vlanIdAttribute);
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       vlanMember);
   vlanHandle->vlanMembers.emplace(portDesc, std::move(vlanMember));
@@ -154,8 +154,7 @@ void SaiVlanManager::changeVlan(
       std::inserter(added, added.begin()),
       compareIds);
   for (const auto& swPortId : added) {
-    createVlanMember(
-        swVlanId, SaiPortDescriptor(PortID(swPortId.first)), swPortId.second);
+    createVlanMember(swVlanId, SaiPortDescriptor(PortID(swPortId.first)));
   }
 }
 
@@ -193,16 +192,10 @@ void ManagedVlanMember::createObject(PublisherObjects objects) {
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{saiVlanId_};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
       bridgePortSaiId};
-  auto taggingMode =
-      tagged_ ? SAI_VLAN_TAGGING_MODE_TAGGED : SAI_VLAN_TAGGING_MODE_UNTAGGED;
-  SaiVlanMemberTraits::Attributes::VlanTaggingMode taggingModeAttribute{
-      taggingMode};
   SaiVlanMemberTraits::CreateAttributes memberAttributes{
-      vlanIdAttribute, bridgePortIdAttribute, taggingModeAttribute};
-  SaiVlanMemberTraits::AdapterHostKey key{
       vlanIdAttribute, bridgePortIdAttribute};
 
-  auto object = manager_->createSaiObject(key, memberAttributes);
+  auto object = manager_->createSaiObject(memberAttributes, memberAttributes);
   this->setObject(object);
 }
 
