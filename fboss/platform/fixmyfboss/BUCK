@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
 
@@ -31,4 +32,11 @@ cpp_binary(
     external_deps = [
         "CLI11",
     ],
+)
+
+fbpkg.builder(
+    name = "fboss.fixmyfboss",
+    path_actions = {
+        "fixmyfboss": "//fboss/platform/fixmyfboss:fixmyfboss",
+    },
 )
