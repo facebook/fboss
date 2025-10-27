@@ -26,5 +26,8 @@ int getNumHwSwitches(const std::string& switchName);
 
 std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
     const std::string& switchName);
+std::map<std::string, std::vector<std::string>> getRemoteSwitchToReachablePorts(
+    const std::string& switchName,
+    const std::vector<std::string>& remoteSwitches);
 
 } // namespace facebook::fboss::utility

@@ -82,4 +82,15 @@ std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
   return fabricPortToFabricEndpoint;
 }
 
+std::map<std::string, std::vector<std::string>> getRemoteSwitchToReachablePorts(
+    const std::string& switchName,
+    const std::vector<std::string>& remoteSwitches) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<std::string, std::vector<std::string>> remoteSwitchToReachablePorts;
+  swAgentClient->sync_getSwitchReachability(
+      remoteSwitchToReachablePorts, remoteSwitches);
+
+  return remoteSwitchToReachablePorts;
+}
+
 } // namespace facebook::fboss::utility
