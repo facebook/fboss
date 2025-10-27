@@ -411,7 +411,28 @@ bool verifySystemPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 bool verifyRifsForRdsw(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::string& rdswToVerify) {
-  return true;
+  // Every GLOBAL rif of every remote RDSW is either a STATIC_ENTRY or
+  // DYNAMIC_ENTRY of the local RDSW
+  std::set<int> gotRifs;
+  std::set<int> expectedRifs;
+  for (const auto& [clusterId, rdsws] :
+       std::as_const(topologyInfo->getClusterIdToRdsws())) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == rdswToVerify) {
+        gotRifs = getGlobalRifsOfType(
+            rdswToVerify,
+            {RemoteInterfaceType::STATIC_ENTRY,
+             RemoteInterfaceType::
+                 DYNAMIC_ENTRY} /* Get Global Remote rifs of self */);
+      } else {
+        auto rifsForRdsw =
+            getGlobalRifsOfType(rdsw, {} /* Get Global rifs of Remote RDSW */);
+        expectedRifs.insert(rifsForRdsw.begin(), rifsForRdsw.end());
+      }
+    }
+  }
+
+  return expectedRifs == gotRifs;
 }
 
 bool verifyRifs(const std::unique_ptr<TopologyInfo>& topologyInfo) {
