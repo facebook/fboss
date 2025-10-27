@@ -74,8 +74,32 @@ bool verifyFabricConnectivityForRdsws(
   return true;
 }
 
+bool verifyFabricConnectivityForFdsw(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    int clusterId,
+    const std::string& fdswToVerify) {
+  // Every FDSW is connected to all RDSWs in its cluster and all SDSWs
+  std::set<std::string> expectedConnectedSwitches(
+      std::begin(topologyInfo->getClusterIdToRdsws().at(clusterId)),
+      std::end(topologyInfo->getClusterIdToRdsws().at(clusterId)));
+  expectedConnectedSwitches.insert(
+      topologyInfo->getSdsws().begin(), topologyInfo->getSdsws().end());
+
+  return verifyFabricConnectivityHelper(
+      fdswToVerify, expectedConnectedSwitches);
+}
+
 bool verifyFabricConnectivityForFdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  for (const auto& [clusterId, fdsws] :
+       std::as_const(topologyInfo->getClusterIdToFdsws())) {
+    for (const auto& fdsw : fdsws) {
+      if (!verifyFabricConnectivityForFdsw(topologyInfo, clusterId, fdsw)) {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
