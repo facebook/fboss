@@ -69,6 +69,23 @@ std::map<std::string, PortInfoThrift> getActiveFabricPortNameToPortInfo(
   return activeFabricPortNameToPortInfo;
 }
 
+std::set<std::string> getActiveFabricPorts(const std::string& switchName) {
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(switchName);
+  std::set<std::string> activePorts;
+
+  std::transform(
+      activeFabricPortNameToPortInfo.begin(),
+      activeFabricPortNameToPortInfo.end(),
+      std::inserter(activePorts, activePorts.begin()),
+      [](const auto& pair) {
+        const auto& portInfo = pair.second;
+        return portInfo.name().value();
+      });
+
+  return activePorts;
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
