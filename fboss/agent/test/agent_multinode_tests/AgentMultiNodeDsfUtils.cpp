@@ -103,8 +103,21 @@ bool verifyFabricConnectivityForFdsws(
   return true;
 }
 
+bool verifyFabricConnectivityForSdsw(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& sdswToVerify) {
+  // Every SDSW is connected to all FDSWs in all clusters
+  return verifyFabricConnectivityHelper(sdswToVerify, topologyInfo->getFdsws());
+}
+
 bool verifyFabricConnectivityForSdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  for (const auto& sdsw : std::as_const(topologyInfo->getSdsws())) {
+    if (!verifyFabricConnectivityForSdsw(topologyInfo, sdsw)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
