@@ -349,13 +349,37 @@ bool verifyPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
       verifyPortsForFdsws(topologyInfo) && verifyPortsForSdsws(topologyInfo);
 }
 
-bool verifySystemPortsForRdsw(const std::string& rdsw) {
-  return true;
+bool verifySystemPortsForRdsw(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& rdswToVerify) {
+  // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY
+  // or DYNAMIC_ENTRY of the local RDSW
+  std::set<std::string> gotSystemPorts;
+  std::set<std::string> expectedSystemPorts;
+  for (const auto& [clusterId, rdsws] :
+       std::as_const(topologyInfo->getClusterIdToRdsws())) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == rdswToVerify) {
+        gotSystemPorts = getGlobalSystemPortsOfType(
+            rdswToVerify,
+            {RemoteSystemPortType::STATIC_ENTRY,
+             RemoteSystemPortType::
+                 DYNAMIC_ENTRY} /* Get Global Remote ports of self */);
+      } else {
+        auto systemPortsForRdsw = getGlobalSystemPortsOfType(
+            rdsw, {} /* Get Global ports of Remote RDSW */);
+        expectedSystemPorts.insert(
+            systemPortsForRdsw.begin(), systemPortsForRdsw.end());
+      }
+    }
+  }
+
+  return expectedSystemPorts == gotSystemPorts;
 }
 
 bool verifySystemPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   for (const auto& rdsw : topologyInfo->getRdsws()) {
-    if (!verifySystemPortsForRdsw(rdsw)) {
+    if (!verifySystemPortsForRdsw(topologyInfo, rdsw)) {
       return false;
     }
   }
