@@ -222,7 +222,6 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     if (!FLAGS_multi_switch) {
       FLAGS_janga_single_npu_for_testing = true;
     }
-    FLAGS_fw_drained_unrecoverable_error = true;
     FLAGS_sdk_reg_dump_path_prefix = sdkRegDumpPathPrefix_;
   }
 
