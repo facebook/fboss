@@ -174,6 +174,39 @@ bool verifyFabricConnectivity(
 bool verifyFabricReachabilityForRdsw(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::string& rdswToVerify) {
+  // Every remote RDSW across all clusters is reachable from the local RDSW
+  std::vector<std::string> remoteSwitchNames;
+  std::copy_if(
+      topologyInfo->getRdsws().begin(),
+      topologyInfo->getRdsws().end(),
+      std::back_inserter(remoteSwitchNames),
+      [rdswToVerify](const std::string& switchName) {
+        return switchName != rdswToVerify; // exclude self
+      });
+
+  auto remoteSwitchToReachablePorts =
+      getRemoteSwitchToReachablePorts(rdswToVerify, remoteSwitchNames);
+
+  // Every remote RDSW must be reachable via every local active port.
+  // TODO: This assertion is not true when Input Balanced Mode is enabled.
+  // We will enhance this check for DSF Dual Stage where Input Balanced Mode
+  // is enabled.
+  auto activePorts = getActiveFabricPorts(rdswToVerify);
+
+  for (auto& [remoteSwitchName, reachablePorts] :
+       remoteSwitchToReachablePorts) {
+    std::set<std::string> reachablePortsSet(
+        reachablePorts.begin(), reachablePorts.end());
+    XLOG(DBG2) << "From RDSW:: " << rdswToVerify
+               << " Expected reachable ports (Active Ports): "
+               << folly::join(",", activePorts) << " Got reachable ports: "
+               << folly::join(",", reachablePortsSet);
+
+    if (activePorts != reachablePortsSet) {
+      return false;
+    }
+  }
+
   return true;
 }
 
