@@ -221,10 +221,28 @@ bool verifyFabricReachability(
   return true;
 }
 
+bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyPortsForFdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyPortsForSdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return verifyPortsForRdsws(topologyInfo) &&
+      verifyPortsForFdsws(topologyInfo) && verifyPortsForSdsws(topologyInfo);
+}
+
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
     verifyFabricConnectivity(topologyInfo);
     verifyFabricReachability(topologyInfo);
+    verifyPorts(topologyInfo);
   });
 }
 
