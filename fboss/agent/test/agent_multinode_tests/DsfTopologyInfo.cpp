@@ -44,4 +44,12 @@ void DsfTopologyInfo::populateDsfNodeInfo(
   }
 }
 
+void DsfTopologyInfo::populateAllFdsws() {
+  for (const auto& [clusterId, fdsws] : std::as_const(clusterIdToFdsws_)) {
+    for (const auto& fdsw : fdsws) {
+      allFdsws_.insert(fdsw);
+    }
+  }
+}
+
 } // namespace facebook::fboss::utility
