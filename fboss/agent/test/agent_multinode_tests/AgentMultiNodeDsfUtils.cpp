@@ -7,6 +7,7 @@
 
 namespace {
 using namespace facebook::fboss::utility;
+using facebook::fboss::PortActiveState;
 using facebook::fboss::PortInfoThrift;
 using facebook::fboss::cfg::PortType;
 
@@ -53,6 +54,19 @@ std::map<std::string, PortInfoThrift> getFabricPortNameToPortInfo(
   }
 
   return fabricPortNameToPortInfo;
+}
+
+std::map<std::string, PortInfoThrift> getActiveFabricPortNameToPortInfo(
+    const std::string& switchName) {
+  std::map<std::string, PortInfoThrift> activeFabricPortNameToPortInfo;
+  for (const auto& [_, portInfo] : getFabricPortNameToPortInfo(switchName)) {
+    if (portInfo.activeState().has_value() &&
+        portInfo.activeState().value() == PortActiveState::ACTIVE) {
+      activeFabricPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
+    }
+  }
+
+  return activeFabricPortNameToPortInfo;
 }
 
 } // namespace
