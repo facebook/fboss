@@ -15,6 +15,18 @@ namespace facebook::fboss {
 // A set of NextHopIDs (used as key for NextHopIDSetID mapping)
 using NextHopIDSet = std::set<NextHopID>;
 
+} // namespace facebook::fboss
+
+// Hash function for NextHopIDSet to be used in unordered_map
+namespace std {
+template <>
+struct hash<facebook::fboss::NextHopIDSet> {
+  size_t operator()(const facebook::fboss::NextHopIDSet& idSet) const;
+};
+} // namespace std
+
+namespace facebook::fboss {
+
 /**
  * NextHopIDManager is responsible for generating and managing unique IDs
  * for NextHops and NextHopSets. It maintains reference counts for each
