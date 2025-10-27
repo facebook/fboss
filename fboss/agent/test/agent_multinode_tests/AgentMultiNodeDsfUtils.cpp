@@ -243,6 +243,13 @@ bool verifyPortActiveStateForSwitch(const std::string& switchName) {
 }
 
 bool verifyNoPortErrorsForSwitch(const std::string& switchName) {
+  // No ports should have errors
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
+    if (portInfo.activeErrors()->size() != 0) {
+      return false;
+    }
+  }
+
   return true;
 }
 
