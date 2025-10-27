@@ -33,6 +33,10 @@ class DsfTopologyInfo : public TopologyInfo {
     return clusterIdToFdsws_;
   }
 
+  const std::set<std::string>& getFdsws() const override {
+    return allFdsws_;
+  }
+
   const std::set<std::string>& getSdsws() const override {
     return sdsws_;
   }
