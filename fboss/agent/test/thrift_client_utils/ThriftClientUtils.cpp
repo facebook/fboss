@@ -109,4 +109,12 @@ getSystemPortdIdToSystemPort(const std::string& switchName) {
   return systemPortIdToSystemPort;
 }
 
+std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<int32_t, facebook::fboss::InterfaceDetail> intfIdToIntf;
+  swAgentClient->sync_getAllInterfaces(intfIdToIntf);
+  return intfIdToIntf;
+}
+
 } // namespace facebook::fboss::utility
