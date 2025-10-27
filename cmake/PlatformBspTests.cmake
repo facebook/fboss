@@ -77,6 +77,7 @@ add_executable(bsp_tests
   fboss/platform/bsp_tests/LedTests.cpp
   fboss/platform/bsp_tests/WatchdogTests.cpp
   fboss/platform/bsp_tests/XcvrTests.cpp
+  fboss/platform/bsp_tests/HwmonTests.cpp
 )
 
 target_link_libraries(bsp_tests
