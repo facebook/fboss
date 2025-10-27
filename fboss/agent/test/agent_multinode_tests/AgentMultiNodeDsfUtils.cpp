@@ -5,20 +5,15 @@
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-namespace facebook::fboss::utility {
+namespace {
+using namespace facebook::fboss::utility;
 
-bool verifyFabricConnectivityForRdsw(
-    const std::unique_ptr<TopologyInfo>& topologyInfo,
-    int clusterId,
-    const std::string& rdswToVerify) {
-  // Every RDSW is connected to all FDSWs in its cluster
-  std::set<std::string> expectedConnectedSwitches(
-      std::begin(topologyInfo->getClusterIdToFdsws().at(clusterId)),
-      std::end(topologyInfo->getClusterIdToFdsws().at(clusterId)));
-
+bool verifyFabricConnectivityHelper(
+    const std::string& switchToVerify,
+    const std::set<std::string>& expectedConnectedSwitches) {
   std::set<std::string> gotConnectedSwitches;
   for (const auto& [portName, fabricEndpoint] :
-       getFabricPortToFabricEndpoint(rdswToVerify)) {
+       getFabricPortToFabricEndpoint(switchToVerify)) {
     if (fabricEndpoint.isAttached().value()) {
       auto actualRemoteSwitchId = fabricEndpoint.switchId().value();
       auto expectedRemoteSwitchId =
@@ -44,6 +39,23 @@ bool verifyFabricConnectivityForRdsw(
     }
   }
   return expectedConnectedSwitches == gotConnectedSwitches;
+}
+
+} // namespace
+
+namespace facebook::fboss::utility {
+
+bool verifyFabricConnectivityForRdsw(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    int clusterId,
+    const std::string& rdswToVerify) {
+  // Every RDSW is connected to all FDSWs in its cluster
+  std::set<std::string> expectedConnectedSwitches(
+      std::begin(topologyInfo->getClusterIdToFdsws().at(clusterId)),
+      std::end(topologyInfo->getClusterIdToFdsws().at(clusterId)));
+
+  return verifyFabricConnectivityHelper(
+      rdswToVerify, expectedConnectedSwitches);
 }
 
 bool verifyFabricConnectivityForRdsws(
