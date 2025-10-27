@@ -8,6 +8,8 @@
  *
  */
 
+#pragma once
+
 #include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
 
 namespace facebook::fboss::utility {

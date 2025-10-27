@@ -17,7 +17,7 @@ namespace facebook::fboss::utility {
 
 class DsfTopologyInfo : public TopologyInfo {
  public:
-  DsfTopologyInfo(const std::shared_ptr<SwitchState>& switchState)
+  explicit DsfTopologyInfo(const std::shared_ptr<SwitchState>& switchState)
       : TopologyInfo(switchState) {
     populateDsfNodeInfo(switchState->getDsfNodes());
     populateAllFdsws();
