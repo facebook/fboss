@@ -8,6 +8,7 @@
 namespace {
 using namespace facebook::fboss::utility;
 using facebook::fboss::FabricEndpoint;
+using facebook::fboss::NdpEntryThrift;
 using facebook::fboss::PortActiveState;
 using facebook::fboss::PortInfoThrift;
 using facebook::fboss::RemoteInterfaceType;
@@ -143,6 +144,23 @@ std::set<int> getGlobalRifsOfType(
     }
   }
   return rifsOfType;
+}
+
+std::vector<NdpEntryThrift> getNdpEntriesOfType(
+    const std::string& rdsw,
+    const std::set<std::string>& types) {
+  auto ndpEntries = getNdpEntries(rdsw);
+
+  std::vector<NdpEntryThrift> filteredNdpEntries;
+  std::copy_if(
+      ndpEntries.begin(),
+      ndpEntries.end(),
+      std::back_inserter(filteredNdpEntries),
+      [rdsw, &types](const facebook::fboss::NdpEntryThrift& ndpEntry) {
+        return types.find(ndpEntry.state().value()) != types.end();
+      });
+
+  return filteredNdpEntries;
 }
 
 } // namespace
