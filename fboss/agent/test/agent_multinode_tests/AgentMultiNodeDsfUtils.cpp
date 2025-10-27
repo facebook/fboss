@@ -60,8 +60,6 @@ bool verifyFabricConnectivityForRdsw(
 
 bool verifyFabricConnectivityForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  return true;
-
   for (const auto& [clusterId, rdsws] :
        std::as_const(topologyInfo->getClusterIdToRdsws())) {
     for (const auto& rdsw : rdsws) {
