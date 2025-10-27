@@ -7,6 +7,7 @@
 
 namespace {
 using namespace facebook::fboss::utility;
+using facebook::fboss::FabricEndpoint;
 using facebook::fboss::PortActiveState;
 using facebook::fboss::PortInfoThrift;
 using facebook::fboss::cfg::PortType;
@@ -42,6 +43,18 @@ bool verifyFabricConnectivityHelper(
     }
   }
   return expectedConnectedSwitches == gotConnectedSwitches;
+}
+
+std::set<std::string> getConnectedFabricPorts(const std::string& switchName) {
+  std::set<std::string> connectedFabricPorts;
+  for (const auto& [portName, fabricEndpoint] :
+       getFabricPortToFabricEndpoint(switchName)) {
+    if (fabricEndpoint.isAttached().value()) {
+      connectedFabricPorts.insert(portName);
+    }
+  }
+
+  return connectedFabricPorts;
 }
 
 std::map<std::string, PortInfoThrift> getFabricPortNameToPortInfo(
