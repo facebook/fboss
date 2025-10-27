@@ -221,15 +221,51 @@ bool verifyFabricReachability(
   return true;
 }
 
+bool verifyPortActiveStateForSwitch(const std::string& switchName) {
+  return true;
+}
+
+bool verifyNoPortErrorsForSwitch(const std::string& switchName) {
+  return true;
+}
+
+bool verifyPortCableLength(const std::string& switchName) {
+  return true;
+}
+
+bool verifyFabricPorts(const std::string& switchName) {
+  return verifyPortActiveStateForSwitch(switchName) &&
+      verifyNoPortErrorsForSwitch(switchName) &&
+      verifyPortCableLength(switchName);
+}
+
 bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  for (const auto& rdsw : topologyInfo->getRdsws()) {
+    if (!verifyFabricPorts(rdsw)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
 bool verifyPortsForFdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  for (const auto& fdsw : topologyInfo->getFdsws()) {
+    if (!verifyFabricPorts(fdsw)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
 bool verifyPortsForSdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  for (const auto& sdsw : topologyInfo->getSdsws()) {
+    if (!verifyFabricPorts(sdsw)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
