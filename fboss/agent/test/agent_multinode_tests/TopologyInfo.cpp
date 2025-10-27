@@ -18,7 +18,7 @@ using facebook::fboss::FbossError;
 using facebook::fboss::SwitchState;
 using facebook::fboss::utility::TopologyInfo;
 
-TopologyInfo::TopologyType getDerivedTopologyInfo(
+TopologyInfo::TopologyType getDerivedTopologyType(
     const std::shared_ptr<SwitchState>& switchState) {
   if (switchState->getDsfNodes()->size() > 0) {
     return TopologyInfo::TopologyType::DSF;
@@ -33,7 +33,7 @@ namespace facebook::fboss::utility {
 
 std::unique_ptr<TopologyInfo> TopologyInfo::makeTopologyInfo(
     const std::shared_ptr<SwitchState>& switchState) {
-  auto topologyType = getDerivedTopologyInfo(switchState);
+  auto topologyType = getDerivedTopologyType(switchState);
 
   switch (topologyType) {
     case TopologyType::DSF:
@@ -43,7 +43,8 @@ std::unique_ptr<TopologyInfo> TopologyInfo::makeTopologyInfo(
   throw FbossError("Unexcepted topologyInfo: ", topologyType);
 }
 
-TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState) {
+TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState)
+    : topologyType_(getDerivedTopologyType(switchState)) {
   populateTopologyType(switchState);
 }
 
