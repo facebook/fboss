@@ -60,8 +60,6 @@ void AgentMultiNodeTest::setCmdLineFlagOverrides() const {
   FLAGS_dsf_subscribe = true;
 }
 
-void AgentMultiNodeTest::verifyDsfCluster() const {}
-
 TEST_F(AgentMultiNodeTest, verifyCluster) {
   switch (topologyInfo_->getTopologyType()) {
     case utility::TopologyInfo::TopologyType::DSF:
