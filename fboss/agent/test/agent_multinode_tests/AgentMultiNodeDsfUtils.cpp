@@ -10,7 +10,9 @@ using namespace facebook::fboss::utility;
 using facebook::fboss::FabricEndpoint;
 using facebook::fboss::PortActiveState;
 using facebook::fboss::PortInfoThrift;
+using facebook::fboss::RemoteSystemPortType;
 using facebook::fboss::cfg::PortType;
+using facebook::fboss::cfg::Scope;
 
 bool verifyFabricConnectivityHelper(
     const std::string& switchToVerify,
@@ -97,6 +99,29 @@ std::set<std::string> getActiveFabricPorts(const std::string& switchName) {
       });
 
   return activePorts;
+}
+
+std::set<std::string> getGlobalSystemPortsOfType(
+    const std::string& rdsw,
+    const std::set<RemoteSystemPortType>& types) {
+  auto matchesSystemPortType =
+      [&types](const facebook::fboss::SystemPortThrift& systemPort) {
+        if (systemPort.remoteSystemPortType().has_value()) {
+          return types.find(systemPort.remoteSystemPortType().value()) !=
+              types.end();
+        } else {
+          return types.empty();
+        }
+      };
+
+  std::set<std::string> systemPortsOfType;
+  for (const auto& [_, systemPort] : getSystemPortdIdToSystemPort(rdsw)) {
+    if (*systemPort.scope() == Scope::GLOBAL &&
+        matchesSystemPortType(systemPort)) {
+      systemPortsOfType.insert(systemPort.portName().value());
+    }
+  }
+  return systemPortsOfType;
 }
 
 } // namespace
