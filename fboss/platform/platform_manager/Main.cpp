@@ -36,9 +36,10 @@ void sdNotifyReady() {
   if (auto rc = sd_notify(0, "READY=1"); rc < 0) {
     XLOG(WARNING) << "Failed to send READY signal to systemd: "
                   << folly::errnoStr(-rc);
-    throw std::runtime_error(fmt::format(
-        "Failed to sd_notify ready by run command, ExitStatus: {}",
-        folly::errnoStr(-rc)));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to sd_notify ready by run command, ExitStatus: {}",
+            folly::errnoStr(-rc)));
   } else {
     XLOG(INFO) << "Sent sd_notify ready by running command";
   }

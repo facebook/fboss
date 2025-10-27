@@ -475,13 +475,14 @@ class PrbsTest : public LinkTest {
         if (prbsEnabled) {
           auto agentClient = utils::createWedgeAgentClient();
           WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
-            EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                   apache::thrift::Client<FbossCtrl>>(
-                agentClient.get(),
-                timestampBeforeClear,
-                interfaceName,
-                component,
-                prbsEnabled));
+            EXPECT_EVENTUALLY_TRUE(
+                checkPrbsStatsAfterClearOnInterface<
+                    apache::thrift::Client<FbossCtrl>>(
+                    agentClient.get(),
+                    timestampBeforeClear,
+                    interfaceName,
+                    component,
+                    prbsEnabled));
           });
         }
       } else if (
@@ -494,13 +495,14 @@ class PrbsTest : public LinkTest {
         // Retry for a minute to give the qsfp_service enough chance to
         // successfully refresh a transceiver
         WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
-          EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                 apache::thrift::Client<QsfpService>>(
-              qsfpServiceClient.get(),
-              timestampBeforeClear,
-              interfaceName,
-              component,
-              prbsEnabled));
+          EXPECT_EVENTUALLY_TRUE(
+              checkPrbsStatsAfterClearOnInterface<
+                  apache::thrift::Client<QsfpService>>(
+                  qsfpServiceClient.get(),
+                  timestampBeforeClear,
+                  interfaceName,
+                  component,
+                  prbsEnabled));
         });
       }
     }

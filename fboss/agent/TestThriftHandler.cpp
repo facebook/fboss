@@ -42,8 +42,10 @@ void TestThriftHandler::gracefullyRestartService(
 
   if (kServicesSupportingRestart().find(*serviceName) ==
       kServicesSupportingRestart().end()) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Failed to restart gracefully. Unsupported service: ", *serviceName));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Failed to restart gracefully. Unsupported service: ",
+            *serviceName));
   }
 
   auto cmd = folly::to<std::string>("systemctl restart ", *serviceName);
@@ -70,8 +72,10 @@ void TestThriftHandler::ungracefullyRestartService(
   // implemented here.
   if (kServicesSupportingRestart().find(*serviceName) ==
       kServicesSupportingRestart().end()) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Failed to restart ungracefully. Unsupported service: ", *serviceName));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Failed to restart ungracefully. Unsupported service: ",
+            *serviceName));
   }
 
   if (*serviceName == "wedge_agent_test") {
@@ -91,8 +95,10 @@ void TestThriftHandler::gracefullyRestartServiceWithDelay(
   XLOG(INFO) << __func__;
 
   if (*serviceName != "wedge_agent_test") {
-    throw std::runtime_error(folly::to<std::string>(
-        "Failed to restart with delay. Unsupported service: ", *serviceName));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Failed to restart with delay. Unsupported service: ",
+            *serviceName));
   }
 
   auto unitName = folly::to<std::string>(*serviceName, "_delayed_start");
@@ -126,15 +132,17 @@ void TestThriftHandler::addNeighbor(
   auto neighborIP = toIPAddress(*ip);
 
   if (!neighborIP.isV6()) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Thrift API addNeighbor supports IPv6 neighbors only. Neighbor to add:",
-        neighborIP));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Thrift API addNeighbor supports IPv6 neighbors only. Neighbor to add:",
+            neighborIP));
   }
 
   auto neighborMac = folly::MacAddress::tryFromString(*mac);
   if (!neighborMac.hasValue()) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Thrift API addNeighbor: invalid MAC address provided: ", *mac));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Thrift API addNeighbor: invalid MAC address provided: ", *mac));
   }
 
   // To resolve a neighbor, mimic receiving NDP Response from neighbor

@@ -70,11 +70,12 @@ void verifySha1sum(
 
   // Check if the SHA1 sum matches
   if (configSha1sum != sha1sum) {
-    throw std::runtime_error(fmt::format(
-        "{} config file sha1sum {} is different from current binary sha1sum of {}",
-        fpd,
-        configSha1sum,
-        sha1sum));
+    throw std::runtime_error(
+        fmt::format(
+            "{} config file sha1sum {} is different from current binary sha1sum of {}",
+            fpd,
+            configSha1sum,
+            sha1sum));
   }
 }
 

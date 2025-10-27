@@ -20,10 +20,11 @@ uint16_t DataStore::getI2cBusNum(
   if (it != i2cBusNums_.end()) {
     return it->second;
   }
-  throw std::runtime_error(fmt::format(
-      "Could not find bus number for {} at {}",
-      pmUnitScopeBusName,
-      slotPath.value_or("CPU Scope")));
+  throw std::runtime_error(
+      fmt::format(
+          "Could not find bus number for {} at {}",
+          pmUnitScopeBusName,
+          slotPath.value_or("CPU Scope")));
 }
 
 void DataStore::updateI2cBusNum(
@@ -186,8 +187,9 @@ void DataStore::updateEepromContents(
 FbossEepromInterface DataStore::getEepromContents(
     const std::string& devicePath) const {
   if (!hasEepromContents(devicePath)) {
-    throw std::runtime_error(fmt::format(
-        "Couldn't find EepromContents at DevicePath ({})", devicePath));
+    throw std::runtime_error(
+        fmt::format(
+            "Couldn't find EepromContents at DevicePath ({})", devicePath));
   }
   return eepromContents_.at(devicePath);
 }

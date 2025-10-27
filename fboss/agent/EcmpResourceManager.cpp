@@ -926,8 +926,9 @@ EcmpResourceManager::InputOutputState::InputOutputState(
   if (_in.oldState()->getFibs() && !_in.oldState()->getFibs()->empty()) {
     newStateWithOldFibs->resetForwardingInformationBases(
         _in.oldState()->getFibs());
-    DCHECK(DeltaFunctions::isEmpty(
-        StateDelta(_in.oldState(), newStateWithOldFibs).getFibsDelta()));
+    DCHECK(
+        DeltaFunctions::isEmpty(
+            StateDelta(_in.oldState(), newStateWithOldFibs).getFibsDelta()));
   } else {
     // Cater for when old state is empty - e.g. warmboot,
     // rollback

@@ -2213,8 +2213,9 @@ TEST_F(StaticRoutesTest, staticRoutesGetApplied) {
  */
 class UcmpTest : public RouteTest {
  public:
-  void resolveRoutes(std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
-                         networkAndNextHops) {
+  void resolveRoutes(
+      std::vector<std::pair<folly::IPAddress, RouteNextHopSet>>
+          networkAndNextHops) {
     auto ru = this->sw_->getRouteUpdater();
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;

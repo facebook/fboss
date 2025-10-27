@@ -28,8 +28,9 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
       }
     }
     cfg.switchSettings()->conditionalEntropyRehashPeriodUS() = kRehashPeriodUs;
-    cfg.loadBalancers()->push_back(utility::getEcmpFullHashConfig(
-        ensemble.getHwAsicTable()->getL3Asics()));
+    cfg.loadBalancers()->push_back(
+        utility::getEcmpFullHashConfig(
+            ensemble.getHwAsicTable()->getL3Asics()));
     return cfg;
   }
   std::vector<PortDescriptor> getEcmpSysPorts() {
@@ -112,8 +113,9 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
         },
         [&]() { clearSysPortStats(sysPortDescs); },
         [&]() {
-          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(
-              sysPortDescs, {}, getSysPortStatsFn, kMaxDeviation, false)));
+          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(
+              utility::isLoadBalanced(
+                  sysPortDescs, {}, getSysPortStatsFn, kMaxDeviation, false)));
           return true;
         });
   };

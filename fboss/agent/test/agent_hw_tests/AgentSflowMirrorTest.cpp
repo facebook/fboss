@@ -1122,8 +1122,9 @@ class AgentSflowMirrorWithLineRateTrafficTest
     auto portId = getNonSflowSampledInterfacePort();
     // Expect atleast 1Gbps of mirror traffic!
     const uint64_t kDesiredMirroredTrafficRate{1000000000};
-    EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
-        portId, kDesiredMirroredTrafficRate));
+    EXPECT_NO_THROW(
+        getAgentEnsemble()->waitForSpecificRateOnPort(
+            portId, kDesiredMirroredTrafficRate));
     // Make sure that we can sustain the rate for longer duration
     constexpr int kWaitPeriod{5};
     auto prevPortStats = getLatestPortStats(portId);
@@ -1245,7 +1246,9 @@ using AgentSflowMirrorOnTrunkTestV6 =
 
 #define SFLOW_SAMPLING_TEST(fixture, name, code) \
   TEST_F(fixture, name) {                        \
-    { code }                                     \
+    {                                            \
+      code                                       \
+    }                                            \
   }
 
 #define SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(name, code)            \

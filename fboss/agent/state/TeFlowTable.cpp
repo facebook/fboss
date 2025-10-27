@@ -82,11 +82,12 @@ void TeFlowSyncer::validateFlowEntry(
   if (*prefix.prefixLength() != dstIpPrefixLength) {
     std::string flowString{};
     folly::IPAddress ipaddr = network::toIPAddress(*prefix.ip());
-    flowString.append(fmt::format(
-        "dstPrefix:{}/{},srcPort:{}",
-        ipaddr.str(),
-        *prefix.prefixLength(),
-        flowEntry.flow()->srcPort().value()));
+    flowString.append(
+        fmt::format(
+            "dstPrefix:{}/{},srcPort:{}",
+            ipaddr.str(),
+            *prefix.prefixLength(),
+            flowEntry.flow()->srcPort().value()));
     throw FbossError("Invalid prefix length in TeFlow entry: ", flowString);
   }
 }

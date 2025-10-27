@@ -221,8 +221,9 @@ SaiSwitchManager::SaiSwitchManager(
         switch_->setOptionalAttribute(
             SaiSwitchTraits::Attributes::SrcMac{platform->getLocalMac()});
       }
-      switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MacAgingTime{
-          platform->getDefaultMacAgingTime()});
+      switch_->setOptionalAttribute(
+          SaiSwitchTraits::Attributes::MacAgingTime{
+              platform->getDefaultMacAgingTime()});
     }
     if (switchType == cfg::SwitchType::VOQ) {
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
@@ -232,8 +233,9 @@ SaiSwitchManager::SaiSwitchManager(
       // warm boot. So, to cater to the systems which will only
       // WB to this change, set the attribute post WB. It should
       // be a no-op if already set.
-      switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::MaxSwitchId{
-          platform->getAsic()->getMaxSwitchId()});
+      switch_->setOptionalAttribute(
+          SaiSwitchTraits::Attributes::MaxSwitchId{
+              platform->getAsic()->getMaxSwitchId()});
 #endif
     }
   } else {
@@ -644,24 +646,28 @@ void SaiSwitchManager::setQosPolicy() {
   // set switch attrs to oids
   if (isGlobalQoSMapSupported()) {
     globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
-        globalDscpToTcQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosDscpToTcMap{
+            globalDscpToTcQosMap_->adapterKey()});
     globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
-        globalTcToQueueQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosTcToQueueMap{
+            globalTcToQueueQosMap_->adapterKey()});
   }
   if (!isMplsQosSupported_) {
     return;
   }
   globalExpToTcQosMap_ = qosMapHandle->expToTcMap;
   if (globalExpToTcQosMap_) {
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosExpToTcMap{
-        globalExpToTcQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosExpToTcMap{
+            globalExpToTcQosMap_->adapterKey()});
   }
   globalTcToExpQosMap_ = qosMapHandle->tcToExpMap;
   if (globalTcToExpQosMap_) {
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToExpMap{
-        globalTcToExpQosMap_->adapterKey()});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::QosTcToExpMap{
+            globalTcToExpQosMap_->adapterKey()});
   }
 }
 
@@ -767,8 +773,9 @@ void SaiSwitchManager::setTamObject(std::vector<sai_object_id_t> tamObject) {
 }
 
 void SaiSwitchManager::resetTamObject() {
-  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::TamObject{
-      std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::TamObject{
+          std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
 }
 
 void SaiSwitchManager::setArsProfile(
@@ -1497,10 +1504,12 @@ void SaiSwitchManager::setShelConfig(
   if (shelConfig.has_value()) {
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ShelSrcMac{platform_->getLocalMac()});
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelSrcIp{
-        folly::IPAddressV6(*shelConfig.value().shelSrcIp())});
-    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::ShelDstIp{
-        folly::IPAddressV6(*shelConfig.value().shelDstIp())});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelSrcIp{
+            folly::IPAddressV6(*shelConfig.value().shelSrcIp())});
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::ShelDstIp{
+            folly::IPAddressV6(*shelConfig.value().shelDstIp())});
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::ShelPeriodicInterval{static_cast<uint32_t>(
             *shelConfig.value().shelPeriodicIntervalMS())});

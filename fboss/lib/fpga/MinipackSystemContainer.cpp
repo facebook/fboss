@@ -17,9 +17,10 @@ MinipackSystemContainer::getInstance() {
 }
 
 MinipackSystemContainer::MinipackSystemContainer()
-    : MinipackSystemContainer(std::make_unique<FpgaDevice>(
-          PciVendorId(kFacebookFpgaVendorID),
-          PciDeviceId(PCI_MATCH_ANY))) {}
+    : MinipackSystemContainer(
+          std::make_unique<FpgaDevice>(
+              PciVendorId(kFacebookFpgaVendorID),
+              PciDeviceId(PCI_MATCH_ANY))) {}
 
 MinipackSystemContainer::MinipackSystemContainer(
     std::unique_ptr<FpgaDevice> fpgaDevice)

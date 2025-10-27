@@ -195,10 +195,11 @@ void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
   CHECK_EQ(getMac(), updated->getMac());
   auto fdbEntry = getSaiObject();
   CHECK(fdbEntry != nullptr) << "updating non-programmed fdb entry";
-  fdbEntry->setAttribute(SaiFdbTraits::Attributes::Type(
-      updated->getType() == MacEntryType::STATIC_ENTRY
-          ? SAI_FDB_ENTRY_TYPE_STATIC
-          : SAI_FDB_ENTRY_TYPE_DYNAMIC));
+  fdbEntry->setAttribute(
+      SaiFdbTraits::Attributes::Type(
+          updated->getType() == MacEntryType::STATIC_ENTRY
+              ? SAI_FDB_ENTRY_TYPE_STATIC
+              : SAI_FDB_ENTRY_TYPE_DYNAMIC));
   // When dynamic entry is updated to static entry, need to remove the entry
   // when neighbor is removed.
   if (!supportsPending_ && updated->getType() == MacEntryType::STATIC_ENTRY) {

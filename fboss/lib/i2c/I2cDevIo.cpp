@@ -69,11 +69,12 @@ void I2cDevIo::openFile() {
   fd_ = open(devName_.c_str(), O_RDWR);
   if (fd_ < 0) {
     // Crash the program because the callers are not handling this exception
-    throw I2cDevIoError(fmt::format(
-        "I2cDevIo() failed to open {}, retVal = {:d}, errno = {}",
-        devName_,
-        fd_,
-        folly::errnoStr(errno)));
+    throw I2cDevIoError(
+        fmt::format(
+            "I2cDevIo() failed to open {}, retVal = {:d}, errno = {}",
+            devName_,
+            fd_,
+            folly::errnoStr(errno)));
   }
 }
 

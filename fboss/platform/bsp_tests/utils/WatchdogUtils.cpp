@@ -67,8 +67,9 @@ void WatchdogUtils::magicCloseWatchdog(int fd) {
   ssize_t bytesWritten = write(fd, &magic, 1);
 
   if (bytesWritten != 1) {
-    throw std::runtime_error(fmt::format(
-        "Failed to write magic close character to watchdog: {}", errno));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to write magic close character to watchdog: {}", errno));
   }
 }
 

@@ -50,8 +50,9 @@ int main(int argc, char* argv[]) {
           "--fw_action",
           fw_action,
           "Firmware action (program, verify, read, version, list, audit)")
-      ->check(CLI::IsMember(
-          {"program", "verify", "read", "version", "list", "audit"}))
+      ->check(
+          CLI::IsMember(
+              {"program", "verify", "read", "version", "list", "audit"}))
       ->default_val("version");
 
   fwGroup->add_option(
@@ -87,10 +88,11 @@ int main(int argc, char* argv[]) {
   const std::filesystem::path logPath = logFolder / "fw_util.log";
   folly::LoggerDB::get().registerHandlerFactory(
       std::make_unique<folly::FileHandlerFactory>(), false);
-  folly::LoggerDB::get().updateConfig(folly::parseLogConfig(
-      "INFO:filehandler:default;"
-      "filehandler=file:path=" +
-      logPath.string() + ",async=true"));
+  folly::LoggerDB::get().updateConfig(
+      folly::parseLogConfig(
+          "INFO:filehandler:default;"
+          "filehandler=file:path=" +
+          logPath.string() + ",async=true"));
 
   // TODO: To be removed once XFN change the commands in their codes
   if (fw_action.empty()) {

@@ -358,12 +358,16 @@ void BaseEcmpResourceManagerTest::updateRoutes(
       delta,
       [&routesToAddOrUpdate](
           RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
-        routesToAddOrUpdate->emplace_back(util::toUnicastRoute(
-            newRoute->prefix().toCidrNetwork(), newRoute->getForwardInfo()));
+        routesToAddOrUpdate->emplace_back(
+            util::toUnicastRoute(
+                newRoute->prefix().toCidrNetwork(),
+                newRoute->getForwardInfo()));
       },
       [&routesToAddOrUpdate](RouterID rid, const auto& newRoute) {
-        routesToAddOrUpdate->emplace_back(util::toUnicastRoute(
-            newRoute->prefix().toCidrNetwork(), newRoute->getForwardInfo()));
+        routesToAddOrUpdate->emplace_back(
+            util::toUnicastRoute(
+                newRoute->prefix().toCidrNetwork(),
+                newRoute->getForwardInfo()));
       },
       [&prefixesToDelete](RouterID rid, const auto& oldRoute) {
         IpPrefix pfx;
@@ -389,8 +393,9 @@ BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
       auto forwardInfo = route->getEntryForClient(kClientID);
       if (forwardInfo) {
-        unicastRoutes->emplace_back(util::toUnicastRoute(
-            route->prefix().toCidrNetwork(), *forwardInfo));
+        unicastRoutes->emplace_back(
+            util::toUnicastRoute(
+                route->prefix().toCidrNetwork(), *forwardInfo));
       }
     }
   };

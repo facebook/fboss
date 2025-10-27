@@ -250,10 +250,11 @@ TEST(Route, serializeRouteCounterID) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   std::optional<RouteCounterID> counterID("route.counter.0");
-  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
-      makePrefixV4("1.2.3.4/32"),
-      clientId,
-      RouteNextHopEntry(nxtHops, DISTANCE, counterID)));
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"),
+          clientId,
+          RouteNextHopEntry(nxtHops, DISTANCE, counterID)));
   rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, counterID));
   validateThriftStructNodeSerialization(rt);
 }
@@ -264,11 +265,12 @@ TEST(Route, serializeRouteClassID) {
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   std::optional<cfg::AclLookupClass> classID(
       cfg::AclLookupClass::DST_CLASS_L3_DPR);
-  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
-      makePrefixV4("1.2.3.4/32"),
-      clientId,
-      RouteNextHopEntry(
-          nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID)));
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"),
+          clientId,
+          RouteNextHopEntry(
+              nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID)));
   rt.setResolved(RouteNextHopEntry(
       nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID));
   validateNodeSerialization(rt);
@@ -286,8 +288,9 @@ TEST(Route, serializeRouteOverrideEcmpMode) {
       std::optional<RouteCounterID>(),
       std::optional<cfg::AclLookupClass>(),
       switchingMode);
-  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
-      makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
   rt.setResolved(nhopEntry);
   validateThriftStructNodeSerialization(rt);
 }

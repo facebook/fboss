@@ -502,8 +502,9 @@ TYPED_TEST(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
         auto port = ecmpNextHop.portDesc;
         auto ntable = this->getNdpTable(port, state);
         auto entry = entries[port];
-        ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
-            entry->toThrift()));
+        ntable->updateEntry(
+            NeighborEntryFields<folly::IPAddressV6>::fromThrift(
+                entry->toThrift()));
       }
       return state;
     });

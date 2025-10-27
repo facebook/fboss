@@ -55,8 +55,11 @@ std::string clientIdToString(const ClientId& clientId) {
 }
 
 SubscriberId clientId2SubscriberId(const ClientId& clientId) {
-  return SubscriberId(folly::sformat(
-      "{}:{}", fsdbClient2string(*clientId.client()), *clientId.instanceId()));
+  return SubscriberId(
+      folly::sformat(
+          "{}:{}",
+          fsdbClient2string(*clientId.client()),
+          *clientId.instanceId()));
 }
 
 } // namespace facebook::fboss::fsdb

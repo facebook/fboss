@@ -289,10 +289,11 @@ EepromContents FbossEepromInterface::getEepromContents() const {
   } catch (const std::out_of_range&) {
     auto availableKeys = fieldMap_ | std::views::keys;
     std::string joinedKeys = folly::join(", ", availableKeys);
-    throw std::runtime_error(fmt::format(
-        "Invalid FbossEepromInterface structure. Version: {}, Available keys: [{}]",
-        version_,
-        joinedKeys));
+    throw std::runtime_error(
+        fmt::format(
+            "Invalid FbossEepromInterface structure. Version: {}, Available keys: [{}]",
+            version_,
+            joinedKeys));
   }
   return result;
 }

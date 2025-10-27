@@ -1212,11 +1212,12 @@ void SffModule::setRateSelectIfSupported(
   } else if (currentState == RateSelectState::APPLICATION_RATE_SELECT) {
     // Currently only support extended rate select, so treat application
     // rate select as an invalid option
-    throw FbossError(folly::to<std::string>(
-        "Port: ",
-        qsfpImpl_->getName(),
-        " Rate select in unknown state, treating as unsupported: ",
-        apache::thrift::util::enumNameSafe(currentState)));
+    throw FbossError(
+        folly::to<std::string>(
+            "Port: ",
+            qsfpImpl_->getName(),
+            " Rate select in unknown state, treating as unsupported: ",
+            apache::thrift::util::enumNameSafe(currentState)));
   }
 
   uint8_t value;
@@ -1244,11 +1245,12 @@ void SffModule::setRateSelectIfSupported(
     alreadySet =
         translateEnum(RateSelectSetting::FROM_24GB_to_26GB, 0b10101010);
   } else {
-    throw FbossError(folly::to<std::string>(
-        "Port: ",
-        qsfpImpl_->getName(),
-        " Unable to set rate select for port speed: ",
-        apache::thrift::util::enumNameSafe(speed)));
+    throw FbossError(
+        folly::to<std::string>(
+            "Port: ",
+            qsfpImpl_->getName(),
+            " Unable to set rate select for port speed: ",
+            apache::thrift::util::enumNameSafe(speed)));
   }
 
   if (alreadySet) {
@@ -1906,10 +1908,11 @@ bool SffModule::setTransceiverTxImplLocked(
 
   // Check if the module supports Tx control feature first
   if (!isTransceiverFeatureSupported(TransceiverFeature::TX_DISABLE, side)) {
-    throw FbossError(fmt::format(
-        "Module {:s} does not support transceiver TX output control on {:s}",
-        qsfpImpl_->getName(),
-        ((side == phy::Side::LINE) ? "Line" : "System")));
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support transceiver TX output control on {:s}",
+            qsfpImpl_->getName(),
+            ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
   auto txControlReg = (side == phy::Side::LINE) ? SffField::TX_DISABLE
@@ -1942,10 +1945,11 @@ void SffModule::setTransceiverLoopbackLocked(
     bool setLoopback) {
   // Check if the module supports Loopback feature first
   if (!isTransceiverFeatureSupported(TransceiverFeature::LOOPBACK, side)) {
-    throw FbossError(fmt::format(
-        "Module {:s} does not support transceiver loopback on {:s}",
-        portName,
-        ((side == phy::Side::LINE) ? "Line" : "System")));
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support transceiver loopback on {:s}",
+            portName,
+            ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
   // For Miniphoton alone, there is no need to cache read the diag page 128

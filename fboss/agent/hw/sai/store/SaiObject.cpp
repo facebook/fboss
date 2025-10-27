@@ -80,8 +80,9 @@ void follyDynamicToNhopSet(
     // UCMP would only be enabled after D32229488 is rolled out, so OK to
     // use default weight.
     sai_uint32_t weight = 1;
-    if (object.find(AttributeName<
-                    SaiNextHopGroupMemberTraits::Attributes::Weight>::value) !=
+    if (object.find(
+            AttributeName<
+                SaiNextHopGroupMemberTraits::Attributes::Weight>::value) !=
         object.items().end()) {
       weight =
           object[AttributeName<

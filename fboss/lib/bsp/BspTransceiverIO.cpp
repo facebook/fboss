@@ -47,10 +47,11 @@ void BspTransceiverIO::write(
     incrWriteBytes(len);
   } catch (const I2cDevIoError& ex) {
     incrWriteFailed();
-    throw BspTransceiverIOError(fmt::format(
-        "BspTransceiverIO::write() failed to write to tcvr {:d}: {}",
-        tcvrID_,
-        ex.what()));
+    throw BspTransceiverIOError(
+        fmt::format(
+            "BspTransceiverIO::write() failed to write to tcvr {:d}: {}",
+            tcvrID_,
+            ex.what()));
   }
 
   if (ioRdWrProfilingInProgress_) {
@@ -82,10 +83,11 @@ void BspTransceiverIO::read(
     incrReadBytes(len);
   } catch (const I2cDevIoError& ex) {
     incrReadFailed();
-    throw BspTransceiverIOError(fmt::format(
-        "BspTransceiverIO::read() failed to read from tcvr {:d}: {}",
-        tcvrID_,
-        ex.what()));
+    throw BspTransceiverIOError(
+        fmt::format(
+            "BspTransceiverIO::read() failed to read from tcvr {:d}: {}",
+            tcvrID_,
+            ex.what()));
   }
 
   if (ioRdWrProfilingInProgress_) {

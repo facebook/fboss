@@ -1650,12 +1650,14 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   auto lbMode = GET_OPT_ATTR(Port, PortLoopbackMode, attributes);
-  port->setLoopbackMode(utility::getCfgPortLoopbackMode(
-      static_cast<sai_port_loopback_mode_t>(lbMode)));
+  port->setLoopbackMode(
+      utility::getCfgPortLoopbackMode(
+          static_cast<sai_port_loopback_mode_t>(lbMode)));
 #else
   auto ilbMode = GET_OPT_ATTR(Port, InternalLoopbackMode, attributes);
-  port->setLoopbackMode(utility::getCfgPortInternalLoopbackMode(
-      static_cast<sai_port_internal_loopback_mode_t>(ilbMode)));
+  port->setLoopbackMode(
+      utility::getCfgPortInternalLoopbackMode(
+          static_cast<sai_port_internal_loopback_mode_t>(ilbMode)));
 #endif
 
   // TODO: support Preemphasis once it is also used

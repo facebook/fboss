@@ -4725,8 +4725,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_REPORT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT_ACTION);
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-        objTypes.push_back(static_cast<sai_object_type_t>(
-            SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
+        objTypes.push_back(
+            static_cast<sai_object_type_t>(
+                SAI_OBJECT_TYPE_TAM_EVENT_AGING_GROUP));
 #endif
         objTypes.push_back(SAI_OBJECT_TYPE_TAM_EVENT);
         objTypes.push_back(SAI_OBJECT_TYPE_TAM);

@@ -722,8 +722,9 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
       folly::get_default(defaultCommandLineArgs, kMultiSwitch, "") == "true") {
     for (const auto& [_, switchInfo] :
          *newAgentConf.sw()->switchSettings()->switchIdToSwitchInfo()) {
-      agentConfig.dumpConfig(AgentDirectoryUtil().getTestHwAgentConfigFile(
-          *switchInfo.switchIndex()));
+      agentConfig.dumpConfig(
+          AgentDirectoryUtil().getTestHwAgentConfigFile(
+              *switchInfo.switchIndex()));
     }
   }
 }

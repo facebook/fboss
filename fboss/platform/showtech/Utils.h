@@ -10,7 +10,7 @@ namespace facebook::fboss::platform {
 
 class Utils {
  public:
-  Utils(const showtech_config::ShowtechConfig& config) : config_(config){};
+  Utils(const showtech_config::ShowtechConfig& config) : config_(config) {};
   ~Utils() = default;
 
   void printHostDetails();

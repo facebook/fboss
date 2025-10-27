@@ -63,8 +63,9 @@ class I2cLogBufferTest : public ::testing::Test {
     std::unordered_set<std::string> expectedWords{ports.begin(), ports.end()};
     for (const auto& field : fields) {
       // Expect field name up to kI2cFieldNameLength characters.
-      expectedWords.insert(apache::thrift::util::enumNameSafe(field).substr(
-          0, kI2cFieldNameLength));
+      expectedWords.insert(
+          apache::thrift::util::enumNameSafe(field).substr(
+              0, kI2cFieldNameLength));
     }
     // Check that we have unique words.
     CHECK_EQ(expectedWords.size(), ports.size() + fields.size());

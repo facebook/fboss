@@ -156,16 +156,18 @@ typename std::
     auto conditionAttributes = apiTable->nextHopApi().getAttribute(
         nextHopSaiId, SaiNextHopTraits::ConditionAttributes{});
     if (conditionAttributes == SaiIpNextHopTraits::kConditionAttributes) {
-      ret.nhopMemberSet.insert(std::make_pair(
-          apiTable->nextHopApi().getAttribute(
-              nextHopSaiId, SaiIpNextHopTraits::AdapterHostKey{}),
-          weight));
+      ret.nhopMemberSet.insert(
+          std::make_pair(
+              apiTable->nextHopApi().getAttribute(
+                  nextHopSaiId, SaiIpNextHopTraits::AdapterHostKey{}),
+              weight));
     } else if (
         conditionAttributes == SaiMplsNextHopTraits::kConditionAttributes) {
-      ret.nhopMemberSet.insert(std::make_pair(
-          apiTable->nextHopApi().getAttribute(
-              nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}),
-          weight));
+      ret.nhopMemberSet.insert(
+          std::make_pair(
+              apiTable->nextHopApi().getAttribute(
+                  nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}),
+              weight));
     }
   }
   return ret;

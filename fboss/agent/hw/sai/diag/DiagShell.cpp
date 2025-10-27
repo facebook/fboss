@@ -156,7 +156,7 @@ void DiagShell::initTerminal() {
 
     // Set up terminal to raw mode
     // For python repl, py_main will override the setting so not actually needed
-    struct termios oldSettings {};
+    struct termios oldSettings{};
     int ret = ::tcgetattr(ptys_->file.fd(), &oldSettings);
     folly::checkUnixError(ret, "Failed to get current terminal settings");
     auto newSettings = oldSettings;

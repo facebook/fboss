@@ -26,7 +26,7 @@ struct ConcurrentIndices {
     cfg::PortType portType;
 
     PortInfo(PortID portID, cfg::PortType portType)
-        : portID(portID), portType(portType){};
+        : portID(portID), portType(portType) {};
   };
 
   ~ConcurrentIndices();

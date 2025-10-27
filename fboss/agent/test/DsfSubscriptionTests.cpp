@@ -185,8 +185,9 @@ class DsfSubscriptionTest : public ::testing::Test {
     auto mSysPorts = std::make_shared<MultiSwitchSystemPortMap>();
     auto mIntfs = std::make_shared<MultiSwitchInterfaceMap>();
     CHECK(!sysPorts->empty());
-    HwSwitchMatcher matcher(std::unordered_set<SwitchID>{
-        sysPorts->cbegin()->second->getSwitchId()});
+    HwSwitchMatcher matcher(
+        std::unordered_set<SwitchID>{
+            sysPorts->cbegin()->second->getSwitchId()});
     mSysPorts->addMapNode(sysPorts, matcher);
     mIntfs->addMapNode(intfs, matcher);
     state->resetSystemPorts(mSysPorts);

@@ -241,13 +241,17 @@ TEST_F(SffTest, fr1TransceiverInfoTest) {
   std::vector<prbs::PrbsPolynomial> expectedCapabilities = {
       prbs::PrbsPolynomial::PRBS31};
   const auto& prbsSystemCaps = *diagsCap->prbsSystemCapabilities();
-  EXPECT_TRUE(std::equal(
-      prbsSystemCaps.begin(),
-      prbsSystemCaps.end(),
-      expectedCapabilities.begin()));
+  EXPECT_TRUE(
+      std::equal(
+          prbsSystemCaps.begin(),
+          prbsSystemCaps.end(),
+          expectedCapabilities.begin()));
   const auto& prbsLineCaps = *diagsCap->prbsLineCapabilities();
-  EXPECT_TRUE(std::equal(
-      prbsLineCaps.begin(), prbsLineCaps.end(), expectedCapabilities.begin()));
+  EXPECT_TRUE(
+      std::equal(
+          prbsLineCaps.begin(),
+          prbsLineCaps.end(),
+          expectedCapabilities.begin()));
 
   // Using TransceiverTestsHelper to verify TransceiverInfo
   TransceiverTestsHelper tests(info);

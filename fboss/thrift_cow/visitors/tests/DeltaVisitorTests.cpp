@@ -68,9 +68,10 @@ TYPED_TEST(DeltaVisitorTests, ChangeOneField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineInt", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineInt", DeltaElemTag::MINIMAL)}));
 
   // test encoding IDs
   differingPaths.clear();
@@ -85,9 +86,10 @@ TYPED_TEST(DeltaVisitorTests, ChangeOneField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/2", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/2", DeltaElemTag::MINIMAL)}));
 
   // test MINIMAL delta mode
   differingPaths.clear();
@@ -108,9 +110,10 @@ TYPED_TEST(DeltaVisitorTests, ChangeOneField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineInt", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineInt", DeltaElemTag::MINIMAL)}));
 }
 
 TYPED_TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
@@ -189,9 +192,10 @@ TYPED_TEST(DeltaVisitorTests, SetOptional) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/optionalString", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/optionalString", DeltaElemTag::MINIMAL)}));
 
   // Test MINIMAL mode
   differingPaths.clear();
@@ -201,8 +205,9 @@ TYPED_TEST(DeltaVisitorTests, SetOptional) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/optionalString", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/optionalString", DeltaElemTag::MINIMAL)}));
 
   // Test FULL mode
   differingPaths.clear();
@@ -212,9 +217,10 @@ TYPED_TEST(DeltaVisitorTests, SetOptional) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/optionalString", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/optionalString", DeltaElemTag::MINIMAL)}));
 }
 
 TYPED_TEST(DeltaVisitorTests, AddToMap) {
@@ -275,8 +281,9 @@ TYPED_TEST(DeltaVisitorTests, AddToMap) {
         std::make_pair("/mapOfEnumToStruct/1/min", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/1/max", DeltaElemTag::NOT_MINIMAL));
-    expected.emplace(std::make_pair(
-        "/mapOfEnumToStruct/1/invert", DeltaElemTag::NOT_MINIMAL));
+    expected.emplace(
+        std::make_pair(
+            "/mapOfEnumToStruct/1/invert", DeltaElemTag::NOT_MINIMAL));
   }
 
   result = RootDeltaVisitor::visit(
@@ -451,8 +458,9 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromMap) {
         std::make_pair("/mapOfEnumToStruct/3/min", DeltaElemTag::NOT_MINIMAL));
     expected.emplace(
         std::make_pair("/mapOfEnumToStruct/3/max", DeltaElemTag::NOT_MINIMAL));
-    expected.emplace(std::make_pair(
-        "/mapOfEnumToStruct/3/invert", DeltaElemTag::NOT_MINIMAL));
+    expected.emplace(
+        std::make_pair(
+            "/mapOfEnumToStruct/3/invert", DeltaElemTag::NOT_MINIMAL));
   }
 
   result = RootDeltaVisitor::visit(
@@ -487,10 +495,11 @@ TYPED_TEST(DeltaVisitorTests, AddToList) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
 
   // Test MINIMAL mode
   differingPaths.clear();
@@ -500,8 +509,9 @@ TYPED_TEST(DeltaVisitorTests, AddToList) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
 
   // Test FULL mode
   differingPaths.clear();
@@ -511,14 +521,15 @@ TYPED_TEST(DeltaVisitorTests, AddToList) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL),
-          std::make_pair("/listOfStructs/0/min", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs/0/max", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair(
-              "/listOfStructs/0/invert", DeltaElemTag::NOT_MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL),
+              std::make_pair("/listOfStructs/0/min", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs/0/max", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair(
+                  "/listOfStructs/0/invert", DeltaElemTag::NOT_MINIMAL)}));
 }
 
 TYPED_TEST(DeltaVisitorTests, DeleteFromList) {
@@ -547,10 +558,11 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromList) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
 
   // Test MINIMAL mode
   differingPaths.clear();
@@ -560,8 +572,9 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromList) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL)}));
 
   // Test FULL mode
   differingPaths.clear();
@@ -571,14 +584,15 @@ TYPED_TEST(DeltaVisitorTests, DeleteFromList) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL),
-          std::make_pair("/listOfStructs/0/min", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/listOfStructs/0/max", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair(
-              "/listOfStructs/0/invert", DeltaElemTag::NOT_MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs/0", DeltaElemTag::MINIMAL),
+              std::make_pair("/listOfStructs/0/min", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/listOfStructs/0/max", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair(
+                  "/listOfStructs/0/invert", DeltaElemTag::NOT_MINIMAL)}));
 }
 
 TYPED_TEST(DeltaVisitorTests, EditVariantField) {
@@ -604,10 +618,12 @@ TYPED_TEST(DeltaVisitorTests, EditVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineInt", DeltaElemTag::MINIMAL)}));
 
   // Test MINIMAL mode
   differingPaths.clear();
@@ -617,8 +633,9 @@ TYPED_TEST(DeltaVisitorTests, EditVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{std::make_pair(
+              "/inlineVariant/inlineInt", DeltaElemTag::MINIMAL)}));
 
   // Test FULL mode
   differingPaths.clear();
@@ -628,10 +645,12 @@ TYPED_TEST(DeltaVisitorTests, EditVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineInt", DeltaElemTag::MINIMAL)}));
 
   // Test with ids
   differingPaths.clear();
@@ -646,10 +665,11 @@ TYPED_TEST(DeltaVisitorTests, EditVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/21", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/21/2", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/21", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/21/2", DeltaElemTag::MINIMAL)}));
 }
 
 TYPED_TEST(DeltaVisitorTests, SwitchVariantField) {
@@ -675,11 +695,13 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
-          std::make_pair("/inlineVariant/inlineBool", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineBool", DeltaElemTag::MINIMAL)}));
 
   // Test MINIMAL mode
   differingPaths.clear();
@@ -689,9 +711,11 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
-          std::make_pair("/inlineVariant/inlineBool", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineBool", DeltaElemTag::MINIMAL)}));
 
   // Test FULL mode
   differingPaths.clear();
@@ -701,11 +725,13 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantField) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
-          std::make_pair("/inlineVariant/inlineBool", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineBool", DeltaElemTag::MINIMAL)}));
 }
 
 TYPED_TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
@@ -736,12 +762,13 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
-          std::make_pair(
-              "/inlineVariant/inlineStruct", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineStruct", DeltaElemTag::MINIMAL)}));
 
   // Test MINIMAL mode
   differingPaths.clear();
@@ -751,10 +778,11 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
-          std::make_pair(
-              "/inlineVariant/inlineStruct", DeltaElemTag::MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineStruct", DeltaElemTag::MINIMAL)}));
 
   // Test FULL mode
   differingPaths.clear();
@@ -764,18 +792,20 @@ TYPED_TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
-      ::testing::ContainerEq(PathTagSet{
-          std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
-          std::make_pair("/inlineVariant/inlineStruct", DeltaElemTag::MINIMAL),
-          std::make_pair(
-              "/inlineVariant/inlineStruct/min", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair(
-              "/inlineVariant/inlineStruct/max", DeltaElemTag::NOT_MINIMAL),
-          std::make_pair(
-              "/inlineVariant/inlineStruct/invert",
-              DeltaElemTag::NOT_MINIMAL)}));
+      ::testing::ContainerEq(
+          PathTagSet{
+              std::make_pair("/", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair("/inlineVariant/inlineInt", DeltaElemTag::MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineStruct", DeltaElemTag::MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineStruct/min", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineStruct/max", DeltaElemTag::NOT_MINIMAL),
+              std::make_pair(
+                  "/inlineVariant/inlineStruct/invert",
+                  DeltaElemTag::NOT_MINIMAL)}));
 }
 
 } // namespace facebook::fboss::thrift_cow::test

@@ -1258,9 +1258,10 @@ DOMDataUnion getDOMDataUnionI2CBus(
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {
-    throw std::runtime_error(folly::sformat(
-        "Unknown transceiver management interface: {}.",
-        static_cast<int>(mgmtInterface)));
+    throw std::runtime_error(
+        folly::sformat(
+            "Unknown transceiver management interface: {}.",
+            static_cast<int>(mgmtInterface)));
   }
 }
 

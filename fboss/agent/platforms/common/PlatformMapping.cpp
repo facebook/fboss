@@ -172,8 +172,9 @@ std::string PlatformPortProfileConfigMatcher::toString() const {
 }
 
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
-  init(apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
-      jsonPlatformMappingStr));
+  init(
+      apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
+          jsonPlatformMappingStr));
 }
 
 PlatformMapping::PlatformMapping(const cfg::PlatformMapping& mapping) {

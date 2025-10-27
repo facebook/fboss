@@ -253,10 +253,11 @@ void PkgManager::processRpms() const {
     success = exitStatus == 0;
   }
   if (exitStatus != 0) {
-    throw std::runtime_error(fmt::format(
-        "Failed to install rpm ({}) with exit code {}",
-        FLAGS_local_rpm_path,
-        exitStatus));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to install rpm ({}) with exit code {}",
+            FLAGS_local_rpm_path,
+            exitStatus));
   }
   XLOG(INFO) << "Caching kernel modules dependencies";
   if (exitStatus = systemInterface_->depmod(); exitStatus != 0) {
@@ -315,10 +316,11 @@ void PkgManager::processLocalRpms() const {
     success = exitStatus == 0;
   }
   if (exitStatus != 0) {
-    throw std::runtime_error(fmt::format(
-        "Failed to install rpm ({}) with exit code {}",
-        FLAGS_local_rpm_path,
-        exitStatus));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to install rpm ({}) with exit code {}",
+            FLAGS_local_rpm_path,
+            exitStatus));
   }
 }
 
@@ -380,11 +382,12 @@ void PkgManager::unloadBspKmods() const {
     }
     // Unexpected read failures. Can't proceed forward.
     // This shouldn't happen in production.
-    throw std::runtime_error(fmt::format(
-        "Failed to unload kmods. Reason: Failed to read {}; "
-        "most likely because RPM is incompatible. A possible remediation: {}",
-        bspKmodsFilePath,
-        fmt::format("dnf install {} --assumeyes", getKmodsRpmName())));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to unload kmods. Reason: Failed to read {}; "
+            "most likely because RPM is incompatible. A possible remediation: {}",
+            bspKmodsFilePath,
+            fmt::format("dnf install {} --assumeyes", getKmodsRpmName())));
   }
   // Watchdogs would prevent module unloading if they are not stopped correctly.
   // Try to close all of them before proceeding. This will help in cases where
@@ -447,10 +450,11 @@ void PkgManager::removeInstalledRpms() const {
       "Removing old rpms: {}", folly::join(", ", installedRpms));
   if (exitStatus = systemInterface_->removeRpms(installedRpms);
       exitStatus != 0) {
-    throw std::runtime_error(fmt::format(
-        "Failed to remove old rpms ({}) with exit code {}",
-        folly::join(" ", installedRpms),
-        exitStatus));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to remove old rpms ({}) with exit code {}",
+            folly::join(" ", installedRpms),
+            exitStatus));
   }
   XLOG(INFO) << fmt::format(
       "Removed old rpms: {}", folly::join(", ", installedRpms));
@@ -465,9 +469,10 @@ BspKmodsFile PkgManager::readKmodsFile() const {
   auto jsonBspKmodsFile =
       platformFsUtils_->getStringFileContent(bspKmodsFilePath);
   if (!jsonBspKmodsFile) {
-    throw std::runtime_error(fmt::format(
-        "Failed to read kmods file. Reason: Failed to read {}",
-        bspKmodsFilePath));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to read kmods file. Reason: Failed to read {}",
+            bspKmodsFilePath));
   }
   BspKmodsFile bspKmodsFile;
   apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(

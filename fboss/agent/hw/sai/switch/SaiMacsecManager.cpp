@@ -1186,10 +1186,12 @@ void SaiMacsecManager::setupMacsecState(
   std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (!aclTable) {
-    throw FbossError(folly::sformat(
-        "For linePort: {}, {:s} ACL table Not Found",
-        static_cast<int>(linePort),
-        (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress" : "Egress")));
+    throw FbossError(
+        folly::sformat(
+            "For linePort: {}, {:s} ACL table Not Found",
+            static_cast<int>(linePort),
+            (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
+                                                       : "Egress")));
   }
 
   // 4. Create default data packet rule as per dropUnencrypted value

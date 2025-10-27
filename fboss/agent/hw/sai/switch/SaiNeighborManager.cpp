@@ -301,9 +301,10 @@ ManagedVlanRifNeighbor::ManagedVlanRifNeighbor(
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal,
     std::optional<bool> noHostRoute)
-    : Base(std::make_tuple(
-          std::get<InterfaceID>(intfIDAndIpAndMac),
-          std::get<folly::MacAddress>(intfIDAndIpAndMac))),
+    : Base(
+          std::make_tuple(
+              std::get<InterfaceID>(intfIDAndIpAndMac),
+              std::get<folly::MacAddress>(intfIDAndIpAndMac))),
       manager_(manager),
       saiPortAndIntf_(saiPortAndIntf),
       intfIDAndIpAndMac_(intfIDAndIpAndMac),

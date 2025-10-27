@@ -11,16 +11,18 @@ namespace facebook::fboss::utils {
 template <>
 ConnectionOptions ConnectionOptions::defaultOptions<facebook::fboss::FbossCtrl>(
     std::optional<folly::SocketAddress> dstAddr) {
-  return ConnectionOptions(std::move(dstAddr).value_or(
-      folly::SocketAddress("::1", FLAGS_wedge_agent_port)));
+  return ConnectionOptions(
+      std::move(dstAddr).value_or(
+          folly::SocketAddress("::1", FLAGS_wedge_agent_port)));
 }
 
 template <>
 ConnectionOptions
 ConnectionOptions::defaultOptions<facebook::fboss::QsfpService>(
     std::optional<folly::SocketAddress> dstAddr) {
-  return ConnectionOptions(std::move(dstAddr).value_or(
-      folly::SocketAddress("::1", FLAGS_qsfp_service_port)));
+  return ConnectionOptions(
+      std::move(dstAddr).value_or(
+          folly::SocketAddress("::1", FLAGS_qsfp_service_port)));
 }
 
 template <>

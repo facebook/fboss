@@ -161,9 +161,10 @@ bool HwTestThriftHandler::validateUdfConfig(
     if (udfApi.getAttribute(
             saiUdfMatch->adapterKey(),
             SaiUdfMatchTraits::Attributes::L3Type{}) !=
-        AclEntryFieldU8(std::make_pair(
-            static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
-            static_cast<uint8_t>(SaiUdfManager::kMaskAny)))) {
+        AclEntryFieldU8(
+            std::make_pair(
+                static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+                static_cast<uint8_t>(SaiUdfManager::kMaskAny)))) {
       XLOG(ERR) << "saiUdfMatch->adapterKey(), "
                 << "SaiUdfMatchTraits::Attributes::L3Type {} is not  " << "udp";
       return false;

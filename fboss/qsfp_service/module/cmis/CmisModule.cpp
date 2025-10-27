@@ -2405,11 +2405,12 @@ void CmisModule::setApplicationCodeLocked(
   }
   if (appCodes.empty()) {
     QSFP_LOG(INFO, this) << "Unsupported Speed.";
-    throw FbossError(folly::to<std::string>(
-        "Transceiver: ",
-        qsfpImpl_->getName(),
-        " Unsupported speed: ",
-        apache::thrift::util::enumNameSafe(speed)));
+    throw FbossError(
+        folly::to<std::string>(
+            "Transceiver: ",
+            qsfpImpl_->getName(),
+            " Unsupported speed: ",
+            apache::thrift::util::enumNameSafe(speed)));
   }
   QSFP_LOG(INFO, this) << "Application codes supporting current speed: "
                        << folly::join(",", appCodes);
@@ -2514,14 +2515,15 @@ void CmisModule::setApplicationCodeLocked(
         !isRequestValidMultiportSpeedConfig(
             speed, startHostLane, numHostLanes)) {
       QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
-      resetDataPathWithFunc(std::bind(
-          &CmisModule::setApplicationSelectCodeAllPorts,
-          this,
-          speed,
-          startHostLane,
-          numHostLanes,
-          hostLaneMask)); // To use the default hostLaneMask = 0xFF for
-                          // all the lanes datapath reset.
+      resetDataPathWithFunc(
+          std::bind(
+              &CmisModule::setApplicationSelectCodeAllPorts,
+              this,
+              speed,
+              startHostLane,
+              numHostLanes,
+              hostLaneMask)); // To use the default hostLaneMask = 0xFF for
+                              // all the lanes datapath reset.
     } else {
       QSFP_LOG(INFO, this) << folly::sformat(
           "Programming App sel on lanes {:#x}", hostLaneMask);
@@ -2559,10 +2561,11 @@ void CmisModule::setApplicationCodeLocked(
   }
   // We didn't find an application that both we support and the module supports
   QSFP_LOG(INFO, this) << "Unsupported Application";
-  throw FbossError(folly::to<std::string>(
-      "Port: ",
-      qsfpImpl_->getName(),
-      " Unsupported Application by the module: "));
+  throw FbossError(
+      folly::to<std::string>(
+          "Port: ",
+          qsfpImpl_->getName(),
+          " Unsupported Application by the module: "));
 }
 
 /*
@@ -4241,10 +4244,11 @@ bool CmisModule::setTransceiverTxImplLocked(
 
   // Check if the module supports Tx control feature first
   if (!isTransceiverFeatureSupported(TransceiverFeature::TX_DISABLE, side)) {
-    throw FbossError(fmt::format(
-        "Module {:s} does not support transceiver TX output control on {:s}",
-        qsfpImpl_->getName(),
-        ((side == phy::Side::LINE) ? "Line" : "System")));
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support transceiver TX output control on {:s}",
+            qsfpImpl_->getName(),
+            ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
   // Set the Tx output register for these lanes in given direction
@@ -4294,10 +4298,11 @@ void CmisModule::setTransceiverLoopbackLocked(
 
   // Check if the module supports system or line side loopback
   if (!isTransceiverFeatureSupported(TransceiverFeature::LOOPBACK, side)) {
-    throw FbossError(fmt::format(
-        "Module {:s} does not support transceiver Loopback on {:s}",
-        portName,
-        ((side == phy::Side::LINE) ? "Line" : "System")));
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support transceiver Loopback on {:s}",
+            portName,
+            ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
   auto regField = (side == phy::Side::SYSTEM) ? CmisField::MEDIA_FAR_LB_EN

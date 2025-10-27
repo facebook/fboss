@@ -15,10 +15,11 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 void expectVersions(const char* deviceName, const char* versionString) {
   EXPECT_EQ(
-      facebook::fb303::fbData->getCounter(fmt::format(
-          PlatformExplorer::kGroupedFirmwareVersion,
-          deviceName,
-          versionString)),
+      facebook::fb303::fbData->getCounter(
+          fmt::format(
+              PlatformExplorer::kGroupedFirmwareVersion,
+              deviceName,
+              versionString)),
       1);
 }
 } // namespace

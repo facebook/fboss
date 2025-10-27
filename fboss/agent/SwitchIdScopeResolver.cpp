@@ -90,8 +90,9 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(PortID portId) const {
             *switchIdAndSwitchInfo.second.portIdRange()->minimum() &&
         static_cast<int64_t>(portId) <=
             *switchIdAndSwitchInfo.second.portIdRange()->maximum()) {
-      return HwSwitchMatcher(std::unordered_set<SwitchID>(
-          {SwitchID(switchIdAndSwitchInfo.first)}));
+      return HwSwitchMatcher(
+          std::unordered_set<SwitchID>(
+              {SwitchID(switchIdAndSwitchInfo.first)}));
     }
   }
   throw FbossError("No switch found for port ", portId);

@@ -1346,10 +1346,11 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
   for (const auto& [path, jsonPatch] : *pathToJsonPatch) {
     if (path == "remoteSystemPortMaps") {
       MultiSwitchSystemPortMap mswitchSysPorts;
-      mswitchSysPorts.fromThrift(thrift_cow::deserialize<
-                                 MultiSwitchSystemPortMapTypeClass,
-                                 MultiSwitchSystemPortMapThriftType>(
-          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      mswitchSysPorts.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchSystemPortMapTypeClass,
+              MultiSwitchSystemPortMapThriftType>(
+              fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
       for (const auto& systemPortMap : mswitchSysPorts) {
         // A given port belongs to exactly one switch
         auto matcher = HwSwitchMatcher(systemPortMap.first);
@@ -1357,10 +1358,11 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
       }
     } else if (path == "remoteInterfaceMaps") {
       MultiSwitchInterfaceMap mswitchIntfs;
-      mswitchIntfs.fromThrift(thrift_cow::deserialize<
-                              MultiSwitchInterfaceMapTypeClass,
-                              MultiSwitchInterfaceMapThriftType>(
-          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      mswitchIntfs.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchInterfaceMapTypeClass,
+              MultiSwitchInterfaceMapThriftType>(
+              fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
       for (const auto& remoteIntfMap : mswitchIntfs) {
         auto matcher = HwSwitchMatcher(remoteIntfMap.first);
         // Pick first switchId for now, may need to revise when we support

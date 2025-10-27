@@ -50,17 +50,20 @@ TEST_F(AgentTrunkTest, TrunkCreateHighLowKeyIds) {
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
           utility::getAggregatePortCount(*getAgentEnsemble()), 2);
-      EXPECT_EVENTUALLY_TRUE(utility::verifyAggregatePort(
-          *getAgentEnsemble(), AggregatePortID(1)));
-      EXPECT_EVENTUALLY_TRUE(utility::verifyAggregatePort(
-          *getAgentEnsemble(),
-          AggregatePortID(std::numeric_limits<AggregatePortID>::max())));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::verifyAggregatePort(
+              *getAgentEnsemble(), AggregatePortID(1)));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::verifyAggregatePort(
+              *getAgentEnsemble(),
+              AggregatePortID(std::numeric_limits<AggregatePortID>::max())));
       auto aggIDs = {
           AggregatePortID(1),
           AggregatePortID(std::numeric_limits<AggregatePortID>::max())};
       for (auto aggId : aggIDs) {
-        EXPECT_EVENTUALLY_TRUE(utility::verifyAggregatePortMemberCount(
-            *getAgentEnsemble(), aggId, 1));
+        EXPECT_EVENTUALLY_TRUE(
+            utility::verifyAggregatePortMemberCount(
+                *getAgentEnsemble(), aggId, 1));
       }
     });
   };
@@ -78,9 +81,10 @@ TEST_F(AgentTrunkTest, TrunkCheckIngressPktAggPort) {
   };
   auto verify = [=, this]() {
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(utility::verifyPktFromAggregatePort(
-          *getAgentEnsemble(),
-          AggregatePortID(std::numeric_limits<AggregatePortID>::max())));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::verifyPktFromAggregatePort(
+              *getAgentEnsemble(),
+              AggregatePortID(std::numeric_limits<AggregatePortID>::max())));
     });
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -104,8 +108,9 @@ TEST_F(AgentTrunkTest, TrunkMemberPortDownMinLinksViolated) {
           utility::getAggregatePortCount(*getAgentEnsemble()), 1);
       EXPECT_EVENTUALLY_TRUE(
           utility::verifyAggregatePort(*getAgentEnsemble(), aggId));
-      EXPECT_EVENTUALLY_TRUE(utility::verifyAggregatePortMemberCount(
-          *getAgentEnsemble(), aggId, 1));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::verifyAggregatePortMemberCount(
+              *getAgentEnsemble(), aggId, 1));
     });
   };
   verifyAcrossWarmBoots(setup, verify);

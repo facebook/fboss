@@ -102,8 +102,9 @@ std::string to_string(RestartEvent type) {
     case RestartEvent::SHUTDOWN:
       return "shutdown";
     default:
-      throw std::runtime_error(folly::to<std::string>(
-          "Unhandled RestartEvent: ", static_cast<uint16_t>(type)));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "Unhandled RestartEvent: ", static_cast<uint16_t>(type)));
   }
 }
 
@@ -205,8 +206,9 @@ class RestartTimeTracker {
           return readAndRemoveTimePointFile(savePath(type));
         }
       default:
-        throw std::runtime_error(folly::to<std::string>(
-            "Unhandled RestartEvent: ", static_cast<uint16_t>(type)));
+        throw std::runtime_error(
+            folly::to<std::string>(
+                "Unhandled RestartEvent: ", static_cast<uint16_t>(type)));
     }
   }
 

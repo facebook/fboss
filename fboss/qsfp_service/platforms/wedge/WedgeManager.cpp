@@ -180,8 +180,9 @@ void WedgeManager::initQsfpImplMap() {
       auto logConfig = apache::thrift::can_throw(i2cLogConfig.value());
       logBuffer = std::make_unique<I2cLogBuffer>(logConfig, fileName);
     }
-    qsfpImpls_.push_back(std::make_unique<WedgeQsfp>(
-        idx, wedgeI2cBus_.get(), this, std::move(logBuffer)));
+    qsfpImpls_.push_back(
+        std::make_unique<WedgeQsfp>(
+            idx, wedgeI2cBus_.get(), this, std::move(logBuffer)));
   }
 }
 

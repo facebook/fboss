@@ -267,10 +267,11 @@ std::string SaiPlatform::getHwAsicConfig(
   std::vector<std::string> nameValStrs;
   auto addNameValue = [&nameValStrs, &overrides](const auto& keyAndVal) {
     auto oitr = overrides.find(keyAndVal.first);
-    nameValStrs.emplace_back(folly::to<std::string>(
-        keyAndVal.first,
-        '=',
-        oitr == overrides.end() ? keyAndVal.second : oitr->second));
+    nameValStrs.emplace_back(
+        folly::to<std::string>(
+            keyAndVal.first,
+            '=',
+            oitr == overrides.end() ? keyAndVal.second : oitr->second));
   };
   for (const auto& entry : commonConfigs) {
     addNameValue(entry);
@@ -300,12 +301,17 @@ std::string SaiPlatform::getHwAsicConfig(
 void SaiPlatform::initSaiProfileValues() {
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
-  kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_WARM_BOOT_READ_FILE, getWarmBootHelper()->warmBootDataPath()));
-  kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_WARM_BOOT_WRITE_FILE, getWarmBootHelper()->warmBootDataPath()));
-  kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
+  kSaiProfileValues.insert(
+      std::make_pair(
+          SAI_KEY_WARM_BOOT_READ_FILE,
+          getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(
+      std::make_pair(
+          SAI_KEY_WARM_BOOT_WRITE_FILE,
+          getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(
+      std::make_pair(
+          SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
   auto vendorProfileValues = getSaiProfileVendorExtensionValues();
   kSaiProfileValues.insert(
       vendorProfileValues.begin(), vendorProfileValues.end());
