@@ -79,7 +79,8 @@ class CmdClearInterfacePrbsStats : public CmdHandler<
     } else {
       auto switchIndicesForInterfaces =
           utils::getSwitchIndicesForInterfaces(hostInfo, interfaces);
-      for (const auto& [switchIndex, interfaces] : switchIndicesForInterfaces) {
+      for (const auto& [switchIndex, switchInterfaces] :
+           switchIndicesForInterfaces) {
         auto hwAgentClient =
             utils::createClient<apache::thrift::Client<FbossHwCtrl>>(
                 hostInfo, switchIndex);
