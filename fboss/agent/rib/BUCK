@@ -59,6 +59,7 @@ cpp_unittest(
     name = "rib_tests",
     srcs = [
         "test/FibInteractionTests.cpp",
+        "test/NextHopIDManagerTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
@@ -68,6 +69,7 @@ cpp_unittest(
     deps = [
         ":fib_updater",
         ":network_to_route_map",
+        ":nexthop_id_manager",
         ":standalone_rib",
         "//common/network/if:if-cpp2-types",
         "//fboss/agent:address_utils",
@@ -128,6 +130,16 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
+    name = "nexthop_id_manager",
+    srcs = ["NextHopIDManager.cpp"],
+    headers = ["NextHopIDManager.h"],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",
     ],
 )
