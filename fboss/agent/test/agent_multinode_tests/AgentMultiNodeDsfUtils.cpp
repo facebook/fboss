@@ -235,7 +235,11 @@ bool verifyFabricReachability(
 }
 
 bool verifyPortActiveStateForSwitch(const std::string& switchName) {
-  return true;
+  // Every Connected Fabric Port must be Active
+  auto connectedPorts = getConnectedFabricPorts(switchName);
+  auto activePorts = getActiveFabricPorts(switchName);
+
+  return connectedPorts == activePorts;
 }
 
 bool verifyNoPortErrorsForSwitch(const std::string& switchName) {
