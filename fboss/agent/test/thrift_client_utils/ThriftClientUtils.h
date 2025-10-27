@@ -30,4 +30,7 @@ std::map<std::string, std::vector<std::string>> getRemoteSwitchToReachablePorts(
     const std::string& switchName,
     const std::vector<std::string>& remoteSwitches);
 
+std::map<int32_t, PortInfoThrift> getPortIdToPortInfo(
+    const std::string& switchName);
+
 } // namespace facebook::fboss::utility

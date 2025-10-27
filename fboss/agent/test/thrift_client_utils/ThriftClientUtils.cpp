@@ -93,4 +93,12 @@ std::map<std::string, std::vector<std::string>> getRemoteSwitchToReachablePorts(
   return remoteSwitchToReachablePorts;
 }
 
+std::map<int32_t, PortInfoThrift> getPortIdToPortInfo(
+    const std::string& switchName) {
+  std::map<int32_t, PortInfoThrift> portIdToPortInfo;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getAllPortInfo(portIdToPortInfo);
+  return portIdToPortInfo;
+}
+
 } // namespace facebook::fboss::utility
