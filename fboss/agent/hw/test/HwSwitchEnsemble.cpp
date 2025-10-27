@@ -558,12 +558,12 @@ std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
 
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getPortStats();
-  for (auto [portName, stats] : stats) {
+  for (auto [portName, portStats] : stats) {
     auto portId = swState->getPorts()->getPort(portName)->getID();
     if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
       continue;
     }
-    portIdStatsMap.emplace((PortID)portId, stats);
+    portIdStatsMap.emplace((PortID)portId, portStats);
   }
   return portIdStatsMap;
 }
@@ -595,7 +595,7 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
 
   auto swState = getProgrammedState();
   auto stats = getHwSwitch()->getSysPortStats();
-  for (auto [portStatName, stats] : stats) {
+  for (auto [portStatName, sysPortStats] : stats) {
     // Sysport stats names are suffixed with _switchIndex. Remove that
     // to get at sys port name
     auto portName = portStatName.substr(0, portStatName.find_last_of('_'));
@@ -614,7 +614,7 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
     if (std::find(ports.begin(), ports.end(), portId) == ports.end()) {
       continue;
     }
-    portIdStatsMap.emplace(portId, stats);
+    portIdStatsMap.emplace(portId, sysPortStats);
   }
   return portIdStatsMap;
 }
