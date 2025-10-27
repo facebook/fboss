@@ -126,9 +126,27 @@ bool verifyFabricConnectivity(
       verifyFabricConnectivityForSdsws(topologyInfo);
 }
 
+bool verifyFabricReachabilityForRdsw(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& rdswToVerify) {
+  return true;
+}
+
+bool verifyFabricReachability(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  for (const auto& rdsw : topologyInfo->getRdsws()) {
+    if (!verifyFabricReachabilityForRdsw(topologyInfo, rdsw)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
     verifyFabricConnectivity(topologyInfo);
+    verifyFabricReachability(topologyInfo);
   });
 }
 
