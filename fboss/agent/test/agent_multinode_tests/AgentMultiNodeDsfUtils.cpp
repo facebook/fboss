@@ -7,6 +7,8 @@
 
 namespace {
 using namespace facebook::fboss::utility;
+using facebook::fboss::PortInfoThrift;
+using facebook::fboss::cfg::PortType;
 
 bool verifyFabricConnectivityHelper(
     const std::string& switchToVerify,
@@ -39,6 +41,18 @@ bool verifyFabricConnectivityHelper(
     }
   }
   return expectedConnectedSwitches == gotConnectedSwitches;
+}
+
+std::map<std::string, PortInfoThrift> getFabricPortNameToPortInfo(
+    const std::string& switchName) {
+  std::map<std::string, PortInfoThrift> fabricPortNameToPortInfo;
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
+    if (portInfo.portType().value() == PortType::FABRIC_PORT) {
+      fabricPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
+    }
+  }
+
+  return fabricPortNameToPortInfo;
 }
 
 } // namespace
