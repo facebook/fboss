@@ -21,10 +21,8 @@ cpp_library(
         "AgentMultiNodeTest.h",
         "DsfTopologyInfo.h",
     ],
-    deps = [
-        "//fboss/agent:asic_utils",
-    ],
     exported_deps = [
+        "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_hw_test",
