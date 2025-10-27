@@ -46,8 +46,6 @@ class TopologyInfo {
       const = 0;
 
  private:
-  void populateTopologyType(const std::shared_ptr<SwitchState>& switchState);
-
   TopologyType topologyType_;
 };
 

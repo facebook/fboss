@@ -44,20 +44,9 @@ std::unique_ptr<TopologyInfo> TopologyInfo::makeTopologyInfo(
 }
 
 TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState)
-    : topologyType_(getDerivedTopologyType(switchState)) {
-  populateTopologyType(switchState);
-}
+    : topologyType_(getDerivedTopologyType(switchState)) {}
 
 TopologyInfo::~TopologyInfo() {}
-
-void TopologyInfo::populateTopologyType(
-    const std::shared_ptr<SwitchState>& switchState) {
-  if (switchState->getDsfNodes()->size() > 0) {
-    topologyType_ = TopologyType::DSF;
-  }
-
-  throw FbossError("Unsupported topology type");
-}
 
 bool TopologyInfo::isTestDriver(const SwSwitch& sw) const {
   // Multi Node Tests follow this model:
