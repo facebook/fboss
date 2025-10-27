@@ -117,4 +117,12 @@ std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
   return intfIdToIntf;
 }
 
+std::vector<facebook::fboss::NdpEntryThrift> getNdpEntries(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::vector<facebook::fboss::NdpEntryThrift> ndpEntries;
+  swAgentClient->sync_getNdpTable(ndpEntries);
+  return ndpEntries;
+}
+
 } // namespace facebook::fboss::utility

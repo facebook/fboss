@@ -37,5 +37,7 @@ getSystemPortdIdToSystemPort(const std::string& switchName);
 
 std::map<int32_t, facebook::fboss::InterfaceDetail> getIntfIdToIntf(
     const std::string& switchName);
+std::vector<facebook::fboss::NdpEntryThrift> getNdpEntries(
+    const std::string& switchName);
 
 } // namespace facebook::fboss::utility
