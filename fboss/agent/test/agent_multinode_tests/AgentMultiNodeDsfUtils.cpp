@@ -10,6 +10,7 @@ using namespace facebook::fboss::utility;
 using facebook::fboss::FabricEndpoint;
 using facebook::fboss::PortActiveState;
 using facebook::fboss::PortInfoThrift;
+using facebook::fboss::RemoteInterfaceType;
 using facebook::fboss::RemoteSystemPortType;
 using facebook::fboss::cfg::PortType;
 using facebook::fboss::cfg::Scope;
@@ -122,6 +123,26 @@ std::set<std::string> getGlobalSystemPortsOfType(
     }
   }
   return systemPortsOfType;
+}
+
+std::set<int> getGlobalRifsOfType(
+    const std::string& rdsw,
+    const std::set<RemoteInterfaceType>& types) {
+  auto matchesRifType = [&types](const facebook::fboss::InterfaceDetail& rif) {
+    if (rif.remoteIntfType().has_value()) {
+      return types.find(rif.remoteIntfType().value()) != types.end();
+    } else {
+      return types.empty();
+    }
+  };
+
+  std::set<int> rifsOfType;
+  for (const auto& [_, rif] : getIntfIdToIntf(rdsw)) {
+    if (*rif.scope() == Scope::GLOBAL && matchesRifType(rif)) {
+      rifsOfType.insert(rif.interfaceId().value());
+    }
+  }
+  return rifsOfType;
 }
 
 } // namespace
