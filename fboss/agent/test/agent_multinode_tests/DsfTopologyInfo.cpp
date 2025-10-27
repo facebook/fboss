@@ -44,6 +44,14 @@ void DsfTopologyInfo::populateDsfNodeInfo(
   }
 }
 
+void DsfTopologyInfo::populateAllRdsws() {
+  for (const auto& [clusterId, rdsws] : std::as_const(clusterIdToRdsws_)) {
+    for (const auto& rdsw : rdsws) {
+      allRdsws_.insert(rdsw);
+    }
+  }
+}
+
 void DsfTopologyInfo::populateAllFdsws() {
   for (const auto& [clusterId, fdsws] : std::as_const(clusterIdToFdsws_)) {
     for (const auto& fdsw : fdsws) {

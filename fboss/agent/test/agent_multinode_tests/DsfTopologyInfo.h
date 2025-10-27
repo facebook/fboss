@@ -20,6 +20,7 @@ class DsfTopologyInfo : public TopologyInfo {
   explicit DsfTopologyInfo(const std::shared_ptr<SwitchState>& switchState)
       : TopologyInfo(switchState) {
     populateDsfNodeInfo(switchState->getDsfNodes());
+    populateAllRdsws();
     populateAllFdsws();
   }
 
@@ -59,6 +60,7 @@ class DsfTopologyInfo : public TopologyInfo {
  private:
   void populateDsfNodeInfo(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
+  void populateAllRdsws();
   void populateAllFdsws();
 
   std::map<int, std::vector<std::string>> clusterIdToRdsws_;
@@ -69,6 +71,7 @@ class DsfTopologyInfo : public TopologyInfo {
   std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
   std::map<std::string, cfg::AsicType> switchNameToAsicType_;
 
+  std::set<std::string> allRdsws_;
   std::set<std::string> allFdsws_;
 };
 
