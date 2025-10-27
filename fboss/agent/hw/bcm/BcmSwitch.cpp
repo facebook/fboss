@@ -19,7 +19,6 @@
 #include <unordered_set>
 #include <utility>
 
-#include <boost/cast.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
@@ -34,7 +33,6 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
@@ -53,7 +51,6 @@
 #include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
-#include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
@@ -78,14 +75,11 @@
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmRtag7LoadBalancer.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSflowExporter.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitchSettings.h"
-#include "fboss/agent/hw/bcm/BcmTableStats.h"
-#include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
@@ -96,7 +90,6 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
 #include "fboss/agent/hw/bcm/PacketTraceUtils.h"
-#include "fboss/agent/hw/bcm/RxUtils.h"
 #include "fboss/agent/hw/bcm/gen-cpp2/packettrace_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"

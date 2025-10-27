@@ -12,7 +12,6 @@
 #include <fboss/thrift_cow/nodes/ThriftMapNode-inl.h>
 #include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <memory>
 #include <optional>
 #include <sstream>

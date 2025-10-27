@@ -706,7 +706,6 @@ cpp_library(
         "//folly:file_util",
         "//folly:range",
         "//folly/gen:base",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
@@ -989,7 +988,6 @@ cpp_library(
         "//folly:demangle",
         "//folly:exception_string",
         "//folly:file_util",
-        "//folly:glog",
         "//folly:intrusive_list",
         "//folly:map_util",
         "//folly:memory",

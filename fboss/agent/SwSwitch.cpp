@@ -74,7 +74,6 @@
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PcapPkt.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -101,7 +100,6 @@
 #include <fb303/ServiceData.h>
 #include <folly/Demangle.h>
 #include <folly/FileUtil.h>
-#include <folly/GLog.h>
 #include <folly/MacAddress.h>
 #include <folly/MapUtil.h>
 #include <folly/SocketAddress.h>
