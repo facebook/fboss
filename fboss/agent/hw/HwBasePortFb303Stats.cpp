@@ -174,6 +174,14 @@ void HwBasePortFb303Stats::reinitPfcStats(
         : std::nullopt;
     portCounters_.reinitStat(newStatName, oldStatName);
   }
+
+  // Init PFC RX/TX duration counters as well
+  if (pfcInfo_.rxPfcDurationEnabled) {
+    reinitPortPriorityPfcStats({kRxPfcDurationUsec()});
+  }
+  if (pfcInfo_.txPfcDurationEnabled) {
+    reinitPortPriorityPfcStats({kTxPfcDurationUsec()});
+  }
 }
 
 /*
@@ -232,12 +240,9 @@ void HwBasePortFb303Stats::queueRemoved(int queueId) {
   queueId2Name_.erase(queueId);
 }
 
-void HwBasePortFb303Stats::pfcPriorityChanged(
-    std::vector<PfcPriority> enabledPriorities) {
-  if (getEnabledPfcPriorities() == enabledPriorities) {
-    // No change in priorities
-    return;
-  }
+void HwBasePortFb303Stats::pfcConfigChanged(
+    std::vector<PfcPriority> enabledPriorities,
+    std::optional<cfg::PortPfc> pfc) {
   auto removeKeys = [&](const std::vector<PfcPriority>& priorities,
                         const auto& keys) {
     for (const auto& priority : priorities) {
@@ -258,6 +263,38 @@ void HwBasePortFb303Stats::pfcPriorityChanged(
       }
     }
   };
+
+  bool rxPfcDurationEnabled =
+      pfc.has_value() && pfc->rxPfcDurationEnable().has_value()
+      ? *pfc->rxPfcDurationEnable()
+      : false;
+  bool txPfcDurationEnabled =
+      pfc.has_value() && pfc->txPfcDurationEnable().has_value()
+      ? *pfc->txPfcDurationEnable()
+      : false;
+  // Handle a change in PFC RX/TX duration config
+  if (pfcInfo_.rxPfcDurationEnabled != rxPfcDurationEnabled) {
+    pfcInfo_.rxPfcDurationEnabled = rxPfcDurationEnabled;
+    auto keys = {kRxPfcDurationUsec()};
+    if (getEnabledPfcPriorities() != enabledPriorities ||
+        !pfcInfo_.rxPfcDurationEnabled) {
+      removeKeys(getEnabledPfcPriorities(), keys);
+    }
+    if (pfcInfo_.rxPfcDurationEnabled) {
+      reinitKeys(enabledPriorities, keys);
+    }
+  }
+  if (pfcInfo_.txPfcDurationEnabled != txPfcDurationEnabled) {
+    pfcInfo_.txPfcDurationEnabled = txPfcDurationEnabled;
+    auto keys = {kTxPfcDurationUsec()};
+    if (getEnabledPfcPriorities() != enabledPriorities ||
+        !pfcInfo_.txPfcDurationEnabled) {
+      removeKeys(getEnabledPfcPriorities(), keys);
+    }
+    if (pfcInfo_.txPfcDurationEnabled) {
+      reinitKeys(enabledPriorities, keys);
+    }
+  }
 
   // Handle a change in PFC priorities
   if (getEnabledPfcPriorities() != enabledPriorities) {

@@ -63,7 +63,9 @@ class HwBasePortFb303Stats {
   }
   virtual void queueChanged(int queueId, const std::string& queueName);
   virtual void queueRemoved(int queueId);
-  void pfcPriorityChanged(std::vector<PfcPriority> enabledPriorities);
+  void pfcConfigChanged(
+      std::vector<PfcPriority> enabledPriorities,
+      std::optional<cfg::PortPfc> pfc);
   void updateLeakyBucketFlapCnt(int cnt);
 
   /*

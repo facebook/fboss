@@ -677,11 +677,11 @@ TEST(HwPortFb303Stats, queueNameChangeResetsValue) {
   }
 }
 
-TEST(HwPortFb303StatsTest, ChangePfcPriority) {
+TEST(HwPortFb303StatsTest, ChangePfcConfig) {
   HwPortFb303Stats stats(kPortName, kQueue2Name, kEnabledPfcPriorities);
   std::vector<PfcPriority> newPriorities(
       {static_cast<PfcPriority>(5), static_cast<PfcPriority>(6)});
-  stats.pfcPriorityChanged(newPriorities);
+  stats.pfcConfigChanged(newPriorities, std::nullopt);
   for (auto statKey : stats.kPfcMonotonicCounterStatKeys()) {
     for (auto pfcPriority : kEnabledPfcPriorities) {
       EXPECT_FALSE(fbData->getStatMap()->contains(
