@@ -84,6 +84,8 @@ struct PortPfc {
   2: bool rx = false;
   3: PortPgConfigName portPgConfigName;
   4: optional PfcWatchdog watchdog;
+  5: optional bool txPfcDurationEnable;
+  6: optional bool rxPfcDurationEnable;
 }
 
 /**
