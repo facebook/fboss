@@ -70,4 +70,8 @@ void SaiPortManager::clearPortFlowletConfig(const PortID& portID) {
       SaiPortTraits::Attributes::ArsEnable{arsEnable});
 }
 
+void SaiPortManager::programPfcDurationCounterEnable(
+    const std::shared_ptr<Port>& /* swPort */,
+    const std::optional<cfg::PortPfc>& /* newPfc */,
+    const std::optional<cfg::PortPfc>& /* oldPfc */) {}
 } // namespace facebook::fboss

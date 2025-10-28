@@ -115,4 +115,8 @@ void SaiPortManager::changePortFlowletConfig(
 
 void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
 
+void SaiPortManager::programPfcDurationCounterEnable(
+    const std::shared_ptr<Port>& /* swPort */,
+    const std::optional<cfg::PortPfc>& /* newPfc */,
+    const std::optional<cfg::PortPfc>& /* oldPfc */) {}
 } // namespace facebook::fboss

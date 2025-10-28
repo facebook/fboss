@@ -859,12 +859,23 @@ void SaiPortManager::programPfcWatchdogPerQueueEnable(
              << swPort->getName();
 }
 
+void SaiPortManager::programPfcDurationCounter(
+    const std::shared_ptr<Port>& swPort,
+    const std::optional<cfg::PortPfc>& newPfc,
+    const std::optional<cfg::PortPfc>& oldPfc) {
+  // Handle ASIC specific programming needed to enable PFC duration counters
+  programPfcDurationCounterEnable(swPort, newPfc, oldPfc);
+}
+
 void SaiPortManager::addPfc(const std::shared_ptr<Port>& swPort) {
-  if (swPort->getPfc().has_value()) {
+  auto pfc = swPort->getPfc();
+  if (pfc.has_value()) {
     // PFC is enabled for all priorities on a port
     sai_uint8_t txPfc, rxPfc;
     std::tie(txPfc, rxPfc) = preparePfcConfigs(swPort);
     programPfc(swPort, txPfc, rxPfc);
+    // Program PFC duration counter direction
+    programPfcDurationCounter(swPort, pfc, std::nullopt);
     // Add PFC WD
     addPfcWatchdog(swPort);
   }
@@ -884,6 +895,9 @@ void SaiPortManager::changePfc(
       XLOG(DBG4) << "PFC enabled setting unchanged for " << newPort->getName();
     }
     changePfcWatchdog(oldPort, newPort);
+    // Program PFC duration counter direction if PFC is enabled!
+    auto newPfc = newPort->getPfc();
+    programPfcDurationCounter(newPort, newPfc, oldPort->getPfc());
   } else {
     XLOG(DBG4) << "PFC setting unchanged for " << newPort->getName();
   }
@@ -893,6 +907,7 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc().has_value()) {
     // PFC WD to be removed first
     removePfcWatchdog(swPort);
+    programPfcDurationCounter(swPort, std::nullopt, std::nullopt);
     sai_uint8_t txPfc = 0, rxPfc = 0;
     programPfc(swPort, txPfc, rxPfc);
   }

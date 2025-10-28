@@ -477,6 +477,14 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void clearPortFlowletConfig(const PortID& portId);
+  void programPfcDurationCounterEnable(
+      const std::shared_ptr<Port>& swPort,
+      const std::optional<cfg::PortPfc>& newPfc,
+      const std::optional<cfg::PortPfc>& oldPfc);
+  void programPfcDurationCounter(
+      const std::shared_ptr<Port>& swPort,
+      const std::optional<cfg::PortPfc>& newPfc,
+      const std::optional<cfg::PortPfc>& oldPfc);
 
   /**
    * Enum to specify which PFC counter to increment.
