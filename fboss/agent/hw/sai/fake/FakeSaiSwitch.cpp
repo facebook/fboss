@@ -323,6 +323,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
       // TODO: implement if required
       break;
+    case SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE:
+      sw.setPfcMonitorEnable(attr->value.booldata);
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -587,6 +590,9 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_REG_FATAL_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
       case SAI_SWITCH_ATTR_REG_NOTICE_SWITCH_ASIC_SDK_HEALTH_CATEGORY:
         attr[i].value.s32list.count = 0;
+        break;
+      case SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE:
+        attr[i].value.booldata = sw.getPfcMonitorEnable();
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

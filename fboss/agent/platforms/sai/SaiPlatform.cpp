@@ -982,6 +982,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
       localSystemPortIdRangeList, // range list of local scope system port ids
 #endif
+      std::nullopt, // enable PFC monitoring for the switch
   };
 }
 

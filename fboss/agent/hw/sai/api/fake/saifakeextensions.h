@@ -111,6 +111,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_TECH_SUPPORT_TYPE,
   SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST,
   SAI_SWITCH_ATTR_LOCAL_SYSTEM_PORT_ID_RANGE_LIST,
+  SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

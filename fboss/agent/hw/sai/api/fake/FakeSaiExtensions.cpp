@@ -941,6 +941,11 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
   return SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
+  return SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE;
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
