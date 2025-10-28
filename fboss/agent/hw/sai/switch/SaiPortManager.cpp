@@ -39,7 +39,7 @@
 
 #include <fmt/ranges.h>
 
-#if defined(BRCM_SAI_SDK_DNX)
+#if defined(BRCM_SAI_SDK_DNX) || defined(BRCM_SAI_SDK_XGS)
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
 #else
@@ -107,6 +107,32 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
 
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
+  switch (counterId) {
+    case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
+      return 0;
+    case SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION:
+      return 1;
+    case SAI_PORT_STAT_PFC_2_XOFF_TOTAL_DURATION:
+      return 2;
+    case SAI_PORT_STAT_PFC_3_XOFF_TOTAL_DURATION:
+      return 3;
+    case SAI_PORT_STAT_PFC_4_XOFF_TOTAL_DURATION:
+      return 4;
+    case SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION:
+      return 5;
+    case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
+      return 6;
+    case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION:
+      return 7;
+    default:
+      break;
+  }
+  throw FbossError("Got unexpected PFC duration counter id: ", counterId);
+}
+#endif
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
 uint16_t getFecSymbolCountFromCounterId(sai_stat_id_t counterId) {
   if (counterId < SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0 ||
@@ -123,7 +149,9 @@ void fillHwPortStats(
     HwPortStats& hwPortStats,
     const SaiPlatform* platform,
     const cfg::PortType& portType,
-    bool updateFecStats) {
+    bool updateFecStats,
+    bool rxPfcDurationStatsEnabled,
+    bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards_() = 0;
   bool isEtherStatsSupported =
@@ -349,6 +377,27 @@ void fillHwPortStats(
       case SAI_PORT_STAT_FABRIC_CONTROL_TX_PKTS:
         hwPortStats.fabricControlTxPackets_() = value;
         break;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+      case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_2_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_3_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_4_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION: {
+        auto priority = getPriorityFromPfcDurationCounterId(counterId);
+        // PFC duration counters are clear on read and only one of
+        // RX / TX is expected to be enabled per port at a time.
+        if (rxPfcDurationStatsEnabled) {
+          hwPortStats.rxPfcDurationUsec_()[priority] += value;
+        }
+        if (txPfcDurationStatsEnabled) {
+          hwPortStats.txPfcDurationUsec_()[priority] += value;
+        }
+        break;
+      }
 #endif
       default:
         auto configuredDebugCounters =
@@ -2097,6 +2146,19 @@ void SaiPortManager::updateStats(
   }
 #endif
 
+  auto supportedPfcDurationStats = getSupportedPfcDurationStats(portId);
+  if (supportedPfcDurationStats.size()) {
+    // PFC duration counters are clear on read. Also, optimize to
+    // include the stats ID to be read if the PFC duration counter
+    // is enabled for the port.
+    // TODO(nivinl): get_port_stats_ext() is failing for these stats,
+    // however, get_port_stats() works. Given these are COR counters,
+    // expect to use SAI_STATS_MODE_READ_AND_CLEAR and hence need the
+    // support, working with Broadcom in CS00012427949 to figure how
+    // to proceed here. For now, using SAI_STATS_MODE_READ instead.
+    handle->port->updateStats(supportedPfcDurationStats, SAI_STATS_MODE_READ);
+  }
+
   bool updateFecStats = false;
   auto lastFecReadTimeIt = lastFecCounterReadTime_.find(portId);
   if (lastFecReadTimeIt == lastFecCounterReadTime_.end() ||
@@ -2141,7 +2203,9 @@ void SaiPortManager::updateStats(
       curPortStats,
       platform_,
       portType,
-      updateFecStats);
+      updateFecStats,
+      handle->rxPfcDurationStatsEnabled,
+      handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards_(),
        *curPortStats.inDstNullDiscards_()}};

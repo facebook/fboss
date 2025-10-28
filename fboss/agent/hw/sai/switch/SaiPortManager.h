@@ -491,6 +491,8 @@ class SaiPortManager {
       const PortID& portId,
       bool txEnabled,
       bool rxEnabled);
+  const std::vector<sai_stat_id_t>& getSupportedPfcDurationStats(
+      const PortID& portId);
 
   /**
    * Enum to specify which PFC counter to increment.

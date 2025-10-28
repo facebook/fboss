@@ -306,6 +306,20 @@ void SaiPortManager::programPfcDurationCounterEnable(
 #endif
 }
 
+const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
+    const PortID& portId) {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  SaiPortHandle* portHandle = getPortHandle(portId);
+  CHECK(portHandle) << "Port handle uninitialized for portID " << portId;
+  if (portHandle->txPfcDurationStatsEnabled ||
+      portHandle->rxPfcDurationStatsEnabled) {
+    return SaiPortTraits::pfcXoffTotalDurationStats();
+  }
+#endif
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
 
 } // namespace facebook::fboss
