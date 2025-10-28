@@ -139,6 +139,7 @@ cpp_library(
     srcs = ["NextHopIDManager.cpp"],
     headers = ["NextHopIDManager.h"],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-types",
         "//fboss/agent/state:state",
     ],

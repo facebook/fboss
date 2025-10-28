@@ -71,4 +71,21 @@ std::pair<NextHopSetID, bool> NextHopIDManager::getOrAllocateNextHopSetID(
   return {newID, true};
 }
 
+uint32_t NextHopIDManager::getNextHopRefCount(const NextHop& nextHop) {
+  auto it = nextHopToIDInfo_.find(nextHop);
+  if (it != nextHopToIDInfo_.end()) {
+    return it->second.count;
+  }
+  return 0;
+}
+
+uint32_t NextHopIDManager::getNextHopIDSetRefCount(
+    const NextHopIDSet& nextHopIdSet) {
+  auto it = nextHopIdSetToIDInfo_.find(nextHopIdSet);
+  if (it != nextHopIdSetToIDInfo_.end()) {
+    return it->second.count;
+  }
+  return 0;
+}
+
 } // namespace facebook::fboss

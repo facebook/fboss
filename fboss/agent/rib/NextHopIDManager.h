@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include <gtest/gtest.h>
 #include <cstdint>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
-
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
 
@@ -103,6 +103,15 @@ class NextHopIDManager {
 
   // Map from NextHopSetID to set of NextHopIDs
   std::unordered_map<NextHopSetID, NextHopIDSet> idToNextHopIdSet_;
+
+  // Get the ref count for a given NextHop
+  uint32_t getNextHopRefCount(const NextHop& nextHop);
+
+  // Get the ref count for a given set of NextHopIDs
+  uint32_t getNextHopIDSetRefCount(const NextHopIDSet& nextHopIDSet);
+  FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopID);
+  FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetID);
+  FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence);
 };
 
 } // namespace facebook::fboss

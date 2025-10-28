@@ -49,6 +49,10 @@ TEST_F(NextHopIDManagerTest, getOrAllocateNextHopID) {
   EXPECT_EQ(id3, NextHopID(3));
   EXPECT_TRUE(allocated3);
 
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+
   EXPECT_EQ(manager_->getIdToNextHop().at(id1), nh1);
   EXPECT_EQ(manager_->getIdToNextHop().at(id2), nh2);
   EXPECT_EQ(manager_->getIdToNextHop().at(id3), nh3);
@@ -60,6 +64,10 @@ TEST_F(NextHopIDManagerTest, getOrAllocateNextHopID) {
   EXPECT_FALSE(allocated4);
   EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
   EXPECT_EQ(manager_->getIdToNextHop().at(id4), nh1);
+
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
 }
 
 TEST_F(NextHopIDManagerTest, getOrAllocateNextHopSetID) {
@@ -102,12 +110,26 @@ TEST_F(NextHopIDManagerTest, getOrAllocateNextHopSetID) {
   EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID2), set2);
   EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID3), set3);
 
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set1), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set2), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set3), 1);
+
   // Reuse existing ID
   auto [setID4, allocatedSetID4] = manager_->getOrAllocateNextHopSetID(set1);
   EXPECT_EQ(setID1, setID4);
   EXPECT_FALSE(allocatedSetID4);
   EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 4);
   EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID4), set1);
+
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set1), 2);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set2), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set3), 1);
 }
 
 TEST_F(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence) {
@@ -138,5 +160,11 @@ TEST_F(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence) {
   EXPECT_FALSE(allocatedSetID3);
   EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
   EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID1), set1);
+
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set1), 3);
 }
+
 } // namespace facebook::fboss
