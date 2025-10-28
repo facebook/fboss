@@ -37,22 +37,26 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::setupStream() {
       [&](const OperSubInitResponse& initResponse) -> bool {
     return !this->isCancelled();
   };
+
+  // Workaround for GCC coroutine bug: Keep the request alive and materialize
+  // the Task before co_await to prevent premature destruction.
+  auto request = this->createRequest();
+
   if constexpr (std::is_same_v<
                     PathElement,
                     std::map<SubscriptionKey, ExtendedOperPath>>) {
-    auto result = co_await (
-        this->isStats() ? this->client_->co_subscribeStatsExtended(
-                              this->getRpcOptions(), this->createRequest())
-                        : this->client_->co_subscribeStateExtended(
-                              this->getRpcOptions(), this->createRequest()));
+    auto task = this->isStats() ? this->client_->co_subscribeStatsExtended(
+                                      this->getRpcOptions(), request)
+                                : this->client_->co_subscribeStateExtended(
+                                      this->getRpcOptions(), request);
+    auto result = co_await std::move(task);
     initResponseReceiver(result.response);
     co_return std::move(result.stream);
   } else {
-    auto result = co_await (
-        this->isStats() ? this->client_->co_subscribeStats(
-                              this->getRpcOptions(), this->createRequest())
-                        : this->client_->co_subscribeState(
-                              this->getRpcOptions(), this->createRequest()));
+    auto task = this->isStats()
+        ? this->client_->co_subscribeStats(this->getRpcOptions(), request)
+        : this->client_->co_subscribeState(this->getRpcOptions(), request);
+    auto result = co_await std::move(task);
     initResponseReceiver(result.response);
     co_return std::move(result.stream);
   }

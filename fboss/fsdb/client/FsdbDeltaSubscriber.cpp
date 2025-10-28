@@ -15,20 +15,26 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::setupStream() {
       [&](const OperSubInitResponse& initResponse) -> bool {
     return !this->isCancelled();
   };
+
+  // Workaround for GCC coroutine bug: Keep the request alive and materialize
+  // the Task before co_await to prevent premature destruction.
+  auto request = this->createRequest();
+
   if constexpr (std::is_same_v<SubUnit, OperDelta>) {
-    auto result = co_await (
-        this->isStats() ? this->client_->co_subscribeOperStatsDelta(
-                              this->getRpcOptions(), this->createRequest())
-                        : this->client_->co_subscribeOperStateDelta(
-                              this->getRpcOptions(), this->createRequest()));
+    auto task = this->isStats() ? this->client_->co_subscribeOperStatsDelta(
+                                      this->getRpcOptions(), request)
+                                : this->client_->co_subscribeOperStateDelta(
+                                      this->getRpcOptions(), request);
+    auto result = co_await std::move(task);
     initResponseReceiver(result.response);
     co_return std::move(result.stream);
   } else {
-    auto result = co_await (
-        this->isStats() ? this->client_->co_subscribeOperStatsDeltaExtended(
-                              this->getRpcOptions(), this->createRequest())
-                        : this->client_->co_subscribeOperStateDeltaExtended(
-                              this->getRpcOptions(), this->createRequest()));
+    auto task = this->isStats()
+        ? this->client_->co_subscribeOperStatsDeltaExtended(
+              this->getRpcOptions(), request)
+        : this->client_->co_subscribeOperStateDeltaExtended(
+              this->getRpcOptions(), request);
+    auto result = co_await std::move(task);
     initResponseReceiver(result.response);
     co_return std::move(result.stream);
   }
