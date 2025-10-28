@@ -259,4 +259,202 @@ TEST_F(NextHopIDManagerTest, decrOrDeallocateNextHopIDSet) {
   EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID6), set2);
 }
 
+TEST_F(NextHopIDManagerTest, getOrAllocRouteNextHopSetIDWithEmptySet) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+
+  // Add nhSet1 with 2 nexthops (nh1, nh2)
+  RouteNextHopSet nhSet1 = {nh1, nh2};
+
+  NextHopSetID setID1 = manager_->getOrAllocRouteNextHopSetID(nhSet1);
+
+  EXPECT_EQ(setID1, NextHopSetID(kSetIdOffset));
+
+  // Verify individual NextHop IDs were allocated
+  auto nhID1 = manager_->getNextHopID(nh1);
+  auto nhID2 = manager_->getNextHopID(nh2);
+  ASSERT_TRUE(nhID1.has_value());
+  ASSERT_TRUE(nhID2.has_value());
+  EXPECT_EQ(nhID1.value(), NextHopID(1));
+  EXPECT_EQ(nhID2.value(), NextHopID(2));
+
+  // Verify idToNextHop map
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhID1.value()), nh1);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhID2.value()), nh2);
+
+  // Verify NextHopIDSet was created
+  NextHopIDSet expectedIDSet1 = {nhID1.value(), nhID2.value()};
+  auto actualSetID1 = manager_->getNextHopSetID(expectedIDSet1);
+  ASSERT_TRUE(actualSetID1.has_value());
+  EXPECT_EQ(actualSetID1.value(), setID1);
+
+  // Verify idToNextHopIdSet map
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID1), expectedIDSet1);
+
+  // Make NhSet2 with 3 nexthops (nh1, nh2, nh3)
+  RouteNextHopSet nhSet2 = {nh1, nh2, nh3};
+
+  NextHopSetID setID2 = manager_->getOrAllocRouteNextHopSetID(nhSet2);
+
+  EXPECT_EQ(setID2, NextHopSetID(kSetIdOffset + 1));
+
+  // Verify NextHop IDs - nh3 should get a new ID
+  auto nhID3 = manager_->getNextHopID(nh3);
+  ASSERT_TRUE(nhID3.has_value());
+  EXPECT_EQ(nhID3.value(), NextHopID(3));
+
+  // Verify idToNextHop map now has 3 entries
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhID3.value()), nh3);
+
+  // Verify NextHopIDSet was created for nhSet2
+  NextHopIDSet expectedIDSet2 = {nhID1.value(), nhID2.value(), nhID3.value()};
+  auto actualSetID2 = manager_->getNextHopSetID(expectedIDSet2);
+  ASSERT_TRUE(actualSetID2.has_value());
+  EXPECT_EQ(actualSetID2.value(), setID2);
+
+  // Verify idToNextHopIdSet map has 2 entries
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID2), expectedIDSet2);
+
+  // Add nhSet3 with empty set {}
+  RouteNextHopSet nhSet3;
+
+  // Call getOrAllocRouteNextHopSetID for empty set
+  NextHopSetID setID3 = manager_->getOrAllocRouteNextHopSetID(nhSet3);
+
+  EXPECT_EQ(setID3, NextHopSetID(kSetIdOffset + 2));
+
+  // Verify no new NextHop IDs were allocated (empty set)
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+
+  // Verify NextHopIDSet was created for empty nhSet3
+  NextHopIDSet expectedIDSet3 = {};
+  auto actualSetID3 = manager_->getNextHopSetID(expectedIDSet3);
+  ASSERT_TRUE(actualSetID3.has_value());
+  EXPECT_EQ(actualSetID3.value(), setID3);
+
+  // Verify idToNextHopIdSet map has 3 entries
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID3), expectedIDSet3);
+
+  // Call getOrAllocRouteNextHopSetID on empty set again to verify ID reuse
+  RouteNextHopSet nhSet4;
+  NextHopSetID setID4 = manager_->getOrAllocRouteNextHopSetID(nhSet4);
+
+  // Verify the same ID is returned
+  EXPECT_EQ(setID3, setID4);
+
+  // Verify total number of NextHopIDSets remains 3
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+}
+
+TEST_F(
+    NextHopIDManagerTest,
+    getOrAllocRouteNextHopSetIDSubSetSuperSetNextHops) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh4 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.4", UCMP_DEFAULT_WEIGHT);
+
+  // Add nhSet1 with 3 nexthops (nh1, nh2, nh3)
+  RouteNextHopSet nhSet1 = {nh1, nh2, nh3};
+
+  NextHopSetID setID1 = manager_->getOrAllocRouteNextHopSetID(nhSet1);
+
+  EXPECT_EQ(setID1, NextHopSetID(kSetIdOffset));
+
+  // Verify individual NextHop IDs were allocated
+  auto nhID1 = manager_->getNextHopID(nh1);
+  auto nhID2 = manager_->getNextHopID(nh2);
+  auto nhID3 = manager_->getNextHopID(nh3);
+
+  // Verify idToNextHop map
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhID1.value()), nh1);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhID2.value()), nh2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhID3.value()), nh3);
+
+  // Verify NextHopIDSet was created
+  NextHopIDSet expectedIDSet1 = {nhID1.value(), nhID2.value(), nhID3.value()};
+  auto actualSetID1 = manager_->getNextHopSetID(expectedIDSet1);
+  ASSERT_TRUE(actualSetID1.has_value());
+  EXPECT_EQ(actualSetID1.value(), setID1);
+
+  // Verify idToNextHopIdSet map
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID1), expectedIDSet1);
+
+  // Make NhSet2 with 2 nexthops (nh1, nh2)
+  RouteNextHopSet nhSet2 = {nh1, nh2};
+
+  NextHopSetID setID2 = manager_->getOrAllocRouteNextHopSetID(nhSet2);
+
+  EXPECT_EQ(setID2, NextHopSetID(kSetIdOffset + 1));
+
+  // Verify no new NextHop IDs were allocated (reusing existing IDs)
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+
+  // Verify NextHopIDSet was created for nhSet2
+  NextHopIDSet expectedIDSet2 = {nhID1.value(), nhID2.value()};
+  auto actualSetID2 = manager_->getNextHopSetID(expectedIDSet2);
+  ASSERT_TRUE(actualSetID2.has_value());
+  EXPECT_EQ(actualSetID2.value(), setID2);
+
+  // Verify idToNextHopIdSet map has 2 entries
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID2), expectedIDSet2);
+
+  // Add nhSet3 with 4 nexthops (nh1, nh2, nh3, nh4)
+  RouteNextHopSet nhSet3 = {nh1, nh2, nh3, nh4};
+
+  NextHopSetID setID3 = manager_->getOrAllocRouteNextHopSetID(nhSet3);
+
+  EXPECT_EQ(setID3, NextHopSetID(kSetIdOffset + 2));
+
+  // Verify NextHop IDs - nh4 should get a new ID
+  auto nhID4 = manager_->getNextHopID(nh4);
+  ASSERT_TRUE(nhID4.has_value());
+  EXPECT_EQ(nhID4.value(), NextHopID(4));
+
+  // Verify idToNextHop map has 4 entries
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+  EXPECT_EQ(manager_->getIdToNextHop().at(nhID4.value()), nh4);
+
+  // Verify NextHopIDSet was created for nhSet3
+  NextHopIDSet expectedIDSet3 = {
+      nhID1.value(), nhID2.value(), nhID3.value(), nhID4.value()};
+  auto actualSetID3 = manager_->getNextHopSetID(expectedIDSet3);
+  ASSERT_TRUE(actualSetID3.has_value());
+  EXPECT_EQ(actualSetID3.value(), setID3);
+
+  // Verify idToNextHopIdSet map has 3 entries
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID3), expectedIDSet3);
+
+  // Call getOrAllocRouteNextHopSetID on nhSet4 = nhSet2 again to verify ID
+  // reuse and
+  RouteNextHopSet nhSet4 = {nh1, nh2};
+  NextHopSetID setID4 = manager_->getOrAllocRouteNextHopSetID(nhSet4);
+
+  // Verify the same ID is returned
+  EXPECT_EQ(setID2, setID4);
+
+  // Verify total number of NextHopIDSets remains 3
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+
+  // Verify total number of NextHops remains 4
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+}
+
 } // namespace facebook::fboss
