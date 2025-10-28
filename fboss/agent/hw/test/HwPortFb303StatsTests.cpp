@@ -176,6 +176,8 @@ HwPortStats getInitedStats() {
       false, // macTransmitQueueStuck_
       0, // fabricControlRxPackets_
       0, // fabricControlTxPackets_
+      {{1, 0}}, // txPfcDurationUsec_
+      {{1, 0}}, // rxPfcDurationUsec_
   };
 }
 
