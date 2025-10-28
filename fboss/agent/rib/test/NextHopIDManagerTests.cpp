@@ -167,4 +167,96 @@ TEST_F(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence) {
   EXPECT_EQ(manager_->getNextHopIDSetRefCount(set1), 3);
 }
 
+TEST_F(NextHopIDManagerTest, decrOrDeallocateNextHop) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+
+  // Test throws exception when decrementing/deallocating non-existent ID
+  EXPECT_THROW(manager_->decrOrDeallocateNextHop(nh1), FbossError);
+
+  // allocate IDs to Nexthops
+  manager_->getOrAllocateNextHopID(nh1);
+  auto [id2, allocated2] = manager_->getOrAllocateNextHopID(nh2);
+  manager_->getOrAllocateNextHopID(nh3);
+  auto [id4, allocated4] = manager_->getOrAllocateNextHopID(nh1);
+
+  // Test decrementing ref count works
+  manager_->decrOrDeallocateNextHop(nh1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 1);
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(id4), nh1);
+
+  // Test deallocation works
+  manager_->decrOrDeallocateNextHop(nh2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 0);
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 2);
+  EXPECT_EQ(manager_->getIdToNextHop().count(id2), 0);
+  EXPECT_EQ(manager_->nextHopToIDInfo_.count(nh2), 0);
+
+  // Test allocating new ID after deallocating continues from last ID
+  auto [id5, allocated5] = manager_->getOrAllocateNextHopID(nh2);
+  EXPECT_EQ(id5, NextHopID(4));
+  EXPECT_TRUE(allocated5);
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(id5), nh2);
+}
+
+TEST_F(NextHopIDManagerTest, decrOrDeallocateNextHopIDSet) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+
+  auto [nhID1, allocatedNhID1] = manager_->getOrAllocateNextHopID(nh1);
+  auto [nhID2, allocatedNhID2] = manager_->getOrAllocateNextHopID(nh2);
+  auto [nhID3, allocatedNhID3] = manager_->getOrAllocateNextHopID(nh3);
+
+  NextHopIDSet set1 = {nhID1};
+  NextHopIDSet set2 = {nhID1, nhID2};
+  NextHopIDSet set3 = {nhID1, nhID2, nhID3};
+  NextHopIDSet set4 = {};
+
+  // Test throws exception when decrementing/deallocating non-existent set
+  EXPECT_THROW(manager_->decrOrDeallocateNextHopIDSet(set1), FbossError);
+
+  manager_->getOrAllocateNextHopSetID(set1);
+  auto [setID2, allocatedSetID2] = manager_->getOrAllocateNextHopSetID(set2);
+  manager_->getOrAllocateNextHopSetID(set3);
+  auto [setID4, allocatedSetID4] = manager_->getOrAllocateNextHopSetID(set1);
+  auto [setID5, allocatedSetID5] = manager_->getOrAllocateNextHopSetID(set4);
+
+  // Test decrementing ref count works
+  manager_->decrOrDeallocateNextHopIDSet(set1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set1), 1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 4);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID4), set1);
+
+  // Test deallocation works
+  manager_->decrOrDeallocateNextHopIDSet(set2);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set2), 0);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(setID2), 0);
+  EXPECT_EQ(manager_->nextHopIdSetToIDInfo_.count(set2), 0);
+
+  // Test deallocating empty set works
+  manager_->decrOrDeallocateNextHopIDSet(set4);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(set4), 0);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(setID5), 0);
+  EXPECT_EQ(manager_->nextHopIdSetToIDInfo_.count(set4), 0);
+
+  // Test allocating new ID after deallocating continues from last ID
+  auto [setID6, allocatedSetID6] = manager_->getOrAllocateNextHopSetID(set2);
+  EXPECT_EQ(setID6, NextHopSetID(kSetIdOffset + 4));
+  EXPECT_TRUE(allocatedSetID6);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID6), set2);
+}
+
 } // namespace facebook::fboss

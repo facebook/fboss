@@ -113,6 +113,8 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopID);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence);
+  FRIEND_TEST(NextHopIDManagerTest, decrOrDeallocateNextHop);
+  FRIEND_TEST(NextHopIDManagerTest, decrOrDeallocateNextHopIDSet);
 };
 
 } // namespace facebook::fboss
