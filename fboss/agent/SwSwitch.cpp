@@ -2551,43 +2551,16 @@ void SwSwitch::linkActiveStateChangedOrFwIsolated(
           virtualDeviceId, numActivePorts);
     }
 
-    // We consider following scenarios:
-    //
-    // (A) When the Firmware Isolates the device, if the number of Active links
-    //     at FwIsolate > minLinkThreshold, it is a fatal error i.e. set
-    //     DRAINED_DUE_TO_ASIC_ERROR
-    //
-    // (B) When the Firmware Isolates the device, if the number of Active links
-    //     at FwIsolate <= minLinkThreshold, this is not a fatal error. Compare
-    //     the current number of Active links with the threshold to determine
-    //     the drain state i.e. computeActualSwitchDrainState.
-    //
-    // (C) If Firmware has not Isolated the device, this processing is in the
-    //     context of link active/inactive processing. Compare the current
-    //     number of Active links with the threshold to determine the drain
-    //     state i.e. computeActualSwitchDrainState. Thus, same as (B).
-    //
-    // Note: For (B), we MUST compare against the current number of Active
-    // links, else we can end up with incorrect Drain state. Consider the
-    // following sequence:
-    //    - Cold boot init.
-    //    - Links flap during init.
-    //    - FwIsolates with the number of Active links = 0. Rare, but possible.
-    //    - All links turn Active, active callbacks received, device UNDRAINED.
-    //    - FwIsolate callback arrives, contains number of Active links = 0.
-    //      If we compare the nunber of Active links at FwIsolate i.e. 0 with
-    //      the threshold, the device will be marked as DRAINED. Since all the
-    //      links are Active, no subsequent callbacks will be issued and the
-    //      device will incorrectly remain DRAINED. If there is a subsequent
-    //      port flap, the device will receive a link Active callback and will
-    //      be UNDRAINED.
     SwitchDrainState newActualSwitchDrainState;
-    if (fwIsolated &&
-        isSwitchErrorFirmwareIsolate(
-            numActiveFabricPortsAtFwIsolate, switchSettings)) {
-      stats()->fwDrainedWithHighNumActiveFabricLinks();
-      newActualSwitchDrainState =
-          cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+    if (fwIsolated) {
+      if (isSwitchErrorFirmwareIsolate(
+              numActiveFabricPortsAtFwIsolate, switchSettings)) {
+        stats()->fwDrainedWithHighNumActiveFabricLinks();
+        newActualSwitchDrainState =
+            cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR;
+      } else {
+        newActualSwitchDrainState = cfg::SwitchDrainState::DRAINED;
+      }
     } else {
       newActualSwitchDrainState =
           computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
