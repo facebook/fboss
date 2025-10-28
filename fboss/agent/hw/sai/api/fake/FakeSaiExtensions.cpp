@@ -833,6 +833,11 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;

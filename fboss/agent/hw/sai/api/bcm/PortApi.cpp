@@ -596,4 +596,21 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
 #endif
   return stats;
 }
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_2_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_3_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_4_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION,
+      SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
 } // namespace facebook::fboss

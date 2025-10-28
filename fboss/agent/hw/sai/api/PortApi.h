@@ -705,6 +705,7 @@ struct SaiPortTraits {
   static const std::vector<sai_stat_id_t>& macTxDataQueueMaxWatermarkStats();
   static const std::vector<sai_stat_id_t>& fabricControlRxPacketStats();
   static const std::vector<sai_stat_id_t>& fabricControlTxPacketStats();
+  static const std::vector<sai_stat_id_t>& pfcXoffTotalDurationStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
