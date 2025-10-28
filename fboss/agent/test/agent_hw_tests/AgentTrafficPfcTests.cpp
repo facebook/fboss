@@ -517,70 +517,74 @@ class AgentTrafficPfcTest : public AgentHwTest {
     }
   }
 
-  void runTestWithCfg(
+  cfg::SwitchConfig getPfcTestConfig(
       const int trafficClass,
       const int pfcPriority,
       const std::map<int, int>& tcToPgOverride,
-      const TrafficTestParams& testParams,
-      std::function<void(
-          AgentEnsemble* ensemble,
-          const int pri,
-          const std::vector<PortID>& portIdsToValidate)> validateCounterFn =
-          validatePfcCountersIncreased) {
-    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
-    for (const auto& portId : portIds) {
-      XLOG(INFO) << "Testing port: " << portDesc(portId);
+      const TrafficTestParams& testParams) {
+    // Setup PFC
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    // Apply PFC config to all ports of interest
+    auto lossyPgIds = kLossyPgIds;
+    if (FLAGS_allow_zero_headroom_for_lossless_pg) {
+      // If the flag is set, we already have lossless PGs being created
+      // with headroom as 0 and there is no way to differentiate lossy
+      // and lossless PGs now that headroom is set to zero for lossless.
+      // So, avoid creating lossy PGs as this will result in PFC being
+      // enabled for 3 priorities, which is not supported for TAJO.
+      lossyPgIds.clear();
     }
-
-    auto setup = [&]() {
-      // Setup PFC
-      auto cfg = getAgentEnsemble()->getCurrentConfig();
-      // Apply PFC config to all ports of interest
-      auto lossyPgIds = kLossyPgIds;
-      if (FLAGS_allow_zero_headroom_for_lossless_pg) {
-        // If the flag is set, we already have lossless PGs being created
-        // with headroom as 0 and there is no way to differentiate lossy
-        // and lossless PGs now that headroom is set to zero for lossless.
-        // So, avoid creating lossy PGs as this will result in PFC being
-        // enabled for 3 priorities, which is not supported for TAJO.
-        lossyPgIds.clear();
-      }
-      utility::setupPfcBuffers(
-          getAgentEnsemble(),
-          cfg,
-          portIds,
-          kLosslessPgIds,
-          lossyPgIds,
-          tcToPgOverride,
-          testParams.buffer);
-      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-      if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
-        utility::setupMultipleEgressPoolAndQueueConfigs(
-            cfg, kLosslessPgIds, asic->getMMUSizeBytes());
-      }
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
-        // For YUBA, lossless queues needs to be configured with static
-        // queue limit equal to the MMU size to ensure its lossless.
-        for (auto& queueConfigs : *cfg.portQueueConfigs()) {
-          for (auto& queueCfg : queueConfigs.second) {
-            if (std::find(
-                    kLosslessPgIds.begin(),
-                    kLosslessPgIds.end(),
-                    *queueCfg.id()) != kLosslessPgIds.end()) {
-              // Given the 1:1 mapping for queueID to PG ID,
-              // this is a lossless queue.
-              queueCfg.sharedBytes() = asic->getMMUSizeBytes();
-            }
+    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        cfg,
+        portIds,
+        kLosslessPgIds,
+        lossyPgIds,
+        tcToPgOverride,
+        testParams.buffer);
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
+      utility::setupMultipleEgressPoolAndQueueConfigs(
+          cfg, kLosslessPgIds, asic->getMMUSizeBytes());
+    }
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      // For YUBA, lossless queues needs to be configured with static
+      // queue limit equal to the MMU size to ensure its lossless.
+      for (auto& queueConfigs : *cfg.portQueueConfigs()) {
+        for (auto& queueCfg : queueConfigs.second) {
+          if (std::find(
+                  kLosslessPgIds.begin(),
+                  kLosslessPgIds.end(),
+                  *queueCfg.id()) != kLosslessPgIds.end()) {
+            // Given the 1:1 mapping for queueID to PG ID,
+            // this is a lossless queue.
+            queueCfg.sharedBytes() = asic->getMMUSizeBytes();
           }
         }
       }
+    }
+    return cfg;
+  }
+
+  void runPfcTestWithCfg(
+      const cfg::SwitchConfig& cfg,
+      const int trafficClass,
+      const int pfcPriority,
+      const TrafficTestParams& testParams,
+      const std::function<void(
+          AgentEnsemble* ensemble,
+          const int pri,
+          const std::vector<PortID>& portIdsToValidate)>& validateCounterFn =
+          validatePfcCountersIncreased) {
+    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
+    auto setup = [&]() {
       applyNewConfig(cfg);
-
       setupEcmpTraffic(portIds);
-
       // ensure counter is 0 before we start traffic
       validateInitPfcCounters(portIds, pfcPriority);
     };
+
     auto verifyCommon = [&](bool postWb) {
       pumpTraffic(trafficClass, testParams.scale);
       // Sleep for a bit before validation, so that the test will fail if
@@ -600,6 +604,30 @@ class AgentTrafficPfcTest : public AgentHwTest {
     auto verify = [&]() { verifyCommon(false /* postWb */); };
     auto verifyPostWb = [&]() { verifyCommon(true /* postWb */); };
     verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWb);
+  }
+
+  void runTestWithCfg(
+      const int trafficClass,
+      const int pfcPriority,
+      const std::map<int, int>& tcToPgOverride,
+      const TrafficTestParams& testParams,
+      const std::function<void(
+          AgentEnsemble* ensemble,
+          const int pri,
+          const std::vector<PortID>& portIdsToValidate)>& validateCounterFn =
+          validatePfcCountersIncreased) {
+    std::vector<PortID> portIds = portIdsForTest(testParams.scale);
+    for (const auto& portId : portIds) {
+      XLOG(INFO) << "Testing port: " << portDesc(portId);
+    }
+    auto cfg =
+        getPfcTestConfig(trafficClass, pfcPriority, tcToPgOverride, testParams);
+    runPfcTestWithCfg(
+        cfg,
+        trafficClass,
+        pfcPriority,
+        testParams,
+        std::move(validateCounterFn));
   }
 };
 
