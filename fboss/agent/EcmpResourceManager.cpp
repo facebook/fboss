@@ -309,14 +309,13 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
   if (switchingModeChangeResult) {
     switchingModeChangeResult->publishLastDelta();
   }
+  inOutState = std::move(switchingModeChangeResult);
   if (DeltaFunctions::isEmpty(delta.getFibsDelta())) {
-    if (switchingModeChangeResult.has_value()) {
-      return switchingModeChangeResult->moveDeltas();
+    if (inOutState.has_value()) {
+      return inOutState->moveDeltas();
     }
     return makeRet(delta);
   }
-
-  inOutState = std::move(switchingModeChangeResult);
 
   auto [primaryEcmpGroupsCnt, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
@@ -1228,6 +1227,8 @@ EcmpResourceManager::updateForwardingInfoAndInsertDelta(
     }
   }
   const auto& curForwardInfo = route->getForwardInfo();
+  XLOG(DBG2) << " Will set backup switching mode for : " << route->str()
+             << " to: " << getBackupEcmpSwitchingMode();
   auto newForwardInfo = RouteNextHopEntry(
       curForwardInfo.getNextHopSet(),
       curForwardInfo.getAdminDistance(),
@@ -2119,6 +2120,10 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(
   for (const auto& [ridAndPfx, grpInfo] : prefixToGroupInfo_) {
     if (!grpInfo->isBackupEcmpGroupType()) {
       continue;
+    } else {
+      XLOG(DBG2) << ridAndPfx
+                 << " updating backup ecmp mode, from: " << *oldBackupEcmpMode
+                 << " to: " << getBackupEcmpSwitchingMode();
     }
     // Got a route with backupEcmpType set. Change it.
     changed = true;
@@ -2153,6 +2158,7 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(
           grpInfo);
     }
   }
+  inOutState.updated = changed;
   return changed ? std::move(inOutState) : std::optional<InputOutputState>();
 }
 
@@ -2368,7 +2374,8 @@ void NextHopGroupInfo::routeUsageCountChanged(
              << prevState << " to: " << state_ << ". Merge group points to: "
              << (mergedGroupsToInfoItr_
                      ? toStr((*mergedGroupsToInfoItr_)->first)
-                     : " null");
+                     : " null")
+             << ". Has backup ecmp mode set: " << isBackupEcmpGroupType();
 }
 
 void NextHopGroupInfo::mergeInfoItrChanged() {
