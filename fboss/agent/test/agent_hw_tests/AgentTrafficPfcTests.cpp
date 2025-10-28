@@ -200,6 +200,40 @@ void validateIngressPriorityGroupWatermarkCounters(
   });
 }
 
+void validatePfcDurationCounters(
+    facebook::fboss::AgentEnsemble* ensemble,
+    const int pfcPriority,
+    const std::vector<facebook::fboss::PortID>& portIds) {
+  facebook::fboss::cfg::SwitchConfig config = ensemble->getCurrentConfig();
+  WITH_RETRIES({
+    for (const auto& portId : portIds) {
+      auto portCfg = facebook::fboss::utility::findCfgPort(config, portId);
+      CHECK(portCfg->pfc().has_value());
+      bool rxDurationEnabled =
+          portCfg->pfc()->rxPfcDurationEnable().value_or(false);
+      bool txDurationEnabled =
+          portCfg->pfc()->txPfcDurationEnable().value_or(false);
+      auto portStats = ensemble->getLatestPortStats(portId);
+      auto commonLog =
+          "validatePfcDurationCounters: Port: " + std::to_string(portId);
+      if (rxDurationEnabled) {
+        auto rxPfcDurationUsec = folly::get_default(
+            portStats.rxPfcDurationUsec_().value(), pfcPriority, 0);
+        XLOG(DBG0) << commonLog << ", RX PFC duration: " << rxPfcDurationUsec
+                   << " usec";
+        EXPECT_EVENTUALLY_GT(rxPfcDurationUsec, 0);
+      }
+      if (txDurationEnabled) {
+        auto txPfcDurationUsec = folly::get_default(
+            portStats.txPfcDurationUsec_().value(), pfcPriority, 0);
+        XLOG(DBG0) << commonLog << ", TX PFC duration: " << txPfcDurationUsec
+                   << " usec";
+        EXPECT_EVENTUALLY_GT(txPfcDurationUsec, 0);
+      }
+    }
+  });
+}
+
 std::optional<std::string> extractPortIdsFromYaml(const std::string& yaml) {
   using namespace std::literals;
   size_t start = yaml.find("PORT_ID: [[");
@@ -362,6 +396,33 @@ class AgentTrafficPfcTest : public AgentHwTest {
     CHECK_EQ(portIds.size(), ips.size());
     for (int i = 0; i < portIds.size(); ++i) {
       setupEcmpTraffic(portIds[i], ips[i]);
+    }
+  }
+
+  void setupPfcDurationCounters(
+      cfg::SwitchConfig& cfg,
+      const std::vector<PortID>& portIds,
+      bool rxPfcDurationEnabled) {
+    // Either RX or TX direction is enabled based on production feature to
+    // ensure we can test these separately.
+    auto getPfcEnabledPortCfg = [&](const PortID& portId) {
+      auto portCfg = std::find_if(
+          cfg.ports()->begin(), cfg.ports()->end(), [&portId](auto& port) {
+            return PortID(*port.logicalID()) == portId;
+          });
+      CHECK(portCfg->pfc().has_value())
+          << "PFC not configured for port ID " << portId;
+      return portCfg;
+    };
+    for (const PortID& portId : portIds) {
+      auto portCfg = getPfcEnabledPortCfg(portId);
+      if (rxPfcDurationEnabled) {
+        portCfg->pfc()->rxPfcDurationEnable() = true;
+        XLOG(DBG0) << "Enabled PFC RX duration counter for port ID " << portId;
+      } else {
+        portCfg->pfc()->txPfcDurationEnable() = true;
+        XLOG(DBG0) << "Enabled PFC TX duration counter for port ID " << portId;
+      }
     }
   }
 
