@@ -180,6 +180,7 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // StaticModuleId
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

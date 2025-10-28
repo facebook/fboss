@@ -300,6 +300,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // StaticModuleId
       std::nullopt, // IsHyperPortMember
       std::nullopt, // HyperPortMemberList
+      std::nullopt, // PfcMonitorDirection
   };
 }
 

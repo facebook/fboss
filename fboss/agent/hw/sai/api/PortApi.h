@@ -524,6 +524,13 @@ struct SaiPortTraits {
         std::vector<sai_object_id_t>,
         AttributeHyperPortMemberList,
         SaiObjectIdListDefault>;
+    struct AttributePfcMonitorDirection {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PfcMonitorDirection = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributePfcMonitorDirection,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -645,7 +652,8 @@ struct SaiPortTraits {
       std::optional<Attributes::FabricSystemPort>,
       std::optional<Attributes::StaticModuleId>,
       std::optional<Attributes::IsHyperPortMember>,
-      std::optional<Attributes::HyperPortMemberList>>;
+      std::optional<Attributes::HyperPortMemberList>,
+      std::optional<Attributes::PfcMonitorDirection>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -816,6 +824,7 @@ SAI_ATTRIBUTE_NAME(Port, StaticModuleId)
 SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
 SAI_ATTRIBUTE_NAME(Port, IsHyperPortMember)
 SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
+SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

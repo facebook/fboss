@@ -277,6 +277,18 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  // Some ASICs can support PFC Monitoring only in one direction. This
+  // attribute specifies the direction to enable PFC monitoring for,
+  // either RX or TX.
+  return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
 #if (                                                                          \
     defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \

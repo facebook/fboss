@@ -107,6 +107,7 @@ struct FakePort {
   sai_object_id_t fabricSystemPort{};
   sai_uint32_t staticModuleId{};
   bool resetQueueCreditBalance{false};
+  sai_int32_t pfcMonitorDirection{0};
 };
 
 struct FakePortSerdes {
