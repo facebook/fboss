@@ -360,7 +360,8 @@
         87,
         88,
         89,
-        90
+        90,
+        92
     ],
     "tomahawk6": [
         2,
@@ -828,7 +829,8 @@
         "UDF_HASH",
         "INTER_PACKET_GAP",
         "AM_IDLES",
-        "ALTERNATE_ARS_MEMBERS"
+        "ALTERNATE_ARS_MEMBERS",
+        "L2_QOS"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
