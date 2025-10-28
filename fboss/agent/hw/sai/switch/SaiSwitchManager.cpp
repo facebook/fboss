@@ -1614,6 +1614,13 @@ void SaiSwitchManager::setPfcWatchdogTimerGranularity(
 #endif
 }
 
+void SaiSwitchManager::setEnablePfcMonitoring(bool enablePfcMonitoring) {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_13_0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::PfcMonitorEnable{enablePfcMonitoring});
+#endif
+}
+
 void SaiSwitchManager::setCreditRequestProfileSchedulerMode(
     cfg::QueueScheduling scheduling) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)

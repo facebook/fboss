@@ -132,6 +132,7 @@ class SaiSwitchManager {
       const std::optional<std::map<int32_t, int32_t>>& tcToRateLimitKbps);
   bool isPtpTcEnabled() const;
   void setPfcWatchdogTimerGranularity(int pfcWatchdogTimerGranularityMsec);
+  void setEnablePfcMonitoring(bool enablePfcMonitoring);
   void setCreditRequestProfileSchedulerMode(cfg::QueueScheduling scheduling);
   void setModuleIdToCreditRequestProfileParam(
       const std::optional<std::map<int32_t, int32_t>>&
