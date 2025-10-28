@@ -110,6 +110,16 @@ class NextHopIDManager {
 
   // Get the ref count for a given set of NextHopIDs
   uint32_t getNextHopIDSetRefCount(const NextHopIDSet& nextHopIDSet);
+
+  // Get the NextHopSetID for a given NextHopIDSet
+  // Returns std::nullopt if the set doesn't exist
+  std::optional<NextHopSetID> getNextHopSetID(
+      const NextHopIDSet& nextHopIDSet) const;
+
+  // Get the NextHopID for a given NextHop (lookup only, no allocation)
+  // Returns std::nullopt if the NextHop doesn't exist
+  std::optional<NextHopID> getNextHopID(const NextHop& nextHop) const;
+
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopID);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, getOrAllocateNextHopSetIDOrderIndependence);

@@ -127,4 +127,22 @@ bool NextHopIDManager::decrOrDeallocateNextHopIDSet(
   return false;
 }
 
+std::optional<NextHopSetID> NextHopIDManager::getNextHopSetID(
+    const NextHopIDSet& nextHopIDSet) const {
+  auto it = nextHopIdSetToIDInfo_.find(nextHopIDSet);
+  if (it != nextHopIdSetToIDInfo_.end()) {
+    return it->second.id;
+  }
+  return std::nullopt;
+}
+
+std::optional<NextHopID> NextHopIDManager::getNextHopID(
+    const NextHop& nextHop) const {
+  auto it = nextHopToIDInfo_.find(nextHop);
+  if (it != nextHopToIDInfo_.end()) {
+    return it->second.id;
+  }
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
