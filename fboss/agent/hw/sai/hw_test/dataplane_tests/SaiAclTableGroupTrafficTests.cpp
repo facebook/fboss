@@ -503,8 +503,9 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       return dscpAclMatch && ttlAclMatch;
     };
 
-    EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
-        intermediateAclStatsMatch, updateStats));
+    EXPECT_TRUE(
+        getHwSwitchEnsemble()->waitStatsCondition(
+            intermediateAclStatsMatch, updateStats));
 
     auto intermediateAclPkts = pktCounterHelper();
     sendAllPacketshelper<AddrT>(dstIP, frontPanel, utility::kIcpDscp());
@@ -538,8 +539,9 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       return dscpAclMatch && ttlAclMatch;
     };
 
-    EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
-        afterAclStatsMatch, updateStats));
+    EXPECT_TRUE(
+        getHwSwitchEnsemble()->waitStatsCondition(
+            afterAclStatsMatch, updateStats));
   }
 
   void verifyDscpTtlAclTablesHelper() {
