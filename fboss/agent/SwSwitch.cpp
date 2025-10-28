@@ -1546,9 +1546,10 @@ void SwSwitch::initialConfigApplied(
   sendNeighborSolicitationForConfiguredInterfaces("warm boot");
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
-    stats()->switchConfiguredMs(duration_cast<std::chrono::milliseconds>(
-                                    steady_clock::now() - startTime)
-                                    .count());
+    stats()->switchConfiguredMs(
+        duration_cast<std::chrono::milliseconds>(
+            steady_clock::now() - startTime)
+            .count());
   }
 #if FOLLY_HAS_COROUTINES
   if (flags_ & SwitchFlags::ENABLE_MACSEC) {
