@@ -39,9 +39,9 @@ CheckResult MacAddressCheck::run() {
       std::string errorMsg =
           "MAC address mismatch: eth0=" + eth0Mac.toString() +
           " EEPROM=" + eepromMac.toString();
-      std::string remediationMsg = "Reprovision device to correct MAC address";
+      std::string remediationMsg = "RMA device to correct MAC address";
       return makeProblem(
-          errorMsg, RemediationType::REPROVISION_REQUIRED, remediationMsg);
+          errorMsg, RemediationType::RMA_REQUIRED, remediationMsg);
     }
   } catch (const std::exception& ex) {
     return makeError("Unexpected error: " + std::string(ex.what()));
