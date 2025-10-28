@@ -347,6 +347,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::CR_10G:
     case MediaInterfaceCode::DR1_200G:
     case MediaInterfaceCode::DR1_100G:
+    case MediaInterfaceCode::CR1_100G:
       return 1;
     case MediaInterfaceCode::DR2_400G:
       return 2;
@@ -389,6 +390,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::DR1_200G:
     case MediaInterfaceCode::DR1_100G:
     case MediaInterfaceCode::ZR_800G:
+    case MediaInterfaceCode::CR1_100G:
       return 1;
     case MediaInterfaceCode::DR2_400G:
       return 2;

@@ -305,7 +305,7 @@ class CmisHelper final {
   static const ActiveMediaInterfaceMap& getActiveMediaInterfaceMapping() {
     static const ActiveMediaInterfaceMap activeMediaInterfaceMapping_ = {
         {ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-         MediaInterfaceCode::CR4_100G},
+         MediaInterfaceCode::CR1_100G},
         {ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
          MediaInterfaceCode::CR4_200G},
         {ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
@@ -337,17 +337,6 @@ class CmisHelper final {
         activeOsfpValidSpeedCombinations_ = {
             /* These rates are not supported/tested as of now
                         {
-                            // 2xCR4_100G
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                            ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
-                        },
-                        {
                             // 2xCR4_200G
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
@@ -359,6 +348,17 @@ class CmisHelper final {
                             ActiveCuHostInterfaceCode::AUI_PAM4_2S_200G,
                         },
             */
+            {
+                // 2xCR4_100G
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+                ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G,
+            },
             {
                 // 2xCR4_400G
                 ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,

@@ -231,6 +231,7 @@ enum MediaInterfaceCode {
   ZR_800G = 26,
   DR2_400G = 27,
   DR1_100G = 28,
+  CR1_100G = 29,
 }
 
 // The extended specification compliance code of the transceiver module.
