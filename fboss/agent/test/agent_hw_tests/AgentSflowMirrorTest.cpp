@@ -90,6 +90,106 @@ deserializeSflowPacket(const folly::IOBuf* buf) {
   return parsed;
 }
 
+// Function to create SflowPacketParsed directly from packet parameters
+__attribute__((unused)) SflowPacketParsed makeSflowV5PacketParsed(
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    const std::vector<uint8_t>& payload) {
+  SflowPacketParsed parsed;
+
+  // Create ethernet header
+  EthHdr::VlanTags_t vlanTags;
+  if (vlan.has_value()) {
+    vlanTags.emplace_back(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
+  }
+  parsed.ethHeader = EthHdr(
+      dstMac,
+      srcMac,
+      std::move(vlanTags),
+      static_cast<uint16_t>(
+          srcIp.isV4() ? ETHERTYPE::ETHERTYPE_IPV4
+                       : ETHERTYPE::ETHERTYPE_IPV6));
+
+  // Create IP header based on address type
+  if (srcIp.isV4()) {
+    IPv4Hdr ipv4Header(
+        srcIp.asV4(),
+        dstIp.asV4(),
+        static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+        0);
+    ipv4Header.ttl = hopLimit;
+    ipv4Header.dscp = trafficClass;
+    parsed.ipHeader = std::move(ipv4Header);
+  } else {
+    IPv6Hdr ipv6Header;
+    ipv6Header.srcAddr = srcIp.asV6();
+    ipv6Header.dstAddr = dstIp.asV6();
+    ipv6Header.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+    ipv6Header.hopLimit = hopLimit;
+    ipv6Header.trafficClass = trafficClass;
+    parsed.ipHeader = std::move(ipv6Header);
+  }
+
+  // Create UDP header
+  parsed.udpHeader = UDPHeader(srcPort, dstPort, 0, 0);
+
+  // Create sFlow datagram structure
+  sflow::SampleDatagramV5 datagramV5;
+  datagramV5.agentAddress = srcIp;
+  datagramV5.subAgentID = 0;
+  datagramV5.sequenceNumber = 0;
+  datagramV5.uptime = 0;
+
+  // Create sample header
+  sflow::SampledHeader sampleHeader;
+  sampleHeader.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  sampleHeader.frameLength = 0;
+  sampleHeader.stripped = 0;
+  sampleHeader.header = payload;
+
+  // Create flow record
+  sflow::FlowRecord flowRecord;
+  flowRecord.flowFormat = 1;
+  flowRecord.flowData = sampleHeader;
+
+  // Create flow sample
+  sflow::FlowSample flowSample;
+  flowSample.sequenceNumber = 0;
+  flowSample.sourceID = 0;
+  flowSample.samplingRate = samplingRate;
+  flowSample.samplePool = 0;
+  flowSample.drops = 0;
+  flowSample.input = ingressInterface;
+  flowSample.output = egressInterface;
+  flowSample.flowRecords = {std::move(flowRecord)};
+
+  // Create sample record
+  sflow::SampleRecord sampleRecord;
+  sampleRecord.sampleType = 1;
+  sampleRecord.sampleData = {std::move(flowSample)};
+
+  datagramV5.samples = {std::move(sampleRecord)};
+
+  // Wrap in the outer datagram structure
+  sflow::SampleDatagram datagram;
+  datagram.datagramV5 = std::move(datagramV5);
+
+  parsed.sflowDatagram = std::move(datagram);
+
+  return parsed;
+}
+
 std::unique_ptr<folly::IOBuf> maskSflowFields(folly::IOBuf* ioBuf) {
   std::unique_ptr<folly::IOBuf> maskedIoBuf{ioBuf->clone()};
   folly::io::RWPrivateCursor cursor{maskedIoBuf.get()};
