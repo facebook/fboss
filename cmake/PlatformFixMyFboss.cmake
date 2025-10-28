@@ -18,5 +18,6 @@ add_executable(fixmyfboss
 target_link_libraries(fixmyfboss
   result_printer
   platform_name_lib
+  platform_checks
   CLI11::CLI11
 )
