@@ -180,6 +180,13 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
         break;
       case MediaInterfaceCode::CR8_800G:
         switch (profile) {
+          case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544X2N_COPPER: {
+            auto itr = hostLaneMap.find(portName);
+            CHECK(itr != hostLaneMap.end());
+            auto& hostLaneVector = itr->second;
+            CHECK_EQ(hostLaneVector.size(), 1);
+            expectedMediaLanes = hostLaneVector;
+          } break;
           case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
             if (std::find(
                     hostLaneMap[portName].begin(),
@@ -426,6 +433,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       verifyCopper400gProfile(tcvrState, mediaInterfaces);
       break;
 
+    case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
       verifyCopper100gProfile(tcvrState, mediaInterfaces);
@@ -588,8 +596,17 @@ void HwTransceiverUtils::verifyCopper100gProfile(
       TransmitterTechnology::COPPER,
       *(tcvrState.cable().value_or({}).transmitterTech()));
 
+  const bool isActive = TransceiverManager::activeCable(tcvrState);
+  if (!isActive) {
+  }
   for (const auto& mediaId : mediaInterfaces) {
-    EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_100G);
+    if (isActive) {
+      EXPECT_TRUE(
+          *mediaId.media()->activeCuCode() ==
+          ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G);
+    } else {
+      EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_100G);
+    }
   }
 }
 
