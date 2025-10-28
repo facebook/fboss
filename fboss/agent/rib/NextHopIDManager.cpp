@@ -2,6 +2,7 @@
 
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -143,6 +144,20 @@ std::optional<NextHopID> NextHopIDManager::getNextHopID(
     return it->second.id;
   }
   return std::nullopt;
+}
+
+NextHopSetID NextHopIDManager::getOrAllocRouteNextHopSetID(
+    const RouteNextHopSet& nextHopSet) {
+  // Get the NextHopIDs first for each NextHop in the RouteNextHopSet
+  NextHopIDSet nextHopIDSet;
+  for (const auto& nextHop : nextHopSet) {
+    auto [nextHopID, nhopIDAllocated] = getOrAllocateNextHopID(nextHop);
+    nextHopIDSet.insert(nextHopID);
+  }
+
+  // Get the NextHopSetID for the NextHopIDSet
+  auto [nextHopSetID, setIdAllocated] = getOrAllocateNextHopSetID(nextHopIDSet);
+  return nextHopSetID;
 }
 
 } // namespace facebook::fboss

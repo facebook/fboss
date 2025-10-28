@@ -4,10 +4,9 @@
 
 #include <gtest/gtest.h>
 #include <cstdint>
-#include <map>
 #include <unordered_map>
-#include <unordered_set>
 #include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -65,6 +64,9 @@ class NextHopIDManager {
       const {
     return idToNextHopIdSet_;
   }
+
+  // Retrieves or allocate NextHopSetID for a RouteNextHopSet
+  NextHopSetID getOrAllocRouteNextHopSetID(const RouteNextHopSet& nextHopSet);
 
  private:
   // Structure to hold ID and reference count for NextHops
