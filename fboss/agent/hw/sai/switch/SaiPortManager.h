@@ -112,6 +112,8 @@ struct SaiPortHandle {
   std::optional<std::string> qosPolicy;
   SaiQueueHandles queues;
   bool prbsEnabled;
+  bool txPfcDurationStatsEnabled;
+  bool rxPfcDurationStatsEnabled;
 
   void resetQueues();
   SaiPortMirrorInfo mirrorInfo;
@@ -485,6 +487,10 @@ class SaiPortManager {
       const std::shared_ptr<Port>& swPort,
       const std::optional<cfg::PortPfc>& newPfc,
       const std::optional<cfg::PortPfc>& oldPfc);
+  void setPfcDurationStatsEnabled(
+      const PortID& portId,
+      bool txEnabled,
+      bool rxEnabled);
 
   /**
    * Enum to specify which PFC counter to increment.

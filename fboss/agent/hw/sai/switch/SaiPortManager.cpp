@@ -863,6 +863,16 @@ void SaiPortManager::programPfcDurationCounter(
     const std::shared_ptr<Port>& swPort,
     const std::optional<cfg::PortPfc>& newPfc,
     const std::optional<cfg::PortPfc>& oldPfc) {
+  // Enable PFC duration counter enabled state in port handle, which
+  // dictates if the stats needs to be updated during stats collection.
+  bool txPfcDurationEn = newPfc.has_value()
+      ? newPfc->txPfcDurationEnable().value_or(false)
+      : false;
+  bool rxPfcDurationEn = newPfc.has_value()
+      ? newPfc->rxPfcDurationEnable().value_or(false)
+      : false;
+  setPfcDurationStatsEnabled(swPort->getID(), txPfcDurationEn, rxPfcDurationEn);
+
   // Handle ASIC specific programming needed to enable PFC duration counters
   programPfcDurationCounterEnable(swPort, newPfc, oldPfc);
 }
@@ -2495,6 +2505,15 @@ void SaiPortManager::clearQosPolicy() {
   for (const auto& portIdAndHandle : handles_) {
     clearQosPolicy(portIdAndHandle.first);
   }
+}
+
+void SaiPortManager::setPfcDurationStatsEnabled(
+    const PortID& portID,
+    bool txEnabled,
+    bool rxEnabled) {
+  auto handle = getPortHandle(portID);
+  handle->txPfcDurationStatsEnabled = txEnabled;
+  handle->rxPfcDurationStatsEnabled = rxEnabled;
 }
 
 void SaiPortManager::changeQosPolicy(
