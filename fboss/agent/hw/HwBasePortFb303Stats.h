@@ -126,6 +126,7 @@ class HwBasePortFb303Stats {
  protected:
   void reinitStats(std::optional<std::string> oldPortName);
   void reinitMacsecStats(std::optional<std::string> oldPortName);
+  void reinitPfcStats(std::optional<std::string> oldPortName);
   /*
    * update port stat
    */
