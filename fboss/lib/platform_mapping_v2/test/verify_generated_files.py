@@ -44,7 +44,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "icecube800bc",
             "icetea800bc",
             "tahansb800bc",
-            "wedge800ba",
+            "wedge800bact",
         ],
         True: [
             "meru800bfa",
