@@ -393,7 +393,10 @@ void SaiPortManager::changePortImpl(
       portStats_.emplace(
           newPort->getID(),
           std::make_unique<HwPortFb303Stats>(
-              newPort->getName(), queueId2Name, newPort->getPfcPriorities()));
+              newPort->getName(),
+              queueId2Name,
+              newPort->getPfcPriorities(),
+              newPort->getPfc()));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
