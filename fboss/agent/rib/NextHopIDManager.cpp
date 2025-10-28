@@ -88,4 +88,43 @@ uint32_t NextHopIDManager::getNextHopIDSetRefCount(
   return 0;
 }
 
+bool NextHopIDManager::decrOrDeallocateNextHop(const NextHop& nextHop) {
+  auto it = nextHopToIDInfo_.find(nextHop);
+  if (it == nextHopToIDInfo_.end()) {
+    throw FbossError(
+        "Cannot decrement reference count or deallocate for non-existent NextHop");
+  }
+  CHECK_GT(it->second.count, 0);
+  it->second.count--;
+  if (it->second.count == 0) {
+    // Reference count reached 0, deallocate
+    auto erasedIdMap = idToNextHop_.erase(it->second.id);
+    CHECK_EQ(erasedIdMap, 1);
+    auto erasedIdInfo = nextHopToIDInfo_.erase(it->first);
+    CHECK_EQ(erasedIdInfo, 1);
+    return true;
+  }
+  return false;
+}
+
+bool NextHopIDManager::decrOrDeallocateNextHopIDSet(
+    const NextHopIDSet& nextHopIDSet) {
+  auto it = nextHopIdSetToIDInfo_.find(nextHopIDSet);
+  if (it == nextHopIdSetToIDInfo_.end()) {
+    throw FbossError(
+        "Cannot decrement reference count or deallocate for non-existent NextHopIDSet");
+  }
+  CHECK_GT(it->second.count, 0);
+  it->second.count--;
+  if (it->second.count == 0) {
+    // Reference count reached 0, deallocate
+    auto erasedIdMap = idToNextHopIdSet_.erase(it->second.id);
+    CHECK_EQ(erasedIdMap, 1);
+    auto erasedIdInfo = nextHopIdSetToIDInfo_.erase(it->first);
+    CHECK_EQ(erasedIdInfo, 1);
+    return true;
+  }
+  return false;
+}
+
 } // namespace facebook::fboss

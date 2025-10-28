@@ -48,11 +48,12 @@ class NextHopIDManager {
       const NextHopIDSet& nextHopIDSet);
 
   // Decrement reference count for a NextHop and deallocate if count reaches 0
-  void decrOrDeallocateNextHop(const NextHop& nextHop);
+  // Returns true if deallocated, false otherwise
+  bool decrOrDeallocateNextHop(const NextHop& nextHop);
 
   // Decrement reference count for a set of NextHopIDs and deallocate if count
-  // reaches 0
-  void decrOrDeallocateNextHopIDSet(const NextHopIDSet& nextHopIDSet);
+  // reaches 0. Returns true if deallocated, false otherwise
+  bool decrOrDeallocateNextHopIDSet(const NextHopIDSet& nextHopIDSet);
 
   // Get the reverse lookup map from NextHopID to NextHop
   const std::unordered_map<NextHopID, NextHop>& getIdToNextHop() const {
