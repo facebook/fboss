@@ -663,6 +663,10 @@ class QsfpModule : public Transceiver {
       phy::Side /* side */,
       bool /* setLoopback */) {}
 
+  virtual std::optional<TunableLaserStatus> getTunableLaserStatus() {
+    return std::nullopt;
+  }
+
   /*
    * Returns a set of Transceiver lanes for a given SW port for a given side
    */

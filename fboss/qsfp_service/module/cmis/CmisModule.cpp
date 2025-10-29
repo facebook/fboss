@@ -1867,6 +1867,75 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
 }
 
 /*
+ * getTunableLaserStatus
+ *
+ * This function extracts tunable laser status information from the module
+ * and returns the laser status and current frequency if available.
+ */
+std::optional<TunableLaserStatus> CmisModule::getTunableLaserStatus() {
+  if (!isTunableOptics()) {
+    return std::nullopt;
+  }
+
+  TunableLaserStatus tunableLaserStatus;
+  // Initialize with default value to avoid bad_optional_field_access
+  tunableLaserStatus.tuningStatus() =
+      LaserStatusBitMask::LASER_TUNE_NOT_IN_PROGRESS;
+  tunableLaserStatus.wavelengthLockingStatus() =
+      LaserStatusBitMask::WAVELENGTH_LOCKED;
+  tunableLaserStatus.laserFrequencyMhz() = kDefaultFrequencyMhz;
+  tunableLaserStatus.laserStatusFlagsByte() = 0;
+
+  // Read laser status from MEDIA_TX_1_LAS_STAT field
+  uint8_t laserStatusByte;
+  readCmisField(CmisField::MEDIA_TX_1_LAS_STAT, &laserStatusByte);
+
+  // Read laser status flags from MEDIA_TX_1_LAS_STAT_FLAGS field
+  uint8_t laserStatusFlagsByte = 0;
+  readCmisField(CmisField::MEDIA_TX_1_LAS_STAT_FLAGS, &laserStatusFlagsByte);
+  tunableLaserStatus.laserStatusFlagsByte() = laserStatusFlagsByte;
+
+  // Laser status byte bit 7 indicates if the laser is in progress of tuning.
+  // Value 0: tuning not in progress, Value 1: tuning in progress
+  if (laserStatusByte &
+      static_cast<uint8_t>(LaserStatusBitMask::LASER_TUNE_IN_PROGRESS)) {
+    tunableLaserStatus.tuningStatus() =
+        LaserStatusBitMask::LASER_TUNE_IN_PROGRESS;
+  }
+
+  if (laserStatusByte &
+      static_cast<uint8_t>(LaserStatusBitMask::WAVELENGTH_UNLOCKED)) {
+    tunableLaserStatus.wavelengthLockingStatus() =
+        LaserStatusBitMask::WAVELENGTH_UNLOCKED;
+  }
+
+  // Read current laser frequency from MEDIA_TX_1_CURR_LAS_FREQ field (4
+  // bytes)
+  uint8_t frequencyBytes[4] = {0};
+  readCmisField(CmisField::MEDIA_TX_1_CURR_LAS_FREQ, frequencyBytes);
+
+  // Convert 4 bytes to frequency in MHz
+  // According to CMIS spec, this is stored as a 32-bit unsigned integer in
+  // MHz
+  uint32_t frequencyMhz = (frequencyBytes[0] << 24) |
+      (frequencyBytes[1] << 16) | (frequencyBytes[2] << 8) | frequencyBytes[3];
+
+  tunableLaserStatus.laserFrequencyMhz() = static_cast<int64_t>(frequencyMhz);
+
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Laser status byte: 0x{:X}, laserStatusFlagsByte: 0x{:X}, "
+      "frequency_MHz: {}, TuningStatus: {}, WavelengthLockingStatus: {}",
+      laserStatusByte,
+      laserStatusFlagsByte,
+      frequencyMhz,
+      apache::thrift::util::enumNameSafe(
+          tunableLaserStatus.tuningStatus().value()),
+      apache::thrift::util::enumNameSafe(
+          tunableLaserStatus.wavelengthLockingStatus().value()));
+  return tunableLaserStatus;
+}
+
+/*
  * getVdmPerfMonitorStatsForOds
  *
  * Consolidate the VDM stats for publishing to ODS/Fbagent

@@ -482,6 +482,11 @@ class CmisModule : public QsfpModule {
    * returns whether optics frequency is tunable or not
    */
   bool isTunableOptics() const;
+
+  /*
+   * returns the tunable optics laser status and laser frequency
+   */
+  std::optional<TunableLaserStatus> getTunableLaserStatus() override;
   /*
    * Returns the ApplicationAdvertisingField corresponding to the application or
    * nullopt if it doesn't exist
