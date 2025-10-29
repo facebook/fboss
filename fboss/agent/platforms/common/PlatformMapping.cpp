@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include <algorithm>
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/logging/xlog.h>
@@ -171,6 +172,9 @@ std::string PlatformPortProfileConfigMatcher::toString() const {
         apache::thrift::SimpleJSONSerializer::serialize<std::string>(
             *portConfigOverrideFactor_));
   }
+
+  std::replace(str.begin(), str.end(), '{', '(');
+  std::replace(str.begin(), str.end(), '}', ')');
   return str;
 }
 
