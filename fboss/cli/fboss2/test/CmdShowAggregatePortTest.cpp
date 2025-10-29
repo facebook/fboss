@@ -176,7 +176,7 @@ TEST_F(CmdShowAggregatePortTestFixture, queryClient) {
   CmdShowAggregatePortTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowAggregatePortTestFixture, printOutput) {
