@@ -2215,6 +2215,9 @@ void CmisModule::updateQsfpData(bool allPages) {
     if (!flatMem_) {
       readCmisField(CmisField::PAGE_UPPER10H, page10_);
       readCmisField(CmisField::PAGE_UPPER11H, page11_);
+      if (isTunableOptics()) {
+        readCmisField(CmisField::PAGE_UPPER12H, page12_);
+      }
 
       bool isReady =
           ((CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1) ==

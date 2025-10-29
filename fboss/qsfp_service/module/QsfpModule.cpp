@@ -506,6 +506,13 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrState.status() = currentStatus;
     cacheStatusFlags(currentStatus);
 
+    // Tunable optics parameter
+    auto tunableLaserstatus = getTunableLaserStatus();
+    if (tunableLaserstatus) {
+      QSFP_LOG(INFO, this) << "Tunable laser status is not null";
+      tcvrState.tunableLaserStatus() = tunableLaserstatus.value();
+    }
+
     // If the StatsPublisher thread has triggered the VDM data capture then
     // latch, read data (page 24 and 25), release latch
     if (captureVdmStats_) {
