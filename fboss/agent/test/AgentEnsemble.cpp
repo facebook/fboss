@@ -853,4 +853,11 @@ std::string AgentEnsemble::getHwDebugDump() {
   return out;
 }
 
+cfg::SwitchingMode AgentEnsemble::getFwdSwitchingMode(
+    const RoutePrefixV6& prefix) {
+  auto resolvedRoute = findRoute<folly::IPAddressV6>(
+      RouterID(0), {prefix.network(), prefix.mask()}, getProgrammedState());
+  return getFwdSwitchingMode(resolvedRoute->getForwardInfo());
+}
+
 } // namespace facebook::fboss

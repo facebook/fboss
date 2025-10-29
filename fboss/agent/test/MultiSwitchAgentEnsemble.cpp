@@ -81,4 +81,12 @@ void MultiSwitchAgentEnsemble::ensureHwSwitchConnected(SwitchID switchId) {
   });
 }
 
+cfg::SwitchingMode MultiSwitchAgentEnsemble::getFwdSwitchingMode(
+    const RouteNextHopEntry& entry) {
+  auto switchId =
+      getSw()->getScopeResolver()->scope(masterLogicalPortIds()[0]).switchId();
+  auto client = getHwAgentTestClient(switchId);
+  return client->sync_getFwdSwitchingMode(entry.toThrift());
+}
+
 } // namespace facebook::fboss

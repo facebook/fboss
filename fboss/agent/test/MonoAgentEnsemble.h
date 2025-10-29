@@ -29,6 +29,9 @@ class MonoAgentEnsemble : public AgentEnsemble {
     // nothing to do for monolithic agent
   }
 
+  cfg::SwitchingMode getFwdSwitchingMode(
+      const RouteNextHopEntry& entry) override;
+
  private:
   MonolithicTestAgentInitializer agentInitializer_{};
 };
