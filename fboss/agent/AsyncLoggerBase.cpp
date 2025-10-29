@@ -122,6 +122,47 @@ void AsyncLoggerBase::forceFlush() {
   }
 }
 
+void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
+  if (!enableLogging_) {
+    return;
+  }
+
+  if (FLAGS_disable_async_logger && logSize > 0) {
+    auto bytesWritten = logFile_.withWLock([&](auto& lockedFile) {
+      return folly::writeFull(lockedFile.fd(), logRecord, logSize);
+    });
+
+    if (bytesWritten < 0) {
+      throw SysError(errno, "error writing ", logSize, " bytes to log file.");
+    }
+    return;
+  }
+
+  // Acquire the lock and check if there's enough space in the buffer
+  latch_.lock();
+  // Release the lock and notify worker thread to flush logs
+  if (logSize + getOffset() >= bufferSize_) {
+    fullFlush_ = true;
+    latch_.unlock();
+    cv_.notify_one();
+
+    // Wait for worker to finish
+    std::unique_lock<std::mutex> lock(latch_);
+    cv_.wait(lock, [this, logSize] {
+      return logSize + this->getOffset() < this->bufferSize_;
+    });
+
+    memcpy(logBuffer_ + getOffset(), logRecord, logSize);
+    setOffset(getOffset() + logSize);
+    lock.unlock();
+  } else {
+    // Directly write to buffer
+    memcpy(logBuffer_ + getOffset(), logRecord, logSize);
+    setOffset(getOffset() + logSize);
+    latch_.unlock();
+  }
+}
+
 void AsyncLoggerBase::writeNewBootHeader() {
   auto now = std::chrono::system_clock::now();
   auto timer = std::chrono::system_clock::to_time_t(now);
