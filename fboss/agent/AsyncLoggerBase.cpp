@@ -11,6 +11,7 @@
 #include <iomanip>
 
 #include "fboss/agent/AsyncLoggerBase.h"
+#include "fboss/agent/SysError.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
@@ -44,6 +45,50 @@ AsyncLoggerBase::AsyncLoggerBase(
     logBuffer_ = logBuf;
     flushBuffer_ = flushBuf;
     logTimeout_ = std::chrono::milliseconds(logTimeout);
+  }
+}
+
+void AsyncLoggerBase::workerThread() {
+  while (enableLogging_) {
+    std::unique_lock<std::mutex> lock(latch_);
+
+    cv_.wait_for(lock, logTimeout_, [this] {
+      return this->forceFlush_ || this->fullFlush_;
+    });
+
+    char* writeBuffer = logBuffer_;
+    uint32_t currSize = getOffset();
+    setOffset(0);
+    swapCurBuf();
+    logBuffer_ = flushBuffer_;
+
+    if (fullFlush_) {
+      fullFlush_ = false;
+    }
+
+    lock.unlock();
+    cv_.notify_one();
+
+    if (currSize > 0) {
+      flushCount_++;
+      auto bytesWritten = logFile_.withWLock([&](auto& lockedFile) {
+        return folly::writeFull(lockedFile.fd(), writeBuffer, currSize);
+      });
+
+      if (bytesWritten < 0) {
+        throw SysError(
+            errno, "error writing ", currSize, " bytes to log file.");
+      }
+    }
+
+    memset(writeBuffer, 0, bufferSize_);
+    flushBuffer_ = writeBuffer;
+
+    if (forceFlush_) {
+      forceFlush_ = false;
+      promise_.set_value(0);
+      promise_ = std::promise<int>();
+    }
   }
 }
 
