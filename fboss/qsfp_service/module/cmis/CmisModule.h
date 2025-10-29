@@ -609,6 +609,14 @@ class CmisModule : public QsfpModule {
 
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
 
+  /*
+   * Check if the datapath for the specified lanes has been updated to one of
+   * the desired states
+   */
+  bool isDatapathUpdated(
+      uint8_t laneMask,
+      const std::vector<CmisLaneState>& states);
+
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,

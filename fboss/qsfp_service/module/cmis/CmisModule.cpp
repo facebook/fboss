@@ -4116,6 +4116,21 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
   return kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
 }
 
+bool CmisModule::isDatapathUpdated(
+    uint8_t laneMask,
+    const std::vector<CmisLaneState>& states) {
+  for (uint8_t lane = 0; lane < numHostLanes(); lane++) {
+    if (!((1 << lane) & laneMask)) {
+      continue;
+    }
+    auto dpState = getDatapathLaneStateLocked(lane, false);
+    if (std::find(states.begin(), states.end(), dpState) == states.end()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void CmisModule::resetDataPath() {
   resetDataPathWithFunc();
 }
@@ -4132,22 +4147,6 @@ void CmisModule::resetDataPathWithFunc(
   // First deactivate all the lanes
   uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
-
-  // Lambda to check if the datapath for the lanes has been updated to one of
-  // the desired states
-  auto isDatapathUpdated = [&](uint8_t laneMask,
-                               std::vector<CmisLaneState> state) -> bool {
-    for (uint8_t lane = 0; lane < numHostLanes(); lane++) {
-      if (!((1 << lane) & laneMask)) {
-        continue;
-      }
-      auto dpState = getDatapathLaneStateLocked(lane, false);
-      if (std::find(state.begin(), state.end(), dpState) == state.end()) {
-        return false;
-      }
-    }
-    return true;
-  };
 
   // Wait for all datapath state machines to get Deactivated
   const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
