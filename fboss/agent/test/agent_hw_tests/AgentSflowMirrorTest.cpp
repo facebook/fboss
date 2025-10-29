@@ -189,69 +189,6 @@ SflowPacketParsed makeSflowV5PacketParsed(
   return parsed;
 }
 
-std::unique_ptr<folly::IOBuf> maskSflowFields(folly::IOBuf* ioBuf) {
-  std::unique_ptr<folly::IOBuf> maskedIoBuf{ioBuf->clone()};
-  folly::io::RWPrivateCursor cursor{maskedIoBuf.get()};
-  folly::MacAddress zeroMac{};
-  // Preserve the destination MAC address
-  cursor.skip(folly::MacAddress::SIZE);
-  // Preserve the source MAC address
-  cursor.skip(folly::MacAddress::SIZE);
-  // Preserve the ethernet protocol
-  cursor.skip(2);
-  // Preserve the IPv6 Header
-  cursor.skip(IPv6Hdr::size());
-  // Preserve UDP source port, destination port, and length
-  cursor.skip(6);
-  // Zero the checksum
-  // TODO(T235175754): Preserve the checksum once implementation is present
-  cursor.writeBE<uint16_t>(0);
-  // Preserve sFlow datagram version
-  cursor.skip(4);
-  // Preserve sFlow agent address type
-  cursor.skip(4);
-  // Preserve sFlow IPv6 address
-  cursor.skip(folly::IPAddressV6::byteCount());
-  // Zero the sub-agent ID
-  cursor.writeBE<uint32_t>(0);
-  // Zero the sample datagram sequence number
-  cursor.writeBE<uint32_t>(0);
-  // Zero the system uptime
-  cursor.writeBE<uint32_t>(0);
-  // Preserve the number of samples
-  cursor.skip(4);
-  // Preserve the sFlow data format
-  cursor.skip(4);
-  // Preserve the sample data length
-  cursor.skip(4);
-  // Zero the flow sample sequence number
-  cursor.writeBE<uint32_t>(0);
-  // Zero the source ID
-  cursor.writeBE<uint32_t>(0);
-  // Preserve the sample rate
-  cursor.skip(4);
-  // Preserve the sample pool
-  cursor.skip(4);
-  // Preserve the number of dropped packets
-  cursor.skip(4);
-  // Preserve the input interface index number
-  cursor.skip(4);
-  // Preserve the output interface index number
-  cursor.skip(4);
-  // Preserve the flow records count
-  cursor.skip(4);
-  // Preserve the flow record sFlow data format
-  cursor.skip(4);
-  // Preserve flow data length
-  cursor.skip(4);
-  // Preserve sample header protol
-  cursor.skip(4);
-  // Zero the sample header frame length
-  cursor.writeBE<uint32_t>(0);
-  // Preserve all the remaining fields
-  return maskedIoBuf;
-}
-
 } // namespace
 
 template <typename AddrT>
@@ -620,53 +557,6 @@ device:
       PortID txPort,
       const std::vector<uint8_t>& sFlowPayload,
       bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
-    folly::MacAddress intfMac{
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
-    std::unique_ptr<TxPacket> sFlowPacket{utility::makeSflowV5Packet(
-        getSw() /*switchT*/,
-        getVlanIDForTx() /*vlan*/,
-        intfMac /*srcMac*/,
-        kMirrorDstMac /*dstMac*/,
-        utility::getSflowMirrorSource(isV4) /*srcIp*/,
-        utility::getSflowMirrorDestination(isV4) /*dstIp*/,
-        kUdpSrcPort /*srcPort*/,
-        kUdpDstPort /*dstPort*/,
-        0 /*trafficClass*/,
-        126 /*hopLimit*/,
-        getSystemPortID(
-            txPort,
-            getProgrammedState(),
-            scopeResolver().scope(txPort).switchId()) /*ingressInterface*/,
-        0 /*egressInterface*/,
-        1 /*samplingRate*/,
-        false /*computeChecksum*/,
-        sFlowPayload /*payload*/)};
-    std::unique_ptr<folly::IOBuf> maskedCapturedSflowPktBuf{
-        maskSflowFields(capturedPktBuf)};
-    std::unique_ptr<folly::IOBuf> maskedExpectedSflowPktBuf{
-        maskSflowFields(sFlowPacket->buf())};
-    EXPECT_LE(
-        maskedCapturedSflowPktBuf->length(),
-        maskedExpectedSflowPktBuf->length());
-    for (std::size_t i = 0; i < maskedCapturedSflowPktBuf->length(); i++) {
-      EXPECT_EQ(
-          maskedCapturedSflowPktBuf->data()[i],
-          maskedExpectedSflowPktBuf->data()[i])
-          << fmt::format(
-                 "Captured sFlow packet does not match expected sFlow packet "
-                 "after masking at position {}",
-                 i);
-    }
-    EXPECT_EQ(
-        folly::hexlify(maskedCapturedSflowPktBuf->coalesce()),
-        folly::hexlify(maskedExpectedSflowPktBuf->coalesce()));
-  }
-
-  void verifySflowCapturedPacketStructured(
-      folly::IOBuf* capturedPktBuf,
-      const PortID& txPort,
-      const std::vector<uint8_t>& sFlowPayload,
-      bool isV4 = std::is_same_v<AddrT, folly::IPAddressV4>) {
     // Parse captured packet into SflowPacketParsed struct
     SflowPacketParsed capturedParsed = deserializeSflowPacket(capturedPktBuf);
 
@@ -957,8 +847,6 @@ device:
     if (checkSameAndGetAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO3) {
       verifySflowCapturedPacket(capturedPktBuf->get(), txPort, sFlowPayload);
-      verifySflowCapturedPacketStructured(
-          capturedPktBuf->get(), txPort, sFlowPayload);
     }
   }
 
