@@ -56,7 +56,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "ICECUBE_MCB",
   "ICETEA_MCB",
   "TAHANSB_MCB",
-  "ANACAPA_MCB",
+  "LADAKH800BCLS_MCB",
   // The whole board is a PmUnit for these
   "TAHAN",
   "JANGA",

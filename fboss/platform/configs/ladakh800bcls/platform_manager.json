@@ -1,6 +1,6 @@
 {
-  "platformName": "ANACAPA",
-  "rootPmUnitName": "ANACAPA_MCB",
+  "platformName": "LADAKH800BCLS",
+  "rootPmUnitName": "LADAKH800BCLS_MCB",
   "rootSlotType": "MCB_SLOT",
   "slotTypeConfigs": {
     "MCB_SLOT": {
@@ -66,7 +66,7 @@
   ],
   "versionedPmUnitConfigs": {},
   "pmUnitConfigs": {
-    "ANACAPA_MCB": {
+    "LADAKH800BCLS_MCB": {
       "pluggedInSlotType": "MCB_SLOT",
       "embeddedSensorConfigs": [
         {
