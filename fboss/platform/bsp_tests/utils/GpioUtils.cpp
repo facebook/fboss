@@ -93,14 +93,16 @@ int GpioUtils::gpioget(const std::string& name, int line) {
     auto [exitStatus, output] =
         PlatformUtils().execCommand(fmt::format("gpioget {} {}", name, line));
     if (exitStatus != 0) {
-      throw std::runtime_error(fmt::format(
-          "gpioget command failed with exit status {}", exitStatus));
+      throw std::runtime_error(
+          fmt::format(
+              "gpioget command failed with exit status {}", exitStatus));
     }
     return std::stoi(output);
   } catch (const std::exception& e) {
     XLOG(ERR) << "Error in gpioget: " << e.what();
-    throw std::runtime_error(fmt::format(
-        "Failed to get GPIO value for {}-{}: {}", name, line, e.what()));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to get GPIO value for {}-{}: {}", name, line, e.what()));
   }
 }
 

@@ -52,8 +52,9 @@ std::vector<int32_t> getPortIDList(
       if (it != portEntries.end()) {
         portIDList.push_back(it->first);
       } else {
-        throw std::runtime_error(fmt::format(
-            "{} is not a valid interface name on this device", interface));
+        throw std::runtime_error(
+            fmt::format(
+                "{} is not a valid interface name on this device", interface));
       }
     }
   }
@@ -136,10 +137,11 @@ bool comparePortName(
           &moduleNumStrA,
           &portNumStrA,
           &subportNumStrA)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameA,
-        "\nPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameA,
+            "\nPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   if (!RE2::FullMatch(
@@ -149,10 +151,11 @@ bool comparePortName(
           &moduleNumStrB,
           &portNumStrB,
           &subportNumStrB)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameB,
-        "\nPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameB,
+            "\nPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   int ret;
@@ -187,10 +190,11 @@ bool compareSystemPortName(
           &moduleNumStrA,
           &portNumStrA,
           &subportNumStrA)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameA,
-        "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameA,
+            "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   if (!RE2::FullMatch(
@@ -201,10 +205,11 @@ bool compareSystemPortName(
           &moduleNumStrB,
           &portNumStrB,
           &subportNumStrB)) {
-    throw std::invalid_argument(folly::to<std::string>(
-        "Invalid port name: ",
-        nameB,
-        "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
+    throw std::invalid_argument(
+        folly::to<std::string>(
+            "Invalid port name: ",
+            nameB,
+            "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   int ret;
@@ -359,12 +364,13 @@ cfg::SwitchType getSwitchType(
   // Assert that all switches have the same switch type
   auto switchType =
       folly::copy(switchIdToSwitchInfo.begin()->second.switchType().value());
-  CHECK(std::all_of(
-      switchIdToSwitchInfo.begin(),
-      switchIdToSwitchInfo.end(),
-      [switchType](const auto& pair) {
-        return pair.second.get_switchType() == switchType;
-      }));
+  CHECK(
+      std::all_of(
+          switchIdToSwitchInfo.begin(),
+          switchIdToSwitchInfo.end(),
+          [switchType](const auto& pair) {
+            return pair.second.get_switchType() == switchType;
+          }));
 
   return switchType;
 }

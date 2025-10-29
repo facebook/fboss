@@ -486,13 +486,14 @@ sai_status_t __wrap_sai_get_object_key(
       string declaration =
           std::get<0>(SaiTracer::getInstance()->declareVariable(
               &object.key.object_id, object_type));
-      declarationLines.push_back(to<string>(
-          declaration,
-          "=assignObject(object_list.data(), object_count, ",
-          i,
-          ", ",
-          object.key.object_id,
-          ")"));
+      declarationLines.push_back(
+          to<string>(
+              declaration,
+              "=assignObject(object_list.data(), object_count, ",
+              i,
+              ", ",
+              object.key.object_id,
+              ")"));
     }
   }
 
@@ -566,20 +567,22 @@ void SaiTracer::logApiInitialize(
     if (!strcmp(variables[i], SAI_KEY_WARM_BOOT_WRITE_FILE) ||
         !strcmp(variables[i], SAI_KEY_WARM_BOOT_READ_FILE)) {
       // Append '_replayer' suffix to sai adapter state file
-      lines.push_back(to<string>(
-          "kSaiProfileValues.emplace(\"",
-          variables[i],
-          "\",\"",
-          values[i],
-          "_replayer",
-          "\")"));
+      lines.push_back(
+          to<string>(
+              "kSaiProfileValues.emplace(\"",
+              variables[i],
+              "\",\"",
+              values[i],
+              "_replayer",
+              "\")"));
     } else {
-      lines.push_back(to<string>(
-          "kSaiProfileValues.emplace(\"",
-          variables[i],
-          "\",\"",
-          values[i],
-          "\")"));
+      lines.push_back(
+          to<string>(
+              "kSaiProfileValues.emplace(\"",
+              variables[i],
+              "\",\"",
+              values[i],
+              "\")"));
     }
   }
 
@@ -638,17 +641,18 @@ void SaiTracer::logSwitchCreateFn(
   lines.push_back(declaration);
 
   // Make the function call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_SWITCH,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "create_switch(&",
-      varName,
-      ",",
-      attr_count,
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_SWITCH,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "create_switch(&",
+          varName,
+          ",",
+          attr_count,
+          ",s_a)"));
 
   writeToFile(lines, /*linefeed*/ false);
 }
@@ -669,15 +673,16 @@ void SaiTracer::logRouteEntryCreateFn(
   setRouteEntry(route_entry, lines);
 
   // Make the function call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_ROUTE_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "create_route_entry(&r_e,",
-      attr_count,
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_ROUTE_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "create_route_entry(&r_e,",
+          attr_count,
+          ",s_a)"));
 
   writeToFile(lines, /*linefeed*/ false);
 }
@@ -702,15 +707,16 @@ void SaiTracer::logNeighborEntryCreateFn(
   lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "create_neighbor_entry(&n_e,",
-      attr_count,
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "create_neighbor_entry(&n_e,",
+          attr_count,
+          ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -738,15 +744,16 @@ void SaiTracer::logFdbEntryCreateFn(
   lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_FDB_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "create_fdb_entry(&f_e,",
-      attr_count,
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_FDB_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "create_fdb_entry(&f_e,",
+          attr_count,
+          ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -774,15 +781,16 @@ void SaiTracer::logInsegEntryCreateFn(
   lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_INSEG_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "create_inseg_entry(&i_e,",
-      attr_count,
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_INSEG_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "create_inseg_entry(&i_e,",
+          attr_count,
+          ",s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -826,13 +834,14 @@ void SaiTracer::logRouteEntryRemoveFn(const sai_route_entry_t* route_entry) {
   vector<string> lines{};
   setRouteEntry(route_entry, lines);
 
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_ROUTE_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "remove_route_entry(&r_e)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_ROUTE_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "remove_route_entry(&r_e)"));
 
   writeToFile(lines, /*linefeed*/ false);
 }
@@ -850,13 +859,14 @@ void SaiTracer::logNeighborEntryRemoveFn(
   // Log timestamp and return value
   lines.push_back(logTimeAndRv(rv));
 
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "remove_neighbor_entry(&n_e)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "remove_neighbor_entry(&n_e)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -877,13 +887,14 @@ void SaiTracer::logFdbEntryRemoveFn(
   // Log timestamp and return value
   lines.push_back(logTimeAndRv(rv));
 
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_FDB_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "remove_fdb_entry(&f_e)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_FDB_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "remove_fdb_entry(&f_e)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -904,13 +915,14 @@ void SaiTracer::logInsegEntryRemoveFn(
   // Log timestamp and return value
   lines.push_back(logTimeAndRv(rv));
 
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_INSEG_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "remove_inseg_entry(&i_e)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_INSEG_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "remove_inseg_entry(&i_e)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -929,14 +941,17 @@ void SaiTracer::logRemoveFn(
   vector<string> lines{};
 
   // Make the remove call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      getVariable(remove_object_id),
-      ")"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          getVariable(remove_object_id),
+          ")"));
 
   writeToFile(lines, /*linefeed*/ false);
 
@@ -959,13 +974,14 @@ void SaiTracer::logRouteEntrySetAttrFn(
   setRouteEntry(route_entry, lines);
 
   // Make setAttribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_ROUTE_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "set_route_entry_attribute(&r_e, s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_ROUTE_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "set_route_entry_attribute(&r_e, s_a)"));
 
   writeToFile(lines, /*linefeed*/ false);
 }
@@ -987,13 +1003,14 @@ void SaiTracer::logNeighborEntrySetAttrFn(
   lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "set_neighbor_entry_attribute(&n_e,s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_NEIGHBOR_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "set_neighbor_entry_attribute(&n_e,s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -1018,13 +1035,14 @@ void SaiTracer::logFdbEntrySetAttrFn(
   lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_FDB_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "set_fdb_entry_attribute(&f_e,s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_FDB_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "set_fdb_entry_attribute(&f_e,s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -1049,13 +1067,14 @@ void SaiTracer::logInsegEntrySetAttrFn(
   lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_INSEG_ENTRY,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "set_inseg_entry_attribute(&i_e,s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_INSEG_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "set_inseg_entry_attribute(&i_e,s_a)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -1107,8 +1126,13 @@ void SaiTracer::logGetAttrFn(
   lines.insert(lines.end(), runtimeAttr.begin(), runtimeAttr.end());
 
   // Compare values
-  lines.push_back(to<string>(
-      "attrCheck(get_attribute, s_a, ", maxAttrCount_, ", ", numCalls_, ")"));
+  lines.push_back(
+      to<string>(
+          "attrCheck(get_attribute, s_a, ",
+          maxAttrCount_,
+          ", ",
+          numCalls_,
+          ")"));
   writeToFile(lines, /*linefeed*/ false);
 }
 
@@ -1149,31 +1173,40 @@ void SaiTracer::logBulkGetAttrFn(
   lines.push_back(logTimeAndRv(rv, SAI_NULL_OBJECT_ID));
 
   // Make get bulk attribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      object_count,
-      ",obj_list,attr_count_list,attr_list_ptrs,(sai_bulk_op_error_mode_t)",
-      mode,
-      ",object_statuses)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          object_count,
+          ",obj_list,attr_count_list,attr_list_ptrs,(sai_bulk_op_error_mode_t)",
+          mode,
+          ",object_statuses)"));
 
   // Copy results for validation
   lines.push_back(
       to<string>("memcpy(get_attribute, s_a, ATTR_SIZE*", maxAttrCount_, ")"));
 
-  lines.push_back(to<string>(
-      "memset(get_attr_list_ptrs,0,sizeof(sai_attribute_t*)*",
-      FLAGS_default_list_size,
-      ")"));
+  lines.push_back(
+      to<string>(
+          "memset(get_attr_list_ptrs,0,sizeof(sai_attribute_t*)*",
+          FLAGS_default_list_size,
+          ")"));
 
   // Point get_attr_list_ptrs to preserved attribute copy
   int globalAttrIndex = 0;
   for (int i = 0; i < object_count; ++i) {
-    lines.push_back(to<string>(
-        "get_attr_list_ptrs[", i, "]=&get_attribute[", globalAttrIndex, "]"));
+    lines.push_back(
+        to<string>(
+            "get_attr_list_ptrs[",
+            i,
+            "]=&get_attribute[",
+            globalAttrIndex,
+            "]"));
     globalAttrIndex += attr_count[i];
   }
 
@@ -1192,16 +1225,17 @@ void SaiTracer::logBulkGetAttrFn(
 
   // Compare values for each object separately using the structured pointers
   for (int i = 0; i < object_count; ++i) {
-    lines.push_back(to<string>(
-        "attrCheck((sai_attribute_t*)get_attr_list_ptrs[",
-        i,
-        "], (sai_attribute_t*)attr_list_ptrs[",
-        i,
-        "], attr_count_list[",
-        i,
-        "], ",
-        numCalls_,
-        ")"));
+    lines.push_back(
+        to<string>(
+            "attrCheck((sai_attribute_t*)get_attr_list_ptrs[",
+            i,
+            "], (sai_attribute_t*)attr_list_ptrs[",
+            i,
+            "], attr_count_list[",
+            i,
+            "], ",
+            numCalls_,
+            ")"));
   }
 
   // Check return value to be the same as the original run
@@ -1223,14 +1257,17 @@ void SaiTracer::logSetAttrFn(
   vector<string> lines = setAttrList(attr, 1, object_type);
 
   // Make setAttribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      getVariable(set_object_id),
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          getVariable(set_object_id),
+          ",s_a)"));
 
   writeToFile(lines, /*linefeed*/ false);
 }
@@ -1254,14 +1291,17 @@ void SaiTracer::logCommentedAttrFn(
   }
 
   // Comment out the actual API call
-  lines.push_back(to<string>(
-      "// rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      getVariable(set_object_id),
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "// rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          getVariable(set_object_id),
+          ",s_a)"));
 
   writeToFile(lines, /*linefeed*/ false);
 }
@@ -1292,16 +1332,19 @@ void SaiTracer::logBulkSetAttrFn(
   lines.push_back(logTimeAndRv(rv, SAI_NULL_OBJECT_ID));
 
   // Make set bulk attribute call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      object_count,
-      ",obj_list,s_a,(sai_bulk_op_error_mode_t)",
-      mode,
-      ",object_statuses)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          object_count,
+          ",obj_list,s_a,(sai_bulk_op_error_mode_t)",
+          mode,
+          ",object_statuses)"));
 
   // Log object status
   string objectStatusStr = "// Status:";
@@ -1349,19 +1392,20 @@ void SaiTracer::logSendHostifPacketFn(
   outStringStream << "}";
   lines.push_back(outStringStream.str());
 
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_,
-          SAI_OBJECT_TYPE_HOSTIF,
-          "Unsupported Sai Object type in Sai Tracer"),
-      "send_hostif_packet(",
-      getVariable(hostif_id),
-      ",",
-      buffer_size,
-      ",packet_buffer, ",
-      attr_count,
-      ",s_a)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_HOSTIF,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "send_hostif_packet(",
+          getVariable(hostif_id),
+          ",",
+          buffer_size,
+          ",packet_buffer, ",
+          attr_count,
+          ",s_a)"));
 
   // Close bracket for local scope
   lines.emplace_back("}");
@@ -1391,18 +1435,21 @@ void SaiTracer::logGetStatsFn(
   }
 
   // Make clearStats call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      getVariable(object_id),
-      ",",
-      number_of_counters,
-      ",(const sai_stat_id_t*)&counter_list,",
-      mode ? to<string>("(sai_stats_mode_t)", mode, ",") : "",
-      "(uint64_t*)&counter_vals)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          getVariable(object_id),
+          ",",
+          number_of_counters,
+          ",(const sai_stat_id_t*)&counter_list,",
+          mode ? to<string>("(sai_stats_mode_t)", mode, ",") : "",
+          "(uint64_t*)&counter_vals)"));
 
   writeToFile(lines, /*linefeed*/ false);
 }
@@ -1428,16 +1475,19 @@ void SaiTracer::logClearStatsFn(
   lines.push_back(logTimeAndRv(rv, object_id));
 
   // Make clearStats call
-  lines.push_back(to<string>(
-      "rv=",
-      folly::get_or_throw(
-          fnPrefix_, object_type, "Unsupported Sai Object type in Sai Tracer"),
-      fn_name,
-      "(",
-      getVariable(object_id),
-      ",",
-      number_of_counters,
-      ",&counter_list)"));
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          getVariable(object_id),
+          ",",
+          number_of_counters,
+          ",&counter_list)"));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));
@@ -1760,10 +1810,11 @@ vector<string> SaiTracer::setBulkAttrList(
   vector<string> attrLines;
   attrLines.push_back(
       to<string>("memset(s_a,0,ATTR_SIZE*", maxAttrCount_, ")"));
-  attrLines.push_back(to<string>(
-      "memset(attr_list_ptrs,0,sizeof(sai_attribute_t*)*",
-      FLAGS_default_list_size,
-      ")"));
+  attrLines.push_back(
+      to<string>(
+          "memset(attr_list_ptrs,0,sizeof(sai_attribute_t*)*",
+          FLAGS_default_list_size,
+          ")"));
 
   // Set up attr_list_ptrs array to point to the correct positions in s_a
   int attributeIndexInSa = 0;
@@ -1860,8 +1911,9 @@ void SaiTracer::setNeighborEntry(
 
   if (neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     lines.emplace_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
-    lines.push_back(to<string>(
-        "n_e.ip_address.addr.ip4=", neighbor_entry->ip_address.addr.ip4));
+    lines.push_back(
+        to<string>(
+            "n_e.ip_address.addr.ip4=", neighbor_entry->ip_address.addr.ip4));
 
   } else if (
       neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
@@ -1895,10 +1947,12 @@ void SaiTracer::setRouteEntry(
 
   if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     lines.emplace_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
-    lines.push_back(to<string>(
-        "r_e.destination.addr.ip4=", route_entry->destination.addr.ip4));
-    lines.push_back(to<string>(
-        "r_e.destination.mask.ip4=", route_entry->destination.mask.ip4));
+    lines.push_back(
+        to<string>(
+            "r_e.destination.addr.ip4=", route_entry->destination.addr.ip4));
+    lines.push_back(
+        to<string>(
+            "r_e.destination.mask.ip4=", route_entry->destination.mask.ip4));
   } else if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV6) {
     lines.emplace_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV6");
 
@@ -2044,20 +2098,27 @@ void SaiTracer::setupGlobals() {
       ")")};
 
   if (FLAGS_enable_get_attr_log) {
-    globalVar.push_back(to<string>(
-        "[[maybe_unused]] sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
-        FLAGS_default_list_size,
-        ")"));
+    globalVar.push_back(
+        to<string>(
+            "[[maybe_unused]] sai_attribute_t *get_attribute=(sai_attribute_t*)malloc(ATTR_SIZE * ",
+            FLAGS_default_list_size,
+            ")"));
     // For bulk operations - preserve the array structure
-    globalVar.push_back(to<string>(
-        "[[maybe_unused]] sai_attribute_t* get_attr_list_ptrs[",
-        FLAGS_default_list_size,
-        "]"));
+    globalVar.push_back(
+        to<string>(
+            "[[maybe_unused]] sai_attribute_t* get_attr_list_ptrs[",
+            FLAGS_default_list_size,
+            "]"));
   }
 
   for (int i = 0; i < FLAGS_default_list_count; i++) {
-    globalVar.push_back(to<string>(
-        "[[maybe_unused]] int list_", i, "[", FLAGS_default_list_size, "]"));
+    globalVar.push_back(
+        to<string>(
+            "[[maybe_unused]] int list_",
+            i,
+            "[",
+            FLAGS_default_list_size,
+            "]"));
   }
 
   globalVar.emplace_back("[[maybe_unused]] uint8_t* mac");
@@ -2071,28 +2132,36 @@ void SaiTracer::setupGlobals() {
   globalVar.emplace_back("[[maybe_unused]] uint32_t object_count");
   globalVar.emplace_back(
       "[[maybe_unused]] std::vector<sai_object_key_t> object_list");
-  globalVar.push_back(to<string>(
-      "[[maybe_unused]] sai_status_t object_statuses[",
-      FLAGS_default_list_size,
-      "]"));
-  globalVar.push_back(to<string>(
-      "[[maybe_unused]] sai_object_id_t obj_list[",
-      FLAGS_default_list_size,
-      "]"));
-  globalVar.push_back(to<string>(
-      "[[maybe_unused]] sai_stat_id_t counter_list[",
-      FLAGS_default_list_size,
-      "]"));
-  globalVar.push_back(to<string>(
-      "[[maybe_unused]] uint64_t counter_vals[", FLAGS_default_list_size, "]"));
-  globalVar.push_back(to<string>(
-      "[[maybe_unused]] uint32_t attr_count_list[",
-      FLAGS_default_list_size,
-      "]"));
-  globalVar.push_back(to<string>(
-      "[[maybe_unused]] sai_attribute_t* attr_list_ptrs[",
-      FLAGS_default_list_size,
-      "]"));
+  globalVar.push_back(
+      to<string>(
+          "[[maybe_unused]] sai_status_t object_statuses[",
+          FLAGS_default_list_size,
+          "]"));
+  globalVar.push_back(
+      to<string>(
+          "[[maybe_unused]] sai_object_id_t obj_list[",
+          FLAGS_default_list_size,
+          "]"));
+  globalVar.push_back(
+      to<string>(
+          "[[maybe_unused]] sai_stat_id_t counter_list[",
+          FLAGS_default_list_size,
+          "]"));
+  globalVar.push_back(
+      to<string>(
+          "[[maybe_unused]] uint64_t counter_vals[",
+          FLAGS_default_list_size,
+          "]"));
+  globalVar.push_back(
+      to<string>(
+          "[[maybe_unused]] uint32_t attr_count_list[",
+          FLAGS_default_list_size,
+          "]"));
+  globalVar.push_back(
+      to<string>(
+          "[[maybe_unused]] sai_attribute_t* attr_list_ptrs[",
+          FLAGS_default_list_size,
+          "]"));
   globalVar.push_back(to<string>(kGlobalVarEnd));
   writeToFile(globalVar);
 

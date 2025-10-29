@@ -20,8 +20,9 @@ void FwUtilHwTest::SetUp() {
     apache::thrift::SimpleJSONSerializer::deserialize<FwUtilConfig>(
         fwUtilConfJson, fwUtilConfig_);
   } catch (const std::exception& e) {
-    throw std::runtime_error(fmt::format(
-        "fw_util_hw_test failed to deserialize config: {}", e.what()));
+    throw std::runtime_error(
+        fmt::format(
+            "fw_util_hw_test failed to deserialize config: {}", e.what()));
   }
 }
 

@@ -8,10 +8,12 @@
  *
  */
 #pragma once
+
 #include <memory>
 #include <ostream>
 #include "fboss/agent/EcmpResourceManagerConfig.h"
-#include "fboss/agent/PreUpdateStateModifier.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
@@ -20,8 +22,12 @@ class SwitchState;
 class SwitchStats;
 class NextHopGroupInfo;
 class HwAsic;
+class Prefix;
+class StateDelta;
+template <typename AddrT>
+class Route;
 
-class EcmpResourceManager : public PreUpdateStateModifier {
+class EcmpResourceManager {
  public:
   using SwitchStatsGetter = std::function<SwitchStats*()>;
 
@@ -59,19 +65,19 @@ class EcmpResourceManager : public PreUpdateStateModifier {
   using NextHopGroupIdToPrefixes =
       std::unordered_map<NextHopGroupId, std::vector<Prefix>>;
 
-  std::vector<StateDelta> modifyState(
-      const std::vector<StateDelta>& deltas) override;
-  std::vector<StateDelta> consolidate(const StateDelta& delta);
+  std::vector<StateDelta> modifyState(const std::vector<StateDelta>& deltas);
+  std::vector<StateDelta> consolidate(
+      const StateDelta& delta,
+      bool rollingBack = false);
   std::vector<StateDelta> reconstructFromSwitchState(
-      const std::shared_ptr<SwitchState>& curState) override;
+      const std::shared_ptr<SwitchState>& curState);
   const auto& getNhopsToId() const {
     return nextHopGroup2Id_;
   }
   size_t getRouteUsageCount(NextHopGroupId nhopGrpId) const;
   size_t getCost(NextHopGroupId nhopGrpId) const;
-  void updateDone() override;
-  void updateFailed(
-      const std::shared_ptr<SwitchState>& knownGoodState) override;
+  void updateDone();
+  void updateFailed(const std::shared_ptr<SwitchState>& knownGoodState);
   std::optional<cfg::SwitchingMode> getBackupEcmpSwitchingMode() const {
     return config_.getBackupEcmpSwitchingMode();
   }
@@ -130,7 +136,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
-        const StateDelta& _in);
+        const StateDelta& _in,
+        bool rollingBack = false);
     /*
      * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
@@ -167,10 +174,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
      * StateDelta to use as base state when building the
      * next delta or updating current delta.
      */
-    StateDelta getCurrentStateDelta() const {
-      CHECK(!out_.empty());
-      return StateDelta(out_.back().oldState(), out_.back().newState());
-    }
+    StateDelta getCurrentStateDelta() const;
     /*
      * We adopt a lazy publish strategy for InputOutputState.out deltas. In
      * that, when a change is made (say route update),
@@ -215,6 +219,9 @@ class EcmpResourceManager : public PreUpdateStateModifier {
     std::vector<StateDelta> moveDeltas() {
       return std::move(out_);
     }
+    bool rollingBack() const {
+      return rollingBack_;
+    }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups
@@ -226,6 +233,7 @@ class EcmpResourceManager : public PreUpdateStateModifier {
 
    private:
     std::vector<StateDelta> out_;
+    bool rollingBack_{false};
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,
@@ -242,7 +250,8 @@ class EcmpResourceManager : public PreUpdateStateModifier {
       const InputOutputState& inOutState) const;
   bool checkNoUnitializedGroups() const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
-      const StateDelta& delta);
+      const StateDelta& delta,
+      bool rollingBack);
   void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,

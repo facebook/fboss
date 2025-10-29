@@ -346,14 +346,14 @@ class NodeMapDelta {
 template <
     typename OuterMapType,
     typename InnerMapType,
-    template <typename, template <typename> typename>
-    typename OuterMapDeltaType,
-    template <typename, template <typename> typename>
-    typename InnerMapDeltaType,
-    template <typename>
-    typename OuterMapDeltaTraitsType,
-    template <typename>
-    typename InnerMapDeltaTraitsType>
+    template <
+        typename,
+        template <typename> typename> typename OuterMapDeltaType,
+    template <
+        typename,
+        template <typename> typename> typename InnerMapDeltaType,
+    template <typename> typename OuterMapDeltaTraitsType,
+    template <typename> typename InnerMapDeltaTraitsType>
 struct NestedMapDeltaTraits {
   using OuterMap = OuterMapType;
   using InnerMap = InnerMapType;

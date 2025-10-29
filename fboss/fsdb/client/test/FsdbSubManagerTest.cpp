@@ -24,10 +24,12 @@ class TestAgentPublisher {
   TestAgentPublisher(bool isStats, utils::ConnectionOptions serverOptions)
       : isStats_(isStats),
         connectionOptions_(std::move(serverOptions)),
-        publisherThread_(std::make_unique<folly::ScopedEventBaseThread>(
-            "test-publisher-stream")),
-        reconnectThread_(std::make_unique<folly::ScopedEventBaseThread>(
-            "test-publisher-reconnect")) {}
+        publisherThread_(
+            std::make_unique<folly::ScopedEventBaseThread>(
+                "test-publisher-stream")),
+        reconnectThread_(
+            std::make_unique<folly::ScopedEventBaseThread>(
+                "test-publisher-reconnect")) {}
 
   ~TestAgentPublisher() {
     disconnect();

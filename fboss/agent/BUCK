@@ -706,7 +706,6 @@ cpp_library(
         "//folly:file_util",
         "//folly:range",
         "//folly/gen:base",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
@@ -764,8 +763,8 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_features",
+        ":fboss-types",
         ":fib_helpers",
-        ":pre_update_state_modifier",
         ":stats",
         ":switch_config-cpp2-types",
         ":utils",
@@ -782,8 +781,8 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        ":fboss-types",
         ":fib_helpers",
-        ":pre_update_state_modifier",
         ":utils",
         "//fboss/agent/state:state",
         "//folly:synchronized",
@@ -989,7 +988,6 @@ cpp_library(
         "//folly:demangle",
         "//folly:exception_string",
         "//folly:file_util",
-        "//folly:glog",
         "//folly:intrusive_list",
         "//folly:map_util",
         "//folly:memory",
@@ -1481,19 +1479,6 @@ cpp_library(
     name = "state_observer",
     headers = [
         "StateObserver.h",
-    ],
-    exported_deps = [
-        "//fboss/agent/state:state",
-    ],
-    exported_external_deps = [
-        "boost",
-    ],
-)
-
-cpp_library(
-    name = "pre_update_state_modifier",
-    headers = [
-        "PreUpdateStateModifier.h",
     ],
     exported_deps = [
         "//fboss/agent/state:state",

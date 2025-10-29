@@ -11,8 +11,11 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/ResourceAccountant.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/MacEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -252,11 +255,250 @@ TEST_F(MacTableManagerTest, MacLearnedBulkCb) {
 
   // age 20 mac entries
   batchSize = 20;
-  triggerMacBulkAgedCb(std::vector<folly::MacAddress>(
-      macs.begin() + deleted, macs.begin() + deleted + batchSize));
+  triggerMacBulkAgedCb(
+      std::vector<folly::MacAddress>(
+          macs.begin() + deleted, macs.begin() + deleted + batchSize));
   deleted += batchSize;
   // expect 70 mac entries in switchState and resourceAccountant
   verifyMacEntryCount(getSw()->getResourceAccountant()->l2Entries_);
 }
 
+/*
+ * Test ApplyThriftConfig functionality for static MAC entries
+ */
+class StaticMacConfigTest : public MacTableManagerTest {
+ protected:
+  void SetUp() override {
+    MacTableManagerTest::SetUp();
+
+    // Create a basic config with VLANs and ports
+    cfg_ = testConfigA();
+  }
+
+  void applyConfig(const cfg::SwitchConfig& config) {
+    auto platform = createMockPlatform();
+    auto newState =
+        publishAndApplyConfig(getSw()->getState(), &config, platform.get());
+    getSw()->updateStateBlocking(
+        "test config update",
+        std::function<std::shared_ptr<SwitchState>(
+            const std::shared_ptr<SwitchState>&)>(
+            [newState](const std::shared_ptr<SwitchState>&)
+                -> std::shared_ptr<SwitchState> { return newState; }));
+
+    // Wait for state updates to complete
+    waitForStateUpdates(getSw());
+  }
+
+  void addStaticMacToConfig(
+      const folly::MacAddress& mac,
+      VlanID vlanId,
+      PortID portId) {
+    cfg::StaticMacEntry staticMac;
+    staticMac.macAddress() = mac.toString();
+    staticMac.vlanID() = static_cast<int32_t>(vlanId);
+    staticMac.egressLogicalPortID() = static_cast<int32_t>(portId);
+
+    if (!cfg_.staticMacAddrs().has_value()) {
+      cfg_.staticMacAddrs() = std::vector<cfg::StaticMacEntry>();
+    }
+    cfg_.staticMacAddrs()->push_back(staticMac);
+  }
+
+  void removeStaticMacFromConfig(
+      const folly::MacAddress& mac,
+      VlanID vlanId,
+      PortID portId) {
+    if (!cfg_.staticMacAddrs().has_value()) {
+      return;
+    }
+
+    auto& staticMacs = cfg_.staticMacAddrs().value();
+    staticMacs.erase(
+        std::remove_if(
+            staticMacs.begin(),
+            staticMacs.end(),
+            [&](const cfg::StaticMacEntry& entry) {
+              return folly::MacAddress(entry.macAddress().value()) == mac &&
+                  VlanID(entry.vlanID().value()) == vlanId &&
+                  PortID(entry.egressLogicalPortID().value()) == portId;
+            }),
+        staticMacs.end());
+  }
+
+  void verifyStaticMacEntry(
+      const folly::MacAddress& mac,
+      VlanID vlanId,
+      PortID portId,
+      bool shouldExist,
+      bool shouldBeConfigured = true) {
+    auto state = getSw()->getState();
+    auto vlan = state->getVlans()->getNodeIf(vlanId);
+    EXPECT_TRUE(vlan) << "VLAN " << vlanId << " not found";
+
+    auto macTable = vlan->getMacTable();
+    auto macEntry = macTable->getMacIf(mac);
+
+    if (!shouldExist) {
+      // When shouldExist is false, verify the MAC entry either:
+      // 1. Doesn't exist at all in this VLAN, OR
+      // 2. Exists but is NOT associated with the specified port
+      if (macEntry) {
+        EXPECT_NE(macEntry->getPort(), PortDescriptor(portId))
+            << "MAC entry " << mac.toString() << " should not exist on port "
+            << portId << " in VLAN " << vlanId
+            << ", but found: " << macEntry->str();
+      }
+      // If macEntry is null, that's also acceptable - MAC doesn't exist at all
+      return;
+    }
+
+    ASSERT_TRUE(macEntry) << "MAC entry " << mac.toString()
+                          << " not found in VLAN " << vlanId;
+    EXPECT_EQ(macEntry->getPort(), PortDescriptor(portId))
+        << "MAC entry port mismatch";
+    EXPECT_EQ(macEntry->getType(), MacEntryType::STATIC_ENTRY)
+        << "MAC entry should be static";
+
+    if (shouldBeConfigured) {
+      EXPECT_TRUE(macEntry->getConfigured().has_value())
+          << "MAC entry should have configured field set";
+      EXPECT_TRUE(macEntry->getConfigured().value())
+          << "MAC entry should be marked as configured";
+    } else {
+      EXPECT_FALSE(
+          macEntry->getConfigured().has_value() &&
+          macEntry->getConfigured().value())
+          << "MAC entry should not be marked as configured";
+    }
+  }
+
+  inline HwSwitchMatcher hwMatcher() {
+    return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+  }
+  cfg::SwitchConfig cfg_;
+};
+
+TEST_F(StaticMacConfigTest, AddMultipleStaticMacs) {
+  auto mac1 = folly::MacAddress("00:11:22:33:44:55");
+  auto mac2 = folly::MacAddress("00:11:22:33:44:66");
+  auto vlanId = VlanID(1);
+  auto portId1 = PortID(1);
+  auto portId2 = PortID(2);
+
+  // Add multiple static MACs to config
+  addStaticMacToConfig(mac1, vlanId, portId1);
+  addStaticMacToConfig(mac2, vlanId, portId2);
+  applyConfig(cfg_);
+
+  // Verify both MAC entries were added
+  verifyStaticMacEntry(mac1, vlanId, portId1, true, true);
+  verifyStaticMacEntry(mac2, vlanId, portId2, true, true);
+}
+
+TEST_F(StaticMacConfigTest, RemoveStaticMacs) {
+  auto mac1 = folly::MacAddress("00:11:22:33:44:55");
+  auto mac2 = folly::MacAddress("00:11:22:33:44:66");
+  auto vlanId = VlanID(1);
+  auto portId1 = PortID(1);
+  auto portId2 = PortID(2);
+
+  // Add multiple static MACs
+  addStaticMacToConfig(mac1, vlanId, portId1);
+  addStaticMacToConfig(mac2, vlanId, portId2);
+  applyConfig(cfg_);
+
+  // Verify both exist
+  verifyStaticMacEntry(mac1, vlanId, portId1, true, true);
+  verifyStaticMacEntry(mac2, vlanId, portId2, true, true);
+
+  // Remove only one MAC
+  removeStaticMacFromConfig(mac1, vlanId, portId1);
+  applyConfig(cfg_);
+
+  // Verify only mac1 was removed, mac2 still exists
+  verifyStaticMacEntry(mac1, vlanId, portId1, false);
+  verifyStaticMacEntry(mac2, vlanId, portId2, true, true);
+}
+
+TEST_F(StaticMacConfigTest, UpdateStaticMacPort) {
+  auto mac = folly::MacAddress("00:11:22:33:44:55");
+  auto vlanId = VlanID(1);
+  auto oldPortId = PortID(1);
+  auto newPortId = PortID(2);
+
+  // Add static MAC with old port
+  addStaticMacToConfig(mac, vlanId, oldPortId);
+  applyConfig(cfg_);
+  verifyStaticMacEntry(mac, vlanId, oldPortId, true, true);
+
+  // Update to new port (remove old, add new)
+  removeStaticMacFromConfig(mac, vlanId, oldPortId);
+  addStaticMacToConfig(mac, vlanId, newPortId);
+  applyConfig(cfg_);
+
+  // Verify MAC now points to new port
+  verifyStaticMacEntry(mac, vlanId, oldPortId, false);
+  verifyStaticMacEntry(mac, vlanId, newPortId, true, true);
+}
+
+TEST_F(StaticMacConfigTest, StaticMacsAcrossVlans) {
+  auto mac1 = folly::MacAddress("00:11:22:33:44:55");
+  auto mac2 = folly::MacAddress("00:11:22:33:44:66");
+  auto vlan1 = VlanID(1);
+  auto vlan55 = VlanID(55);
+  auto portId = PortID(1);
+
+  // Add static MACs to different VLANs
+  addStaticMacToConfig(mac1, vlan1, portId);
+  addStaticMacToConfig(mac2, vlan55, portId);
+  applyConfig(cfg_);
+
+  // Verify both MAC entries exist in their respective VLANs
+  verifyStaticMacEntry(mac1, vlan1, portId, true, true);
+  verifyStaticMacEntry(mac2, vlan55, portId, true, true);
+
+  // Remove MAC from vlan1 only
+  removeStaticMacFromConfig(mac1, vlan1, portId);
+  applyConfig(cfg_);
+
+  // Verify only vlan1 MAC was removed
+  verifyStaticMacEntry(mac1, vlan1, portId, false);
+  verifyStaticMacEntry(mac2, vlan55, portId, true, true);
+}
+
+TEST_F(StaticMacConfigTest, EmptyStaticMacConfig) {
+  auto mac = folly::MacAddress("00:11:22:33:44:55");
+  auto vlanId = VlanID(1);
+  auto portId = PortID(1);
+
+  // Add static MAC first
+  addStaticMacToConfig(mac, vlanId, portId);
+  applyConfig(cfg_);
+  verifyStaticMacEntry(mac, vlanId, portId, true, true);
+
+  // Clear all static MACs from config
+  cfg_.staticMacAddrs().reset();
+  applyConfig(cfg_);
+
+  // Verify all configured MAC entries were removed
+  verifyStaticMacEntry(mac, vlanId, portId, false);
+}
+
+TEST_F(StaticMacConfigTest, InvalidVlanOrPortStaticMac) {
+  auto mac1 = folly::MacAddress("00:11:22:33:44:55");
+  auto mac2 = folly::MacAddress("00:11:22:33:44:66");
+
+  auto invalidVlanId = VlanID(999); // Non-existent VLAN
+  auto portId = PortID(1);
+  addStaticMacToConfig(mac1, invalidVlanId, portId);
+  EXPECT_THROW(applyConfig(cfg_), FbossError);
+  cfg_.staticMacAddrs()->clear(); // Reset config
+
+  auto vlanId = VlanID(1);
+  auto invalidPortId = PortID(999); // Non-existent port
+  addStaticMacToConfig(mac2, vlanId, invalidPortId);
+  EXPECT_THROW(applyConfig(cfg_), FbossError);
+  cfg_.staticMacAddrs()->clear(); // Reset config
+}
 } // namespace facebook::fboss

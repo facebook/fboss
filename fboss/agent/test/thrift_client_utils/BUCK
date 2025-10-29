@@ -1,0 +1,15 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "thrift_client_utils",
+    srcs = ["ThriftClientUtils.cpp"],
+    headers = ["ThriftClientUtils.h"],
+    exported_deps = [
+        "//common/network:util",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
+        "//fboss/agent/if:test_ctrl-cpp2-clients",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)

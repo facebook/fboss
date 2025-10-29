@@ -19,8 +19,11 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/EthFrame.h"
-#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/Ethertype.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/packet/SflowStructs.h"
 #include "fboss/agent/packet/UDPDatagram.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
@@ -48,6 +51,144 @@ const std::string kSflowMirror = "sflow_mirror";
 namespace facebook::fboss {
 
 namespace {
+
+// Struct to hold all headers and sFlow datagram
+struct SflowPacketParsed {
+  EthHdr ethHeader;
+  std::variant<IPv4Hdr, IPv6Hdr> ipHeader;
+  UDPHeader udpHeader;
+  sflow::SampleDatagram sflowDatagram;
+};
+
+// Function to deserialize an IOBuf containing an sFlow packet
+__attribute__((unused)) SflowPacketParsed
+deserializeSflowPacket(const folly::IOBuf* buf) {
+  SflowPacketParsed parsed;
+  folly::io::Cursor cursor(buf);
+
+  // Parse ethernet header
+  parsed.ethHeader = EthHdr(cursor);
+
+  // Parse IP header based on ethertype
+  if (parsed.ethHeader.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4)) {
+    parsed.ipHeader = IPv4Hdr(cursor);
+  } else if (
+      parsed.ethHeader.getEtherType() ==
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+    parsed.ipHeader = IPv6Hdr(cursor);
+  } else {
+    throw std::runtime_error("Unsupported ethertype");
+  }
+
+  // Parse UDP header
+  parsed.udpHeader.parse(&cursor);
+
+  // Parse sFlow datagram
+  parsed.sflowDatagram = sflow::SampleDatagram::deserialize(cursor);
+
+  return parsed;
+}
+
+// Function to create SflowPacketParsed directly from packet parameters
+__attribute__((unused)) SflowPacketParsed makeSflowV5PacketParsed(
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    uint32_t ingressInterface,
+    uint32_t egressInterface,
+    uint32_t samplingRate,
+    const std::vector<uint8_t>& payload) {
+  SflowPacketParsed parsed;
+
+  // Create ethernet header
+  EthHdr::VlanTags_t vlanTags;
+  if (vlan.has_value()) {
+    vlanTags.emplace_back(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
+  }
+  parsed.ethHeader = EthHdr(
+      dstMac,
+      srcMac,
+      std::move(vlanTags),
+      static_cast<uint16_t>(
+          srcIp.isV4() ? ETHERTYPE::ETHERTYPE_IPV4
+                       : ETHERTYPE::ETHERTYPE_IPV6));
+
+  // Create IP header based on address type
+  if (srcIp.isV4()) {
+    IPv4Hdr ipv4Header(
+        srcIp.asV4(),
+        dstIp.asV4(),
+        static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+        0);
+    ipv4Header.ttl = hopLimit;
+    ipv4Header.dscp = trafficClass;
+    parsed.ipHeader = std::move(ipv4Header);
+  } else {
+    IPv6Hdr ipv6Header;
+    ipv6Header.srcAddr = srcIp.asV6();
+    ipv6Header.dstAddr = dstIp.asV6();
+    ipv6Header.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+    ipv6Header.hopLimit = hopLimit;
+    ipv6Header.trafficClass = trafficClass;
+    parsed.ipHeader = std::move(ipv6Header);
+  }
+
+  // Create UDP header
+  parsed.udpHeader = UDPHeader(srcPort, dstPort, 0, 0);
+
+  // Create sFlow datagram structure
+  sflow::SampleDatagramV5 datagramV5;
+  datagramV5.agentAddress = srcIp;
+  datagramV5.subAgentID = 0;
+  datagramV5.sequenceNumber = 0;
+  datagramV5.uptime = 0;
+
+  // Create sample header
+  sflow::SampledHeader sampleHeader;
+  sampleHeader.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  sampleHeader.frameLength = 0;
+  sampleHeader.stripped = 0;
+  sampleHeader.header = payload;
+
+  // Create flow record
+  sflow::FlowRecord flowRecord;
+  flowRecord.flowFormat = 1;
+  flowRecord.flowData = sampleHeader;
+
+  // Create flow sample
+  sflow::FlowSample flowSample;
+  flowSample.sequenceNumber = 0;
+  flowSample.sourceID = 0;
+  flowSample.samplingRate = samplingRate;
+  flowSample.samplePool = 0;
+  flowSample.drops = 0;
+  flowSample.input = ingressInterface;
+  flowSample.output = egressInterface;
+  flowSample.flowRecords = {std::move(flowRecord)};
+
+  // Create sample record
+  sflow::SampleRecord sampleRecord;
+  sampleRecord.sampleType = 1;
+  sampleRecord.sampleData = {std::move(flowSample)};
+
+  datagramV5.samples = {std::move(sampleRecord)};
+
+  // Wrap in the outer datagram structure
+  sflow::SampleDatagram datagram;
+  datagram.datagramV5 = std::move(datagramV5);
+
+  parsed.sflowDatagram = std::move(datagram);
+
+  return parsed;
+}
 
 std::unique_ptr<folly::IOBuf> maskSflowFields(folly::IOBuf* ioBuf) {
   std::unique_ptr<folly::IOBuf> maskedIoBuf{ioBuf->clone()};
@@ -1044,7 +1185,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
     folly::IPAddressV6 kSrcIp("2402::1");
     const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
         ensemble->getProgrammedState());
-    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
 
     auto txPacket = utility::makeUDPTxPacket(
         ensemble->getSw(),
@@ -1081,8 +1222,9 @@ class AgentSflowMirrorWithLineRateTrafficTest
     auto portId = getNonSflowSampledInterfacePort();
     // Expect atleast 1Gbps of mirror traffic!
     const uint64_t kDesiredMirroredTrafficRate{1000000000};
-    EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
-        portId, kDesiredMirroredTrafficRate));
+    EXPECT_NO_THROW(
+        getAgentEnsemble()->waitForSpecificRateOnPort(
+            portId, kDesiredMirroredTrafficRate));
     // Make sure that we can sustain the rate for longer duration
     constexpr int kWaitPeriod{5};
     auto prevPortStats = getLatestPortStats(portId);
@@ -1204,7 +1346,9 @@ using AgentSflowMirrorOnTrunkTestV6 =
 
 #define SFLOW_SAMPLING_TEST(fixture, name, code) \
   TEST_F(fixture, name) {                        \
-    { code }                                     \
+    {                                            \
+      code                                       \
+    }                                            \
   }
 
 #define SFLOW_SAMPLING_UNTRUNCATE_TEST_V4_V6(name, code)            \

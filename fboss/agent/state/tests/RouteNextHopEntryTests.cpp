@@ -168,10 +168,11 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
 
   std::sort(nextHops.begin(), nextHops.end());
   auto nextHopEntryNextHops = nextHopEntry.getNextHopSet();
-  ASSERT_TRUE(std::equal(
-      nextHopEntryNextHops.begin(),
-      nextHopEntryNextHops.end(),
-      nextHops.begin()));
+  ASSERT_TRUE(
+      std::equal(
+          nextHopEntryNextHops.begin(),
+          nextHopEntryNextHops.end(),
+          nextHops.begin()));
 }
 
 // The UnicastRoute.nextHopAddrs field has been deprecated in favor of
@@ -197,10 +198,11 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
 
   std::sort(nextHopsFromBinary.begin(), nextHopsFromBinary.end());
   auto nextHopEntryNextHops = nextHopEntry.getNextHopSet();
-  ASSERT_TRUE(std::equal(
-      nextHopEntryNextHops.begin(),
-      nextHopEntryNextHops.end(),
-      nextHopsFromBinary.begin()));
+  ASSERT_TRUE(
+      std::equal(
+          nextHopEntryNextHops.begin(),
+          nextHopEntryNextHops.end(),
+          nextHopsFromBinary.begin()));
 }
 
 TEST(RouteNextHopEntry, OverrideDefaultAdminDistance) {

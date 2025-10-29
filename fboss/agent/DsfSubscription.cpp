@@ -7,7 +7,6 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"

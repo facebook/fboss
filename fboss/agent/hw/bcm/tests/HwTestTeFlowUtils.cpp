@@ -65,8 +65,9 @@ void checkSwHwTeFlowMatch(
 
   auto hwTeFlows = bcmSwitch->getTeFlowTable()->getTeFlowIf(flowEntry);
   ASSERT_NE(nullptr, hwTeFlows);
-  ASSERT_TRUE(BcmTeFlowEntry::isStateSame(
-      bcmSwitch, getEMGroupID(gid), hwTeFlows->getHandle(), flowEntry));
+  ASSERT_TRUE(
+      BcmTeFlowEntry::isStateSame(
+          bcmSwitch, getEMGroupID(gid), hwTeFlows->getHandle(), flowEntry));
 }
 
 uint64_t getTeFlowOutBytes(const HwSwitch* hw, std::string statName) {

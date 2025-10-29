@@ -66,7 +66,6 @@ constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
 // Tunable module const expr
-constexpr int32_t kDefaultFrequencyMhz = 193100000;
 constexpr double kMhzToGhzFactor = 0.000001;
 
 // TODO @sanabani: Change To Map
@@ -1867,6 +1866,74 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
 }
 
 /*
+ * getTunableLaserStatus
+ *
+ * This function extracts tunable laser status information from the module
+ * and returns the laser status and current frequency if available.
+ */
+std::optional<TunableLaserStatus> CmisModule::getTunableLaserStatus() {
+  if (!isTunableOptics()) {
+    return std::nullopt;
+  }
+
+  TunableLaserStatus tunableLaserStatus;
+  // Initialize with default value to avoid bad_optional_field_access
+  tunableLaserStatus.tuningStatus() =
+      LaserStatusBitMask::LASER_TUNE_NOT_IN_PROGRESS;
+  tunableLaserStatus.wavelengthLockingStatus() =
+      LaserStatusBitMask::WAVELENGTH_LOCKED;
+  tunableLaserStatus.laserFrequencyMhz() = kDefaultFrequencyMhz;
+  tunableLaserStatus.laserStatusFlagsByte() = 0;
+  // Read laser status from MEDIA_TX_1_LAS_STAT field
+  uint8_t laserStatusByte;
+  readCmisField(CmisField::MEDIA_TX_1_LAS_STAT, &laserStatusByte);
+
+  // Read laser status flags from MEDIA_TX_1_LAS_STAT_FLAGS field
+  uint8_t laserStatusFlagsByte = 0;
+  readCmisField(CmisField::MEDIA_TX_1_LAS_STAT_FLAGS, &laserStatusFlagsByte);
+  tunableLaserStatus.laserStatusFlagsByte() = laserStatusFlagsByte;
+
+  // Laser status byte bit 7 indicates if the laser is in progress of tuning.
+  // Value 0: tuning not in progress, Value 1: tuning in progress
+  if (laserStatusByte &
+      static_cast<uint8_t>(LaserStatusBitMask::LASER_TUNE_IN_PROGRESS)) {
+    tunableLaserStatus.tuningStatus() =
+        LaserStatusBitMask::LASER_TUNE_IN_PROGRESS;
+  }
+
+  if (laserStatusByte &
+      static_cast<uint8_t>(LaserStatusBitMask::WAVELENGTH_UNLOCKED)) {
+    tunableLaserStatus.wavelengthLockingStatus() =
+        LaserStatusBitMask::WAVELENGTH_UNLOCKED;
+  }
+
+  // Read current laser frequency from MEDIA_TX_1_CURR_LAS_FREQ field (4
+  // bytes)
+  uint8_t frequencyBytes[4] = {0};
+  readCmisField(CmisField::MEDIA_TX_1_CURR_LAS_FREQ, frequencyBytes);
+
+  // Convert 4 bytes to frequency in MHz
+  // According to CMIS spec, this is stored as a 32-bit unsigned integer in
+  // MHz
+  uint32_t frequencyMhz = (frequencyBytes[0] << 24) |
+      (frequencyBytes[1] << 16) | (frequencyBytes[2] << 8) | frequencyBytes[3];
+
+  tunableLaserStatus.laserFrequencyMhz() = static_cast<int64_t>(frequencyMhz);
+
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Laser status byte: 0x{:X}, laserStatusFlagsByte: 0x{:X}, "
+      "frequency_MHz: {}, TuningStatus: {}, WavelengthLockingStatus: {}",
+      laserStatusByte,
+      laserStatusFlagsByte,
+      frequencyMhz,
+      apache::thrift::util::enumNameSafe(
+          tunableLaserStatus.tuningStatus().value()),
+      apache::thrift::util::enumNameSafe(
+          tunableLaserStatus.wavelengthLockingStatus().value()));
+  return tunableLaserStatus;
+}
+
+/*
  * getVdmPerfMonitorStatsForOds
  *
  * Consolidate the VDM stats for publishing to ODS/Fbagent
@@ -2092,6 +2159,10 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
       cmisData.page02() = IOBuf::wrapBufferAsValue(page02_, MAX_QSFP_PAGE_SIZE);
       cmisData.page10() = IOBuf::wrapBufferAsValue(page10_, MAX_QSFP_PAGE_SIZE);
       cmisData.page11() = IOBuf::wrapBufferAsValue(page11_, MAX_QSFP_PAGE_SIZE);
+      if (isTunableOptics()) {
+        cmisData.page12() =
+            IOBuf::wrapBufferAsValue(page12_, MAX_QSFP_PAGE_SIZE);
+      }
       cmisData.page13() = IOBuf::wrapBufferAsValue(page13_, MAX_QSFP_PAGE_SIZE);
       cmisData.page14() = IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
       cmisData.page20() = IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
@@ -2144,6 +2215,9 @@ void CmisModule::updateQsfpData(bool allPages) {
     if (!flatMem_) {
       readCmisField(CmisField::PAGE_UPPER10H, page10_);
       readCmisField(CmisField::PAGE_UPPER11H, page11_);
+      if (isTunableOptics()) {
+        readCmisField(CmisField::PAGE_UPPER12H, page12_);
+      }
 
       bool isReady =
           ((CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1) ==
@@ -2405,11 +2479,12 @@ void CmisModule::setApplicationCodeLocked(
   }
   if (appCodes.empty()) {
     QSFP_LOG(INFO, this) << "Unsupported Speed.";
-    throw FbossError(folly::to<std::string>(
-        "Transceiver: ",
-        qsfpImpl_->getName(),
-        " Unsupported speed: ",
-        apache::thrift::util::enumNameSafe(speed)));
+    throw FbossError(
+        folly::to<std::string>(
+            "Transceiver: ",
+            qsfpImpl_->getName(),
+            " Unsupported speed: ",
+            apache::thrift::util::enumNameSafe(speed)));
   }
   QSFP_LOG(INFO, this) << "Application codes supporting current speed: "
                        << folly::join(",", appCodes);
@@ -2500,8 +2575,9 @@ void CmisModule::setApplicationCodeLocked(
       if (datapathResetPendingMask_ & hostLaneMask) {
         resetDataPathWithFunc(std::nullopt, hostLaneMask);
         datapathResetPendingMask_ &= ~hostLaneMask;
-        QSFP_LOG(INFO, this) << "Reset datapath for lane mask " << hostLaneMask
-                             << " before returning";
+        QSFP_LOG(INFO, this) << folly::sformat(
+            "Reset datapath for lane mask {:#x} before returning",
+            hostLaneMask);
       }
       return;
     }
@@ -2513,14 +2589,15 @@ void CmisModule::setApplicationCodeLocked(
         !isRequestValidMultiportSpeedConfig(
             speed, startHostLane, numHostLanes)) {
       QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
-      resetDataPathWithFunc(std::bind(
-          &CmisModule::setApplicationSelectCodeAllPorts,
-          this,
-          speed,
-          startHostLane,
-          numHostLanes,
-          hostLaneMask)); // To use the default hostLaneMask = 0xFF for
-                          // all the lanes datapath reset.
+      resetDataPathWithFunc(
+          std::bind(
+              &CmisModule::setApplicationSelectCodeAllPorts,
+              this,
+              speed,
+              startHostLane,
+              numHostLanes,
+              hostLaneMask)); // To use the default hostLaneMask = 0xFF for
+                              // all the lanes datapath reset.
     } else {
       QSFP_LOG(INFO, this) << folly::sformat(
           "Programming App sel on lanes {:#x}", hostLaneMask);
@@ -2558,10 +2635,11 @@ void CmisModule::setApplicationCodeLocked(
   }
   // We didn't find an application that both we support and the module supports
   QSFP_LOG(INFO, this) << "Unsupported Application";
-  throw FbossError(folly::to<std::string>(
-      "Port: ",
-      qsfpImpl_->getName(),
-      " Unsupported Application by the module: "));
+  throw FbossError(
+      folly::to<std::string>(
+          "Port: ",
+          qsfpImpl_->getName(),
+          " Unsupported Application by the module: "));
 }
 
 /*
@@ -2856,6 +2934,14 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
     setPowerOverrideIfSupportedLocked(
         getPowerControlValue(false /* readFromCache */));
 
+    if (isTunableOptics()) {
+      if (portState.opticalChannelConfig.has_value()) {
+        programTunableModule(portState.opticalChannelConfig.value());
+      } else {
+        QSFP_LOG(ERR, this) << "Tunable optics requires optical channel config";
+      }
+    }
+
     if (speed != cfg::PortSpeed::DEFAULT) {
       setApplicationCodeLocked(speed, startHostLane, numHostLanes);
     }
@@ -3080,6 +3166,39 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // Wait for 100ms before resetting the LP mode
   /* sleep override */
   usleep(kUsecBetweenPowerModeFlap);
+
+  if (isTunableOptics()) {
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Optics is tunable {}", getNameString());
+    // Deactivate all the datapath lane before putting into the high power mode
+    uint8_t dataPathDeInitReg;
+    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "deinit value {} {}", dataPathDeInitReg, getNameString());
+    // First deactivate all the lanes
+    uint8_t dataPathDeInit = 0xFF;
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+    /* TODO: The generic implementation based on the counter
+     * is coming in the diff stack D83613514.
+     * The module takes around 2 to 3 seconds to be in dp-deactivated state.
+     */
+    // Wait for all datapath state machines to get Deactivated
+    const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
+
+    auto retries = 0;
+    while (retries++ < maxRetriesDeInit) {
+      /* sleep override */
+      usleep(kUsecDatapathStatePollTime);
+      if (isDatapathUpdated(dataPathDeInit, {CmisLaneState::DEACTIVATED})) {
+        break;
+      }
+    }
+    if (retries >= maxRetriesDeInit) {
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Datapath could not deactivate even after waiting {:d} uSec",
+          kUsecDatapathStateUpdateTime);
+    }
+  }
 
   // Clear low power bit (set to 0x20)
   newModuleControl = SQUELCH_CONTROL;
@@ -4038,6 +4157,21 @@ uint64_t CmisModule::maxRetriesWith500msDelay(bool init) {
   return kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
 }
 
+bool CmisModule::isDatapathUpdated(
+    uint8_t laneMask,
+    const std::vector<CmisLaneState>& states) {
+  for (uint8_t lane = 0; lane < numHostLanes(); lane++) {
+    if (!((1 << lane) & laneMask)) {
+      continue;
+    }
+    auto dpState = getDatapathLaneStateLocked(lane, false);
+    if (std::find(states.begin(), states.end(), dpState) == states.end()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void CmisModule::resetDataPath() {
   resetDataPathWithFunc();
 }
@@ -4054,22 +4188,6 @@ void CmisModule::resetDataPathWithFunc(
   // First deactivate all the lanes
   uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
-
-  // Lambda to check if the datapath for the lanes has been updated to one of
-  // the desired states
-  auto isDatapathUpdated = [&](uint8_t laneMask,
-                               std::vector<CmisLaneState> state) -> bool {
-    for (uint8_t lane = 0; lane < numHostLanes(); lane++) {
-      if (!((1 << lane) & laneMask)) {
-        continue;
-      }
-      auto dpState = getDatapathLaneStateLocked(lane, false);
-      if (std::find(state.begin(), state.end(), dpState) == state.end()) {
-        return false;
-      }
-    }
-    return true;
-  };
 
   // Wait for all datapath state machines to get Deactivated
   const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
@@ -4240,10 +4358,11 @@ bool CmisModule::setTransceiverTxImplLocked(
 
   // Check if the module supports Tx control feature first
   if (!isTransceiverFeatureSupported(TransceiverFeature::TX_DISABLE, side)) {
-    throw FbossError(fmt::format(
-        "Module {:s} does not support transceiver TX output control on {:s}",
-        qsfpImpl_->getName(),
-        ((side == phy::Side::LINE) ? "Line" : "System")));
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support transceiver TX output control on {:s}",
+            qsfpImpl_->getName(),
+            ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
   // Set the Tx output register for these lanes in given direction
@@ -4293,10 +4412,11 @@ void CmisModule::setTransceiverLoopbackLocked(
 
   // Check if the module supports system or line side loopback
   if (!isTransceiverFeatureSupported(TransceiverFeature::LOOPBACK, side)) {
-    throw FbossError(fmt::format(
-        "Module {:s} does not support transceiver Loopback on {:s}",
-        portName,
-        ((side == phy::Side::LINE) ? "Line" : "System")));
+    throw FbossError(
+        fmt::format(
+            "Module {:s} does not support transceiver Loopback on {:s}",
+            portName,
+            ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
   auto regField = (side == phy::Side::SYSTEM) ? CmisField::MEDIA_FAR_LB_EN

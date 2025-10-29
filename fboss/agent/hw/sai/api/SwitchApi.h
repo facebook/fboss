@@ -847,6 +847,13 @@ struct SaiSwitchTraits {
         AttributeLocalSystemPortIdRangeList,
         SaiListDefault<sai_u16_range_list_t>>;
 #endif
+    struct AttributePfcMonitorEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PfcMonitorEnable = SaiExtensionAttribute<
+        bool,
+        AttributePfcMonitorEnable,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -944,12 +951,11 @@ struct SaiSwitchTraits {
       std::optional<Attributes::PfcTcDldTimerGranularityInterval>,
       std::optional<Attributes::DisableSllAndHllTimeout>,
       std::optional<Attributes::CreditRequestProfileSchedulerMode>,
-      std::optional<Attributes::ModuleIdToCreditRequestProfileParamList>
+      std::optional<Attributes::ModuleIdToCreditRequestProfileParamList>,
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
-      ,
-      std::optional<Attributes::LocalSystemPortIdRangeList>
+      std::optional<Attributes::LocalSystemPortIdRangeList>,
 #endif
-      >;
+      std::optional<Attributes::PfcMonitorEnable>>;
 
   // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
   // both DramPacketError and EgressRcvPacketError. As we now have a
@@ -1136,6 +1142,7 @@ SAI_ATTRIBUTE_NAME(Switch, NumTemperatureSensors)
 SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccCorrectableError)
 SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccUnCorrectableError)
 SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
+SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)

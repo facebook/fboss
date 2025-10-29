@@ -104,6 +104,60 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
   return store.setObject(k, c);
 }
 
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setPcpToTcQosMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  auto pcpMap = qosPolicy->getPcpMap();
+  if (!pcpMap) {
+    return nullptr;
+  }
+
+  std::vector<sai_qos_map_t> mapToValueList;
+  const auto& entries = pcpMap->from();
+  mapToValueList.reserve(entries.size());
+  for (const auto& entry : entries) {
+    sai_qos_map_t mapping{};
+    mapping.key.dot1p = *entry.attr();
+    mapping.value.tc = *entry.trafficClass();
+    mapToValueList.push_back(mapping);
+  }
+  // set the dot1p (pcp) -> tc mapping in SAI
+  SaiQosMapTraits::Attributes::Type typeAttribute{SAI_QOS_MAP_TYPE_DOT1P_TO_TC};
+  SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
+      mapToValueList};
+  auto& store = saiStore_->get<SaiQosMapTraits>();
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  const SaiQosMapTraits::CreateAttributes& c = k;
+  return store.setObject(k, c);
+}
+
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToPcpQosMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  auto pcpMap = qosPolicy->getPcpMap();
+  if (!pcpMap) {
+    return nullptr;
+  }
+
+  std::vector<sai_qos_map_t> mapToValueList;
+  const auto& entries = pcpMap->to();
+  mapToValueList.reserve(entries.size());
+  for (const auto& entry : entries) {
+    sai_qos_map_t mapping{};
+    mapping.key.tc = *entry.trafficClass();
+    mapping.key.color = SAI_PACKET_COLOR_GREEN;
+    mapping.value.dot1p = *entry.attr();
+    mapToValueList.push_back(mapping);
+  }
+  // set the tc -> dot1p (pcp) mapping in SAI
+  SaiQosMapTraits::Attributes::Type typeAttribute{
+      SAI_QOS_MAP_TYPE_TC_AND_COLOR_TO_DOT1P};
+  SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
+      mapToValueList};
+  auto& store = saiStore_->get<SaiQosMapTraits>();
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  const SaiQosMapTraits::CreateAttributes& c = k;
+  return store.setObject(k, c);
+}
+
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
     const std::shared_ptr<QosPolicy>& qosPolicy,
     bool voq = false) {
@@ -189,6 +243,10 @@ void SaiQosMapManager::setQosMaps(
     }
     if (newQosPolicy->getPfcPriorityToQueueId()) {
       handle->pfcPriorityToQueueMap = setPfcPriorityToQueueQosMap(newQosPolicy);
+    }
+    if (newQosPolicy->getPcpMap()) {
+      handle->pcpToTcMap = setPcpToTcQosMap(newQosPolicy);
+      handle->tcToPcpMap = setTcToPcpQosMap(newQosPolicy);
     }
   }
   if (newQosPolicy->getTrafficClassToVoqId() &&

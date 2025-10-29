@@ -12,7 +12,6 @@
 #include <fboss/thrift_cow/nodes/ThriftMapNode-inl.h>
 #include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -31,6 +30,7 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
+#include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -627,6 +627,9 @@ class ThriftConfigApplier {
   void processInterfaceForPortForVoqSwitches(int64_t switchId);
   void processInterfaceForPort();
 
+  bool processRemovedStaticMacEntries();
+  bool processAddedStaticMacEntries();
+
   shared_ptr<FlowletSwitchingConfig> updateFlowletSwitchingConfig(
       bool* changed);
   shared_ptr<FlowletSwitchingConfig> createFlowletSwitchingConfig(
@@ -813,6 +816,11 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
+  // Remove static MAC entries before VLAN processing
+  if (processRemovedStaticMacEntries()) {
+    changed = true;
+  }
+
   // Note: updateInterfaces() must be called before updateVlans(),
   // as updateInterfaces() populates the vlanInterfaces_ data structure.
   {
@@ -822,6 +830,11 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
           toMultiSwitchMap<MultiSwitchVlanMap>(newVlans, scopeResolver_));
       changed = true;
     }
+  }
+
+  // Process static MAC entries after VLANs are updated
+  if (processAddedStaticMacEntries()) {
+    changed = true;
   }
 
   if (routeUpdater_) {
@@ -3502,11 +3515,17 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       }
     }
 
+    std::optional<PcpMap> pcpMap;
+    if (qosMap->pcpMaps()) {
+      pcpMap = PcpMap(*qosMap->pcpMaps());
+    }
+
     auto qosPolicyNew = make_shared<QosPolicy>(
         *qosPolicy.name(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
-        *qosMap->trafficClassToQueueId());
+        *qosMap->trafficClassToQueueId(),
+        pcpMap);
 
     if (qosMap->pfcPriorityToQueueId().has_value()) {
       qosPolicyNew->setPfcPriorityToQueueIdMap(*qosMap->pfcPriorityToQueueId());
@@ -6444,6 +6463,109 @@ std::shared_ptr<SwitchState> applyThriftConfig(
              platformMapping,
              hwAsicTable)
       .run();
+}
+
+bool ThriftConfigApplier::processRemovedStaticMacEntries() {
+  std::set<std::tuple<VlanID, folly::MacAddress, PortDescriptor>>
+      configMacEntries;
+
+  if (cfg_->staticMacAddrs().has_value() && !cfg_->staticMacAddrs()->empty()) {
+    for (const auto& staticMacEntry : *cfg_->staticMacAddrs()) {
+      auto vlanId = VlanID(*staticMacEntry.vlanID());
+      auto macAddress = folly::MacAddress(*staticMacEntry.macAddress());
+      auto portDescriptor =
+          PortDescriptor(PortID(*staticMacEntry.egressLogicalPortID()));
+      configMacEntries.insert(
+          std::make_tuple(vlanId, macAddress, portDescriptor));
+    }
+  }
+
+  std::vector<std::tuple<VlanID, folly::MacAddress>> macEntriesToRemove;
+  for (const auto& vlanMap : std::as_const(*orig_->getVlans())) {
+    for (const auto& vlanEntry : std::as_const(*vlanMap.second)) {
+      auto vlanId = VlanID(folly::to<uint16_t>(vlanEntry.first));
+      auto vlan = vlanEntry.second;
+      auto macTable = vlan->getMacTable();
+      for (const auto& [macAddr, macEntry] : std::as_const(*macTable)) {
+        if (macEntry->getConfigured().has_value() &&
+            macEntry->getConfigured().value()) {
+          auto entryTuple =
+              std::make_tuple(vlanId, macEntry->getMac(), macEntry->getPort());
+
+          // If this configured entry is not present in new config, mark for
+          // removal
+          if (configMacEntries.find(entryTuple) == configMacEntries.end()) {
+            macEntriesToRemove.emplace_back(vlanId, macEntry->getMac());
+          }
+        }
+      }
+    }
+  }
+
+  // Remove all identified MAC entries
+  bool stateChanged = false;
+  for (const auto& [vlanId, macAddr] : macEntriesToRemove) {
+    auto stateBefore = new_;
+    new_ = MacTableUtils::removeEntry(new_, vlanId, macAddr);
+
+    if (stateBefore != new_) {
+      stateChanged = true;
+    }
+
+    XLOG(DBG2) << "Removed static MAC entry: " << macAddr.toString()
+               << " from VLAN " << vlanId << " (no longer in config)";
+  }
+
+  return stateChanged;
+}
+
+bool ThriftConfigApplier::processAddedStaticMacEntries() {
+  if (!cfg_->staticMacAddrs().has_value() || cfg_->staticMacAddrs()->empty()) {
+    return false;
+  }
+
+  bool stateChanged = false;
+  for (const auto& staticMacEntry : *cfg_->staticMacAddrs()) {
+    auto vlanId = VlanID(*staticMacEntry.vlanID());
+    auto macAddress = folly::MacAddress(*staticMacEntry.macAddress());
+    auto portId = PortID(*staticMacEntry.egressLogicalPortID());
+    auto portDescriptor = PortDescriptor(portId);
+    // Verify that the VLAN exists in the current state
+    auto vlan = new_->getVlans()->getNodeIf(vlanId);
+    if (!vlan) {
+      throw FbossError(
+          "Static MAC entry ",
+          macAddress.toString(),
+          ": VLAN ",
+          vlanId,
+          " does not exist");
+    }
+    // Verify that the port exists in the current state
+    auto port = new_->getPorts()->getNodeIf(portId);
+    if (!port) {
+      throw FbossError(
+          "Static MAC entry ",
+          macAddress.toString(),
+          ": Port ",
+          portId,
+          " does not exist");
+    }
+
+    auto stateBefore = new_;
+    // Always add the entry - removal logic should have handled any conflicts
+    new_ = MacTableUtils::updateOrAddStaticEntry(
+        new_, portDescriptor, vlanId, macAddress, true);
+
+    if (stateBefore != new_) {
+      stateChanged = true;
+    }
+
+    XLOG(DBG2) << "Added static MAC entry: " << macAddress.toString()
+               << " on VLAN " << vlanId << " port " << portDescriptor.str()
+               << " (configured)";
+  }
+
+  return stateChanged;
 }
 
 } // namespace facebook::fboss

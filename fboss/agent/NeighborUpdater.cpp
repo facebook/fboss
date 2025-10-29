@@ -53,7 +53,7 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw, bool disableImpl) : sw_(sw) {
 }
 
 NeighborUpdater::NeighborUpdater(SwSwitch* sw)
-    : NeighborUpdater(sw, FLAGS_disable_neighbor_updates){};
+    : NeighborUpdater(sw, FLAGS_disable_neighbor_updates) {};
 
 NeighborUpdater::~NeighborUpdater() {
   sw_->unregisterStateObserver(this);

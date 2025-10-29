@@ -91,13 +91,14 @@ class CmdShowFabricInputBalance : public CmdHandler<
       auto neighborReachability = getNeighborReachability(
           devicesToQueryInputCapacity, neighborToPorts, dstSwitchName);
 
-      return createModel(utility::checkInputBalanceSingleStage(
-          dstSwitchName,
-          neighborReachability,
-          selfReachability,
-          neighborToLinkFailure,
-          portToVirtualDevice,
-          true /* verbose */));
+      return createModel(
+          utility::checkInputBalanceSingleStage(
+              dstSwitchName,
+              neighborReachability,
+              selfReachability,
+              neighborToLinkFailure,
+              portToVirtualDevice,
+              true /* verbose */));
     } else {
       auto switchID = switchIdToSwitchInfo.begin()->first;
       auto dsfNode = dsfNodeMap.at(switchID);
@@ -148,15 +149,16 @@ class CmdShowFabricInputBalance : public CmdHandler<
 
           auto neighborReachability = getNeighborReachability(
               localRDSW, neighborToPorts, dstSwitchName);
-          return createModel(utility::checkInputBalanceDualStage(
-              utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTER,
-              dstSwitchName,
-              neighborReachability,
-              selfReachability,
-              neighborToLinkFailure,
-              portToVirtualDevice,
-              nameToDsfNode,
-              true /* verbose */));
+          return createModel(
+              utility::checkInputBalanceDualStage(
+                  utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTER,
+                  dstSwitchName,
+                  neighborReachability,
+                  selfReachability,
+                  neighborToLinkFailure,
+                  portToVirtualDevice,
+                  nameToDsfNode,
+                  true /* verbose */));
         } else {
           // Intra-zone destination - need to filter out output reachability
           // towards SDSW
@@ -171,15 +173,16 @@ class CmdShowFabricInputBalance : public CmdHandler<
           auto neighborReachability = getNeighborReachability(
               neighbors, neighborToPorts, dstSwitchName);
 
-          return createModel(utility::checkInputBalanceDualStage(
-              utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTRA,
-              dstSwitchName,
-              neighborReachability,
-              selfReachability,
-              neighborToLinkFailure,
-              portToVirtualDevice,
-              nameToDsfNode,
-              true /* verbose */));
+          return createModel(
+              utility::checkInputBalanceDualStage(
+                  utility::InputBalanceDestType::DUAL_STAGE_FDSW_INTRA,
+                  dstSwitchName,
+                  neighborReachability,
+                  selfReachability,
+                  neighborToLinkFailure,
+                  portToVirtualDevice,
+                  nameToDsfNode,
+                  true /* verbose */));
         }
       }
 

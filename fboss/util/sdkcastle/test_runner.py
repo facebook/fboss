@@ -105,9 +105,11 @@ class NetcastleTestRunner(BaseTestRunner):
             vendor = "brcm"
         elif sdk_version.startswith("leaba"):
             vendor = "leaba"
+        elif sdk_version.startswith("chenab") or sdk_version.startswith("nvda"):
+            vendor = "nvda"
         else:
-            # Default to brcm if no match
-            vendor = "brcm"
+            # raise an exception if vendor is not recognized
+            raise ValueError(f"Unknown SDK vendor in version: {sdk_version}")
 
         # Extract SDK project version (part after '/')
         if "/" in sdk_version:

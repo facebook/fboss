@@ -69,9 +69,8 @@ int constexpr L2_LEARN_MAX_MAC_COUNT = 5000;
 std::set<folly::MacAddress>
 getMacsForPort(facebook::fboss::SwSwitch* sw, int port, bool isTrunk) {
   std::set<folly::MacAddress> macs;
-  std::vector<L2EntryThrift> l2Entries;
-  facebook::fboss::ThriftHandler handler(sw);
-  handler.getL2Table(l2Entries);
+  auto l2Entries = facebook::fboss::utility::getL2Table(sw);
+
   for (auto& l2Entry : l2Entries) {
     if ((isTrunk && l2Entry.trunk().value_or({}) == port) ||
         *l2Entry.port() == port) {
@@ -1638,6 +1637,175 @@ TEST_F(
   };
 
   // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentMacLearningStaticConfigTest : public AgentMacLearnDisabledTest {
+ protected:
+  void addStaticMacToConfig(
+      cfg::SwitchConfig& cfg,
+      const folly::MacAddress& mac,
+      VlanID vlanId,
+      PortID portId) {
+    cfg::StaticMacEntry staticMac;
+    staticMac.macAddress() = mac.toString();
+    staticMac.vlanID() = static_cast<int32_t>(vlanId);
+    staticMac.egressLogicalPortID() = static_cast<int32_t>(portId);
+
+    if (!cfg.staticMacAddrs().has_value()) {
+      cfg.staticMacAddrs() = std::vector<cfg::StaticMacEntry>();
+    }
+    cfg.staticMacAddrs()->push_back(staticMac);
+  }
+
+  void verifyStaticMacEntry(
+      const folly::MacAddress& mac,
+      VlanID vlanId,
+      PortID portId,
+      bool shouldExist) {
+    auto state = getProgrammedState();
+    auto vlan = state->getVlans()->getNodeIf(vlanId);
+    EXPECT_TRUE(vlan) << "VLAN " << vlanId << " not found";
+
+    auto macTable = vlan->getMacTable();
+    auto macEntry = macTable->getMacIf(mac);
+
+    if (!shouldExist) {
+      if (macEntry) {
+        EXPECT_NE(macEntry->getPort(), PortDescriptor(portId))
+            << "MAC entry " << mac.toString() << " should not exist on port "
+            << portId << " in VLAN " << vlanId
+            << ", but found: " << macEntry->str();
+      }
+      return;
+    }
+
+    ASSERT_TRUE(macEntry) << "MAC entry " << mac.toString()
+                          << " not found in VLAN " << vlanId;
+    EXPECT_EQ(macEntry->getPort(), PortDescriptor(portId))
+        << "MAC entry port mismatch";
+    EXPECT_EQ(macEntry->getType(), MacEntryType::STATIC_ENTRY)
+        << "MAC entry should be static";
+
+    EXPECT_TRUE(macEntry->getConfigured().has_value())
+        << "MAC entry should have configured field set";
+    EXPECT_TRUE(macEntry->getConfigured().value())
+        << "MAC entry should be marked as configured";
+  }
+
+  void verifyStaticMacInL2Table(
+      const folly::MacAddress& mac,
+      PortID portId,
+      bool shouldExist) {
+    auto isTrunk = false;
+    int portIdInt = static_cast<int>(portId);
+    auto macs = getMacsForPort(getSw(), portIdInt, isTrunk);
+    if (shouldExist) {
+      EXPECT_TRUE(macs.find(mac) != macs.end())
+          << "Static MAC " << mac.toString()
+          << " not found in L2 table for port " << portId;
+    } else {
+      EXPECT_TRUE(macs.find(mac) == macs.end())
+          << "Static MAC " << mac.toString()
+          << " should not exist in L2 table for port " << portId;
+    }
+  }
+
+  void verifyStaticMacTrafficForwarding(
+      const folly::MacAddress& mac,
+      PortID expectedEgressPort,
+      const std::vector<PortID>& allPorts) {
+    // Get original port stats
+    std::map<PortID, HwPortStats> origPortStats;
+    for (auto portId : allPorts) {
+      origPortStats[portId] = getLatestPortStats(portId);
+    }
+
+    // Send packet to the static MAC address
+    auto vlanId =
+        VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
+    auto txPacket = utility::makeEthTxPacket(
+        getSw(),
+        vlanId,
+        kSourceMac(), // Use different source MAC
+        mac, // Destination MAC is the static MAC
+        ETHERTYPE::ETHERTYPE_LLDP);
+
+    // Send packet out via packet switching (not via a specific port)
+    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+
+    // Wait for packet processing and get new stats
+    WITH_RETRIES({
+      auto newPortStats = getLatestPortStats(allPorts);
+
+      // Verify packet went to expected port
+      auto expectedPortNewStats = newPortStats[expectedEgressPort];
+      auto expectedPortOldStats = origPortStats[expectedEgressPort];
+      EXPECT_EVENTUALLY_GT(
+          *expectedPortNewStats.outBytes_(), *expectedPortOldStats.outBytes_())
+          << "Static MAC " << mac.toString()
+          << " should forward traffic to port " << expectedEgressPort;
+
+      // Verify no flooding to other ports in the same VLAN
+      for (auto portId : allPorts) {
+        if (portId != expectedEgressPort) {
+          auto otherPortNewStats = newPortStats[portId];
+          auto otherPortOldStats = origPortStats[portId];
+          EXPECT_EVENTUALLY_EQ(
+              *otherPortNewStats.outBytes_(), *otherPortOldStats.outBytes_())
+              << "Static MAC " << mac.toString()
+              << " should not flood traffic to port " << portId
+              << " when forwarding to port " << expectedEgressPort;
+        }
+      }
+    });
+  }
+
+  MacAddress kStaticMac1() {
+    return MacAddress("02:00:00:00:01:01");
+  }
+
+  MacAddress kStaticMac2() {
+    return MacAddress("02:00:00:00:01:02");
+  }
+};
+
+TEST_F(AgentMacLearningStaticConfigTest, VerifyStaticMacEntriesFromConfig) {
+  auto setup = [this]() {
+    auto newCfg = initialConfig(*getAgentEnsemble());
+    auto vlanId = VlanID(*newCfg.vlanPorts()[0].vlanID());
+    auto portId1 = PortID(masterLogicalPortIds()[0]);
+    auto portId2 = PortID(masterLogicalPortIds()[1]);
+
+    // Add static MAC entries to config
+    addStaticMacToConfig(newCfg, kStaticMac1(), vlanId, portId1);
+    addStaticMacToConfig(newCfg, kStaticMac2(), vlanId, portId2);
+
+    // Apply the config with static MAC entries
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() {
+    auto vlanId =
+        VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
+    auto portId1 = PortID(masterLogicalPortIds()[0]);
+    auto portId2 = PortID(masterLogicalPortIds()[1]);
+
+    // Verify static MAC entries exist in switch state
+    verifyStaticMacEntry(kStaticMac1(), vlanId, portId1, true);
+    verifyStaticMacEntry(kStaticMac2(), vlanId, portId2, true);
+
+    // Verify static MAC entries exist in hardware L2 table
+    verifyStaticMacInL2Table(kStaticMac1(), portId1, true);
+    verifyStaticMacInL2Table(kStaticMac2(), portId2, true);
+
+    // Verify traffic forwarding to static MAC entries
+    std::vector<PortID> allPorts = {portId1, portId2};
+    verifyStaticMacTrafficForwarding(kStaticMac1(), portId1, allPorts);
+    verifyStaticMacTrafficForwarding(kStaticMac2(), portId2, allPorts);
+  };
+
+  // Static MAC entries should be preserved across warm boots
   verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss

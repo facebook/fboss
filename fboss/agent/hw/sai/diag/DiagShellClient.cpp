@@ -24,18 +24,37 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <csignal>
 #include <iostream>
 #include <thread>
 
 DEFINE_string(host, "::1", "The host to connect to");
-DEFINE_int32(port, 5909, "The port to connect to");
+DEFINE_int32(port, 5931, "The port to connect to");
+DEFINE_string(
+    reason,
+    "not_provided",
+    "Reason to run the diag shell client. For Prod environment, please provide Task or SEV ID.");
 
 namespace {
 using folly::AsyncSignalHandler;
 using folly::ByteRange;
 using folly::IPAddress;
 using folly::IPAddressV6;
+
+facebook::fboss::ClientInformation getClientInformation() {
+  facebook::fboss::ClientInformation ci;
+  const char* username = std::getenv("USER");
+  if (username) {
+    ci.username() = username;
+  }
+  char hostname[256];
+  if (gethostname(hostname, sizeof(hostname)) == 0) {
+    ci.hostname() = hostname;
+  }
+  ci.reason() = FLAGS_reason;
+  return ci;
+}
 
 const IPAddress getIPFromHost(const std::string& hostname) {
   if (IPAddress::validate(hostname)) {
@@ -113,6 +132,7 @@ void handleStdin(
   ssize_t nread;
   constexpr ssize_t bufSize = 512;
   std::array<char, bufSize> buf;
+  auto ci = getClientInformation();
   while (true) {
     fd_set readSet;
     FD_ZERO(&readSet);
@@ -127,8 +147,6 @@ void handleStdin(
       } else {
         std::string input(buf.data(), nread);
         try {
-          // TODO: fill in ClientInformation, or get rid of it in the API
-          facebook::fboss::ClientInformation ci;
           client->sync_produceDiagShellInput(input, ci);
         } catch (const std::exception& e) {
           LOG(ERROR) << "cli caught server exception " << e.what();
@@ -174,7 +192,15 @@ class SignalHandler : public AsyncSignalHandler {
  */
 
 int main(int argc, char* argv[]) {
+  gflags::SetUsageMessage("Diagnostic Shell Client for FBOSS agent");
+  gflags::ParseCommandLineNonHelpFlags(&argc, &argv, false);
+  if (FLAGS_help) {
+    const char* shortName = gflags::ProgramInvocationShortName();
+    gflags::ShowUsageWithFlagsRestrict(shortName, "DiagShellClient");
+    return 0;
+  }
   const folly::Init init(&argc, &argv);
+
   facebook::fboss::FbossEventBase streamEvb{"DiagShellClientStreamEventBase"};
   facebook::fboss::FbossEventBase stdinEvb{"DiagShellClientStdinEventBase"};
 
@@ -200,4 +226,7 @@ int main(int argc, char* argv[]) {
   readStdinT.join();
   streamEvb.terminateLoopSoon();
   streamT.join();
+  // call exit(0) otherwise EventBase destructor will be hanging due to active
+  // client/connection. Without this, we need multiple Ctrl+C to terminate
+  exit(0);
 }

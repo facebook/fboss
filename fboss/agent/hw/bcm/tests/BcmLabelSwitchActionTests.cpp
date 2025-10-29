@@ -83,8 +83,9 @@ class BcmLabelSwitchActionTest : public BcmTest {
                 InterfaceID(utility::kBaseVlanId)))));
     LabelNextHopEntry nexthop{
         LabelNextHopEntry::Action::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE};
-    entries_.push_back(std::make_shared<LabelForwardingEntry>(
-        LabelForwardingEntry::makeThrift(5006, ClientID::OPENR, nexthop)));
+    entries_.push_back(
+        std::make_shared<LabelForwardingEntry>(
+            LabelForwardingEntry::makeThrift(5006, ClientID::OPENR, nexthop)));
   }
 
   void addAllTestLabelForwardingEntries() {

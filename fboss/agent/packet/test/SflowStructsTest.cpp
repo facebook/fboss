@@ -21,16 +21,172 @@ namespace facebook::fboss::sflow {
 using ::testing::ContainerEq;
 using ::testing::ElementsAre;
 
+TEST(SflowStructsTest, SampledHeader) {
+  // Test comprehensive functionality of SampledHeader with detailed
+  // serialization verification
+  sflow::SampledHeader header;
+  header.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header.frameLength = 1500; // 0x5DC
+  header.stripped = 42; // 0x2A
+  header.header = {0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE}; // 6 bytes
+
+  // Test size calculation
+  // protocol (4) + frameLength (4) + stripped (4) + headerLength (4) + header
+  // (6) + padding (2) = 24 bytes
+  uint32_t expectedSize =
+      4 + 4 + 4 + 4 + 8; // 8 aligned bytes for header (6 + 2 padding)
+  EXPECT_EQ(header.size(), expectedSize);
+
+  // Test serialization
+  int bufSize = 1024;
+  std::vector<uint8_t> buffer(bufSize);
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+  header.serialize(cursor.get());
+  size_t serializedSize = bufSize - cursor->length();
+
+  // Verify serialized size matches expected
+  EXPECT_EQ(serializedSize, expectedSize);
+
+  // Verify the serialized content byte by byte
+  std::vector<uint8_t> actualData(
+      buffer.begin(), buffer.begin() + serializedSize);
+  EXPECT_THAT(
+      actualData,
+      ElementsAre(
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1500 = 0x5DC) as big-endian
+          0x00,
+          0x00,
+          0x05,
+          0xDC,
+          // stripped (42 = 0x2A) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x2A,
+          // headerLength (6) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x06,
+          // header data: 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE
+          0xDE,
+          0xAD,
+          0xBE,
+          0xEF,
+          0xCA,
+          0xFE,
+          // XDR padding (2 bytes) to align to 4-byte boundary
+          0x00,
+          0x00));
+}
+
+TEST(SflowStructsTest, SampledHeaderDifferentSizes) {
+  // Test SampledHeader with different header sizes to verify XDR padding
+
+  std::vector<std::vector<uint8_t>> testHeaders = {
+      {0xAA}, // 1 byte (3 bytes padding)
+      {0xBB, 0xCC}, // 2 bytes (2 bytes padding)
+      {0xDD, 0xEE, 0xFF}, // 3 bytes (1 byte padding)
+      {0x11, 0x22, 0x33, 0x44}, // 4 bytes (no padding)
+      {0x55, 0x66, 0x77, 0x88, 0x99} // 5 bytes (3 bytes padding)
+  };
+
+  for (uint32_t i = 0; i < testHeaders.size(); ++i) {
+    sflow::SampledHeader header;
+    header.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+    header.frameLength = 1000 + i;
+    header.stripped = 10 + i;
+    header.header = testHeaders[i];
+
+    // Calculate expected size with XDR padding
+    uint32_t headerSize = static_cast<uint32_t>(header.header.size());
+    if (headerSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
+      headerSize = ((headerSize / sflow::XDR_BASIC_BLOCK_SIZE) + 1) *
+          sflow::XDR_BASIC_BLOCK_SIZE;
+    }
+    uint32_t expectedSize = 4 + 4 + 4 + 4 + headerSize;
+    EXPECT_EQ(header.size(), expectedSize)
+        << "Size mismatch for test case " << i;
+
+    // Test serialization
+    int bufSize = 1024;
+    std::vector<uint8_t> buffer(bufSize);
+    auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+    auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+    header.serialize(cursor.get());
+    size_t serializedSize = bufSize - cursor->length();
+
+    // Verify serialized size matches calculated size
+    EXPECT_EQ(serializedSize, expectedSize)
+        << "Serialized size mismatch for test case " << i;
+
+    // Verify that the size() method matches actual serialized size
+    EXPECT_EQ(header.size(), serializedSize)
+        << "Size method mismatch for test case " << i;
+  }
+}
+
+TEST(SflowStructsTest, SampledHeaderSizeCalculation) {
+  // Test size calculation with various header data sizes
+  sflow::SampledHeader header;
+  header.protocol = sflow::HeaderProtocol::IPV4;
+  header.frameLength = 500;
+  header.stripped = 10;
+
+  // Test empty header
+  header.header = {};
+  EXPECT_EQ(header.size(), 16); // 4 + 4 + 4 + 4 + 0
+
+  // Test 1 byte (requires 3 bytes padding)
+  header.header = {0x01};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (1 + 3 padding)
+
+  // Test 2 bytes (requires 2 bytes padding)
+  header.header = {0x01, 0x02};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (2 + 2 padding)
+
+  // Test 3 bytes (requires 1 byte padding)
+  header.header = {0x01, 0x02, 0x03};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (3 + 1 padding)
+
+  // Test 4 bytes (no padding required)
+  header.header = {0x01, 0x02, 0x03, 0x04};
+  EXPECT_EQ(header.size(), 20); // 4 + 4 + 4 + 4 + 4 (4 + 0 padding)
+
+  // Test 5 bytes (requires 3 bytes padding)
+  header.header = {0x01, 0x02, 0x03, 0x04, 0x05};
+  EXPECT_EQ(header.size(), 24); // 4 + 4 + 4 + 4 + 8 (5 + 3 padding)
+
+  // Test 8 bytes (no padding required)
+  header.header = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+  EXPECT_EQ(header.size(), 24); // 4 + 4 + 4 + 4 + 8 (8 + 0 padding)
+}
+
 TEST(SflowStructsTest, FlowRecord) {
-  // Test basic functionality of FlowRecord
+  // Test basic functionality of FlowRecord with SampledHeader variant
   sflow::FlowRecord flowRecord;
   flowRecord.flowFormat = 1;
-  flowRecord.flowData = {0x01, 0x02, 0x03, 0x04, 0x05};
 
-  // Test size calculation - now includes XDR padding
-  // 5 bytes data needs 3 bytes padding to align to 4-byte boundary
-  uint32_t expectedSize = 4 /* flowFormat */ + 4 /* flowDataLen */ +
-      8; /* 5 data bytes + 3 padding bytes */
+  // Create a SampledHeader and add it to the variant
+  sflow::SampledHeader sampledHeader;
+  sampledHeader.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  sampledHeader.frameLength = 1500;
+  sampledHeader.stripped = 42;
+  sampledHeader.header = {0x01, 0x02, 0x03, 0x04, 0x05};
+
+  flowRecord.flowData = sampledHeader;
+
+  // Test size calculation - should include SampledHeader size
+  uint32_t expectedSize =
+      4 /* flowFormat */ + 4 /* flowDataLen */ + sampledHeader.size();
   EXPECT_EQ(flowRecord.size(), expectedSize);
 
   // Test serialization
@@ -42,64 +198,67 @@ TEST(SflowStructsTest, FlowRecord) {
   flowRecord.serialize(cursor.get());
   size_t serializedSize = bufSize - cursor->length();
 
-  // Verify serialized size matches expected (with XDR padding)
-  // 5 bytes data + 3 bytes padding = 8 bytes aligned to 4-byte boundary
-  uint32_t expectedSerializedSize = 4 /* flowFormat */ + 4 /* flowDataLen */ +
-      8; /* 5 data bytes + 3 padding */
-  EXPECT_EQ(serializedSize, expectedSerializedSize);
+  // Verify serialized size matches expected
+  EXPECT_EQ(serializedSize, expectedSize);
 
-  // Verify the serialized content using ElementsAre matcher
-  std::vector<uint8_t> actualData(
-      buffer.begin(), buffer.begin() + serializedSize);
+  // Verify the serialized content starts with flowFormat
+  std::vector<uint8_t> actualData(buffer.begin(), buffer.begin() + 4);
   EXPECT_THAT(
       actualData,
       ElementsAre(
-          // flowFormat (42) as big-endian
+          // flowFormat (1) as big-endian
           0x00,
           0x00,
           0x00,
-          0x01,
-          // flowDataLen (5) as big-endian
-          0x00,
-          0x00,
-          0x00,
-          0x05,
-          // data content
-          0x01,
-          0x02,
-          0x03,
-          0x04,
-          0x05,
-          // padding bytes (zero)
-          0x00,
-          0x00,
-          0x00));
+          0x01));
 }
 
 TEST(SflowStructsTest, FlowRecordDeserialization) {
-  // Test FlowRecord deserialization functionality
+  // Test FlowRecord deserialization functionality with SampledHeader
 
-  // Create a buffer with serialized FlowRecord data
-  std::vector<uint8_t> serializedData = {// flowFormat (1) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x01,
-                                         // flowDataLen (5) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x05,
-                                         // data content
-                                         0x01,
-                                         0x02,
-                                         0x03,
-                                         0x04,
-                                         0x05,
-                                         // padding bytes (zero)
-                                         0x00,
-                                         0x00,
-                                         0x00};
+  // Create a buffer with serialized FlowRecord data containing SampledHeader
+  std::vector<uint8_t> serializedData = {
+      // flowFormat (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // flowDataLen (24 bytes) as big-endian - size of SampledHeader below
+      0x00,
+      0x00,
+      0x00,
+      0x18,
+      // SampledHeader data:
+      // protocol (ETHERNET_ISO88023 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // frameLength (1000) as big-endian
+      0x00,
+      0x00,
+      0x03,
+      0xe8,
+      // stripped (42) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x2a,
+      // headerLength (5) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x05,
+      // header data
+      0x01,
+      0x02,
+      0x03,
+      0x04,
+      0x05,
+      // padding bytes (3 bytes to align to 4-byte boundary)
+      0x00,
+      0x00,
+      0x00};
 
   auto buf =
       folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
@@ -110,15 +269,26 @@ TEST(SflowStructsTest, FlowRecordDeserialization) {
 
   // Verify the deserialized data
   EXPECT_EQ(flowRecord.flowFormat, 1);
-  EXPECT_EQ(flowRecord.flowData.size(), 5);
-  EXPECT_THAT(flowRecord.flowData, ElementsAre(0x01, 0x02, 0x03, 0x04, 0x05));
+
+  // Verify the SampledHeader variant
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(flowRecord.flowData));
+  const auto& sampledHeader =
+      std::get<sflow::SampledHeader>(flowRecord.flowData);
+
+  EXPECT_EQ(sampledHeader.protocol, sflow::HeaderProtocol::ETHERNET_ISO88023);
+  EXPECT_EQ(sampledHeader.frameLength, 1000);
+  EXPECT_EQ(sampledHeader.stripped, 42);
+  EXPECT_EQ(sampledHeader.header.size(), 5);
+  EXPECT_THAT(sampledHeader.header, ElementsAre(0x01, 0x02, 0x03, 0x04, 0x05));
 }
 
 TEST(SflowStructsTest, FlowRecordSerializeDeserializeRoundTrip) {
-  // Test serialize-deserialize round trip for FlowRecord
+  // Test serialize-deserialize round trip for FlowRecord with SampledHeader
+  // variant
 
-  // Create original FlowRecord with various data sizes to test padding
-  std::vector<std::vector<uint8_t>> testData = {
+  // Create test data with various header sizes to test padding
+  std::vector<std::vector<uint8_t>> testHeaderData = {
       {},
       {0xAA}, // 1 byte (3 bytes padding)
       {0xBB, 0xCC}, // 2 bytes (2 bytes padding)
@@ -127,11 +297,18 @@ TEST(SflowStructsTest, FlowRecordSerializeDeserializeRoundTrip) {
       {0x55, 0x66, 0x77, 0x88, 0x99} // 5 bytes (3 bytes padding)
   };
 
-  for (size_t i = 0; i < testData.size(); ++i) {
-    // Create original FlowRecord
+  for (uint32_t i = 0; i < testHeaderData.size(); ++i) {
+    // Create original FlowRecord with SampledHeader variant
     sflow::FlowRecord original;
     original.flowFormat = 1;
-    original.flowData = testData[i];
+
+    sflow::SampledHeader sampledHeader;
+    sampledHeader.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+    sampledHeader.frameLength = 1000 + i * 100;
+    sampledHeader.stripped = 50 + i * 10;
+    sampledHeader.header = testHeaderData[i];
+
+    original.flowData = sampledHeader;
 
     // Serialize
     int bufSize = 1024;
@@ -151,10 +328,35 @@ TEST(SflowStructsTest, FlowRecordSerializeDeserializeRoundTrip) {
     // Verify round-trip correctness
     EXPECT_EQ(deserialized.flowFormat, original.flowFormat)
         << "Mismatch for test case " << i;
-    EXPECT_EQ(deserialized.flowData.size(), original.flowData.size())
-        << "Data size mismatch for test case " << i;
-    EXPECT_THAT(deserialized.flowData, ContainerEq(original.flowData))
-        << "Data content mismatch for test case " << i;
+
+    // Verify the SampledHeader variant
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(deserialized.flowData))
+        << "Not SampledHeader variant for test case " << i;
+
+    const auto& originalSampledHeader =
+        std::get<sflow::SampledHeader>(original.flowData);
+    const auto& deserializedSampledHeader =
+        std::get<sflow::SampledHeader>(deserialized.flowData);
+
+    EXPECT_EQ(
+        deserializedSampledHeader.protocol, originalSampledHeader.protocol)
+        << "Protocol mismatch for test case " << i;
+    EXPECT_EQ(
+        deserializedSampledHeader.frameLength,
+        originalSampledHeader.frameLength)
+        << "Frame length mismatch for test case " << i;
+    EXPECT_EQ(
+        deserializedSampledHeader.stripped, originalSampledHeader.stripped)
+        << "Stripped mismatch for test case " << i;
+    EXPECT_EQ(
+        deserializedSampledHeader.header.size(),
+        originalSampledHeader.header.size())
+        << "Header size mismatch for test case " << i;
+    EXPECT_THAT(
+        deserializedSampledHeader.header,
+        ContainerEq(originalSampledHeader.header))
+        << "Header data content mismatch for test case " << i;
   }
 }
 
@@ -210,12 +412,33 @@ TEST(SflowStructsTest, FlowSampleDeserialization) {
       0x00,
       0x00,
       0x01,
-      // flowDataLen (4) as big-endian
+      // flowDataLen (20) as big-endian - size of SampledHeader below
+      0x00,
+      0x00,
+      0x00,
+      0x14,
+      // SampledHeader data:
+      // protocol (ETHERNET_ISO88023 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // frameLength (1000) as big-endian
+      0x00,
+      0x00,
+      0x03,
+      0xe8,
+      // stripped (42) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x2a,
+      // headerLength (4) as big-endian
       0x00,
       0x00,
       0x00,
       0x04,
-      // flowData: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
+      // header data: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
       0x11,
       0x22,
       0x33,
@@ -227,12 +450,33 @@ TEST(SflowStructsTest, FlowSampleDeserialization) {
       0x00,
       0x00,
       0x01,
-      // flowDataLen (2) as big-endian
+      // flowDataLen (20) as big-endian - size of SampledHeader below
+      0x00,
+      0x00,
+      0x00,
+      0x14,
+      // SampledHeader data:
+      // protocol (ETHERNET_ISO88023 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // frameLength (1200) as big-endian
+      0x00,
+      0x00,
+      0x04,
+      0xb0,
+      // stripped (50) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x32,
+      // headerLength (2) as big-endian
       0x00,
       0x00,
       0x00,
       0x02,
-      // flowData: 0xAA, 0xBB + 2 bytes padding for XDR alignment
+      // header data: 0xAA, 0xBB + 2 bytes padding for XDR alignment
       0xAA,
       0xBB,
       0x00,
@@ -257,14 +501,23 @@ TEST(SflowStructsTest, FlowSampleDeserialization) {
 
   // Verify first flow record
   EXPECT_EQ(flowSample.flowRecords[0].flowFormat, 1);
-  EXPECT_EQ(flowSample.flowRecords[0].flowData.size(), 4);
-  EXPECT_THAT(
-      flowSample.flowRecords[0].flowData, ElementsAre(0x11, 0x22, 0x33, 0x44));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flowSample.flowRecords[0].flowData));
+  const auto& sampledHeader1 =
+      std::get<sflow::SampledHeader>(flowSample.flowRecords[0].flowData);
+  EXPECT_EQ(sampledHeader1.header.size(), 4);
+  EXPECT_THAT(sampledHeader1.header, ElementsAre(0x11, 0x22, 0x33, 0x44));
 
   // Verify second flow record
   EXPECT_EQ(flowSample.flowRecords[1].flowFormat, 1);
-  EXPECT_EQ(flowSample.flowRecords[1].flowData.size(), 2);
-  EXPECT_THAT(flowSample.flowRecords[1].flowData, ElementsAre(0xAA, 0xBB));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flowSample.flowRecords[1].flowData));
+  const auto& sampledHeader2 =
+      std::get<sflow::SampledHeader>(flowSample.flowRecords[1].flowData);
+  EXPECT_EQ(sampledHeader2.header.size(), 2);
+  EXPECT_THAT(sampledHeader2.header, ElementsAre(0xAA, 0xBB));
 }
 
 TEST(SflowStructsTest, FlowSampleSerializeDeserializeRoundTrip) {
@@ -283,15 +536,30 @@ TEST(SflowStructsTest, FlowSampleSerializeDeserializeRoundTrip) {
   // Add flow records with different data sizes
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+  record1.flowData = header1;
 
   sflow::FlowRecord record2;
   record2.flowFormat = 1;
-  record2.flowData = {0xCA, 0xFE}; // 2 bytes, 2 bytes padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xCA, 0xFE}; // 2 bytes, 2 bytes padding
+  record2.flowData = header2;
 
   sflow::FlowRecord record3;
   record3.flowFormat = 1;
-  record3.flowData = {0x12, 0x34, 0x56, 0x78, 0x9A}; // 5 bytes, 3 bytes padding
+  sflow::SampledHeader header3;
+  header3.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header3.frameLength = 1500;
+  header3.stripped = 60;
+  header3.header = {0x12, 0x34, 0x56, 0x78, 0x9A}; // 5 bytes, 3 bytes padding
+  record3.flowData = header3;
 
   original.flowRecords = {record1, record2, record3};
 
@@ -326,13 +594,29 @@ TEST(SflowStructsTest, FlowSampleSerializeDeserializeRoundTrip) {
         deserialized.flowRecords[i].flowFormat,
         original.flowRecords[i].flowFormat)
         << "FlowFormat mismatch for record " << i;
+
+    // Verify the SampledHeader variants
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            deserialized.flowRecords[i].flowData))
+        << "Not SampledHeader variant for deserialized record " << i;
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            original.flowRecords[i].flowData))
+        << "Not SampledHeader variant for original record " << i;
+
+    const auto& deserializedSampledHeader =
+        std::get<sflow::SampledHeader>(deserialized.flowRecords[i].flowData);
+    const auto& originalSampledHeader =
+        std::get<sflow::SampledHeader>(original.flowRecords[i].flowData);
+
     EXPECT_EQ(
-        deserialized.flowRecords[i].flowData.size(),
-        original.flowRecords[i].flowData.size())
+        deserializedSampledHeader.header.size(),
+        originalSampledHeader.header.size())
         << "FlowData size mismatch for record " << i;
     EXPECT_THAT(
-        deserialized.flowRecords[i].flowData,
-        ContainerEq(original.flowRecords[i].flowData))
+        deserializedSampledHeader.header,
+        ContainerEq(originalSampledHeader.header))
         << "FlowData content mismatch for record " << i;
   }
 }
@@ -340,46 +624,47 @@ TEST(SflowStructsTest, FlowSampleSerializeDeserializeRoundTrip) {
 TEST(SflowStructsTest, FlowSampleDeserializeEmptyRecords) {
   // Test FlowSample deserialization with no flow records
 
-  std::vector<uint8_t> serializedData = {// sequenceNumber (1) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x01,
-                                         // sourceID (2) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x02,
-                                         // samplingRate (3) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x03,
-                                         // samplePool (4) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x04,
-                                         // drops (5) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x05,
-                                         // input (6) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x06,
-                                         // output (7) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x07,
-                                         // flowRecordsCnt (0) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x00};
+  std::vector<uint8_t> serializedData = {
+      // sequenceNumber (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // sourceID (2) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x02,
+      // samplingRate (3) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x03,
+      // samplePool (4) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x04,
+      // drops (5) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x05,
+      // input (6) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x06,
+      // output (7) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x07,
+      // flowRecordsCnt (0) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x00};
 
   auto buf =
       folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
@@ -414,12 +699,22 @@ TEST(SflowStructsTest, FlowSample) {
   // Add FlowRecord records with specific data for testing
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding needed
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding needed
+  record1.flowData = header1;
 
   sflow::FlowRecord record2;
   record2.flowFormat = 1;
-  record2.flowData = {
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {
       0xAA, 0xBB}; // 2 bytes, will need 2 bytes padding for XDR alignment
+  record2.flowData = header2;
 
   sample.flowRecords = {record1, record2};
 
@@ -499,12 +794,33 @@ TEST(SflowStructsTest, FlowSample) {
           0x00,
           0x00,
           0x01,
-          // flowDataLen (4) as big-endian
+          // flowDataLen (20) as big-endian - size of SampledHeader below
+          0x00,
+          0x00,
+          0x00,
+          0x14,
+          // SampledHeader data:
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1000) as big-endian
+          0x00,
+          0x00,
+          0x03,
+          0xe8,
+          // stripped (42) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x2a,
+          // headerLength (4) as big-endian
           0x00,
           0x00,
           0x00,
           0x04,
-          // flowData: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
+          // header data: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
           0x11,
           0x22,
           0x33,
@@ -516,12 +832,33 @@ TEST(SflowStructsTest, FlowSample) {
           0x00,
           0x00,
           0x01,
-          // flowDataLen (2) as big-endian
+          // flowDataLen (20) as big-endian - size of SampledHeader below
+          0x00,
+          0x00,
+          0x00,
+          0x14,
+          // SampledHeader data:
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1200) as big-endian
+          0x00,
+          0x00,
+          0x04,
+          0xb0,
+          // stripped (50) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x32,
+          // headerLength (2) as big-endian
           0x00,
           0x00,
           0x00,
           0x02,
-          // flowData: 0xAA, 0xBB + 2 bytes padding for XDR alignment
+          // header data: 0xAA, 0xBB + 2 bytes padding for XDR alignment
           0xAA,
           0xBB,
           0x00,
@@ -548,14 +885,24 @@ TEST(SflowStructsTest, FlowSampleSizeCalculation) {
   // Add one record
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0x01, 0x02, 0x03}; // 3 bytes
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x01, 0x02, 0x03}; // 3 bytes
+  record1.flowData = header1;
   sample.flowRecords.push_back(record1);
   EXPECT_EQ(sample.size(), 32 + record1.size());
 
   // Add another record
   sflow::FlowRecord record2;
   record2.flowFormat = 2;
-  record2.flowData = {0x04, 0x05, 0x06, 0x07, 0x08, 0x09}; // 6 bytes
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0x04, 0x05, 0x06, 0x07, 0x08, 0x09}; // 6 bytes
+  record2.flowData = header2;
   sample.flowRecords.push_back(record2);
   EXPECT_EQ(sample.size(), 32 + record1.size() + record2.size());
 }
@@ -624,12 +971,33 @@ TEST(SflowStructsTest, SampleRecordDeserialization) {
       0x00,
       0x00,
       0x01,
-      // flowDataLen (4) as big-endian
+      // flowDataLen (20) as big-endian - size of SampledHeader below
+      0x00,
+      0x00,
+      0x00,
+      0x14,
+      // SampledHeader data:
+      // protocol (ETHERNET_ISO88023 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // frameLength (1000) as big-endian
+      0x00,
+      0x00,
+      0x03,
+      0xe8,
+      // stripped (42) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x2a,
+      // headerLength (4) as big-endian
       0x00,
       0x00,
       0x00,
       0x04,
-      // flowData: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
+      // header data: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
       0x11,
       0x22,
       0x33,
@@ -660,9 +1028,13 @@ TEST(SflowStructsTest, SampleRecordDeserialization) {
 
   // Verify the FlowRecord
   EXPECT_EQ(flowSample.flowRecords[0].flowFormat, 1);
-  EXPECT_EQ(flowSample.flowRecords[0].flowData.size(), 4);
-  EXPECT_THAT(
-      flowSample.flowRecords[0].flowData, ElementsAre(0x11, 0x22, 0x33, 0x44));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flowSample.flowRecords[0].flowData));
+  const auto& sampledHeader =
+      std::get<sflow::SampledHeader>(flowSample.flowRecords[0].flowData);
+  EXPECT_EQ(sampledHeader.header.size(), 4);
+  EXPECT_THAT(sampledHeader.header, ElementsAre(0x11, 0x22, 0x33, 0x44));
 }
 
 TEST(SflowStructsTest, SampleRecordSerializeDeserializeRoundTrip) {
@@ -685,11 +1057,21 @@ TEST(SflowStructsTest, SampleRecordSerializeDeserializeRoundTrip) {
   // Add flow records with different data sizes
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+  record1.flowData = header1;
 
   sflow::FlowRecord record2;
   record2.flowFormat = 1;
-  record2.flowData = {0xCA, 0xFE}; // 2 bytes, 2 bytes padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xCA, 0xFE}; // 2 bytes, 2 bytes padding
+  record2.flowData = header2;
 
   flowSample.flowRecords = {record1, record2};
   original.sampleData.emplace_back(std::move(flowSample));
@@ -739,13 +1121,28 @@ TEST(SflowStructsTest, SampleRecordSerializeDeserializeRoundTrip) {
         deserializedFlowSample.flowRecords[i].flowFormat,
         originalFlowSample.flowRecords[i].flowFormat)
         << "FlowFormat mismatch for record " << i;
+    // Verify the SampledHeader variants
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            deserializedFlowSample.flowRecords[i].flowData))
+        << "Not SampledHeader variant for deserialized record " << i;
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            originalFlowSample.flowRecords[i].flowData))
+        << "Not SampledHeader variant for original record " << i;
+
+    const auto& deserializedSampledHeader = std::get<sflow::SampledHeader>(
+        deserializedFlowSample.flowRecords[i].flowData);
+    const auto& originalSampledHeader = std::get<sflow::SampledHeader>(
+        originalFlowSample.flowRecords[i].flowData);
+
     EXPECT_EQ(
-        deserializedFlowSample.flowRecords[i].flowData.size(),
-        originalFlowSample.flowRecords[i].flowData.size())
+        deserializedSampledHeader.header.size(),
+        originalSampledHeader.header.size())
         << "FlowData size mismatch for record " << i;
     EXPECT_THAT(
-        deserializedFlowSample.flowRecords[i].flowData,
-        ContainerEq(originalFlowSample.flowRecords[i].flowData))
+        deserializedSampledHeader.header,
+        ContainerEq(originalSampledHeader.header))
         << "FlowData content mismatch for record " << i;
   }
 }
@@ -753,16 +1150,17 @@ TEST(SflowStructsTest, SampleRecordSerializeDeserializeRoundTrip) {
 TEST(SflowStructsTest, SampleRecordDeserializeEmptyData) {
   // Test SampleRecord deserialization with empty sample data
 
-  std::vector<uint8_t> serializedData = {// sampleType (1) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x01,
-                                         // sampleDataLen (0) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x00};
+  std::vector<uint8_t> serializedData = {
+      // sampleType (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // sampleDataLen (0) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x00};
 
   auto buf =
       folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
@@ -833,11 +1231,21 @@ TEST(SflowStructsTest, SampleRecord) {
   // Add FlowRecords to the FlowSample
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding needed
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding needed
+  record1.flowData = header1;
 
   sflow::FlowRecord record2;
   record2.flowFormat = 1;
-  record2.flowData = {0xCA, 0xFE}; // 2 bytes, will need 2 bytes padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xCA, 0xFE}; // 2 bytes, will need 2 bytes padding
+  record2.flowData = header2;
 
   flowSample.flowRecords = {record1, record2};
 
@@ -872,11 +1280,11 @@ TEST(SflowStructsTest, SampleRecord) {
           0x00,
           0x00,
           0x01,
-          // sampleDataLen - the size of the FlowSample data (56 bytes)
+          // sampleDataLen - the size of the FlowSample data (88 bytes)
           0x00,
           0x00,
           0x00,
-          0x38,
+          0x58,
 
           // FlowSample data:
           // sequenceNumber (98765 = 0x181CD) as big-endian
@@ -926,12 +1334,33 @@ TEST(SflowStructsTest, SampleRecord) {
           0x00,
           0x00,
           0x01,
-          // flowDataLen (4) as big-endian
+          // flowDataLen (20) as big-endian - size of SampledHeader
+          0x00,
+          0x00,
+          0x00,
+          0x14,
+          // SampledHeader data:
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1000) as big-endian
+          0x00,
+          0x00,
+          0x03,
+          0xe8,
+          // stripped (42) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x2a,
+          // headerLength (4) as big-endian
           0x00,
           0x00,
           0x00,
           0x04,
-          // flowData: 0xDE, 0xAD, 0xBE, 0xEF (4 bytes, no padding needed)
+          // header data: 0xDE, 0xAD, 0xBE, 0xEF (4 bytes, no padding needed)
           0xDE,
           0xAD,
           0xBE,
@@ -943,12 +1372,33 @@ TEST(SflowStructsTest, SampleRecord) {
           0x00,
           0x00,
           0x01,
-          // flowDataLen (2) as big-endian
+          // flowDataLen (20) as big-endian - size of SampledHeader
+          0x00,
+          0x00,
+          0x00,
+          0x14,
+          // SampledHeader data:
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1200) as big-endian
+          0x00,
+          0x00,
+          0x04,
+          0xb0,
+          // stripped (50) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x32,
+          // headerLength (2) as big-endian
           0x00,
           0x00,
           0x00,
           0x02,
-          // flowData: 0xCA, 0xFE + 2 bytes padding for XDR alignment
+          // header data: 0xCA, 0xFE + 2 bytes padding for XDR alignment
           0xCA,
           0xFE,
           0x00,
@@ -975,7 +1425,12 @@ TEST(SflowStructsTest, SampleRecordMultipleFlowSamples) {
 
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0x11, 0x22}; // 2 bytes + 2 padding = 4 aligned
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x11, 0x22}; // 2 bytes + 2 padding = 4 aligned
+  record1.flowData = header1;
   flowSample1.flowRecords = {record1};
 
   // Create second FlowSample
@@ -990,7 +1445,12 @@ TEST(SflowStructsTest, SampleRecordMultipleFlowSamples) {
 
   sflow::FlowRecord record2;
   record2.flowFormat = 1;
-  record2.flowData = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding = 4 aligned
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding = 4 aligned
+  record2.flowData = header2;
   flowSample2.flowRecords = {record2};
 
   // Add both FlowSamples to the SampleRecord
@@ -998,8 +1458,8 @@ TEST(SflowStructsTest, SampleRecordMultipleFlowSamples) {
   record.sampleData.push_back(flowSample2);
 
   // Test size calculation - should include both FlowSamples
-  uint32_t expectedFlowSample1Size = 32 + 12; // 32 fixed + 12 for record1
-  uint32_t expectedFlowSample2Size = 32 + 12; // 32 fixed + 12 for record2
+  uint32_t expectedFlowSample1Size = 32 + 28; // 32 fixed + 28 for record1
+  uint32_t expectedFlowSample2Size = 32 + 28; // 32 fixed + 28 record2
   uint32_t expectedTotalSize = 4 /* sampleType */ + 4 /* sampleDataLen */ +
       expectedFlowSample1Size + expectedFlowSample2Size;
   EXPECT_EQ(record.size(), expectedTotalSize);
@@ -1054,8 +1514,12 @@ TEST(SflowStructsTest, SampleRecordSizeCalculation) {
   // Add a FlowRecord to the second sample
   sflow::FlowRecord flowRecord;
   flowRecord.flowFormat = 1;
-  flowRecord.flowData = {
-      0x01, 0x02, 0x03, 0x04, 0x05}; // 5 bytes + 3 padding = 8
+  sflow::SampledHeader header;
+  header.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header.frameLength = 1000;
+  header.stripped = 42;
+  header.header = {0x01, 0x02, 0x03, 0x04, 0x05}; // 5 bytes + 3 padding = 8
+  flowRecord.flowData = header;
   flowSample2.flowRecords = {flowRecord};
 
   record.sampleData.emplace_back(flowSample2);
@@ -1274,7 +1738,12 @@ TEST(SflowStructsTest, SampleDatagramV5SerializeDeserializeRoundTrip) {
 
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0xAA, 0xBB, 0xCC, 0xDD}; // 4 bytes, no padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0xAA, 0xBB, 0xCC, 0xDD}; // 4 bytes, no padding
+  flowRecord1.flowData = header1;
 
   flowSample1.flowRecords = {flowRecord1};
   record1.sampleData.emplace_back(std::move(flowSample1));
@@ -1294,7 +1763,12 @@ TEST(SflowStructsTest, SampleDatagramV5SerializeDeserializeRoundTrip) {
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {0xEE, 0xFF}; // 2 bytes, 2 bytes padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xEE, 0xFF}; // 2 bytes, 2 bytes padding
+  flowRecord2.flowData = header2;
 
   flowSample2.flowRecords = {flowRecord2};
   record2.sampleData.emplace_back(std::move(flowSample2));
@@ -1369,9 +1843,36 @@ TEST(SflowStructsTest, SampleDatagramV5SerializeDeserializeRoundTrip) {
           deserializedFlowSample.flowRecords[j].flowFormat,
           originalFlowSample.flowRecords[j].flowFormat)
           << "FlowRecord format mismatch for sample " << i << ", record " << j;
+      // Verify the SampledHeader variants
+      EXPECT_TRUE(
+          std::holds_alternative<sflow::SampledHeader>(
+              deserializedFlowSample.flowRecords[j].flowData))
+          << "Not SampledHeader variant for deserialized record " << j
+          << " in sample " << i;
+      EXPECT_TRUE(
+          std::holds_alternative<sflow::SampledHeader>(
+              originalFlowSample.flowRecords[j].flowData))
+          << "Not SampledHeader variant for original record " << j
+          << " in sample " << i;
+
+      const auto& deserializedSampledHeader = std::get<sflow::SampledHeader>(
+          deserializedFlowSample.flowRecords[j].flowData);
+      const auto& originalSampledHeader = std::get<sflow::SampledHeader>(
+          originalFlowSample.flowRecords[j].flowData);
+
+      EXPECT_EQ(
+          deserializedSampledHeader.protocol, originalSampledHeader.protocol)
+          << "Protocol mismatch for sample " << i << ", record " << j;
+      EXPECT_EQ(
+          deserializedSampledHeader.frameLength,
+          originalSampledHeader.frameLength)
+          << "Frame length mismatch for sample " << i << ", record " << j;
+      EXPECT_EQ(
+          deserializedSampledHeader.stripped, originalSampledHeader.stripped)
+          << "Stripped mismatch for sample " << i << ", record " << j;
       EXPECT_THAT(
-          deserializedFlowSample.flowRecords[j].flowData,
-          ContainerEq(originalFlowSample.flowRecords[j].flowData))
+          deserializedSampledHeader.header,
+          ContainerEq(originalSampledHeader.header))
           << "FlowRecord data mismatch for sample " << i << ", record " << j;
     }
   }
@@ -1402,7 +1903,12 @@ TEST(SflowStructsTest, SampleDatagramV5DeserializeMultipleSamples) {
 
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0x11, 0x22}; // 2 bytes + 2 padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x11, 0x22}; // 2 bytes + 2 padding
+  flowRecord1.flowData = header1;
   flowSample1.flowRecords = {flowRecord1};
 
   record1.sampleData.emplace_back(std::move(flowSample1));
@@ -1422,7 +1928,12 @@ TEST(SflowStructsTest, SampleDatagramV5DeserializeMultipleSamples) {
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding
+  flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
   record2.sampleData.emplace_back(std::move(flowSample2));
@@ -1460,7 +1971,12 @@ TEST(SflowStructsTest, SampleDatagramV5DeserializeMultipleSamples) {
   EXPECT_EQ(flow1.sequenceNumber, 111);
   EXPECT_EQ(flow1.sourceID, 222);
   EXPECT_EQ(flow1.flowRecords.size(), 1);
-  EXPECT_THAT(flow1.flowRecords[0].flowData, ElementsAre(0x11, 0x22));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow1.flowRecords[0].flowData));
+  const auto& sampledHeader1 =
+      std::get<sflow::SampledHeader>(flow1.flowRecords[0].flowData);
+  EXPECT_THAT(sampledHeader1.header, ElementsAre(0x11, 0x22));
 
   // Verify second sample
   const auto& sample2 = deserialized.samples[1];
@@ -1471,7 +1987,12 @@ TEST(SflowStructsTest, SampleDatagramV5DeserializeMultipleSamples) {
   EXPECT_EQ(flow2.sequenceNumber, 888);
   EXPECT_EQ(flow2.sourceID, 999);
   EXPECT_EQ(flow2.flowRecords.size(), 1);
-  EXPECT_THAT(flow2.flowRecords[0].flowData, ElementsAre(0xAA, 0xBB, 0xCC));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow2.flowRecords[0].flowData));
+  const auto& sampledHeader2a =
+      std::get<sflow::SampledHeader>(flow2.flowRecords[0].flowData);
+  EXPECT_THAT(sampledHeader2a.header, ElementsAre(0xAA, 0xBB, 0xCC));
 }
 
 TEST(SflowStructsTest, SampleDatagramV5) {
@@ -1500,11 +2021,21 @@ TEST(SflowStructsTest, SampleDatagramV5) {
   // Add FlowRecords to the FlowSample
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding needed
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding needed
+  record1.flowData = header1;
 
   sflow::FlowRecord record2;
   record2.flowFormat = 1;
-  record2.flowData = {0xAA, 0xBB}; // 2 bytes, will need 2 bytes padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xAA, 0xBB}; // 2 bytes, will need 2 bytes padding
+  record2.flowData = header2;
 
   flowSample.flowRecords = {record1, record2};
 
@@ -1587,11 +2118,12 @@ TEST(SflowStructsTest, SampleDatagramV5) {
           0x00,
           0x00,
           0x01,
-          // sampleDataLen (56 bytes) as big-endian
+          // sampleDataLen (88 bytes) as big-endian - updated for SampledHeader
+          // format
           0x00,
           0x00,
           0x00,
-          0x38,
+          0x58,
 
           // FlowSample data:
           // sequenceNumber (111 = 0x6F) as big-endian
@@ -1641,12 +2173,33 @@ TEST(SflowStructsTest, SampleDatagramV5) {
           0x00,
           0x00,
           0x01,
-          // flowDataLen (4) as big-endian
+          // flowDataLen (20 bytes) as big-endian - SampledHeader size
+          0x00,
+          0x00,
+          0x00,
+          0x14,
+          // SampledHeader data:
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1000) as big-endian
+          0x00,
+          0x00,
+          0x03,
+          0xe8,
+          // stripped (42) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x2a,
+          // headerLength (4) as big-endian
           0x00,
           0x00,
           0x00,
           0x04,
-          // flowData: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
+          // header data: 0x11, 0x22, 0x33, 0x44 (4 bytes, no padding needed)
           0x11,
           0x22,
           0x33,
@@ -1658,12 +2211,33 @@ TEST(SflowStructsTest, SampleDatagramV5) {
           0x00,
           0x00,
           0x01,
-          // flowDataLen (2) as big-endian
+          // flowDataLen (20 bytes) as big-endian - SampledHeader size
+          0x00,
+          0x00,
+          0x00,
+          0x14,
+          // SampledHeader data:
+          // protocol (ETHERNET_ISO88023 = 1) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          // frameLength (1200) as big-endian
+          0x00,
+          0x00,
+          0x04,
+          0xb0,
+          // stripped (50) as big-endian
+          0x00,
+          0x00,
+          0x00,
+          0x32,
+          // headerLength (2) as big-endian
           0x00,
           0x00,
           0x00,
           0x02,
-          // flowData: 0xAA, 0xBB + 2 bytes padding for XDR alignment
+          // header data: 0xAA, 0xBB + 2 bytes padding for XDR alignment
           0xAA,
           0xBB,
           0x00,
@@ -1702,32 +2276,39 @@ TEST(SflowStructsTest, SampleDatagramV5SizeCalculation) {
 
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0x01, 0x02, 0x03}; // 3 bytes + 1 padding = 4
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x01, 0x02, 0x03}; // 3 bytes + 1 padding = 4
+  flowRecord1.flowData = header1;
   flowSample1.flowRecords = {flowRecord1};
 
   record1.sampleData.push_back(flowSample1);
   datagram.samples.push_back(std::move(record1));
 
-  uint32_t expectedSize1 = baseSize + datagram.samples[0].size();
-  EXPECT_EQ(datagram.size(), expectedSize1);
-
-  // Add another sample record
+  // Create second sample record
   sflow::SampleRecord record2;
   record2.sampleType = 2;
 
   sflow::FlowSample flowSample2;
-  flowSample2.sequenceNumber = 1000;
-  flowSample2.sourceID = 2000;
-  flowSample2.samplingRate = 3000;
-  flowSample2.samplePool = 4000;
-  flowSample2.drops = 5000;
+  flowSample2.sequenceNumber = 200;
+  flowSample2.sourceID = 300;
+  flowSample2.samplingRate = 400;
+  flowSample2.samplePool = 500;
+  flowSample2.drops = 600;
   flowSample2.input = 6000;
   flowSample2.output = 7000;
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {
       0x04, 0x05, 0x06, 0x07, 0x08, 0x09}; // 6 bytes + 2 padding = 8
+  flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
   record2.sampleData.push_back(flowSample2);
@@ -1761,7 +2342,12 @@ TEST(SflowStructsTest, SampleDatagramV5MultipleSamples) {
 
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0x11, 0x22}; // 2 bytes + 2 padding = 4
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x11, 0x22}; // 2 bytes + 2 padding = 4
+  flowRecord1.flowData = header1;
   flowSample1.flowRecords = {flowRecord1};
 
   record1.sampleData.push_back(flowSample1);
@@ -1781,7 +2367,12 @@ TEST(SflowStructsTest, SampleDatagramV5MultipleSamples) {
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding = 4
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xAA, 0xBB, 0xCC}; // 3 bytes + 1 padding = 4
+  flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
   record2.sampleData.push_back(flowSample2);
@@ -1841,11 +2432,21 @@ TEST(SflowStructsTest, SampleDatagram) {
   // Add FlowRecords to the FlowSample
   sflow::FlowRecord record1;
   record1.flowFormat = 1;
-  record1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding needed
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding needed
+  record1.flowData = header1;
 
   sflow::FlowRecord record2;
   record2.flowFormat = 1;
-  record2.flowData = {0xCA, 0xFE, 0xBA, 0xBE, 0x12}; // 5 bytes, 3 bytes padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xCA, 0xFE, 0xBA, 0xBE, 0x12}; // 5 bytes, 3 bytes padding
+  record2.flowData = header2;
 
   flowSample.flowRecords = {record1, record2};
 
@@ -1919,7 +2520,12 @@ TEST(SflowStructsTest, SampleDatagramSizeCalculation) {
 
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0x01, 0x02, 0x03, 0x04}; // 4 bytes, no padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x01, 0x02, 0x03, 0x04}; // 4 bytes, no padding
+  flowRecord1.flowData = header1;
   flowSample1.flowRecords = {flowRecord1};
 
   record1.sampleData.push_back(flowSample1);
@@ -1943,7 +2549,12 @@ TEST(SflowStructsTest, SampleDatagramSizeCalculation) {
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {0x10, 0x20, 0x30}; // 3 bytes + 1 padding = 4
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0x10, 0x20, 0x30}; // 3 bytes + 1 padding = 4
+  flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
   record2.sampleData.push_back(flowSample2);
@@ -1976,12 +2587,22 @@ TEST(SflowStructsTest, SampleDatagramMultipleSamples) {
 
   sflow::FlowRecord flowRecord1a;
   flowRecord1a.flowFormat = 1;
-  flowRecord1a.flowData = {0xAA, 0xBB}; // 2 bytes + 2 padding = 4
+  sflow::SampledHeader header1a;
+  header1a.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1a.frameLength = 1000;
+  header1a.stripped = 42;
+  header1a.header = {0xAA, 0xBB}; // 2 bytes + 2 padding = 4
+  flowRecord1a.flowData = header1a;
 
   sflow::FlowRecord flowRecord1b;
   flowRecord1b.flowFormat = 1;
-  flowRecord1b.flowData = {
+  sflow::SampledHeader header1b;
+  header1b.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1b.frameLength = 1200;
+  header1b.stripped = 50;
+  header1b.header = {
       0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22}; // 6 bytes + 2 padding = 8
+  flowRecord1b.flowData = header1b;
 
   flowSample1.flowRecords = {flowRecord1a, flowRecord1b};
   record1.sampleData.push_back(flowSample1);
@@ -2001,8 +2622,12 @@ TEST(SflowStructsTest, SampleDatagramMultipleSamples) {
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {
-      0x33, 0x44, 0x55, 0x66, 0x77}; // 5 bytes + 3 padding = 8
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0x33, 0x44, 0x55, 0x66, 0x77}; // 5 bytes + 3 padding = 8
+  flowRecord2.flowData = header2;
   flowSample2.flowRecords = {flowRecord2};
 
   record2.sampleData.push_back(flowSample2);
@@ -2262,11 +2887,21 @@ TEST(SflowStructsTest, SampleDatagramSerializeDeserializeRoundTrip) {
   // Add flow records with different data sizes
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0xDE, 0xAD, 0xBE, 0xEF}; // 4 bytes, no padding
+  flowRecord1.flowData = header1;
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {0xCA, 0xFE, 0xBA}; // 3 bytes, 1 byte padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xCA, 0xFE, 0xBA}; // 3 bytes, 1 byte padding
+  flowRecord2.flowData = header2;
 
   flowSample.flowRecords = {flowRecord1, flowRecord2};
   record.sampleData.emplace_back(std::move(flowSample));
@@ -2334,9 +2969,34 @@ TEST(SflowStructsTest, SampleDatagramSerializeDeserializeRoundTrip) {
         deserializedFlowSample.flowRecords[i].flowFormat,
         originalFlowSample.flowRecords[i].flowFormat)
         << "FlowFormat mismatch for record " << i;
+    // Verify the SampledHeader variants
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            deserializedFlowSample.flowRecords[i].flowData))
+        << "Not SampledHeader variant for deserialized record " << i;
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            originalFlowSample.flowRecords[i].flowData))
+        << "Not SampledHeader variant for original record " << i;
+
+    const auto& deserializedSampledHeader = std::get<sflow::SampledHeader>(
+        deserializedFlowSample.flowRecords[i].flowData);
+    const auto& originalSampledHeader = std::get<sflow::SampledHeader>(
+        originalFlowSample.flowRecords[i].flowData);
+
+    EXPECT_EQ(
+        deserializedSampledHeader.protocol, originalSampledHeader.protocol)
+        << "Protocol mismatch for record " << i;
+    EXPECT_EQ(
+        deserializedSampledHeader.frameLength,
+        originalSampledHeader.frameLength)
+        << "Frame length mismatch for record " << i;
+    EXPECT_EQ(
+        deserializedSampledHeader.stripped, originalSampledHeader.stripped)
+        << "Stripped mismatch for record " << i;
     EXPECT_THAT(
-        deserializedFlowSample.flowRecords[i].flowData,
-        ContainerEq(originalFlowSample.flowRecords[i].flowData))
+        deserializedSampledHeader.header,
+        ContainerEq(originalSampledHeader.header))
         << "FlowData content mismatch for record " << i;
   }
 }
@@ -2445,7 +3105,12 @@ TEST(SflowStructsTest, SampleDatagramDeserializeComplexNested) {
 
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x11, 0x22, 0x33, 0x44}; // 4 bytes, no padding
+  flowRecord1.flowData = header1;
 
   flowSample1.flowRecords = {flowRecord1};
   record1.sampleData.emplace_back(std::move(flowSample1));
@@ -2465,7 +3130,12 @@ TEST(SflowStructsTest, SampleDatagramDeserializeComplexNested) {
 
   sflow::FlowRecord flowRecord2;
   flowRecord2.flowFormat = 1;
-  flowRecord2.flowData = {0xAA, 0xBB, 0xCC}; // 3 bytes, 1 byte padding
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1200;
+  header2.stripped = 50;
+  header2.header = {0xAA, 0xBB, 0xCC}; // 3 bytes, 1 byte padding
+  flowRecord2.flowData = header2;
 
   flowSample2.flowRecords = {flowRecord2};
   record2.sampleData.emplace_back(std::move(flowSample2));
@@ -2507,8 +3177,12 @@ TEST(SflowStructsTest, SampleDatagramDeserializeComplexNested) {
   EXPECT_EQ(flow1.sequenceNumber, 1111);
   EXPECT_EQ(flow1.sourceID, 2222);
   EXPECT_EQ(flow1.flowRecords.size(), 1);
-  EXPECT_THAT(
-      flow1.flowRecords[0].flowData, ElementsAre(0x11, 0x22, 0x33, 0x44));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow1.flowRecords[0].flowData));
+  const auto& sampledHeader1 =
+      std::get<sflow::SampledHeader>(flow1.flowRecords[0].flowData);
+  EXPECT_THAT(sampledHeader1.header, ElementsAre(0x11, 0x22, 0x33, 0x44));
 
   // Verify second sample
   const auto& sample2 = deserialized.datagramV5.samples[1];
@@ -2519,7 +3193,12 @@ TEST(SflowStructsTest, SampleDatagramDeserializeComplexNested) {
   EXPECT_EQ(flow2.sequenceNumber, 8888);
   EXPECT_EQ(flow2.sourceID, 9999);
   EXPECT_EQ(flow2.flowRecords.size(), 1);
-  EXPECT_THAT(flow2.flowRecords[0].flowData, ElementsAre(0xAA, 0xBB, 0xCC));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow2.flowRecords[0].flowData));
+  const auto& sampledHeader2 =
+      std::get<sflow::SampledHeader>(flow2.flowRecords[0].flowData);
+  EXPECT_THAT(sampledHeader2.header, ElementsAre(0xAA, 0xBB, 0xCC));
 }
 
 TEST(SflowStructsTest, SampleDatagramDeserializeWithMultipleFlowRecords) {
@@ -2549,24 +3228,48 @@ TEST(SflowStructsTest, SampleDatagramDeserializeWithMultipleFlowRecords) {
   // Add multiple flow records with different sizes to test XDR padding
   sflow::FlowRecord flowRecord1;
   flowRecord1.flowFormat = 1;
-  flowRecord1.flowData = {0x01}; // 1 byte, 3 bytes padding
+  sflow::SampledHeader header1;
+  header1.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header1.frameLength = 1000;
+  header1.stripped = 42;
+  header1.header = {0x01}; // 1 byte, 3 bytes padding
+  flowRecord1.flowData = header1;
 
   sflow::FlowRecord flowRecord2;
-  flowRecord2.flowFormat = 2;
-  flowRecord2.flowData = {0x02, 0x03}; // 2 bytes, 2 bytes padding
+  flowRecord2.flowFormat = 1;
+  sflow::SampledHeader header2;
+  header2.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header2.frameLength = 1100;
+  header2.stripped = 50;
+  header2.header = {0x02, 0x03}; // 2 bytes, 2 bytes padding
+  flowRecord2.flowData = header2;
 
   sflow::FlowRecord flowRecord3;
-  flowRecord3.flowFormat = 3;
-  flowRecord3.flowData = {0x04, 0x05, 0x06}; // 3 bytes, 1 byte padding
+  flowRecord3.flowFormat = 1;
+  sflow::SampledHeader header3;
+  header3.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header3.frameLength = 1200;
+  header3.stripped = 60;
+  header3.header = {0x04, 0x05, 0x06}; // 3 bytes, 1 byte padding
+  flowRecord3.flowData = header3;
 
   sflow::FlowRecord flowRecord4;
-  flowRecord4.flowFormat = 4;
-  flowRecord4.flowData = {0x07, 0x08, 0x09, 0x0A}; // 4 bytes, no padding
+  flowRecord4.flowFormat = 1;
+  sflow::SampledHeader header4;
+  header4.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header4.frameLength = 1300;
+  header4.stripped = 70;
+  header4.header = {0x07, 0x08, 0x09, 0x0A}; // 4 bytes, no padding
+  flowRecord4.flowData = header4;
 
   sflow::FlowRecord flowRecord5;
-  flowRecord5.flowFormat = 5;
-  flowRecord5.flowData = {
-      0x0B, 0x0C, 0x0D, 0x0E, 0x0F}; // 5 bytes, 3 bytes padding
+  flowRecord5.flowFormat = 1;
+  sflow::SampledHeader header5;
+  header5.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
+  header5.frameLength = 1400;
+  header5.stripped = 80;
+  header5.header = {0x0B, 0x0C, 0x0D, 0x0E, 0x0F}; // 5 bytes, 3 bytes padding
+  flowRecord5.flowData = header5;
 
   flowSample.flowRecords = {
       flowRecord1, flowRecord2, flowRecord3, flowRecord4, flowRecord5};
@@ -2619,29 +3322,202 @@ TEST(SflowStructsTest, SampleDatagramDeserializeWithMultipleFlowRecords) {
 
   // Verify each flow record
   EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[0].flowFormat, 1);
-  EXPECT_THAT(
-      deserializedFlowSampleMultiple.flowRecords[0].flowData,
-      ElementsAre(0x01));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[0].flowData));
+  const auto& sampledHeader0 = std::get<sflow::SampledHeader>(
+      deserializedFlowSampleMultiple.flowRecords[0].flowData);
+  EXPECT_THAT(sampledHeader0.header, ElementsAre(0x01));
 
-  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[1].flowFormat, 2);
-  EXPECT_THAT(
-      deserializedFlowSampleMultiple.flowRecords[1].flowData,
-      ElementsAre(0x02, 0x03));
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[1].flowFormat, 1);
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[1].flowData));
+  const auto& sampledHeader1 = std::get<sflow::SampledHeader>(
+      deserializedFlowSampleMultiple.flowRecords[1].flowData);
+  EXPECT_THAT(sampledHeader1.header, ElementsAre(0x02, 0x03));
 
-  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[2].flowFormat, 3);
-  EXPECT_THAT(
-      deserializedFlowSampleMultiple.flowRecords[2].flowData,
-      ElementsAre(0x04, 0x05, 0x06));
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[2].flowFormat, 1);
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[2].flowData));
+  const auto& sampledHeader2 = std::get<sflow::SampledHeader>(
+      deserializedFlowSampleMultiple.flowRecords[2].flowData);
+  EXPECT_THAT(sampledHeader2.header, ElementsAre(0x04, 0x05, 0x06));
 
-  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[3].flowFormat, 4);
-  EXPECT_THAT(
-      deserializedFlowSampleMultiple.flowRecords[3].flowData,
-      ElementsAre(0x07, 0x08, 0x09, 0x0A));
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[3].flowFormat, 1);
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[3].flowData));
+  const auto& sampledHeader3 = std::get<sflow::SampledHeader>(
+      deserializedFlowSampleMultiple.flowRecords[3].flowData);
+  EXPECT_THAT(sampledHeader3.header, ElementsAre(0x07, 0x08, 0x09, 0x0A));
 
-  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[4].flowFormat, 5);
-  EXPECT_THAT(
-      deserializedFlowSampleMultiple.flowRecords[4].flowData,
-      ElementsAre(0x0B, 0x0C, 0x0D, 0x0E, 0x0F));
+  EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[4].flowFormat, 1);
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[4].flowData));
+  const auto& sampledHeader4 = std::get<sflow::SampledHeader>(
+      deserializedFlowSampleMultiple.flowRecords[4].flowData);
+  EXPECT_THAT(sampledHeader4.header, ElementsAre(0x0B, 0x0C, 0x0D, 0x0E, 0x0F));
+}
+
+TEST(SflowStructsTest, SampledHeaderDeserialization) {
+  // Test SampledHeader deserialization functionality
+
+  // Create a buffer with serialized SampledHeader data
+  std::vector<uint8_t> serializedData = {
+      // protocol (ETHERNET_ISO88023 = 1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // frameLength (1500 = 0x5DC) as big-endian
+      0x00,
+      0x00,
+      0x05,
+      0xDC,
+      // stripped (42 = 0x2A) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x2A,
+      // headerLength (6) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x06,
+      // header data: 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE
+      0xDE,
+      0xAD,
+      0xBE,
+      0xEF,
+      0xCA,
+      0xFE,
+      // XDR padding (2 bytes) to align to 4-byte boundary
+      0x00,
+      0x00};
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampledHeader
+  sflow::SampledHeader header = sflow::SampledHeader::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(header.protocol, sflow::HeaderProtocol::ETHERNET_ISO88023);
+  EXPECT_EQ(header.frameLength, 1500);
+  EXPECT_EQ(header.stripped, 42);
+  EXPECT_EQ(header.header.size(), 6);
+  EXPECT_THAT(header.header, ElementsAre(0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE));
+}
+
+TEST(SflowStructsTest, SampledHeaderSerializeDeserializeRoundTrip) {
+  // Test serialize-deserialize round trip for SampledHeader
+
+  std::vector<std::vector<uint8_t>> testHeaders = {
+      {}, // Empty header
+      {0x01}, // 1 byte
+      {0x02, 0x03}, // 2 bytes
+      {0x04, 0x05, 0x06}, // 3 bytes
+      {0x07, 0x08, 0x09, 0x0A}, // 4 bytes
+      {0x0B, 0x0C, 0x0D, 0x0E, 0x0F}, // 5 bytes
+      {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17} // 8 bytes
+  };
+
+  std::vector<sflow::HeaderProtocol> testProtocols = {
+      sflow::HeaderProtocol::ETHERNET_ISO88023,
+      sflow::HeaderProtocol::IPV4,
+      sflow::HeaderProtocol::IPV6,
+      sflow::HeaderProtocol::MPLS};
+
+  for (uint32_t i = 0; i < testHeaders.size(); ++i) {
+    for (uint32_t j = 0; j < testProtocols.size(); ++j) {
+      // Create original SampledHeader
+      sflow::SampledHeader original;
+      original.protocol = testProtocols[j];
+      original.frameLength = 1000 + i * 100;
+      original.stripped = 50 + i * 10;
+      original.header = testHeaders[i];
+
+      // Serialize
+      int bufSize = 1024;
+      std::vector<uint8_t> buffer(bufSize);
+      auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
+      auto rwCursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
+
+      original.serialize(rwCursor.get());
+      size_t serializedSize = bufSize - rwCursor->length();
+
+      // Deserialize
+      auto readBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
+      folly::io::Cursor readCursor(readBuf.get());
+
+      sflow::SampledHeader deserialized =
+          sflow::SampledHeader::deserialize(readCursor);
+
+      // Verify round-trip correctness
+      EXPECT_EQ(deserialized.protocol, original.protocol)
+          << "Protocol mismatch for header size " << i << ", protocol " << j;
+      EXPECT_EQ(deserialized.frameLength, original.frameLength)
+          << "Frame length mismatch for header size " << i << ", protocol "
+          << j;
+      EXPECT_EQ(deserialized.stripped, original.stripped)
+          << "Stripped mismatch for header size " << i << ", protocol " << j;
+      EXPECT_EQ(deserialized.header.size(), original.header.size())
+          << "Header size mismatch for header size " << i << ", protocol " << j;
+      EXPECT_THAT(deserialized.header, ContainerEq(original.header))
+          << "Header data mismatch for header size " << i << ", protocol " << j;
+
+      // Verify size calculation consistency
+      EXPECT_EQ(deserialized.size(), original.size())
+          << "Size calculation mismatch for header size " << i << ", protocol "
+          << j;
+    }
+  }
+}
+
+TEST(SflowStructsTest, SampledHeaderDeserializeEmptyHeader) {
+  // Test SampledHeader deserialization with empty header
+
+  std::vector<uint8_t> serializedData = {
+      // Protocol (PPP = 7)
+      0x00,
+      0x00,
+      0x00,
+      0x07,
+      // Frame length (64)
+      0x00,
+      0x00,
+      0x00,
+      0x40,
+      // Stripped (0)
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      // Header length (0)
+      0x00,
+      0x00,
+      0x00,
+      0x00
+      // No header data or padding
+  };
+
+  auto buf =
+      folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
+  folly::io::Cursor cursor(buf.get());
+
+  // Deserialize the SampledHeader
+  sflow::SampledHeader header = sflow::SampledHeader::deserialize(cursor);
+
+  // Verify the deserialized data
+  EXPECT_EQ(header.protocol, sflow::HeaderProtocol::PPP);
+  EXPECT_EQ(header.frameLength, 64);
+  EXPECT_EQ(header.stripped, 0);
+  EXPECT_EQ(header.header.size(), 0);
+  EXPECT_TRUE(header.header.empty());
 }
 
 } // namespace facebook::fboss::sflow

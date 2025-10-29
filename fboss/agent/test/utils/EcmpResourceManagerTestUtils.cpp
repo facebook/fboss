@@ -467,7 +467,7 @@ void assertRollbacks(
     const std::shared_ptr<SwitchState>& endState) {
   auto applyDelta = [&newEcmpResourceMgr](
                         const StateDelta& delta, bool failUpdate = false) {
-    auto deltas = newEcmpResourceMgr.consolidate(delta);
+    auto deltas = newEcmpResourceMgr.consolidate(delta, true /*rollingBack*/);
     facebook::fboss::assertDeltasForOverflow(newEcmpResourceMgr, deltas);
     assertResourceMgrCorrectness(newEcmpResourceMgr, deltas.back().newState());
     if (failUpdate) {

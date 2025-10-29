@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -646,7 +645,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
     auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto intfMac = intf->getMac();
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     std::unique_ptr<facebook::fboss::TxPacket> txPacket;
     CHECK(proto == IP_PROTO::IP_PROTO_UDP || proto == IP_PROTO::IP_PROTO_TCP);
     if (proto == IP_PROTO::IP_PROTO_UDP) {

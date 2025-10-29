@@ -458,6 +458,26 @@ void HwPortFb303Stats::updateStats(
     updateStat(timeRetrieved_, kOutPfc(), outPfc);
   }
 
+  // PFC duration stats
+  if (curPortStats.rxPfcDurationUsec_()->size()) {
+    for (const auto& priority : getEnabledPfcPriorities()) {
+      updatePfcStat(
+          kRxPfcDurationUsec(),
+          priority,
+          *curPortStats.rxPfcDurationUsec_(),
+          nullptr);
+    }
+  }
+  if (curPortStats.txPfcDurationUsec_()->size()) {
+    for (const auto& priority : getEnabledPfcPriorities()) {
+      updatePfcStat(
+          kTxPfcDurationUsec(),
+          priority,
+          *curPortStats.txPfcDurationUsec_(),
+          nullptr);
+    }
+  }
+
   // PG stats
   for (const auto& [pgId, discards] : *curPortStats.pgInCongestionDiscards_()) {
     updatePgStat(timeRetrieved_, kInCongestionDiscards(), pgId, discards);

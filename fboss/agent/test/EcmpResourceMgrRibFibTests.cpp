@@ -98,12 +98,10 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
   }
   void updateRoutes(const std::shared_ptr<SwitchState>& newState) {
     auto updater = sw_->getRouteUpdater();
-    auto constexpr kClientID(ClientID::BGPD);
     StateDelta delta(sw_->getState(), newState);
     processFibsDeltaInHwSwitchOrder(
         delta,
-        [&updater, kClientID](
-            RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        [&updater](RouterID rid, const auto& oldRoute, const auto& newRoute) {
           updater.addRoute(
               rid,
               newRoute->prefix().network(),
@@ -111,7 +109,7 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
               kClientID,
               newRoute->getForwardInfo());
         },
-        [&updater, kClientID](RouterID rid, const auto& newRoute) {
+        [&updater](RouterID rid, const auto& newRoute) {
           updater.addRoute(
               rid,
               newRoute->prefix().network(),
@@ -119,7 +117,7 @@ class EcmpResourceManagerRibFibTest : public ::testing::Test {
               kClientID,
               newRoute->getForwardInfo());
         },
-        [&updater, kClientID](RouterID rid, const auto& oldRoute) {
+        [&updater](RouterID rid, const auto& oldRoute) {
           IpPrefix pfx;
           pfx.ip() = network::toBinaryAddress(oldRoute->prefix().network());
           pfx.prefixLength() = oldRoute->prefix().mask();

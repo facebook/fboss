@@ -61,10 +61,13 @@ TEST(RegisterMapTest, JSONCoversion) {
   })";
   nlohmann::json j = nlohmann::json::parse(inp);
   RegisterMap rmap = j;
-  EXPECT_TRUE(std::any_of(
-      rmap.applicableAddresses.range.cbegin(),
-      rmap.applicableAddresses.range.cend(),
-      [](auto const& ent) { return (ent.first == 160 && ent.second == 191); }));
+  EXPECT_TRUE(
+      std::any_of(
+          rmap.applicableAddresses.range.cbegin(),
+          rmap.applicableAddresses.range.cend(),
+          [](auto const& ent) {
+            return (ent.first == 160 && ent.second == 191);
+          }));
   EXPECT_EQ(rmap.probeRegister, 104);
   EXPECT_EQ(rmap.baudrate, 19200);
   EXPECT_EQ(rmap.name, "orv2_psu");
@@ -104,10 +107,13 @@ TEST(RegisterMapTest, JSONCoversionBaudrate) {
   })";
   nlohmann::json j = nlohmann::json::parse(inp);
   RegisterMap rmap = j;
-  EXPECT_TRUE(std::any_of(
-      rmap.applicableAddresses.range.cbegin(),
-      rmap.applicableAddresses.range.cend(),
-      [](auto const& ent) { return (ent.first == 160 && ent.second == 191); }));
+  EXPECT_TRUE(
+      std::any_of(
+          rmap.applicableAddresses.range.cbegin(),
+          rmap.applicableAddresses.range.cend(),
+          [](auto const& ent) {
+            return (ent.first == 160 && ent.second == 191);
+          }));
   EXPECT_EQ(
       rmap.maxRegisterSpanLength,
       RegisterStoreSpan::kDefaultMaxRegisterSpanLength);
@@ -155,10 +161,13 @@ TEST(RegisterMapTest, JSONCoversionSpecial) {
   })";
   nlohmann::json j = nlohmann::json::parse(inp);
   RegisterMap rmap = j;
-  EXPECT_TRUE(std::any_of(
-      rmap.applicableAddresses.range.cbegin(),
-      rmap.applicableAddresses.range.cend(),
-      [](auto const& ent) { return (ent.first == 160 && ent.second == 191); }));
+  EXPECT_TRUE(
+      std::any_of(
+          rmap.applicableAddresses.range.cbegin(),
+          rmap.applicableAddresses.range.cend(),
+          [](auto const& ent) {
+            return (ent.first == 160 && ent.second == 191);
+          }));
   EXPECT_EQ(rmap.probeRegister, 104);
   EXPECT_EQ(rmap.baudrate, 19200);
   EXPECT_EQ(rmap.name, "orv2_psu");

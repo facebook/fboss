@@ -106,9 +106,10 @@ void validateUdfConfig(
     EXPECT_EQ(
         udfApi.getAttribute(
             saiUdfMatch->adapterKey(), SaiUdfMatchTraits::Attributes::L3Type{}),
-        AclEntryFieldU8(std::make_pair(
-            static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
-            static_cast<uint8_t>(SaiUdfManager::kMaskAny))));
+        AclEntryFieldU8(
+            std::make_pair(
+                static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+                static_cast<uint8_t>(SaiUdfManager::kMaskAny))));
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     EXPECT_EQ(
         udfApi.getAttribute(

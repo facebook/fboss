@@ -27,10 +27,11 @@ NDPOptions parseNdpOptions(const std::string& pktHex) {
 
 TEST(NDPOptionsTest, NDPOptionTooSmall) {
   EXPECT_THROW(
-      parseNdpOptions("05" // type: mtu
-                      "01" // length (1 * 8 bytes)
-                           // no payload (6 bytes missing)
-                      ),
+      parseNdpOptions(
+          "05" // type: mtu
+          "01" // length (1 * 8 bytes)
+               // no payload (6 bytes missing)
+          ),
       HdrParseError);
 }
 
@@ -58,11 +59,12 @@ TEST(NDPOptionsTest, MtuOptionResFieldIgnored) {
 
 TEST(NDPOptionsTest, MtuOptionInvalidLength) {
   EXPECT_THROW(
-      parseNdpOptions("05" // type: mtu
-                      "02" // invalid length (expected 1)
-                      "0000" // res (1234)
-                      "00000500" // mtu (1280)
-                      ),
+      parseNdpOptions(
+          "05" // type: mtu
+          "02" // invalid length (expected 1)
+          "0000" // res (1234)
+          "00000500" // mtu (1280)
+          ),
       HdrParseError);
 }
 

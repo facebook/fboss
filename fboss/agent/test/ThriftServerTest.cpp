@@ -140,7 +140,7 @@ class MultiSwitchThriftHandlerMock : public MultiSwitchThriftHandler {
   co_getTxPackets(int64_t /*switchId*/) override {
     co_return folly::coro::co_invoke(
         [this]() mutable
-        -> folly::coro::AsyncGenerator<multiswitch::TxPacket&&> {
+            -> folly::coro::AsyncGenerator<multiswitch::TxPacket&&> {
           while (receivedPktsQueue_.size()) {
             multiswitch::TxPacket txPkt;
             multiswitch::RxPacket rxPkt;

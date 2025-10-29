@@ -39,7 +39,7 @@
 
 #include <fmt/ranges.h>
 
-#if defined(BRCM_SAI_SDK_DNX)
+#if defined(BRCM_SAI_SDK_DNX) || defined(BRCM_SAI_SDK_XGS)
 #ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
 #else
@@ -107,6 +107,32 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
 
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
+  switch (counterId) {
+    case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
+      return 0;
+    case SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION:
+      return 1;
+    case SAI_PORT_STAT_PFC_2_XOFF_TOTAL_DURATION:
+      return 2;
+    case SAI_PORT_STAT_PFC_3_XOFF_TOTAL_DURATION:
+      return 3;
+    case SAI_PORT_STAT_PFC_4_XOFF_TOTAL_DURATION:
+      return 4;
+    case SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION:
+      return 5;
+    case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
+      return 6;
+    case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION:
+      return 7;
+    default:
+      break;
+  }
+  throw FbossError("Got unexpected PFC duration counter id: ", counterId);
+}
+#endif
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
 uint16_t getFecSymbolCountFromCounterId(sai_stat_id_t counterId) {
   if (counterId < SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0 ||
@@ -123,7 +149,9 @@ void fillHwPortStats(
     HwPortStats& hwPortStats,
     const SaiPlatform* platform,
     const cfg::PortType& portType,
-    bool updateFecStats) {
+    bool updateFecStats,
+    bool rxPfcDurationStatsEnabled,
+    bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards_() = 0;
   bool isEtherStatsSupported =
@@ -349,6 +377,27 @@ void fillHwPortStats(
       case SAI_PORT_STAT_FABRIC_CONTROL_TX_PKTS:
         hwPortStats.fabricControlTxPackets_() = value;
         break;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+      case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_1_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_2_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_3_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_4_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
+      case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION: {
+        auto priority = getPriorityFromPfcDurationCounterId(counterId);
+        // PFC duration counters are clear on read and only one of
+        // RX / TX is expected to be enabled per port at a time.
+        if (rxPfcDurationStatsEnabled) {
+          hwPortStats.rxPfcDurationUsec_()[priority] += value;
+        }
+        if (txPfcDurationStatsEnabled) {
+          hwPortStats.txPfcDurationUsec_()[priority] += value;
+        }
+        break;
+      }
 #endif
       default:
         auto configuredDebugCounters =
@@ -859,12 +908,33 @@ void SaiPortManager::programPfcWatchdogPerQueueEnable(
              << swPort->getName();
 }
 
+void SaiPortManager::programPfcDurationCounter(
+    const std::shared_ptr<Port>& swPort,
+    const std::optional<cfg::PortPfc>& newPfc,
+    const std::optional<cfg::PortPfc>& oldPfc) {
+  // Enable PFC duration counter enabled state in port handle, which
+  // dictates if the stats needs to be updated during stats collection.
+  bool txPfcDurationEn = newPfc.has_value()
+      ? newPfc->txPfcDurationEnable().value_or(false)
+      : false;
+  bool rxPfcDurationEn = newPfc.has_value()
+      ? newPfc->rxPfcDurationEnable().value_or(false)
+      : false;
+  setPfcDurationStatsEnabled(swPort->getID(), txPfcDurationEn, rxPfcDurationEn);
+
+  // Handle ASIC specific programming needed to enable PFC duration counters
+  programPfcDurationCounterEnable(swPort, newPfc, oldPfc);
+}
+
 void SaiPortManager::addPfc(const std::shared_ptr<Port>& swPort) {
-  if (swPort->getPfc().has_value()) {
+  auto pfc = swPort->getPfc();
+  if (pfc.has_value()) {
     // PFC is enabled for all priorities on a port
     sai_uint8_t txPfc, rxPfc;
     std::tie(txPfc, rxPfc) = preparePfcConfigs(swPort);
     programPfc(swPort, txPfc, rxPfc);
+    // Program PFC duration counter direction
+    programPfcDurationCounter(swPort, pfc, std::nullopt);
     // Add PFC WD
     addPfcWatchdog(swPort);
   }
@@ -884,6 +954,9 @@ void SaiPortManager::changePfc(
       XLOG(DBG4) << "PFC enabled setting unchanged for " << newPort->getName();
     }
     changePfcWatchdog(oldPort, newPort);
+    // Program PFC duration counter direction if PFC is enabled!
+    auto newPfc = newPort->getPfc();
+    programPfcDurationCounter(newPort, newPfc, oldPort->getPfc());
   } else {
     XLOG(DBG4) << "PFC setting unchanged for " << newPort->getName();
   }
@@ -893,6 +966,7 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc().has_value()) {
     // PFC WD to be removed first
     removePfcWatchdog(swPort);
+    programPfcDurationCounter(swPort, std::nullopt, std::nullopt);
     sai_uint8_t txPfc = 0, rxPfc = 0;
     programPfc(swPort, txPfc, rxPfc);
   }
@@ -1291,8 +1365,9 @@ void SaiPortManager::changeQueue(
     const std::shared_ptr<Port>& swPort,
     const QueueConfig& oldQueueConfig,
     const QueueConfig& newQueueConfig) {
-  if (swPort->getPortType() == cfg::PortType::FABRIC_PORT &&
-      !platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) {
+  if ((swPort->getPortType() == cfg::PortType::FABRIC_PORT &&
+       !platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) ||
+      swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
     return;
   }
   auto swId = swPort->getID();
@@ -1649,12 +1724,14 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   auto lbMode = GET_OPT_ATTR(Port, PortLoopbackMode, attributes);
-  port->setLoopbackMode(utility::getCfgPortLoopbackMode(
-      static_cast<sai_port_loopback_mode_t>(lbMode)));
+  port->setLoopbackMode(
+      utility::getCfgPortLoopbackMode(
+          static_cast<sai_port_loopback_mode_t>(lbMode)));
 #else
   auto ilbMode = GET_OPT_ATTR(Port, InternalLoopbackMode, attributes);
-  port->setLoopbackMode(utility::getCfgPortInternalLoopbackMode(
-      static_cast<sai_port_internal_loopback_mode_t>(ilbMode)));
+  port->setLoopbackMode(
+      utility::getCfgPortInternalLoopbackMode(
+          static_cast<sai_port_internal_loopback_mode_t>(ilbMode)));
 #endif
 
   // TODO: support Preemphasis once it is also used
@@ -2069,6 +2146,19 @@ void SaiPortManager::updateStats(
   }
 #endif
 
+  auto supportedPfcDurationStats = getSupportedPfcDurationStats(portId);
+  if (supportedPfcDurationStats.size()) {
+    // PFC duration counters are clear on read. Also, optimize to
+    // include the stats ID to be read if the PFC duration counter
+    // is enabled for the port.
+    // TODO(nivinl): get_port_stats_ext() is failing for these stats,
+    // however, get_port_stats() works. Given these are COR counters,
+    // expect to use SAI_STATS_MODE_READ_AND_CLEAR and hence need the
+    // support, working with Broadcom in CS00012427949 to figure how
+    // to proceed here. For now, using SAI_STATS_MODE_READ instead.
+    handle->port->updateStats(supportedPfcDurationStats, SAI_STATS_MODE_READ);
+  }
+
   bool updateFecStats = false;
   auto lastFecReadTimeIt = lastFecCounterReadTime_.find(portId);
   if (lastFecReadTimeIt == lastFecCounterReadTime_.end() ||
@@ -2113,7 +2203,9 @@ void SaiPortManager::updateStats(
       curPortStats,
       platform_,
       portType,
-      updateFecStats);
+      updateFecStats,
+      handle->rxPfcDurationStatsEnabled,
+      handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards_(),
        *curPortStats.inDstNullDiscards_()}};
@@ -2477,6 +2569,15 @@ void SaiPortManager::clearQosPolicy() {
   for (const auto& portIdAndHandle : handles_) {
     clearQosPolicy(portIdAndHandle.first);
   }
+}
+
+void SaiPortManager::setPfcDurationStatsEnabled(
+    const PortID& portID,
+    bool txEnabled,
+    bool rxEnabled) {
+  auto handle = getPortHandle(portID);
+  handle->txPfcDurationStatsEnabled = txEnabled;
+  handle->rxPfcDurationStatsEnabled = rxEnabled;
 }
 
 void SaiPortManager::changeQosPolicy(

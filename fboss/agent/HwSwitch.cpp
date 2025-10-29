@@ -202,6 +202,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.switchTemperatureStats() = getSwitchTemperatureStats();
   hwSwitchStats.sysPortShelState() = getSysPortShelState();
   hwSwitchStats.hwRouterInterfaceStats() = getRouterInterfaceStats();
+  hwSwitchStats.hardResetStats() = getHwSwitchHardResetStats();
   return hwSwitchStats;
 }
 

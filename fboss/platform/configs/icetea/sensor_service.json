@@ -234,7 +234,7 @@
             "maxAlarmVal": 10,
             "upperCriticalVal": 11
           },
-          "compute": "@/1000"
+          "compute": "0.274*@/1000"
         },
         {
           "name": "MCB_PU925_TPS25990_XP12R0V_COME_PIN",
@@ -244,7 +244,7 @@
             "maxAlarmVal": 120,
             "upperCriticalVal": 130
           },
-          "compute": "@/1000000"
+          "compute": "0.274*@/1000000"
         },
         {
           "name": "MCB_PU925_TPS25990_XP12R0V_COME_TEMP",
@@ -266,7 +266,7 @@
         },
         {
           "name": "MCB_PU925_TPS25990_XP12R0V_COME_VOUT",
-          "sysfsPath": "/run/devmap/sensors/MCB_LOAD_SWITCH_MONITOR/in2_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_LOAD_SWITCH_MONITOR/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 13.2,
@@ -1633,13 +1633,13 @@
           "name": "FCB_XP48R0V_HOTSWAP_IOUT",
           "sysfsPath": "/run/devmap/sensors/FCB_48V_HSC_MONITOR/curr1_input",
           "type": 2,
-          "compute": "2.4*@/1000"
+          "compute": "1.8*@/1000"
         },
         {
           "name": "FCB_XP48R0V_HOTSWAP_PIN",
           "sysfsPath": "/run/devmap/sensors/FCB_48V_HSC_MONITOR/power1_input",
           "type": 0,
-          "compute": "2.4*@/1000000"
+          "compute": "1.8*@/1000000"
         },
         {
           "name": "FCB_XP48R0V_HOTSWAP_TEMP",

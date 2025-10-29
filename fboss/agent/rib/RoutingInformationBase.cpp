@@ -430,9 +430,7 @@ void RibRouteTables::setOverrideEcmpMode(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-        prefix2EcmpMode,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
+        prefix2EcmpMode) {
   updateRib(rid, [&](auto& routeTable) {
     // Update rib
     auto updateRoute = [](auto& rib,
@@ -471,16 +469,13 @@ void RibRouteTables::setOverrideEcmpMode(
       }
     }
   });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
 void RibRouteTables::setOverrideEcmpNhops(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-        prefix2Nhops,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
+        prefix2Nhops) {
   updateRib(rid, [&](auto& routeTable) {
     // Update rib
     auto updateRoute = [](auto& rib,
@@ -518,7 +513,6 @@ void RibRouteTables::setOverrideEcmpNhops(
       }
     }
   });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
 }
 
 template <typename AddressT>
@@ -722,13 +716,10 @@ void RoutingInformationBase::setOverrideEcmpModeAsync(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-        prefix2EcmpMode,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
+        prefix2EcmpMode) {
   ensureRunning();
   auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpMode(
-        resolver, rid, prefix2EcmpMode, fibUpdateCallback, cookie);
+    ribTables_.setOverrideEcmpMode(resolver, rid, prefix2EcmpMode);
   };
   ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
 }
@@ -737,13 +728,10 @@ void RoutingInformationBase::setOverrideEcmpNhopsAsync(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-        prefix2Nhops,
-    const FibUpdateFunction& fibUpdateCallback,
-    void* cookie) {
+        prefix2Nhops) {
   ensureRunning();
   auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpNhops(
-        resolver, rid, prefix2Nhops, fibUpdateCallback, cookie);
+    ribTables_.setOverrideEcmpNhops(resolver, rid, prefix2Nhops);
   };
   ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
 }

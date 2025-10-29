@@ -27,4 +27,15 @@ void SaiPortManager::changePortFlowletConfig(
 
 void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
 
+void SaiPortManager::programPfcDurationCounterEnable(
+    const std::shared_ptr<Port>& /* swPort */,
+    const std::optional<cfg::PortPfc>& /* newPfc */,
+    const std::optional<cfg::PortPfc>& /* oldPfc */) {}
+
+const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
+    const PortID& /* portId */) {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 } // namespace facebook::fboss

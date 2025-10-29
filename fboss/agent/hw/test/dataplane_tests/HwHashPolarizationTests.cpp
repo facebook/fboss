@@ -133,11 +133,12 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
           std::set<PortID>{
               ecmpPorts.begin(), ecmpPorts.begin() + kEcmpWidth / 2});
       // Set first hash
-      applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          firstHashes,
-          scopeResolver()));
+      applyNewState(
+          utility::addLoadBalancers(
+              getHwSwitchEnsemble(),
+              getProgrammedState(),
+              firstHashes,
+              scopeResolver()));
 
       for (auto isV6 : {true, false}) {
         utility::pumpTraffic(
@@ -152,8 +153,9 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 
     auto firstHashPortStats =
         getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());
-    EXPECT_TRUE(utility::isLoadBalanced(
-        getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
+    EXPECT_TRUE(
+        utility::isLoadBalanced(
+            getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
   }
 
   void runSecondHash(
@@ -167,11 +169,12 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
 
     // Set second hash
-    applyNewState(utility::addLoadBalancers(
-        getHwSwitchEnsemble(),
-        getProgrammedState(),
-        secondHashes,
-        scopeResolver()));
+    applyNewState(
+        utility::addLoadBalancers(
+            getHwSwitchEnsemble(),
+            getProgrammedState(),
+            secondHashes,
+            scopeResolver()));
     auto makeTxPacket = [=, this](
                             folly::MacAddress srcMac, const auto& ipPayload) {
       return utility::makeUDPTxPacket(
@@ -513,11 +516,12 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
       HwTestPacketTrapEntry trapPkts(
           getHwSwitch(), std::set<PortID>{ports.begin(), ports.end()});
       // Set first hash
-      applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          hashes,
-          scopeResolver()));
+      applyNewState(
+          utility::addLoadBalancers(
+              getHwSwitchEnsemble(),
+              getProgrammedState(),
+              hashes,
+              scopeResolver()));
 
       auto logicalPorts = masterLogicalInterfacePortIds();
       auto portIter = logicalPorts.end() - 1;
@@ -535,8 +539,9 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
     auto firstHashPortStats =
         getHwSwitchEnsemble()->getLatestPortStats(getEgressPorts());
-    EXPECT_TRUE(utility::isLoadBalanced(
-        getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
+    EXPECT_TRUE(
+        utility::isLoadBalanced(
+            getStatsDelta(preTestStats, firstHashPortStats), kMaxDeviation));
   }
 
   void runSecondHashTrunkTest(
@@ -550,11 +555,12 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ports);
 
     // Set second hash
-    applyNewState(utility::addLoadBalancers(
-        getHwSwitchEnsemble(),
-        getProgrammedState(),
-        secondHashes,
-        scopeResolver()));
+    applyNewState(
+        utility::addLoadBalancers(
+            getHwSwitchEnsemble(),
+            getProgrammedState(),
+            secondHashes,
+            scopeResolver()));
     auto makeTxPacket = [=, this](
                             folly::MacAddress srcMac, const auto& ipPayload) {
       return utility::makeUDPTxPacket(

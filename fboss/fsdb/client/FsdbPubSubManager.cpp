@@ -555,18 +555,19 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
     clientStr.append(folly::to<std::string>("_", clientIdSuffix.value()));
   }
 
-  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
-      subsStr,
-      std::make_unique<SubscriberT>(
-          clientStr,
-          subscribePath,
-          subscriberEvb_,
-          reconnectEvb_,
-          subUnitAvailableCb,
-          subscribeStats,
-          stateChangeCb,
-          std::nullopt,
-          heartbeatCb)));
+  auto [itr, inserted] = path2SubscriberW->emplace(
+      std::make_pair(
+          subsStr,
+          std::make_unique<SubscriberT>(
+              clientStr,
+              subscribePath,
+              subscriberEvb_,
+              reconnectEvb_,
+              subUnitAvailableCb,
+              subscribeStats,
+              stateChangeCb,
+              std::nullopt,
+              heartbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");
@@ -602,18 +603,19 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
     clientStr.append(folly::to<std::string>("_", clientIdSuffix.value()));
   }
 
-  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
-      subsStr,
-      std::make_unique<SubscriberT>(
-          clientStr,
-          subscribePath,
-          subscriberEvb_,
-          reconnectEvb_,
-          subUnitAvailableCb,
-          subscribeStats,
-          stateChangeCb,
-          std::nullopt,
-          heartbeatCb)));
+  auto [itr, inserted] = path2SubscriberW->emplace(
+      std::make_pair(
+          subsStr,
+          std::make_unique<SubscriberT>(
+              clientStr,
+              subscribePath,
+              subscriberEvb_,
+              reconnectEvb_,
+              subUnitAvailableCb,
+              subscribeStats,
+              stateChangeCb,
+              std::nullopt,
+              heartbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");
@@ -644,17 +646,18 @@ std::string FsdbPubSubManager::addSubscriptionImpl(
       : statePath2Subscriber_;
   auto path2SubscriberW = path2Subscriber.wlock();
 
-  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
-      subsStr,
-      std::make_unique<SubscriberT>(
-          std::move(subscriptionOptions),
-          subscribePath,
-          subscriberEvb_,
-          reconnectEvb_,
-          subUnitAvailableCb,
-          stateChangeCb,
-          std::nullopt,
-          hearbeatCb)));
+  auto [itr, inserted] = path2SubscriberW->emplace(
+      std::make_pair(
+          subsStr,
+          std::make_unique<SubscriberT>(
+              std::move(subscriptionOptions),
+              subscribePath,
+              subscriberEvb_,
+              reconnectEvb_,
+              subUnitAvailableCb,
+              stateChangeCb,
+              std::nullopt,
+              hearbeatCb)));
   if (!inserted) {
     throw std::runtime_error(
         "Subscription at : " + subsStr + " already exists");

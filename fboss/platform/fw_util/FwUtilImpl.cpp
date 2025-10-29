@@ -76,9 +76,10 @@ std::tuple<std::string, FwConfig> FwUtilImpl::getFpd(
       return std::tuple(fpdName, fpd);
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Invalid firmware target name: {}\nUse fw-util --fw_action=list to see available firmware targets",
-      searchFpdName));
+  throw std::runtime_error(
+      fmt::format(
+          "Invalid firmware target name: {}\nUse fw-util --fw_action=list to see available firmware targets",
+          searchFpdName));
 }
 
 void FwUtilImpl::doFirmwareAction(

@@ -192,10 +192,11 @@ TEST_F(LedTest, LedsCreated) {
             *auxDevice.ledData()->portNumber(),
             errorMessages);
       } catch (const std::exception& e) {
-        errorMessages.emplace_back(fmt::format(
-            "Exception during LED creation for {}: {}",
-            *auxDevice.name(),
-            e.what()));
+        errorMessages.emplace_back(
+            fmt::format(
+                "Exception during LED creation for {}: {}",
+                *auxDevice.name(),
+                e.what()));
       }
     }
   }
@@ -253,8 +254,11 @@ TEST_F(LedTest, DeviceLedsCreated) {
     for (const auto& [ledName, colors] : ledNameToColors) {
       for (const auto& expectedColor : expectedColors) {
         if (colors.find(expectedColor) == colors.end()) {
-          errorMessages.emplace_back(fmt::format(
-              "LED {} is missing expected color {}", ledName, expectedColor));
+          errorMessages.emplace_back(
+              fmt::format(
+                  "LED {} is missing expected color {}",
+                  ledName,
+                  expectedColor));
         }
       }
     }

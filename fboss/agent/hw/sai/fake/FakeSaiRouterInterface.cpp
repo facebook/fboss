@@ -30,9 +30,10 @@ sai_status_t create_router_interface_fn(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
-        mac = folly::MacAddress::fromBinary(folly::ByteRange(
-            std::begin(attr_list[i].value.mac),
-            std::end(attr_list[i].value.mac)));
+        mac = folly::MacAddress::fromBinary(
+            folly::ByteRange(
+                std::begin(attr_list[i].value.mac),
+                std::end(attr_list[i].value.mac)));
         break;
       case SAI_ROUTER_INTERFACE_ATTR_TYPE:
         type = attr_list[i].value.s32;

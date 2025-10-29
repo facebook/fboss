@@ -161,8 +161,9 @@ TEST(ParserTest, GetTransceiverConfigRowsFromCsvTest) {
 
 TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
   auto bspPlatformMapping =
-      facebook::fboss::Parser::getBspPlatformMappingFromCsv(folly::StringPiece(
-          "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
+      facebook::fboss::Parser::getBspPlatformMappingFromCsv(
+          folly::StringPiece(
+              "fboss/lib/bsp/bspmapping/test/test_data/test_example.csv"));
   EXPECT_EQ(bspPlatformMapping.get_pimMapping().size(), 1);
   EXPECT_TRUE(
       bspPlatformMapping.get_pimMapping().find(1) !=

@@ -50,25 +50,31 @@ void CmdShowSystemPort::printOutput(const RetType& model, std::ostream& out) {
       detailedOutput.emplace_back("");
       detailedOutput.emplace_back(
           fmt::format("Name:         \t\t {}", systemportInfo.name().value()));
-      detailedOutput.emplace_back(fmt::format(
-          "ID:           \t\t {}",
-          folly::to<std::string>(folly::copy(systemportInfo.id().value()))));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "ID:           \t\t {}",
+              folly::to<std::string>(
+                  folly::copy(systemportInfo.id().value()))));
       detailedOutput.emplace_back(
           fmt::format("Speed:        \t\t {}", systemportInfo.speed().value()));
-      detailedOutput.emplace_back(fmt::format(
-          "QosPolicy:    \t\t {}", systemportInfo.qosPolicy().value()));
-      detailedOutput.emplace_back(fmt::format(
-          "CoreIndex:    \t\t {}",
-          folly::to<std::string>(
-              folly::copy(systemportInfo.coreIndex().value()))));
-      detailedOutput.emplace_back(fmt::format(
-          "CorePortIndex:\t\t {}",
-          folly::to<std::string>(
-              folly::copy(systemportInfo.corePortIndex().value()))));
-      detailedOutput.emplace_back(fmt::format(
-          "Voqs:         \t\t {}",
-          folly::to<std::string>(
-              folly::copy(systemportInfo.numVoqs().value()))));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "QosPolicy:    \t\t {}", systemportInfo.qosPolicy().value()));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "CoreIndex:    \t\t {}",
+              folly::to<std::string>(
+                  folly::copy(systemportInfo.coreIndex().value()))));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "CorePortIndex:\t\t {}",
+              folly::to<std::string>(
+                  folly::copy(systemportInfo.corePortIndex().value()))));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "Voqs:         \t\t {}",
+              folly::to<std::string>(
+                  folly::copy(systemportInfo.numVoqs().value()))));
 
       int voqIndex = 0;
       int totalVoqCount = folly::copy(systemportInfo.numVoqs().value());

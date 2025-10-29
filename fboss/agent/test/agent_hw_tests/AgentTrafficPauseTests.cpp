@@ -41,7 +41,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
       auto pkt = utility::makeEthTxPacket(
           getSw(),
           getVlanIDForTx(),
-          utility::MacAddressGenerator().get(intfMac.u64NBO() + 1),
+          utility::MacAddressGenerator().get(intfMac.u64HBO() + 1),
           folly::MacAddress("01:80:C2:00:00:01"),
           ETHERTYPE::ETHERTYPE_EPON,
           payload);
@@ -65,7 +65,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
     auto intfMac = utility::getMacForFirstInterfaceWithPorts(
         ensemble->getProgrammedState());
     auto dscp = utility::kOlympicQueueToDscp().at(0).front();
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         ensemble->getSw(),
         vlanId,

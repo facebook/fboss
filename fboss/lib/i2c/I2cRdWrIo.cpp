@@ -34,10 +34,11 @@ void I2cRdWrIo::write(
   packets.nmsgs = 1;
 
   if (ioctl(fd(), I2C_RDWR, &packets) < 0) {
-    throw I2cDevImplError(fmt::format(
-        "write() failed to write to {}, errno = {}",
-        devName(),
-        folly::errnoStr(errno)));
+    throw I2cDevImplError(
+        fmt::format(
+            "write() failed to write to {}, errno = {}",
+            devName(),
+            folly::errnoStr(errno)));
   }
 }
 
@@ -59,10 +60,11 @@ void I2cRdWrIo::read(uint8_t addr, uint8_t offset, uint8_t* buf, int len) {
   packets.nmsgs = 2;
 
   if (ioctl(fd(), I2C_RDWR, &packets) < 0) {
-    throw I2cDevImplError(fmt::format(
-        "read() failed to read from port {}, errno = {}",
-        devName(),
-        folly::errnoStr(errno)));
+    throw I2cDevImplError(
+        fmt::format(
+            "read() failed to read from port {}, errno = {}",
+            devName(),
+            folly::errnoStr(errno)));
   }
 }
 

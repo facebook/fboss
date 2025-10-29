@@ -1,0 +1,188 @@
+{
+  "pwmBoostOnNumDeadFan": 1,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 90,
+  "pwmBoostValue": 60,
+  "pwmTransitionValue": 50,
+  "pwmLowerThreshold": 24,
+  "pwmUpperThreshold": 100,
+  "optics": [
+    {
+      "opticName": "qsfp_group_1",
+      "access": {
+        "accessType": "ACCESS_TYPE_QSFP"
+      },
+      "portList": [],
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps": {
+        "OPTIC_TYPE_100_GENERIC": {
+          "5": 24,
+          "38": 26,
+          "40": 28,
+          "41": 30,
+          "42": 32,
+          "44": 34,
+          "45": 36,
+          "48": 38,
+          "49": 40,
+          "52": 44,
+          "53": 46,
+          "54": 50
+        },
+        "OPTIC_TYPE_200_GENERIC": {
+          "5": 26,
+          "43": 28,
+          "45": 30,
+          "47": 32,
+          "49": 34,
+          "50": 36,
+          "54": 40,
+          "56": 44,
+          "58": 46,
+          "61": 50
+        },
+        "OPTIC_TYPE_400_GENERIC": {
+          "5": 36,
+          "59": 40,
+          "62": 42,
+          "66": 46,
+          "67": 48,
+          "68": 50,
+          "71": 52,
+          "73": 55,
+          "74": 60
+        }
+      }
+    }
+  ],
+  "sensors": [
+    {
+      "sensorName": "SC_TH3_DIODE1_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "15": 24,
+        "110": 100
+      },
+      "normalDownTable": {
+        "15": 24,
+        "110": 100
+      },
+      "failUpTable": {
+        "15": 24,
+        "110": 100
+      },
+      "failDownTable": {
+        "15": 24,
+        "110": 100
+      }
+    },
+    {
+      "sensorName": "SC_TH3_DIODE2_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable": {
+        "15": 24,
+        "110": 100
+      },
+      "normalDownTable": {
+        "15": 24,
+        "110": 100
+      },
+      "failUpTable": {
+        "15": 24,
+        "110": 100
+      },
+      "failDownTable": {
+        "15": 24,
+        "110": 100
+      }
+    }
+  ],
+  "fans": [
+    {
+      "fanName": "fan_1",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm1",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_present",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0
+    },
+    {
+      "fanName": "fan_2",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm2",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_present",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0
+    },
+    {
+      "fanName": "fan_3",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm3",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_present",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0
+    },
+    {
+      "fanName": "fan_4",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm4",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_present",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0
+    },
+    {
+      "fanName": "fan_5",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm5",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_present",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0
+    },
+    {
+      "fanName": "fan_6",
+      "rpmSysfsPath": "/run/devmap/sensors/FS_FAN_SLG4F4527/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FS_FAN_SLG4F4527/pwm",
+      "presenceSysfsPath": "/run/devmap/fpgas/SCD_FPGA/rackmon_present",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0
+    }
+  ],
+  "zones": [
+    {
+      "zoneType": "ZONE_TYPE_MAX",
+      "zoneName": "zone1",
+      "sensorNames": [
+        "SC_TH3_DIODE1_TEMP",
+        "SC_TH3_DIODE2_TEMP",
+        "qsfp_group_1"
+      ],
+      "fanNames": [
+        "fan_1",
+        "fan_2",
+        "fan_3",
+        "fan_4",
+        "fan_5",
+        "fan_6"
+      ],
+      "slope": 3
+    }
+  ]
+}

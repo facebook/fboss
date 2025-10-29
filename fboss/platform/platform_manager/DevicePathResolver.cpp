@@ -33,10 +33,11 @@ std::string DevicePathResolver::resolveSensorPath(
       return dirEntry.path();
     }
   }
-  throw std::runtime_error(fmt::format(
-      "Couldn't find hwmon[num] nor iio:device[num] folder under {} for {}",
-      sensorPath,
-      devicePath));
+  throw std::runtime_error(
+      fmt::format(
+          "Couldn't find hwmon[num] nor iio:device[num] folder under {} for {}",
+          sensorPath,
+          devicePath));
 }
 
 std::string DevicePathResolver::resolveEepromPath(
@@ -44,10 +45,11 @@ std::string DevicePathResolver::resolveEepromPath(
   auto i2cDevicPath = dataStore_.getSysfsPath(devicePath);
   auto eepromPath = i2cDevicPath + "/eeprom";
   if (!fs::exists(eepromPath)) {
-    throw std::runtime_error(fmt::format(
-        "Fail to resolve EepromPath for {} - {} doesn't exist",
-        devicePath,
-        eepromPath));
+    throw std::runtime_error(
+        fmt::format(
+            "Fail to resolve EepromPath for {} - {} doesn't exist",
+            devicePath,
+            eepromPath));
   }
   return eepromPath;
 }
@@ -63,10 +65,11 @@ std::string DevicePathResolver::resolvePciSubDevSysfsPath(
     const std::string& devicePath) {
   auto sysfsPath = dataStore_.getSysfsPath(devicePath);
   if (!fs::exists(sysfsPath)) {
-    throw std::runtime_error(fmt::format(
-        "Fail to resolve PciSubDevice's SysfsPath for {} - {} no longer exists",
-        devicePath,
-        sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "Fail to resolve PciSubDevice's SysfsPath for {} - {} no longer exists",
+            devicePath,
+            sysfsPath));
   }
   return sysfsPath;
 }
@@ -75,10 +78,11 @@ std::string DevicePathResolver::resolvePciSubDevCharDevPath(
     const std::string& devicePath) const {
   auto charDevPath = dataStore_.getCharDevPath(devicePath);
   if (!fs::exists(charDevPath)) {
-    throw std::runtime_error(fmt::format(
-        "Fail to resolve PciSubDevice's CharDevPath for {} - {} no longer exists",
-        devicePath,
-        charDevPath));
+    throw std::runtime_error(
+        fmt::format(
+            "Fail to resolve PciSubDevice's CharDevPath for {} - {} no longer exists",
+            devicePath,
+            charDevPath));
   }
   return charDevPath;
 }
@@ -159,8 +163,11 @@ PciDeviceConfig DevicePathResolver::getPciDeviceConfig(
         return *pciDeviceConfig.pmUnitScopedName() == deviceName;
       });
   if (pciDeviceConfig == pmUnitConfig.pciDeviceConfigs()->end()) {
-    throw std::runtime_error(fmt::format(
-        "Couldn't find PciDeviceConfig for {} at {}", deviceName, slotPath));
+    throw std::runtime_error(
+        fmt::format(
+            "Couldn't find PciDeviceConfig for {} at {}",
+            deviceName,
+            slotPath));
   }
   return *pciDeviceConfig;
 }

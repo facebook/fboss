@@ -151,8 +151,9 @@ void SaiPhyManager::addSaiPlatform(
     GlobalXphyID xphyID,
     std::unique_ptr<SaiPlatform> platform) {
   const auto phyIDInfo = getPhyIDInfo(xphyID);
-  saiPlatforms_[phyIDInfo.pimID].emplace(std::make_pair(
-      xphyID, std::make_unique<PlatformInfo>(std::move(platform))));
+  saiPlatforms_[phyIDInfo.pimID].emplace(
+      std::make_pair(
+          xphyID, std::make_unique<PlatformInfo>(std::move(platform))));
 }
 
 void SaiPhyManager::sakInstallTx(const mka::MKASak& sak) {
@@ -461,8 +462,9 @@ PortOperState SaiPhyManager::macsecGetPhyLinkInfo(PortID swPort) {
       saiSwitch->managerTable()->portManager().getPortHandle(swPort);
 
   if (portHandle == nullptr) {
-    throw FbossError(folly::sformat(
-        "PortHandle not found for port {}", static_cast<int>(swPort)));
+    throw FbossError(
+        folly::sformat(
+            "PortHandle not found for port {}", static_cast<int>(swPort)));
   }
 
   auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
@@ -512,10 +514,11 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
     return "";
   }
 
-  output.append(folly::sformat(
-      "SwPort {:d} \n Switch Id {:d}\n",
-      static_cast<int>(swPort),
-      static_cast<uint64_t>(switchId)));
+  output.append(
+      folly::sformat(
+          "SwPort {:d} \n Switch Id {:d}\n",
+          static_cast<int>(swPort),
+          static_cast<uint64_t>(switchId)));
 
   auto linePortAdapter = portHandle->port->adapterKey();
   auto sysPortAdapter = portHandle->sysPort->adapterKey();
@@ -525,15 +528,17 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
                          phy::Side side,
                          SaiPortTraits::AdapterKey& portAdapter,
                          std::string& output) {
-    output.append(folly::sformat(
-        "  {:s} Port Obj = {}\n",
-        ((side == phy::Side::LINE) ? "Line" : "System"),
-        portAdapter.t));
+    output.append(
+        folly::sformat(
+            "  {:s} Port Obj = {}\n",
+            ((side == phy::Side::LINE) ? "Line" : "System"),
+            portAdapter.t));
 
     auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
         portAdapter, SaiPortTraits::Attributes::OperStatus{});
-    output.append(folly::sformat(
-        "    Link Status: {:d}\n", static_cast<int>(portOperStatus)));
+    output.append(
+        folly::sformat(
+            "    Link Status: {:d}\n", static_cast<int>(portOperStatus)));
     auto portSpeed = SaiApiTable::getInstance()->portApi().getAttribute(
         portAdapter, SaiPortTraits::Attributes::Speed{});
     output.append(folly::sformat("    Speed: {:d}\n", portSpeed));
@@ -552,10 +557,12 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
       fecMode = SaiApiTable::getInstance()->portApi().getAttribute(
           portAdapter, SaiPortTraits::Attributes::FecMode{});
     }
-    output.append(folly::sformat(
-        "    Extended Fec : {:s}\n", (extendedFec ? "True" : "False")));
-    output.append(folly::sformat(
-        "    Fec mode: {:d}\n", (extendedFec ? extFecMode : fecMode)));
+    output.append(
+        folly::sformat(
+            "    Extended Fec : {:s}\n", (extendedFec ? "True" : "False")));
+    output.append(
+        folly::sformat(
+            "    Fec mode: {:d}\n", (extendedFec ? extFecMode : fecMode)));
 
     auto interfaceType = SaiApiTable::getInstance()->portApi().getAttribute(
         portAdapter, SaiPortTraits::Attributes::InterfaceType{});

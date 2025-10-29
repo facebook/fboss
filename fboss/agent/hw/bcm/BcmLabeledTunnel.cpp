@@ -110,8 +110,9 @@ void BcmLabeledTunnel::setupTunnelLabels() {
   auto defaultDataPlaneQosPolicy =
       hw_->getQosPolicyTable()->getDefaultDataPlaneQosPolicyIf();
   if (defaultDataPlaneQosPolicy) {
-    qosMapId.emplace(static_cast<int>(
-        defaultDataPlaneQosPolicy->getHandle(BcmQosMap::Type::MPLS_EGRESS)));
+    qosMapId.emplace(
+        static_cast<int>(defaultDataPlaneQosPolicy->getHandle(
+            BcmQosMap::Type::MPLS_EGRESS)));
   }
   int numLabels = stack_.size();
   if (numLabels) {

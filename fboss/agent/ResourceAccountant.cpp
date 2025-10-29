@@ -79,10 +79,11 @@ size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const auto asics = asicTable_->getHwAsics();
     const auto asicType = asics.begin()->second->getAsicType();
     // Ensure that all ASICs have the same type.
-    CHECK(std::all_of(
-        asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
-          return idAndAsic.second->getAsicType() == asicType;
-        }));
+    CHECK(
+        std::all_of(
+            asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
+              return idAndAsic.second->getAsicType() == asicType;
+            }));
     return computeWeightedEcmpMemberCount(fwd, asicType);
   }
   // No native weighted ECMP support. Members are replicated to support
@@ -267,18 +268,39 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   processFibsDeltaInHwSwitchOrder(
       delta,
       [&](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
+        if (!oldRoute->isResolved() && !newRoute->isResolved()) {
+          return;
+        }
+        if (oldRoute->isResolved() && !newRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(oldRoute, false /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+          return;
+        }
+        if (!oldRoute->isResolved() && newRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(newRoute, true /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+          return;
+        }
+        // Both old and new are resolved
+        CHECK(oldRoute->isResolved() && newRoute->isResolved());
         validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
         validRouteUpdate &= checkAndUpdateEcmpResource(oldRoute, false);
       },
       [&](RouterID /*rid*/, const auto& newRoute) {
-        validRouteUpdate &=
-            checkAndUpdateEcmpResource(newRoute, true /* add */);
-        validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+        if (newRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(newRoute, true /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+        }
       },
       [&](RouterID /*rid*/, const auto& delRoute) {
-        validRouteUpdate &=
-            checkAndUpdateEcmpResource(delRoute, false /* add */);
-        validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+        if (delRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(delRoute, false /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+        }
       }
 
   );

@@ -95,8 +95,9 @@ RetType CmdShowArp::createModel(
           " (", folly::copy(entry.vlanID().value()), ")");
     }
 
-    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-        folly::StringPiece(entry.ip().value().addr().value())));
+    auto ip = folly::IPAddress::fromBinary(
+        folly::ByteRange(
+            folly::StringPiece(entry.ip().value().addr().value())));
     arpDetails.ip() = ip.str();
     arpDetails.mac() = entry.mac().value();
     arpDetails.port() = folly::copy(entry.port().value());

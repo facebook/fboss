@@ -137,12 +137,13 @@ void WeutilDarwin::genSpiPrefdlFile() {
 
   std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(getPrefdl);
   if (exitStatus != 0) {
-    throw std::runtime_error(folly::to<std::string>(
-        "Cannot create BIOS file with: ",
-        getPrefdl,
-        " ",
-        ", return value: ",
-        std::to_string(exitStatus)));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Cannot create BIOS file with: ",
+            getPrefdl,
+            " ",
+            ", return value: ",
+            std::to_string(exitStatus)));
   }
 
   std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(kddComands);

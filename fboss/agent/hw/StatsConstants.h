@@ -335,4 +335,12 @@ inline folly::StringPiece constexpr kFabricControlRxPackets() {
 inline folly::StringPiece constexpr kFabricControlTxPackets() {
   return "fabric_control_tx_packets";
 }
+
+inline folly::StringPiece constexpr kRxPfcDurationUsec() {
+  return "rx_pfc_duration_usec";
+}
+
+inline folly::StringPiece constexpr kTxPfcDurationUsec() {
+  return "tx_pfc_duration_usec";
+}
 } // namespace facebook::fboss

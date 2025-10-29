@@ -337,8 +337,9 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringPriorityPortsConfigured) {
     // these 2 ports {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}
     // this is because FLAGS_init_gport_available_count is configured to fit
     // only 2 ports
-    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_FALSE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
 
     // provide space for 2 more ports
@@ -350,8 +351,9 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringPriorityPortsConfigured) {
     // these 2 ports should already be programmed during setup above
     // note: they get priroity over the other cfged ports such as logical port
     // 0, 1
-    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_FALSE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
     EXPECT_EQ(
         getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(),
         queueIdSet.size() * 2);
@@ -359,8 +361,9 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringPriorityPortsConfigured) {
     portMap.clear();
     portMap[masterLogicalPortIds()[0]] = queueIdSet;
     portMap[masterLogicalPortIds()[1]] = queueIdSet;
-    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_TRUE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
   };
 
@@ -390,24 +393,28 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringNoneConfigured) {
     portMap[masterLogicalPortIds()[2]] = queueIdSet;
     // monitoring for this port should fail, as gports available are less than
     // queueIds
-    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_FALSE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
 
     getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(queueIdSet.size());
     // monitoring for the port suceeds now, that gports are available
-    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_TRUE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
 
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
     portMap.clear();
     portMap[masterLogicalPortIds()[3]] = queueIdSet;
     // since available gports is 0, it should fail
-    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_FALSE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
 
     getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(queueIdSet.size());
-    EXPECT_TRUE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_TRUE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
     EXPECT_EQ(getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(), 0);
 
     getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(2 * queueIdSet.size());
@@ -416,8 +423,9 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringNoneConfigured) {
     portMap[masterLogicalPortIds()[3]] = queueIdSet;
     // since these ports are already programmed, this update should fail
     // even though gports are available
-    EXPECT_FALSE(getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
-        portMap));
+    EXPECT_FALSE(
+        getHwSwitch()->getBcmQcmMgr()->updateQcmMonitoredPortsIfNeeded(
+            portMap));
     EXPECT_EQ(
         getHwSwitch()->getBcmQcmMgr()->getAvailableGPorts(),
         2 * queueIdSet.size());

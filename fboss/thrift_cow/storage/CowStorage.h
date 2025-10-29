@@ -130,9 +130,10 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
         rootNode, begin, end, options, [&](auto& path, auto& node) {
           using NodeT = typename folly::remove_cvref_t<decltype(node)>;
           if constexpr (!thrift_cow::is_cow_type_v<NodeT>) {
-            throw std::runtime_error(fmt::format(
-                "get_encoded_extended_impl: unexpected type with ExtendedPathVisitor::visit(path={})",
-                folly::join("/", path)));
+            throw std::runtime_error(
+                fmt::format(
+                    "get_encoded_extended_impl: unexpected type with ExtendedPathVisitor::visit(path={})",
+                    folly::join("/", path)));
           }
           TaggedOperState state;
           state.path()->path() = path;

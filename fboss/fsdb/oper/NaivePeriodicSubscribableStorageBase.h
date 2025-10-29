@@ -119,7 +119,7 @@ class NaivePeriodicSubscribableStorageBase {
         std::move(subscriber), begin, end, OperProtocol::BINARY);
     return folly::coro::co_invoke(
         [&, gen = std::move(sourceGen)]() mutable
-        -> folly::coro::AsyncGenerator<DeltaValue<T>&&> {
+            -> folly::coro::AsyncGenerator<DeltaValue<T>&&> {
           while (auto item = co_await gen.next()) {
             auto&& encodedValue = *item;
             DeltaValue<T> typedValue;

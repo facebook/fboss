@@ -1,0 +1,84 @@
+{
+  "systemLedConfig": {
+    "presentLedColor": 1,
+    "presentLedSysfsPath": "/sys/class/leds/system:green:status/brightness",
+    "absentLedColor": 2,
+    "absentLedSysfsPath": "/sys/class/leds/system:red:status/brightness"
+  },
+  "fruTypeLedConfigs": {
+    "FAN": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/fan:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/fan:red:status/brightness"
+    },
+    "PEM": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/pem:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/pem:red:status/brightness"
+    }
+  },
+  "fruConfigs": [
+    {
+      "fruName": "FAN1",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan1_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN2",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan2_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN3",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan3_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN4",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan4_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN5",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/FAN_CPLD/fan5_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "PEM1",
+      "fruType": "PEM",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/fpgas/SCD_FPGA/pem_present",
+          "desiredValue": 1
+        }
+      }
+    }
+  ]
+}

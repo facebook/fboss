@@ -36,9 +36,10 @@ namespace facebook::fboss::platform {
 
 PsuHelper::PsuHelper(int busNum, int devAddr)
     : devAddr_(devAddr),
-      i2cPsuIo_(std::make_unique<I2cDevIo>(
-          fmt::format("/dev/i2c-{}", busNum),
-          I2cIoType::I2cIoTypeRdWr)) {}
+      i2cPsuIo_(
+          std::make_unique<I2cDevIo>(
+              fmt::format("/dev/i2c-{}", busNum),
+              I2cIoType::I2cIoTypeRdWr)) {}
 
 void PsuHelper::dumpRegisters() const {
   for (const auto& reg : PsuHelper::genericPsuRegisters_) {

@@ -1146,25 +1146,27 @@ TEST_F(LacpTest, lacpPortFlapAfterSync) {
   ParticipantInfo duInfo2 =
       makeParticipantInfo({0x02, 0x90, 0xfb, 0x5e, 0x24, 0x28}, duPort2, 2);
 
-  auto createAndAddController =
-      [&rate, &lacpEvbase](auto& port, auto& pInfo, auto& interceptor) {
-        auto controller = std::make_shared<LacpController>(
-            port,
-            lacpEvbase,
-            pInfo.portPriority,
-            rate,
-            cfg::LacpPortActivity::ACTIVE,
-            cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
-            AggregatePortID(pInfo.key),
-            pInfo.systemPriority,
-            MacAddress::fromBinary(folly::ByteRange(
-                pInfo.systemID.cbegin(), pInfo.systemID.cend())),
-            2 /* minimum-link count */,
-            std::nullopt,
-            &interceptor);
-        interceptor.addController(controller);
-        return controller;
-      };
+  auto createAndAddController = [&rate, &lacpEvbase](
+                                    auto& port,
+                                    auto& pInfo,
+                                    auto& interceptor) {
+    auto controller = std::make_shared<LacpController>(
+        port,
+        lacpEvbase,
+        pInfo.portPriority,
+        rate,
+        cfg::LacpPortActivity::ACTIVE,
+        cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+        AggregatePortID(pInfo.key),
+        pInfo.systemPriority,
+        MacAddress::fromBinary(
+            folly::ByteRange(pInfo.systemID.cbegin(), pInfo.systemID.cend())),
+        2 /* minimum-link count */,
+        std::nullopt,
+        &interceptor);
+    interceptor.addController(controller);
+    return controller;
+  };
 
   auto uuController1 =
       createAndAddController(uuPort1, uuInfo1, uuEventInterceptor);
@@ -1451,25 +1453,27 @@ TEST_F(LacpTest, lacpDownCounters) {
   ParticipantInfo duInfo1 = makeParticipantInfo(duSystemId, duPort1, 2);
   ParticipantInfo duInfo2 = makeParticipantInfo(duSystemId, duPort2, 2);
 
-  auto createAndAddController =
-      [&rate, &lacpEvbase](auto& port, auto& pInfo, auto& interceptor) {
-        auto controller = std::make_shared<LacpController>(
-            port,
-            lacpEvbase,
-            pInfo.portPriority,
-            rate,
-            cfg::LacpPortActivity::ACTIVE,
-            cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
-            AggregatePortID(pInfo.key),
-            pInfo.systemPriority,
-            MacAddress::fromBinary(folly::ByteRange(
-                pInfo.systemID.cbegin(), pInfo.systemID.cend())),
-            2 /* minimum-link count */,
-            std::nullopt,
-            &interceptor);
-        interceptor.addController(controller);
-        return controller;
-      };
+  auto createAndAddController = [&rate, &lacpEvbase](
+                                    auto& port,
+                                    auto& pInfo,
+                                    auto& interceptor) {
+    auto controller = std::make_shared<LacpController>(
+        port,
+        lacpEvbase,
+        pInfo.portPriority,
+        rate,
+        cfg::LacpPortActivity::ACTIVE,
+        cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
+        AggregatePortID(pInfo.key),
+        pInfo.systemPriority,
+        MacAddress::fromBinary(
+            folly::ByteRange(pInfo.systemID.cbegin(), pInfo.systemID.cend())),
+        2 /* minimum-link count */,
+        std::nullopt,
+        &interceptor);
+    interceptor.addController(controller);
+    return controller;
+  };
 
   auto uuController1 =
       createAndAddController(uuPort1, uuInfo1, uuEventInterceptor);
@@ -1539,8 +1543,9 @@ TEST_F(LacpTest, lacpTransmissionFailureRetry) {
       cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER(),
       AggregatePortID(testInfo.key),
       testInfo.systemPriority,
-      MacAddress::fromBinary(folly::ByteRange(
-          testInfo.systemID.cbegin(), testInfo.systemID.cend())),
+      MacAddress::fromBinary(
+          folly::ByteRange(
+              testInfo.systemID.cbegin(), testInfo.systemID.cend())),
       1 /* minimum-link count */,
       std::nullopt,
       &serviceInterceptor);

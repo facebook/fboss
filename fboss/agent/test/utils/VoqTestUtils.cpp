@@ -335,8 +335,9 @@ void populateRemoteIntfAndSysPorts(
           auto firstOctet = 100 + switchId / 256;
           auto secondOctet = switchId % 256;
           auto thirdOctet = i - minPortID;
-          folly::IPAddressV6 neighborIp(folly::to<std::string>(
-              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          folly::IPAddressV6 neighborIp(
+              folly::to<std::string>(
+                  firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
           auto portSpeed = i == minPortID + kRemoteSysPortOffset
               ? cfg::PortSpeed::HUNDREDG
               : numPorts == kNumRdswSysPort ? cfg::PortSpeed::FOURHUNDREDG
@@ -355,11 +356,23 @@ void populateRemoteIntfAndSysPorts(
           auto remoteRif = makeRemoteInterface(
               remoteIntfId,
               {
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ":",
+                           secondOctet,
+                           ":",
+                           thirdOctet,
+                           "::1")),
                    64},
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ".",
+                           secondOctet,
+                           ".",
+                           thirdOctet,
+                           ".1")),
                    24},
               });
 
@@ -412,8 +425,9 @@ void populateRemoteIntfAndSysPorts(
           auto secondOctet = switchId % 256;
           // For >16K ports, use the second half of 128 range in the octet.
           auto thirdOctet = portID < 256 ? portID : (portID + 128) % 256;
-          folly::IPAddressV6 neighborIp(folly::to<std::string>(
-              firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
+          folly::IPAddressV6 neighborIp(
+              folly::to<std::string>(
+                  firstOctet, ":", secondOctet, ":", thirdOctet, "::2"));
           auto portSpeed = *mapping.portType() == cfg::PortType::MANAGEMENT_PORT
               ? cfg::PortSpeed::HUNDREDG
               : (*dsfNode.clusterId() >= k2StageEdgePodClusterId
@@ -435,11 +449,23 @@ void populateRemoteIntfAndSysPorts(
           auto remoteRif = makeRemoteInterface(
               remoteIntfId,
               {
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ":", secondOctet, ":", thirdOctet, "::1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ":",
+                           secondOctet,
+                           ":",
+                           thirdOctet,
+                           "::1")),
                    64},
-                  {folly::IPAddress(folly::to<std::string>(
-                       firstOctet, ".", secondOctet, ".", thirdOctet, ".1")),
+                  {folly::IPAddress(
+                       folly::to<std::string>(
+                           firstOctet,
+                           ".",
+                           secondOctet,
+                           ".",
+                           thirdOctet,
+                           ".1")),
                    24},
               });
 

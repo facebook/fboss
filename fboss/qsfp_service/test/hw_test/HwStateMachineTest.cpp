@@ -348,8 +348,9 @@ TEST_F(HwStateMachineTestWithoutIphyProgramming, CheckOpticsDetection) {
 
 TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
   auto verify = [this]() {
-    auto checkTransceiverProgrammed = [this](const std::vector<TransceiverID>&
-                                                 tcvrs) {
+    auto checkTransceiverProgrammed = [this](
+                                          const std::vector<TransceiverID>&
+                                              tcvrs) {
       auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
       std::vector<PortID> xphyPorts;
       if (auto phyManager = getHwQsfpEnsemble()->getPhyManager()) {

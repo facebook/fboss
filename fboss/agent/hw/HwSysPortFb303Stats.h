@@ -32,6 +32,7 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
             portName,
             queueId2Name,
             {} /*enabledPfcPriorities*/,
+            std::nullopt /*pfcCfg*/,
             multiSwitchStatsPrefix) {
     portStats_.portName_() = portName;
 

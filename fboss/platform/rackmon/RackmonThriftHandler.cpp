@@ -145,14 +145,14 @@ RackmonMonitorData ThriftHandler::transformModbusDeviceValueData(
 
 RackmonStatusCode ThriftHandler::exceptionToStatusCode(
     std::exception& baseException) {
-  if (rackmon::TimeoutException * ex;
+  if (rackmon::TimeoutException* ex;
       (ex = dynamic_cast<rackmon::TimeoutException*>(&baseException)) !=
       nullptr) {
     return RackmonStatusCode::ERR_TIMEOUT;
-  } else if (rackmon::CRCError * ex; (ex = dynamic_cast<rackmon::CRCError*>(
-                                          &baseException)) != nullptr) {
+  } else if (rackmon::CRCError* ex; (ex = dynamic_cast<rackmon::CRCError*>(
+                                         &baseException)) != nullptr) {
     return RackmonStatusCode::ERR_BAD_CRC;
-  } else if (rackmon::ModbusError * ex;
+  } else if (rackmon::ModbusError* ex;
              (ex = dynamic_cast<rackmon::ModbusError*>(&baseException)) !=
              nullptr) {
     switch (ex->errorCode) {
@@ -175,18 +175,18 @@ RackmonStatusCode ThriftHandler::exceptionToStatusCode(
       default:
         return RackmonStatusCode::ERR_UNDEFINED_MODBUS_ERROR;
     }
-  } else if (std::underflow_error * ex;
+  } else if (std::underflow_error* ex;
              (ex = dynamic_cast<std::underflow_error*>(&baseException)) !=
              nullptr) {
     return RackmonStatusCode::ERR_UNDERFLOW;
-  } else if (std::overflow_error * ex; (ex = dynamic_cast<std::overflow_error*>(
-                                            &baseException)) != nullptr) {
+  } else if (std::overflow_error* ex; (ex = dynamic_cast<std::overflow_error*>(
+                                           &baseException)) != nullptr) {
     return RackmonStatusCode::ERR_OVERFLOW;
-  } else if (std::logic_error * ex; (ex = dynamic_cast<std::logic_error*>(
-                                         &baseException)) != nullptr) {
+  } else if (std::logic_error* ex; (ex = dynamic_cast<std::logic_error*>(
+                                        &baseException)) != nullptr) {
     return RackmonStatusCode::ERR_INVALID_ARGS;
-  } else if (std::out_of_range * ex; (ex = dynamic_cast<std::out_of_range*>(
-                                          &baseException)) != nullptr) {
+  } else if (std::out_of_range* ex; (ex = dynamic_cast<std::out_of_range*>(
+                                         &baseException)) != nullptr) {
     return RackmonStatusCode::ERR_INVALID_ARGS;
   }
   return RackmonStatusCode::ERR_IO_FAILURE;

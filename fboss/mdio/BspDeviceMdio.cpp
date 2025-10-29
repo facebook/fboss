@@ -44,11 +44,12 @@ BspDeviceMdio::BspDeviceMdio(
 
   if (fd_ < 0) {
     // Crash the program because the callers are not handling this exception
-    throw MdioError(fmt::format(
-        "MdioDevIo() failed to open {}, retVal = {:d}, errno = {}",
-        devName,
-        fd_,
-        folly::errnoStr(errno)));
+    throw MdioError(
+        fmt::format(
+            "MdioDevIo() failed to open {}, retVal = {:d}, errno = {}",
+            devName,
+            fd_,
+            folly::errnoStr(errno)));
   }
 }
 
@@ -87,11 +88,12 @@ phy::Cl45Data BspDeviceMdio::cl45Operation(
   // (read: MDIO_ACCESS_REGRD, write: MDIO_ACCESS_REGWR)
   err = ioctl(fd_, ioctlVal, &req, sizeof(req));
   if (err) {
-    throw MdioError(fmt::format(
-        "cl45Operation() failed to {} to {}, errno = {}",
-        (ioctlVal == MDIO_ACCESS_REGWR ? "write" : "read"),
-        devName_,
-        folly::errnoStr(errno)));
+    throw MdioError(
+        fmt::format(
+            "cl45Operation() failed to {} to {}, errno = {}",
+            (ioctlVal == MDIO_ACCESS_REGWR ? "write" : "read"),
+            devName_,
+            folly::errnoStr(errno)));
   }
 
   return req.value;

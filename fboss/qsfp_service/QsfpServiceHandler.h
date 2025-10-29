@@ -43,6 +43,13 @@ class QsfpServiceHandler
       std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
+   * Returns all qsfp information for the transceiver
+   */
+  void getPortStateMachineState(
+      std::map<int32_t, PortStateMachineState>& info,
+      std::unique_ptr<std::vector<int32_t>> ids) override;
+
+  /*
    * Returns portName to configured media interface
    */
   void getPortMediaInterface(

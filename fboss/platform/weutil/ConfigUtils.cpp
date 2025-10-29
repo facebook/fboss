@@ -25,8 +25,9 @@ std::string getEepromName(const std::string& symbolicPath) {
       "^/run/devmap/eeproms/([A-Za-z0-9_]+?)(?:_EEPROM)?$");
   re2::StringPiece match;
   if (!re2::RE2::FullMatch(symbolicPath, re, &match)) {
-    throw std::runtime_error(fmt::format(
-        "Unable to find eeprom name from symbolic path: {}", symbolicPath));
+    throw std::runtime_error(
+        fmt::format(
+            "Unable to find eeprom name from symbolic path: {}", symbolicPath));
   }
 
   std::string eepromName = std::string(match);
@@ -53,8 +54,9 @@ std::string getEepromPath(
     }
   }
   if (eepromPath.empty()) {
-    throw std::runtime_error(fmt::format(
-        "Unable to find symbolic link for device path: {}", devicePath));
+    throw std::runtime_error(
+        fmt::format(
+            "Unable to find symbolic link for device path: {}", devicePath));
   }
   return eepromPath;
 }
@@ -94,10 +96,11 @@ FruEeprom getFruEepromByName(
     const std::unordered_map<std::string, FruEeprom>& fruEepromList) {
   auto itr = fruEepromList.find(eepromName);
   if (itr == fruEepromList.end()) {
-    throw std::runtime_error(fmt::format(
-        "Invalid EEPROM name {}. Valid EEPROM names are: {}",
-        eepromName,
-        folly::join(", ", getEepromNames(fruEepromList))));
+    throw std::runtime_error(
+        fmt::format(
+            "Invalid EEPROM name {}. Valid EEPROM names are: {}",
+            eepromName,
+            folly::join(", ", getEepromNames(fruEepromList))));
   }
   return itr->second;
 }

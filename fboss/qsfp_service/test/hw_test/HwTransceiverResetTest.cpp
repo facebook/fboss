@@ -453,13 +453,35 @@ TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   qsfpServiceHandler->refreshStateMachines();
 
   XLOG(INFO) << "Step 2. Confirm transceivers are in ACTIVE state";
-  for (auto id : getExpectedTransceivers()) {
+  for (const auto& id : getExpectedTransceivers()) {
     auto curState = wedgeManager->getCurrentState(id);
-    ASSERT_EQ(curState, TransceiverStateMachineState::ACTIVE);
+    auto expectedState = FLAGS_port_manager_mode
+        ? TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED
+        : TransceiverStateMachineState::ACTIVE;
+    ASSERT_EQ(curState, expectedState)
+        << "Transceiver:" << id
+        << " Actual: " << apache::thrift::util::enumNameSafe(curState)
+        << ", Expected: " << apache::thrift::util::enumNameSafe(expectedState);
+
+    if (FLAGS_port_manager_mode) {
+      const auto programmedPortToPortInfo =
+          wedgeManager->getProgrammedIphyPortToPortInfo(id);
+      for (const auto& [portId, portInfo] : programmedPortToPortInfo) {
+        auto curPortState =
+            qsfpServiceHandler->getPortManager()->getPortState(portId);
+        auto expectedPortState = PortStateMachineState::PORT_UP;
+        ASSERT_EQ(curPortState, expectedPortState)
+            << "Port:" << portId
+            << " Actual: " << apache::thrift::util::enumNameSafe(curPortState)
+            << ", Expected: "
+            << apache::thrift::util::enumNameSafe(expectedPortState);
+      }
+    }
   }
 
   // Trigger Hard Reset
   XLOG(INFO) << "Step 3. Hard reset the ports associated with transceivers";
+
   std::vector<std::string> portNames;
   for (auto tcvrId : getExpectedTransceivers()) {
     auto portsSet = wedgeManager->getPortNames(tcvrId);
@@ -474,7 +496,26 @@ TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   XLOG(INFO) << "Step 4. Confirm transceivers are in not_present state";
   for (auto id : getExpectedTransceivers()) {
     auto curState = wedgeManager->getCurrentState(id);
-    ASSERT_EQ(curState, TransceiverStateMachineState::NOT_PRESENT);
+    auto expectedState = TransceiverStateMachineState::NOT_PRESENT;
+    ASSERT_EQ(curState, expectedState)
+        << "Transceiver:" << id
+        << " Actual: " << apache::thrift::util::enumNameSafe(curState)
+        << ", Expected: " << apache::thrift::util::enumNameSafe(expectedState);
+  }
+
+  // In PortManager mode, we need to bring ports down in order for ports to be
+  // able to reset. This is to make sure we don't trigger programming while the
+  // port is still up according to agent (this is useful in the case of i2c read
+  // errors for present transceivers).
+  if (FLAGS_port_manager_mode) {
+    // Mocking agent bringing ports down to enable programming sequence.
+    qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
+        false /* up */, true /* enabled */);
+
+    // Refreshing to ensure ports reset to initialized based on transceiver
+    // NOT_PRESENT status from hard reset.
+    qsfpServiceHandler->refreshStateMachines();
+    qsfpServiceHandler->refreshStateMachines();
   }
 
   XLOG(INFO)
@@ -485,6 +526,7 @@ TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
   // waitTillCabledTcvrProgrammed will fail
   qsfpServiceHandler->setOverrideAgentPortStatusForTesting(
       true /* up */, true /* enabled */, true /* clearOnly */);
+
   waitTillCabledTcvrProgrammed();
 }
 } // namespace facebook::fboss

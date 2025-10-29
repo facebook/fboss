@@ -205,13 +205,14 @@ class AgentCoppTest : public AgentHwTest {
       std::unique_ptr<TxPacket> pkt,
       bool outOfPort,
       bool expectRxPacket = false,
-      bool skipTtlDecrement = true) {
+      bool skipTtlDecrement = true,
+      const utility::PacketComparatorFn& packetComparator = std::nullopt) {
     XLOG(DBG2) << "Packet Dump::"
                << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
 
     auto ethFrame = utility::makeEthFrame(*pkt, skipTtlDecrement);
     utility::SwSwitchPacketSnooper snooper(
-        getSw(), "snoop", std::nullopt, ethFrame);
+        getSw(), "snoop", std::nullopt, ethFrame, packetComparator);
     if (outOfPort) {
       getSw()->sendPacketOutOfPortAsync(
           std::move(pkt),
@@ -241,7 +242,8 @@ class AgentCoppTest : public AgentHwTest {
       bool expectQueueHit = true,
       bool outOfPort = true,
       bool skipTtlDecrement = true,
-      bool verifyPktCntInOtherQueues = true) {
+      bool verifyPktCntInOtherQueues = true,
+      const utility::PacketComparatorFn& packetComparator = std::nullopt) {
     const auto kNumPktsToSend = 1;
     auto vlanId = getVlanIDForTx();
     auto destinationMac = dstMac.value_or(
@@ -260,7 +262,8 @@ class AgentCoppTest : public AgentHwTest {
           std::move(pkt),
           outOfPort,
           expectQueueHit /*expectRxPacket*/,
-          skipTtlDecrement);
+          skipTtlDecrement,
+          packetComparator);
     };
     utility::sendPktAndVerifyCpuQueue(
         getSw(),
@@ -285,7 +288,7 @@ class AgentCoppTest : public AgentHwTest {
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.0.0.11" : "1::11");
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,
@@ -443,7 +446,7 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeARPTxPacket(
           getSw(),
@@ -505,7 +508,7 @@ class AgentCoppTest : public AgentHwTest {
     auto myAddr = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket =
@@ -575,7 +578,7 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
 
@@ -621,7 +624,7 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = (type == DHCPv6Type::DHCPv6_SOLICIT)
@@ -955,6 +958,7 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
   auto verify = [=, this]() {
     std::optional<folly::MacAddress> dstMac;
     bool skipTtlDecrement;
+    utility::PacketComparatorFn packetComparatorFn = std::nullopt;
     if (!this->needL3EcmpLoop()) {
       // use random mac, packets would be flooded and loopback
       dstMac = folly::MacAddress("00:00:00:00:00:01");
@@ -964,6 +968,8 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
       dstMac =
           utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
       skipTtlDecrement = false;
+      utility::PacketMatchFields fields{dstMac};
+      packetComparatorFn = utility::makePacketComparator(fields);
     }
     bool outOfPort = false; /* route link local packet */
     auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
@@ -983,7 +989,9 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
         std::nullopt,
         true,
         outOfPort,
-        skipTtlDecrement);
+        skipTtlDecrement,
+        true,
+        packetComparatorFn);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);

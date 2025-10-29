@@ -43,7 +43,7 @@ void UARTDevice::open() {
 
 void AspeedRS485Device::open() {
   UARTDevice::open();
-  struct serial_rs485 rs485Conf {};
+  struct serial_rs485 rs485Conf{};
   /*
    * NOTE: "SER_RS485_RTS_AFTER_SEND" and "SER_RS485_RX_DURING_TX" flags
    * are not handled in kernel 4.1, but they are required in the latest
@@ -56,7 +56,7 @@ void AspeedRS485Device::open() {
 }
 
 void UARTDevice::setAttribute(bool readEnable, int baudrate, Parity parity) {
-  struct termios tio {};
+  struct termios tio{};
   cfsetspeed(&tio, kSpeedMap.at(baudrate));
   switch (parity) {
     case Parity::EVEN:

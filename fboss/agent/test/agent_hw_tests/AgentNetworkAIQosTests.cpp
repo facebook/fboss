@@ -202,7 +202,7 @@ TEST_F(AgentNetworkAILossyQueueTests, VerifyEgressQueueDrop) {
     folly::IPAddressV6 kSrcIp("2402::1");
     const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
         ensemble->getProgrammedState());
-    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64NBO() + 1);
+    const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         ensemble->getSw(),
         getVlanIDForTx(),

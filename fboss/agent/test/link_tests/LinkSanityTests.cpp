@@ -92,8 +92,9 @@ TEST_F(LinkTest, asicLinkFlap) {
         setPortStatus(port, false);
       }
       ASSERT_NO_THROW(waitForAllCabledPorts(false));
-      ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
-          false, getCabledTranceivers(), 60, 5s));
+      ASSERT_NO_THROW(
+          utility::waitForAllTransceiverStates(
+              false, getCabledTranceivers(), 60, 5s));
 
       // Set the port status on all cabled ports to true. The link should come
       // back up
@@ -101,8 +102,9 @@ TEST_F(LinkTest, asicLinkFlap) {
         setPortStatus(port, true);
       }
       ASSERT_NO_THROW(waitForAllCabledPorts(true));
-      ASSERT_NO_THROW(utility::waitForAllTransceiverStates(
-          true, getCabledTranceivers(), 60, 5s));
+      ASSERT_NO_THROW(
+          utility::waitForAllTransceiverStates(
+              true, getCabledTranceivers(), 60, 5s));
       ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
@@ -181,11 +183,12 @@ TEST_F(LinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
         createL3DataplaneFlood();
         utility::restartQsfpService(false /* coldboot */);
         // Wait for all transceivers to converge to Active state
-        EXPECT_NO_THROW(utility::waitForAllTransceiverStates(
-            true,
-            getCabledTranceivers(),
-            60 /* retries */,
-            5s /* retry interval */));
+        EXPECT_NO_THROW(
+            utility::waitForAllTransceiverStates(
+                true,
+                getCabledTranceivers(),
+                60 /* retries */,
+                5s /* retry interval */));
       },
       [this]() {
         // Assert no traffic loss and no ecmp shrink. If ports flap
@@ -469,8 +472,9 @@ TEST_F(LinkTest, qsfpColdbootAfterAgentUp) {
         sleep(5);
         // Assert all cabled ports are up and transceivers have ACTIVE state
         EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s));
-        EXPECT_NO_THROW(utility::waitForAllTransceiverStates(
-            true, getCabledTranceivers(), 60, 5s));
+        EXPECT_NO_THROW(
+            utility::waitForAllTransceiverStates(
+                true, getCabledTranceivers(), 60, 5s));
       });
 }
 

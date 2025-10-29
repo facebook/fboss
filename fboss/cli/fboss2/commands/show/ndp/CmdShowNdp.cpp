@@ -94,8 +94,9 @@ RetType CmdShowNdp::createModel(
       queriedNdpEntries.begin(), queriedNdpEntries.end());
 
   for (const auto& entry : ndpEntries) {
-    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-        folly::StringPiece(entry.ip().value().addr().value())));
+    auto ip = folly::IPAddress::fromBinary(
+        folly::ByteRange(
+            folly::StringPiece(entry.ip().value().addr().value())));
 
     if (queriedNdpEntries.size() == 0 || queriedSet.count(ip.str())) {
       cli::NdpEntry ndpDetails;

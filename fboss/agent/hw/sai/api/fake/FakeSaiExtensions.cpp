@@ -277,6 +277,11 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+  return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }
@@ -828,6 +833,11 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
@@ -935,6 +945,11 @@ SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
   return SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
+  return SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE;
 }
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>

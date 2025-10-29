@@ -439,12 +439,13 @@ TEST_F(BcmPortTest, SampleDestinationCpu) {
 TEST_F(BcmPortTest, AssertL3Enabled) {
   // Enable all master ports
   auto setup = [this]() {
-    applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch()->getPlatform()->getPlatformMapping(),
-        getHwSwitch()->getPlatform()->getAsic(),
-        masterLogicalPortIds(),
-        getHwSwitch()->getPlatform()->supportsAddRemovePort(),
-        getPlatform()->getAsic()->desiredLoopbackModes()));
+    applyNewConfig(
+        utility::oneL3IntfNPortConfig(
+            getHwSwitch()->getPlatform()->getPlatformMapping(),
+            getHwSwitch()->getPlatform()->getAsic(),
+            masterLogicalPortIds(),
+            getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+            getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this]() {
     std::array<std::tuple<std::string, bcm_port_control_t>, 2> l3Options = {
@@ -482,8 +483,9 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
 TEST_F(BcmPortTest, PortFdrStats) {
   // Feature supported in Tomahawk4 and above. This test is marked known bad
   // in platforms with unsupported ASICs.
-  EXPECT_TRUE(getPlatform()->getAsic()->isSupported(
-      HwAsic::Feature::FEC_DIAG_COUNTERS));
+  EXPECT_TRUE(
+      getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FEC_DIAG_COUNTERS));
 
   auto setup = [this]() { applyNewConfig(initialConfig()); };
   auto verify = [this]() {
@@ -507,12 +509,13 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
   static auto constexpr expectedInterPacketGapBits = 352;
   // Enable all master ports
   auto setup = [this]() {
-    applyNewConfig(utility::oneL3IntfNPortConfig(
-        getHwSwitch()->getPlatform()->getPlatformMapping(),
-        getHwSwitch()->getPlatform()->getAsic(),
-        masterLogicalPortIds(),
-        getHwSwitch()->getPlatform()->supportsAddRemovePort(),
-        getPlatform()->getAsic()->desiredLoopbackModes()));
+    applyNewConfig(
+        utility::oneL3IntfNPortConfig(
+            getHwSwitch()->getPlatform()->getPlatformMapping(),
+            getHwSwitch()->getPlatform()->getAsic(),
+            masterLogicalPortIds(),
+            getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+            getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this]() {
     for (const auto& portMap :

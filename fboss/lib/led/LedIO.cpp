@@ -40,10 +40,11 @@ void LedIO::initMaxBrightness(
     fs >> maxBrightness;
     fs.close();
   } else {
-    throw LedIOError(fmt::format(
-        "initMaxBrightness() failed to open {} for ID {:d} (0 base)",
-        maxBrightnessPath,
-        id_));
+    throw LedIOError(
+        fmt::format(
+            "initMaxBrightness() failed to open {} for ID {:d} (0 base)",
+            maxBrightnessPath,
+            id_));
   }
   auto value = folly::to<int>(maxBrightness);
   CHECK((value >= kMinBrightness) && (value <= kMaxBrightness)) << fmt::format(
@@ -126,8 +127,9 @@ void LedIO::setLed(const std::string& ledBasePath, const std::string& ledOp) {
     fs << ledOp;
     fs.close();
   } else {
-    throw LedIOError(fmt::format(
-        "setLed() failed to open {} for ID {:d} (0 base)", ledPath, id_));
+    throw LedIOError(
+        fmt::format(
+            "setLed() failed to open {} for ID {:d} (0 base)", ledPath, id_));
   }
 }
 

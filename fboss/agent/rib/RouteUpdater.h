@@ -124,8 +124,12 @@ class RibRouteUpdater {
   void
   delRoute(const folly::IPAddress& network, uint8_t mask, ClientID clientID);
   void delRoute(const LabelID& label, const ClientID clientID);
-  void removeAllRoutesForClient(ClientID clientID);
-  void removeAllMplsRoutesForClient(ClientID clientID);
+  void removeAllUnclaimedRoutesForClient(
+      ClientID clientID,
+      const std::vector<RouteEntry>& claimed);
+  void removeAllUnclaimedMplsRoutesForClient(
+      ClientID clientID,
+      const std::vector<MplsRouteEntry>& claimed);
 
   template <typename AddressT>
   using Prefix = RoutePrefix<AddressT>;
@@ -143,6 +147,11 @@ class RibRouteUpdater {
       ClientID clientID);
   template <typename AddressT>
   void removeAllRoutesFromClientImpl(
+      NetworkToRouteMap<AddressT>* routes,
+      ClientID clientID);
+  template <typename AddressT, typename FilterFunc>
+  void removeAllUnclaimedRoutesFromClientImpl(
+      const FilterFunc& isClaimedFunc,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID);
 

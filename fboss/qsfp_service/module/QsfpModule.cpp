@@ -347,6 +347,7 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::CR_10G:
     case MediaInterfaceCode::DR1_200G:
     case MediaInterfaceCode::DR1_100G:
+    case MediaInterfaceCode::CR1_100G:
       return 1;
     case MediaInterfaceCode::DR2_400G:
       return 2;
@@ -389,6 +390,7 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::DR1_200G:
     case MediaInterfaceCode::DR1_100G:
     case MediaInterfaceCode::ZR_800G:
+    case MediaInterfaceCode::CR1_100G:
       return 1;
     case MediaInterfaceCode::DR2_400G:
       return 2;
@@ -503,6 +505,13 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     updateCmisStateChanged(currentStatus, moduleStatus);
     tcvrState.status() = currentStatus;
     cacheStatusFlags(currentStatus);
+
+    // Tunable optics parameter
+    auto tunableLaserstatus = getTunableLaserStatus();
+    if (tunableLaserstatus) {
+      QSFP_LOG(INFO, this) << "Tunable laser status is not null";
+      tcvrState.tunableLaserStatus() = tunableLaserstatus.value();
+    }
 
     // If the StatsPublisher thread has triggered the VDM data capture then
     // latch, read data (page 24 and 25), release latch

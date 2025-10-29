@@ -15,8 +15,9 @@ using namespace facebook::fboss;
 
 namespace {
 void testToAndFromDynamic(const std::shared_ptr<LabelForwardingEntry>& entry) {
-  EXPECT_TRUE(std::make_shared<LabelForwardingEntry>(entry->toThrift())
-                  ->isSame(entry.get()));
+  EXPECT_TRUE(
+      std::make_shared<LabelForwardingEntry>(entry->toThrift())
+          ->isSame(entry.get()));
 }
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};

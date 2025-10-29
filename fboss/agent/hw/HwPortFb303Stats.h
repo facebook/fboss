@@ -27,8 +27,13 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
   explicit HwPortFb303Stats(
       const std::string& portName,
       QueueId2Name queueId2Name = {},
-      const std::vector<PfcPriority>& enabledPfcPriorities = {})
-      : HwBasePortFb303Stats(portName, queueId2Name, enabledPfcPriorities) {
+      const std::vector<PfcPriority>& enabledPfcPriorities = {},
+      const std::optional<cfg::PortPfc>& pfcCfg = std::nullopt)
+      : HwBasePortFb303Stats(
+            portName,
+            std::move(queueId2Name),
+            enabledPfcPriorities,
+            pfcCfg) {
     portStats_.portName_() = portName;
     reinitStats(std::nullopt);
   }

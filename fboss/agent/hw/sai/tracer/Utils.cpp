@@ -46,13 +46,14 @@ void oidListAttr(
         to<string>(prefix, "list=(sai_object_id_t*)(list_", listIndex, ")"));
     for (int j = 0; j < std::min(attr_list[i].value.objlist.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "]=",
-          SaiTracer::getInstance()->getVariable(
-              attr_list[i].value.objlist.list[j])));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "]=",
+              SaiTracer::getInstance()->getVariable(
+                  attr_list[i].value.objlist.list[j])));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -66,11 +67,12 @@ void aclEntryActionSaiObjectIdAttr(
   string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
   attrLines.push_back(
       to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
-  attrLines.push_back(to<string>(
-      prefix,
-      "parameter.oid=",
-      SaiTracer::getInstance()->getVariable(
-          attr_list[i].value.aclaction.parameter.oid)));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "parameter.oid=",
+          SaiTracer::getInstance()->getVariable(
+              attr_list[i].value.aclaction.parameter.oid)));
 }
 
 void aclEntryActionSaiObjectIdListAttr(
@@ -91,19 +93,21 @@ void aclEntryActionSaiObjectIdListAttr(
   attrLines.push_back(
       to<string>(prefix, "parameter.objlist.count=", objectListCount));
   if (logEntry && attr_list[i].value.aclaction.parameter.objlist.list) {
-    attrLines.push_back(to<string>(
-        prefix,
-        "parameter.objlist.list=(sai_object_id_t*)(list_",
-        listIndex,
-        ")"));
+    attrLines.push_back(
+        to<string>(
+            prefix,
+            "parameter.objlist.list=(sai_object_id_t*)(list_",
+            listIndex,
+            ")"));
     for (int j = 0; j < std::min(objectListCount, listLimit); ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "parameter.objlist.list[",
-          j,
-          "]=",
-          SaiTracer::getInstance()->getVariable(
-              attr_list[i].value.aclaction.parameter.objlist.list[j])));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "parameter.objlist.list[",
+              j,
+              "]=",
+              SaiTracer::getInstance()->getVariable(
+                  attr_list[i].value.aclaction.parameter.objlist.list[j])));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "parameter.objlist.list=NULL"));
@@ -117,8 +121,9 @@ void aclEntryActionU8Attr(
   string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
   attrLines.push_back(
       to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
-  attrLines.push_back(to<string>(
-      prefix, "parameter.u8=", attr_list[i].value.aclaction.parameter.u8));
+  attrLines.push_back(
+      to<string>(
+          prefix, "parameter.u8=", attr_list[i].value.aclaction.parameter.u8));
 }
 
 void aclEntryActionBoolAttr(
@@ -128,10 +133,11 @@ void aclEntryActionBoolAttr(
   string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
   attrLines.push_back(
       to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
-  attrLines.push_back(to<string>(
-      prefix,
-      "parameter.booldata=",
-      attr_list[i].value.aclaction.parameter.booldata));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "parameter.booldata=",
+          attr_list[i].value.aclaction.parameter.booldata));
 }
 
 void aclEntryActionU32Attr(
@@ -141,8 +147,11 @@ void aclEntryActionU32Attr(
   string prefix = to<string>("s_a", "[", i, "].value.aclaction.");
   attrLines.push_back(
       to<string>(prefix, "enable=", attr_list[i].value.aclaction.enable));
-  attrLines.push_back(to<string>(
-      prefix, "parameter.u32=", attr_list[i].value.aclaction.parameter.u32));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "parameter.u32=",
+          attr_list[i].value.aclaction.parameter.u32));
 }
 
 void aclEntryFieldSaiObjectIdAttr(
@@ -152,11 +161,12 @@ void aclEntryFieldSaiObjectIdAttr(
   string prefix = to<string>("s_a", "[", i, "].value.aclfield.");
   attrLines.push_back(
       to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
-  attrLines.push_back(to<string>(
-      prefix,
-      "data.oid=",
-      SaiTracer::getInstance()->getVariable(
-          attr_list[i].value.aclfield.data.oid)));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "data.oid=",
+          SaiTracer::getInstance()->getVariable(
+              attr_list[i].value.aclfield.data.oid)));
   attrLines.push_back(
       to<string>(prefix, "mask.u32=", attr_list[i].value.aclfield.mask.u32));
 }
@@ -184,13 +194,23 @@ void aclEntryFieldIpV6Attr(
 
   // The underlying implementation of sai_ip6_t is uint8_t[16]
   for (int j = 0; j < 16; ++j) {
-    attrLines.push_back(to<string>(
-        prefix, "data.ip6[", j, "]=", attr_list[i].value.aclfield.data.ip6[j]));
+    attrLines.push_back(
+        to<string>(
+            prefix,
+            "data.ip6[",
+            j,
+            "]=",
+            attr_list[i].value.aclfield.data.ip6[j]));
   }
 
   for (int j = 0; j < 16; ++j) {
-    attrLines.push_back(to<string>(
-        prefix, "mask.ip6[", j, "]=", attr_list[i].value.aclfield.mask.ip6[j]));
+    attrLines.push_back(
+        to<string>(
+            prefix,
+            "mask.ip6[",
+            j,
+            "]=",
+            attr_list[i].value.aclfield.mask.ip6[j]));
   }
 }
 
@@ -243,20 +263,24 @@ void aclEntryFieldMacAttr(
 
   attrLines.push_back(to<string>("mac=", prefix, "data.mac"));
   for (int j = 0; j < 6; ++j) {
-    attrLines.push_back(to<string>(
-        "mac[",
-        j,
-        "]=",
-        static_cast<const uint8_t*>(attr_list[i].value.aclfield.data.mac)[j]));
+    attrLines.push_back(
+        to<string>(
+            "mac[",
+            j,
+            "]=",
+            static_cast<const uint8_t*>(
+                attr_list[i].value.aclfield.data.mac)[j]));
   }
 
   attrLines.push_back(to<string>("mac=", prefix, "mask.mac"));
   for (int j = 0; j < 6; ++j) {
-    attrLines.push_back(to<string>(
-        "mac[",
-        j,
-        "]=",
-        static_cast<const uint8_t*>(attr_list[i].value.aclfield.mask.mac)[j]));
+    attrLines.push_back(
+        to<string>(
+            "mac[",
+            j,
+            "]=",
+            static_cast<const uint8_t*>(
+                attr_list[i].value.aclfield.mask.mac)[j]));
   }
 }
 
@@ -276,40 +300,44 @@ void aclEntryFieldU8ListAttr(
       to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
 
   prefix = to<string>("s_a", "[", i, "].value.aclfield.data.u8list.");
-  attrLines.push_back(to<string>(
-      prefix, "count=", attr_list[i].value.aclfield.data.u8list.count));
+  attrLines.push_back(
+      to<string>(
+          prefix, "count=", attr_list[i].value.aclfield.data.u8list.count));
   if (logEntry && attr_list[i].value.aclfield.data.u8list.list) {
     attrLines.push_back(
         to<string>(prefix, "list=(sai_uint8_t*)(list_", listIndex, ")"));
     for (int j = 0;
          j < std::min(attr_list[i].value.aclfield.data.u8list.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "]=",
-          attr_list[i].value.aclfield.data.u8list.list[j]));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "]=",
+              attr_list[i].value.aclfield.data.u8list.list[j]));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
   }
 
   prefix = to<string>("s_a", "[", i, "].value.aclfield.mask.u8list.");
-  attrLines.push_back(to<string>(
-      prefix, "count=", attr_list[i].value.aclfield.mask.u8list.count));
+  attrLines.push_back(
+      to<string>(
+          prefix, "count=", attr_list[i].value.aclfield.mask.u8list.count));
   if (logEntry && attr_list[i].value.aclfield.mask.u8list.list) {
     attrLines.push_back(
         to<string>(prefix, "list=(sai_uint8_t*)(list_", listIndex + 1, ")"));
     for (int j = 0;
          j < std::min(attr_list[i].value.aclfield.mask.u8list.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "]=",
-          attr_list[i].value.aclfield.mask.u8list.list[j]));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "]=",
+              attr_list[i].value.aclfield.mask.u8list.list[j]));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -323,19 +351,22 @@ void systemPortConfigAttr(
   string prefix = to<string>("s_a", "[", i, "].value.sysportconfig.");
   attrLines.push_back(
       to<string>(prefix, "port_id=", attr_list[i].value.sysportconfig.port_id));
-  attrLines.push_back(to<string>(
-      prefix,
-      "attached_switch_id=",
-      attr_list[i].value.sysportconfig.attached_switch_id));
-  attrLines.push_back(to<string>(
-      prefix,
-      "attached_core_index=",
-      attr_list[i].value.sysportconfig.attached_core_index));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "attached_switch_id=",
+          attr_list[i].value.sysportconfig.attached_switch_id));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "attached_core_index=",
+          attr_list[i].value.sysportconfig.attached_core_index));
 
-  attrLines.push_back(to<string>(
-      prefix,
-      "attached_core_port_index=",
-      attr_list[i].value.sysportconfig.attached_core_port_index));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "attached_core_port_index=",
+          attr_list[i].value.sysportconfig.attached_core_port_index));
   attrLines.push_back(
       to<string>(prefix, "speed=", attr_list[i].value.sysportconfig.speed));
   attrLines.push_back(
@@ -358,56 +389,65 @@ void systemPortConfigListAttr(
   attrLines.push_back(
       to<string>(prefix, "count=", attr_list[i].value.sysportconfiglist.count));
   if (logEntry && attr_list[i].value.sysportconfiglist.list) {
-    attrLines.push_back(to<string>(
-        prefix, "list=(sai_system_port_config_t*)(list_", listIndex, ")"));
+    attrLines.push_back(
+        to<string>(
+            prefix, "list=(sai_system_port_config_t*)(list_", listIndex, ")"));
     for (int j = 0;
          j < std::min(attr_list[i].value.sysportconfiglist.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "port_id=",
-          attr_list[i].value.sysportconfiglist.list[j].port_id));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "attached_switch_id=",
-          attr_list[i].value.sysportconfiglist.list[j].attached_switch_id));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "attached_core_index=",
-          attr_list[i].value.sysportconfiglist.list[j].attached_core_index));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "port_id=",
+              attr_list[i].value.sysportconfiglist.list[j].port_id));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "attached_switch_id=",
+              attr_list[i].value.sysportconfiglist.list[j].attached_switch_id));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "attached_core_index=",
+              attr_list[i]
+                  .value.sysportconfiglist.list[j]
+                  .attached_core_index));
 
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "attached_core_port_index=",
-          attr_list[i]
-              .value.sysportconfiglist.list[j]
-              .attached_core_port_index));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "speed=",
-          attr_list[i].value.sysportconfiglist.list[j].speed));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "num_voq=",
-          attr_list[i].value.sysportconfiglist.list[j].num_voq));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "attached_core_port_index=",
+              attr_list[i]
+                  .value.sysportconfiglist.list[j]
+                  .attached_core_port_index));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "speed=",
+              attr_list[i].value.sysportconfiglist.list[j].speed));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "num_voq=",
+              attr_list[i].value.sysportconfiglist.list[j].num_voq));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -420,10 +460,11 @@ void latchStatusAttr(
     int i,
     std::vector<std::string>& attrLines) {
   string prefix = to<string>("s_a", "[", i, "].value.latchstatus.");
-  attrLines.push_back(to<string>(
-      prefix,
-      "current_status=",
-      attr_list[i].value.latchstatus.current_status));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "current_status=",
+          attr_list[i].value.latchstatus.current_status));
   attrLines.push_back(
       to<string>(prefix, "changed=", attr_list[i].value.latchstatus.changed));
 }
@@ -441,37 +482,47 @@ void portLaneLatchStatusListAttr(
       attr_list[i].value.portlanelatchstatuslist.count);
 
   string prefix = to<string>("s_a", "[", i, "].value.portlanelatchstatuslist.");
-  attrLines.push_back(to<string>(
-      prefix, "count=", attr_list[i].value.portlanelatchstatuslist.count));
+  attrLines.push_back(
+      to<string>(
+          prefix, "count=", attr_list[i].value.portlanelatchstatuslist.count));
   if (logEntry && attr_list[i].value.portlanelatchstatuslist.list) {
-    attrLines.push_back(to<string>(
-        prefix, "list=(sai_port_lane_latch_status_t*)(list_", listIndex, ")"));
+    attrLines.push_back(
+        to<string>(
+            prefix,
+            "list=(sai_port_lane_latch_status_t*)(list_",
+            listIndex,
+            ")"));
     for (int j = 0; j <
          std::min(attr_list[i].value.portlanelatchstatuslist.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "lane=",
-          attr_list[i].value.portlanelatchstatuslist.list[j].lane));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.",
-          "current_status=",
-          attr_list[i]
-              .value.portlanelatchstatuslist.list[j]
-              .value.current_status));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.",
-          "changed=",
-          attr_list[i].value.portlanelatchstatuslist.list[j].value.changed));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "lane=",
+              attr_list[i].value.portlanelatchstatuslist.list[j].lane));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.",
+              "current_status=",
+              attr_list[i]
+                  .value.portlanelatchstatuslist.list[j]
+                  .value.current_status));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.",
+              "changed=",
+              attr_list[i]
+                  .value.portlanelatchstatuslist.list[j]
+                  .value.changed));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -494,31 +545,37 @@ void portFrequencyOffsetPpmListAttr(
 
   string prefix =
       to<string>("s_a", "[", i, "].value.portfrequencyoffsetppmlist.");
-  attrLines.push_back(to<string>(
-      prefix, "count=", attr_list[i].value.portfrequencyoffsetppmlist.count));
+  attrLines.push_back(
+      to<string>(
+          prefix,
+          "count=",
+          attr_list[i].value.portfrequencyoffsetppmlist.count));
   if (logEntry && attr_list[i].value.portfrequencyoffsetppmlist.list) {
-    attrLines.push_back(to<string>(
-        prefix,
-        "list=(sai_port_frequency_offset_ppm_values_t*)(list_",
-        listIndex,
-        ")"));
+    attrLines.push_back(
+        to<string>(
+            prefix,
+            "list=(sai_port_frequency_offset_ppm_values_t*)(list_",
+            listIndex,
+            ")"));
     for (int j = 0; j <
          std::min(attr_list[i].value.portfrequencyoffsetppmlist.count,
                   listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "lane=",
-          attr_list[i].value.portfrequencyoffsetppmlist.list[j].lane));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].ppm=",
-          attr_list[i].value.portfrequencyoffsetppmlist.list[j].ppm));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "lane=",
+              attr_list[i].value.portfrequencyoffsetppmlist.list[j].lane));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].ppm=",
+              attr_list[i].value.portfrequencyoffsetppmlist.list[j].ppm));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -541,24 +598,27 @@ void portSnrListAttr(
   attrLines.push_back(
       to<string>(prefix, "count=", attr_list[i].value.portsnrlist.count));
   if (logEntry && attr_list[i].value.portsnrlist.list) {
-    attrLines.push_back(to<string>(
-        prefix, "list=(sai_port_snr_values_t*)(list_", listIndex, ")"));
+    attrLines.push_back(
+        to<string>(
+            prefix, "list=(sai_port_snr_values_t*)(list_", listIndex, ")"));
     for (int j = 0;
          j < std::min(attr_list[i].value.portsnrlist.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].",
-          "lane=",
-          attr_list[i].value.portsnrlist.list[j].lane));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].snr=",
-          attr_list[i].value.portsnrlist.list[j].snr));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].",
+              "lane=",
+              attr_list[i].value.portsnrlist.list[j].lane));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].snr=",
+              attr_list[i].value.portsnrlist.list[j].snr));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -622,8 +682,9 @@ void s8ListAttr(
           to<string>(prefix, "list=(sai_int8_t*)(list_", listIndex, ")"));
       for (int j = 0; j < std::min(attr_list[i].value.s8list.count, listLimit);
            ++j) {
-        attrLines.push_back(to<string>(
-            prefix, "list[", j, "]=", attr_list[i].value.s8list.list[j]));
+        attrLines.push_back(
+            to<string>(
+                prefix, "list[", j, "]=", attr_list[i].value.s8list.list[j]));
       }
     } else {
       attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -649,8 +710,9 @@ void s32ListAttr(
   if (logEntry && attr_list[i].value.s32list.list) {
     for (int j = 0; j < std::min(attr_list[i].value.s32list.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix, "list[", j, "]=", attr_list[i].value.s32list.list[j]));
+      attrLines.push_back(
+          to<string>(
+              prefix, "list[", j, "]=", attr_list[i].value.s32list.list[j]));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -675,8 +737,9 @@ void u32ListAttr(
         to<string>(prefix, "list=(sai_uint32_t*)(list_", listIndex, ")"));
     for (int j = 0; j < std::min(attr_list[i].value.u32list.count, listLimit);
          ++j) {
-      attrLines.push_back(to<string>(
-          prefix, "list[", j, "]=", attr_list[i].value.u32list.list[j]));
+      attrLines.push_back(
+          to<string>(
+              prefix, "list[", j, "]=", attr_list[i].value.u32list.list[j]));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -724,19 +787,21 @@ void mapListAttr(
     for (int j = 0; j < std::min(attr_list[i].value.maplist.count, listLimit);
          ++j) {
       // Key
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key=",
-          attr_list[i].value.maplist.list[j].key));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key=",
+              attr_list[i].value.maplist.list[j].key));
       // Value
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value=",
-          attr_list[i].value.maplist.list[j].value));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value=",
+              attr_list[i].value.maplist.list[j].value));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -765,104 +830,120 @@ void qosMapListAttr(
     for (int j = 0; j < std::min(attr_list[i].value.qosmap.count, listLimit);
          ++j) {
       // Key
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.tc=",
-          attr_list[i].value.qosmap.list[j].key.tc));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.dscp=",
-          attr_list[i].value.qosmap.list[j].key.dscp));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.dot1p=",
-          attr_list[i].value.qosmap.list[j].key.dot1p));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.prio=",
-          attr_list[i].value.qosmap.list[j].key.prio));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.pg=",
-          attr_list[i].value.qosmap.list[j].key.pg));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.queue_index=",
-          attr_list[i].value.qosmap.list[j].key.queue_index));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.color=(sai_packet_color_t)",
-          attr_list[i].value.qosmap.list[j].key.color));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].key.mpls_exp=",
-          attr_list[i].value.qosmap.list[j].key.mpls_exp));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.tc=",
+              attr_list[i].value.qosmap.list[j].key.tc));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.dscp=",
+              attr_list[i].value.qosmap.list[j].key.dscp));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.dot1p=",
+              attr_list[i].value.qosmap.list[j].key.dot1p));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.prio=",
+              attr_list[i].value.qosmap.list[j].key.prio));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.pg=",
+              attr_list[i].value.qosmap.list[j].key.pg));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.queue_index=",
+              attr_list[i].value.qosmap.list[j].key.queue_index));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.color=(sai_packet_color_t)",
+              attr_list[i].value.qosmap.list[j].key.color));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].key.mpls_exp=",
+              attr_list[i].value.qosmap.list[j].key.mpls_exp));
 
       // Value
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.tc=",
-          attr_list[i].value.qosmap.list[j].value.tc));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.dscp=",
-          attr_list[i].value.qosmap.list[j].value.dscp));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.dot1p=",
-          attr_list[i].value.qosmap.list[j].value.dot1p));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.prio=",
-          attr_list[i].value.qosmap.list[j].value.prio));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.pg=",
-          attr_list[i].value.qosmap.list[j].value.pg));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.queue_index=",
-          attr_list[i].value.qosmap.list[j].value.queue_index));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.color=(sai_packet_color_t)",
-          attr_list[i].value.qosmap.list[j].value.color));
-      attrLines.push_back(to<string>(
-          prefix,
-          "list[",
-          j,
-          "].value.mpls_exp=",
-          attr_list[i].value.qosmap.list[j].value.mpls_exp));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.tc=",
+              attr_list[i].value.qosmap.list[j].value.tc));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.dscp=",
+              attr_list[i].value.qosmap.list[j].value.dscp));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.dot1p=",
+              attr_list[i].value.qosmap.list[j].value.dot1p));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.prio=",
+              attr_list[i].value.qosmap.list[j].value.prio));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.pg=",
+              attr_list[i].value.qosmap.list[j].value.pg));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.queue_index=",
+              attr_list[i].value.qosmap.list[j].value.queue_index));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.color=(sai_packet_color_t)",
+              attr_list[i].value.qosmap.list[j].value.color));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "list[",
+              j,
+              "].value.mpls_exp=",
+              attr_list[i].value.qosmap.list[j].value.mpls_exp));
     }
   } else {
     attrLines.push_back(to<string>(prefix, "list=NULL"));
@@ -891,11 +972,12 @@ void macAddressAttr(
   // TODO(zecheng): Create helper function to handle this
   attrLines.push_back(to<string>("mac=s_a[", i, "].value.mac"));
   for (int j = 0; j < 6; ++j) {
-    attrLines.push_back(to<string>(
-        "mac[",
-        j,
-        "]=",
-        static_cast<const uint8_t*>(attr_list[i].value.mac)[j]));
+    attrLines.push_back(
+        to<string>(
+            "mac[",
+            j,
+            "]=",
+            static_cast<const uint8_t*>(attr_list[i].value.mac)[j]));
   }
 }
 
@@ -919,8 +1001,13 @@ void ipAttr(
 
     // Underlying type of sai_ip6_t is uint8_t[16]
     for (int j = 0; j < 16; ++j) {
-      attrLines.push_back(to<string>(
-          prefix, "addr.ip6[", j, "]=", attr_list[i].value.ipaddr.addr.ip6[j]));
+      attrLines.push_back(
+          to<string>(
+              prefix,
+              "addr.ip6[",
+              j,
+              "]=",
+              attr_list[i].value.ipaddr.addr.ip6[j]));
     }
   }
 }
@@ -954,8 +1041,9 @@ void prbsRxStateAttr(
   string prefix = to<string>("s_a", "[", i, "].value.rx_state.");
   attrLines.push_back(
       to<string>(prefix, "rx_status=", attr_list[i].value.rx_state.rx_status));
-  attrLines.push_back(to<string>(
-      prefix, "error_count=", attr_list[i].value.rx_state.error_count));
+  attrLines.push_back(
+      to<string>(
+          prefix, "error_count=", attr_list[i].value.rx_state.error_count));
 #endif
 }
 
