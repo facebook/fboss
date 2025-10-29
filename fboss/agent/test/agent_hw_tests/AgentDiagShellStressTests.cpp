@@ -32,7 +32,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
         case cfg::AsicType::ASIC_TYPE_EBRO:
         case cfg::AsicType::ASIC_TYPE_GARONNE:
         case cfg::AsicType::ASIC_TYPE_YUBA:
-          runTajoDiagCmds(switchId);
+          runLeabaDiagCmds(switchId);
           break;
         case cfg::AsicType::ASIC_TYPE_TRIDENT2:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -59,6 +59,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
 
  private:
   static auto constexpr kNumDiagCmds = 500;
+  static auto constexpr kNumDiagCmdsLeaba = 50;
   static auto constexpr kNumRestarts = 20;
 
   std::string makeDiagCmd(const std::string& cmd) const {
@@ -85,24 +86,21 @@ class AgentDiagShellStressTest : public AgentHwTest {
     std::ignore = out;
   }
 
-  void runTajoDiagCmds(SwitchID id) {
+  void runLeabaDiagCmds(SwitchID id) {
     std::string out;
     auto ensemble = getAgentEnsemble();
     ensemble->runDiagCommand(makeDiagCmd(""), out, id);
-    ensemble->runDiagCommand(makeDiagCmd("from cli import sai_cli"), out, id);
-    for (int i = 0; i < kNumDiagCmds; i++) {
-      // TODO: Change with more meaningful command for stress testing
-      ensemble->runDiagCommand(makeDiagCmd("print('hello')"), out, id);
+    ensemble->runDiagCommand(
+        makeDiagCmd("from leaba.debug_api import *"), out, id);
+    ensemble->runDiagCommand(makeDiagCmd("dapi = DebugApi()"), out, id);
+    ensemble->runDiagCommand(makeDiagCmd("from leaba_val import *"), out, id);
+    ensemble->runDiagCommand(
+        makeDiagCmd("set_dev(sdk.la_get_device(0))"), out, id);
+    for (int i = 0; i < kNumDiagCmdsLeaba; i++) {
+      ensemble->runDiagCommand(
+          makeDiagCmd("dapi.dump_port_counters()"), out, id);
+      ensemble->runDiagCommand(makeDiagCmd("get_counters()"), out, id);
     }
-    ensemble->runDiagCommand(makeDiagCmd("quit"), out, id);
-    for (int i = 0; i < kNumRestarts; i++) {
-      ensemble->runDiagCommand(makeDiagCmd(""), out, id);
-      ensemble->runDiagCommand(makeDiagCmd("from cli import sai_cli"), out, id);
-      // TODO: Change with more meaningful command for stress testing
-      ensemble->runDiagCommand(makeDiagCmd("print('hello')"), out, id);
-      ensemble->runDiagCommand(makeDiagCmd("quit"), out, id);
-    }
-    // TODO: Validate some output.
     std::ignore = out;
   }
 };

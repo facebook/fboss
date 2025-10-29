@@ -226,4 +226,7 @@ int main(int argc, char* argv[]) {
   readStdinT.join();
   streamEvb.terminateLoopSoon();
   streamT.join();
+  // call exit(0) otherwise EventBase destructor will be hanging due to active
+  // client/connection. Without this, we need multiple Ctrl+C to terminate
+  exit(0);
 }
