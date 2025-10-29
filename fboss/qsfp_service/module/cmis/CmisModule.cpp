@@ -2934,6 +2934,14 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
     setPowerOverrideIfSupportedLocked(
         getPowerControlValue(false /* readFromCache */));
 
+    if (isTunableOptics()) {
+      if (portState.opticalChannelConfig.has_value()) {
+        programTunableModule(portState.opticalChannelConfig.value());
+      } else {
+        QSFP_LOG(ERR, this) << "Tunable optics requires optical channel config";
+      }
+    }
+
     if (speed != cfg::PortSpeed::DEFAULT) {
       setApplicationCodeLocked(speed, startHostLane, numHostLanes);
     }
@@ -3158,6 +3166,39 @@ bool CmisModule::ensureTransceiverReadyLocked() {
   // Wait for 100ms before resetting the LP mode
   /* sleep override */
   usleep(kUsecBetweenPowerModeFlap);
+
+  if (isTunableOptics()) {
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Optics is tunable {}", getNameString());
+    // Deactivate all the datapath lane before putting into the high power mode
+    uint8_t dataPathDeInitReg;
+    readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "deinit value {} {}", dataPathDeInitReg, getNameString());
+    // First deactivate all the lanes
+    uint8_t dataPathDeInit = 0xFF;
+    writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
+    /* TODO: The generic implementation based on the counter
+     * is coming in the diff stack D83613514.
+     * The module takes around 2 to 3 seconds to be in dp-deactivated state.
+     */
+    // Wait for all datapath state machines to get Deactivated
+    const auto maxRetriesDeInit = maxRetriesWith500msDelay(/*init=*/false);
+
+    auto retries = 0;
+    while (retries++ < maxRetriesDeInit) {
+      /* sleep override */
+      usleep(kUsecDatapathStatePollTime);
+      if (isDatapathUpdated(dataPathDeInit, {CmisLaneState::DEACTIVATED})) {
+        break;
+      }
+    }
+    if (retries >= maxRetriesDeInit) {
+      QSFP_LOG(ERR, this) << fmt::format(
+          "Datapath could not deactivate even after waiting {:d} uSec",
+          kUsecDatapathStateUpdateTime);
+    }
+  }
 
   // Clear low power bit (set to 0x20)
   newModuleControl = SQUELCH_CONTROL;
