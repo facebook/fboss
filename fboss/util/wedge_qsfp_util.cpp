@@ -2242,6 +2242,24 @@ void printCmisDetailService(
   printSignalsAndSettings(transceiverInfo);
   printDomMonitors(transceiverInfo);
   printVendorInfo(transceiverInfo);
+  if (auto tunablelaserstatus = tcvrState.tunableLaserStatus()) {
+    printf(
+        "  Laser Tunning Status: %s\n",
+        apache::thrift::util::enumNameSafe(
+            tunablelaserstatus->tuningStatus().value())
+            .c_str());
+    printf(
+        "  Laser Wavelength Lock Status: %s\n",
+        apache::thrift::util::enumNameSafe(
+            tunablelaserstatus->wavelengthLockingStatus().value())
+            .c_str());
+    printf(
+        "  Laser Status Flags Bytes: 0x%02x\n",
+        tunablelaserstatus->laserStatusFlagsByte().value());
+    printf(
+        "  Laser Frequency (MHz): %ld\n",
+        tunablelaserstatus->laserFrequencyMhz().value());
+  }
   if (auto timeCollected = *transceiverInfo.tcvrState()->timeCollected()) {
     printf("  Time collected: %s\n", getLocalTime(timeCollected).c_str());
   }
@@ -2251,19 +2269,30 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   int i = 0; // For the index of lane
   CmisData cmisData = domDataUnion.get_cmis();
   const uint8_t *lowerBuf, *page0Buf, *page01Buf, *page10Buf, *page11Buf,
-      *page14Buf;
+      *page12Buf, *page14Buf;
   lowerBuf = cmisData.lower()->data();
   page0Buf = cmisData.page0()->data();
 
   // Some CMIS optics like Blanco bypass modules have flat memory so we need
   // to exclude other pages for these modules
-  bool flatMem = ((lowerBuf[2] & 0x80) != 0);
+  bool flatMem =
+      ((lowerBuf[2] & 0x80) != 0); // Fetch the transmitter technology
+  auto transmitterTech = page0Buf[84];
+  bool isTunableOptics = false;
+
+  if (transmitterTech == DeviceTechnologyCmis::C_BAND_TUNABLE_LASER_CMIS ||
+      transmitterTech == DeviceTechnologyCmis::L_BAND_TUNABLE_LASER_CMIS) {
+    isTunableOptics = true;
+  }
 
   if (!flatMem) {
     page01Buf = can_throw(cmisData.page01())->data();
     page10Buf = can_throw(cmisData.page10())->data();
     page11Buf = can_throw(cmisData.page11())->data();
     page14Buf = can_throw(cmisData.page14())->data();
+    if (isTunableOptics) {
+      page12Buf = can_throw(cmisData.page12())->data();
+    }
   }
 
   printf("  Module Interface Type: CMIS (200G or above)\n");
@@ -2435,6 +2464,15 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
       rangeStr[9] = 0;
       printf("%s", rangeStr);
     }
+  }
+  if (isTunableOptics) {
+    printf("\nLaser Frequency (MHz)      ");
+    uint32_t frequencyMhz = 0;
+    frequencyMhz = (static_cast<uint32_t>(page12Buf[5]) << 24) |
+        (static_cast<uint32_t>(page12Buf[6]) << 16) |
+        (static_cast<uint32_t>(page12Buf[7]) << 8) |
+        (static_cast<uint32_t>(page12Buf[8]));
+    printf("%u", frequencyMhz);
   }
   if (auto timeCollected = cmisData.timeCollected()) {
     printf("\nTime collected: %s", getLocalTime(*timeCollected).c_str());
