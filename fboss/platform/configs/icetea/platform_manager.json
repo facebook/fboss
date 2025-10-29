@@ -71,31 +71,31 @@
             {
               "busName": "INCOMING@0",
               "address": "0x11",
-              "kernelDeviceName": "tda38640",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_HWMON_1"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x22",
-              "kernelDeviceName": "tda38640",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_HWMON_2"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x45",
-              "kernelDeviceName": "tda38640",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_HWMON_3"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x66",
-              "kernelDeviceName": "tda38640",
+              "kernelDeviceName": "mp9941",
               "pmUnitScopedName": "COME_HWMON_4"
             },
             {
               "busName": "INCOMING@0",
               "address": "0x76",
-              "kernelDeviceName": "xdpe15284",
+              "kernelDeviceName": "mp2993",
               "pmUnitScopedName": "COME_HWMON_5"
             },
             {
@@ -112,7 +112,7 @@
             }
           ]
         },
-        "productSubVersion": 1
+        "productSubVersion": 2
       }
     ]
   },
@@ -1166,31 +1166,31 @@
         {
           "busName": "INCOMING@0",
           "address": "0x11",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_1"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x22",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_2"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x45",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_3"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x66",
-          "kernelDeviceName": "mp9941",
+          "kernelDeviceName": "tda38640",
           "pmUnitScopedName": "COME_HWMON_4"
         },
         {
           "busName": "INCOMING@0",
           "address": "0x76",
-          "kernelDeviceName": "mp2993",
+          "kernelDeviceName": "xdpe15284",
           "pmUnitScopedName": "COME_HWMON_5"
         },
         {
