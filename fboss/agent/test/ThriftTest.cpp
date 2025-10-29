@@ -2188,8 +2188,6 @@ TEST_F(ThriftTest, CounterIDThriftReadTest) {
   // create and update route counters
   updateCounter(counterID1);
   updateCounter(counterID2);
-  CounterCache counters(sw_);
-  counters.update();
 
   std::map<std::string, std::int64_t> routeCounters;
   auto counterIDs = std::make_unique<std::vector<std::string>>();

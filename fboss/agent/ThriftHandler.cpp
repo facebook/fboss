@@ -2011,10 +2011,11 @@ void ThriftHandler::getRouteCounterBytes(
     // returns default stat if statName does not exists
     auto statPtr = statMap->getStatPtrNoExport(statName);
     auto lockedStatPtr = statPtr->wlock();
+    lockedStatPtr->update(seconds(facebook::fb303::get_legacy_stats_time()));
     auto numLevels = lockedStatPtr->numLevels();
     // Cumulative (ALLTIME) counters are at (numLevels - 1)
     auto value = lockedStatPtr->sum(numLevels - 1);
-    routeCounters.insert(make_pair(statName, value));
+    routeCounters.try_emplace(statName, value);
   }
 }
 
