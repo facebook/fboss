@@ -93,6 +93,7 @@ class CmisModule : public QsfpModule {
   static constexpr int kMaxOsfpNumLanes = 8;
   static constexpr int kHostInterfaceCodeOffset = 0;
   static constexpr int kMediaInterfaceCodeOffset = 1;
+  static constexpr int32_t kDefaultFrequencyMhz = 193100000;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 

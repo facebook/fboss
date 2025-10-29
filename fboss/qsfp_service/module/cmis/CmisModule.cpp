@@ -66,7 +66,6 @@ constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
 // Tunable module const expr
-constexpr int32_t kDefaultFrequencyMhz = 193100000;
 constexpr double kMhzToGhzFactor = 0.000001;
 
 // TODO @sanabani: Change To Map
@@ -1885,7 +1884,6 @@ std::optional<TunableLaserStatus> CmisModule::getTunableLaserStatus() {
       LaserStatusBitMask::WAVELENGTH_LOCKED;
   tunableLaserStatus.laserFrequencyMhz() = kDefaultFrequencyMhz;
   tunableLaserStatus.laserStatusFlagsByte() = 0;
-
   // Read laser status from MEDIA_TX_1_LAS_STAT field
   uint8_t laserStatusByte;
   readCmisField(CmisField::MEDIA_TX_1_LAS_STAT, &laserStatusByte);
