@@ -11,7 +11,7 @@ set(
     "fboss/lib/asic_config_v2/bcm.py"
     "fboss/lib/asic_config_v2/bcmxgs.py"
     "fboss/lib/asic_config_v2/gen.py"
-    "fboss/lib/asic_config_v2/generate_agent_config_from_asic_config.py"
+    "fboss/lib/asic_config_v2/all_asic_config_params.py"
     "fboss/lib/asic_config_v2/icecube800bc.py"
     "fboss/lib/asic_config_v2/tomahawk6.py"
     "fboss/lib/platform_mapping_v2/asic_vendor_config.py"
@@ -36,6 +36,7 @@ add_fb_python_executable(
         transceiver_py
         phy_py
         platform_mapping_config_py
+        fboss_common_py
         FBThrift::thrift_py
         python-pyyaml::python-pyyaml
 )

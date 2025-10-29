@@ -63,9 +63,12 @@ python_binary(
     labels = ["autodeps2_generated"],
     main_module = "fboss.lib.asic_config_v2.gen",
     deps = [
-        ":asic_config",
+        ":all_asic_config_params",
         ":icecube800bc",
         "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/lib/if:fboss_common-py-deprecated",
+        "//thrift/lib/py:server_base",
+        "//thrift/lib/py/util:py_util",
     ],
 )
 
@@ -75,4 +78,14 @@ python_binary(
     labels = ["autodeps2_generated"],
     main_module = "fboss.lib.asic_config_v2.generate_agent_config_from_asic_config",
     deps = [],
+)
+
+python_library(
+    name = "all_asic_config_params",
+    srcs = ["all_asic_config_params.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/lib/if:fboss_common-py-deprecated",
+    ],
 )
