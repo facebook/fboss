@@ -23,6 +23,8 @@ namespace {
 
 constexpr auto kBuildRevision = "build_revision";
 constexpr auto kVerboseSdkVersion = "Verbose SDK Version";
+constexpr auto kSdkLogPath = "/var/facebook/logs/fboss/sdk/";
+constexpr auto kStateDeltaLogPath = "/var/facebook/logs/fboss/";
 
 bool isWarmBoot;
 std::mutex bootTypeLatch_;
@@ -161,6 +163,47 @@ void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
     setOffset(getOffset() + logSize);
     latch_.unlock();
   }
+}
+
+void AsyncLoggerBase::openLogFile(std::string& filePath) {
+  std::string srcTypeStr;
+  std::string logPath;
+  switch (srcType_) {
+    case (BCM_CINTER):
+      srcTypeStr = "Bcm Cinter";
+      logPath = kSdkLogPath;
+      break;
+    case (SAI_REPLAYER):
+      srcTypeStr = "Sai Replayer";
+      logPath = kSdkLogPath;
+      break;
+    case (STATE_DELTA):
+      srcTypeStr = "State Delta";
+      logPath = kStateDeltaLogPath;
+      break;
+  }
+  try {
+    if (filePath.find(logPath) == 0) {
+      logFile_ = folly::File(filePath, O_RDWR | O_CREAT | O_APPEND);
+    } else {
+      logFile_ = folly::File(filePath, O_RDWR | O_CREAT | O_TRUNC);
+    }
+  } catch (const std::system_error&) {
+    auto last_slash = filePath.find_last_of('/');
+
+    std::string directory = filePath.substr(0, last_slash);
+    std::string file_name = filePath.substr(last_slash + 1);
+
+    XLOG(WARN) << "[Async Logger] Failed to create " << file_name << " under "
+               << directory << ". Logging " << srcTypeStr << " log at /tmp/"
+               << file_name;
+
+    logFile_ = folly::File("/tmp/" + file_name, O_RDWR | O_CREAT | O_TRUNC);
+    return;
+  }
+
+  XLOG(DBG2) << "[Async Logger] Logging " << srcTypeStr << " log at "
+             << filePath;
 }
 
 void AsyncLoggerBase::writeNewBootHeader() {
