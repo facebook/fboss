@@ -4,8 +4,7 @@ import os
 import sys
 from typing import Dict
 
-import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
-import yaml
+import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift
 
 from fboss.lib.asic_config_v2.asic_config import AsicConfig
 from fboss.lib.asic_config_v2.icecube800bc import gen_icecube800bc_asic_config
