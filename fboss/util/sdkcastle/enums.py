@@ -82,6 +82,8 @@ class AsicType(Enum):
     TOMAHAWK6 = "tomahawk6"
     JERICHO3 = "jericho3"
     RAMON3 = "ramon3"
+    GIBRALTAR = "gibraltar"
+    GRAPHENE200 = "graphene200"
 
 
 def string_to_enum(value, enum_class):
