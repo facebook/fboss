@@ -26,7 +26,7 @@ class AsyncLoggerBase {
   enum BufferToWrite { BUFFER0, BUFFER1 };
 
   explicit AsyncLoggerBase(
-      std::string filePath,
+      const std::string& filePath,
       uint32_t logTimeout,
       LoggerSrcType srcType,
       char* logBuf,
@@ -50,7 +50,7 @@ class AsyncLoggerBase {
 
  protected:
   void workerThread();
-  void openLogFile(std::string& file_path);
+  void openLogFile(const std::string& file_path);
   void writeNewBootHeader();
 
   std::atomic_uint32_t flushCount_{0};

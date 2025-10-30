@@ -34,7 +34,7 @@ std::mutex bootTypeLatch_;
 namespace facebook::fboss {
 
 AsyncLoggerBase::AsyncLoggerBase(
-    std::string filePath,
+    const std::string& filePath,
     uint32_t logTimeout,
     LoggerSrcType srcType,
     char* logBuf,
@@ -165,7 +165,7 @@ void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
   }
 }
 
-void AsyncLoggerBase::openLogFile(std::string& filePath) {
+void AsyncLoggerBase::openLogFile(const std::string& filePath) {
   std::string srcTypeStr;
   std::string logPath;
   switch (srcType_) {
