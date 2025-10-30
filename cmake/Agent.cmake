@@ -399,6 +399,7 @@ set(core_libs
   ecmp_resource_manager
   thrift_method_rate_limit
   shel_manager
+  state_delta_logger
 )
 
 target_link_libraries(core ${core_libs})

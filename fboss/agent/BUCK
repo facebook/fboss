@@ -926,6 +926,7 @@ cpp_library(
         ":phy_snapshot_lib",
         ":route_update_wrapper",
         ":shel_manager",
+        ":state_delta_logger",
         ":state_observer",
         ":stats",
         ":sw_switch_warmboot_helper",

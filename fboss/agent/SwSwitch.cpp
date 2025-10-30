@@ -676,8 +676,17 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   // state. Thus, directly calling underlying getHw_DEPRECATED()->stateChanged()
   if (revertToMinAlpmState) {
     XLOG(DBG3) << "setup min ALPM state";
-    stateChanged(
-        StateDelta(getState(), getMinAlpmRouteState(getState())), false);
+    auto minAlpmStateDelta =
+        StateDelta(getState(), getMinAlpmRouteState(getState()));
+    if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
+      stateDeltaLogger_->logStateDelta(
+          minAlpmStateDelta, "Setup min ALPM state");
+    }
+    stateChanged(minAlpmStateDelta, false);
+  }
+
+  if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
+    stateDeltaLogger_.reset();
   }
 }
 
@@ -1346,6 +1355,12 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   if (!hwAsicTable_->getVoqAsics().empty()) {
     shelManager_ = std::make_unique<ShelManager>();
   }
+
+  // Init StateDeltaLogger for logging state deltas
+  if (FLAGS_enable_state_delta_logging) {
+    stateDeltaLogger_ = std::make_unique<StateDeltaLogger>();
+  }
+
   XLOG(DBG2)
       << "Time to init switch and start all threads "
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -1966,6 +1981,12 @@ SwSwitch::applyUpdate(
     resourceAccountant_->stateChanged(
         StateDelta(std::make_shared<SwitchState>(), oldState));
     return std::make_pair(oldState, newDesiredState);
+  }
+
+  // Log state deltas that are sent to HwSwitch
+  if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
+    stateDeltaLogger_->logStateDeltas(
+        deltas, "Update after ERM and Shel Manager");
   }
 
   std::shared_ptr<SwitchState> newAppliedState;
