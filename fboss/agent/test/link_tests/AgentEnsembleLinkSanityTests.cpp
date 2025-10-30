@@ -108,6 +108,9 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(
           utility::waitForAllTransceiverStates(
               false, getCabledTranceivers(), 60, 5s));
+      EXPECT_NO_THROW(
+          utility::waitForPortStateMachineState(
+              false, getCabledPorts(), 60, 5s));
 
       // Set the port status on all cabled ports to true. The link should come
       // back up
@@ -118,6 +121,9 @@ TEST_F(AgentEnsembleLinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(
           utility::waitForAllTransceiverStates(
               true, getCabledTranceivers(), 60, 5s));
+      EXPECT_NO_THROW(
+          utility::waitForPortStateMachineState(
+              true, getCabledPorts(), 60, 5s));
       ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
@@ -183,6 +189,8 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(true, getCabledPorts()));
       });
 }
 
@@ -198,6 +206,12 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
             utility::waitForAllTransceiverStates(
                 true,
                 getCabledTranceivers(),
+                60 /* retries */,
+                5s /* retry interval */));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(
+                true,
+                getCabledPorts(),
                 60 /* retries */,
                 5s /* retry interval */));
       },
@@ -216,6 +230,8 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(true, getCabledPorts()));
       });
 }
 
@@ -483,6 +499,9 @@ TEST_F(AgentEnsembleLinkTest, qsfpColdbootAfterAgentUp) {
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(
                 true, getCabledTranceivers(), 60, 5s));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(
+                true, getCabledPorts(), 60, 5s));
       });
 }
 
