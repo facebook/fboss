@@ -346,18 +346,20 @@ void RibRouteTables::updateFib(
     RouterID vrf,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
-  std::shared_ptr<SwitchState> updatedState;
+  std::optional<StateDelta> fibDelta;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
-    auto fibDelta = fibUpdateCallback(
+    auto gotDelta = fibUpdateCallback(
         resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
         cookie);
-    updatedState = fibDelta.newState();
+    std::optional<StateDelta> tmp(
+        StateDelta(gotDelta.oldState(), gotDelta.newState()));
+    fibDelta.swap(tmp);
   } catch (const FbossHwUpdateError& hwUpdateError) {
     {
       SCOPE_FAIL {
@@ -383,8 +385,8 @@ void RibRouteTables::updateFib(
     }
     throw;
   }
-  updateEcmpOverrides(
-      vrf, StateDelta(std::make_shared<SwitchState>(), updatedState));
+  CHECK(fibDelta.has_value());
+  updateEcmpOverrides(vrf, *fibDelta);
 }
 
 void RibRouteTables::updateEcmpOverrides(
