@@ -84,3 +84,16 @@ class StateDeltaLoggerTest : public ::testing::Test {
     return state;
   }
 };
+
+// Test basic logger creation and destruction
+TEST_F(StateDeltaLoggerTest, CreateAndDestroy) {
+  {
+    StateDeltaLogger logger;
+  }
+
+  // Should have created a log file with header
+  auto content = readLogFile();
+  EXPECT_FALSE(content.empty());
+  // The boot header should be written
+  EXPECT_NE(content.find("Start of a"), std::string::npos);
+}
