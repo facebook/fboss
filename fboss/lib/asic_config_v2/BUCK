@@ -65,10 +65,36 @@ python_binary(
     deps = [
         ":all_asic_config_params",
         ":icecube800bc",
+        ":montblanc",
         "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/if:fboss_common-py-deprecated",
         "//thrift/lib/py:server_base",
         "//thrift/lib/py/util:py_util",
+    ],
+)
+
+python_library(
+    name = "montblanc",
+    srcs = ["montblanc.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":tomahawk5",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:gen-library",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+    ],
+)
+
+python_library(
+    name = "tomahawk5",
+    srcs = ["tomahawk5.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "fbsource//third-party/pypi/pyyaml:pyyaml",
+        ":bcmxgs",
+        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
     ],
 )
 

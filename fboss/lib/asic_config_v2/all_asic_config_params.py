@@ -10,7 +10,16 @@ from neteng.fboss.fboss_common.ttypes import PlatformType
 all_params: Dict[PlatformType, Dict[str, Any]] = {
     PlatformType.PLATFORM_MERU800BIA: {},
     PlatformType.PLATFORM_MERU800BFA: {},
-    PlatformType.PLATFORM_MONTBLANC: {},
+    PlatformType.PLATFORM_MONTBLANC: {
+        "base": {
+            "asic_config_params": asic_config_thrift.AsicConfigParameters(
+                configType=asic_config_thrift.AsicConfigType.YAML_CONFIG,
+                exactMatch=False,
+                mmuLossless=False,
+                configGenType=asic_config_thrift.AsicConfigGenType.DEFAULT,
+            ),
+        },
+    },
     PlatformType.PLATFORM_MORGAN800CC: {},
     PlatformType.PLATFORM_WEDGE400: {},
     PlatformType.PLATFORM_JANGA800BIC: {},

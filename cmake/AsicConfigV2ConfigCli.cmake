@@ -14,6 +14,8 @@ set(
     "fboss/lib/asic_config_v2/all_asic_config_params.py"
     "fboss/lib/asic_config_v2/icecube800bc.py"
     "fboss/lib/asic_config_v2/tomahawk6.py"
+    "fboss/lib/asic_config_v2/montblanc.py"
+    "fboss/lib/asic_config_v2/tomahawk5.py"
     "fboss/lib/platform_mapping_v2/asic_vendor_config.py"
     "fboss/lib/platform_mapping_v2/gen.py"
     "fboss/lib/platform_mapping_v2/helpers.py"
