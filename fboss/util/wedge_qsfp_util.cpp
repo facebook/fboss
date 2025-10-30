@@ -56,6 +56,7 @@
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800bact/Wedge800BACTBspPlatformMapping.h"
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
 #include "fboss/lib/fpga/Wedge400TransceiverApi.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
@@ -4459,6 +4460,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "wedge800bact") {
+      auto systemContainer = BspGenericSystemContainer<
+                                 Wedge800BACTBspPlatformMapping>::getInstance()
+                                 .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else {
       return getTransceiverIOBusFromPlatform(FLAGS_platform);
     }
@@ -4554,6 +4561,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_WEDGE800BACT) {
+    auto systemContainer =
+        BspGenericSystemContainer<Wedge800BACTBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
   }
 
   return getTransceiverIOBusFromMode(mode);
@@ -4594,6 +4607,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_platform == "minipack3n") {
       mode = PlatformType::PLATFORM_MINIPACK3N;
+    } else if (FLAGS_platform == "wedge800bact") {
+      mode = PlatformType::PLATFORM_WEDGE800BACT;
     } else if (FLAGS_platform == "meru800bia") {
       mode = PlatformType::PLATFORM_MERU800BIA;
     } else if (FLAGS_platform == "meru800bfa") {
