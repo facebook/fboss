@@ -1269,6 +1269,15 @@ cpp_library(
     name = "async_logger",
     srcs = [
         "AsyncLogger.cpp",
+    ],
+    exported_deps = [
+        ":async_logger_base",
+    ],
+)
+
+cpp_library(
+    name = "async_logger_base",
+    srcs = [
         "AsyncLoggerBase.cpp",
     ],
     exported_deps = [

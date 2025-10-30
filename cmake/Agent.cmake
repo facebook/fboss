@@ -511,15 +511,22 @@ target_link_libraries(hw_switch
   multiswitch_ctrl_cpp2
 )
 
-add_library(async_logger
-  fboss/agent/AsyncLogger.cpp
+add_library(async_logger_base
   fboss/agent/AsyncLoggerBase.cpp
 )
 
-target_link_libraries(async_logger
+target_link_libraries(async_logger_base
   fboss_error
   fb303::fb303
   Folly::folly
+)
+
+add_library(async_logger
+  fboss/agent/AsyncLogger.cpp
+)
+
+target_link_libraries(async_logger
+  async_logger_base
 )
 
 add_library(sflow_shim_utils

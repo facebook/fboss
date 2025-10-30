@@ -14,11 +14,6 @@
 
 #include "fboss/agent/AsyncLogger.h"
 
-DEFINE_bool(
-    disable_async_logger,
-    false,
-    "Flag to indicate whether to disable async logging and directly write into the file");
-
 static facebook::fboss::AsyncLoggerBase::BufferToWrite currentBuffer =
     facebook::fboss::AsyncLoggerBase::BufferToWrite::BUFFER0;
 static std::string exitFilePath;

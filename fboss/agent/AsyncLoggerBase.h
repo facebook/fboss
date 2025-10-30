@@ -18,6 +18,8 @@
 #include <folly/File.h>
 #include <folly/Synchronized.h>
 
+DECLARE_bool(disable_async_logger);
+
 namespace facebook::fboss {
 
 class AsyncLoggerBase {

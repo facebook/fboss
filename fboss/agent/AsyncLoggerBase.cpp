@@ -17,7 +17,10 @@
 #include <folly/FileUtil.h>
 #include <gflags/gflags.h>
 
-DECLARE_bool(disable_async_logger);
+DEFINE_bool(
+    disable_async_logger,
+    false,
+    "Flag to indicate whether to disable async logging and directly write into the file");
 
 namespace {
 
