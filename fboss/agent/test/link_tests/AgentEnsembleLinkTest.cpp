@@ -90,6 +90,8 @@ void AgentEnsembleLinkTest::SetUp() {
   // Wait for all the cabled ports to link up before finishing the setup
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
+  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
+
   XLOG(DBG2) << "Multi Switch Link Test setup ready";
 }
 

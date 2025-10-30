@@ -95,6 +95,9 @@ TEST_F(LinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(
           utility::waitForAllTransceiverStates(
               false, getCabledTranceivers(), 60, 5s));
+      EXPECT_NO_THROW(
+          utility::waitForPortStateMachineState(
+              false, getCabledPorts(), 60, 5s));
 
       // Set the port status on all cabled ports to true. The link should come
       // back up
@@ -105,6 +108,9 @@ TEST_F(LinkTest, asicLinkFlap) {
       ASSERT_NO_THROW(
           utility::waitForAllTransceiverStates(
               true, getCabledTranceivers(), 60, 5s));
+      EXPECT_NO_THROW(
+          utility::waitForPortStateMachineState(
+              true, getCabledPorts(), 60, 5s));
       ASSERT_NO_THROW(checkAgentMemoryInBounds());
     }
   };
@@ -172,6 +178,8 @@ TEST_F(LinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(true, getCabledPorts()));
       });
 }
 
@@ -187,6 +195,12 @@ TEST_F(LinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
             utility::waitForAllTransceiverStates(
                 true,
                 getCabledTranceivers(),
+                60 /* retries */,
+                5s /* retry interval */));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(
+                true,
+                getCabledPorts(),
                 60 /* retries */,
                 5s /* retry interval */));
       },
@@ -206,6 +220,8 @@ TEST_F(LinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
         EXPECT_NO_THROW(waitForAllCabledPorts(true));
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(true, getCabledTranceivers()));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(true, getCabledPorts()));
       });
 }
 
@@ -475,6 +491,9 @@ TEST_F(LinkTest, qsfpColdbootAfterAgentUp) {
         EXPECT_NO_THROW(
             utility::waitForAllTransceiverStates(
                 true, getCabledTranceivers(), 60, 5s));
+        EXPECT_NO_THROW(
+            utility::waitForPortStateMachineState(
+                true, getCabledPorts(), 60, 5s));
       });
 }
 
