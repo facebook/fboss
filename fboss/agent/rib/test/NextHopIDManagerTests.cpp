@@ -457,4 +457,112 @@ TEST_F(
   EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
 }
 
+TEST_F(NextHopIDManagerTest, delOrDecrRouteNextHopSetID) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh4 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.4", UCMP_DEFAULT_WEIGHT);
+
+  //  Allocate setID id1 for Nh1, nh2, nh3
+  RouteNextHopSet nhSet1 = {nh1, nh2, nh3};
+  NextHopSetID setID1 = manager_->getOrAllocRouteNextHopSetID(nhSet1);
+
+  // Allocate setID id2 for Nh1, nh2
+  RouteNextHopSet nhSet2 = {nh1, nh2};
+  NextHopSetID setID2 = manager_->getOrAllocRouteNextHopSetID(nhSet2);
+
+  // Allocate setID id3 for Nh2, nh4
+  RouteNextHopSet nhSet3 = {nh2, nh4};
+  NextHopSetID setID3 = manager_->getOrAllocRouteNextHopSetID(nhSet3);
+
+  // Allocate setID id4 for empty set {}
+  RouteNextHopSet nhSet4;
+  NextHopSetID setID4 = manager_->getOrAllocRouteNextHopSetID(nhSet4);
+
+  // Verify initial state
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 4);
+
+  // Verify NextHop reference counts
+  EXPECT_EQ(manager_->getNextHopRefCount(nh1), 2);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 3);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh4), 1);
+
+  // Get NextHopIDs for verification
+  auto nhID1 = manager_->getNextHopID(nh1);
+  auto nhID2 = manager_->getNextHopID(nh2);
+  auto nhID3 = manager_->getNextHopID(nh3);
+  auto nhID4 = manager_->getNextHopID(nh4);
+
+  NextHopIDSet expectedIDSet1 = {nhID1.value(), nhID2.value(), nhID3.value()};
+  NextHopIDSet expectedIDSet2 = {nhID1.value(), nhID2.value()};
+  NextHopIDSet expectedIDSet3 = {nhID2.value(), nhID4.value()};
+  NextHopIDSet expectedIDSet4 = {};
+
+  // Verify idToNextHopIdSet map
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID1), expectedIDSet1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID2), expectedIDSet2);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID3), expectedIDSet3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID4), expectedIDSet4);
+
+  //  Call decrOrDeallocRouteNextHopSetID on id3
+  bool setID3Deallocated = manager_->decrOrDeallocRouteNextHopSetID(setID3);
+  EXPECT_TRUE(setID3Deallocated);
+
+  // NextHopSetID id3 should be deallocated
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(setID3), 0);
+  EXPECT_EQ(manager_->nextHopIdSetToIDInfo_.count(expectedIDSet3), 0);
+
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHop().count(nhID4.value()), 0);
+  EXPECT_EQ(manager_->nextHopToIDInfo_.count(nh4), 0);
+  EXPECT_EQ(manager_->getNextHopRefCount(nh2), 2);
+
+  // Call delOrDecrRouteNextHopSetID on id2
+  bool setID2Deallocated = manager_->decrOrDeallocRouteNextHopSetID(setID2);
+  EXPECT_TRUE(setID2Deallocated);
+
+  // NextHopSetID id2 should be deallocated
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+
+  // All NextHops should still exist
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+
+  // Allocate id1 again with same set of nexthops
+  setID1 = manager_->getOrAllocRouteNextHopSetID(nhSet1);
+
+  // Call delOrDecrRouteNextHopSetID on id1 which has been allocated twice
+  bool setID1Deallocated = manager_->decrOrDeallocRouteNextHopSetID(setID1);
+  EXPECT_FALSE(setID1Deallocated);
+
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+  // Verify remaining NextHopSetIDs (id1 and id4 should still exist)
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setID1), expectedIDSet1);
+  EXPECT_EQ(manager_->nextHopIdSetToIDInfo_.count(expectedIDSet1), 1);
+
+  // Deallocate setID4 (empty set) and verify state
+  bool setID4Deallocated = manager_->decrOrDeallocRouteNextHopSetID(setID4);
+  EXPECT_TRUE(setID4Deallocated);
+
+  // NextHopSetID id4 should be deallocated
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().count(setID4), 0);
+  EXPECT_EQ(manager_->nextHopIdSetToIDInfo_.count(expectedIDSet4), 0);
+
+  // No NextHops should be affected (still 3 NextHops)
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+
+  // Call decrOrDeallocRouteNextHopSetID for non-existent id and check it
+  // throws FbossError
+  NextHopSetID nonExistentID = NextHopSetID(999999);
+  EXPECT_THROW(
+      manager_->decrOrDeallocRouteNextHopSetID(nonExistentID), FbossError);
+}
+
 } // namespace facebook::fboss
