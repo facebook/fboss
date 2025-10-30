@@ -383,11 +383,10 @@ void RibRouteTables::updateFib(
     throw;
   }
   updateEcmpOverrides(
-      resolver, vrf, StateDelta(std::make_shared<SwitchState>(), updatedState));
+      vrf, StateDelta(std::make_shared<SwitchState>(), updatedState));
 }
 
 void RibRouteTables::updateEcmpOverrides(
-    const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const StateDelta& delta) {
   if (!FLAGS_enable_ecmp_resource_manager) {
@@ -448,11 +447,11 @@ void RibRouteTables::updateEcmpOverrides(
 
   auto rmitr = rid2prefix2SwitchingMode.find(vrf);
   if (rmitr != rid2prefix2SwitchingMode.end()) {
-    setOverrideEcmpMode(resolver, vrf, rmitr->second);
+    setOverrideEcmpMode(vrf, rmitr->second);
   }
   auto rnitr = rid2prefix2Nhops.find(vrf);
   if (rnitr != rid2prefix2Nhops.end()) {
-    setOverrideEcmpNhops(resolver, vrf, rnitr->second);
+    setOverrideEcmpNhops(vrf, rnitr->second);
   }
 }
 
@@ -504,7 +503,6 @@ void RibRouteTables::setClassID(
 }
 
 void RibRouteTables::setOverrideEcmpMode(
-    const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
         prefix2EcmpMode) {
@@ -549,7 +547,6 @@ void RibRouteTables::setOverrideEcmpMode(
 }
 
 void RibRouteTables::setOverrideEcmpNhops(
-    const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
         prefix2Nhops) {
@@ -790,25 +787,23 @@ void RoutingInformationBase::setClassIDImpl(
 }
 
 void RoutingInformationBase::setOverrideEcmpModeAsync(
-    const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
         prefix2EcmpMode) {
   ensureRunning();
   auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpMode(resolver, rid, prefix2EcmpMode);
+    ribTables_.setOverrideEcmpMode(rid, prefix2EcmpMode);
   };
   ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
 }
 
 void RoutingInformationBase::setOverrideEcmpNhopsAsync(
-    const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
         prefix2Nhops) {
   ensureRunning();
   auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpNhops(resolver, rid, prefix2Nhops);
+    ribTables_.setOverrideEcmpNhops(rid, prefix2Nhops);
   };
   ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
 }

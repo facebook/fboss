@@ -69,12 +69,10 @@ class RibRouteTables {
       std::optional<cfg::AclLookupClass> classId,
       void* cookie);
   void setOverrideEcmpMode(
-      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
           prefix2EcmpMode);
   void setOverrideEcmpNhops(
-      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
           prefix2Nhops);
@@ -177,10 +175,7 @@ class RibRouteTables {
       void* cookie);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
-  void updateEcmpOverrides(
-      const SwitchIdScopeResolver* resolver,
-      RouterID vrf,
-      const StateDelta& delta);
+  void updateEcmpOverrides(RouterID vrf, const StateDelta& delta);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
@@ -327,12 +322,10 @@ class RoutingInformationBase {
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
   void setOverrideEcmpModeAsync(
-      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
           prefix2EcmpMode);
   void setOverrideEcmpNhopsAsync(
-      const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
           prefix2Nhops);
