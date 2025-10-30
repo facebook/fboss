@@ -142,6 +142,8 @@ class RibRouteTables {
       const std::map<int32_t, state::RouteTableFields>&);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
+  void updateEcmpOverrides(const StateDelta& delta);
+
  private:
   struct RouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
@@ -323,6 +325,7 @@ class RoutingInformationBase {
     setClassIDImpl(
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
+  void updateEcmpOverrides(const StateDelta& delta);
   void setOverrideEcmpModeAsync(
       RouterID rid,
       const std::unordered_map<

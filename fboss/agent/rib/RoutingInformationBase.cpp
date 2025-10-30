@@ -455,6 +455,12 @@ void RibRouteTables::updateEcmpOverrides(
   }
 }
 
+void RibRouteTables::updateEcmpOverrides(const StateDelta& delta) {
+  for (auto vrf : getVrfList()) {
+    updateEcmpOverrides(vrf, delta);
+  }
+}
+
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
   if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {
@@ -786,6 +792,14 @@ void RoutingInformationBase::setClassIDImpl(
   } else {
     ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
   }
+}
+
+void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
+  ensureRunning();
+  auto updateFn = [=, &delta, this]() {
+    ribTables_.updateEcmpOverrides(delta);
+  };
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
 
 void RoutingInformationBase::setOverrideEcmpModeAsync(
