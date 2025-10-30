@@ -45,6 +45,43 @@ static std::array<char, kBufferSize> buffer1;
 
 namespace facebook::fboss {
 
+void StateDeltaLogger::logStateDelta(
+    const StateDelta& delta,
+    const std::string& reason) {
+  if (!FLAGS_enable_state_delta_logging) {
+    return;
+  }
+  const auto& operDelta = delta.getOperDelta();
+  auto serializedDelta = serializeOperDelta(operDelta);
+
+  std::ostringstream logEntry;
+  logEntry << "{" << "\"timestamp\":"
+           << std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch())
+                  .count()
+           << "," << "\"reason\":\"" << reason << "\","
+           << "\"old_generation\":" << delta.oldState()->getGeneration() << ","
+           << "\"new_generation\":" << delta.newState()->getGeneration() << ","
+           << "\"oper_delta_size\":" << serializedDelta.size() << ","
+           << "\"oper_delta\":\"" << serializedDelta << "\"" << "}\n";
+
+  auto logEntryStr = logEntry.str();
+  appendLog(logEntryStr.c_str(), logEntryStr.size());
+}
+
+std::string StateDeltaLogger::serializeOperDelta(
+    const fsdb::OperDelta& operDelta) {
+  try {
+    // Use the thrift_cow serializer to serialize the operDelta
+    using TC = apache::thrift::type_class::structure;
+    return thrift_cow::serialize<TC>(serializationProtocol_, operDelta)
+        .toStdString();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to serialize OperDelta: " << ex.what();
+    throw;
+  }
+}
+
 fsdb::OperProtocol StateDeltaLogger::getConfiguredSerializationProtocol() {
   std::string protocol = FLAGS_state_delta_log_protocol;
 
