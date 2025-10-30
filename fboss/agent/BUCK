@@ -1269,6 +1269,7 @@ cpp_library(
     name = "async_logger",
     srcs = [
         "AsyncLogger.cpp",
+        "AsyncLoggerBase.cpp",
     ],
     exported_deps = [
         ":fboss-error",

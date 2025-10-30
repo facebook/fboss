@@ -513,6 +513,7 @@ target_link_libraries(hw_switch
 
 add_library(async_logger
   fboss/agent/AsyncLogger.cpp
+  fboss/agent/AsyncLoggerBase.cpp
 )
 
 target_link_libraries(async_logger
