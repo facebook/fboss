@@ -20,6 +20,21 @@
 
 #include <folly/logging/xlog.h>
 
+DEFINE_bool(
+    enable_state_delta_logging,
+    false,
+    "Enable logging of state deltas applied in applyUpdate()");
+
+DEFINE_string(
+    state_delta_log_file,
+    "/tmp/state_delta.log",
+    "Path to the state delta log file.");
+
+DEFINE_string(
+    state_delta_log_protocol,
+    "COMPACT",
+    "Serialization protocol for state delta logging (BINARY, SIMPLE_JSON, COMPACT)");
+
 // Static buffers for async logging
 static auto constexpr kBufferSize = 409600;
 static facebook::fboss::AsyncLoggerBase::BufferToWrite currentBuffer =
