@@ -709,8 +709,9 @@ void HwSwitchEnsemble::setupEnsemble(
         scopeResolver_->switchIdToSwitchInfo());
     // this is supporting single ASIC (or switch only)
     for (auto& switchIdAndSwitchInfo : switchIdToSwitchInfo) {
-      auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>(
-          {static_cast<SwitchID>(switchIdAndSwitchInfo.first)}));
+      auto matcher = HwSwitchMatcher(
+          std::unordered_set<SwitchID>(
+              {static_cast<SwitchID>(switchIdAndSwitchInfo.first)}));
       multiSwitchSwitchSettings->addNode(
           matcher.matcherString(), switchSettings);
     }
