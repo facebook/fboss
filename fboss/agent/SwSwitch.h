@@ -1016,7 +1016,6 @@ class SwSwitch : public HwSwitchCallback {
   void createAndProbeTunManager();
   void initializeTunManager(bool useBlocking);
 
-  void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(
