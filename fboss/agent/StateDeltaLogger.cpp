@@ -45,6 +45,25 @@ static std::array<char, kBufferSize> buffer1;
 
 namespace facebook::fboss {
 
+fsdb::OperProtocol StateDeltaLogger::getConfiguredSerializationProtocol() {
+  std::string protocol = FLAGS_state_delta_log_protocol;
+
+  // Convert to uppercase for case-insensitive comparison
+  std::transform(protocol.begin(), protocol.end(), protocol.begin(), ::toupper);
+
+  if (protocol == "BINARY") {
+    return fsdb::OperProtocol::BINARY;
+  } else if (protocol == "SIMPLE_JSON") {
+    return fsdb::OperProtocol::SIMPLE_JSON;
+  } else if (protocol == "COMPACT") {
+    return fsdb::OperProtocol::COMPACT;
+  } else {
+    XLOG(FATAL) << "Invalid state_delta_log_protocol: \""
+                << FLAGS_state_delta_log_protocol
+                << "\". Valid values are: BINARY, SIMPLE_JSON, COMPACT";
+  }
+}
+
 uint32_t StateDeltaLogger::getOffset() {
   return bufOffset;
 }
