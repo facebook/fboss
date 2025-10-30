@@ -8,26 +8,27 @@
  *
  */
 
-#include "fboss/agent/platforms/sai/SaiWedge800caPlatform.h"
+#include "fboss/agent/platforms/sai/SaiWedge800CACTPlatform.h"
 
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
-#include "fboss/agent/platforms/common/wedge800ca/Wedge800caPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace facebook::fboss {
 
-SaiWedge800caPlatform::SaiWedge800caPlatform(
+SaiWedge800CACTPlatform::SaiWedge800CACTPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr)
     : SaiTajoPlatform(
           std::move(productInfo),
           platformMappingStr.empty()
-              ? std::make_unique<Wedge800caPlatformMapping>()
-              : std::make_unique<Wedge800caPlatformMapping>(platformMappingStr),
+              ? std::make_unique<Wedge800CACTPlatformMapping>()
+              : std::make_unique<Wedge800CACTPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
-void SaiWedge800caPlatform::setupAsic(
+void SaiWedge800CACTPlatform::setupAsic(
     std::optional<int64_t> switchId,
     const cfg::SwitchInfo& switchInfo,
     std::optional<HwAsic::FabricNodeRole> fabricNodeRole) {
@@ -36,11 +37,11 @@ void SaiWedge800caPlatform::setupAsic(
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
 }
 
-HwAsic* SaiWedge800caPlatform::getAsic() const {
+HwAsic* SaiWedge800CACTPlatform::getAsic() const {
   return asic_.get();
 }
 
-std::string SaiWedge800caPlatform::getHwConfig() {
+std::string SaiWedge800CACTPlatform::getHwConfig() {
   auto chipConfigType = config()->thrift.platform()->chip()->getType();
   if (chipConfigType != facebook::fboss::cfg::ChipConfig::Type::asicConfig) {
     // TODO(vsp) : Remove this if check once we move ASIC config in
@@ -53,7 +54,7 @@ std::string SaiWedge800caPlatform::getHwConfig() {
   return asicConfig.common().value().get_jsonConfig();
 }
 
-std::vector<PortID> SaiWedge800caPlatform::getAllPortsInGroup(
+std::vector<PortID> SaiWedge800CACTPlatform::getAllPortsInGroup(
     PortID portID) const {
   std::vector<PortID> allPortsinGroup;
   if (const auto& platformPorts = getPlatformPorts(); !platformPorts.empty()) {
@@ -66,6 +67,6 @@ std::vector<PortID> SaiWedge800caPlatform::getAllPortsInGroup(
   return allPortsinGroup;
 }
 
-SaiWedge800caPlatform::~SaiWedge800caPlatform() = default;
+SaiWedge800CACTPlatform::~SaiWedge800CACTPlatform() = default;
 
 } // namespace facebook::fboss

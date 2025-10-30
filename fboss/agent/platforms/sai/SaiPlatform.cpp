@@ -39,7 +39,7 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiWedge800caPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiWedge800CACTPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -267,10 +267,11 @@ std::string SaiPlatform::getHwAsicConfig(
   std::vector<std::string> nameValStrs;
   auto addNameValue = [&nameValStrs, &overrides](const auto& keyAndVal) {
     auto oitr = overrides.find(keyAndVal.first);
-    nameValStrs.emplace_back(folly::to<std::string>(
-        keyAndVal.first,
-        '=',
-        oitr == overrides.end() ? keyAndVal.second : oitr->second));
+    nameValStrs.emplace_back(
+        folly::to<std::string>(
+            keyAndVal.first,
+            '=',
+            oitr == overrides.end() ? keyAndVal.second : oitr->second));
   };
   for (const auto& entry : commonConfigs) {
     addNameValue(entry);
@@ -300,12 +301,17 @@ std::string SaiPlatform::getHwAsicConfig(
 void SaiPlatform::initSaiProfileValues() {
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
-  kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_WARM_BOOT_READ_FILE, getWarmBootHelper()->warmBootDataPath()));
-  kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_WARM_BOOT_WRITE_FILE, getWarmBootHelper()->warmBootDataPath()));
-  kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
+  kSaiProfileValues.insert(
+      std::make_pair(
+          SAI_KEY_WARM_BOOT_READ_FILE,
+          getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(
+      std::make_pair(
+          SAI_KEY_WARM_BOOT_WRITE_FILE,
+          getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(
+      std::make_pair(
+          SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
   auto vendorProfileValues = getSaiProfileVendorExtensionValues();
   kSaiProfileValues.insert(
       vendorProfileValues.begin(), vendorProfileValues.end());
@@ -393,8 +399,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800B_ACT) {
       saiPort = std::make_unique<SaiBcmWedge800baPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE800C_ACT) {
-      saiPort = std::make_unique<SaiWedge800caPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
+      saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHANSB800BC) {
       saiPort = std::make_unique<SaiBcmTahansb800bcPlatformPort>(portId, this);
     } else {

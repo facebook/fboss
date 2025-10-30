@@ -38,7 +38,7 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatform.h"
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
-#include "fboss/agent/platforms/sai/SaiWedge800caPlatform.h"
+#include "fboss/agent/platforms/sai/SaiWedge800CACTPlatform.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 
 namespace facebook::fboss {
@@ -124,8 +124,8 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE800B_ACT) {
     return std::make_unique<SaiBcmWedge800baPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE800C_ACT) {
-    return std::make_unique<SaiWedge800caPlatform>(
+  } else if (productInfo->getType() == PlatformType::PLATFORM_WEDGE800CACT) {
+    return std::make_unique<SaiWedge800CACTPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_TAHANSB800BC) {
     return std::make_unique<SaiBcmTahansb800bcPlatform>(
