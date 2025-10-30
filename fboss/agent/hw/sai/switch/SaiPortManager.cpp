@@ -1577,6 +1577,24 @@ bool SaiPortManager::createOnlyAttributeChanged(
 
 cfg::PortType SaiPortManager::derivePortTypeOfLogicalPort(
     PortSaiId portSaiId) const {
+  // TODO remove once Broadcom could return MGMT interface type for TH6
+  if (platform_->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
+    auto portSpeed = SaiApiTable::getInstance()->portApi().getAttribute(
+        portSaiId, SaiPortTraits::Attributes::Speed{});
+
+    XLOG(DBG6) << "port speed" << " " << portSpeed;
+
+    if (portSpeed == 100000) {
+      XLOG(DBG6) << portSaiId << " port speed 100000";
+      return cfg::PortType::MANAGEMENT_PORT;
+
+    } else {
+      XLOG(DBG6) << portSaiId << " port speed others";
+      return cfg::PortType::INTERFACE_PORT;
+    }
+  }
+
   // TODO: An extension attribute has been added for MANAGEMENT port type,
   // however, its available in 11.0 onwards and addresses the needs on J3.
   // MANAGEMENT+INTERFACE are reported as LOGICAL ports on rest of the SAI
@@ -2012,8 +2030,8 @@ void SaiPortManager::clearPortAsicPrbsStats(PortID portId) {
   auto& prbsStatsEntry = prbsStatsTable.front();
   prbsStatsEntry.clearPrbsStats();
   auto* handle = getPortHandleImpl(PortID(portId));
-  // Read PrbsRxState when PRBS stats are cleared to reset start point for next
-  // read.
+  // Read PrbsRxState when PRBS stats are cleared to reset start point for
+  // next read.
   SaiApiTable::getInstance()->portApi().getAttribute(
       handle->port->adapterKey(), SaiPortTraits::Attributes::PrbsRxState{});
 #endif
@@ -2181,8 +2199,8 @@ void SaiPortManager::updateStats(
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
     if (fecCodewordsStatsSupported(portId)) {
       // maxFecCounterId should ideally be derived from SAI attribute
-      // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute isn't
-      // supported yet
+      // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute
+      // isn't supported yet
       sai_stat_id_t maxFecCounterId = getFECMode(portId) == phy::FecMode::RS528
           ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8
           : SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15;
@@ -3031,7 +3049,8 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
     return std::vector<phy::SerdesParameters>();
   }
 
-  // Skip reading serdes parameters if port is not INTERFACE_PORT or FABRIC_PORT
+  // Skip reading serdes parameters if port is not INTERFACE_PORT or
+  // FABRIC_PORT
   auto portType = getPortType(swPortID);
   if (portType != cfg::PortType::INTERFACE_PORT &&
       portType != cfg::PortType::FABRIC_PORT) {
@@ -3140,8 +3159,8 @@ std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
   }
   // TH5 Management port doesn't support RX SNR
   // If we do end up with management ports supporting rxSNR we may need to
-  // support per-core HwAsic::Feature definitions instead of setting them at the
-  // asic level.
+  // support per-core HwAsic::Feature definitions instead of setting them at
+  // the asic level.
   auto portID = portItr->second.portID;
   if (getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
     return std::vector<sai_port_snr_values_t>();
