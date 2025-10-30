@@ -17,6 +17,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/FibDeltaHelpers.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -381,14 +383,79 @@ void RibRouteTables::updateFib(
     throw;
   }
   updateEcmpOverrides(
-      StateDelta(std::make_shared<SwitchState>(), updatedState));
+      resolver, vrf, StateDelta(std::make_shared<SwitchState>(), updatedState));
 }
 
-void RibRouteTables::updateEcmpOverrides(const StateDelta& /*delta*/) {
+void RibRouteTables::updateEcmpOverrides(
+    const SwitchIdScopeResolver* resolver,
+    RouterID vrf,
+    const StateDelta& delta) {
   if (!FLAGS_enable_ecmp_resource_manager) {
     return;
   }
+  std::map<
+      RouterID,
+      std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
+      rid2prefix2SwitchingMode;
+  std::map<
+      RouterID,
+      std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
+      rid2prefix2Nhops;
+
+  forEachChangedRoute(
+      delta,
+      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
+          RouterID rid, const auto& oldRoute, const auto& newRoute) {
+        if (!newRoute->isResolved()) {
+          return;
+        }
+        if (!oldRoute->isResolved()) {
+          if (newRoute->getForwardInfo()
+                  .getOverrideEcmpSwitchingMode()
+                  .has_value()) {
+            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          }
+          if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
+            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideNextHops();
+          }
+        } else {
+          // both are resolved
+          if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() !=
+              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode()) {
+            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          }
+          if (oldRoute->getForwardInfo().getOverrideNextHops() !=
+              newRoute->getForwardInfo().getOverrideNextHops()) {
+            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+                newRoute->getForwardInfo().getOverrideNextHops();
+          }
+        }
+      },
+      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
+          RouterID rid, const auto& newRoute) {
+        if (newRoute->isResolved()) {
+          rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
+              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
+          rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
+              newRoute->getForwardInfo().getOverrideNextHops();
+        }
+      },
+      [&rid2prefix2SwitchingMode](RouterID /*rid*/, const auto& /*oldRoute*/) {
+      });
+
+  auto rmitr = rid2prefix2SwitchingMode.find(vrf);
+  if (rmitr != rid2prefix2SwitchingMode.end()) {
+    setOverrideEcmpMode(resolver, vrf, rmitr->second);
+  }
+  auto rnitr = rid2prefix2Nhops.find(vrf);
+  if (rnitr != rid2prefix2Nhops.end()) {
+    setOverrideEcmpNhops(resolver, vrf, rnitr->second);
+  }
 }
+
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
   if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {

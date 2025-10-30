@@ -177,7 +177,10 @@ class RibRouteTables {
       void* cookie);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
-  void updateEcmpOverrides(const StateDelta& delta);
+  void updateEcmpOverrides(
+      const SwitchIdScopeResolver* resolver,
+      RouterID vrf,
+      const StateDelta& delta);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
