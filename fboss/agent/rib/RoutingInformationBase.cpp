@@ -11,6 +11,7 @@
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -343,18 +344,17 @@ void RibRouteTables::updateFib(
     RouterID vrf,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
+  std::shared_ptr<SwitchState> updatedState;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
-    auto updatedState = fibUpdateCallback(
+    updatedState = fibUpdateCallback(
         resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
         cookie);
-    updateEcmpOverrides(
-        StateDelta(std::make_shared<SwitchState>(), updatedState));
   } catch (const FbossHwUpdateError& hwUpdateError) {
     {
       SCOPE_FAIL {
@@ -380,9 +380,15 @@ void RibRouteTables::updateFib(
     }
     throw;
   }
+  updateEcmpOverrides(
+      StateDelta(std::make_shared<SwitchState>(), updatedState));
 }
 
-void RibRouteTables::updateEcmpOverrides(const StateDelta& /*delta*/) {}
+void RibRouteTables::updateEcmpOverrides(const StateDelta& /*delta*/) {
+  if (!FLAGS_enable_ecmp_resource_manager) {
+    return;
+  }
+}
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
   if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {
