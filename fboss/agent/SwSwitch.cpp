@@ -2025,13 +2025,13 @@ SwSwitch::applyUpdate(
 }
 
 void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
-  std::map<
+  std::unordered_map<
       RouterID,
-      std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
+      std::unordered_map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
       rid2prefix2SwitchingMode;
-  std::map<
+  std::unordered_map<
       RouterID,
-      std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
+      std::unordered_map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
       rid2prefix2Nhops;
 
   forEachChangedRoute(

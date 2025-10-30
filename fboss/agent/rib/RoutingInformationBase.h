@@ -70,12 +70,14 @@ class RibRouteTables {
       void* cookie);
   void setOverrideEcmpMode(
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-          prefix2EcmpMode);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<cfg::SwitchingMode>>& prefix2EcmpMode);
   void setOverrideEcmpNhops(
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-          prefix2Nhops);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<RouteNextHopSet>>& prefix2Nhops);
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -323,12 +325,14 @@ class RoutingInformationBase {
   }
   void setOverrideEcmpModeAsync(
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-          prefix2EcmpMode);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<cfg::SwitchingMode>>& prefix2EcmpMode);
   void setOverrideEcmpNhopsAsync(
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-          prefix2Nhops);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<RouteNextHopSet>>& prefix2Nhops);
 
   void updateStateInRibThread(const std::function<void()>& fn);
 

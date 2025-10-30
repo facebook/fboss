@@ -217,15 +217,17 @@ void RouteUpdateWrapper::programClassID(
 
 void RouteUpdateWrapper::programEcmpSwitchingModeAsync(
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-        prefixes) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<cfg::SwitchingMode>>& prefixes) {
   getRib()->setOverrideEcmpModeAsync(rid, prefixes);
 }
 
 void RouteUpdateWrapper::programEcmpNhopOverridesAsync(
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-        prefixes) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<RouteNextHopSet>>& prefixes) {
   getRib()->setOverrideEcmpNhopsAsync(rid, prefixes);
 }
 

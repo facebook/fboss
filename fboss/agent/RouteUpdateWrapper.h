@@ -113,12 +113,14 @@ class RouteUpdateWrapper {
       bool async);
   void programEcmpSwitchingModeAsync(
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-          prefixes);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<cfg::SwitchingMode>>& prefixes);
   void programEcmpNhopOverridesAsync(
       RouterID rid,
-      const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-          prefixes);
+      const std::unordered_map<
+          folly::CIDRNetwork,
+          std::optional<RouteNextHopSet>>& prefixes);
 
  private:
   RoutingInformationBase* getRib() {

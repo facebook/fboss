@@ -392,13 +392,13 @@ void RibRouteTables::updateEcmpOverrides(
   if (!FLAGS_enable_ecmp_resource_manager) {
     return;
   }
-  std::map<
+  std::unordered_map<
       RouterID,
-      std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
+      std::unordered_map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
       rid2prefix2SwitchingMode;
-  std::map<
+  std::unordered_map<
       RouterID,
-      std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
+      std::unordered_map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
       rid2prefix2Nhops;
 
   forEachChangedRoute(
@@ -504,8 +504,9 @@ void RibRouteTables::setClassID(
 
 void RibRouteTables::setOverrideEcmpMode(
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-        prefix2EcmpMode) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<cfg::SwitchingMode>>& prefix2EcmpMode) {
   updateRib(rid, [&](auto& routeTable) {
     // Update rib
     auto updateRoute = [](auto& rib,
@@ -548,8 +549,9 @@ void RibRouteTables::setOverrideEcmpMode(
 
 void RibRouteTables::setOverrideEcmpNhops(
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-        prefix2Nhops) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<RouteNextHopSet>>& prefix2Nhops) {
   updateRib(rid, [&](auto& routeTable) {
     // Update rib
     auto updateRoute = [](auto& rib,
@@ -788,8 +790,9 @@ void RoutingInformationBase::setClassIDImpl(
 
 void RoutingInformationBase::setOverrideEcmpModeAsync(
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>&
-        prefix2EcmpMode) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<cfg::SwitchingMode>>& prefix2EcmpMode) {
   ensureRunning();
   auto updateFn = [=, this]() {
     ribTables_.setOverrideEcmpMode(rid, prefix2EcmpMode);
@@ -799,8 +802,9 @@ void RoutingInformationBase::setOverrideEcmpModeAsync(
 
 void RoutingInformationBase::setOverrideEcmpNhopsAsync(
     RouterID rid,
-    const std::map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>&
-        prefix2Nhops) {
+    const std::unordered_map<
+        folly::CIDRNetwork,
+        std::optional<RouteNextHopSet>>& prefix2Nhops) {
   ensureRunning();
   auto updateFn = [=, this]() {
     ribTables_.setOverrideEcmpNhops(rid, prefix2Nhops);
