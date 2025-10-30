@@ -419,14 +419,7 @@ void BaseEcmpResourceManagerTest::replayAllRoutesViaThrift() {
 
 void BaseEcmpResourceManagerTest::assertRibFibEquivalence() const {
   waitForStateUpdates(sw_);
-  for (const auto& [_, route] : std::as_const(*cfib(sw_->getState()))) {
-    auto ribRoute =
-        sw_->getRib()->longestMatch(route->prefix().network(), RouterID(0));
-    ASSERT_NE(ribRoute, nullptr);
-    // TODO - check why are the pointers different even though the
-    // forwarding info matches. This is true with or w/o consolidator
-    EXPECT_EQ(ribRoute->getForwardInfo(), route->getForwardInfo());
-  }
+  facebook::fboss::assertRibFibEquivalence(sw_->getState(), sw_->getRib());
 }
 
 std::vector<std::shared_ptr<RouteV6>>
