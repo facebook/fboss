@@ -33,7 +33,10 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
       resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
-  sw->updateStateWithHwFailureProtection("update fib", std::move(fibUpdater));
+  sw->updateStateWithHwFailureProtection(
+      "update fib", [&fibUpdater](const std::shared_ptr<SwitchState>& in) {
+        return fibUpdater(in);
+      });
   return sw->getState();
 }
 } // namespace
