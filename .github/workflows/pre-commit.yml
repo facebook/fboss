@@ -1,0 +1,23 @@
+name: pre-commit
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5 # v5.0.0(latest)
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6 # v6.0.0(latest)
+        with:
+          python-version: "3.9" # pre-commit-hooks requires Python 3.9+
+      - name: Show changed files
+        run: git diff --name-only HEAD^...
+      - uses: pre-commit/action@v3.0.1 # v3.0.1(latest)
+        with:
+          # replace the default extra_args = "--all-files" since we only care about the changed files for now
+          extra_args: "--from-ref HEAD^ --to-ref HEAD"
