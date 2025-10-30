@@ -20,6 +20,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/rib/RouteUpdater.h"
@@ -345,13 +346,15 @@ void RibRouteTables::updateFib(
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
-    fibUpdateCallback(
+    auto updatedState = fibUpdateCallback(
         resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
         cookie);
+    updateEcmpOverrides(
+        StateDelta(std::make_shared<SwitchState>(), updatedState));
   } catch (const FbossHwUpdateError& hwUpdateError) {
     {
       SCOPE_FAIL {
@@ -379,6 +382,7 @@ void RibRouteTables::updateFib(
   }
 }
 
+void RibRouteTables::updateEcmpOverrides(const StateDelta& /*delta*/) {}
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
   if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {

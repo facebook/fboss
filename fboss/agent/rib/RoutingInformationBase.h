@@ -30,6 +30,7 @@ namespace facebook::fboss {
 class SwitchState;
 class MultiSwitchForwardingInformationBaseMap;
 class SwitchIdScopeResolver;
+class StateDelta;
 
 using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
     const SwitchIdScopeResolver* resolver,
@@ -176,6 +177,7 @@ class RibRouteTables {
       void* cookie);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
+  void updateEcmpOverrides(const StateDelta& delta);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
