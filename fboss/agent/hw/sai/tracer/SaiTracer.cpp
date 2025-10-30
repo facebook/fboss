@@ -1992,16 +1992,16 @@ string SaiTracer::logTimeAndRv(
     sai_object_id_t object_id,
     std::chrono::system_clock::time_point begin) {
   auto now = std::chrono::system_clock::now();
-  auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+  auto now_us = std::chrono::duration_cast<std::chrono::microseconds>(
                     now.time_since_epoch()) %
-      1000;
+      1000000;
   auto timer = std::chrono::system_clock::to_time_t(now);
   std::tm tm;
   localtime_r(&timer, &tm);
 
   std::ostringstream outStringStream;
   outStringStream << "// " << std::put_time(&tm, "%Y-%m-%d %T");
-  outStringStream << "." << std::setfill('0') << std::setw(3) << now_ms.count();
+  outStringStream << "." << std::setfill('0') << std::setw(6) << now_us.count();
 
   // Log object id if it's provided
   if (object_id != SAI_NULL_OBJECT_ID) {
