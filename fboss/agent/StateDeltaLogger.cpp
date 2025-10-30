@@ -40,6 +40,14 @@ StateDeltaLogger::StateDeltaLogger()
           kBufferSize) {
   if (FLAGS_enable_state_delta_logging) {
     serializationProtocol_ = getConfiguredSerializationProtocol();
+    startFlushThread();
+  }
+}
+
+StateDeltaLogger::~StateDeltaLogger() {
+  if (FLAGS_enable_state_delta_logging) {
+    forceFlush();
+    stopFlushThread();
   }
 }
 
@@ -104,6 +112,12 @@ fsdb::OperProtocol StateDeltaLogger::getConfiguredSerializationProtocol() {
     XLOG(FATAL) << "Invalid state_delta_log_protocol: \""
                 << FLAGS_state_delta_log_protocol
                 << "\". Valid values are: BINARY, SIMPLE_JSON, COMPACT";
+  }
+}
+
+void StateDeltaLogger::forceFlush() {
+  if (FLAGS_enable_state_delta_logging) {
+    AsyncLoggerBase::forceFlush();
   }
 }
 

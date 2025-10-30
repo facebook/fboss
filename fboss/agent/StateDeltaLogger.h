@@ -25,6 +25,7 @@ class StateDelta;
 class StateDeltaLogger : public AsyncLoggerBase {
  public:
   StateDeltaLogger();
+  ~StateDeltaLogger() override;
 
   // Delete copy constructor and assignment operator
   StateDeltaLogger(const StateDeltaLogger&) = delete;
@@ -45,6 +46,8 @@ class StateDeltaLogger : public AsyncLoggerBase {
   void logStateDeltas(
       const std::vector<StateDelta>& deltas,
       const std::string& reason);
+
+  void forceFlush() override;
 
   /**
    * Get the configured serialization protocol from gflags

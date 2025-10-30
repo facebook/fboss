@@ -39,7 +39,7 @@ class AsyncLoggerBase {
 
   void startFlushThread();
   void stopFlushThread();
-  void forceFlush();
+  virtual void forceFlush();
 
   void appendLog(const char* logRecord, size_t logSize);
 
