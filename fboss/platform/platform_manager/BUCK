@@ -70,6 +70,7 @@ cpp_library(
         ":platform_manager_validators-cpp2-types",
         ":utils",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/op:get",
     ],
 )
 

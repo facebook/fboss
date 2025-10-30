@@ -11,6 +11,7 @@
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/unique.hpp>
 #include <re2/re2.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/Utils.h"
@@ -619,30 +620,23 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
        *config.versionedPmUnitConfigs()) {
     XLOG(INFO) << fmt::format(
         "Validating VersionedPmUnitConfigs for PmUnit {}...", pmUnitName);
+
+    auto defaultConfigIt = config.pmUnitConfigs()->find(pmUnitName);
+
     // Validate that PMUnit name exists in pmUnitConfigs
-    if (!config.pmUnitConfigs()->contains(pmUnitName)) {
+    if (defaultConfigIt == config.pmUnitConfigs()->end()) {
       XLOG(ERR) << fmt::format(
           "PMUnit name '{}' in versionedPmUnitConfigs does not exist in pmUnitConfigs",
           pmUnitName);
       return false;
     }
-    if (versionedPmUnitConfigs.empty()) {
-      XLOG(ERR) << fmt::format(
-          "VersionedPmUnitConfigs for {} must not be empty", pmUnitName);
+
+    if (!isValidVersionedPmUnitConfig(
+            pmUnitName,
+            versionedPmUnitConfigs,
+            defaultConfigIt->second,
+            *config.slotTypeConfigs())) {
       return false;
-    }
-    for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-      if (*versionedPmUnitConfig.productSubVersion() < 0) {
-        XLOG(ERR) << fmt::format(
-            "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
-            pmUnitName);
-        return false;
-      }
-      if (!isValidPmUnitConfig(
-              *config.slotTypeConfigs(),
-              *versionedPmUnitConfig.pmUnitConfig())) {
-        return false;
-      }
     }
   }
 
@@ -945,6 +939,71 @@ bool ConfigValidator::isValidCsrOffsetCalc(
     XLOG(ERR) << "csrOffsetCalc expression validation failed: " << e.what();
     return false;
   }
+}
+
+bool ConfigValidator::isValidVersionedPmUnitConfig(
+    const std::string& pmUnitName,
+    const std::vector<VersionedPmUnitConfig>& versionedPmUnitConfigs,
+    const PmUnitConfig& defaultPmUnitConfig,
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs) {
+  using apache::thrift::op::get;
+  using apache::thrift::op::get_name_v;
+  using apache::thrift::op::get_value_or_null;
+  namespace ident = apache::thrift::ident;
+
+  if (versionedPmUnitConfigs.empty()) {
+    XLOG(ERR) << fmt::format(
+        "VersionedPmUnitConfigs for {} must not be empty", pmUnitName);
+    return false;
+  }
+
+  for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
+    if (*versionedPmUnitConfig.productSubVersion() < 0) {
+      XLOG(ERR) << fmt::format(
+          "One of PmUnit {}'s VersionedPmUnitConfig has a negative ProductSubVersion",
+          pmUnitName);
+      return false;
+    }
+
+    bool fieldMismatch = false;
+    apache::thrift::op::for_each_field_id<PmUnitConfig>([&]<class Id>(Id) {
+      // i2cDeviceConfigs are allowed to differ between versioned and default
+      if constexpr (std::is_same_v<
+                        apache::thrift::op::get_ident<PmUnitConfig, Id>,
+                        ident::i2cDeviceConfigs>) {
+        return;
+      }
+
+      const auto& defaultFieldRef = get<Id>(defaultPmUnitConfig);
+      const auto& versionedFieldRef =
+          get<Id>(*versionedPmUnitConfig.pmUnitConfig());
+
+      const auto* defaultValue = get_value_or_null(defaultFieldRef);
+      const auto* versionedValue = get_value_or_null(versionedFieldRef);
+
+      // Check if fields mismatch:
+      if ((defaultValue && versionedValue &&
+           *defaultValue != *versionedValue) ||
+          (defaultValue && !versionedValue) ||
+          (!defaultValue && versionedValue)) {
+        XLOG(ERR) << fmt::format(
+            "The {} of VersionedPmUnitConfig {}, does not match default config",
+            get_name_v<PmUnitConfig, Id>,
+            pmUnitName);
+        fieldMismatch = true;
+      }
+    });
+
+    if (fieldMismatch) {
+      return false;
+    }
+
+    if (!isValidPmUnitConfig(
+            slotTypeConfigs, *versionedPmUnitConfig.pmUnitConfig())) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool ConfigValidator::isValidPortRanges(
