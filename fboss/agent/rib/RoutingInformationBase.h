@@ -15,6 +15,7 @@
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
 #include <folly/Synchronized.h>
@@ -32,7 +33,7 @@ class MultiSwitchForwardingInformationBaseMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
-using FibUpdateFunction = std::function<std::shared_ptr<SwitchState>(
+using FibUpdateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,

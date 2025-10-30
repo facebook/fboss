@@ -350,13 +350,14 @@ void RibRouteTables::updateFib(
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable = lockedRouteTables->find(vrf)->second;
-    updatedState = fibUpdateCallback(
+    auto fibDelta = fibUpdateCallback(
         resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
         cookie);
+    updatedState = fibDelta.newState();
   } catch (const FbossHwUpdateError& hwUpdateError) {
     {
       SCOPE_FAIL {

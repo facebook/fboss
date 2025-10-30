@@ -22,7 +22,7 @@
 namespace facebook::fboss {
 
 namespace {
-std::shared_ptr<SwitchState> swSwitchFibUpdate(
+StateDelta swSwitchFibUpdate(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -37,7 +37,12 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
       "update fib", [&fibUpdater](const std::shared_ptr<SwitchState>& in) {
         return fibUpdater(in);
       });
-  return sw->getState();
+  auto lastDelta = fibUpdater.getLastDelta();
+  // Fib update could get cancelled - e.g. when SwSwitch already started its
+  // exit. In that case last delta will be empty. Account for this case
+  auto oldState =
+      lastDelta ? lastDelta->oldState() : std::make_shared<SwitchState>();
+  return StateDelta(oldState, sw->getState());
 }
 } // namespace
 
