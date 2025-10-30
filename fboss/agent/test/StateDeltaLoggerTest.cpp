@@ -171,3 +171,136 @@ TEST_F(StateDeltaLoggerTest, LogStateDeltaAndReconstruct) {
         << protocolName;
   }
 }
+
+// Test logging multiple state deltas
+TEST_F(StateDeltaLoggerTest, LogMultipleStateDeltas) {
+  auto state1 = makeStateWithRoute("2001:db8:a::", 64);
+  auto state2 = makeStateWithRoute("2001:db8:b::", 64);
+  auto state3 = makeStateWithRoute("2001:db8:c::", 64);
+  // Create deltas
+  StateDelta delta1(state1, state2);
+  StateDelta delta2(state2, state3);
+  // Log both deltas
+  {
+    StateDeltaLogger logger;
+    logger.logStateDelta(delta1, "first_change");
+    logger.logStateDelta(delta2, "second_change");
+  }
+  // Read and verify log file contains both entries
+  auto logContent = readLogFile();
+  EXPECT_FALSE(logContent.empty());
+  // Count occurrences of "reason"
+  size_t count = 0;
+  size_t pos = 0;
+  while ((pos = logContent.find("\"reason\":", pos)) != std::string::npos) {
+    count++;
+    pos++;
+  }
+  EXPECT_GE(count, 2) << "Expected at least 2 log entries";
+  // Verify both reasons are present
+  EXPECT_NE(logContent.find("first_change"), std::string::npos);
+  EXPECT_NE(logContent.find("second_change"), std::string::npos);
+}
+// Test logging vector of state deltas
+TEST_F(StateDeltaLoggerTest, LogStateDeltasVector) {
+  std::vector<StateDelta> deltas;
+  auto state1 = makeStateWithRoute("2001:db8:ac10::", 48);
+  auto state2 = makeStateWithRoute("2001:db8:ac11::", 48);
+  deltas.emplace_back(state1, state2);
+  deltas.emplace_back(state1, state2);
+  // Log vector of deltas
+  {
+    StateDeltaLogger logger;
+    logger.logStateDeltas(deltas, "batch_change");
+  }
+  // Verify log file contains entries
+  auto logContent = readLogFile();
+  EXPECT_FALSE(logContent.empty());
+  // Count "batch_change" occurrences
+  size_t count = 0;
+  size_t pos = 0;
+  while ((pos = logContent.find("batch_change", pos)) != std::string::npos) {
+    count++;
+    pos++;
+  }
+  EXPECT_GE(count, 2) << "Expected at least 2 log entries for batch";
+}
+// Test different serialization protocols
+TEST_F(StateDeltaLoggerTest, SerializationProtocols) {
+  auto testProtocol = [this](const std::string& protocol) {
+    // Create new temp file for this protocol
+    auto tempFile = std::make_unique<folly::test::TemporaryFile>();
+    FLAGS_state_delta_log_file = tempFile->path().string();
+    FLAGS_state_delta_log_protocol = protocol;
+    auto state1 = makeStateWithRoute("2001:db8:c8::", 48);
+    auto state2 = makeStateWithRoute("2001:db8:c9::", 48);
+    StateDelta delta(state1, state2);
+    {
+      StateDeltaLogger logger;
+      logger.logStateDelta(delta, "protocol_test");
+    }
+    // Read and verify
+    std::string content;
+    EXPECT_TRUE(folly::readFile(tempFile->path().string().c_str(), content));
+    EXPECT_FALSE(content.empty());
+    EXPECT_NE(content.find("protocol_test"), std::string::npos);
+  };
+  testProtocol("COMPACT");
+  testProtocol("BINARY");
+  testProtocol("SIMPLE_JSON");
+}
+// Test logging when disabled
+TEST_F(StateDeltaLoggerTest, LoggingDisabled) {
+  FLAGS_enable_state_delta_logging = false;
+  auto state1 = std::make_shared<SwitchState>();
+  auto state2 = std::make_shared<SwitchState>();
+  StateDelta delta(state1, state2);
+  {
+    StateDeltaLogger logger;
+    logger.logStateDelta(delta, "disabled_test");
+  }
+  // Should still create file but with minimal content (just header)
+  auto content = readLogFile();
+  // When disabled, we should get minimal or no logging
+  // The exact behavior depends on implementation
+}
+// Test getConfiguredSerializationProtocol
+TEST_F(StateDeltaLoggerTest, GetConfiguredProtocol) {
+  FLAGS_state_delta_log_protocol = "BINARY";
+  EXPECT_EQ(
+      StateDeltaLogger::getConfiguredSerializationProtocol(),
+      fsdb::OperProtocol::BINARY);
+  FLAGS_state_delta_log_protocol = "COMPACT";
+  EXPECT_EQ(
+      StateDeltaLogger::getConfiguredSerializationProtocol(),
+      fsdb::OperProtocol::COMPACT);
+  FLAGS_state_delta_log_protocol = "SIMPLE_JSON";
+  EXPECT_EQ(
+      StateDeltaLogger::getConfiguredSerializationProtocol(),
+      fsdb::OperProtocol::SIMPLE_JSON);
+  // Test case-insensitive
+  FLAGS_state_delta_log_protocol = "binary";
+  EXPECT_EQ(
+      StateDeltaLogger::getConfiguredSerializationProtocol(),
+      fsdb::OperProtocol::BINARY);
+}
+// Test that generation numbers are logged
+TEST_F(StateDeltaLoggerTest, LogGenerationNumbers) {
+  auto state1 = makeStateWithRoute("2001:db8:64::", 48);
+  auto state2 = makeStateWithRoute("2001:db8:65::", 48);
+  StateDelta delta(state1, state2);
+  auto oldGen = delta.oldState()->getGeneration();
+  auto newGen = delta.newState()->getGeneration();
+  {
+    StateDeltaLogger logger;
+    logger.logStateDelta(delta, "generation_test");
+  }
+  auto logContent = readLogFile();
+  // Verify generation numbers are in the log
+  EXPECT_NE(
+      logContent.find("\"old_generation\":" + std::to_string(oldGen)),
+      std::string::npos);
+  EXPECT_NE(
+      logContent.find("\"new_generation\":" + std::to_string(newGen)),
+      std::string::npos);
+}

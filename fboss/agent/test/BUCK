@@ -423,6 +423,21 @@ cpp_unittest(
     ],
 )
 
+cpp_unittest(
+    name = "state_delta_logger_test",
+    srcs = ["StateDeltaLoggerTest.cpp"],
+    deps = [
+        ":utils",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:state_delta_logger",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
+
 cpp_library(
     name = "agent_test",
     srcs = [
