@@ -802,30 +802,6 @@ void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
 
-void RoutingInformationBase::setOverrideEcmpModeAsync(
-    RouterID rid,
-    const std::unordered_map<
-        folly::CIDRNetwork,
-        std::optional<cfg::SwitchingMode>>& prefix2EcmpMode) {
-  ensureRunning();
-  auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpMode(rid, prefix2EcmpMode);
-  };
-  ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
-}
-
-void RoutingInformationBase::setOverrideEcmpNhopsAsync(
-    RouterID rid,
-    const std::unordered_map<
-        folly::CIDRNetwork,
-        std::optional<RouteNextHopSet>>& prefix2Nhops) {
-  ensureRunning();
-  auto updateFn = [=, this]() {
-    ribTables_.setOverrideEcmpNhops(rid, prefix2Nhops);
-  };
-  ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
-}
-
 RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,

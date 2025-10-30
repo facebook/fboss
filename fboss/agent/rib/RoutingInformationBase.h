@@ -326,17 +326,6 @@ class RoutingInformationBase {
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
   }
   void updateEcmpOverrides(const StateDelta& delta);
-  void setOverrideEcmpModeAsync(
-      RouterID rid,
-      const std::unordered_map<
-          folly::CIDRNetwork,
-          std::optional<cfg::SwitchingMode>>& prefix2EcmpMode);
-  void setOverrideEcmpNhopsAsync(
-      RouterID rid,
-      const std::unordered_map<
-          folly::CIDRNetwork,
-          std::optional<RouteNextHopSet>>& prefix2Nhops);
-
   void updateStateInRibThread(const std::function<void()>& fn);
 
   /*
