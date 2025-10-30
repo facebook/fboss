@@ -378,3 +378,24 @@ DEFINE_bool(
     enable_fabric_link_monitoring,
     false,
     "Enable fabric link monitoring feature in DSF");
+
+DEFINE_bool(
+    enable_state_delta_logging,
+    false,
+    "Enable logging of state deltas applied in applyUpdate()");
+
+DEFINE_string(
+    state_delta_log_file,
+    "/tmp/state_delta.log",
+    "Path to the state delta log file.");
+
+DEFINE_string(
+    state_delta_log_protocol,
+    "COMPACT",
+    "Serialization protocol for state delta logging (BINARY, SIMPLE_JSON, COMPACT)");
+
+DEFINE_int32(
+    state_delta_log_timeout_ms,
+    100,
+    "Log timeout value in milliseconds. Logger will periodically"
+    "flush logs even if the buffer is not full");
