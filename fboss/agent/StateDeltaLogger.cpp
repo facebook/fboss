@@ -82,6 +82,14 @@ std::string StateDeltaLogger::serializeOperDelta(
   }
 }
 
+void StateDeltaLogger::logStateDeltas(
+    const std::vector<StateDelta>& deltas,
+    const std::string& reason) {
+  for (const auto& delta : deltas) {
+    logStateDelta(delta, reason);
+  }
+}
+
 fsdb::OperProtocol StateDeltaLogger::getConfiguredSerializationProtocol() {
   std::string protocol = FLAGS_state_delta_log_protocol;
 
