@@ -1397,7 +1397,6 @@ void SwSwitch::init(
   multiHwSwitchHandler_->stateChanged(deltas, false, hwWriteBehavior);
   if (ecmpResourceManager_) {
     ecmpResourceManager_->updateDone();
-    updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
   }
   if (shelManager_) {
     shelManager_->updateDone();
@@ -1491,7 +1490,6 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   if (ecmpResourceManager_) {
     ecmpResourceManager_->updateDone();
-    updateRibEcmpOverrides(StateDelta(origInitialState, initialState));
   }
   if (shelManager_) {
     shelManager_->updateDone();
@@ -2002,9 +2000,6 @@ SwSwitch::applyUpdate(
     dumpBadStateUpdate(oldState, newDesiredState);
     XLOG(FATAL) << "encountered a fatal error: " << folly::exceptionStr(ex);
   }
-  if (ecmpResourceManager_ && newAppliedState != oldState) {
-    updateRibEcmpOverrides(StateDelta(origDesiredState, newAppliedState));
-  }
 
   setStateInternal(newAppliedState);
 
@@ -2022,72 +2017,6 @@ SwSwitch::applyUpdate(
 
   XLOG(DBG0) << "Update state took " << duration.count() << "us";
   return std::make_pair(newAppliedState, newDesiredState);
-}
-
-void SwSwitch::updateRibEcmpOverrides(const StateDelta& delta) {
-  std::unordered_map<
-      RouterID,
-      std::unordered_map<folly::CIDRNetwork, std::optional<cfg::SwitchingMode>>>
-      rid2prefix2SwitchingMode;
-  std::unordered_map<
-      RouterID,
-      std::unordered_map<folly::CIDRNetwork, std::optional<RouteNextHopSet>>>
-      rid2prefix2Nhops;
-
-  forEachChangedRoute(
-      delta,
-      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
-          RouterID rid, const auto& oldRoute, const auto& newRoute) {
-        if (!newRoute->isResolved()) {
-          return;
-        }
-        if (!oldRoute->isResolved()) {
-          if (newRoute->getForwardInfo()
-                  .getOverrideEcmpSwitchingMode()
-                  .has_value()) {
-            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
-          }
-          if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
-            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideNextHops();
-          }
-        } else {
-          // both are resolved
-          if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() !=
-              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode()) {
-            rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
-          }
-          if (oldRoute->getForwardInfo().getOverrideNextHops() !=
-              newRoute->getForwardInfo().getOverrideNextHops()) {
-            rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-                newRoute->getForwardInfo().getOverrideNextHops();
-          }
-        }
-      },
-      [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
-          RouterID rid, const auto& newRoute) {
-        if (newRoute->isResolved() &&
-            newRoute->getForwardInfo()
-                .getOverrideEcmpSwitchingMode()
-                .has_value()) {
-          rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
-              newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
-        }
-        if (newRoute->getForwardInfo().getOverrideNextHops().has_value()) {
-          rid2prefix2Nhops[rid][newRoute->prefix().toCidrNetwork()] =
-              newRoute->getForwardInfo().getOverrideNextHops();
-        }
-      },
-      [&rid2prefix2SwitchingMode](RouterID /*rid*/, const auto& /*oldRoute*/) {
-      });
-  for (const auto& [rid, prefixes] : rid2prefix2SwitchingMode) {
-    getRouteUpdater().programEcmpSwitchingModeAsync(rid, prefixes);
-  }
-  for (const auto& [rid, prefixes] : rid2prefix2Nhops) {
-    getRouteUpdater().programEcmpNhopOverridesAsync(rid, prefixes);
-  }
 }
 
 void SwSwitch::dumpBadStateUpdate(
@@ -3533,6 +3462,15 @@ void SwSwitch::applyConfigImpl(
         }
         return newState;
       });
+  // Since config update can also update ecmp overrides - in
+  // case of config changing ecmp switching mode. Sync these
+  // route overrides to rib
+  updateEventBase_.runInFbossEventBaseThreadAndWait([this]() {
+    if (rib_) {
+      rib_->updateEcmpOverrides(
+          StateDelta(std::make_shared<SwitchState>(), getState()));
+    }
+  });
   // Since we're using blocking state update, once we reach here, the new
   // config should be already applied and programmed into hardware.
   updateConfigAppliedInfo();
@@ -3553,7 +3491,6 @@ void SwSwitch::applyConfigImpl(
    * and applyConfig. So ensure programming allways goes through the route
    * update wrapper abstraction
    */
-
   routeUpdater.program();
   runFsdbSyncFunction([&oldConfig, &newConfig](auto& syncer) {
     syncer->cfgUpdated(oldConfig, newConfig);
