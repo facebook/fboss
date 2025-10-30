@@ -29,15 +29,27 @@ StateDelta swSwitchFibUpdate(
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+  // Since FIB updater will be accessed in swSwitch's update event
+  // base protect with a lock. This is even though we know the
+  // update is synchronous and we will call getLastDelta only
+  // after the update is done. Its cleaner to protect variables
+  // accessed from multiple threads.
+  folly::Synchronized<facebook::fboss::ForwardingInformationBaseUpdater>
+      fibUpdater(
+          std::in_place,
+          resolver,
+          vrf,
+          v4NetworkToRoute,
+          v6NetworkToRoute,
+          labelToRoute);
 
+  auto wFibUpdater = fibUpdater.wlock();
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
   sw->updateStateWithHwFailureProtection(
-      "update fib", [&fibUpdater](const std::shared_ptr<SwitchState>& in) {
-        return fibUpdater(in);
+      "update fib", [&wFibUpdater](const std::shared_ptr<SwitchState>& in) {
+        return (*wFibUpdater)(in);
       });
-  auto lastDelta = fibUpdater.getLastDelta();
+  auto lastDelta = wFibUpdater->getLastDelta();
   // Fib update could get cancelled - e.g. when SwSwitch already started its
   // exit. In that case last delta will be empty. Account for this case
   auto oldState =
