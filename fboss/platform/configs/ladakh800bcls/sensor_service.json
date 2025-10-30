@@ -2,7 +2,7 @@
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
-      "pmUnitName": "ANACAPA_MCB",
+      "pmUnitName": "LADAKH800BCLS_MCB",
       "sensors": [
         {
           "name": "MCB_UP24_FAN_1_F_RPM",
