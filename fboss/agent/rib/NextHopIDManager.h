@@ -68,6 +68,9 @@ class NextHopIDManager {
   // Retrieves or allocate NextHopSetID for a RouteNextHopSet
   NextHopSetID getOrAllocRouteNextHopSetID(const RouteNextHopSet& nextHopSet);
 
+  // Decrements or deallcoates NextHopSetID for a RouteNextHopSet
+  bool decrOrDeallocRouteNextHopSetID(NextHopSetID nextHopSetID);
+
  private:
   // Structure to hold ID and reference count for NextHops
   // Count will be 0 when initialised

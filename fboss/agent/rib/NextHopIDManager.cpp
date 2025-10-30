@@ -160,4 +160,34 @@ NextHopSetID NextHopIDManager::getOrAllocRouteNextHopSetID(
   return nextHopSetID;
 }
 
+bool NextHopIDManager::decrOrDeallocRouteNextHopSetID(
+    NextHopSetID nextHopSetID) {
+  // Lookup the NextHopIDSet from the given NextHopSetID
+  auto it = idToNextHopIdSet_.find(nextHopSetID);
+  if (it == idToNextHopIdSet_.end()) {
+    throw FbossError("Can not delete a non existent NextHopSetID");
+  }
+
+  const NextHopIDSet& nextHopIDSet = it->second;
+
+  // Decrement the reference count for each NextHopID in the NextHopIDSet
+  for (const auto& nextHopID : nextHopIDSet) {
+    auto nextHopIt = idToNextHop_.find(nextHopID);
+    CHECK(nextHopIt != idToNextHop_.end())
+        << "NextHopID " << nextHopID << " in NextHopIDSet doesn't exist!!";
+
+    auto nhopDeallocated = decrOrDeallocateNextHop(nextHopIt->second);
+    if (nhopDeallocated) {
+      XLOG(DBG3) << "NextHop " << nextHopIt->second << " deallocated";
+    }
+  }
+  // Decrement the reference count for the NextHopSetID
+  bool nhopSetIDDeallocated = decrOrDeallocateNextHopIDSet(nextHopIDSet);
+  if (nhopSetIDDeallocated) {
+    XLOG(DBG3) << "NextHopSetID " << nextHopSetID << " deallocated";
+  }
+
+  return nhopSetIDDeallocated;
+}
+
 } // namespace facebook::fboss
