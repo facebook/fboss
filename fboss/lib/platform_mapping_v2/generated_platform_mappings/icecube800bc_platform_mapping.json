@@ -38527,6 +38527,251 @@
               }
           }
         }
+    },
+    "129": {
+        "mapping": {
+          "id": 129,
+          "name": "eth1/65/1",
+          "controllingPort": 129,
+          "pins": [
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 4,
+          "scope": 0
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 5,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 5,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 5,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 5,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH6_NIF-slot1/chip1/core64",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 4,
+                      "pre2": 0,
+                      "main": 31,
+                      "post": 12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip65",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
     }
   },
   "chips": [
@@ -39184,10 +39429,10 @@
   "platformSupportedProfiles": [
     {
       "factor": {
-        "profileID": 25
+        "profileID": 38
       },
       "profile": {
-        "speed": 200000,
+        "speed": 400000,
         "iphy": {
           "numLanes": 4,
           "modulation": 2,
@@ -39214,10 +39459,40 @@
     },
     {
       "factor": {
-        "profileID": 38
+        "profileID": 22
       },
       "profile": {
-        "speed": 400000,
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 1,
+          "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 23
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 2,
+          "interfaceType": 21
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 25
+      },
+      "profile": {
+        "speed": 200000,
         "iphy": {
           "numLanes": 4,
           "modulation": 2,
