@@ -97,3 +97,77 @@ TEST_F(StateDeltaLoggerTest, CreateAndDestroy) {
   // The boot header should be written
   EXPECT_NE(content.find("Start of a"), std::string::npos);
 }
+
+// Test logging a state delta with oper delta serialization and reconstruction
+// Tests BINARY and COMPACT serialization protocols
+// SIMPLE_JSON is tested separately due to different handling
+TEST_F(StateDeltaLoggerTest, LogStateDeltaAndReconstruct) {
+  // Test each serialization protocol (excluding SIMPLE_JSON which needs special
+  // handling)
+  std::vector<std::pair<std::string, fsdb::OperProtocol>> protocols = {
+      {"BINARY", fsdb::OperProtocol::BINARY},
+      {"COMPACT", fsdb::OperProtocol::COMPACT},
+      {"SIMPLE_JSON", fsdb::OperProtocol::SIMPLE_JSON}};
+
+  for (const auto& [protocolName, protocol] : protocols) {
+    SCOPED_TRACE("Testing protocol: " + protocolName);
+
+    // Create new temp file for this protocol
+    auto tempFile = std::make_unique<folly::test::TemporaryFile>();
+    FLAGS_state_delta_log_file = tempFile->path().string();
+    FLAGS_state_delta_log_protocol = protocolName;
+
+    // Create two switch states with different IPv6 routes
+    auto state1 = makeStateWithRoute("2001:db8:1::", 64);
+    auto state2 = makeStateWithRoute("2001:db8:2::", 64);
+
+    // Create a StateDelta - the oper delta will be automatically computed
+    StateDelta delta(state1, state2);
+
+    // Get the original oper delta
+    const auto& originalOperDelta = delta.getOperDelta();
+
+    // Create logger and log the delta
+    {
+      StateDeltaLogger logger;
+      logger.logStateDelta(delta, "test_reason_" + protocolName);
+    }
+
+    // Read the log file
+    std::string logContent;
+    ASSERT_TRUE(folly::readFile(tempFile->path().string().c_str(), logContent))
+        << "Failed to read log file for protocol: " << protocolName;
+    EXPECT_FALSE(logContent.empty());
+
+    // Parse the log file to extract serialized oper delta
+    // The log format is JSON with "oper_delta" field
+    auto operDeltaPos = logContent.find("\"oper_delta\":\"");
+    ASSERT_NE(operDeltaPos, std::string::npos)
+        << "Could not find oper_delta in log for protocol: " << protocolName;
+
+    // Extract the serialized oper delta
+    auto startPos = operDeltaPos + strlen("\"oper_delta\":\"");
+    auto endPos = logContent.find("\"}\n", startPos);
+    ASSERT_NE(endPos, std::string::npos);
+
+    auto serializedOperDelta = logContent.substr(startPos, endPos - startPos);
+    EXPECT_FALSE(serializedOperDelta.empty())
+        << "Empty serialized oper delta for protocol: " << protocolName;
+
+    // Deserialize the oper delta using the same protocol
+    fsdb::OperDelta reconstructedOperDelta;
+    try {
+      using TC = apache::thrift::type_class::structure;
+      reconstructedOperDelta = thrift_cow::deserialize<TC, fsdb::OperDelta>(
+          protocol, serializedOperDelta);
+    } catch (const std::exception& ex) {
+      FAIL() << "Failed to deserialize oper delta for protocol: "
+             << protocolName << ", error: " << ex.what();
+    }
+
+    // Verify the reconstructed oper delta matches the original
+    EXPECT_EQ(reconstructedOperDelta, originalOperDelta)
+        << "Reconstructed oper delta does not match original for protocol: "
+        << protocolName;
+  }
+}
