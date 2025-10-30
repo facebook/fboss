@@ -28,14 +28,6 @@ using std::mutex;
 
 using namespace apache::thrift;
 
-// TODO: Since this is an extended experiment, we resue the aoi_override flag
-// to mark the ones that will apply the settings overwrite. Will rename when
-// override become official across DC.
-DEFINE_bool(
-    aoi_override,
-    false,
-    "To override channel control settings on optic modules");
-
 namespace {
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
