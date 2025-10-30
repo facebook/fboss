@@ -35,6 +35,12 @@ DEFINE_string(
     "COMPACT",
     "Serialization protocol for state delta logging (BINARY, SIMPLE_JSON, COMPACT)");
 
+DEFINE_int32(
+    state_delta_log_timeout_ms,
+    100,
+    "Log timeout value in milliseconds. Logger will periodically"
+    "flush logs even if the buffer is not full");
+
 // Static buffers for async logging
 static auto constexpr kBufferSize = 409600;
 static facebook::fboss::AsyncLoggerBase::BufferToWrite currentBuffer =
@@ -44,6 +50,19 @@ static std::array<char, kBufferSize> buffer0;
 static std::array<char, kBufferSize> buffer1;
 
 namespace facebook::fboss {
+
+StateDeltaLogger::StateDeltaLogger()
+    : AsyncLoggerBase(
+          FLAGS_state_delta_log_file,
+          FLAGS_state_delta_log_timeout_ms,
+          AsyncLoggerBase::LoggerSrcType::STATE_DELTA,
+          buffer0.data(),
+          buffer1.data(),
+          kBufferSize) {
+  if (FLAGS_enable_state_delta_logging) {
+    serializationProtocol_ = getConfiguredSerializationProtocol();
+  }
+}
 
 void StateDeltaLogger::logStateDelta(
     const StateDelta& delta,
