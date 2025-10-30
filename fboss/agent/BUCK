@@ -790,6 +790,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "state_delta_logger",
+    srcs = [
+        "StateDeltaLogger.cpp",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":async_logger_base",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",

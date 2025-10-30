@@ -529,6 +529,18 @@ target_link_libraries(async_logger
   async_logger_base
 )
 
+add_library(state_delta_logger
+  fboss/agent/StateDeltaLogger.cpp
+)
+
+target_link_libraries(state_delta_logger
+  agent_features
+  async_logger_base
+  state
+  fsdb_oper_cpp2
+  Folly::folly
+)
+
 add_library(sflow_shim_utils
   fboss/agent/SflowShimUtils.cpp
 )
