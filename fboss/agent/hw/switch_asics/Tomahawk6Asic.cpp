@@ -49,8 +49,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::SAI_LAG_HASH:
-    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
-    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_ECN_WRED:
@@ -223,6 +221,8 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS: // CS00012426349
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT: // CS00012426349
       return false;
   }
   return false;
