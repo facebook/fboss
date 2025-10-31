@@ -438,6 +438,14 @@ void RibRouteTables::updateEcmpOverrides(
       },
       [&rid2prefix2SwitchingMode, &rid2prefix2Nhops](
           RouterID rid, const auto& newRoute) {
+        // For new routes, just copy the override info into RIB. Alternatively
+        // we could could check the overrides being set and only set for
+        // routes which have overrides set. We take a more blanket approach
+        // as there are call sites  (e.g. config reload, cancelled update) where
+        // we create a delta of (emptyState, newState). While none of these are
+        // expected to clear overrides and just looking for overrides being
+        // set would be sufficient. We take a more defensive approach of just
+        // mimicking overrides (set or unset) of new routes.
         if (newRoute->isResolved()) {
           rid2prefix2SwitchingMode[rid][newRoute->prefix().toCidrNetwork()] =
               newRoute->getForwardInfo().getOverrideEcmpSwitchingMode();
