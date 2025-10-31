@@ -335,6 +335,27 @@ TEST_F(CmdShowTransceiverTestFixture, queryClient) {
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
   EXPECT_THRIFT_EQ(normalizedModel, model);
+
+  // Verify that the model contains all transceivers including bypass modules
+  EXPECT_EQ(model.transceivers()->size(), 8);
+
+  // Verify bypass module (transceiver 7) is present
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/7/1") != model.transceivers()->end());
+  auto& bypassModule = model.transceivers()->at("eth1/7/1");
+  EXPECT_EQ(bypassModule.name().value(), "eth1/7/1");
+  EXPECT_FALSE(
+      bypassModule.isUp().has_value()); // Bypass modules have no port status
+  EXPECT_TRUE(bypassModule.isPresent().value());
+  EXPECT_EQ(bypassModule.vendor().value(), "vendorBypass");
+
+  // Verify absent bypass module (transceiver 8) is present
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/8/1") != model.transceivers()->end());
+  auto& absentBypassModule = model.transceivers()->at("eth1/8/1");
+  EXPECT_EQ(absentBypassModule.name().value(), "eth1/8/1");
+  EXPECT_FALSE(absentBypassModule.isUp().has_value());
+  EXPECT_FALSE(absentBypassModule.isPresent().value());
 }
 
 TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByPort) {
@@ -350,8 +371,9 @@ TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByPort) {
   // getPortStatus should be called with only the filtered port ID (port 1)
   EXPECT_CALL(getMockAgent(), getPortStatus(_, _))
       .WillOnce(Invoke([&](auto& entries, const auto& portIds) {
-        // Verify that only port 1 is requested
-        EXPECT_EQ(portIds->size(), 1);
+        // Verify that all ports are requested, filtering is done later in
+        // createModel
+        EXPECT_EQ(portIds->size(), 6);
         EXPECT_EQ((*portIds)[0], 1);
 
         // Return only the status for port 1
@@ -360,12 +382,12 @@ TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByPort) {
         entries = filteredStatuses;
       }));
 
-  // getTransceiverInfo should be called with only the transceiver ID for port 1
+  // getTransceiverInfo should query all transceivers, filtering is done later
+  // in createModel
   EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
       .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds) {
-        // Verify that only transceiver 1 is requested
-        EXPECT_EQ(transceiverIds->size(), 1);
-        EXPECT_EQ((*transceiverIds)[0], 1);
+        // Verify that all transceivers are requested
+        EXPECT_EQ(transceiverIds->size(), 0);
 
         // Return only the transceiver info for transceiver 1
         std::map<int32_t, TransceiverInfo> filteredTransceivers;
@@ -413,8 +435,8 @@ TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByMultiplePorts) {
 
   EXPECT_CALL(getMockAgent(), getPortStatus(_, _))
       .WillOnce(Invoke([&](auto& entries, const auto& portIds) {
-        // Verify that only ports 1 and 6 are requested
-        EXPECT_EQ(portIds->size(), 2);
+        // We query all ports, filtering is done in createModel
+        EXPECT_EQ(portIds->size(), 6);
         EXPECT_TRUE(
             std::find(portIds->begin(), portIds->end(), 1) != portIds->end());
         EXPECT_TRUE(
@@ -429,14 +451,8 @@ TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByMultiplePorts) {
 
   EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
       .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds) {
-        // Verify that only transceivers 1 and 6 are requested
-        EXPECT_EQ(transceiverIds->size(), 2);
-        EXPECT_TRUE(
-            std::find(transceiverIds->begin(), transceiverIds->end(), 1) !=
-            transceiverIds->end());
-        EXPECT_TRUE(
-            std::find(transceiverIds->begin(), transceiverIds->end(), 6) !=
-            transceiverIds->end());
+        // We query all transceivers, filtering is done later in createModel
+        EXPECT_EQ(transceiverIds->size(), 0);
 
         // Return only the transceiver info for transceivers 1 and 6
         std::map<int32_t, TransceiverInfo> filteredTransceivers;
@@ -473,6 +489,178 @@ TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredByMultiplePorts) {
 
   auto& tcvr6 = model.transceivers()->at("eth1/6/1");
   EXPECT_EQ(tcvr6.vendor().value(), "vendorThree");
+}
+
+TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredMultiPortModule) {
+  // Test filtering by a subset of ports for a multi-port module
+  setupMockedAgentServer();
+
+  // Create a multi-port module (transceiver 10) with 8 interfaces
+  std::map<int32_t, PortInfoThrift> multiPortPortEntries;
+  std::map<int32_t, PortStatus> multiPortPortStatusEntries;
+  for (int i = 1; i <= 8; i++) {
+    PortInfoThrift portEntry;
+    portEntry.portId() = i;
+    portEntry.name() = folly::to<std::string>("fab1/1/", i);
+    multiPortPortEntries[i] = std::move(portEntry);
+
+    PortStatus portStatus;
+    TransceiverIdxThrift tcvr;
+    tcvr.transceiverId() = 10;
+    portStatus.transceiverIdx() = tcvr;
+    portStatus.up() = true;
+    multiPortPortStatusEntries[i] = std::move(portStatus);
+  }
+
+  // Create a single transceiver with all 8 interfaces
+  std::map<int32_t, TransceiverInfo> multiPortTransceiverEntries;
+  TransceiverInfo multiPortTransceiver;
+  multiPortTransceiver.tcvrState()->vendor() = []() {
+    Vendor vendor;
+    vendor.name() = "vendorMultiPort";
+    vendor.serialNumber() = "mp123";
+    vendor.partNumber() = "mp-part-1";
+    return vendor;
+  }();
+  multiPortTransceiver.tcvrState()->present() = true;
+  multiPortTransceiver.tcvrState()->moduleMediaInterface() =
+      MediaInterfaceCode::FR8_800G;
+  multiPortTransceiver.tcvrState()->interfaces() = {
+      "fab1/1/1",
+      "fab1/1/2",
+      "fab1/1/3",
+      "fab1/1/4",
+      "fab1/1/5",
+      "fab1/1/6",
+      "fab1/1/7",
+      "fab1/1/8"};
+  multiPortTransceiver.tcvrState()->port() = 10;
+  multiPortTransceiver.tcvrStats()->sensor() = []() {
+    Sensor tempSensor;
+    Sensor voltageSensor;
+    tempSensor.value() = 45.0;
+    voltageSensor.value() = 28.0;
+    GlobalSensors sensors;
+    sensors.temp() = tempSensor;
+    sensors.vcc() = voltageSensor;
+    return sensors;
+  }();
+  multiPortTransceiver.tcvrStats()->channels() = {};
+  multiPortTransceiverEntries[10] = multiPortTransceiver;
+
+  std::map<int32_t, std::string> multiPortValidationEntries;
+  multiPortValidationEntries[10] = "";
+
+  // Query for a subset of ports (fab1/1/2 and fab1/1/5)
+  CmdShowTransceiverTraits::ObjectArgType queriedEntries = {
+      "fab1/1/2", "fab1/1/5"};
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = multiPortPortEntries; }));
+
+  EXPECT_CALL(getMockAgent(), getPortStatus(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& portIds) {
+        // Verify all ports are requested
+        EXPECT_EQ(portIds->size(), 8);
+
+        // Return status for all ports
+        entries = multiPortPortStatusEntries;
+      }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds) {
+        // Verify all tcvrs are requested
+        EXPECT_EQ(transceiverIds->size(), 0);
+
+        // Return the multi-port transceiver
+        entries = multiPortTransceiverEntries;
+      }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
+      .WillOnce(
+          Invoke([&](auto& entries, const auto& /* transceiverIds */, auto) {
+            entries = multiPortValidationEntries;
+          }));
+
+  auto cmd = CmdShowTransceiver();
+  auto model = cmd.queryClient(localhost(), queriedEntries);
+
+  // Verify that the model contains only the requested interfaces
+  EXPECT_EQ(model.transceivers()->size(), 2);
+  EXPECT_TRUE(
+      model.transceivers()->find("fab1/1/2") != model.transceivers()->end());
+  EXPECT_TRUE(
+      model.transceivers()->find("fab1/1/5") != model.transceivers()->end());
+
+  // Verify the entries are correct
+  auto& tcvr2 = model.transceivers()->at("fab1/1/2");
+  EXPECT_EQ(tcvr2.name().value(), "fab1/1/2");
+  EXPECT_TRUE(tcvr2.isUp().has_value());
+  EXPECT_TRUE(tcvr2.isUp().value());
+  EXPECT_EQ(tcvr2.vendor().value(), "vendorMultiPort");
+  EXPECT_EQ(tcvr2.serial().value(), "mp123");
+
+  auto& tcvr5 = model.transceivers()->at("fab1/1/5");
+  EXPECT_EQ(tcvr5.name().value(), "fab1/1/5");
+  EXPECT_TRUE(tcvr5.isUp().has_value());
+  EXPECT_TRUE(tcvr5.isUp().value());
+  EXPECT_EQ(tcvr5.vendor().value(), "vendorMultiPort");
+  EXPECT_EQ(tcvr5.serial().value(), "mp123");
+}
+
+TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredBypassModule) {
+  // Test filtering for a single bypass module (module without port entry)
+  setupMockedAgentServer();
+
+  // Query for a bypass module interface
+  CmdShowTransceiverTraits::ObjectArgType queriedEntries = {"eth1/7/1"};
+
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = mockPortEntries; }));
+
+  EXPECT_CALL(getMockAgent(), getPortStatus(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& portIds) {
+        // All agent ports are queried
+        EXPECT_EQ(portIds->size(), 6);
+
+        // Return all port statuses (bypass module won't have a port status)
+        entries = mockPortStatusEntries;
+      }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds) {
+        // Verify that we query all tcvrs
+        EXPECT_EQ(transceiverIds->size(), 0);
+
+        entries = mockTransceiverEntries;
+      }));
+
+  EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds, auto) {
+        // Won't include the bypass modules, since there's no port status
+        EXPECT_EQ(transceiverIds->size(), 6);
+
+        entries = mockTransceiverValidationEntries;
+      }));
+
+  auto cmd = CmdShowTransceiver();
+  auto model = cmd.queryClient(localhost(), queriedEntries);
+
+  // Check that only the bypass module is reported
+  EXPECT_EQ(model.transceivers()->size(), 1);
+  EXPECT_TRUE(
+      model.transceivers()->find("eth1/7/1") != model.transceivers()->end());
+
+  // Check that the contents of the entry are correct (should be listed as
+  // a bypass module)
+  auto& bypassModule = model.transceivers()->at("eth1/7/1");
+  EXPECT_EQ(bypassModule.name().value(), "eth1/7/1");
+  EXPECT_FALSE(
+      bypassModule.isUp().has_value()); // Bypass modules have no port status
+  EXPECT_TRUE(bypassModule.isPresent().value());
+  EXPECT_EQ(bypassModule.vendor().value(), "vendorBypass");
+  EXPECT_EQ(bypassModule.serial().value(), "d");
+  EXPECT_EQ(bypassModule.partNumber().value(), "5");
 }
 
 TEST_F(CmdShowTransceiverTestFixture, printOutput) {

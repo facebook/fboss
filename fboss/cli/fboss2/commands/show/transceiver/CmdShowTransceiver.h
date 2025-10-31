@@ -50,14 +50,14 @@ class CmdShowTransceiver
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     // TODO: explore performance improvement if we make all this parallel.
-    auto portEntries = queryPortInfo(agent.get(), queriedPorts);
+    auto portEntries = queryPortInfo(agent.get());
     auto portStatusEntries = queryPortStatus(agent.get(), portEntries);
-    auto transceiverEntries =
-        queryTransceiverInfo(qsfpService.get(), portStatusEntries);
+    auto transceiverEntries = queryTransceiverInfo(qsfpService.get());
     auto transceiverValidationEntries =
         queryTransceiverValidationInfo(qsfpService.get(), portStatusEntries);
 
     return createModel(
+        std::set(queriedPorts.begin(), queriedPorts.end()),
         portStatusEntries,
         transceiverEntries,
         portEntries,
@@ -133,23 +133,11 @@ class CmdShowTransceiver
   const double LOW_SNR_WARN = 20.00;
 
   std::map<int, PortInfoThrift> queryPortInfo(
-      FbossCtrlAsyncClient* agent,
-      const ObjectArgType& queriedPorts) const {
+      FbossCtrlAsyncClient* agent) const {
+    // Query all ports here. Any filtering should be done in createModel
     std::map<int, PortInfoThrift> portEntries;
     agent->sync_getAllPortInfo(portEntries);
-    if (queriedPorts.size() == 0) {
-      return portEntries;
-    }
-
-    std::map<int, PortInfoThrift> filteredPortEntries;
-    for (auto const& [portId, portInfo] : portEntries) {
-      for (auto const& queriedPort : queriedPorts) {
-        if (portInfo.name().value() == queriedPort) {
-          filteredPortEntries.emplace(portId, portInfo);
-        }
-      }
-    }
-    return filteredPortEntries;
+    return portEntries;
   }
 
   Table::StyledCell statusToString(std::optional<bool> isUp) const {
@@ -213,19 +201,11 @@ class CmdShowTransceiver
   }
 
   std::map<int, TransceiverInfo> queryTransceiverInfo(
-      QsfpServiceAsyncClient* qsfpService,
-      std::map<int, PortStatus> portStatusEntries) const {
+      QsfpServiceAsyncClient* qsfpService) const {
     std::vector<int32_t> requiredTransceiverEntries;
-    for (const auto& portStatusItr : portStatusEntries) {
-      if (auto tidx = portStatusItr.second.transceiverIdx()) {
-        requiredTransceiverEntries.push_back(
-            folly::copy(tidx->transceiverId().value()));
-      }
-    }
-
     std::map<int, TransceiverInfo> transceiverEntries;
-    qsfpService->sync_getTransceiverInfo(
-        transceiverEntries, requiredTransceiverEntries);
+    // Query all transceivers here. Any filtering should be done in createModel
+    qsfpService->sync_getTransceiverInfo(transceiverEntries, {});
     return transceiverEntries;
   }
 
@@ -265,6 +245,7 @@ class CmdShowTransceiver
   }
 
   RetType createModel(
+      const std::set<std::string>& queriedPorts,
       std::map<int, PortStatus> portStatusEntries,
       std::map<int, TransceiverInfo> transceiverEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
@@ -277,9 +258,15 @@ class CmdShowTransceiver
       interfaceToPortId[portInfo.name().value()] = portId;
     }
 
+    // Iterate over transceiver entries, since there are some transceivers
+    // (bypass modules) that won't have port entries
     for (const auto& tcvrEntry : transceiverEntries) {
       const auto& transceiver = tcvrEntry.second;
       for (const auto& intf : *transceiver.tcvrState()->interfaces()) {
+        if (!queriedPorts.empty() &&
+            queriedPorts.find(intf) == queriedPorts.end()) {
+          continue;
+        }
         cli::TransceiverDetail details;
         details.name() = intf;
 
