@@ -2718,35 +2718,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 6,
@@ -2839,6 +2810,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip18",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core0",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 4
                     }
                   }
                 ]
@@ -5673,35 +5673,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -5789,6 +5760,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip17",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core1",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 4
                     }
                   }
                 ]
@@ -8672,35 +8672,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 16,
@@ -8793,6 +8764,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core2",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 4
                     }
                   }
                 ]
@@ -11627,35 +11627,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core3",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -11743,6 +11714,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core3",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 4
                     }
                   }
                 ]
@@ -14626,35 +14626,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core4",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 27,
@@ -14747,6 +14718,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip22",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core4",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 4
                     }
                   }
                 ]
@@ -17581,35 +17581,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -17697,6 +17668,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip21",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core5",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 4
                     }
                   }
                 ]
@@ -20580,35 +20580,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 38,
@@ -20701,6 +20672,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip24",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core6",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 4
                     }
                   }
                 ]
@@ -23535,35 +23535,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core7",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -23651,6 +23622,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip23",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core7",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 4
                     }
                   }
                 ]
@@ -26534,35 +26534,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core8",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 49,
@@ -26655,6 +26626,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip26",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core8",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 4
                     }
                   }
                 ]
@@ -29489,35 +29489,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -29605,6 +29576,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip25",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core9",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 4
                     }
                   }
                 ]
@@ -32488,35 +32488,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 60,
@@ -32609,6 +32580,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip28",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core10",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 4
                     }
                   }
                 ]
@@ -35443,35 +35443,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core11",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -35559,6 +35530,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip27",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core11",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 4
                     }
                   }
                 ]
@@ -38442,35 +38442,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core12",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 71,
@@ -38563,6 +38534,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip30",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core12",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
+                      "lane": 4
                     }
                   }
                 ]
@@ -41397,35 +41397,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -41513,6 +41484,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip29",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core13",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
+                      "lane": 4
                     }
                   }
                 ]
@@ -44396,35 +44396,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 82,
@@ -44517,6 +44488,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip32",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core14",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 4
                     }
                   }
                 ]
@@ -47351,35 +47351,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core15",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -47467,6 +47438,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip31",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core15",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 4
                     }
                   }
                 ]
@@ -50350,35 +50350,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core48",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 269,
@@ -50471,6 +50442,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip2",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core48",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 4
                     }
                   }
                 ]
@@ -53305,35 +53305,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -53421,6 +53392,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip1",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core49",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 4
                     }
                   }
                 ]
@@ -56304,35 +56304,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 280,
@@ -56425,6 +56396,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip4",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core50",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 4
                     }
                   }
                 ]
@@ -59259,35 +59259,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core51",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -59375,6 +59346,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip3",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core51",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 4
                     }
                   }
                 ]
@@ -62258,35 +62258,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core52",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 291,
@@ -62379,6 +62350,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip6",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core52",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 4
                     }
                   }
                 ]
@@ -65213,35 +65213,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -65329,6 +65300,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip5",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core53",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 4
                     }
                   }
                 ]
@@ -68212,35 +68212,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 302,
@@ -68333,6 +68304,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip8",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core54",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 4
                     }
                   }
                 ]
@@ -71167,35 +71167,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core55",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -71283,6 +71254,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip7",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core55",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 4
                     }
                   }
                 ]
@@ -74166,35 +74166,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core56",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 313,
@@ -74287,6 +74258,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip10",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core56",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
+                      "lane": 4
                     }
                   }
                 ]
@@ -77121,35 +77121,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -77237,6 +77208,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip9",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core57",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
+                      "lane": 4
                     }
                   }
                 ]
@@ -80120,35 +80120,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 324,
@@ -80241,6 +80212,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip12",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core58",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 4
                     }
                   }
                 ]
@@ -83075,35 +83075,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core59",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -83191,6 +83162,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core59",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 4
                     }
                   }
                 ]
@@ -86074,35 +86074,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core60",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 335,
@@ -86195,6 +86166,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip13",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core60",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 4
                     }
                   }
                 ]
@@ -89029,35 +89029,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -89145,6 +89116,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core61",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 4
                     }
                   }
                 ]
@@ -92028,35 +92028,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "subsumedPorts": [
                 346,
@@ -92149,6 +92120,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core62",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 4
                     }
                   }
                 ]
@@ -94983,35 +94983,6 @@
                 ]
               }
           },
-          "43": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core63",
-                      "lane": 4
-                    },
-                    "tx": {
-                      "pre": 0,
-                      "pre2": 0,
-                      "main": 0,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                      "lane": 4
-                    }
-                  }
-                ]
-              }
-          },
           "45": {
               "pins": {
                 "iphy": [
@@ -95099,6 +95070,35 @@
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip16",
                       "lane": 7
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core63",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 4
                     }
                   }
                 ]

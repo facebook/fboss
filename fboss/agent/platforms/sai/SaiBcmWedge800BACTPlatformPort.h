@@ -13,9 +13,9 @@
 
 namespace facebook::fboss {
 
-class SaiBcmWedge800baPlatformPort : public SaiBcmPlatformPort {
+class SaiBcmWedge800BACTPlatformPort : public SaiBcmPlatformPort {
  public:
-  SaiBcmWedge800baPlatformPort(PortID id, SaiPlatform* platform)
+  SaiBcmWedge800BACTPlatformPort(PortID id, SaiPlatform* platform)
       : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
