@@ -3282,6 +3282,40 @@ bool CmisModule::isTunableOptics() const {
   }
 }
 
+bool CmisModule::isLpoModule() const {
+  // FACETESTLPO is for testing purposes.
+  Vendor vendor = getVendorInfo();
+  if (vendor.name().value() == "FACETESTLPO") {
+    return true;
+  }
+  // Expected host/media interface codes for LPO transceivers.
+  std::set<std::pair<ActiveCuHostInterfaceCode, SMFMediaInterfaceCode>>
+      expectedLpoInterfaces = {
+          {ActiveCuHostInterfaceCode::LPO_100G,
+           SMFMediaInterfaceCode::FR1_100G},
+          {ActiveCuHostInterfaceCode::LPO_400G,
+           SMFMediaInterfaceCode::FR4_400G},
+          {ActiveCuHostInterfaceCode::LPO_800G,
+           SMFMediaInterfaceCode::FR8_800G}};
+
+  if (moduleCapabilities_.size() == expectedLpoInterfaces.size()) {
+    for (const auto& capability : moduleCapabilities_) {
+      if (!expectedLpoInterfaces.erase(
+              std::make_pair(
+                  static_cast<ActiveCuHostInterfaceCode>(
+                      capability.moduleHostInterface),
+                  static_cast<SMFMediaInterfaceCode>(
+                      capability.moduleMediaInterface)))) {
+        break;
+      }
+    }
+    if (expectedLpoInterfaces.empty()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
   // Return the MediaInterfaceCode based on the first application
   auto moduleMediaInterface = MediaInterfaceCode::UNKNOWN;
