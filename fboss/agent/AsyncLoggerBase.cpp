@@ -145,8 +145,8 @@ void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
 
   // Acquire the lock and check if there's enough space in the buffer
   latch_.lock();
-  // Release the lock and notify worker thread to flush logs
   if (logSize + getOffset() >= bufferSize_) {
+    // Release the lock and notify worker thread to flush logs
     fullFlush_ = true;
     latch_.unlock();
     cv_.notify_one();
