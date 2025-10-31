@@ -341,25 +341,38 @@ void SwitchApi::registerSwitchEventCallback(
 #endif
     eventAttr.value.u32list.count = events.size();
     eventAttr.value.u32list.list = events.data();
-    auto rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to register parity error switch events");
 
-    // Register switch event callback function
-    rv = _setAttribute(id, &attr);
-    saiLogError(
-        rv, ApiType, "Unable to register parity error switch event callback");
+    {
+      auto g{SaiApiLock::getInstance()->lock()};
+      auto rv = _setAttribute(id, &eventAttr);
+      saiLogError(rv, ApiType, "Unable to register parity error switch events");
+    }
+
+    {
+      // Register switch event callback function
+      auto g{SaiApiLock::getInstance()->lock()};
+      auto rv = _setAttribute(id, &attr);
+      saiLogError(
+          rv, ApiType, "Unable to register parity error switch event callback");
+    }
   } else {
     // This is reverse of the registration sequence.
     // First, unregister callback, then unregister events.
 
-    // First unregister callback function
-    auto rv = _setAttribute(id, &attr);
-    saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+    {
+      auto g{SaiApiLock::getInstance()->lock()};
+      // First unregister callback function
+      auto rv = _setAttribute(id, &attr);
+      saiLogError(rv, ApiType, "Unable to unregister TAM event callback");
+    }
 
-    // Then unregister switch events
-    eventAttr.value.u32list.count = 0;
-    rv = _setAttribute(id, &eventAttr);
-    saiLogError(rv, ApiType, "Unable to unregister switch events");
+    {
+      auto g{SaiApiLock::getInstance()->lock()};
+      // Then unregister switch events
+      eventAttr.value.u32list.count = 0;
+      auto rv = _setAttribute(id, &eventAttr);
+      saiLogError(rv, ApiType, "Unable to unregister switch events");
+    }
   }
 #endif
 }
