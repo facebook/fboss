@@ -1346,10 +1346,11 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
   for (const auto& [path, jsonPatch] : *pathToJsonPatch) {
     if (path == "remoteSystemPortMaps") {
       MultiSwitchSystemPortMap mswitchSysPorts;
-      mswitchSysPorts.fromThrift(thrift_cow::deserialize<
-                                 MultiSwitchSystemPortMapTypeClass,
-                                 MultiSwitchSystemPortMapThriftType>(
-          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      mswitchSysPorts.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchSystemPortMapTypeClass,
+              MultiSwitchSystemPortMapThriftType>(
+              fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
       for (const auto& systemPortMap : mswitchSysPorts) {
         // A given port belongs to exactly one switch
         auto matcher = HwSwitchMatcher(systemPortMap.first);
@@ -1357,10 +1358,11 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
       }
     } else if (path == "remoteInterfaceMaps") {
       MultiSwitchInterfaceMap mswitchIntfs;
-      mswitchIntfs.fromThrift(thrift_cow::deserialize<
-                              MultiSwitchInterfaceMapTypeClass,
-                              MultiSwitchInterfaceMapThriftType>(
-          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      mswitchIntfs.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchInterfaceMapTypeClass,
+              MultiSwitchInterfaceMapThriftType>(
+              fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
       for (const auto& remoteIntfMap : mswitchIntfs) {
         auto matcher = HwSwitchMatcher(remoteIntfMap.first);
         // Pick first switchId for now, may need to revise when we support
@@ -2009,10 +2011,11 @@ void ThriftHandler::getRouteCounterBytes(
     // returns default stat if statName does not exists
     auto statPtr = statMap->getStatPtrNoExport(statName);
     auto lockedStatPtr = statPtr->wlock();
+    lockedStatPtr->update(seconds(facebook::fb303::get_legacy_stats_time()));
     auto numLevels = lockedStatPtr->numLevels();
     // Cumulative (ALLTIME) counters are at (numLevels - 1)
     auto value = lockedStatPtr->sum(numLevels - 1);
-    routeCounters.insert(make_pair(statName, value));
+    routeCounters.try_emplace(statName, value);
   }
 }
 

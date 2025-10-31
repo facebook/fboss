@@ -159,6 +159,7 @@ target_link_libraries(utils
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
+  ladakh800bcls_platform_mapping
 )
 
 add_library(stats
@@ -399,6 +400,7 @@ set(core_libs
   ecmp_resource_manager
   thrift_method_rate_limit
   shel_manager
+  state_delta_logger
 )
 
 target_link_libraries(core ${core_libs})
@@ -511,13 +513,33 @@ target_link_libraries(hw_switch
   multiswitch_ctrl_cpp2
 )
 
+add_library(async_logger_base
+  fboss/agent/AsyncLoggerBase.cpp
+)
+
+target_link_libraries(async_logger_base
+  fboss_error
+  fb303::fb303
+  Folly::folly
+)
+
 add_library(async_logger
   fboss/agent/AsyncLogger.cpp
 )
 
 target_link_libraries(async_logger
-  fboss_error
-  fb303::fb303
+  async_logger_base
+)
+
+add_library(state_delta_logger
+  fboss/agent/StateDeltaLogger.cpp
+)
+
+target_link_libraries(state_delta_logger
+  agent_features
+  async_logger_base
+  state
+  fsdb_oper_cpp2
   Folly::folly
 )
 

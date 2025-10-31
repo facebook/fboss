@@ -69,8 +69,9 @@ void ExternalPhyPortStatsUtils::updateXphyStats(
   auto updateSideLaneStats = [this](auto& sideStr, auto& sideStats) {
     auto updateStat = [this, &sideStr](
                           auto lane, auto& counterStr, auto& diagValue) {
-      auto counterKey = this->constructCounterName(folly::to<std::string>(
-          "xphy.", sideStr, ".lane", lane, ".", counterStr));
+      auto counterKey = this->constructCounterName(
+          folly::to<std::string>(
+              "xphy.", sideStr, ".lane", lane, ".", counterStr));
       fb303::fbData->setCounter(counterKey, diagValue);
     };
     for (const auto& laneStats : sideStats.lanes) {

@@ -73,8 +73,9 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   kv_map.insert(std::make_pair("SAI_INTERNAL_LOOPBACK_TOGGLE_ENABLED", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ENABLE_HEALTH_DATA_TYPE_SER", "1"));
   utilCreateDir(getDirectoryUtil()->getCrashInfoDir());
-  kv_map.insert(std::make_pair(
-      "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
+  kv_map.insert(
+      std::make_pair(
+          "SAI_DUMP_STORE_PATH", getDirectoryUtil()->getCrashInfoDir()));
   kv_map.insert(std::make_pair("SAI_DUMP_STORE_AMOUNT", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_HOSTIF_V2_ENABLED", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_PRBS_ADMIN_TOGGLE_ENABLED", "1"));

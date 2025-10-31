@@ -10,7 +10,7 @@ COPY . fboss
 WORKDIR fboss
 
 RUN rm -rf build/deps/github_hashes/
-RUN tar xvzf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
+RUN tar --no-same-owner -xvzf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
 
 RUN dnf install -y 'dnf-command(config-manager)'
 RUN dnf config-manager --set-enabled crb

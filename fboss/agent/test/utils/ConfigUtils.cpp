@@ -1368,8 +1368,9 @@ void configurePortGroup(
     auto supportedProfiles = *platPortEntry.supportedProfiles();
     auto profile = supportedProfiles.find(profileID.value());
     if (profile == supportedProfiles.end()) {
-      throw std::runtime_error(folly::to<std::string>(
-          "No profile ", profileID.value(), " found for port ", portID));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "No profile ", profileID.value(), " found for port ", portID));
     }
 
     cfgPort->profileID() = profileID.value();
@@ -1637,10 +1638,11 @@ genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask) {
   auto ipDecimal1 = folly::sformat("{}", ipDecimal % 224);
   auto ipDecimal2 = folly::sformat("{}", ipDecimal / 224);
 
-  auto addr = isV4 ? folly::IPAddress(folly::sformat(
-                         "{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
-                   : folly::IPAddress(folly::sformat(
-                         "{}:{}::{}", ipDecimal1, ipDecimal2, host));
+  auto addr = isV4
+      ? folly::IPAddress(
+            folly::sformat("{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
+      : folly::IPAddress(
+            folly::sformat("{}:{}::{}", ipDecimal1, ipDecimal2, host));
   return folly::sformat("{}/{}", addr.str(), subnetMask);
 }
 } // namespace facebook::fboss::utility

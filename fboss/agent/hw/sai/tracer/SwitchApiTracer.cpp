@@ -169,6 +169,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, DefaultCpuEgressBufferPool)
   SAI_EXT_ATTR_MAP(Switch, TechSupportType)
   SAI_EXT_ATTR_MAP(Switch, ModuleIdFabricPortList)
+  SAI_EXT_ATTR_MAP(Switch, PfcMonitorEnable);
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   SAI_EXT_ATTR_MAP(Switch, LocalSystemPortIdRangeList)
 #endif

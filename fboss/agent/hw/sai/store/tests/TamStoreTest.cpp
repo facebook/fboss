@@ -165,8 +165,9 @@ TEST_F(TamStoreTest, loadTam) {
   EXPECT_EQ(transportStore.get(tamTransportTraits())->adapterKey(), transport);
   EXPECT_EQ(
       reportStore
-          .get(SaiTamReportTraits::AdapterHostKey{
-              SAI_TAM_REPORT_TYPE_VENDOR_EXTN})
+          .get(
+              SaiTamReportTraits::AdapterHostKey{
+                  SAI_TAM_REPORT_TYPE_VENDOR_EXTN})
           ->adapterKey(),
       report);
   EXPECT_EQ(

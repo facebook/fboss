@@ -112,6 +112,8 @@ struct SaiPortHandle {
   std::optional<std::string> qosPolicy;
   SaiQueueHandles queues;
   bool prbsEnabled;
+  bool txPfcDurationStatsEnabled;
+  bool rxPfcDurationStatsEnabled;
 
   void resetQueues();
   SaiPortMirrorInfo mirrorInfo;
@@ -477,6 +479,20 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void clearPortFlowletConfig(const PortID& portId);
+  void programPfcDurationCounterEnable(
+      const std::shared_ptr<Port>& swPort,
+      const std::optional<cfg::PortPfc>& newPfc,
+      const std::optional<cfg::PortPfc>& oldPfc);
+  void programPfcDurationCounter(
+      const std::shared_ptr<Port>& swPort,
+      const std::optional<cfg::PortPfc>& newPfc,
+      const std::optional<cfg::PortPfc>& oldPfc);
+  void setPfcDurationStatsEnabled(
+      const PortID& portId,
+      bool txEnabled,
+      bool rxEnabled);
+  const std::vector<sai_stat_id_t>& getSupportedPfcDurationStats(
+      const PortID& portId);
 
   /**
    * Enum to specify which PFC counter to increment.

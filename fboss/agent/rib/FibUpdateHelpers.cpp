@@ -16,7 +16,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
-std::shared_ptr<facebook::fboss::SwitchState> ribToSwitchStateUpdate(
+StateDelta ribToSwitchStateUpdate(
     const SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -30,17 +30,19 @@ std::shared_ptr<facebook::fboss::SwitchState> ribToSwitchStateUpdate(
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
   *switchState = fibUpdater(*switchState);
   (*switchState)->publish();
-  return *switchState;
+  auto lastDelta = fibUpdater.getLastDelta();
+  CHECK(lastDelta.has_value());
+  return StateDelta(lastDelta->oldState(), *switchState);
 }
 
-std::shared_ptr<facebook::fboss::SwitchState> noopFibUpdate(
+StateDelta noopFibUpdate(
     const SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID /*vrf*/,
     const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
     const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
     const LabelToRouteMap& /*labelToRoute*/,
     void* /*cookie*/) {
-  return nullptr;
+  return StateDelta(nullptr, nullptr);
 }
 
 } // namespace facebook::fboss

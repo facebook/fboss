@@ -191,6 +191,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, PgDropStatus)
   SAI_EXT_ATTR_MAP(Port, FabricSystemPort)
   SAI_EXT_ATTR_MAP(Port, StaticModuleId)
+  SAI_EXT_ATTR_MAP(Port, PfcMonitorDirection)
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

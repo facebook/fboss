@@ -128,6 +128,31 @@ void validatePfcPriToPgId(
   EXPECT_EQ(swStatePfcPri2PgId, cfgStatePfcPri2PgId);
 }
 
+void validatePcpMap(
+    const cfg::QosPolicy& cfgQosPolicy,
+    std::shared_ptr<QosPolicy> swQosPolicy) {
+  if (!cfgQosPolicy.qosMap()) {
+    auto swPcpMap = swQosPolicy->getPcpMap();
+    EXPECT_FALSE(swPcpMap.has_value());
+    return;
+  }
+
+  const auto& qosMap = *cfgQosPolicy.qosMap();
+
+  if (qosMap.pcpMaps()) {
+    // Config has PCP maps, switch state should have them too
+    auto swPcpMap = swQosPolicy->getPcpMap();
+    ASSERT_TRUE(swPcpMap.has_value());
+
+    PcpMap cfgPcpMap(*qosMap.pcpMaps());
+    EXPECT_EQ(swPcpMap->toThrift(), cfgPcpMap.toThrift());
+  } else {
+    // Config has no PCP maps, switch state should not have them either
+    auto swPcpMap = swQosPolicy->getPcpMap();
+    EXPECT_FALSE(swPcpMap.has_value());
+  }
+}
+
 void checkQosPolicy(
     const cfg::QosPolicy& cfgQosPolicy,
     std::shared_ptr<QosPolicy> swQosPolicy) {
@@ -148,6 +173,7 @@ void checkQosPolicy(
   validatePfcPriToQueue(cfgQosPolicy, swQosPolicy);
   validateTrafficClassToPgId(cfgQosPolicy, swQosPolicy);
   validatePfcPriToPgId(cfgQosPolicy, swQosPolicy);
+  validatePcpMap(cfgQosPolicy, swQosPolicy);
 }
 
 void checkQosSwState(
@@ -207,6 +233,10 @@ cfg::QosMap cfgQosMap() {
   cfg::QosMap qosMap;
   qosMap.dscpMaps()->resize(8);
   qosMap.expMaps()->resize(8);
+
+  std::vector<cfg::PcpQosMap> pcpMaps(8);
+  qosMap.pcpMaps() = pcpMaps;
+
   std::map<int16_t, int16_t> pfc2Queue;
   std::map<int16_t, int16_t> tc2PgId;
   std::map<int16_t, int16_t> pfc2PgId;
@@ -214,14 +244,18 @@ cfg::QosMap cfgQosMap() {
   for (auto i = 0; i < 8; i++) {
     auto& dscpMap = qosMap.dscpMaps()[i];
     auto& expMap = qosMap.expMaps()[i];
+    auto& pcpMap = (*qosMap.pcpMaps())[i];
     *dscpMap.internalTrafficClass() = i;
     *expMap.internalTrafficClass() = i;
+    *pcpMap.internalTrafficClass() = i;
     for (auto j = 0; j < 4; j++) {
       dscpMap.fromDscpToTrafficClass()->push_back(j);
     }
     expMap.fromExpToTrafficClass()->push_back(i);
+    pcpMap.fromPcpToTrafficClass()->push_back(i);
     dscpMap.fromTrafficClassToDscp() = *dscpMap.internalTrafficClass();
     expMap.fromTrafficClassToExp() = *expMap.internalTrafficClass();
+    pcpMap.fromTrafficClassToPcp() = *pcpMap.internalTrafficClass();
     qosMap.trafficClassToQueueId()->emplace(i, i);
     pfc2Queue.emplace(i, i);
     tc2PgId.emplace(i, i);

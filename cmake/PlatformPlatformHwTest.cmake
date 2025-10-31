@@ -10,8 +10,6 @@ add_executable(platform_hw_test
 target_link_libraries(platform_hw_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
-  Folly::folly
-  weutil_fboss_eeprom_interface
-  weutil_lib
-  weutil_config_utils
+  platform_checks
+  platform_manager_config_utils
 )

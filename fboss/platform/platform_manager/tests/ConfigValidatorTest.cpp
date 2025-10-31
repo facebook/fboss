@@ -14,7 +14,7 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 SlotTypeConfig getValidSlotTypeConfig() {
   auto slotTypeConfig = SlotTypeConfig();
-  slotTypeConfig.pmUnitName() = "FAN_TRAY";
+  slotTypeConfig.pmUnitName() = "SCM";
   slotTypeConfig.idpromConfig() = IdpromConfig();
   slotTypeConfig.idpromConfig()->address() = "0x14";
   return slotTypeConfig;
@@ -69,7 +69,7 @@ TEST(ConfigValidatorTest, ValidConfig) {
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   EXPECT_TRUE(ConfigValidator().isValid(config));
@@ -77,39 +77,139 @@ TEST(ConfigValidatorTest, ValidConfig) {
 
 TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   auto config = PlatformConfig();
-  // Add pmUnitConfig to make pmUnitConfigName reference valid
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
-
-  config.platformName() = "MERU400BIU";
+  config.platformName() = "SAMPLE_PLATFORM";
   config.rootSlotType() = "SCM_SLOT";
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
-  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {}}};
+  auto pmUnitConfig = PmUnitConfig();
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+
+  // Test 1: Empty versionedPmUnitConfigs vector
+  config.versionedPmUnitConfigs() = {{"SCM", {}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: Negative productSubVersion
   auto versionedPmUnitConfig = VersionedPmUnitConfig();
   versionedPmUnitConfig.productSubVersion() = -1;
-  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {versionedPmUnitConfig}}};
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 3: Mismatched pluggedInSlotType
+  versionedPmUnitConfig.productSubVersion() = 1;
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "PIM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Mismatched outgoingSlotConfigs
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  auto slotConfig = SlotConfig();
+  slotConfig.slotType() = "EXTRA_SLOT";
+  versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {
+      {"EXTRA_SLOT@0", slotConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 5: Mismatched pciDeviceConfigs
+  versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {};
+  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {
+      getValidPciDeviceConfig()};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 6: Mismatched embeddedSensorConfigs
+  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {};
+  auto sensorConfig = EmbeddedSensorConfig();
+  sensorConfig.pmUnitScopedName() = "SENSOR_1";
+  versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {
+      sensorConfig};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   auto config = PlatformConfig();
-  // Add pmUnitConfig to make pmUnitConfigName reference valid
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
 
-  config.platformName() = "MERU400BIU";
+  config.platformName() = "SAMPLE_PLATFORM";
   config.rootSlotType() = "SCM_SLOT";
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
-  auto versionedPmUnitConfig = VersionedPmUnitConfig();
-  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
-  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {versionedPmUnitConfig}}};
+
+  // Test 1: Valid with single versioned config (productSubVersion = 0)
+  auto versionedPmUnitConfig1 = VersionedPmUnitConfig();
+  versionedPmUnitConfig1.productSubVersion() = 0;
+  versionedPmUnitConfig1.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 2: Valid with single versioned config (productSubVersion = 1)
+  auto versionedPmUnitConfig2 = VersionedPmUnitConfig();
+  versionedPmUnitConfig2.productSubVersion() = 1;
+  versionedPmUnitConfig2.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig2}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 3: Valid with multiple versioned configs
+  auto versionedPmUnitConfig3 = VersionedPmUnitConfig();
+  versionedPmUnitConfig3.productSubVersion() = 2;
+  versionedPmUnitConfig3.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {
+      {"SCM",
+       {versionedPmUnitConfig1,
+        versionedPmUnitConfig2,
+        versionedPmUnitConfig3}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 4: Valid with matching pluggedInSlotType
+  versionedPmUnitConfig1.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 5: Valid with matching empty outgoingSlotConfigs
+  versionedPmUnitConfig1.pmUnitConfig()->outgoingSlotConfigs() = {};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 6: Valid with matching pciDeviceConfigs (non-empty)
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {
+      getValidPciDeviceConfig()};
+  pmUnitConfig.pciDeviceConfigs() = {getValidPciDeviceConfig()};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 7: Valid with matching empty embeddedSensorConfigs
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {};
+  versionedPmUnitConfig1.pmUnitConfig()->embeddedSensorConfigs() = {};
+  pmUnitConfig.pciDeviceConfigs() = {};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 8: Valid with large productSubVersion
+  versionedPmUnitConfig1.productSubVersion() = 100;
+  versionedPmUnitConfig1.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 9: Valid with differing i2cDeviceConfigs (allowed to differ)
+  versionedPmUnitConfig1.productSubVersion() = 0;
+  I2cDeviceConfig i2cConfig1, i2cConfig2;
+  i2cConfig1.pmUnitScopedName() = "SCM_EEPROM_V1";
+  i2cConfig1.address() = "0x50";
+  i2cConfig2.pmUnitScopedName() = "SCM_EEPROM_V2";
+  i2cConfig2.address() = "0x51";
+  versionedPmUnitConfig1.pmUnitConfig()->i2cDeviceConfigs() = {i2cConfig1};
+  pmUnitConfig.i2cDeviceConfigs() = {i2cConfig2};
+  pmUnitConfig.pciDeviceConfigs() = {};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
@@ -424,8 +524,9 @@ TEST(ConfigValidatorTest, SpiDeviceConfig) {
   auto spiDevConfigCopy = spiDevConfig;
   spiDevConfigCopy.chipSelect() = 0;
   spiDevConfig.chipSelect() = 0;
-  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs(
-      {spiDevConfigCopy, spiDevConfig}));
+  EXPECT_FALSE(
+      ConfigValidator().isValidSpiDeviceConfigs(
+          {spiDevConfigCopy, spiDevConfig}));
   // Empty spiDeviceConfigs
   EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({}));
 }
@@ -505,31 +606,36 @@ TEST(ConfigValidatorTest, DevicePath) {
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/[]"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/COME@SCM_SLOT@0/[idprom]"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
-      config, "/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(
+          config, "/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
   // Case-2 Topologically incorrect SlotPath
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/SMB_SLOT@0/[sensor1]"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@2/[fpga]"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@1/[IDPROM]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@1/[IDPROM]"));
   // Case-4 Topologically correct SlotPath, incorrect DeviceName
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/[sensor1]"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[fpga]"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]"));
   // Case-5 Corrects
   EXPECT_TRUE(ConfigValidator().isValidDevicePath(config, "/[MCB_MUX_A]"));
   EXPECT_TRUE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[NVME]"));
   EXPECT_TRUE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@1/[NVME]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_SYS_LED]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA_GPIO_1]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_SYS_LED]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA_GPIO_1]"));
 }
 
 TEST(ConfigValidatorTest, BspRpm) {

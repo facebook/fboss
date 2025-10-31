@@ -74,10 +74,11 @@ const BspPhyContainer* BspPimContainer::getPhyContainerFromMdioID(
       return phyContainers_.at(phy.first).get();
     }
   }
-  throw FbossError(fmt::format(
-      "Couldn't find phy container for mdioID {:d}, PimID {:d}",
-      mdioControllerID,
-      *bspPimMapping_.pimID()));
+  throw FbossError(
+      fmt::format(
+          "Couldn't find phy container for mdioID {:d}, PimID {:d}",
+          mdioControllerID,
+          *bspPimMapping_.pimID()));
 }
 
 const std::map<uint32_t, const BspLedContainer*>

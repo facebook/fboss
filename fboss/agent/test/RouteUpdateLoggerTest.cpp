@@ -111,9 +111,9 @@ class RouteUpdateLoggerTest : public ::testing::Test {
             RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
     updater.program();
 
-    auto stateA = sw->getState();
-    deltaAdd = std::make_shared<StateDelta>(initState, stateA);
-    deltaRemove = std::make_shared<StateDelta>(stateA, initState);
+    auto currentStateA = sw->getState();
+    deltaAdd = std::make_shared<StateDelta>(initState, currentStateA);
+    deltaRemove = std::make_shared<StateDelta>(currentStateA, initState);
     routeUpdateLogger = std::make_unique<RouteUpdateLogger>(
         sw,
         std::make_unique<MockRouteLogger<folly::IPAddressV4>>(),
@@ -131,11 +131,11 @@ class RouteUpdateLoggerTest : public ::testing::Test {
   void startLogging(
       const std::string& addr,
       uint8_t mask,
-      const std::string& user,
+      const std::string& identifier,
       bool exact) {
     RoutePrefix<folly::IPAddress> prefix{folly::IPAddress{addr}, mask};
     auto req =
-        std::make_unique<RouteUpdateLoggingInstance>(prefix, user, exact);
+        std::make_unique<RouteUpdateLoggingInstance>(prefix, identifier, exact);
     routeUpdateLogger->startLoggingForPrefix(*req);
   }
 
@@ -143,9 +143,12 @@ class RouteUpdateLoggerTest : public ::testing::Test {
     startLogging(addr, mask, "", false);
   }
 
-  void
-  stopLogging(const std::string& addr, uint8_t mask, const std::string& user) {
-    routeUpdateLogger->stopLoggingForPrefix(folly::IPAddress{addr}, mask, user);
+  void stopLogging(
+      const std::string& addr,
+      uint8_t mask,
+      const std::string& identifier) {
+    routeUpdateLogger->stopLoggingForPrefix(
+        folly::IPAddress{addr}, mask, identifier);
   }
 
   void stopLogging(const std::string& addr, uint8_t mask) {

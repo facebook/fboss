@@ -706,7 +706,6 @@ cpp_library(
         "//folly:file_util",
         "//folly:range",
         "//folly/gen:base",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
@@ -764,8 +763,8 @@ cpp_library(
     ],
     exported_deps = [
         ":agent_features",
+        ":fboss-types",
         ":fib_helpers",
-        ":pre_update_state_modifier",
         ":stats",
         ":switch_config-cpp2-types",
         ":utils",
@@ -782,11 +781,25 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        ":fboss-types",
         ":fib_helpers",
-        ":pre_update_state_modifier",
         ":utils",
         "//fboss/agent/state:state",
         "//folly:synchronized",
+    ],
+)
+
+cpp_library(
+    name = "state_delta_logger",
+    srcs = [
+        "StateDeltaLogger.cpp",
+    ],
+    exported_deps = [
+        ":agent_features",
+        ":async_logger_base",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//folly/logging:logging",
     ],
 )
 
@@ -913,6 +926,7 @@ cpp_library(
         ":phy_snapshot_lib",
         ":route_update_wrapper",
         ":shel_manager",
+        ":state_delta_logger",
         ":state_observer",
         ":stats",
         ":sw_switch_warmboot_helper",
@@ -989,7 +1003,6 @@ cpp_library(
         "//folly:demangle",
         "//folly:exception_string",
         "//folly:file_util",
-        "//folly:glog",
         "//folly:intrusive_list",
         "//folly:map_util",
         "//folly:memory",
@@ -1273,6 +1286,16 @@ cpp_library(
         "AsyncLogger.cpp",
     ],
     exported_deps = [
+        ":async_logger_base",
+    ],
+)
+
+cpp_library(
+    name = "async_logger_base",
+    srcs = [
+        "AsyncLoggerBase.cpp",
+    ],
+    exported_deps = [
         ":fboss-error",
         "//fb303:service_data",
         "//folly:file",
@@ -1481,19 +1504,6 @@ cpp_library(
     name = "state_observer",
     headers = [
         "StateObserver.h",
-    ],
-    exported_deps = [
-        "//fboss/agent/state:state",
-    ],
-    exported_external_deps = [
-        "boost",
-    ],
-)
-
-cpp_library(
-    name = "pre_update_state_modifier",
-    headers = [
-        "PreUpdateStateModifier.h",
     ],
     exported_deps = [
         "//fboss/agent/state:state",

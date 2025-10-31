@@ -596,6 +596,10 @@ struct PlatformConfig {
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
 
-  // Specify the list of kmods which are required to be loaded before PM exploration.
+  // Specify the list of kmods which are required to be loaded before PM
+  // exploration.
+  // Most kmods are loaded automatically during device creation. This field is
+  // only for kmods which need to be loaded before any devices are created in
+  // order to work properly.
   25: list<string> requiredKmodsToLoad;
 }

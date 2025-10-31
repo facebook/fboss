@@ -193,25 +193,37 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryClient) {
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), getRouteTableDetails(_))
       .WillOnce(Invoke([&](auto& entries) { entries = routeEntries; }));
+  // Mock the calls made by populateAggregatePortMap and populateVlanPortMap
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .Times(2)
+      .WillRepeatedly(Invoke([&](auto& entries) { entries.clear(); }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries.clear(); }));
 
   auto cmd = CmdShowRouteDetails();
   CmdShowRouteDetailsTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowRouteDetailsTestFixture, queryNetworkEntries) {
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), getRouteTableDetails(_))
       .WillOnce(Invoke([&](auto& entries) { entries = routeEntries; }));
+  // Mock the calls made by populateAggregatePortMap and populateVlanPortMap
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .Times(2)
+      .WillRepeatedly(Invoke([&](auto& entries) { entries.clear(); }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries.clear(); }));
 
   auto cmd = CmdShowRouteDetails();
   std::vector<std::string> entries = {"2401:db00::/32", "176.161.6.0/32"};
   CmdShowRouteDetailsTraits::ObjectArgType queriedEntries(entries);
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowRouteDetailsTestFixture, queryIpRouteEntries) {
@@ -221,6 +233,12 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryIpRouteEntries) {
   EXPECT_CALL(getMockAgent(), getIpRouteDetails(_, _, _))
       .WillOnce(
           Invoke([&](auto& entry, auto, auto) { entry = routeEntries[0]; }));
+  // Mock the calls made by populateAggregatePortMap and populateVlanPortMap
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .Times(2)
+      .WillRepeatedly(Invoke([&](auto& entries) { entries.clear(); }));
+  EXPECT_CALL(getMockAgent(), getAggregatePortTable(_))
+      .WillOnce(Invoke([&](auto& entries) { entries.clear(); }));
 
   auto cmd = CmdShowRouteDetails();
   std::vector<std::string> entries = {
@@ -228,7 +246,7 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryIpRouteEntries) {
   CmdShowRouteDetailsTraits::ObjectArgType queriedEntries(entries);
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowRouteDetailsTestFixture, printOutput) {

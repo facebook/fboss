@@ -654,11 +654,17 @@ size_t pumpTraffic(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
   for (auto i = 0; i < int(std::sqrt(numPackets)); ++i) {
-    auto srcIp = folly::IPAddress(folly::sformat(
-        isV6 ? "1001::{}:{}" : "100.0.{}.{}", (i + 1) / 256, (i + 1) % 256));
+    auto srcIp = folly::IPAddress(
+        folly::sformat(
+            isV6 ? "1001::{}:{}" : "100.0.{}.{}",
+            (i + 1) / 256,
+            (i + 1) % 256));
     for (auto j = 0; j < int(numPackets / std::sqrt(numPackets)); ++j) {
-      auto dstIp = folly::IPAddress(folly::sformat(
-          isV6 ? "2001::{}:{}" : "201.0.{}.{}", (j + 1) / 256, (j + 1) % 256));
+      auto dstIp = folly::IPAddress(
+          folly::sformat(
+              isV6 ? "2001::{}:{}" : "201.0.{}.{}",
+              (j + 1) / 256,
+              (j + 1) % 256));
       auto pkt = makeUDPTxPacket(
           allocateFn,
           vlan,

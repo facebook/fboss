@@ -79,10 +79,11 @@ size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const auto asics = asicTable_->getHwAsics();
     const auto asicType = asics.begin()->second->getAsicType();
     // Ensure that all ASICs have the same type.
-    CHECK(std::all_of(
-        asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
-          return idAndAsic.second->getAsicType() == asicType;
-        }));
+    CHECK(
+        std::all_of(
+            asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
+              return idAndAsic.second->getAsicType() == asicType;
+            }));
     return computeWeightedEcmpMemberCount(fwd, asicType);
   }
   // No native weighted ECMP support. Members are replicated to support

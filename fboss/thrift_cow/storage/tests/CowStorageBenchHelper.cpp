@@ -10,7 +10,7 @@ int64_t timevalToUsec(const timeval& tv) {
 }
 
 void printBenchmarkResults(const struct rusage& startUsage) {
-  struct rusage endUsage {};
+  struct rusage endUsage{};
 
   getrusage(RUSAGE_SELF, &endUsage);
 

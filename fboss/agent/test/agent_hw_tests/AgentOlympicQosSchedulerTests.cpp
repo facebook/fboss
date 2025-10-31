@@ -44,8 +44,9 @@ class AgentOlympicQosSchedulerTest : public AgentQosSchedulerTestBase {
       }
     }
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(utility::verifyQueueMappings(
-          portStatsBefore, queueToDscp, getAgentEnsemble(), portId));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::verifyQueueMappings(
+              portStatsBefore, queueToDscp, getAgentEnsemble(), portId));
     });
   }
 

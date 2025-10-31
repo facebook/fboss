@@ -149,10 +149,11 @@ class BaseSubscription {
           ret = FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL;
           XLOG(INFO) << "Slow subscription: " << subscriberId()
                      << " pipe full. Force closing subscription.";
-          std::move(pipe).close(Utils::createFsdbException(
-              ret.value(),
-              "Force closing slow subscription on pipe-full: ",
-              subscriberId()));
+          std::move(pipe).close(
+              Utils::createFsdbException(
+                  ret.value(),
+                  "Force closing slow subscription on pipe-full: ",
+                  subscriberId()));
         } else {
           XLOG(ERR) << "Slow subscription: " << subscriberId()
                     << " pipe full, update dropped!";

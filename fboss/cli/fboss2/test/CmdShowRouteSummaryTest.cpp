@@ -98,7 +98,7 @@ TEST_F(CmdShowRouteSummaryTestFixture, createModel) {
   auto cmd = CmdShowRouteSummary();
   auto model = cmd.createModel(routeEntries);
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowRouteSummaryTestFixture, queryClient) {
@@ -109,7 +109,7 @@ TEST_F(CmdShowRouteSummaryTestFixture, queryClient) {
   auto cmd = CmdShowRouteSummary();
   auto model = cmd.queryClient(localhost());
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 TEST_F(CmdShowRouteSummaryTestFixture, printOutput) {

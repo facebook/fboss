@@ -32,6 +32,7 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
             portName,
             queueId2Name,
             {} /*enabledPfcPriorities*/,
+            std::nullopt /*pfcCfg*/,
             multiSwitchStatsPrefix) {
     portStats_.portName_() = portName;
 
@@ -91,6 +92,8 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
   const std::vector<folly::StringPiece>&
   kOutMacsecPortMonotonicCounterStatKeys() const override;
   const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
+      const override;
+  const std::vector<folly::StringPiece>& kPfcDeadlockMonotonicCounterStatKeys()
       const override;
   const std::vector<folly::StringPiece>&
   kPriorityGroupMonotonicCounterStatKeys() const override;

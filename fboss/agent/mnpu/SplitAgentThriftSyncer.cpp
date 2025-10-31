@@ -31,40 +31,46 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     SwitchID switchId,
     uint16_t switchIndex,
     std::optional<std::string> multiSwitchStatsPrefix)
-    : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
-          "SplitAgentThriftRetryThread")),
+    : retryThread_(
+          std::make_shared<folly::ScopedEventBaseThread>(
+              "SplitAgentThriftRetryThread")),
       switchId_(switchId),
       hwSwitch_(hw),
-      linkChangeEventSinkClient_(std::make_unique<LinkChangeEventSyncer>(
-          serverPort,
-          switchId_,
-          retryThread_->getEventBase(),
-          hw,
-          multiSwitchStatsPrefix)),
-      txPktEventStreamClient_(std::make_unique<TxPktEventSyncer>(
-          serverPort,
-          switchId_,
-          retryThread_->getEventBase(),
-          hw,
-          multiSwitchStatsPrefix)),
+      linkChangeEventSinkClient_(
+          std::make_unique<LinkChangeEventSyncer>(
+              serverPort,
+              switchId_,
+              retryThread_->getEventBase(),
+              hw,
+              multiSwitchStatsPrefix)),
+      txPktEventStreamClient_(
+          std::make_unique<TxPktEventSyncer>(
+              serverPort,
+              switchId_,
+              retryThread_->getEventBase(),
+              hw,
+              multiSwitchStatsPrefix)),
       operDeltaClient_(
           std::make_unique<OperDeltaSyncer>(serverPort, switchId_, hw)),
-      fdbEventSinkClient_(std::make_unique<FdbEventSyncer>(
-          serverPort,
-          switchId_,
-          retryThread_->getEventBase(),
-          multiSwitchStatsPrefix)),
-      rxPktEventSinkClient_(std::make_unique<RxPktEventSyncer>(
-          serverPort,
-          switchId_,
-          retryThread_->getEventBase(),
-          multiSwitchStatsPrefix)),
-      hwSwitchStatsSinkClient_(std::make_unique<HwSwitchStatsSinkClient>(
-          serverPort,
-          switchId_,
-          switchIndex,
-          retryThread_->getEventBase(),
-          multiSwitchStatsPrefix)),
+      fdbEventSinkClient_(
+          std::make_unique<FdbEventSyncer>(
+              serverPort,
+              switchId_,
+              retryThread_->getEventBase(),
+              multiSwitchStatsPrefix)),
+      rxPktEventSinkClient_(
+          std::make_unique<RxPktEventSyncer>(
+              serverPort,
+              switchId_,
+              retryThread_->getEventBase(),
+              multiSwitchStatsPrefix)),
+      hwSwitchStatsSinkClient_(
+          std::make_unique<HwSwitchStatsSinkClient>(
+              serverPort,
+              switchId_,
+              switchIndex,
+              retryThread_->getEventBase(),
+              multiSwitchStatsPrefix)),
       switchReachabilityChangeEventSinkClient_(
           std::make_unique<SwitchReachabilityChangeEventSyncer>(
               serverPort,

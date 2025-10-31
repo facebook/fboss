@@ -138,6 +138,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   HwSwitchTemperatureStats getSwitchTemperatureStats() const;
 
+  HwSwitchHardResetStats getHwSwitchHardResetStats() const;
+
   void getHwStats(multiswitch::HwSwitchStats& hwStats) const;
 
   state::SwitchState reconstructSwitchState() override {

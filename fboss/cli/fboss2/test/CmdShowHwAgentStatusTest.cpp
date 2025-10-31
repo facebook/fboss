@@ -111,7 +111,7 @@ TEST_F(CmdShowHwAgentStatusTestFixture, queryClient) {
   auto cmd = CmdShowHwAgentStatus(&mockAgentCounters);
   auto model = cmd.queryClient(localhost());
 
-  EXPECT_THRIFT_EQ(model, normalizedModel);
+  EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
 } // namespace facebook::fboss

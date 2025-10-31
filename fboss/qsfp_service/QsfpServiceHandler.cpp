@@ -103,6 +103,13 @@ void QsfpServiceHandler::getTransceiverInfo(
   tcvrManager_->getTransceiversInfo(info, std::move(ids));
 }
 
+void QsfpServiceHandler::getPortStateMachineState(
+    std::map<int32_t, PortStateMachineState>& info,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  portManager_->getPortStates(info, std::move(ids));
+}
+
 void QsfpServiceHandler::getPortMediaInterface(
     std::map<std::string, MediaInterfaceCode>& portMediaInterface) {
   auto log = LOG_THRIFT_CALL(INFO);

@@ -131,9 +131,9 @@ void routeAddDelBenchmarker(bool measureAdd) {
     }
     // Do a sync fib and have it compete with route lookups
     auto syncFib =
-        [&updater,
-         kRid](const utility::RouteDistributionGenerator::ThriftRouteChunk&
-                   routes) {
+        [&updater, kRid](
+            const utility::RouteDistributionGenerator::ThriftRouteChunk&
+                routes) {
           std::for_each(
               routes.begin(),
               routes.end(),

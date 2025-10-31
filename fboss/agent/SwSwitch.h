@@ -15,6 +15,7 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/PacketObserver.h"
+#include "fboss/agent/StateDeltaLogger.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchInfoTable.h"
@@ -81,7 +82,6 @@ class NeighborUpdater;
 class PacketLogger;
 class RouteUpdateLogger;
 class StateObserver;
-class PreUpdateStateModifier;
 class TunManager;
 class MirrorManager;
 class PhySnapshotManager;
@@ -418,11 +418,6 @@ class SwSwitch : public HwSwitchCallback {
   void registerStateObserver(StateObserver* observer, const std::string& name)
       override;
   void unregisterStateObserver(StateObserver* observer) override;
-
-  void registerStateModifier(
-      PreUpdateStateModifier* modifier,
-      const std::string& name);
-  void unregisterStateModifier(PreUpdateStateModifier* modifier);
 
   /*
    * Signal to the switch that initial config is applied.
@@ -1022,7 +1017,6 @@ class SwSwitch : public HwSwitchCallback {
   void createAndProbeTunManager();
   void initializeTunManager(bool useBlocking);
 
-  void updateRibEcmpOverrides(const StateDelta& delta);
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
   void updateStateBlockingImpl(
@@ -1102,20 +1096,11 @@ class SwSwitch : public HwSwitchCallback {
   void notifyStateObservers(const StateDelta& delta);
 
   /*
-   * Invoke State modifier to modify state prior to update.
-   */
-  bool preUpdateModifyState(std::vector<StateDelta>& deltas);
-
-  /*
    * Reconstruct state modifier from initial switch state.
    */
-  std::vector<StateDelta> reconstructStateModifierFromSwitchState(
+  std::vector<StateDelta> reconstructStateFromErmAndShelManager(
+      const std::shared_ptr<SwitchState>& emptyState,
       const std::shared_ptr<SwitchState>& initialState);
-
-  void notifyStateModifierUpdateFailed(
-      const std::shared_ptr<SwitchState>& state);
-
-  void notifyStateModifierUpdateDone();
 
   void logLinkStateEvent(PortID port, bool up);
 
@@ -1334,7 +1319,6 @@ class SwSwitch : public HwSwitchCallback {
   std::map<StateObserver*, std::string> stateObservers_;
   std::unique_ptr<PacketObservers> pktObservers_;
   std::unique_ptr<L2LearnEventObservers> l2LearnEventObservers_;
-  std::unordered_map<PreUpdateStateModifier*, std::string> stateModifiers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;
@@ -1345,6 +1329,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<MPLSHandler> mplsHandler_;
   std::unique_ptr<PacketLogger> packetLogger_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
+  std::unique_ptr<StateDeltaLogger> stateDeltaLogger_;
   std::unique_ptr<LinkAggregationManager> lagManager_;
   std::unique_ptr<ResolvedNexthopMonitor> resolvedNexthopMonitor_;
   std::unique_ptr<ResolvedNexthopProbeScheduler> resolvedNexthopProbeScheduler_;

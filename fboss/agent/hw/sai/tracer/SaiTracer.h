@@ -931,26 +931,26 @@ class SaiTracer {
     return rv;                                                              \
   }
 
-#define SAI_ATTR_MAP(obj_type, attr_name)                                   \
-  {                                                                         \
-    facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::Id,      \
-        std::make_pair(                                                     \
-            #attr_name,                                                     \
-            TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
-                           attr_name::ExtractSelectionType))                \
-  }
+#define SAI_ATTR_MAP(obj_type, attr_name)                                  \
+  {facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::Id,      \
+   std::make_pair(                                                         \
+       #attr_name,                                                         \
+       TYPE_INDEX(                                                         \
+           facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name:: \
+               ExtractSelectionType))}
 
-#define SAI_EXT_ATTR_MAP(obj_type, attr_name)                               \
-  if (facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::       \
-          AttributeId()()                                                   \
-              .has_value()) {                                               \
-    _##obj_type##Map[facebook::fboss::Sai##obj_type##Traits::Attributes::   \
-                         attr_name::AttributeId()()                         \
-                             .value()] =                                    \
-        std::make_pair(                                                     \
-            #attr_name,                                                     \
-            TYPE_INDEX(facebook::fboss::Sai##obj_type##Traits::Attributes:: \
-                           attr_name::ExtractSelectionType));               \
+#define SAI_EXT_ATTR_MAP(obj_type, attr_name)                             \
+  if (facebook::fboss::Sai##obj_type##Traits::Attributes::attr_name::     \
+          AttributeId()()                                                 \
+              .has_value()) {                                             \
+    _##obj_type##Map[facebook::fboss::Sai##obj_type##Traits::Attributes:: \
+                         attr_name::AttributeId()()                       \
+                             .value()] =                                  \
+        std::make_pair(                                                   \
+            #attr_name,                                                   \
+            TYPE_INDEX(                                                   \
+                facebook::fboss::Sai##obj_type##Traits::Attributes::      \
+                    attr_name::ExtractSelectionType));                    \
   }
 
 #define SAI_EXT_ATTR_MAP_2(obj_type, obj_sub_type, attr_name)                 \
@@ -962,8 +962,9 @@ class SaiTracer {
                              .value()] =                                      \
         std::make_pair(                                                       \
             #attr_name,                                                       \
-            TYPE_INDEX(facebook::fboss::Sai##obj_sub_type##Traits::           \
-                           Attributes::attr_name::ExtractSelectionType));     \
+            TYPE_INDEX(                                                       \
+                facebook::fboss::Sai##obj_sub_type##Traits::Attributes::      \
+                    attr_name::ExtractSelectionType));                        \
   }
 
 #define SET_SAI_REGULAR_ATTRIBUTES(obj_type)                                 \

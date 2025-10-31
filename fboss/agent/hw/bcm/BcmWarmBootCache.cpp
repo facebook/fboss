@@ -90,13 +90,15 @@ struct AddrTables {
 };
 
 folly::IPAddress getFullMaskIPv4Address() {
-  return folly::IPAddress(folly::IPAddressV4(
-      folly::IPAddressV4::fetchMask(folly::IPAddressV4::bitCount())));
+  return folly::IPAddress(
+      folly::IPAddressV4(
+          folly::IPAddressV4::fetchMask(folly::IPAddressV4::bitCount())));
 }
 
 folly::IPAddress getFullMaskIPv6Address() {
-  return folly::IPAddress(folly::IPAddressV6(
-      folly::IPAddressV6::fetchMask(folly::IPAddressV6::bitCount())));
+  return folly::IPAddress(
+      folly::IPAddressV6(
+          folly::IPAddressV6::fetchMask(folly::IPAddressV6::bitCount())));
 }
 } // namespace
 

@@ -71,9 +71,10 @@ PhyManager::PhyManager(const PlatformMapping* platformMapping)
     : platformMapping_(platformMapping),
       portToCacheInfo_(setupPortToCacheInfo(platformMapping)),
       portToStatsInfo_(setupPortToStatsInfo(platformMapping)),
-      xphySnapshotManager_(std::make_unique<PhySnapshotManager>(
-          kXphySnapshotIntervalSeconds,
-          SnapshotLogSource::QSFP_SERVICE)) {}
+      xphySnapshotManager_(
+          std::make_unique<PhySnapshotManager>(
+              kXphySnapshotIntervalSeconds,
+              SnapshotLogSource::QSFP_SERVICE)) {}
 PhyManager::~PhyManager() {}
 
 PhyManager::PortToCacheInfo PhyManager::setupPortToCacheInfo(

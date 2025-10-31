@@ -167,8 +167,9 @@ TEST_F(TunnelStoreTest, tunnelSetOnlyTtl) {
   auto ttl = saiApiTable->tunnelApi().getAttribute(
       tunnelId, SaiTunnelTraits::Attributes::DecapTtlMode{});
   EXPECT_EQ(ttl, SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
-  obj.setOptionalAttribute(SaiTunnelTraits::Attributes::DecapTtlMode{
-      SAI_TUNNEL_TTL_MODE_PIPE_MODEL});
+  obj.setOptionalAttribute(
+      SaiTunnelTraits::Attributes::DecapTtlMode{
+          SAI_TUNNEL_TTL_MODE_PIPE_MODEL});
   EXPECT_EQ(
       GET_OPT_ATTR(Tunnel, DecapTtlMode, obj.attributes()),
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL);

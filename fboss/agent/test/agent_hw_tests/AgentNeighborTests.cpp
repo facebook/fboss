@@ -689,12 +689,13 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
                               ->getInterfaceIDs()
                               .begin());
     } else if (switchType == cfg::SwitchType::NPU) {
-      return InterfaceID(static_cast<int>((*getProgrammedState()
-                                                ->getPorts()
-                                                ->getNodeIf(portId)
-                                                ->getVlans()
-                                                .begin())
-                                              .first));
+      return InterfaceID(
+          static_cast<int>((*getProgrammedState()
+                                 ->getPorts()
+                                 ->getNodeIf(portId)
+                                 ->getVlans()
+                                 .begin())
+                               .first));
     }
 
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);

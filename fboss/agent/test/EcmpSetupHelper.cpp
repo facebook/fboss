@@ -924,13 +924,14 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     // Fail if we go to 255 at the last octet
     CHECK_GT(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
-    BaseEcmpSetupHelperT::nhops_.push_back(EcmpMplsNextHop<IPAddrT>(
-        IPAddrT(bytes),
-        portDescAndInterface.first,
-        nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
-                   : MacAddress::fromHBO(baseMac + offset),
-        intf,
-        getLabelForwardingAction(portDescAndInterface.first)));
+    BaseEcmpSetupHelperT::nhops_.push_back(
+        EcmpMplsNextHop<IPAddrT>(
+            IPAddrT(bytes),
+            portDescAndInterface.first,
+            nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
+                       : MacAddress::fromHBO(baseMac + offset),
+            intf,
+            getLabelForwardingAction(portDescAndInterface.first)));
   }
 }
 

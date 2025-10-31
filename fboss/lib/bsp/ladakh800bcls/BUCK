@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "ladakh800bcls_bsp",
+    srcs = [
+        "Ladakh800bclsBspPlatformMapping.cpp",
+    ],
+    headers = [
+        "Ladakh800bclsBspPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
+        "//fboss/lib/bsp:bsp_platform_mapping_lib",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

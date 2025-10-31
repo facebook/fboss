@@ -713,4 +713,12 @@ SaiSwitchTraits::Attributes::AttributeLocalSystemPortIdRangeList::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_DNX)
+  return SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE;
+#endif
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

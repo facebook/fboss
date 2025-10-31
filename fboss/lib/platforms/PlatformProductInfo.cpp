@@ -198,6 +198,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE800B_ACT;
     } else if (modelName.find("ICETEA") == 0) {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
+    } else if (modelName.find("LADAKH800BCLS") == 0) {
+      type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -272,6 +274,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_mode == "wedge800cact") {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
+    } else if (FLAGS_mode == "ladakh800bcls") {
+      type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

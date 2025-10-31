@@ -399,10 +399,11 @@ TEST_F(PhyIOTest, phyIOStats) {
             // Make sure the timestamp advances
             if (phyInfoToCompare.find(portId) != phyInfoToCompare.end() &&
                 folly::copy(phyInfo.stats()->timeCollected().value()) <=
-                    folly::copy(phyInfoToCompare[portId]
-                                    .stats()
-                                    ->timeCollected()
-                                    .value())) {
+                    folly::copy(
+                        phyInfoToCompare[portId]
+                            .stats()
+                            ->timeCollected()
+                            .value())) {
               return false;
             }
           } catch (...) {

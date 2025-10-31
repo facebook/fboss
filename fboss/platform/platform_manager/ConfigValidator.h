@@ -28,9 +28,11 @@ class ConfigValidator {
       const std::vector<SpiDeviceConfig>& spiDeviceConfig);
   bool isValidBspKmodsRpmVersion(const std::string& bspKmodsRpmVersion);
   bool isValidBspKmodsRpmName(const std::string& bspKmodsRpmName);
-  bool isValidVersionedPmConfigs(
-      const std::map<std::string, std::vector<VersionedPmUnitConfig>>&
-          versionedPmUnitConfigs);
+  bool isValidVersionedPmUnitConfig(
+      const std::string& pmUnitName,
+      const std::vector<VersionedPmUnitConfig>& versionedPmUnitConfigs,
+      const PmUnitConfig& defaultPmUnitConfig,
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs);
   bool isValidXcvrSymlinks(
       int16_t numXcvrs,
       const std::vector<std::string>& symlinks);

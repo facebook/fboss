@@ -115,15 +115,16 @@ TEST_F(ResourceAccountantTest, checkArsResource) {
       true /* intermediateState */));
 
   auto addEcmp = [](int i, std::vector<RouteNextHopSet>& ecmpList) {
-    ecmpList.push_back(RouteNextHopSet{
-        ResolvedNextHop(
-            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
-            InterfaceID(i + 1),
-            ecmpWeight),
-        ResolvedNextHop(
-            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
-            InterfaceID(i + 2),
-            ecmpWeight)});
+    ecmpList.push_back(
+        RouteNextHopSet{
+            ResolvedNextHop(
+                folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+                InterfaceID(i + 1),
+                ecmpWeight),
+            ResolvedNextHop(
+                folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
+                InterfaceID(i + 2),
+                ecmpWeight)});
   };
   int i = 0;
   std::vector<RouteNextHopSet> ecmpNexthopsList;
@@ -242,15 +243,16 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
   for (int i = ecmpNexthops.size();
        i < (getMaxEcmpGroups() * FLAGS_ecmp_resource_percentage / 100.0);
        i++) {
-    ecmpNexthopsList.push_back(RouteNextHopSet{
-        ResolvedNextHop(
-            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
-            InterfaceID(i + 1),
-            ecmpWeight),
-        ResolvedNextHop(
-            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
-            InterfaceID(i + 2),
-            ecmpWeight)});
+    ecmpNexthopsList.push_back(
+        RouteNextHopSet{
+            ResolvedNextHop(
+                folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+                InterfaceID(i + 1),
+                ecmpWeight),
+            ResolvedNextHop(
+                folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
+                InterfaceID(i + 2),
+                ecmpWeight)});
   }
   for (const auto& nhopSet : ecmpNexthopsList) {
     this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;

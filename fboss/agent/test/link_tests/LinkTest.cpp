@@ -80,6 +80,7 @@ void LinkTest::SetUp() {
   // programming
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
+  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
   XLOG(DBG2) << "Link Test setup ready";
 }
 

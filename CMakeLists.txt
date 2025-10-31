@@ -244,6 +244,8 @@ find_path(YAML_INCLUDE_DIR NAMES yaml.h)
 include_directories(${YAML_INCLUDE_DIR})
 message(STATUS "Found YAML_INCLUDE_DIR: ${YAML_INCLUDE_DIR}")
 
+find_package(python-pyyaml REQUIRED)
+
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)
 include(FBThriftPyLibrary)

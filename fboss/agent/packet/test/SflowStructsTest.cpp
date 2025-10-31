@@ -501,8 +501,9 @@ TEST(SflowStructsTest, FlowSampleDeserialization) {
 
   // Verify first flow record
   EXPECT_EQ(flowSample.flowRecords[0].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      flowSample.flowRecords[0].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flowSample.flowRecords[0].flowData));
   const auto& sampledHeader1 =
       std::get<sflow::SampledHeader>(flowSample.flowRecords[0].flowData);
   EXPECT_EQ(sampledHeader1.header.size(), 4);
@@ -510,8 +511,9 @@ TEST(SflowStructsTest, FlowSampleDeserialization) {
 
   // Verify second flow record
   EXPECT_EQ(flowSample.flowRecords[1].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      flowSample.flowRecords[1].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flowSample.flowRecords[1].flowData));
   const auto& sampledHeader2 =
       std::get<sflow::SampledHeader>(flowSample.flowRecords[1].flowData);
   EXPECT_EQ(sampledHeader2.header.size(), 2);
@@ -594,11 +596,13 @@ TEST(SflowStructsTest, FlowSampleSerializeDeserializeRoundTrip) {
         << "FlowFormat mismatch for record " << i;
 
     // Verify the SampledHeader variants
-    EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-        deserialized.flowRecords[i].flowData))
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            deserialized.flowRecords[i].flowData))
         << "Not SampledHeader variant for deserialized record " << i;
-    EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-        original.flowRecords[i].flowData))
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            original.flowRecords[i].flowData))
         << "Not SampledHeader variant for original record " << i;
 
     const auto& deserializedSampledHeader =
@@ -620,46 +624,47 @@ TEST(SflowStructsTest, FlowSampleSerializeDeserializeRoundTrip) {
 TEST(SflowStructsTest, FlowSampleDeserializeEmptyRecords) {
   // Test FlowSample deserialization with no flow records
 
-  std::vector<uint8_t> serializedData = {// sequenceNumber (1) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x01,
-                                         // sourceID (2) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x02,
-                                         // samplingRate (3) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x03,
-                                         // samplePool (4) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x04,
-                                         // drops (5) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x05,
-                                         // input (6) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x06,
-                                         // output (7) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x07,
-                                         // flowRecordsCnt (0) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x00};
+  std::vector<uint8_t> serializedData = {
+      // sequenceNumber (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // sourceID (2) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x02,
+      // samplingRate (3) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x03,
+      // samplePool (4) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x04,
+      // drops (5) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x05,
+      // input (6) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x06,
+      // output (7) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x07,
+      // flowRecordsCnt (0) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x00};
 
   auto buf =
       folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
@@ -1023,8 +1028,9 @@ TEST(SflowStructsTest, SampleRecordDeserialization) {
 
   // Verify the FlowRecord
   EXPECT_EQ(flowSample.flowRecords[0].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      flowSample.flowRecords[0].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flowSample.flowRecords[0].flowData));
   const auto& sampledHeader =
       std::get<sflow::SampledHeader>(flowSample.flowRecords[0].flowData);
   EXPECT_EQ(sampledHeader.header.size(), 4);
@@ -1116,11 +1122,13 @@ TEST(SflowStructsTest, SampleRecordSerializeDeserializeRoundTrip) {
         originalFlowSample.flowRecords[i].flowFormat)
         << "FlowFormat mismatch for record " << i;
     // Verify the SampledHeader variants
-    EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-        deserializedFlowSample.flowRecords[i].flowData))
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            deserializedFlowSample.flowRecords[i].flowData))
         << "Not SampledHeader variant for deserialized record " << i;
-    EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-        originalFlowSample.flowRecords[i].flowData))
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            originalFlowSample.flowRecords[i].flowData))
         << "Not SampledHeader variant for original record " << i;
 
     const auto& deserializedSampledHeader = std::get<sflow::SampledHeader>(
@@ -1142,16 +1150,17 @@ TEST(SflowStructsTest, SampleRecordSerializeDeserializeRoundTrip) {
 TEST(SflowStructsTest, SampleRecordDeserializeEmptyData) {
   // Test SampleRecord deserialization with empty sample data
 
-  std::vector<uint8_t> serializedData = {// sampleType (1) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x01,
-                                         // sampleDataLen (0) as big-endian
-                                         0x00,
-                                         0x00,
-                                         0x00,
-                                         0x00};
+  std::vector<uint8_t> serializedData = {
+      // sampleType (1) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      // sampleDataLen (0) as big-endian
+      0x00,
+      0x00,
+      0x00,
+      0x00};
 
   auto buf =
       folly::IOBuf::wrapBuffer(serializedData.data(), serializedData.size());
@@ -1835,12 +1844,14 @@ TEST(SflowStructsTest, SampleDatagramV5SerializeDeserializeRoundTrip) {
           originalFlowSample.flowRecords[j].flowFormat)
           << "FlowRecord format mismatch for sample " << i << ", record " << j;
       // Verify the SampledHeader variants
-      EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-          deserializedFlowSample.flowRecords[j].flowData))
+      EXPECT_TRUE(
+          std::holds_alternative<sflow::SampledHeader>(
+              deserializedFlowSample.flowRecords[j].flowData))
           << "Not SampledHeader variant for deserialized record " << j
           << " in sample " << i;
-      EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-          originalFlowSample.flowRecords[j].flowData))
+      EXPECT_TRUE(
+          std::holds_alternative<sflow::SampledHeader>(
+              originalFlowSample.flowRecords[j].flowData))
           << "Not SampledHeader variant for original record " << j
           << " in sample " << i;
 
@@ -1960,8 +1971,9 @@ TEST(SflowStructsTest, SampleDatagramV5DeserializeMultipleSamples) {
   EXPECT_EQ(flow1.sequenceNumber, 111);
   EXPECT_EQ(flow1.sourceID, 222);
   EXPECT_EQ(flow1.flowRecords.size(), 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      flow1.flowRecords[0].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow1.flowRecords[0].flowData));
   const auto& sampledHeader1 =
       std::get<sflow::SampledHeader>(flow1.flowRecords[0].flowData);
   EXPECT_THAT(sampledHeader1.header, ElementsAre(0x11, 0x22));
@@ -1975,8 +1987,9 @@ TEST(SflowStructsTest, SampleDatagramV5DeserializeMultipleSamples) {
   EXPECT_EQ(flow2.sequenceNumber, 888);
   EXPECT_EQ(flow2.sourceID, 999);
   EXPECT_EQ(flow2.flowRecords.size(), 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      flow2.flowRecords[0].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow2.flowRecords[0].flowData));
   const auto& sampledHeader2a =
       std::get<sflow::SampledHeader>(flow2.flowRecords[0].flowData);
   EXPECT_THAT(sampledHeader2a.header, ElementsAre(0xAA, 0xBB, 0xCC));
@@ -2957,11 +2970,13 @@ TEST(SflowStructsTest, SampleDatagramSerializeDeserializeRoundTrip) {
         originalFlowSample.flowRecords[i].flowFormat)
         << "FlowFormat mismatch for record " << i;
     // Verify the SampledHeader variants
-    EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-        deserializedFlowSample.flowRecords[i].flowData))
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            deserializedFlowSample.flowRecords[i].flowData))
         << "Not SampledHeader variant for deserialized record " << i;
-    EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-        originalFlowSample.flowRecords[i].flowData))
+    EXPECT_TRUE(
+        std::holds_alternative<sflow::SampledHeader>(
+            originalFlowSample.flowRecords[i].flowData))
         << "Not SampledHeader variant for original record " << i;
 
     const auto& deserializedSampledHeader = std::get<sflow::SampledHeader>(
@@ -3162,8 +3177,9 @@ TEST(SflowStructsTest, SampleDatagramDeserializeComplexNested) {
   EXPECT_EQ(flow1.sequenceNumber, 1111);
   EXPECT_EQ(flow1.sourceID, 2222);
   EXPECT_EQ(flow1.flowRecords.size(), 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      flow1.flowRecords[0].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow1.flowRecords[0].flowData));
   const auto& sampledHeader1 =
       std::get<sflow::SampledHeader>(flow1.flowRecords[0].flowData);
   EXPECT_THAT(sampledHeader1.header, ElementsAre(0x11, 0x22, 0x33, 0x44));
@@ -3177,8 +3193,9 @@ TEST(SflowStructsTest, SampleDatagramDeserializeComplexNested) {
   EXPECT_EQ(flow2.sequenceNumber, 8888);
   EXPECT_EQ(flow2.sourceID, 9999);
   EXPECT_EQ(flow2.flowRecords.size(), 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      flow2.flowRecords[0].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          flow2.flowRecords[0].flowData));
   const auto& sampledHeader2 =
       std::get<sflow::SampledHeader>(flow2.flowRecords[0].flowData);
   EXPECT_THAT(sampledHeader2.header, ElementsAre(0xAA, 0xBB, 0xCC));
@@ -3305,36 +3322,41 @@ TEST(SflowStructsTest, SampleDatagramDeserializeWithMultipleFlowRecords) {
 
   // Verify each flow record
   EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[0].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      deserializedFlowSampleMultiple.flowRecords[0].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[0].flowData));
   const auto& sampledHeader0 = std::get<sflow::SampledHeader>(
       deserializedFlowSampleMultiple.flowRecords[0].flowData);
   EXPECT_THAT(sampledHeader0.header, ElementsAre(0x01));
 
   EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[1].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      deserializedFlowSampleMultiple.flowRecords[1].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[1].flowData));
   const auto& sampledHeader1 = std::get<sflow::SampledHeader>(
       deserializedFlowSampleMultiple.flowRecords[1].flowData);
   EXPECT_THAT(sampledHeader1.header, ElementsAre(0x02, 0x03));
 
   EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[2].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      deserializedFlowSampleMultiple.flowRecords[2].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[2].flowData));
   const auto& sampledHeader2 = std::get<sflow::SampledHeader>(
       deserializedFlowSampleMultiple.flowRecords[2].flowData);
   EXPECT_THAT(sampledHeader2.header, ElementsAre(0x04, 0x05, 0x06));
 
   EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[3].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      deserializedFlowSampleMultiple.flowRecords[3].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[3].flowData));
   const auto& sampledHeader3 = std::get<sflow::SampledHeader>(
       deserializedFlowSampleMultiple.flowRecords[3].flowData);
   EXPECT_THAT(sampledHeader3.header, ElementsAre(0x07, 0x08, 0x09, 0x0A));
 
   EXPECT_EQ(deserializedFlowSampleMultiple.flowRecords[4].flowFormat, 1);
-  EXPECT_TRUE(std::holds_alternative<sflow::SampledHeader>(
-      deserializedFlowSampleMultiple.flowRecords[4].flowData));
+  EXPECT_TRUE(
+      std::holds_alternative<sflow::SampledHeader>(
+          deserializedFlowSampleMultiple.flowRecords[4].flowData));
   const auto& sampledHeader4 = std::get<sflow::SampledHeader>(
       deserializedFlowSampleMultiple.flowRecords[4].flowData);
   EXPECT_THAT(sampledHeader4.header, ElementsAre(0x0B, 0x0C, 0x0D, 0x0E, 0x0F));

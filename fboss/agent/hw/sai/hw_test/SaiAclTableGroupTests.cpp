@@ -502,8 +502,9 @@ class SaiAclTableGroupTest : public HwTest {
 
   void verifyAclEntryTestHelper(int table1EntryCount, int table2EntryCount) {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_TRUE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
     EXPECT_EQ(
         utility::getAclTableNumAclEntries(getHwSwitch(), kAclTable3()),
         table1EntryCount);
@@ -738,8 +739,9 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteFirst) {
   auto verify = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_TRUE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -758,8 +760,9 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteSecond) {
   auto verify = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_FALSE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_FALSE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -780,8 +783,9 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddFirst) {
   auto verify = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_TRUE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -802,8 +806,9 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddSecond) {
   auto verify = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_TRUE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -821,8 +826,9 @@ TEST_F(SaiAclTableGroupTest, AddFirstTableAfterWarmboot) {
   auto verifyPostWarmboot = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_TRUE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
@@ -840,8 +846,9 @@ TEST_F(SaiAclTableGroupTest, AddSecondTableAfterWarmboot) {
   auto verifyPostWarmboot = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_TRUE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
@@ -859,8 +866,9 @@ TEST_F(SaiAclTableGroupTest, DeleteFirstTableAfterWarmboot) {
   auto verifyPostWarmboot = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_TRUE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_TRUE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
@@ -878,8 +886,9 @@ TEST_F(SaiAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
   auto verifyPostWarmboot = [=, this]() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable3()));
-    ASSERT_FALSE(utility::isAclTableEnabled(
-        getHwSwitch(), utility::getTtlAclTableName()));
+    ASSERT_FALSE(
+        utility::isAclTableEnabled(
+            getHwSwitch(), utility::getTtlAclTableName()));
   };
 
   verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);

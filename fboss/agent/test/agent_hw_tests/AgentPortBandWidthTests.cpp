@@ -388,10 +388,11 @@ void AgentPortBandwidthTest::verifyQueueShaper() {
     constexpr auto kWaitTimeForSpecificRate{30};
     auto pktsToSend = getAgentEnsemble()->getMinPktsForLineRate(getPort0());
     sendUdpPkts(kQueueId0Dscp(), pktsToSend, kPayloadLength);
-    EXPECT_NO_THROW(getAgentEnsemble()->waitForSpecificRateOnPort(
-        getPort0(),
-        kMhnicPerHostBandwidthKbps * 1000, // BW in bps
-        kWaitTimeForSpecificRate));
+    EXPECT_NO_THROW(
+        getAgentEnsemble()->waitForSpecificRateOnPort(
+            getPort0(),
+            kMhnicPerHostBandwidthKbps * 1000, // BW in bps
+            kWaitTimeForSpecificRate));
     // This means the queue rate is >= kMhnicPerHostBandwidthKbps, now
     // confirm that we are not exceeding an upper limit. This is hard to
     // generalize, so lets keep this at 4% greater than the desired rate.

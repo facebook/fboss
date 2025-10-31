@@ -107,8 +107,9 @@ TEST_F(FanServiceHwTest, ODSCounters) {
         continue;
       }
       EXPECT_EQ(
-          fb303::fbData->getCounter(fmt::format(
-              "{}.{}.pwm_write.failure", *zone.zoneName(), *fan.fanName())),
+          fb303::fbData->getCounter(
+              fmt::format(
+                  "{}.{}.pwm_write.failure", *zone.zoneName(), *fan.fanName())),
           0);
       EXPECT_EQ(
           fb303::fbData->getCounter(

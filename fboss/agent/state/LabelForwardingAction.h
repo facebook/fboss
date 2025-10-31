@@ -43,10 +43,11 @@ class LabelForwardingAction {
   LabelForwardingAction(LabelForwardingType type, Label swapWith)
       : type_(type), swapWith_(swapWith) {
     if (type_ != LabelForwardingType::SWAP) {
-      throw FbossError(folly::to<std::string>(
-          kInvalidAction,
-          ": label to swap with is not valid for label forwarding type ",
-          type_));
+      throw FbossError(
+          folly::to<std::string>(
+              kInvalidAction,
+              ": label to swap with is not valid for label forwarding type ",
+              type_));
     }
   }
 
@@ -54,11 +55,12 @@ class LabelForwardingAction {
       : type_(type), pushStack_(std::move(pushStack)) {
     if (type_ != LabelForwardingType::PUSH || !pushStack_ ||
         pushStack_->empty()) {
-      throw FbossError(folly::to<std::string>(
-          kInvalidAction,
-          ": either label stack to push is missing or ",
-          "label stack is provided for label forwarding type ",
-          type_));
+      throw FbossError(
+          folly::to<std::string>(
+              kInvalidAction,
+              ": either label stack to push is missing or ",
+              "label stack is provided for label forwarding type ",
+              type_));
     }
   }
 
@@ -66,10 +68,11 @@ class LabelForwardingAction {
     if (type_ != LabelForwardingType::POP_AND_LOOKUP &&
         type_ != LabelForwardingType::PHP &&
         type_ != LabelForwardingType::NOOP) {
-      throw FbossError(folly::to<std::string>(
-          kInvalidAction,
-          ": required attributes missing for label forwarding type ",
-          type_));
+      throw FbossError(
+          folly::to<std::string>(
+              kInvalidAction,
+              ": required attributes missing for label forwarding type ",
+              type_));
     }
   }
 

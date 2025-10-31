@@ -12,7 +12,6 @@
 #include <fboss/thrift_cow/nodes/ThriftMapNode-inl.h>
 #include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -119,7 +118,7 @@ constexpr auto kHyperPortSpeed = cfg::PortSpeed::THREEPOINTTWOT;
 // and validate during a config change.
 std::optional<std::string> sharedBufferPoolName;
 
-std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
+StateDelta updateFibFromConfig(
     const facebook::fboss::SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -133,7 +132,9 @@ std::shared_ptr<facebook::fboss::SwitchState> updateFibFromConfig(
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
   fibUpdater(*nextStatePtr);
-  return *nextStatePtr;
+  auto lastDelta = fibUpdater.getLastDelta();
+  CHECK(lastDelta.has_value());
+  return StateDelta(lastDelta->oldState(), *nextStatePtr);
 }
 
 template <typename MultiMap, typename EntryT>
@@ -736,9 +737,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newPorts) {
       new_->resetPorts(
           toMultiSwitchMap<MultiSwitchPortMap>(newPorts, scopeResolver_));
-      new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
-          scopeResolver_));
+      new_->resetSystemPorts(
+          toMultiSwitchMap<MultiSwitchSystemPortMap>(
+              updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+              scopeResolver_));
       new_->resetRemoteSystemPorts(
           updateRemoteSystemPorts(new_->getSystemPorts()));
       changed = true;
@@ -763,8 +765,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newAggPorts = updateAggregatePorts();
     if (newAggPorts) {
-      new_->resetAggregatePorts(toMultiSwitchMap<MultiSwitchAggregatePortMap>(
-          newAggPorts, scopeResolver_));
+      new_->resetAggregatePorts(
+          toMultiSwitchMap<MultiSwitchAggregatePortMap>(
+              newAggPorts, scopeResolver_));
       changed = true;
     }
   }
@@ -784,15 +787,17 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (FLAGS_enable_acl_table_group) {
       auto newAclTableGroups = updateAclTableGroups();
       if (newAclTableGroups) {
-        new_->resetAclTableGroups(toMultiSwitchMap<MultiSwitchAclTableGroupMap>(
-            newAclTableGroups, scopeResolver_));
+        new_->resetAclTableGroups(
+            toMultiSwitchMap<MultiSwitchAclTableGroupMap>(
+                newAclTableGroups, scopeResolver_));
         changed = true;
       }
     } else {
       auto newAcls = updateAcls(cfg::AclStage::INGRESS, *cfg_->acls());
       if (newAcls) {
-        new_->resetAcls(toMultiSwitchMap<MultiSwitchAclMap>(
-            std::move(newAcls), scopeResolver_));
+        new_->resetAcls(
+            toMultiSwitchMap<MultiSwitchAclMap>(
+                std::move(newAcls), scopeResolver_));
         changed = true;
       }
     }
@@ -801,8 +806,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newQosPolicies = updateQosPolicies();
     if (newQosPolicies) {
-      new_->resetQosPolicies(toMultiSwitchMap<MultiSwitchQosPolicyMap>(
-          newQosPolicies, scopeResolver_));
+      new_->resetQosPolicies(
+          toMultiSwitchMap<MultiSwitchQosPolicyMap>(
+              newQosPolicies, scopeResolver_));
       changed = true;
     }
   }
@@ -810,8 +816,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newIntfs = updateInterfaces();
     if (newIntfs) {
-      new_->resetIntfs(toMultiSwitchMap<MultiSwitchInterfaceMap>(
-          std::move(newIntfs), *cfg_, scopeResolver_));
+      new_->resetIntfs(
+          toMultiSwitchMap<MultiSwitchInterfaceMap>(
+              std::move(newIntfs), *cfg_, scopeResolver_));
       new_->resetRemoteIntfs(updateRemoteInterfaces(new_->getInterfaces()));
       changed = true;
     }
@@ -923,8 +930,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newCollectors = updateSflowCollectors();
     if (newCollectors) {
-      new_->resetSflowCollectors(toMultiSwitchMap<MultiSwitchSflowCollectorMap>(
-          newCollectors, scopeResolver_));
+      new_->resetSflowCollectors(
+          toMultiSwitchMap<MultiSwitchSflowCollectorMap>(
+              newCollectors, scopeResolver_));
       changed = true;
     }
   }
@@ -947,8 +955,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         generateDeterministicSeed(cfg::LoadBalancerID::ECMP),
         generateDeterministicSeed(cfg::LoadBalancerID::AGGREGATE_PORT));
     if (newLoadBalancers) {
-      new_->resetLoadBalancers(toMultiSwitchMap<MultiSwitchLoadBalancerMap>(
-          newLoadBalancers, scopeResolver_));
+      new_->resetLoadBalancers(
+          toMultiSwitchMap<MultiSwitchLoadBalancerMap>(
+              newLoadBalancers, scopeResolver_));
       changed = true;
     }
   }
@@ -983,9 +992,10 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     // changes in addition to DsfNodes itself.
     if (newDsfNodes ||
         getDefaultVoqConfigIfChanged(origSwitchSettings).has_value()) {
-      new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
-          updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
-          scopeResolver_));
+      new_->resetSystemPorts(
+          toMultiSwitchMap<MultiSwitchSystemPortMap>(
+              updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
+              scopeResolver_));
       changed = true;
     }
   }
@@ -3516,11 +3526,17 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       }
     }
 
+    std::optional<PcpMap> pcpMap;
+    if (qosMap->pcpMaps()) {
+      pcpMap = PcpMap(*qosMap->pcpMaps());
+    }
+
     auto qosPolicyNew = make_shared<QosPolicy>(
         *qosPolicy.name(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
-        *qosMap->trafficClassToQueueId());
+        *qosMap->trafficClassToQueueId(),
+        pcpMap);
 
     if (qosMap->pfcPriorityToQueueId().has_value()) {
       qosPolicyNew->setPfcPriorityToQueueIdMap(*qosMap->pfcPriorityToQueueId());
@@ -5496,8 +5512,9 @@ shared_ptr<MultiControlPlane> ThriftConfigApplier::updateControlPlane() {
       // Remove
       // this read when it is safe to do so.
       for (auto rxEntry : *rxReasonToCPUQueue) {
-        newRxReasonToQueue.push_back(ControlPlane::makeRxReasonToQueueEntry(
-            rxEntry.first, rxEntry.second));
+        newRxReasonToQueue.push_back(
+            ControlPlane::makeRxReasonToQueueEntry(
+                rxEntry.first, rxEntry.second));
       }
       // THRIFT_COPY
       if (newRxReasonToQueue != origCPU->getRxReasonToQueue()->toThrift()) {

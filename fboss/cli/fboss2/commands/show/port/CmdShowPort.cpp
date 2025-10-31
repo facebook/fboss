@@ -554,47 +554,59 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
       detailedOutput.emplace_back("");
       detailedOutput.emplace_back(
           fmt::format("Name:           \t\t {}", portInfo.name().value()));
-      detailedOutput.emplace_back(fmt::format(
-          "ID:             \t\t {}",
-          folly::to<std::string>(folly::copy(portInfo.id().value()))));
-      detailedOutput.emplace_back(fmt::format(
-          "Admin State:    \t\t {}", portInfo.adminState().value()));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "ID:             \t\t {}",
+              folly::to<std::string>(folly::copy(portInfo.id().value()))));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "Admin State:    \t\t {}", portInfo.adminState().value()));
       detailedOutput.emplace_back(
           fmt::format("Speed:          \t\t {}", portInfo.speed().value()));
       detailedOutput.emplace_back(
           fmt::format("LinkState:      \t\t {}", portInfo.linkState().value()));
-      detailedOutput.emplace_back(fmt::format(
-          "TcvrID:         \t\t {}",
-          folly::to<std::string>(folly::copy(portInfo.tcvrID().value()))));
-      detailedOutput.emplace_back(fmt::format(
-          "Transceiver:    \t\t {}", portInfo.tcvrPresent().value()));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "TcvrID:         \t\t {}",
+              folly::to<std::string>(folly::copy(portInfo.tcvrID().value()))));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "Transceiver:    \t\t {}", portInfo.tcvrPresent().value()));
       detailedOutput.emplace_back(
           fmt::format("ProfileID:      \t\t {}", portInfo.profileId().value()));
       detailedOutput.emplace_back(
           fmt::format("ProfileID:      \t\t {}", hwLogicalPortId));
-      detailedOutput.emplace_back(fmt::format(
-          "Core ID:             \t\t {}", portInfo.coreId().value()));
-      detailedOutput.emplace_back(fmt::format(
-          "Virtual device ID:    \t\t {}", portInfo.virtualDeviceId().value()));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "Core ID:             \t\t {}", portInfo.coreId().value()));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "Virtual device ID:    \t\t {}",
+              portInfo.virtualDeviceId().value()));
       if (apache::thrift::get_pointer(portInfo.pause())) {
-        detailedOutput.emplace_back(fmt::format(
-            "Pause:          \t\t {}",
-            *apache::thrift::get_pointer(portInfo.pause())));
+        detailedOutput.emplace_back(
+            fmt::format(
+                "Pause:          \t\t {}",
+                *apache::thrift::get_pointer(portInfo.pause())));
       } else if (apache::thrift::get_pointer(portInfo.pfc())) {
-        detailedOutput.emplace_back(fmt::format(
-            "PFC:            \t\t {}",
-            *apache::thrift::get_pointer(portInfo.pfc())));
+        detailedOutput.emplace_back(
+            fmt::format(
+                "PFC:            \t\t {}",
+                *apache::thrift::get_pointer(portInfo.pfc())));
       }
-      detailedOutput.emplace_back(fmt::format(
-          "Unicast queues: \t\t {}",
-          folly::to<std::string>(
-              folly::copy(portInfo.numUnicastQueues().value()))));
-      detailedOutput.emplace_back(fmt::format(
-          "    Ingress (bytes)               \t\t {}",
-          folly::copy(portHwStats.ingressBytes().value())));
-      detailedOutput.emplace_back(fmt::format(
-          "    Egress (bytes)                \t\t {}",
-          folly::copy(portHwStats.egressBytes().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "Unicast queues: \t\t {}",
+              folly::to<std::string>(
+                  folly::copy(portInfo.numUnicastQueues().value()))));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    Ingress (bytes)               \t\t {}",
+              folly::copy(portHwStats.ingressBytes().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    Egress (bytes)                \t\t {}",
+              folly::copy(portHwStats.egressBytes().value())));
       for (const auto& queueBytes : portHwStats.queueOutBytes().value()) {
         const auto iter =
             portInfo.queueIdToName().value().find(queueBytes.first);
@@ -604,28 +616,34 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         }
         // print either if the queue is valid or queue has non zero traffic
         if (queueBytes.second || !queueName.empty()) {
-          detailedOutput.emplace_back(fmt::format(
-              "\tQueue {} {:12}    \t\t {}",
-              queueBytes.first,
-              queueName,
-              queueBytes.second));
+          detailedOutput.emplace_back(
+              fmt::format(
+                  "\tQueue {} {:12}    \t\t {}",
+                  queueBytes.first,
+                  queueName,
+                  queueBytes.second));
         }
       }
-      detailedOutput.emplace_back(fmt::format(
-          "    Received Unicast (pkts)       \t\t {}",
-          folly::copy(portHwStats.inUnicastPkts().value())));
-      detailedOutput.emplace_back(fmt::format(
-          "    In Errors (pkts)              \t\t {}",
-          folly::copy(portHwStats.inErrorPkts().value())));
-      detailedOutput.emplace_back(fmt::format(
-          "    In Discards (pkts)            \t\t {}",
-          folly::copy(portHwStats.inDiscardPkts().value())));
-      detailedOutput.emplace_back(fmt::format(
-          "    Out Discards (pkts)           \t\t {}",
-          folly::copy(portHwStats.outDiscardPkts().value())));
-      detailedOutput.emplace_back(fmt::format(
-          "    Out Congestion Discards (pkts)\t\t {}",
-          folly::copy(portHwStats.outCongestionDiscardPkts().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    Received Unicast (pkts)       \t\t {}",
+              folly::copy(portHwStats.inUnicastPkts().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    In Errors (pkts)              \t\t {}",
+              folly::copy(portHwStats.inErrorPkts().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    In Discards (pkts)            \t\t {}",
+              folly::copy(portHwStats.inDiscardPkts().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    Out Discards (pkts)           \t\t {}",
+              folly::copy(portHwStats.outDiscardPkts().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    Out Congestion Discards (pkts)\t\t {}",
+              folly::copy(portHwStats.outCongestionDiscardPkts().value())));
       for (const auto& queueDiscardBytes :
            portHwStats.queueOutDiscardBytes().value()) {
         const auto iter =
@@ -636,53 +654,61 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
         }
         // print either if the queue is valid or queue has non zero traffic
         if (queueDiscardBytes.second || !queueName.empty()) {
-          detailedOutput.emplace_back(fmt::format(
-              "\tQueue {} {:12}    \t\t {}",
-              queueDiscardBytes.first,
-              queueName,
-              queueDiscardBytes.second));
+          detailedOutput.emplace_back(
+              fmt::format(
+                  "\tQueue {} {:12}    \t\t {}",
+                  queueDiscardBytes.first,
+                  queueName,
+                  queueDiscardBytes.second));
         }
       }
-      detailedOutput.emplace_back(fmt::format(
-          "    In Congestion Discards (pkts)\t\t {}",
-          folly::copy(portHwStats.inCongestionDiscards().value())));
+      detailedOutput.emplace_back(
+          fmt::format(
+              "    In Congestion Discards (pkts)\t\t {}",
+              folly::copy(portHwStats.inCongestionDiscards().value())));
       if (apache::thrift::get_pointer(portHwStats.outPfcPackets())) {
-        detailedOutput.emplace_back(fmt::format(
-            "    PFC Output (pkts)             \t\t {}",
-            *apache::thrift::get_pointer(portHwStats.outPfcPackets())));
+        detailedOutput.emplace_back(
+            fmt::format(
+                "    PFC Output (pkts)             \t\t {}",
+                *apache::thrift::get_pointer(portHwStats.outPfcPackets())));
         if (apache::thrift::get_pointer(portHwStats.outPfcPriorityPackets())) {
           for (const auto& pfcPriortyCounter : *apache::thrift::get_pointer(
                    portHwStats.outPfcPriorityPackets())) {
-            detailedOutput.emplace_back(fmt::format(
-                "\tPriority {}                 \t\t {}",
-                pfcPriortyCounter.first,
-                pfcPriortyCounter.second));
+            detailedOutput.emplace_back(
+                fmt::format(
+                    "\tPriority {}                 \t\t {}",
+                    pfcPriortyCounter.first,
+                    pfcPriortyCounter.second));
           }
         }
       }
       if (apache::thrift::get_pointer(portHwStats.inPfcPackets())) {
-        detailedOutput.emplace_back(fmt::format(
-            "    PFC Input (pkts)              \t\t {}",
-            *apache::thrift::get_pointer(portHwStats.inPfcPackets())));
+        detailedOutput.emplace_back(
+            fmt::format(
+                "    PFC Input (pkts)              \t\t {}",
+                *apache::thrift::get_pointer(portHwStats.inPfcPackets())));
         if (apache::thrift::get_pointer(portHwStats.inPfcPriorityPackets())) {
           for (const auto& pfcPriortyCounter : *apache::thrift::get_pointer(
                    portHwStats.inPfcPriorityPackets())) {
-            detailedOutput.emplace_back(fmt::format(
-                "\tPriority {}                 \t\t {}",
-                pfcPriortyCounter.first,
-                pfcPriortyCounter.second));
+            detailedOutput.emplace_back(
+                fmt::format(
+                    "\tPriority {}                 \t\t {}",
+                    pfcPriortyCounter.first,
+                    pfcPriortyCounter.second));
           }
         }
       }
       if (apache::thrift::get_pointer(portHwStats.outPausePackets())) {
-        detailedOutput.emplace_back(fmt::format(
-            "    Pause Output (pkts)           \t\t {}",
-            *apache::thrift::get_pointer(portHwStats.outPausePackets())));
+        detailedOutput.emplace_back(
+            fmt::format(
+                "    Pause Output (pkts)           \t\t {}",
+                *apache::thrift::get_pointer(portHwStats.outPausePackets())));
       }
       if (apache::thrift::get_pointer(portHwStats.inPausePackets())) {
-        detailedOutput.emplace_back(fmt::format(
-            "    Pause Input (pkts)            \t\t {}",
-            *apache::thrift::get_pointer(portHwStats.inPausePackets())));
+        detailedOutput.emplace_back(
+            fmt::format(
+                "    Pause Input (pkts)            \t\t {}",
+                *apache::thrift::get_pointer(portHwStats.inPausePackets())));
       }
     }
     out << folly::join("\n", detailedOutput) << std::endl;

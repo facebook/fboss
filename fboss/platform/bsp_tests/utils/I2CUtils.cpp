@@ -55,13 +55,14 @@ std::string I2CUtils::findPciDirectory(PciDeviceInfo pci) {
       return dirEntry.path().string();
     }
   }
-  throw std::runtime_error(fmt::format(
-      "No sysfs path found for vendorId: {}, deviceId: {}, "
-      "subSystemVendorId: {}, subSystemDeviceId: {}",
-      *pci.vendorId(),
-      *pci.deviceId(),
-      *pci.subSystemVendorId(),
-      *pci.subSystemDeviceId()));
+  throw std::runtime_error(
+      fmt::format(
+          "No sysfs path found for vendorId: {}, deviceId: {}, "
+          "subSystemVendorId: {}, subSystemDeviceId: {}",
+          *pci.vendorId(),
+          *pci.deviceId(),
+          *pci.subSystemVendorId(),
+          *pci.subSystemDeviceId()));
 }
 
 // Creates an adapter AND its parents e.g. a mux adapter that
@@ -197,8 +198,9 @@ std::set<I2CBus> I2CUtils::findI2CBuses() {
   auto [exitCode, output] = PlatformUtils().execCommand("i2cdetect -l");
 
   if (exitCode != 0) {
-    throw std::runtime_error(fmt::format(
-        "Command failed with exit code {}: i2cdetect -l", exitCode));
+    throw std::runtime_error(
+        fmt::format(
+            "Command failed with exit code {}: i2cdetect -l", exitCode));
   }
 
   std::set<I2CBus> buses;
@@ -321,17 +323,19 @@ std::string I2CUtils::i2cDump(
     const std::string& addr,
     const std::string& start,
     const std::string& end) {
-  auto [exitCode, output] = PlatformUtils().execCommand(fmt::format(
-      "i2cdump -y -r {}-{} {} {}", start, end, std::to_string(bus), addr));
+  auto [exitCode, output] = PlatformUtils().execCommand(
+      fmt::format(
+          "i2cdump -y -r {}-{} {} {}", start, end, std::to_string(bus), addr));
 
   if (exitCode != 0) {
-    throw std::runtime_error(fmt::format(
-        "i2cdump command failed with exit code {}: bus={}, addr={}, start={}, end={}",
-        exitCode,
-        bus,
-        addr,
-        start,
-        end));
+    throw std::runtime_error(
+        fmt::format(
+            "i2cdump command failed with exit code {}: bus={}, addr={}, start={}, end={}",
+            exitCode,
+            bus,
+            addr,
+            start,
+            end));
   }
 
   return output;
@@ -345,12 +349,13 @@ std::string I2CUtils::i2cGet(
       fmt::format("i2cget -y {} {} {}", std::to_string(bus), addr, reg));
 
   if (exitCode != 0) {
-    throw std::runtime_error(fmt::format(
-        "i2cget command failed with exit code {}: bus={}, addr={}, reg={}",
-        exitCode,
-        bus,
-        addr,
-        reg));
+    throw std::runtime_error(
+        fmt::format(
+            "i2cget command failed with exit code {}: bus={}, addr={}, reg={}",
+            exitCode,
+            bus,
+            addr,
+            reg));
   }
 
   return output.erase(output.find_last_not_of("\n\r") + 1);
@@ -361,17 +366,19 @@ void I2CUtils::i2cSet(
     const std::string& addr,
     const std::string& reg,
     const std::string& data) {
-  auto [exitCode, output] = PlatformUtils().execCommand(fmt::format(
-      "i2cset -y {} {} {} {}", std::to_string(bus), addr, reg, data));
+  auto [exitCode, output] = PlatformUtils().execCommand(
+      fmt::format(
+          "i2cset -y {} {} {} {}", std::to_string(bus), addr, reg, data));
 
   if (exitCode != 0) {
-    throw std::runtime_error(fmt::format(
-        "i2cset command failed with exit code {}: bus={}, addr={}, reg={}, data={}",
-        exitCode,
-        bus,
-        addr,
-        reg,
-        data));
+    throw std::runtime_error(
+        fmt::format(
+            "i2cset command failed with exit code {}: bus={}, addr={}, reg={}, data={}",
+            exitCode,
+            bus,
+            addr,
+            reg,
+            data));
   }
 }
 

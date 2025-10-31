@@ -59,8 +59,9 @@ void FbFpgaSpi::read(uint8_t offset, int page, folly::MutableByteRange buf) {
 
   if (!oboReadyForIO()) {
     incrReadFailed();
-    throw FbFpgaSpiError(folly::to<std::string>(
-        logMsgPrefix, " - read failed, OBO is not ready"));
+    throw FbFpgaSpiError(
+        folly::to<std::string>(
+            logMsgPrefix, " - read failed, OBO is not ready"));
   }
 
   // Write the IO information in the data block
@@ -86,8 +87,9 @@ void FbFpgaSpi::read(uint8_t offset, int page, folly::MutableByteRange buf) {
 
   if (!waitForSpiDone()) {
     incrReadFailed();
-    throw FbFpgaSpiError(folly::to<std::string>(
-        logMsgPrefix, " - read failed, SPI txn is not done"));
+    throw FbFpgaSpiError(
+        folly::to<std::string>(
+            logMsgPrefix, " - read failed, SPI txn is not done"));
   } else {
     uint32_t readBlockAddr =
         getRegAddr(kFacebookFpgaSPIReadBlock, kDataIOBlockSize);
@@ -126,8 +128,9 @@ void FbFpgaSpi::write(uint8_t offset, int page, folly::ByteRange buf) {
 
   if (!oboReadyForIO()) {
     incrWriteFailed();
-    throw FbFpgaSpiError(folly::to<std::string>(
-        logMsgPrefix, " - write failed, OBO is not ready"));
+    throw FbFpgaSpiError(
+        folly::to<std::string>(
+            logMsgPrefix, " - write failed, OBO is not ready"));
   }
 
   // Write the IO information in the data block
@@ -173,8 +176,9 @@ void FbFpgaSpi::write(uint8_t offset, int page, folly::ByteRange buf) {
   writeReg(descLower);
   if (!waitForSpiDone()) {
     incrWriteFailed();
-    throw FbFpgaSpiError(folly::to<std::string>(
-        logMsgPrefix, " - write failed, SPI txn is not done"));
+    throw FbFpgaSpiError(
+        folly::to<std::string>(
+            logMsgPrefix, " - write failed, SPI txn is not done"));
   }
   // Update the number of bytes written
   incrWriteBytes(buf.size());

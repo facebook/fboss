@@ -1,6 +1,5 @@
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
-load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
 
@@ -32,13 +31,6 @@ python_binary(
         ":cli_wrapper",
         ":fixmyfboss_library",
     ],
-)
-
-fbpkg.builder(
-    name = "fboss.fixmyfboss",
-    path_actions = {
-        "fixmyfboss": "//fboss/util/fixmyfboss:fixmyfboss",
-    },
 )
 
 python_library(

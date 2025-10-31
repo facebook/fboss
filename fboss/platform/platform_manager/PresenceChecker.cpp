@@ -42,10 +42,11 @@ int PresenceChecker::sysfsValue(const SysfsFileHandle& handle) {
   auto presencePath = devicePathResolver_.resolvePresencePath(
       *handle.devicePath(), *handle.presenceFileName());
   if (!presencePath) {
-    throw std::runtime_error(fmt::format(
-        "No sysfs file could be found at DevicePath: {} and presenceFileName: {}",
-        *handle.devicePath(),
-        *handle.presenceFileName()));
+    throw std::runtime_error(
+        fmt::format(
+            "No sysfs file could be found at DevicePath: {} and presenceFileName: {}",
+            *handle.devicePath(),
+            *handle.presenceFileName()));
   }
   XLOG(INFO) << fmt::format(
       "The file {} at DevicePath {} resolves to {}",
@@ -62,10 +63,11 @@ int PresenceChecker::sysfsValue(const SysfsFileHandle& handle) {
   try {
     presenceValue = std::stoi(*presenceFileContent, nullptr, 0);
   } catch (const std::exception& ex) {
-    throw std::runtime_error(fmt::format(
-        "Failed to process file content {}: {}",
-        *presenceFileContent,
-        folly::exceptionStr(ex)));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to process file content {}: {}",
+            *presenceFileContent,
+            folly::exceptionStr(ex)));
   }
   return presenceValue;
 }

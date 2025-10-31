@@ -2314,6 +2314,12 @@
         },
         {
           "test_name_regex": "HwArsFlowletTest.ValidateFlowsetExceed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3": [
@@ -2966,6 +2972,12 @@
         },
         {
           "test_name_regex": "HwArsFlowletTest.ValidateFlowsetExceed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5": [
@@ -3346,6 +3358,12 @@
         },
         {
           "test_name_regex": "HwArsFlowletTest.ValidateFlowsetExceed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToFixed"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6Flowlet.VerifyWBFromFlowletToPerPacket"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk": [

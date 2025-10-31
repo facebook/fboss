@@ -59,13 +59,19 @@ std::string Utils::resolveGpioChipCharDevPath(const std::string& sysfsPath) {
     }
   }
   if (!gpioChipNum) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find gpio chip under {}", failMsg, sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find gpio chip under {}",
+            failMsg,
+            sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/gpiochip{}", *gpioChipNum);
   if (!fs::exists(charDevPath)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
   }
   return charDevPath;
 }
@@ -84,10 +90,11 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
               "Watchdog SysfsPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find watchdog directory under {}",
-        failMsg,
-        sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find watchdog directory under {}",
+            failMsg,
+            sysfsPath));
   }
 
   std::optional<uint16_t> watchdogNum{std::nullopt};
@@ -99,8 +106,9 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
     }
   }
   if (!watchdogNum) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: Couldn't find watchdog under {}", failMsg, sysfsPath));
   }
   auto charDevPath = fmt::format("/dev/watchdog{}", *watchdogNum);
   if (!Utils().checkDeviceReadiness(
@@ -109,8 +117,11 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
               "Watchdog CharDevPath is not created. Waited for at most {}s",
               kWatchdogDevCreationWaitSecs.count()),
           kWatchdogDevCreationWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "{}. Reason: {} does not exist in the system", failMsg, charDevPath));
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
   }
   return charDevPath;
 }

@@ -1,0 +1,75 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+# Thrift definitions for platform checks data structures
+thrift_library(
+    name = "check_types",
+    languages = [
+        "cpp2",
+    ],
+    thrift_srcs = {"check_types.thrift": []},
+)
+
+cpp_library(
+    name = "platform_check",
+    srcs = [
+        "PlatformCheck.cpp",
+    ],
+    headers = [
+        "PlatformCheck.h",
+    ],
+    exported_deps = [
+        ":check_types-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "platform_checks",
+    srcs = [
+        "checks/MacAddressCheck.cpp",
+        "checks/PciDeviceCheck.cpp",
+    ],
+    headers = [
+        "checks/MacAddressCheck.h",
+        "checks/PciDeviceCheck.h",
+    ],
+    exported_deps = [
+        ":platform_check",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//fboss/platform/weutil:config_utils",
+        "//fboss/platform/weutil:fboss_eeprom_lib",
+        "//folly:network_address",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "mac_address_check_test",
+    srcs = [
+        "tests/MacAddressCheckTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":platform_checks",
+    ],
+)
+
+cpp_unittest(
+    name = "pci_device_check_test",
+    srcs = [
+        "tests/PciDeviceCheckTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":platform_checks",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+    ],
+)

@@ -231,6 +231,7 @@ enum MediaInterfaceCode {
   ZR_800G = 26,
   DR2_400G = 27,
   DR1_100G = 28,
+  CR1_100G = 29,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -599,6 +600,7 @@ struct TcvrState {
   26: set<string> interfaces;
   27: string tcvrName;
   28: bool lpoModule;
+  29: optional TunableLaserStatus tunableLaserStatus;
 }
 
 struct TcvrStats {
@@ -788,6 +790,8 @@ struct CmisData {
   14: optional IOBuf page25;
   15: optional IOBuf page22;
   16: optional IOBuf page26;
+  17: optional IOBuf page04;
+  18: optional IOBuf page12;
 }
 
 struct TransceiverIOParameters {

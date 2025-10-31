@@ -319,6 +319,10 @@ class PortManager {
       phy::Side side,
       const phy::PortPrbsState& prbs);
 
+  void getPortStates(
+      std::map<int32_t, PortStateMachineState>& states,
+      std::unique_ptr<std::vector<int32_t>> ids);
+
  protected:
   /*
    * function to initialize all the Phy in the system

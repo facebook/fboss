@@ -104,6 +104,11 @@ HwSwitchTemperatureStats MonolithicHwSwitchHandler::getSwitchTemperatureStats()
   return hw_->getSwitchTemperatureStats();
 }
 
+HwSwitchHardResetStats MonolithicHwSwitchHandler::getHwSwitchHardResetStats()
+    const {
+  return hw_->getHwSwitchHardResetStats();
+}
+
 void MonolithicHwSwitchHandler::updateAllPhyInfo() {
   hw_->updateAllPhyInfo();
 }
@@ -272,6 +277,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.arsExhausted() = hw_->getArsExhaustionStatus();
   hwStats.sysPortShelState() = hw_->getSysPortShelState();
   hwStats.hwRouterInterfaceStats() = hw_->getRouterInterfaceStats();
+  hwStats.hardResetStats() = hw_->getHwSwitchHardResetStats();
 }
 
 } // namespace facebook::fboss

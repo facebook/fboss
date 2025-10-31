@@ -93,6 +93,7 @@ class CmisModule : public QsfpModule {
   static constexpr int kMaxOsfpNumLanes = 8;
   static constexpr int kHostInterfaceCodeOffset = 0;
   static constexpr int kMediaInterfaceCodeOffset = 1;
+  static constexpr int32_t kDefaultFrequencyMhz = 193100000;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -482,6 +483,11 @@ class CmisModule : public QsfpModule {
    * returns whether optics frequency is tunable or not
    */
   bool isTunableOptics() const;
+
+  /*
+   * returns the tunable optics laser status and laser frequency
+   */
+  std::optional<TunableLaserStatus> getTunableLaserStatus() override;
   /*
    * Returns the ApplicationAdvertisingField corresponding to the application or
    * nullopt if it doesn't exist
@@ -602,6 +608,14 @@ class CmisModule : public QsfpModule {
   MediaInterfaceCode getModuleMediaInterface() const override;
 
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
+
+  /*
+   * Check if the datapath for the specified lanes has been updated to one of
+   * the desired states
+   */
+  bool isDatapathUpdated(
+      uint8_t laneMask,
+      const std::vector<CmisLaneState>& states);
 
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =

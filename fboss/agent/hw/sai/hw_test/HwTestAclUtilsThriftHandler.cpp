@@ -42,8 +42,9 @@ int32_t HwTestThriftHandler::getAclTableNumAclEntries(
 }
 
 bool HwTestThriftHandler::isDefaultAclTableEnabled() {
-  return isAclTableEnabled(std::make_unique<std::string>(
-      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()));
+  return isAclTableEnabled(
+      std::make_unique<std::string>(
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()));
 }
 
 bool HwTestThriftHandler::isAclTableEnabled(std::unique_ptr<std::string> name) {

@@ -109,6 +109,10 @@ struct HwPortStats {
   71: optional bool macTransmitQueueStuck_;
   72: optional i64 fabricControlRxPackets_;
   73: optional i64 fabricControlTxPackets_;
+  // The total duration for which a specific priority was
+  // paused in RX / TX direction.
+  74: map<i16, i64> txPfcDurationUsec_ = {};
+  75: map<i16, i64> rxPfcDurationUsec_ = {};
 }
 
 struct HwSysPortStats {
@@ -454,6 +458,10 @@ struct HwSwitchFb303GlobalStats {
   36: optional i64 asic_revision;
   37: optional i64 sram_low_buffer_limit_hit_count;
   38: optional i64 dram_quarantined_buffer_count;
+}
+
+struct HwSwitchHardResetStats {
+  1: i16 hard_reset_notification_received;
 }
 
 struct HwFlowletStats {

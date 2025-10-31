@@ -255,8 +255,9 @@ TEST_F(MacTableManagerTest, MacLearnedBulkCb) {
 
   // age 20 mac entries
   batchSize = 20;
-  triggerMacBulkAgedCb(std::vector<folly::MacAddress>(
-      macs.begin() + deleted, macs.begin() + deleted + batchSize));
+  triggerMacBulkAgedCb(
+      std::vector<folly::MacAddress>(
+          macs.begin() + deleted, macs.begin() + deleted + batchSize));
   deleted += batchSize;
   // expect 70 mac entries in switchState and resourceAccountant
   verifyMacEntryCount(getSw()->getResourceAccountant()->l2Entries_);

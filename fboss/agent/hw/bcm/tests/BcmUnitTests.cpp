@@ -200,14 +200,17 @@ TEST(BcmUnitTests, FlexportCalculate) {
   EXPECT_EQ(desired, BcmPortGroup::LaneMode::SINGLE);
 
   data = getInvalid1x40gPorts();
-  EXPECT_ANY_THROW(BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, kPlatformMapping.get()));
+  EXPECT_ANY_THROW(
+      BcmPortGroup::calculateDesiredLaneMode(
+          data.ports, kPlatformMapping.get()));
 
   data = getInvalid20gPorts();
-  EXPECT_ANY_THROW(BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, kPlatformMapping.get()));
+  EXPECT_ANY_THROW(
+      BcmPortGroup::calculateDesiredLaneMode(
+          data.ports, kPlatformMapping.get()));
 
   data = getInvalidDefaultPorts();
-  EXPECT_ANY_THROW(BcmPortGroup::calculateDesiredLaneMode(
-      data.ports, kPlatformMapping.get()));
+  EXPECT_ANY_THROW(
+      BcmPortGroup::calculateDesiredLaneMode(
+          data.ports, kPlatformMapping.get()));
 }

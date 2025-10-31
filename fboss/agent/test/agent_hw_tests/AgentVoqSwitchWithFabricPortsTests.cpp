@@ -7,7 +7,6 @@
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
-#include "fboss/agent/test/utils/VoqTestUtils.h"
 
 namespace facebook::fboss {
 

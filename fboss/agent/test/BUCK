@@ -423,6 +423,21 @@ cpp_unittest(
     ],
 )
 
+cpp_unittest(
+    name = "state_delta_logger_test",
+    srcs = ["StateDeltaLoggerTest.cpp"],
+    deps = [
+        ":utils",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:state_delta_logger",
+        "//fboss/agent/state:state",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
+
 cpp_library(
     name = "agent_test",
     srcs = [
@@ -973,7 +988,6 @@ cpp_unittest(
         "BaseEcmpResourceMgrMergeGroupsTests.h",
     ],
     deps = [
-        "fbsource//third-party/googletest:gtest",
         ":hw_test_handle",
         ":utils",
         "//fboss/agent:address_utils",
@@ -981,6 +995,7 @@ cpp_unittest(
         "//fboss/agent:core",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//fboss/agent/test/utils:ecmp_resource_mgr_test_utils",

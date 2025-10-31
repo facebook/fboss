@@ -154,6 +154,11 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }
@@ -196,6 +201,11 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlRxPacketStats() {
 }
 
 const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }

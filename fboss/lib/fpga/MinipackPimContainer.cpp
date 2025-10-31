@@ -21,12 +21,13 @@ MinipackPimContainer::MinipackPimContainer(
   // Initialize the real time I2C access controllers.
   // On Minipack1 we have one I2C controller talking with four modules.
   for (uint32_t rtc = 0; rtc < kPortsPerPim / kPortsPerI2cController; rtc++) {
-    i2cControllers_.push_back(std::make_unique<FbFpgaI2cController>(
-        std::make_unique<FpgaMemoryRegion>(
-            folly::format("pim{:d}", pim).str(), device, start, size),
-        rtc,
-        pim,
-        kI2cControllerVersion));
+    i2cControllers_.push_back(
+        std::make_unique<FbFpgaI2cController>(
+            std::make_unique<FpgaMemoryRegion>(
+                folly::format("pim{:d}", pim).str(), device, start, size),
+            rtc,
+            pim,
+            kI2cControllerVersion));
   }
 }
 

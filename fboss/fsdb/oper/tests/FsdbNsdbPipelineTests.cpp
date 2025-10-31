@@ -38,15 +38,17 @@ using PatchGenerator = folly::coro::AsyncGenerator<SubscriberMessage&&>;
 using DeltaGenerator = folly::coro::AsyncGenerator<OperDelta&&>;
 
 OperDelta awaitDelta(DeltaGenerator& deltaSubStream) {
-  OperDelta deltaVal = folly::coro::blockingWait(folly::coro::timeout(
-      consumeOne(deltaSubStream), std::chrono::seconds(5)));
+  OperDelta deltaVal = folly::coro::blockingWait(
+      folly::coro::timeout(
+          consumeOne(deltaSubStream), std::chrono::seconds(5)));
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   return deltaVal;
 }
 
 Patch awaitPatch(PatchGenerator& patchSubStream, bool isInitial = false) {
-  SubscriberMessage patchMsg = folly::coro::blockingWait(folly::coro::timeout(
-      consumeOne(patchSubStream), std::chrono::seconds(5)));
+  SubscriberMessage patchMsg = folly::coro::blockingWait(
+      folly::coro::timeout(
+          consumeOne(patchSubStream), std::chrono::seconds(5)));
   auto patchGroups = *patchMsg.get_chunk().patchGroups();
   EXPECT_EQ(patchGroups.size(), 1);
   auto patches = patchGroups.begin()->second;
@@ -181,8 +183,9 @@ struct TestDataFactory<StorageT, TestDataType::kHybridMapOfStruct> {
       EXPECT_EQ(first.path()->raw()->size(), 3);
       EXPECT_THAT(
           *first.path()->raw(),
-          ::testing::ContainerEq(std::vector<std::string>(
-              {"structMap", "3", "optionalIntegral"})));
+          ::testing::ContainerEq(
+              std::vector<std::string>(
+                  {"structMap", "3", "optionalIntegral"})));
       auto deserializedInt32 = facebook::fboss::thrift_cow::
           deserialize<apache::thrift::type_class::integral, int>(
               OperProtocol::SIMPLE_JSON, *first.newState());

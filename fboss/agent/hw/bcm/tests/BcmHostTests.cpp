@@ -92,9 +92,10 @@ int hostRouteTraversalCallback(
     void* userData) {
   VrfAndIP2Route* l3HostRouteMap = static_cast<VrfAndIP2Route*>(userData);
   bool isIPv6 = route->l3a_flags & BCM_L3_IP6;
-  auto ip = isIPv6 ? folly::IPAddress::fromBinary(folly::ByteRange(
-                         route->l3a_ip6_net, sizeof(route->l3a_ip6_net)))
-                   : folly::IPAddress::fromLongHBO(route->l3a_subnet);
+  auto ip = isIPv6
+      ? folly::IPAddress::fromBinary(
+            folly::ByteRange(route->l3a_ip6_net, sizeof(route->l3a_ip6_net)))
+      : folly::IPAddress::fromLongHBO(route->l3a_subnet);
   if ((isIPv6 &&
        memcmp(
            route->l3a_ip6_mask,
@@ -263,8 +264,9 @@ TEST_F(BcmHostTest, CreateV4AndV6L3Host) {
 
 TEST_F(BcmHostTest, CreateInterfaceWithoutIp) {
   auto setup = [=, this]() {
-    applyNewConfig(utility::oneL3IntfNoIPAddrConfig(
-        getHwSwitch(), masterLogicalPortIds()[0]));
+    applyNewConfig(
+        utility::oneL3IntfNoIPAddrConfig(
+            getHwSwitch(), masterLogicalPortIds()[0]));
   };
   auto verify = [=, this]() { checkSwHwBcmHostNum(0); };
   verifyAcrossWarmBoots(setup, verify);
@@ -295,8 +297,9 @@ TEST_F(BcmHostTest, DeleteV4AndV6L3Host) {
       CHECK_EQ(getL3HostRouteFromHw(getUnit()).size(), 2);
     }
     // then we re-apply config with 0 ip address assigned interface
-    applyNewConfig(utility::oneL3IntfNoIPAddrConfig(
-        getHwSwitch(), masterLogicalPortIds()[0]));
+    applyNewConfig(
+        utility::oneL3IntfNoIPAddrConfig(
+            getHwSwitch(), masterLogicalPortIds()[0]));
   };
   auto verify = [=, this]() { checkSwHwBcmHostNum(0); };
   verifyAcrossWarmBoots(setup, verify);

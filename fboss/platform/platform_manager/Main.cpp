@@ -30,15 +30,16 @@ DEFINE_bool(
     "Setup platform once and exit. If set to false, setup platform once "
     "and run thrift service.");
 
-DEFINE_bool(run_netos, false, "Setup platform manager to run with netos.");
+DECLARE_bool(run_in_netos);
 
 void sdNotifyReady() {
   if (auto rc = sd_notify(0, "READY=1"); rc < 0) {
     XLOG(WARNING) << "Failed to send READY signal to systemd: "
                   << folly::errnoStr(-rc);
-    throw std::runtime_error(fmt::format(
-        "Failed to sd_notify ready by run command, ExitStatus: {}",
-        folly::errnoStr(-rc)));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to sd_notify ready by run command, ExitStatus: {}",
+            folly::errnoStr(-rc)));
   } else {
     XLOG(INFO) << "Sent sd_notify ready by running command";
   }
@@ -63,7 +64,7 @@ int main(int argc, char** argv) {
 
   // When systemd starts PlatformManager, it sets the below env in PM
   // environment. This is a path to Unix domain socket at /run/systemd/notify.
-  if (!FLAGS_run_netos) {
+  if (!FLAGS_run_in_netos) {
     const auto notifySocketEnv{"NOTIFY_SOCKET"};
     if (std::getenv(notifySocketEnv)) {
       sdNotifyReady();
@@ -89,6 +90,13 @@ int main(int argc, char** argv) {
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);
+
+  auto evb = server->getEventBaseManager()->getEventBase();
+  helpers::SignalHandler signalHandler(evb, server);
+
   helpers::runThriftService(
       server, handler, "PlatformManagerService", FLAGS_thrift_port);
+
+  XLOG(INFO) << "================ STOPPED PLATFORM BINARY ================";
+  return 0;
 }

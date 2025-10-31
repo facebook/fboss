@@ -373,7 +373,14 @@ class TestPlatformMappingGeneration(unittest.TestCase):
                     ports=[1],
                     profiles=[PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL],
                     mediaInterfaceCode=MediaInterfaceCode.FR1_100G,
-                    vendor=Vendor(name="VENDOR_1", partNumber="PART_NUM_1"),
+                    vendor=Vendor(
+                        name="VENDOR_1",
+                        oui=b"",
+                        partNumber="PART_NUM_1",
+                        rev="",
+                        serialNumber="",
+                        dateCode="",
+                    ),
                 ),
                 pins=PortPinConfig(
                     iphy=[

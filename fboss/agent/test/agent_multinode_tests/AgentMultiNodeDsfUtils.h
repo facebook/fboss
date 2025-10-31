@@ -8,11 +8,13 @@
  *
  */
 
-#include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
+#pragma once
 
-namespace facebook::fboss {
+#include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
 
-void SaiHostifManager::publishCpuQueueWatermark(
-    int /*queue*/,
-    uint64_t /*peakBytes*/) const {}
-} // namespace facebook::fboss
+namespace facebook::fboss::utility {
+
+void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo);
+void verifyDsfAgentDownUp();
+
+} // namespace facebook::fboss::utility

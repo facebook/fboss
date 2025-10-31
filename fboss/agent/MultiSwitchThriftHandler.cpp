@@ -200,8 +200,9 @@ MultiSwitchThriftHandler::co_notifySwitchReachabilityChangeEvent(
   co_return apache::thrift::SinkConsumer<
       multiswitch::SwitchReachabilityChangeEvent,
       bool>{
-      [this, switchId](folly::coro::AsyncGenerator<
-                       multiswitch::SwitchReachabilityChangeEvent&&> gen)
+      [this, switchId](
+          folly::coro::AsyncGenerator<
+              multiswitch::SwitchReachabilityChangeEvent&&> gen)
           -> folly::coro::Task<bool> {
         auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
             SwitchID(switchId));

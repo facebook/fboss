@@ -34,6 +34,10 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "RUNBMC",
   "SCM",
   "SMB",
+  "RTM_L",
+  "RTM_R",
+  "SMB_L",
+  "SMB_R",
   // ======= EXCEPTIONS (should not be used in new platforms) ========
   // MINIPACK3 has unique naming in eeproms
   "MINIPACK3_3V3_L",
@@ -52,6 +56,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "ICECUBE_MCB",
   "ICETEA_MCB",
   "TAHANSB_MCB",
+  "LADAKH800BCLS_MCB",
   // The whole board is a PmUnit for these
   "TAHAN",
   "JANGA",

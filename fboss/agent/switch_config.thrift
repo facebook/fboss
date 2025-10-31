@@ -84,6 +84,8 @@ struct PortPfc {
   2: bool rx = false;
   3: PortPgConfigName portPgConfigName;
   4: optional PfcWatchdog watchdog;
+  5: optional bool txPfcDurationEnable;
+  6: optional bool rxPfcDurationEnable;
 }
 
 /**
@@ -184,6 +186,7 @@ enum PortProfileID {
   PROFILE_800G_4_PAM4_RS544X2N_COPPER = 57,
   PROFILE_400G_2_PAM4_RS544X2N_COPPER = 58,
   PROFILE_200G_1_PAM4_RS544X2N_COPPER = 59,
+  PROFILE_100G_1_PAM4_RS544X2N_COPPER = 60,
 }
 
 enum Scope {
@@ -969,6 +972,12 @@ struct ExpQosMap {
   3: optional byte fromTrafficClassToExp;
 }
 
+struct PcpQosMap {
+  1: i16 internalTrafficClass;
+  2: list<byte> fromPcpToTrafficClass;
+  3: optional byte fromTrafficClassToPcp;
+}
+
 struct QosMap {
   1: list<DscpQosMap> dscpMaps;
   2: list<ExpQosMap> expMaps;
@@ -992,6 +1001,8 @@ struct QosMap {
   // we still generate config for NIF ports on VOQ  platforms even
   // when they are the same as trafficClassToQueueId.
   7: optional map<i16, i16> trafficClassToVoqId;
+  //  dot1q priority code point to traffic class
+  8: optional list<PcpQosMap> pcpMaps;
 }
 
 struct QosRule {

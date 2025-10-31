@@ -272,8 +272,9 @@ bool HwTestThriftHandler::isProgrammedInHw(
     return static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch_)
                ->getIntfTable()
                ->getBcmIntfIf(InterfaceID(intfID))
-               ->getLabeledTunnelRefCount(LabelForwardingAction::LabelStack{
-                   labelStack->begin() + 1, labelStack->end()}) == refCount;
+               ->getLabeledTunnelRefCount(
+                   LabelForwardingAction::LabelStack{
+                       labelStack->begin() + 1, labelStack->end()}) == refCount;
   }
 }
 

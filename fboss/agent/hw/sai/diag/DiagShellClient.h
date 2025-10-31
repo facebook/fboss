@@ -15,6 +15,8 @@
 #include <thread>
 #include <vector>
 
+DECLARE_bool(help);
+
 namespace utility {
 using folly::IPAddress;
 

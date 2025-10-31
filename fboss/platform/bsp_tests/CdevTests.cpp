@@ -22,13 +22,13 @@ class CdevTest : public BspTest {
  protected:
   // Helper function to get empty aux data
   struct fbiob_aux_data getEmptyAuxData() const {
-    struct fbiob_aux_data auxData {};
+    struct fbiob_aux_data auxData{};
     return auxData;
   }
 
   // Helper function to get invalid aux data
   struct fbiob_aux_data getInvalidAuxData() const {
-    struct fbiob_aux_data auxData {};
+    struct fbiob_aux_data auxData{};
     auxData.csr_offset = static_cast<__u32>(-1);
     return auxData;
   }

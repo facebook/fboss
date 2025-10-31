@@ -39,11 +39,12 @@ void checkCoppAclMatch(
       const auto& swAcl = iter.second;
       auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
       ASSERT_NE(nullptr, hwAcl);
-      ASSERT_TRUE(BcmAclEntry::isStateSame(
-          hw,
-          hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
-          hwAcl->getHandle(),
-          swAcl));
+      ASSERT_TRUE(
+          BcmAclEntry::isStateSame(
+              hw,
+              hw->getPlatform()->getAsic()->getDefaultACLGroupID(),
+              hwAcl->getHandle(),
+              swAcl));
     }
   }
 }

@@ -121,8 +121,9 @@ TEST_F(RouteManagerTest, updateRouteOneNextHopNoUpdate) {
   auto handle = saiManagerTable->routeManager().getRouteHandle(entry);
   auto nexthopHandle = handle->nexthopHandle_;
   auto r1 = makeRoute(tr1);
-  r1->updateClassID(std::make_optional<cfg::AclLookupClass>(
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
+  r1->updateClassID(
+      std::make_optional<cfg::AclLookupClass>(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
       r, r1, RouterID(0));
   auto handle1 = saiManagerTable->routeManager().getRouteHandle(entry);

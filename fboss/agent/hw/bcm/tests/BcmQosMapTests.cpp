@@ -84,22 +84,24 @@ class BcmQosMapTest : public BcmTest {
         bcmCosqInputPriPriorityGroupMcMapping,
         "bcmCosqInputPriPriorityGroupMcMapping");
     // all entries should be same
-    EXPECT_TRUE(std::equal(
-        expectedTc2Pg.begin(),
-        expectedTc2Pg.end(),
-        tc2PgId.begin(),
-        tc2PgId.end()));
+    EXPECT_TRUE(
+        std::equal(
+            expectedTc2Pg.begin(),
+            expectedTc2Pg.end(),
+            tc2PgId.begin(),
+            tc2PgId.end()));
   }
 
   void validatePfcPri2PgId(const std::vector<int>& expectedPfcPri2Pg) {
     auto pfcPri2PgId = BcmQosPolicy::readPfcPriorityToPg(getHwSwitch());
     EXPECT_EQ(pfcPri2PgId.size(), expectedPfcPri2Pg.size());
     // all entries should be same
-    EXPECT_TRUE(std::equal(
-        expectedPfcPri2Pg.begin(),
-        expectedPfcPri2Pg.end(),
-        pfcPri2PgId.begin(),
-        pfcPri2PgId.end()));
+    EXPECT_TRUE(
+        std::equal(
+            expectedPfcPri2Pg.begin(),
+            expectedPfcPri2Pg.end(),
+            pfcPri2PgId.begin(),
+            pfcPri2PgId.end()));
   }
 
   const std::vector<bcm_cosq_pfc_class_map_config_t>

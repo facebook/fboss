@@ -18,13 +18,15 @@ GpiodLine::GpiodLine(
     const std::string& name)
     : name_(name) {
   if (nullptr == chip) {
-    throw GpiodLineError(fmt::format(
-        "GpiodLineTrace: Invalid gpiod_chip* passed in for {}", name_));
+    throw GpiodLineError(
+        fmt::format(
+            "GpiodLineTrace: Invalid gpiod_chip* passed in for {}", name_));
   }
   line_ = gpiod_chip_get_line(chip, offset);
   if (nullptr == line_) {
-    throw GpiodLineError(fmt::format(
-        "GpiodLineTrace: gpiod_chip_get_line() failed to open {}", name_));
+    throw GpiodLineError(
+        fmt::format(
+            "GpiodLineTrace: gpiod_chip_get_line() failed to open {}", name_));
   }
 }
 
@@ -34,18 +36,20 @@ GpiodLine::~GpiodLine() {
 
 int GpiodLine::getValue() {
   if (gpiod_line_request_input(line_, name_.c_str()) != 0) {
-    throw GpiodLineError(fmt::format(
-        "GpiodLineTrace: gpiod_line_request_input() failed to set {} direction to input",
-        name_));
+    throw GpiodLineError(
+        fmt::format(
+            "GpiodLineTrace: gpiod_line_request_input() failed to set {} direction to input",
+            name_));
   }
 
   int val = gpiod_line_get_value(line_); // Read the line status
 
   if (-1 == val) {
-    throw GpiodLineError(fmt::format(
-        "GpiodLineTrace: gpiod_line_get_value() failed to get {} status, errno = {}",
-        name_,
-        folly::errnoStr(errno)));
+    throw GpiodLineError(
+        fmt::format(
+            "GpiodLineTrace: gpiod_line_get_value() failed to get {} status, errno = {}",
+            name_,
+            folly::errnoStr(errno)));
   }
 
   return val;
@@ -54,17 +58,19 @@ int GpiodLine::getValue() {
 void GpiodLine::setValue(int defaultVal, int targetVal) {
   if (!gpiod_line_is_used(line_)) {
     if (gpiod_line_request_output(line_, name_.c_str(), defaultVal) != 0) {
-      throw GpiodLineError(fmt::format(
-          "GpiodLineTrace: gpiod_line_request_output() failed to set {} direction to output",
-          name_));
+      throw GpiodLineError(
+          fmt::format(
+              "GpiodLineTrace: gpiod_line_request_output() failed to set {} direction to output",
+              name_));
     }
   }
 
   if (gpiod_line_set_value(line_, targetVal) != 0) {
-    throw GpiodLineError(fmt::format(
-        "GpiodLineTrace: gpiod_line_set_value() failed to set {} status, errno = {}",
-        name_,
-        folly::errnoStr(errno)));
+    throw GpiodLineError(
+        fmt::format(
+            "GpiodLineTrace: gpiod_line_set_value() failed to set {} status, errno = {}",
+            name_,
+            folly::errnoStr(errno)));
   }
 }
 

@@ -240,12 +240,13 @@ class FsdbSyncManager {
       // don't need it
     requires(EnablePatchAPIs)
   {
-    publish(thrift_cow::PatchBuilder::build(
-        oldState,
-        newState,
-        basePath_,
-        fsdb::OperProtocol::COMPACT,
-        true /* incrementallyCompress */));
+    publish(
+        thrift_cow::PatchBuilder::build(
+            oldState,
+            newState,
+            basePath_,
+            fsdb::OperProtocol::COMPACT,
+            true /* incrementallyCompress */));
   }
 
   void publishPatch(

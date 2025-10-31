@@ -199,7 +199,7 @@ BENCHMARK_COUNTERS_NAME_PARAM(
 } // namespace facebook::fboss::thrift_cow::test
 
 int main(int argc, char* argv[]) {
-  struct rusage startUsage {};
+  struct rusage startUsage{};
   getrusage(RUSAGE_SELF, &startUsage);
 
   folly::Init init(&argc, &argv);

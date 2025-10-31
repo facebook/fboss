@@ -149,8 +149,9 @@ int64_t CmdShowHwAgentStatus::getCounterValue(
           folly::to<std::string>("switch.", switchIndex, ".", counterName))) {
     return counters.at(
         folly::to<std::string>("switch.", switchIndex, ".", counterName));
-  } else if (counters.contains(folly::to<std::string>(
-                 "switch.", switchIndex, "..", counterName))) {
+  } else if (counters.contains(
+                 folly::to<std::string>(
+                     "switch.", switchIndex, "..", counterName))) {
     return counters.at(
         folly::to<std::string>("switch.", switchIndex, "..", counterName));
   } else if (counters.contains(counterName)) {
@@ -182,10 +183,10 @@ RetType CmdShowHwAgentStatus::createModel(
         folly::copy(hwAgentStatus[switchIndex].rxPktEventSyncActive().value());
     hwStatusEntry.txPktSyncActive() =
         folly::copy(hwAgentStatus[switchIndex].txPktEventSyncActive().value());
-    hwStatusEntry.switchReachabilityChangeSyncActive() =
-        folly::copy(hwAgentStatus[switchIndex]
-                        .switchReachabilityChangeEventSyncActive()
-                        .value());
+    hwStatusEntry.switchReachabilityChangeSyncActive() = folly::copy(
+        hwAgentStatus[switchIndex]
+            .switchReachabilityChangeEventSyncActive()
+            .value());
     hwStatusEntry.linkEventsReceived() = getCounterValue(
         FBSwHwCounters.FBSwCounters, switchIndex, "link_event_received.sum");
     hwStatusEntry.linkEventsSent() =
