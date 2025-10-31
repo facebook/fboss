@@ -121,6 +121,8 @@ class HwBasePortFb303Stats {
   virtual const std::vector<folly::StringPiece>& kPfcMonotonicCounterStatKeys()
       const = 0;
   virtual const std::vector<folly::StringPiece>&
+  kPfcDeadlockMonotonicCounterStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>&
   kPriorityGroupMonotonicCounterStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>& kPriorityGroupCounterStatKeys()
       const = 0;

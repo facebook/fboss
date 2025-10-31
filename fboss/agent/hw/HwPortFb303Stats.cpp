@@ -54,8 +54,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kPqpErrorEgressDroppedPackets(),
       kFabricLinkDownDroppedCells(),
       kLinkLayerFlowControlWatermark(),
-      kPfcDeadlockDetection(),
-      kPfcDeadlockRecovery(),
       kMacTransmitQueueStuck(),
       kFabricControlRxPackets(),
       kFabricControlTxPackets(),
@@ -136,6 +134,15 @@ HwPortFb303Stats::kPfcMonotonicCounterStatKeys() const {
       kOutPfc(),
   };
   return kPfcKeys;
+}
+
+const std::vector<folly::StringPiece>&
+HwPortFb303Stats::kPfcDeadlockMonotonicCounterStatKeys() const {
+  static std::vector<folly::StringPiece> kPfcDeadlockKeys{
+      kPfcDeadlockDetection(),
+      kPfcDeadlockRecovery(),
+  };
+  return kPfcDeadlockKeys;
 }
 
 const std::vector<folly::StringPiece>&
@@ -256,18 +263,6 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kLinkLayerFlowControlWatermark(),
         *curPortStats.linkLayerFlowControlWatermark_());
-  }
-  if (curPortStats.pfcDeadlockDetection_().has_value()) {
-    updateStat(
-        timeRetrieved_,
-        kPfcDeadlockDetection(),
-        *curPortStats.pfcDeadlockDetection_());
-  }
-  if (curPortStats.pfcDeadlockRecovery_().has_value()) {
-    updateStat(
-        timeRetrieved_,
-        kPfcDeadlockRecovery(),
-        *curPortStats.pfcDeadlockRecovery_());
   }
   if (curPortStats.macTransmitQueueStuck_().has_value()) {
     updateStat(
@@ -456,6 +451,18 @@ void HwPortFb303Stats::updateStats(
   if (getEnabledPfcPriorities().size()) {
     updateStat(timeRetrieved_, kInPfc(), inPfc);
     updateStat(timeRetrieved_, kOutPfc(), outPfc);
+    if (curPortStats.pfcDeadlockDetection_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kPfcDeadlockDetection(),
+          *curPortStats.pfcDeadlockDetection_());
+    }
+    if (curPortStats.pfcDeadlockRecovery_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kPfcDeadlockRecovery(),
+          *curPortStats.pfcDeadlockRecovery_());
+    }
   }
 
   // PFC duration stats

@@ -175,6 +175,15 @@ void HwBasePortFb303Stats::reinitPfcStats(
     portCounters_.reinitStat(newStatName, oldStatName);
   }
 
+  // Init PFC deadlock counters as well
+  for (auto statKey : kPfcDeadlockMonotonicCounterStatKeys()) {
+    auto newStatName = statName(statKey, portName_);
+    std::optional<std::string> oldStatName = oldPortName
+        ? std::optional<std::string>(statName(statKey, *oldPortName))
+        : std::nullopt;
+    portCounters_.reinitStat(newStatName, oldStatName);
+  }
+
   // Init PFC RX/TX duration counters as well
   if (pfcInfo_.rxPfcDurationEnabled) {
     reinitPortPriorityPfcStats({kRxPfcDurationUsec()});
@@ -309,8 +318,16 @@ void HwBasePortFb303Stats::pfcConfigChanged(
     for (auto statKey : kPfcMonotonicCounterStatKeys()) {
       portCounters_.reinitStat(statName(statKey, portName_), std::nullopt);
     }
+    // If PFC is enabled for priorities, init aggregated port
+    // PFC deadlock counters as well.
+    for (auto statKey : kPfcDeadlockMonotonicCounterStatKeys()) {
+      portCounters_.reinitStat(statName(statKey, portName_), std::nullopt);
+    }
   } else {
     for (auto statKey : kPfcMonotonicCounterStatKeys()) {
+      portCounters_.removeStat(statName(statKey, portName_));
+    }
+    for (auto statKey : kPfcDeadlockMonotonicCounterStatKeys()) {
       portCounters_.removeStat(statName(statKey, portName_));
     }
   }

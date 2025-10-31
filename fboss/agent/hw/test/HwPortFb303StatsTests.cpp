@@ -396,6 +396,10 @@ TEST(HwPortFb303StatsTest, StatsInit) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
   }
+  for (auto statKey : stats.kPfcDeadlockMonotonicCounterStatKeys()) {
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
+  }
   for (auto statKey : stats.kPriorityGroupMonotonicCounterStatKeys()) {
     for (int i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
          ++i) {
@@ -498,6 +502,12 @@ TEST(HwPortFb303StatsTest, ReInit) {
       EXPECT_FALSE(fbData->getStatMap()->contains(
           HwPortFb303Stats::statName(statKey, kPortName, pfcPriority)));
     }
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kNewPortName)));
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
+  }
+  for (auto statKey : stats.kPfcDeadlockMonotonicCounterStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kNewPortName)));
     EXPECT_FALSE(fbData->getStatMap()->contains(
@@ -691,6 +701,10 @@ TEST(HwPortFb303StatsTest, ChangePfcConfig) {
       EXPECT_TRUE(fbData->getStatMap()->contains(
           HwPortFb303Stats::statName(statKey, kPortName, pfcPriority)));
     }
+    EXPECT_TRUE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, kPortName)));
+  }
+  for (auto statKey : stats.kPfcDeadlockMonotonicCounterStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
   }
