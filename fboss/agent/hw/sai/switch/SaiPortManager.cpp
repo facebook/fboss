@@ -719,8 +719,11 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
     }
     updatedPortQueue.push_back(clonedPortQueue);
   }
-  managerTable_->queueManager().ensurePortQueueConfig(
-      saiPort->adapterKey(), portHandle->queues, updatedPortQueue, &swPort);
+  if (swPort.getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    // skip queue programming for hyper port members
+    managerTable_->queueManager().ensurePortQueueConfig(
+        saiPort->adapterKey(), portHandle->queues, updatedPortQueue, &swPort);
+  }
 }
 
 void SaiPortManager::addNode(const std::shared_ptr<Port>& swPort) {
