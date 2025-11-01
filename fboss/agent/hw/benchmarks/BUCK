@@ -498,6 +498,19 @@ agent_benchmark_lib(
     ],
 )
 
+agent_benchmark_lib(
+    name = "hw_ecmp_group_scale_benchmark",
+    srcs = ["HwEcmpGroupScaleBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/hw/test:hw_switch_ensemble_factory",
+        "//fboss/agent/hw/test:hw_test_ecmp_utils",
+        "//fboss/agent/hw/test:hw_test_port_utils",
+        "//fboss/agent/test/utils:ecmp_test_utils",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+    ],
+)
+
 cpp_library(
     name = "hw_ucmp_group_scale_helper",
     headers = ["HwUcmpScaleBenchmarkHelper.h"],
