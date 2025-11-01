@@ -3995,7 +3995,7 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   SaiTxPacketTraits::Attributes::TxType txType(
       SAI_HOSTIF_TX_TYPE_PIPELINE_LOOKUP);
   SaiTxPacketTraits::TxAttributes attributes{
-      txType, std::nullopt, std::nullopt};
+      txType, std::nullopt, std::nullopt, std::nullopt};
   SaiHostifApiPacket txPacket{
       reinterpret_cast<void*>(pkt->buf()->writableData()),
       pkt->buf()->length()};
@@ -4073,7 +4073,7 @@ bool SaiSwitch::sendPacketOutOfPortSync(
   SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
       queueId.value_or(0));
   SaiTxPacketTraits::TxAttributes attributes{
-      txType, egressPort, egressQueueIndex};
+      txType, egressPort, egressQueueIndex, std::nullopt};
   auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
   auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
   if (rv != SAI_STATUS_SUCCESS) {

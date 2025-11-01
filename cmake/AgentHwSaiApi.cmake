@@ -100,6 +100,7 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/api/tajo/SystemPortApi.cpp
     fboss/agent/hw/sai/api/tajo/NextHopGroupApi.cpp
     fboss/agent/hw/sai/api/tajo/AclApi.cpp
+    fboss/agent/hw/sai/api/oss/HostifApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -118,6 +119,7 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/api/bcm/SystemPortApi.cpp
     fboss/agent/hw/sai/api/bcm/NextHopGroupApi.cpp
     fboss/agent/hw/sai/api/bcm/AclApi.cpp
+    fboss/agent/hw/sai/api/bcm/HostifApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
@@ -136,6 +138,7 @@ elseif (CHENAB_SAI_SDK)
     fboss/agent/hw/sai/api/oss/SystemPortApi.cpp
     fboss/agent/hw/sai/api/oss/NextHopGroupApi.cpp
     fboss/agent/hw/sai/api/oss/AclApi.cpp
+    fboss/agent/hw/sai/api/oss/HostifApi.cpp
   )
 
   find_path(SAI_IMPL_DIR NAMES lib/libsai_impl.a)
