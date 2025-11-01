@@ -168,7 +168,6 @@ void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
 
       // If the log is larger than the buffer, write directly to file
       writeDirectlyToFile(logRecord, logSize);
-      lock.unlock();
     } else {
       // Wait for worker to finish
       std::unique_lock<std::mutex> lock(latch_);
@@ -178,7 +177,6 @@ void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
 
       memcpy(logBuffer_ + getOffset(), logRecord, logSize);
       setOffset(getOffset() + logSize);
-      lock.unlock();
     }
   } else {
     // Directly write to buffer
