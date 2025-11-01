@@ -8,17 +8,17 @@
  *
  */
 
-#include "fboss/agent/platforms/common/wedge800ca/Wedge800caPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"()";
 } // namespace
 
 namespace facebook::fboss {
-Wedge800caPlatformMapping::Wedge800caPlatformMapping()
+Wedge800CACTPlatformMapping::Wedge800CACTPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
-Wedge800caPlatformMapping::Wedge800caPlatformMapping(
+Wedge800CACTPlatformMapping::Wedge800CACTPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 

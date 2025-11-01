@@ -13,15 +13,15 @@
 
 namespace facebook::fboss {
 
-class Wedge800caPlatformMapping : public PlatformMapping {
+class Wedge800CACTPlatformMapping : public PlatformMapping {
  public:
-  Wedge800caPlatformMapping();
-  explicit Wedge800caPlatformMapping(const std::string& platformMappingStr);
+  Wedge800CACTPlatformMapping();
+  explicit Wedge800CACTPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator
-  Wedge800caPlatformMapping(Wedge800caPlatformMapping const&) = delete;
-  Wedge800caPlatformMapping& operator=(Wedge800caPlatformMapping const&) =
+  Wedge800CACTPlatformMapping(Wedge800CACTPlatformMapping const&) = delete;
+  Wedge800CACTPlatformMapping& operator=(Wedge800CACTPlatformMapping const&) =
       delete;
 };
 } // namespace facebook::fboss
