@@ -116,6 +116,11 @@ class SaiSwitch : public HwSwitch {
       PortID portID,
       std::optional<uint8_t> queueId) noexcept override;
 
+  bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const PortID& portID,
+      TxPacketType packetType) override;
+
   bool sendPacketOutOfPortSyncCommon(
       std::unique_ptr<TxPacket> pkt,
       const PortSaiId& portSaiId,

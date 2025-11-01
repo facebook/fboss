@@ -1264,6 +1264,7 @@ cpp_library(
         "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/hw:hw_switch_warmboot_helper",
         "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",

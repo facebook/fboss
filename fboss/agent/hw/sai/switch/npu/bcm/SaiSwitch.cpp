@@ -2,7 +2,9 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
+#include "fboss/agent/packet/PktUtil.h"
 
 extern "C" {
 #if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
@@ -798,6 +800,22 @@ void incrementJ3InterruptCounter(
 }
 #endif
 
+int32_t getFabricTransmitPacketType(facebook::fboss::TxPacketType pktType) {
+  switch (pktType) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+    case facebook::fboss::TxPacketType::DEFAULT:
+      return SAI_HOSTIF_PACKET_TYPE_DEFAULT;
+    case facebook::fboss::TxPacketType::FABRIC_LINK_MONITORING:
+      return SAI_HOSTIF_PACKET_TYPE_LINK_MONITORING;
+#endif
+    default:
+      break;
+  }
+  throw facebook::fboss::FbossError(
+      "Unknown packet type in fabric transmit packet type : ",
+      apache::thrift::util::enumNameSafe(pktType));
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -1028,5 +1046,44 @@ void SaiSwitch::initTechSupport() {
       SaiSwitchTraits::Attributes::TechSupportType{
           SAI_SWITCH_TECH_SUPPORT_TYPE_SDK_INIT});
 #endif
+}
+
+bool SaiSwitch::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> pkt,
+    const PortID& portID,
+    TxPacketType packetType) {
+  CHECK(
+      getSwitchType() == cfg::SwitchType::VOQ ||
+      getSwitchType() == cfg::SwitchType::FABRIC)
+      << "Transmit of packet type "
+      << apache::thrift::util::enumNameSafe(packetType)
+      << " on port is supported only in VoQ or fabric switch!";
+  auto portItr = concurrentIndices_->portSaiIds.find(portID);
+  if (portItr == concurrentIndices_->portSaiIds.end()) {
+    XLOG_EVERY_MS(WARNING, 5000)
+        << "Failed to send packet of type "
+        << apache::thrift::util::enumNameSafe(packetType)
+        << " on invalid port: " << portID;
+    return false;
+  }
+  if (auto portInfoItr =
+          concurrentIndices_->portSaiId2PortInfo.find(portItr->second);
+      portInfoItr != concurrentIndices_->portSaiId2PortInfo.end()) {
+    if (portInfoItr->second.portType != cfg::PortType::FABRIC_PORT) {
+      XLOG_EVERY_MS(WARNING, 5000)
+          << "Rejecting packet type "
+          << apache::thrift::util::enumNameSafe(packetType)
+          << " send over non fabric port: " << portID;
+      return false;
+    }
+  }
+  folly::io::Cursor cursor(pkt->buf());
+  // Log the packet
+  XLOG(DBG5) << "Fabric packet start dump: " << PktUtil::hexDump(cursor, 16);
+  return sendPacketOutOfPortSyncCommon(
+      std::move(pkt),
+      portItr->second,
+      std::nullopt,
+      getFabricTransmitPacketType(packetType));
 }
 } // namespace facebook::fboss

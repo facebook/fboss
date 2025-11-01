@@ -84,6 +84,14 @@ enum ForwardingClass {
   CLASS_7 = 7,
 }
 
+/*
+ * Packet type being transmitted, primarily used for fabric ports
+ */
+enum TxPacketType {
+  DEFAULT = 0,
+  FABRIC_LINK_MONITORING = 1,
+}
+
 typedef map<byte, ForwardingClass> DscpToForwardingClassMap
 typedef map<ForwardingClass, list<NamedNextHopGroup>> ForwardingClassToNamedNhgs
 
