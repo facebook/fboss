@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/FabricLinkMonitoring.h"
+#include "fboss/agent/AgentFeatures.h"
 
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/Utils.h"
@@ -163,24 +164,33 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
             << "Fabric link monitoring base switch ID should be >= "
             << kSingleStageMaxGlobalSwitchId;
       }
-      linksAtLevel = numLeafToL1Links_;
       maxParallelLinks = maxParallelLeafToL1Links_;
       switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
+      // Just pick the first VDs link count as all VDs should have the same link
+      // count
+      linksAtLevel = numLeafL1Links_.begin()->second;
     } else {
       // This is for a port connecting L1 and L2 fabric
       switchIdBase = kFabricLinkMonitoringL1L2BaseSwitchId;
       maxNumSwitchIds = kDualStageMaxL1L2FabricLinkMonitoringSwitchIds;
-      linksAtLevel = numL1ToL2Links_;
       maxParallelLinks = maxParallelL1ToL2Links_;
       switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
+      // Just pick the first VDs link count as all VDs should have the same link
+      // count
+      linksAtLevel = numL1L2Links_.begin()->second;
     }
     int parallelLinkOffset =
         calculateParallelLinkOffset(port, remoteSwitchId, vd, maxParallelLinks);
     int offset = switchIdOffset * maxParallelLinks + vd + parallelLinkOffset;
     // SwitchID allocated should be in the specific range bounded by the maximum
     // number of switchIDs possible for the 2 roles connected by the port/link.
+    CHECK_LE(linksAtLevel, maxNumSwitchIds)
+        << "Fabric link monitoring links: " << linksAtLevel
+        << " should be <= the max switch IDs available for link monitoring: "
+        << maxNumSwitchIds;
     portId2LinkSwitchId_[portId] = switchIdBase + (offset % maxNumSwitchIds);
-    XLOG(DBG3) << "Fabric Link Mon - Port ID:" << portId
+    XLOG(DBG3) << "Fabric Link Mon - Port name:"
+               << port.name().value_or("Unknown") << " Port ID:" << portId
                << " Link Switch ID:" << portId2LinkSwitchId_[portId]
                << " localSwitchId:" << localSwitchId
                << " remoteSwitchId:" << remoteSwitchId
@@ -264,12 +274,12 @@ void FabricLinkMonitoring::processLinkInfo(const cfg::SwitchConfig* config) {
 
     const auto remoteSwitchId = remoteSwitchIt->second;
 
-    // Find the number of links at each network layer
-    updateLinkCounts(config, remoteSwitchId);
-
     // Keep track of the mapping from PortID to VD
     auto vd = getVirtualDeviceIdForLink(config, port, remoteSwitchId);
     portId2Vd_[PortID(*port.logicalID())] = vd;
+
+    // Find the number of links at each network layer
+    updateLinkCounts(config, remoteSwitchId, vd);
 
     CHECK(port.name().has_value())
         << "Missing port name for port with ID: " << *port.logicalID();
@@ -290,26 +300,73 @@ void FabricLinkMonitoring::processLinkInfo(const cfg::SwitchConfig* config) {
 // also between L1 and L2 in the network.
 void FabricLinkMonitoring::updateLinkCounts(
     const cfg::SwitchConfig* config,
-    const SwitchID& neighborSwitchId) {
+    const SwitchID& neighborSwitchId,
+    const int vd) {
   if (isVoqSwitch_ || isConnectedToVoqSwitch(config, neighborSwitchId)) {
-    ++numLeafToL1Links_;
+    numLeafL1Links_[vd] = numLeafL1Links_[vd] + 1;
   } else {
-    ++numL1ToL2Links_;
+    numL1L2Links_[vd] = numL1L2Links_[vd] + 1;
   }
 }
 
 // Switch IDs for links are limited and hence need to ensure that the
 // num links between leaf-L1 and L1-L2 are within the expected bounds.
 void FabricLinkMonitoring::validateLinkLimits() const {
-  if (numLeafToL1Links_ > kFabricLinkMonitoringMaxLeafSwitchIds) {
-    throw FbossError(
-        "Too many leaf to L1 links, max expected ",
-        kFabricLinkMonitoringMaxLeafSwitchIds);
+  auto throwExceededMaxExpectedLinkCount =
+      [](int linkCount, int maxLinkCount, const std::string& linkTypeStr) {
+        throw FbossError(
+            "Too many ",
+            linkTypeStr,
+            " links - ",
+            linkCount,
+            ", max expected ",
+            maxLinkCount);
+      };
+  int leafL1Links =
+      numLeafL1Links_.size() ? numLeafL1Links_.begin()->second : 0;
+  if (isVoqSwitch_) {
+    // RDSW / EDSW to FDSW link count is fixed in all deployments.
+    // However, this is not applicable for the reverse direction.
+    if (leafL1Links > kDsfMaxLeafFabricLinksPerVd) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfMaxLeafFabricLinksPerVd, "leaf to L1");
+    }
+  } else if (leafL1Links) {
+    // Dual stage network will have some L1 to L2 links
+    bool isDualStageNetwork = numL1L2Links_.size() > 0;
+
+    // FDSW side of RDSW / EDSW  -> FDSW links. The number of links
+    // here depends on the type of deployment.
+    if (FLAGS_dsf_single_stage_r192_f40_e32 &&
+        (leafL1Links > kDsfR192F40E32MaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfR192F40E32MaxL1ToLeafLinksPerVd, "L1 to leaf");
+    } else if (
+        FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports &&
+        (leafL1Links > kDsfR128F40E16MaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfR128F40E16MaxL1ToLeafLinksPerVd, "L1 to leaf");
+    } else if (
+        FLAGS_type_dctype1_janga &&
+        (leafL1Links > kDsfMtiaMaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfMtiaMaxL1ToLeafLinksPerVd, "L1 to leaf");
+    } else if (
+        isDualStageNetwork &&
+        (leafL1Links > kDsfDualStageMaxL1ToLeafLinksPerVd)) {
+      throwExceededMaxExpectedLinkCount(
+          leafL1Links, kDsfDualStageMaxL1ToLeafLinksPerVd, "L1 to leaf");
+    }
   }
-  if (numL1ToL2Links_ > kFabricLinkMonitoringMaxLevel2SwitchIds) {
-    throw FbossError(
-        "Too many L1 to L2 links, max expected ",
-        kFabricLinkMonitoringMaxLevel2SwitchIds);
+  int l1L2Links = numL1L2Links_.size() ? numL1L2Links_.begin()->second : 0;
+  if (leafL1Links && l1L2Links > kDsfMaxL1ToL2SwitchLinksPerVd) {
+    // FDSW side of FDSW -> SDSW links
+    throwExceededMaxExpectedLinkCount(
+        l1L2Links, kDsfMaxL1ToL2SwitchLinksPerVd, "L1 to L2");
+  } else if (!leafL1Links && l1L2Links > kDsfMaxL2ToL1SwitchLinksPerVd) {
+    // SDSW side of SDSW -> FDSW links
+    throwExceededMaxExpectedLinkCount(
+        l1L2Links, kDsfMaxL2ToL1SwitchLinksPerVd, "L2 to L1");
   }
 }
 

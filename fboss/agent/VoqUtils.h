@@ -49,11 +49,6 @@ constexpr auto kDualStageMaxGlobalSwitchId{3904};
 // IDs, so we are well within the 2K (vendor) recommended limit.
 constexpr auto kSingleStageMaxGlobalSwitchId{2048};
 
-// Max switch IDs needed in the RDSW/EDSW-FDSW level
-constexpr auto kFabricLinkMonitoringMaxLeafSwitchIds{160};
-// Max switch IDs needed in the FDSW-SDSW level
-constexpr auto kFabricLinkMonitoringMaxLevel2SwitchIds{200};
-
 // Max number of switchIDs that can be allocated for the various layers
 // for fabric link monitoring.
 constexpr auto kSingleStageMaxLeafL1FabricLinkMonitoringSwitchIds{256};
@@ -66,6 +61,15 @@ constexpr auto kFabricLinkMonitoringL1L2BaseSwitchId{4096};
 
 // Max usable switchID in VoQ switch
 constexpr auto kMaxUsableVoqSwitchId{4064};
+
+// Keep track of the max possible links per VD either local or remote
+constexpr auto kDsfMaxLeafFabricLinksPerVd{40};
+constexpr auto kDsfR192F40E32MaxL1ToLeafLinksPerVd{224};
+constexpr auto kDsfR128F40E16MaxL1ToLeafLinksPerVd{144};
+constexpr auto kDsfMtiaMaxL1ToLeafLinksPerVd{256};
+constexpr auto kDsfDualStageMaxL1ToLeafLinksPerVd{128};
+constexpr auto kDsfMaxL1ToL2SwitchLinksPerVd{128};
+constexpr auto kDsfMaxL2ToL1SwitchLinksPerVd{200};
 
 int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope);
 
