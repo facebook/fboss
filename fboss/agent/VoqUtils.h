@@ -40,9 +40,9 @@ constexpr auto k2StageEdgePodClusterId = 200;
 //     FDSWs will use 800 switch IDs in the range 2560-3359.
 //   - Num SDSWs = 128. We start SDSW switch-ids from 3360. Taking 4 switch
 //     IDs each, this will use up 128*4 switch IDs in the range 3360-3871.
-// Now, MAX switch ID can only be set in multiples of 32. So we set the max
-// switch ID to be the next multiple of 32 which is 3904.
-constexpr auto kDualStageMaxGlobalSwitchId{3904};
+// Now, MAX switch ID can only be set in multiples of 32 minus 1. So we set
+// the max switch ID to be the next multiple of 32 which is 3904-1 => 3903.
+constexpr auto kDualStageMaxGlobalSwitchId{3903};
 
 // Single stage FAP-ID on J3/R3 are limited to 1K. With 4 cores we are
 // limited to 1K switch-ids. Then with 80 R3 chips we get 160 more switch

@@ -154,8 +154,8 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
       if (isDualStageNetwork) {
         maxNumSwitchIds = kDualStageMaxLeafL1FabricLinkMonitoringSwitchIds;
         switchIdBase = kMaxUsableVoqSwitchId - maxNumSwitchIds;
-        CHECK_GE(switchIdBase, kDualStageMaxGlobalSwitchId)
-            << "Fabric link monitoring base switch ID should be >= "
+        CHECK_GT(switchIdBase, kDualStageMaxGlobalSwitchId)
+            << "Fabric link monitoring base switch ID should be > "
             << kDualStageMaxGlobalSwitchId;
       } else {
         maxNumSwitchIds = kSingleStageMaxLeafL1FabricLinkMonitoringSwitchIds;
