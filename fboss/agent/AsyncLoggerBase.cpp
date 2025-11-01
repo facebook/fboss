@@ -128,11 +128,11 @@ void AsyncLoggerBase::forceFlush() {
 }
 
 void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
-  if (!enableLogging_) {
+  if (!enableLogging_ || logSize == 0) {
     return;
   }
 
-  if (FLAGS_disable_async_logger && logSize > 0) {
+  auto writeDirectlyToFile = [this](const char* logRecord, size_t logSize) {
     auto bytesWritten = logFile_.withWLock([&](auto& lockedFile) {
       return folly::writeFull(lockedFile.fd(), logRecord, logSize);
     });
@@ -140,6 +140,10 @@ void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
     if (bytesWritten < 0) {
       throw SysError(errno, "error writing ", logSize, " bytes to log file.");
     }
+  };
+
+  if (FLAGS_disable_async_logger) {
+    writeDirectlyToFile(logRecord, logSize);
     return;
   }
 
@@ -148,18 +152,34 @@ void AsyncLoggerBase::appendLog(const char* logRecord, size_t logSize) {
   if (logSize + getOffset() >= bufferSize_) {
     // Release the lock and notify worker thread to flush logs
     fullFlush_ = true;
+    auto currentFlushCount = flushCount_.load();
     latch_.unlock();
     cv_.notify_one();
 
-    // Wait for worker to finish
-    std::unique_lock<std::mutex> lock(latch_);
-    cv_.wait(lock, [this, logSize] {
-      return logSize + this->getOffset() < this->bufferSize_;
-    });
+    if (logSize >= bufferSize_) {
+      // If log size is greater than buffer size, directly write to file instead
+      // of writing into buffer. To optimistically maintain the same ordering,
+      // it will wait for current buffer to be flushed to disk and then write to
+      // file.
+      std::unique_lock<std::mutex> lock(latch_);
+      cv_.wait(lock, [this, currentFlushCount] {
+        return flushCount_ == currentFlushCount + 1 || this->getOffset() == 0;
+      });
 
-    memcpy(logBuffer_ + getOffset(), logRecord, logSize);
-    setOffset(getOffset() + logSize);
-    lock.unlock();
+      // If the log is larger than the buffer, write directly to file
+      writeDirectlyToFile(logRecord, logSize);
+      lock.unlock();
+    } else {
+      // Wait for worker to finish
+      std::unique_lock<std::mutex> lock(latch_);
+      cv_.wait(lock, [this, logSize] {
+        return logSize + this->getOffset() < this->bufferSize_;
+      });
+
+      memcpy(logBuffer_ + getOffset(), logRecord, logSize);
+      setOffset(getOffset() + logSize);
+      lock.unlock();
+    }
   } else {
     // Directly write to buffer
     memcpy(logBuffer_ + getOffset(), logRecord, logSize);
