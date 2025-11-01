@@ -374,9 +374,9 @@ void FabricLinkMonitoring::validateLinkLimits() const {
 // 1. VoQ switches dont have VD, so use the VD associated with
 //    the remote fabric port on the link.
 // 2. For non-VoQ switch, each fabric port is associated with a VD.
-//    These switch links are such that VD0 connects to VD0, VD1 to
-//    VD1 etc., so both side of a link are guaranteed to be in the
-//    same VD.
+//    Given VDs could be different on the 2 sides of a link, use the
+//    VD from the L1 fabric switch so that both sides can use the
+//    same VD id in computations.
 int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
     const cfg::SwitchConfig* config,
     const cfg::Port& port,
@@ -387,13 +387,22 @@ int32_t FabricLinkMonitoring::getVirtualDeviceIdForLink(
       << "Virtual device is applicable only for fabric ports, "
       << "not for port with ID " << *port.logicalID() << " of type "
       << apache::thrift::util::enumNameSafe(*port.portType());
-  auto dsfNodeIter = isVoqSwitch_
-      ? config->dsfNodes()->find(neighborSwitchId)
+  // Find the neighbor DSF node in case of VoQ switch or in case
+  // of L2 switch.
+  auto neighborSwitchIter = config->dsfNodes()->find(neighborSwitchId);
+  CHECK(neighborSwitchIter != config->dsfNodes()->end())
+      << "DSF node missing for switchId: " << neighborSwitchId;
+  bool useNeighborSwitchVd = isVoqSwitch_ ||
+      (neighborSwitchIter->second.fabricLevel().has_value() &&
+       *neighborSwitchIter->second.fabricLevel() == 2);
+  auto dsfNodeIter = useNeighborSwitchVd
+      ? neighborSwitchIter
       : config->dsfNodes()->find(*config->switchSettings()->switchId());
   CHECK(port.name().has_value())
       << "Missing port name for port with ID: " << *port.logicalID();
-  std::string portName =
-      isVoqSwitch_ ? getExpectedNeighborAndPortName(port).second : *port.name();
+  std::string portName = useNeighborSwitchVd
+      ? getExpectedNeighborAndPortName(port).second
+      : *port.name();
 
   auto platformType = *dsfNodeIter->second.platformType();
   const auto platformMapping = getPlatformMappingForPlatformType(platformType);
