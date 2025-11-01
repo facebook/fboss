@@ -3175,17 +3175,47 @@ bool SwSwitch::sendPacketOutOfPortAsync(
   return false;
 }
 
+bool SwSwitch::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> pkt,
+    const PortID& portId,
+    TxPacketType packetType) noexcept {
+  auto state = getState();
+  if (!state->getPorts()->getNodeIf(portId)) {
+    XLOG(ERR)
+        << "sendPacketOutOfPortSyncForPktType: dropping packet to unexpected port "
+        << portId;
+    stats()->pktDropped();
+    return false;
+  }
+
+  pcapMgr_->packetSent(pkt.get());
+
+  if (!multiHwSwitchHandler_->sendPacketOutOfPortSyncForPktType(
+          std::move(pkt), portId, packetType)) {
+    // Log error
+    XLOG(ERR) << "Failed to send packet type "
+              << apache::thrift::util::enumNameSafe(packetType) << " out port "
+              << portId;
+    return false;
+  }
+  return true;
+}
+
 bool SwSwitch::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     SwitchID switchId,
     std::optional<PortID> portID,
-    std::optional<uint8_t> queue) noexcept {
+    std::optional<uint8_t> queue,
+    std::optional<TxPacketType> packetType) noexcept {
   multiswitch::TxPacket txPacket;
   if (portID) {
     txPacket.port() = portID.value();
   }
   if (queue) {
     txPacket.queue() = queue.value();
+  }
+  if (packetType) {
+    txPacket.packetType() = packetType.value();
   }
   txPacket.length() = pkt->buf()->computeChainDataLength();
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));

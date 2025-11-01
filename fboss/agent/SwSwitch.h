@@ -647,6 +647,11 @@ class SwSwitch : public HwSwitchCallback {
       AggregatePortID aggPortID,
       std::optional<uint8_t> queue = std::nullopt) noexcept;
 
+  bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const PortID& portID,
+      TxPacketType packetType) noexcept;
+
   /*
    * Send a packet to HwSwitch using thrift stream
    */
@@ -654,7 +659,8 @@ class SwSwitch : public HwSwitchCallback {
       std::unique_ptr<TxPacket> pkt,
       SwitchID switchId,
       std::optional<PortID> portID,
-      std::optional<uint8_t> queue = std::nullopt) noexcept;
+      std::optional<uint8_t> queue = std::nullopt,
+      std::optional<TxPacketType> packetType = std::nullopt) noexcept;
   /*
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.

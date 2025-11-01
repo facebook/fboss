@@ -40,6 +40,14 @@ bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
   return sendPacketOutViaThriftStream(std::move(pkt));
 }
 
+bool MultiSwitchHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> pkt,
+    const PortID& portID,
+    TxPacketType packetType) noexcept {
+  return sendPacketOutViaThriftStream(
+      std::move(pkt), portID, std::nullopt /*queue*/, packetType);
+}
+
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
   auto asicType = getSwitchInfo().asicType().value();
@@ -89,9 +97,10 @@ bool MultiSwitchHwSwitchHandler::needL2EntryForNeighbor(
 bool MultiSwitchHwSwitchHandler::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortID> portID,
-    std::optional<uint8_t> queue) {
+    std::optional<uint8_t> queue,
+    std::optional<TxPacketType> packetType) {
   return sw_->sendPacketOutViaThriftStream(
-      std::move(pkt), getSwitchId(), portID, queue);
+      std::move(pkt), getSwitchId(), std::move(portID), queue, packetType);
 }
 
 bool MultiSwitchHwSwitchHandler::checkOperSyncStateLocked(

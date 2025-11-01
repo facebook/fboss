@@ -44,6 +44,14 @@ bool MonolithicHwSwitchHandler::sendPacketSwitchedAsync(
   return hw_->sendPacketSwitchedAsync(std::move(pkt));
 }
 
+bool MonolithicHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> pkt,
+    const PortID& portID,
+    TxPacketType packetType) noexcept {
+  return hw_->sendPacketOutOfPortSyncForPktType(
+      std::move(pkt), portID, packetType);
+}
+
 bool MonolithicHwSwitchHandler::isValidStateUpdate(
     const StateDelta& delta) const {
   return hw_->isValidStateUpdate(delta);

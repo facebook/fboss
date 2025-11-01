@@ -69,6 +69,14 @@ class MockHwSwitch : public HwSwitch {
       facebook::fboss::PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept override;
 
+  MOCK_METHOD3(
+      sendPacketOutOfPortSyncForPktType_,
+      bool(TxPacket*, facebook::fboss::PortID, facebook::fboss::TxPacketType));
+  bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const facebook::fboss::PortID& portID,
+      facebook::fboss::TxPacketType packetType) noexcept override;
+
   MOCK_CONST_METHOD0(transactionsSupported, bool());
   MOCK_METHOD0(updateStatsImpl, void());
   MOCK_CONST_METHOD0(
