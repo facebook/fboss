@@ -820,6 +820,7 @@ cpp_library(
         "EncapIndexAllocator.cpp",
         "FabricConnectivityManager.cpp",
         "FabricLinkMonitoring.cpp",
+        "FabricLinkMonitoringManager.cpp",
         "FsdbSyncer.cpp",
         "HwAsicTable.cpp",
         "HwSwitchConnectionStatusTable.cpp",
