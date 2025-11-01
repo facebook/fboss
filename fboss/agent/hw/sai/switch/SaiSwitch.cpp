@@ -4008,6 +4008,38 @@ bool SaiSwitch::sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept {
   return rv == SAI_STATUS_SUCCESS;
 }
 
+bool SaiSwitch::sendPacketOutOfPortSyncCommon(
+    std::unique_ptr<TxPacket> pkt,
+    const PortSaiId& portSaiId,
+    std::optional<uint8_t> queueId,
+    std::optional<int32_t> packetType) {
+  SaiHostifApiPacket txPacket{
+      reinterpret_cast<void*>(pkt->buf()->writableData()),
+      pkt->buf()->length()};
+
+  SaiTxPacketTraits::Attributes::TxType txType(
+      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
+  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(portSaiId);
+  SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
+      queueId.value_or(0));
+  std::optional<SaiTxPacketTraits::Attributes::PacketType> pktType;
+  if (packetType.has_value()) {
+    pktType = SaiTxPacketTraits::Attributes::PacketType(packetType.value());
+  }
+  SaiTxPacketTraits::TxAttributes attributes{
+      txType, egressPort, egressQueueIndex, pktType};
+  auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
+  auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
+  if (rv != SAI_STATUS_SUCCESS) {
+    saiLogErrorEveryMs(
+        5000,
+        rv,
+        SAI_API_HOSTIF,
+        "failed to send packet on fabric port with pipeline bypass");
+  }
+  return rv == SAI_STATUS_SUCCESS;
+}
+
 bool SaiSwitch::sendPacketOutOfPortSync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
@@ -4063,24 +4095,8 @@ bool SaiSwitch::sendPacketOutOfPortSync(
     XLOG(DBG5) << PktUtil::hexDump(cursor);
   }
 
-  SaiHostifApiPacket txPacket{
-      reinterpret_cast<void*>(pkt->buf()->writableData()),
-      pkt->buf()->length()};
-
-  SaiTxPacketTraits::Attributes::TxType txType(
-      SAI_HOSTIF_TX_TYPE_PIPELINE_BYPASS);
-  SaiTxPacketTraits::Attributes::EgressPortOrLag egressPort(portItr->second);
-  SaiTxPacketTraits::Attributes::EgressQueueIndex egressQueueIndex(
-      queueId.value_or(0));
-  SaiTxPacketTraits::TxAttributes attributes{
-      txType, egressPort, egressQueueIndex, std::nullopt};
-  auto& hostifApi = SaiApiTable::getInstance()->hostifApi();
-  auto rv = hostifApi.send(attributes, saiSwitchId_, txPacket);
-  if (rv != SAI_STATUS_SUCCESS) {
-    saiLogErrorEveryMs(
-        5000, rv, SAI_API_HOSTIF, "failed to send packet pipeline bypass");
-  }
-  return rv == SAI_STATUS_SUCCESS;
+  return sendPacketOutOfPortSyncCommon(
+      std::move(pkt), portItr->second, queueId.value_or(0), std::nullopt);
 }
 
 void SaiSwitch::fetchL2TableLocked(
