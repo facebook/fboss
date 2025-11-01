@@ -908,6 +908,7 @@ cpp_library(
         ":build_info_wrapper",
         ":constants",
         ":dhcpv4_options_of_interest",
+        ":dsfnode_utils",
         ":ecmp_resource_manager",
         ":fboss-error",
         ":fboss-types",

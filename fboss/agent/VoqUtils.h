@@ -53,11 +53,19 @@ constexpr auto kSingleStageMaxGlobalSwitchId{2048};
 constexpr auto kFabricLinkMonitoringMaxLeafSwitchIds{160};
 // Max switch IDs needed in the FDSW-SDSW level
 constexpr auto kFabricLinkMonitoringMaxLevel2SwitchIds{200};
+
+// Max number of switchIDs that can be allocated for the various layers
+// for fabric link monitoring.
+constexpr auto kSingleStageMaxLeafL1FabricLinkMonitoringSwitchIds{256};
+constexpr auto kDualStageMaxLeafL1FabricLinkMonitoringSwitchIds{160};
+constexpr auto kDualStageMaxL1L2FabricLinkMonitoringSwitchIds{200};
+
 // Define the starting switch ID for use with fabric link mon between
-// RDSW/EDSW-FDSW as level1 and FDSW-SDSW as level2.
-constexpr auto kFabricLinkMonitoringLeafBaseSwitchId{
-    kDualStageMaxGlobalSwitchId};
-constexpr auto kFabricLinkMonitoringLevel2BaseSwitchId{4096};
+// FDSW-SDSW
+constexpr auto kFabricLinkMonitoringL1L2BaseSwitchId{4096};
+
+// Max usable switchID in VoQ switch
+constexpr auto kMaxUsableVoqSwitchId{4064};
 
 int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope);
 

@@ -401,6 +401,7 @@ set(core_libs
   thrift_method_rate_limit
   shel_manager
   state_delta_logger
+  dsfnode_utils
 )
 
 target_link_libraries(core ${core_libs})

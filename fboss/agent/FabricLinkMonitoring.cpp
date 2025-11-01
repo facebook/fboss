@@ -2,6 +2,7 @@
 
 #include "fboss/agent/FabricLinkMonitoring.h"
 
+#include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/types.h"
@@ -119,6 +120,7 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
   CHECK(config->switchSettings()->switchId().has_value())
       << "Local switch ID missing in switch settings!";
   SwitchID localSwitchId = SwitchID(*config->switchSettings()->switchId());
+  bool isDualStageNetwork = utility::isDualStage(*config);
 
   for (const auto& port : *config->ports()) {
     if (*port.portType() != cfg::PortType::FABRIC_PORT ||
@@ -140,18 +142,34 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
     int vd = portVdIter->second;
 
     int switchIdBase;
+    int maxNumSwitchIds;
     int linksAtLevel;
     int maxParallelLinks;
     int switchIdOffset;
     if (isVoqSwitch_ || isConnectedToVoqSwitch(config, remoteSwitchId)) {
-      // Port connecting a VoQ switch and L1 fabric
-      switchIdBase = kFabricLinkMonitoringLeafBaseSwitchId;
+      // This is for a port connecting a VoQ switch and L1 fabric.
+      // Identify a base switchID such that the max possible switch ID
+      // will still fall within the allowed limit.
+      if (isDualStageNetwork) {
+        maxNumSwitchIds = kDualStageMaxLeafL1FabricLinkMonitoringSwitchIds;
+        switchIdBase = kMaxUsableVoqSwitchId - maxNumSwitchIds;
+        CHECK_GE(switchIdBase, kDualStageMaxGlobalSwitchId)
+            << "Fabric link monitoring base switch ID should be >= "
+            << kDualStageMaxGlobalSwitchId;
+      } else {
+        maxNumSwitchIds = kSingleStageMaxLeafL1FabricLinkMonitoringSwitchIds;
+        switchIdBase = kMaxUsableVoqSwitchId - maxNumSwitchIds;
+        CHECK_GE(switchIdBase, kSingleStageMaxGlobalSwitchId)
+            << "Fabric link monitoring base switch ID should be >= "
+            << kSingleStageMaxGlobalSwitchId;
+      }
       linksAtLevel = numLeafToL1Links_;
       maxParallelLinks = maxParallelLeafToL1Links_;
       switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
     } else {
-      // Port connecting L1 and L2 fabric
-      switchIdBase = kFabricLinkMonitoringLevel2BaseSwitchId;
+      // This is for a port connecting L1 and L2 fabric
+      switchIdBase = kFabricLinkMonitoringL1L2BaseSwitchId;
+      maxNumSwitchIds = kDualStageMaxL1L2FabricLinkMonitoringSwitchIds;
       linksAtLevel = numL1ToL2Links_;
       maxParallelLinks = maxParallelL1ToL2Links_;
       switchIdOffset = getSwitchIdOffset(localSwitchId, remoteSwitchId);
@@ -159,10 +177,10 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
     int parallelLinkOffset =
         calculateParallelLinkOffset(port, remoteSwitchId, vd, maxParallelLinks);
     int offset = switchIdOffset * maxParallelLinks + vd + parallelLinkOffset;
-    // SwitchID allocated should be in the specific range bounded by the number
-    // of links at that layer.
-    portId2LinkSwitchId_[portId] = switchIdBase + (offset % linksAtLevel);
-    XLOG(DBG3) << "Fabric Link Mon: Port ID:" << portId
+    // SwitchID allocated should be in the specific range bounded by the maximum
+    // number of switchIDs possible for the 2 roles connected by the port/link.
+    portId2LinkSwitchId_[portId] = switchIdBase + (offset % maxNumSwitchIds);
+    XLOG(DBG3) << "Fabric Link Mon - Port ID:" << portId
                << " Link Switch ID:" << portId2LinkSwitchId_[portId]
                << " localSwitchId:" << localSwitchId
                << " remoteSwitchId:" << remoteSwitchId
@@ -170,6 +188,7 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
                << " switchIdOffset:" << switchIdOffset
                << " maxParallelLinks:" << maxParallelLinks << " vd:" << vd
                << " parallelLinkOffset:" << parallelLinkOffset
+               << " maxNumSwitchIds:" << maxNumSwitchIds << " offset:" << offset
                << " linksAtLevel:" << linksAtLevel;
   }
 }
