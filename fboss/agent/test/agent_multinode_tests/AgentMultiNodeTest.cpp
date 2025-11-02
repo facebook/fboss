@@ -60,12 +60,16 @@ void AgentMultiNodeTest::setCmdLineFlagOverrides() const {
   FLAGS_dsf_subscribe = true;
 }
 
-TEST_F(AgentMultiNodeTest, verifyCluster) {
+void AgentMultiNodeTest::verifyCluster() const {
   switch (topologyInfo_->getTopologyType()) {
     case utility::TopologyInfo::TopologyType::DSF:
       utility::verifyDsfCluster(topologyInfo_);
       break;
   }
+}
+
+TEST_F(AgentMultiNodeTest, verifyCluster) {
+  verifyCluster();
 }
 
 } // namespace facebook::fboss
