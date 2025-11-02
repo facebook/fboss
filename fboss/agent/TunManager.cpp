@@ -39,7 +39,11 @@ extern "C" {
 
 namespace {
 const int kDefaultMtu = 1500;
-}
+// Todo manually test
+const int maxRouteTableId = 4096;
+const int minRouteTableId = 1;
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -261,9 +265,16 @@ int TunManager::getTableId(InterfaceID ifID) const {
       throw FbossError("No system port range in SwitchSettings for VOQ switch");
   }
 
-  // Sanity checks. Generated ID must be in range [1-253]
-  CHECK_GE(tableId, 1);
-  CHECK_LE(tableId, 253);
+  if (!FLAGS_enable_1to1_intf_route_table_mapping) {
+    // Sanity checks. Generated ID must be in range [1-253]
+    CHECK_GE(tableId, 1);
+    CHECK_LE(tableId, 253);
+  } else {
+    // Sanity checks. Generated ID must be in range  [minRouteTableId,
+    // maxRouteTableId]
+    CHECK_GE(tableId, minRouteTableId);
+    CHECK_LE(tableId, maxRouteTableId);
+  }
 
   return tableId;
 }
