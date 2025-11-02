@@ -7,6 +7,7 @@
 
 namespace {
 using namespace facebook::fboss::utility;
+using facebook::fboss::DsfSessionThrift;
 using facebook::fboss::FabricEndpoint;
 using facebook::fboss::NdpEntryThrift;
 using facebook::fboss::PortActiveState;
@@ -161,6 +162,21 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
       });
 
   return filteredNdpEntries;
+}
+
+std::map<std::string, DsfSessionThrift> getPeerToDsfSession(
+    const std::string& rdsw) {
+  std::map<std::string, DsfSessionThrift> peerToDsfSession;
+  for (const auto& session : getDsfSessions(rdsw)) {
+    // remoteName format: peerName::peerIP, extract peerName.
+    size_t pos = (*session.remoteName()).find("::");
+    if (pos != std::string::npos) {
+      auto peer = (*session.remoteName()).substr(0, pos);
+      peerToDsfSession.emplace(peer, session);
+    }
+  }
+
+  return peerToDsfSession;
 }
 
 } // namespace
