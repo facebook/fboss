@@ -125,4 +125,12 @@ std::vector<facebook::fboss::NdpEntryThrift> getNdpEntries(
   return ndpEntries;
 }
 
+std::vector<facebook::fboss::DsfSessionThrift> getDsfSessions(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::vector<facebook::fboss::DsfSessionThrift> sessions;
+  swAgentClient->sync_getDsfSessions(sessions);
+  return sessions;
+}
+
 } // namespace facebook::fboss::utility
