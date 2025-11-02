@@ -26,6 +26,9 @@ class AgentMultiNodeTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override;
 
   void verifyCluster() const;
+  void runTestWithVerifyCluster(
+      const std::function<void(const std::unique_ptr<utility::TopologyInfo>&)>&
+          testFn) const;
 
   std::unique_ptr<utility::TopologyInfo> topologyInfo_;
 };

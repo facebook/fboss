@@ -68,6 +68,16 @@ void AgentMultiNodeTest::verifyCluster() const {
   }
 }
 
+void AgentMultiNodeTest::runTestWithVerifyCluster(
+    const std::function<void(const std::unique_ptr<utility::TopologyInfo>&)>&
+        testFn) const {
+  // Verify cluster before running test
+  verifyCluster();
+  testFn(topologyInfo_);
+  // Verify cluster is still healthy after test
+  verifyCluster();
+}
+
 TEST_F(AgentMultiNodeTest, verifyCluster) {
   verifyCluster();
 }
