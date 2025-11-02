@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
 
+#include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -668,6 +669,49 @@ void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 
 bool verifyDsfGracefulAgentRestartForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for RDSWs";
+  auto myHostname = topologyInfo->getMyHostname();
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  // For any one RDSW in every remote cluster issue Agent restart
+  for (const auto& [_, rdsws] :
+       std::as_const(topologyInfo->getClusterIdToRdsws())) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+      // Trigger graceful or ungraceful Agent restart
+      triggerGracefulAgentRestart(rdsw);
+
+      // Wait for the switch to come up
+      if (!verifySwSwitchRunState(rdsw, SwitchRunState::CONFIGURED)) {
+        XLOG(DBG2) << "Agent failed to come up post warmboot: " << rdsw;
+        return false;
+      }
+
+      // Sessions to RDSW that was just restarted are expected to flap.
+      // This is regardless of graceful or ungraceful Agent restart.
+      // Verify no other sessions flap.
+      auto expectedPeerToDsfSession = baselinePeerToDsfSession;
+      expectedPeerToDsfSession.erase(rdsw);
+      if (!verifyNoSessionsFlap(
+              myHostname /* rdswToVerify */,
+              expectedPeerToDsfSession,
+              rdsw /* rdswToExclude */)) {
+        return false;
+      }
+
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
+      if (!verifyAllSessionsEstablished(rdsw)) {
+        return false;
+      }
+
+      // Restart only one remote RDSW per cluster
+      break;
+    }
+  }
+
   return true;
 }
 
