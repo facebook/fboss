@@ -8,11 +8,13 @@ namespace facebook::fboss {
 class AgentMultiNodeProcessRestartTest : public AgentMultiNodeTest {};
 
 TEST_F(AgentMultiNodeProcessRestartTest, verifyGracefulAgentRestart) {
-  switch (topologyInfo_->getTopologyType()) {
-    case utility::TopologyInfo::TopologyType::DSF:
-      utility::verifyDsfGracefulAgentRestart(topologyInfo_);
-      break;
-  }
+  runTestWithVerifyCluster([](const auto& topologyInfo) {
+    switch (topologyInfo->getTopologyType()) {
+      case utility::TopologyInfo::TopologyType::DSF:
+        utility::verifyDsfGracefulAgentRestart(topologyInfo);
+        break;
+    }
+  });
 }
 
 } // namespace facebook::fboss
