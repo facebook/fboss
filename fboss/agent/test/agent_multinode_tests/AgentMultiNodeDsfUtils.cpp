@@ -38,6 +38,15 @@ void logFabricEndpoint(
              << fabricEndpoint.expectedPortName().value_or("none");
 }
 
+void logReachability(
+    const std::string& switchName,
+    const std::string& remoteSwitchName,
+    const std::vector<std::string>& reachablePorts) {
+  XLOG(DBG2) << "From " << switchName
+             << " remoteSwitchName: " << remoteSwitchName
+             << " reachablePorts: " << folly::join(",", reachablePorts);
+};
+
 bool verifyFabricConnectivityHelper(
     const std::string& switchToVerify,
     const std::set<std::string>& expectedConnectedSwitches) {
@@ -332,6 +341,7 @@ bool verifyFabricReachabilityForRdsw(
 
   for (auto& [remoteSwitchName, reachablePorts] :
        remoteSwitchToReachablePorts) {
+    logReachability(rdswToVerify, remoteSwitchName, reachablePorts);
     std::set<std::string> reachablePortsSet(
         reachablePorts.begin(), reachablePorts.end());
     XLOG(DBG2) << "From RDSW:: " << rdswToVerify
@@ -349,6 +359,7 @@ bool verifyFabricReachabilityForRdsw(
 
 bool verifyFabricReachability(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Fabric Reachability for RDSWs";
   for (const auto& rdsw : topologyInfo->getRdsws()) {
     if (!verifyFabricReachabilityForRdsw(topologyInfo, rdsw)) {
       return false;
