@@ -484,6 +484,7 @@ bool verifySystemPortsForRdsw(
     const std::string& rdswToVerify) {
   // Every GLOBAL system port of every remote RDSW is either a STATIC_ENTRY
   // or DYNAMIC_ENTRY of the local RDSW
+  XLOG(DBG2) << "Verifying System Ports for RDSW: " << rdswToVerify;
   std::set<std::string> gotSystemPorts;
   std::set<std::string> expectedSystemPorts;
   for (const auto& [clusterId, rdsws] :
@@ -504,10 +505,15 @@ bool verifySystemPortsForRdsw(
     }
   }
 
+  XLOG(DBG2) << "From " << rdswToVerify << " Expected System Ports: "
+             << folly::join(",", expectedSystemPorts)
+             << " Got System Ports: " << folly::join(",", gotSystemPorts);
+
   return expectedSystemPorts == gotSystemPorts;
 }
 
 bool verifySystemPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying System Ports";
   for (const auto& rdsw : topologyInfo->getRdsws()) {
     if (!verifySystemPortsForRdsw(topologyInfo, rdsw)) {
       return false;
