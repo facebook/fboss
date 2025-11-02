@@ -623,7 +623,26 @@ void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   });
 }
 
+bool verifyDsfGracefulAgentRestartForRdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyDsfGracefulAgentRestartForFdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyDsfGracefulAgentRestartForSdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
 void verifyDsfGracefulAgentRestart(
-    const std::unique_ptr<TopologyInfo>& topologyInfo) {}
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  verifyDsfGracefulAgentRestartForRdsws(topologyInfo) &&
+      verifyDsfGracefulAgentRestartForFdsws(topologyInfo) &&
+      verifyDsfGracefulAgentRestartForSdsws(topologyInfo);
+}
 
 } // namespace facebook::fboss::utility
