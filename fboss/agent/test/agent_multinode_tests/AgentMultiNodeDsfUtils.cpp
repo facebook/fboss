@@ -245,7 +245,7 @@ std::set<std::string> getPeersWithEstablishedDsfSessions(
 bool verifyNoSessionsFlap(
     const std::string& rdswToVerify,
     const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
-    const std::optional<std::string>& rdswToExclude) {
+    const std::optional<std::string>& rdswToExclude = std::nullopt) {
   auto noSessionFlap = [rdswToVerify, baselinePeerToDsfSession, rdswToExclude] {
     auto currentPeerToDsfSession = getPeerToDsfSession(rdswToVerify);
     // All entries must be identical i.e.
@@ -717,6 +717,34 @@ bool verifyDsfGracefulAgentRestartForRdsws(
 
 bool verifyDsfGracefulAgentRestartForFdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for FDSWs";
+  auto myHostname = topologyInfo->getMyHostname();
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  // For any one FDSW in every remote cluster issue graceful restart
+  for (const auto& [_, fdsws] :
+       std::as_const(topologyInfo->getClusterIdToFdsws())) {
+    // Gracefully restart only one remote FDSW per cluster
+    if (!fdsws.empty()) {
+      auto fdsw = fdsws.front();
+      triggerGracefulAgentRestart(fdsw);
+      // Wait for the switch to come up
+      if (!verifySwSwitchRunState(fdsw, SwitchRunState::CONFIGURED)) {
+        XLOG(DBG2) << "Agent failed to come up post warmboot: " << fdsw;
+        return false;
+      }
+    }
+  }
+
+  // verify no flaps is expensive.
+  // Thus, only verify after warmboot restarting one FDSW from each cluster.
+  // There is no loss of signal due to this approach as if the sessions flap
+  // due to an intermediate warmboot, it will be detected by this check
+  // anyway.
+  if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
+    return false;
+  }
+
   return true;
 }
 
