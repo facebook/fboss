@@ -8,6 +8,7 @@
 namespace {
 using namespace facebook::fboss::utility;
 using facebook::fboss::checkAlwaysTrueWithRetryErrorReturn;
+using facebook::fboss::checkWithRetryErrorReturn;
 using facebook::fboss::DsfSessionState;
 using facebook::fboss::DsfSessionThrift;
 using facebook::fboss::FabricEndpoint;
@@ -261,6 +262,24 @@ bool verifyNoSessionsFlap(
   // stays ESTABLISHED.
   return checkAlwaysTrueWithRetryErrorReturn(
       noSessionFlap, 30 /* num retries */);
+}
+
+bool verifyAllSessionsEstablished(const std::string& rdswToVerify) {
+  auto allSessionsEstablished = [rdswToVerify] {
+    for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
+      if (session.state() != facebook::fboss::DsfSessionState::ESTABLISHED) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // It may take several seconds(>15) for ESTABLISHED => CONNECT. Thus,
+  // try for several seconds and check if the session transitions to
+  // ESTABLISHED.
+  return checkWithRetryErrorReturn(
+      allSessionsEstablished, 30 /* num retries */);
 }
 
 } // namespace
