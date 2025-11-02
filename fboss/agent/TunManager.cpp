@@ -45,6 +45,11 @@ namespace facebook::fboss {
 
 using folly::IPAddress;
 
+DEFINE_bool(
+    enable_1to1_intf_route_table_mapping,
+    false,
+    "Enable 1 to 1 interface id to route table id mapping");
+
 TunManager::TunManager(SwSwitch* sw, FbossEventBase* evb) : sw_(sw), evb_(evb) {
   DCHECK(sw) << "NULL pointer to SwSwitch.";
   DCHECK(evb) << "NULL pointer to EventBase";
