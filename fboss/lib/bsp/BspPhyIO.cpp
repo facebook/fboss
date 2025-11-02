@@ -25,4 +25,40 @@ BspPhyIO::BspPhyIO(int pimID, BspPhyIOControllerInfo& controllerInfo)
       mdioDevName);
 }
 
+phy::Cl45Data BspPhyIO::readRegister(
+    phy::PhyAddress phyAddr,
+    phy::Cl45DeviceAddress deviceAddr,
+    phy::Cl45RegisterAddress reg) {
+  try {
+    return mdioController_->readCl45(phyAddr, deviceAddr, reg);
+  } catch (const std::exception& ex) {
+    throw BspPhyIOError(
+        fmt::format(
+            "BspPhyIO::readRegister() failed for phyAddr={:#x}, deviceAddr={:#x}, reg={:#x}: {}",
+            phyAddr,
+            deviceAddr,
+            reg,
+            ex.what()));
+  }
+}
+
+void BspPhyIO::writeRegister(
+    phy::PhyAddress phyAddr,
+    phy::Cl45DeviceAddress deviceAddr,
+    phy::Cl45RegisterAddress reg,
+    phy::Cl45Data data) {
+  try {
+    mdioController_->writeCl45(phyAddr, deviceAddr, reg, data);
+  } catch (const std::exception& ex) {
+    throw BspPhyIOError(
+        fmt::format(
+            "BspPhyIO::writeRegister() failed for phyAddr={:#x}, deviceAddr={:#x}, reg={:#x}, data={:#x}: {}",
+            phyAddr,
+            deviceAddr,
+            reg,
+            data,
+            ex.what()));
+  }
+}
+
 } // namespace facebook::fboss
