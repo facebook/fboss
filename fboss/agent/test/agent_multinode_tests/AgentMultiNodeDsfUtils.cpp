@@ -47,6 +47,16 @@ void logReachability(
              << " reachablePorts: " << folly::join(",", reachablePorts);
 };
 
+void logDsfSession(const std::string& rdsw, const DsfSessionThrift& session) {
+  XLOG(DBG2) << "From " << rdsw << " session: " << *session.remoteName()
+             << " state: "
+             << apache::thrift::util::enumNameSafe(*session.state())
+             << " lastEstablishedAt: "
+             << session.lastEstablishedAt().value_or(0)
+             << " lastDisconnectedAt: "
+             << session.lastDisconnectedAt().value_or(0);
+}
+
 bool verifyFabricConnectivityHelper(
     const std::string& switchToVerify,
     const std::set<std::string>& expectedConnectedSwitches) {
@@ -205,6 +215,7 @@ std::map<std::string, DsfSessionThrift> getPeerToDsfSession(
     const std::string& rdsw) {
   std::map<std::string, DsfSessionThrift> peerToDsfSession;
   for (const auto& session : getDsfSessions(rdsw)) {
+    logDsfSession(rdsw, session);
     // remoteName format: peerName::peerIP, extract peerName.
     size_t pos = (*session.remoteName()).find("::");
     if (pos != std::string::npos) {
@@ -584,11 +595,15 @@ bool verifyStaticNdpEntries(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 
 bool verifyDsfSessions(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   // Every RDSW must have an ESTABLISHED DSF Session with every other RDSW
+  XLOG(DBG2) << "Verifying DSF sessions";
   for (const auto& rdsw : topologyInfo->getRdsws()) {
     auto expectedRdsws = topologyInfo->getRdsws();
     expectedRdsws.erase(rdsw); // exclude self
     auto gotRdsws = getPeersWithEstablishedDsfSessions(rdsw);
     if (expectedRdsws != gotRdsws) {
+      XLOG(DBG2) << "DSF ESTABLISHED sessions from " << rdsw
+                 << " Expected RDSWs: " << folly::join(",", expectedRdsws)
+                 << " Got RDSWs: " << folly::join(",", gotRdsws);
       return false;
     }
   }
