@@ -18,6 +18,26 @@ using facebook::fboss::RemoteSystemPortType;
 using facebook::fboss::cfg::PortType;
 using facebook::fboss::cfg::Scope;
 
+void logFabricEndpoint(
+    const std::string& switchName,
+    const FabricEndpoint& fabricEndpoint) {
+  XLOG(DBG2) << "From " << " switchName: " << switchName
+             << " actualPeerSwitchId: " << fabricEndpoint.switchId().value()
+             << " actualPeerSwitchName: "
+             << fabricEndpoint.switchName().value_or("none")
+             << " actualPeerPortId: " << fabricEndpoint.portId().value()
+             << " actualPortName: "
+             << fabricEndpoint.portName().value_or("none")
+             << " expectedPeerSwitchId: "
+             << fabricEndpoint.expectedSwitchId().value_or(-1)
+             << " expectedPeerSwitchName: "
+             << fabricEndpoint.expectedSwitchName().value_or("none")
+             << " expectedPeerPortId: "
+             << fabricEndpoint.expectedPortId().value_or(-1)
+             << " expectedPeerPortName: "
+             << fabricEndpoint.expectedPortName().value_or("none");
+}
+
 bool verifyFabricConnectivityHelper(
     const std::string& switchToVerify,
     const std::set<std::string>& expectedConnectedSwitches) {
@@ -25,6 +45,7 @@ bool verifyFabricConnectivityHelper(
   for (const auto& [portName, fabricEndpoint] :
        getFabricPortToFabricEndpoint(switchToVerify)) {
     if (fabricEndpoint.isAttached().value()) {
+      logFabricEndpoint(switchToVerify, fabricEndpoint);
       auto actualRemoteSwitchId = fabricEndpoint.switchId().value();
       auto expectedRemoteSwitchId =
           fabricEndpoint.expectedSwitchId().value_or(-1);
@@ -48,6 +69,12 @@ bool verifyFabricConnectivityHelper(
       }
     }
   }
+
+  XLOG(DBG2) << "From " << switchToVerify << " Expected Connected Switches: "
+             << folly::join(",", expectedConnectedSwitches)
+             << " Got Connected Switches: "
+             << folly::join(",", gotConnectedSwitches);
+
   return expectedConnectedSwitches == gotConnectedSwitches;
 }
 
@@ -211,6 +238,7 @@ bool verifyFabricConnectivityForRdsw(
 
 bool verifyFabricConnectivityForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Fabric Connectivity for RDSWs";
   for (const auto& [clusterId, rdsws] :
        std::as_const(topologyInfo->getClusterIdToRdsws())) {
     for (const auto& rdsw : rdsws) {
@@ -240,6 +268,7 @@ bool verifyFabricConnectivityForFdsw(
 
 bool verifyFabricConnectivityForFdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Fabric Connectivity for FDSWs";
   for (const auto& [clusterId, fdsws] :
        std::as_const(topologyInfo->getClusterIdToFdsws())) {
     for (const auto& fdsw : fdsws) {
@@ -261,6 +290,7 @@ bool verifyFabricConnectivityForSdsw(
 
 bool verifyFabricConnectivityForSdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Fabric Connectivity for SDSWs";
   for (const auto& sdsw : std::as_const(topologyInfo->getSdsws())) {
     if (!verifyFabricConnectivityForSdsw(topologyInfo, sdsw)) {
       return false;
@@ -272,6 +302,7 @@ bool verifyFabricConnectivityForSdsws(
 
 bool verifyFabricConnectivity(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Fabric Connectivity";
   return verifyFabricConnectivityForRdsws(topologyInfo) &&
       verifyFabricConnectivityForFdsws(topologyInfo) &&
       verifyFabricConnectivityForSdsws(topologyInfo);
