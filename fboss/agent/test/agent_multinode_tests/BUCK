@@ -21,6 +21,7 @@ cpp_library(
         "AgentMultiNodeTest.h",
         "DsfTopologyInfo.h",
     ],
+    link_whole = True,
     exported_deps = [
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
@@ -49,6 +50,7 @@ _sai_agent_multinode_test_prefix = "sai_agent_multinode_test"
         },
         deps = [
             "fbsource//third-party/googletest:gtest",
+            ":agent_multinode_test_src",
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
             "//fboss/agent/test:mono_agent_ensemble",
