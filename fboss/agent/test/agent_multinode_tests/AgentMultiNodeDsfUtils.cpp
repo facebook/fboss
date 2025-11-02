@@ -7,6 +7,7 @@
 
 namespace {
 using namespace facebook::fboss::utility;
+using facebook::fboss::DsfSessionState;
 using facebook::fboss::DsfSessionThrift;
 using facebook::fboss::FabricEndpoint;
 using facebook::fboss::NdpEntryThrift;
@@ -177,6 +178,18 @@ std::map<std::string, DsfSessionThrift> getPeerToDsfSession(
   }
 
   return peerToDsfSession;
+}
+
+std::set<std::string> getPeersWithEstablishedDsfSessions(
+    const std::string& rdsw) {
+  std::set<std::string> peersWithEstablishedDsfSessions;
+  for (const auto& [peer, session] : getPeerToDsfSession(rdsw)) {
+    if (session.state() == DsfSessionState::ESTABLISHED) {
+      peersWithEstablishedDsfSessions.insert(peer);
+    }
+  }
+
+  return peersWithEstablishedDsfSessions;
 }
 
 } // namespace
