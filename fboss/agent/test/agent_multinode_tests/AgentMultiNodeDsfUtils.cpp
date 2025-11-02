@@ -528,6 +528,7 @@ bool verifyRifsForRdsw(
     const std::string& rdswToVerify) {
   // Every GLOBAL rif of every remote RDSW is either a STATIC_ENTRY or
   // DYNAMIC_ENTRY of the local RDSW
+  XLOG(DBG2) << "Verifying RIFs for RDSW: " << rdswToVerify;
   std::set<int> gotRifs;
   std::set<int> expectedRifs;
   for (const auto& [clusterId, rdsws] :
@@ -547,10 +548,15 @@ bool verifyRifsForRdsw(
     }
   }
 
+  XLOG(DBG2) << "From " << rdswToVerify
+             << " Expected Rifs: " << folly::join(",", expectedRifs)
+             << " Got Rifs: " << folly::join(",", gotRifs);
+
   return expectedRifs == gotRifs;
 }
 
 bool verifyRifs(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying RIFs";
   for (const auto& rdsw : topologyInfo->getRdsws()) {
     if (!verifyRifsForRdsw(topologyInfo, rdsw)) {
       return false;
