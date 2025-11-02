@@ -508,6 +508,20 @@ bool verifyStaticNdpEntries(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   return true;
 }
 
+bool verifyDsfSessions(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  // Every RDSW must have an ESTABLISHED DSF Session with every other RDSW
+  for (const auto& rdsw : topologyInfo->getRdsws()) {
+    auto expectedRdsws = topologyInfo->getRdsws();
+    expectedRdsws.erase(rdsw); // exclude self
+    auto gotRdsws = getPeersWithEstablishedDsfSessions(rdsw);
+    if (expectedRdsws != gotRdsws) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
     verifyFabricConnectivity(topologyInfo);
@@ -516,6 +530,7 @@ void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
     verifySystemPorts(topologyInfo);
     verifyRifs(topologyInfo);
     verifyStaticNdpEntries(topologyInfo);
+    verifyDsfSessions(topologyInfo);
   });
 }
 
