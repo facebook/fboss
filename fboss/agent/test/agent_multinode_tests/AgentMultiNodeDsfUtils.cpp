@@ -371,16 +371,26 @@ bool verifyFabricReachability(
 
 bool verifyPortActiveStateForSwitch(const std::string& switchName) {
   // Every Connected Fabric Port must be Active
+  XLOG(DBG2) << "Verifying Fabric Port Active State: " << switchName;
   auto connectedPorts = getConnectedFabricPorts(switchName);
   auto activePorts = getActiveFabricPorts(switchName);
+
+  XLOG(DBG2) << "From " << switchName
+             << " Expected Active Ports (connected fabric ports): "
+             << folly::join(",", connectedPorts)
+             << " Got Active Ports: " << folly::join(",", activePorts);
 
   return connectedPorts == activePorts;
 }
 
 bool verifyNoPortErrorsForSwitch(const std::string& switchName) {
   // No ports should have errors
+  XLOG(DBG2) << "Verifying Fabric Port No Error: " << switchName;
   for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
     if (portInfo.activeErrors()->size() != 0) {
+      XLOG(DBG2) << "From " << switchName
+                 << " Port: " << portInfo.name().value() << " has errors: "
+                 << folly::join(",", *portInfo.activeErrors());
       return false;
     }
   }
@@ -401,6 +411,7 @@ bool verifyPortCableLength(const std::string& switchName) {
   //    FDSW Fabric ports towards SDSW
 
   // Verify if all connected fabric ports have valid cable length
+  XLOG(DBG2) << "Verifying Fabric Port Cable Length: " << switchName;
   for (const auto& [_, portInfo] :
        getActiveFabricPortNameToPortInfo(switchName)) {
     if (portInfo.cableLengthMeters().has_value() &&
@@ -410,6 +421,10 @@ bool verifyPortCableLength(const std::string& switchName) {
       continue;
     }
 
+    XLOG(DBG2) << "From " << switchName << " Port: " << portInfo.name().value()
+               << " has invalid cable length: "
+               << portInfo.cableLengthMeters().value_or(-1);
+
     return false;
   }
 
@@ -417,11 +432,13 @@ bool verifyPortCableLength(const std::string& switchName) {
 }
 
 bool verifyFabricPorts(const std::string& switchName) {
+  XLOG(DBG2) << "Verifying Fabric Ports: " << switchName;
   return verifyPortActiveStateForSwitch(switchName) &&
       verifyNoPortErrorsForSwitch(switchName);
 }
 
 bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Ports for RDSWs";
   for (const auto& rdsw : topologyInfo->getRdsws()) {
     if (!verifyFabricPorts(rdsw)) {
       return false;
@@ -435,6 +452,7 @@ bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 }
 
 bool verifyPortsForFdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Ports for FDSWs";
   for (const auto& fdsw : topologyInfo->getFdsws()) {
     if (!verifyFabricPorts(fdsw)) {
       return false;
@@ -445,6 +463,7 @@ bool verifyPortsForFdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 }
 
 bool verifyPortsForSdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Ports for SDSWs";
   for (const auto& sdsw : topologyInfo->getSdsws()) {
     if (!verifyFabricPorts(sdsw)) {
       return false;
@@ -455,6 +474,7 @@ bool verifyPortsForSdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 }
 
 bool verifyPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Ports";
   return verifyPortsForRdsws(topologyInfo) &&
       verifyPortsForFdsws(topologyInfo) && verifyPortsForSdsws(topologyInfo);
 }
