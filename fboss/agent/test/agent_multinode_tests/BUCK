@@ -23,6 +23,7 @@ cpp_library(
     ],
     link_whole = True,
     exported_deps = [
+        "//common/network:util",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
         "//fboss/agent/state:state",

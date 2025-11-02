@@ -32,6 +32,10 @@ class TopologyInfo {
     return topologyType_;
   }
 
+  std::string getMyHostname() const {
+    return myHostname_;
+  }
+
   virtual const std::map<int, std::vector<std::string>>& getClusterIdToRdsws()
       const = 0;
   virtual const std::map<int, std::vector<std::string>>& getClusterIdToFdsws()
@@ -48,6 +52,10 @@ class TopologyInfo {
 
  private:
   TopologyType topologyType_;
+
+  // The Test binary only runs on the TestDriver.
+  // Thus, My hostname is also the TestDriver name.
+  std::string myHostname_;
 };
 
 } // namespace facebook::fboss::utility

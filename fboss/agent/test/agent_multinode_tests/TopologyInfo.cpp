@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/agent_multinode_tests/TopologyInfo.h"
 
+#include "common/network/NetworkUtil.h"
 #include "fboss/agent/test/agent_multinode_tests/DsfTopologyInfo.h"
 
 namespace {
@@ -44,7 +45,10 @@ std::unique_ptr<TopologyInfo> TopologyInfo::makeTopologyInfo(
 }
 
 TopologyInfo::TopologyInfo(const std::shared_ptr<SwitchState>& switchState)
-    : topologyType_(getDerivedTopologyType(switchState)) {}
+    : topologyType_(getDerivedTopologyType(switchState)) {
+  myHostname_ = network::NetworkUtil::getLocalHost(
+      true /* stripFbDomain */, true /* stripTFbDomain */);
+}
 
 TopologyInfo::~TopologyInfo() {}
 
