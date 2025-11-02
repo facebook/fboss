@@ -623,6 +623,7 @@ void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   });
 }
 
-void verifyDsfAgentDownUp() {}
+void verifyDsfGracefulAgentRestart(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {}
 
 } // namespace facebook::fboss::utility

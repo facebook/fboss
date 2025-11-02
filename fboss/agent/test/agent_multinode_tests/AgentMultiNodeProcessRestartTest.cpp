@@ -7,10 +7,10 @@ namespace facebook::fboss {
 
 class AgentMultiNodeProcessRestartTest : public AgentMultiNodeTest {};
 
-TEST_F(AgentMultiNodeProcessRestartTest, verifyAgentDownUp) {
+TEST_F(AgentMultiNodeProcessRestartTest, verifyGracefulAgentRestart) {
   switch (topologyInfo_->getTopologyType()) {
     case utility::TopologyInfo::TopologyType::DSF:
-      utility::verifyDsfAgentDownUp();
+      utility::verifyDsfGracefulAgentRestart(topologyInfo_);
       break;
   }
 }
