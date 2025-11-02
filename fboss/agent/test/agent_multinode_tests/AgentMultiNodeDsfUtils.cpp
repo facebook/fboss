@@ -7,6 +7,7 @@
 
 namespace {
 using namespace facebook::fboss::utility;
+using facebook::fboss::checkAlwaysTrueWithRetryErrorReturn;
 using facebook::fboss::DsfSessionState;
 using facebook::fboss::DsfSessionThrift;
 using facebook::fboss::FabricEndpoint;
@@ -237,6 +238,29 @@ std::set<std::string> getPeersWithEstablishedDsfSessions(
   }
 
   return peersWithEstablishedDsfSessions;
+}
+
+bool verifyNoSessionsFlap(
+    const std::string& rdswToVerify,
+    const std::map<std::string, DsfSessionThrift>& baselinePeerToDsfSession,
+    const std::optional<std::string>& rdswToExclude) {
+  auto noSessionFlap = [rdswToVerify, baselinePeerToDsfSession, rdswToExclude] {
+    auto currentPeerToDsfSession = getPeerToDsfSession(rdswToVerify);
+    // All entries must be identical i.e.
+    // DSF Session state (ESTABLISHED or not) is the same.
+    // For any session the establishedAt and connnectedAt is the same.
+    if (rdswToExclude.has_value()) {
+      currentPeerToDsfSession.erase(rdswToExclude.value());
+    }
+
+    return baselinePeerToDsfSession == currentPeerToDsfSession;
+  };
+
+  // It may take several (> 15) seconds for ESTABLISHED => CONNECT.
+  // Thus, keep retrying for several seconds to ensure that the session
+  // stays ESTABLISHED.
+  return checkAlwaysTrueWithRetryErrorReturn(
+      noSessionFlap, 30 /* num retries */);
 }
 
 } // namespace
