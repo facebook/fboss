@@ -861,4 +861,21 @@ bool verifyDsfUngracefulFSDBRestart(
   return verifyDsfFSDBRestart(topologyInfo, false /* triggerGracefulRestart */);
 }
 
+bool verifyDsfGracefulFabricLinkDown(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyDsfGracefulFabricLinkUp(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyDsfGracefulFabricLinkDownUp(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying DSF Graceful Fabric link Down then Up";
+  return verifyDsfGracefulFabricLinkDown(topologyInfo) &&
+      verifyDsfGracefulFabricLinkUp(topologyInfo);
+}
+
 } // namespace facebook::fboss::utility

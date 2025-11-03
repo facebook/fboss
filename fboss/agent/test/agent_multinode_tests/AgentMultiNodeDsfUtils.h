@@ -31,4 +31,7 @@ bool verifyDsfGracefulFSDBRestart(
 bool verifyDsfUngracefulFSDBRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
 
+bool verifyDsfGracefulFabricLinkDownUp(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
+
 } // namespace facebook::fboss::utility
