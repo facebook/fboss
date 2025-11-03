@@ -19,6 +19,8 @@
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "re2/re2.h"
 
+DECLARE_int32(statsSubscriptionServeQueueSize);
+
 DECLARE_bool(checkSubscriberConfig);
 DECLARE_bool(enforceSubscriberConfig);
 DECLARE_bool(checkOperOwnership);

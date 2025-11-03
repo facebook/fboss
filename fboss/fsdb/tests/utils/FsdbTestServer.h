@@ -27,7 +27,9 @@ class FsdbTestServer {
       std::shared_ptr<FsdbConfig> config,
       uint16_t port = 0,
       uint32_t stateSubscriptionServe_ms = 50,
-      uint32_t statsSubscriptionServe_ms = 1000);
+      uint32_t statsSubscriptionServe_ms = 1000,
+      uint32_t subscriptionServeQueueSize = 1000,
+      uint32_t statsSubscriptionServeQueueSize = 8);
   ~FsdbTestServer();
 
   uint16_t getFsdbPort() const {

@@ -39,6 +39,16 @@ DEFINE_int32(
     10000,
     "Interval at which stats subscriptions are served");
 
+// queue size for serving stats subscriptions is chosen
+// to accommodate pending updates generated over 1 min interval
+// (6 updates + 2 heartbeats).
+// This limits memory usage on server due to subscription serve
+// queue while not disconnecting subscriber aggressively.
+DEFINE_int32(
+    statsSubscriptionServeQueueSize,
+    8,
+    "Max stats subscription updates to hold in server queue");
+
 DEFINE_int32(
     statsSubscriptionHeartbeat_s,
     30,
@@ -272,7 +282,10 @@ ServiceHandler::ServiceHandler(
               "stats",
               options_.serveIdPathSubs,
               true,
-              true)) {
+              true,
+              true /* serveGetRequestsWithLastPublishedState */,
+              FLAGS_statsSubscriptionServeQueueSize /* pathSubscriptionServeQueueSize */,
+              FLAGS_statsSubscriptionServeQueueSize /* defaultSubscriptionServeQueueSize */)) {
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();
