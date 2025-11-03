@@ -16,5 +16,14 @@ TEST_F(AgentMultiNodeProcessRestartTest, verifyGracefulAgentRestart) {
     }
   });
 }
+TEST_F(AgentMultiNodeProcessRestartTest, verifyUngracefulAgentRestart) {
+  runTestWithVerifyCluster([](const auto& topologyInfo) {
+    switch (topologyInfo->getTopologyType()) {
+      case utility::TopologyInfo::TopologyType::DSF:
+        utility::verifyDsfUngracefulAgentRestart(topologyInfo);
+        break;
+    }
+  });
+}
 
 } // namespace facebook::fboss
