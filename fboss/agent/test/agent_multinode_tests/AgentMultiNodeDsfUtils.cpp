@@ -13,6 +13,7 @@ using facebook::fboss::checkWithRetryErrorReturn;
 using facebook::fboss::DsfSessionState;
 using facebook::fboss::DsfSessionThrift;
 using facebook::fboss::FabricEndpoint;
+using facebook::fboss::InterfaceDetail;
 using facebook::fboss::NdpEntryThrift;
 using facebook::fboss::PortActiveState;
 using facebook::fboss::PortInfoThrift;
@@ -213,6 +214,22 @@ std::set<int> getGlobalRifsOfType(
     }
   }
   return rifsOfType;
+}
+
+std::map<std::string, std::vector<InterfaceDetail>> getRdswToRifs(
+    const std::set<std::string>& rdsws) {
+  std::map<std::string, std::vector<InterfaceDetail>> rdswToRifs;
+  for (const auto& rdsw : rdsws) {
+    auto intfIdToIntf = getIntfIdToIntf(rdsw);
+
+    std::transform(
+        intfIdToIntf.begin(),
+        intfIdToIntf.end(),
+        std::back_inserter(rdswToRifs[rdsw]),
+        [](const auto& pair) { return pair.second; });
+  }
+
+  return rdswToRifs;
 }
 
 std::map<std::string, DsfSessionThrift> getPeerToDsfSession(
