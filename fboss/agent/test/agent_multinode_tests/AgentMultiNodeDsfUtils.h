@@ -20,4 +20,9 @@ void verifyDsfGracefulAgentRestart(
 void verifyDsfUngracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
 
+void verifyDsfGracefulQsfpRestart(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
+void verifyDsfUngracefulQsfpRestart(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
+
 } // namespace facebook::fboss::utility
