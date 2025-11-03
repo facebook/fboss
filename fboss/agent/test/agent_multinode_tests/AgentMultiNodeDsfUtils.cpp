@@ -747,7 +747,8 @@ bool verifyDsfGracefulAgentRestartForRdsws(
 }
 
 bool verifyDsfAgentRestartForFdsws(
-    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    bool triggerGracefulRestart) {
   auto myHostname = topologyInfo->getMyHostname();
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
 
@@ -757,7 +758,8 @@ bool verifyDsfAgentRestartForFdsws(
     // Gracefully restart only one remote FDSW per cluster
     if (!fdsws.empty()) {
       auto fdsw = fdsws.front();
-      triggerGracefulAgentRestart(fdsw);
+      triggerGracefulRestart ? triggerGracefulAgentRestart(fdsw)
+                             : triggerUngracefulAgentRestart(fdsw);
       // Wait for the switch to come up
       if (!verifySwSwitchRunState(fdsw, SwitchRunState::CONFIGURED)) {
         XLOG(DBG2) << "Agent failed to come up post warmboot: " << fdsw;
@@ -781,7 +783,8 @@ bool verifyDsfAgentRestartForFdsws(
 bool verifyDsfGracefulAgentRestartForFdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for FDSWs";
-  return verifyDsfAgentRestartForFdsws(topologyInfo);
+  return verifyDsfAgentRestartForFdsws(
+      topologyInfo, true /* triggerGracefulRestart */);
 }
 
 bool verifyDsfGracefulAgentRestartForSdsws(
