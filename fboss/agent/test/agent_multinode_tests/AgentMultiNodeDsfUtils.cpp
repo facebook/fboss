@@ -1012,8 +1012,30 @@ bool verifyLiveSystemPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   return true;
 }
 
-bool verifyLiveRifs() {
-  return true;
+bool verifyLiveRifs(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  auto allRdsws = topologyInfo->getRdsws();
+  auto liveRifs = [allRdsws] {
+    for (const auto& [_, rifs] : getRdswToRifs(allRdsws)) {
+      for (const auto& rif : rifs) {
+        auto livenessStatus = rif.remoteIntfLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (livenessStatus.value() != LivenessStatus::LIVE) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      liveRifs,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool verifyDsfGracefulAgentRestartTimeoutRecovery(
@@ -1037,7 +1059,12 @@ bool verifyDsfGracefulAgentRestartTimeoutRecovery(
     return false;
   }
 
-  return verifyLiveRifs();
+  if (!verifyLiveRifs(topologyInfo)) {
+    XLOG(ERR) << "Failed to verify Live rifs";
+    return false;
+  }
+
+  return true;
 }
 
 bool verifyDsfQsfpRestart(
