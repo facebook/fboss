@@ -58,6 +58,9 @@ getSubscriberIdToOperSusbscriberInfos(const std::string& switchName);
 
 void triggerGracefulAgentRestart(const std::string& switchName);
 void triggerUngracefulAgentRestart(const std::string& switchName);
+void triggerGracefulAgentRestartWithDelay(
+    const std::string& switchName,
+    int32_t delayInSeconds);
 
 void triggerGracefulQsfpRestart(const std::string& switchName);
 void triggerUngracefulQsfpRestart(const std::string& switchName);
