@@ -793,7 +793,9 @@ void verifyDsfGracefulAgentRestart(
 
 bool verifyDsfUngracefulAgentRestartForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  return true;
+  XLOG(DBG2) << "Verifying DSF Ungraceful Agent Restart for RDSWs";
+  return verifyDsfAgentRestartForRdsws(
+      topologyInfo, false /* triggerGracefulRestart */);
 }
 
 bool verifyDsfUngracefulAgentRestartForFdsws(
