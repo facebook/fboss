@@ -984,7 +984,31 @@ bool verifyStaleRifs(
       true /* retry on exception */);
 }
 
-bool verifyLiveSystemPorts() {
+bool verifyLiveSystemPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  auto allRdsws = topologyInfo->getRdsws();
+  auto liveSystemPorts = [allRdsws] {
+    for (const auto& [rdsw, systemPorts] : getRdswToSystemPorts(allRdsws)) {
+      for (const auto& systemPort : systemPorts) {
+        auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (livenessStatus.value() != LivenessStatus::LIVE) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      liveSystemPorts,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+
   return true;
 }
 
@@ -1008,7 +1032,12 @@ bool verifyDsfGracefulAgentRestartTimeoutRecovery(
     return false;
   }
 
-  return verifyLiveSystemPorts() && verifyLiveRifs();
+  if (!verifyLiveSystemPorts(topologyInfo)) {
+    XLOG(ERR) << "Failed to verify Live system ports";
+    return false;
+  }
+
+  return verifyLiveRifs();
 }
 
 bool verifyDsfQsfpRestart(
