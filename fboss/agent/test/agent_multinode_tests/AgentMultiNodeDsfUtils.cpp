@@ -197,6 +197,18 @@ std::set<int> getGlobalRifsOfType(
   return rifsOfType;
 }
 
+void logNdpEntry(
+    const std::string& rdsw,
+    const facebook::fboss::NdpEntryThrift& ndpEntry) {
+  auto ip = folly::IPAddress::fromBinary(
+      folly::ByteRange(
+          folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+  XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
+             << " state: " << ndpEntry.state().value()
+             << " switchId: " << ndpEntry.switchId().value_or(-1);
+}
+
 std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,
     const std::set<std::string>& types) {
@@ -208,6 +220,7 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
       ndpEntries.end(),
       std::back_inserter(filteredNdpEntries),
       [rdsw, &types](const facebook::fboss::NdpEntryThrift& ndpEntry) {
+        logNdpEntry(rdsw, ndpEntry);
         return types.find(ndpEntry.state().value()) != types.end();
       });
 
@@ -654,10 +667,20 @@ bool verifyStaticNdpEntriesForRdsw(
                 folly::StringPiece(ndpEntry.ip().value().addr().value())));
       });
 
-  return staticNdpIps == loopbackIps;
+  if (staticNdpIps != loopbackIps) {
+    XLOG(ERR) << "STATIC NDP Entries from " << rdswToVerify
+              << folly::join(",", staticNdpIps)
+              << " LoopbackIps in DSF Cluster:"
+              << folly::join(",", loopbackIps);
+
+    return false;
+  }
+
+  return true;
 }
 
 bool verifyStaticNdpEntries(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying static NDP entries";
   for (const auto& rdsw : topologyInfo->getRdsws()) {
     if (!verifyStaticNdpEntriesForRdsw(topologyInfo, rdsw)) {
       return false;
