@@ -8,5 +8,14 @@ namespace facebook::fboss {
 class AgentMultiNodeVoqSwitchTest : public AgentMultiNodeTest {};
 
 TEST_F(AgentMultiNodeVoqSwitchTest, verifyGracefulFabricLinkDownUp) {}
+TEST_F(AgentMultiNodeVoqSwitchTest, verifyGracefulAgentRestartTimeoutRecovery) {
+  runTestWithVerifyCluster([](const auto& topologyInfo) {
+    switch (topologyInfo->getTopologyType()) {
+      case utility::TopologyInfo::TopologyType::DSF:
+        return utility::verifyDsfGracefulAgentRestartTimeoutRecovery(
+            topologyInfo);
+    }
+  });
+}
 
 } // namespace facebook::fboss
