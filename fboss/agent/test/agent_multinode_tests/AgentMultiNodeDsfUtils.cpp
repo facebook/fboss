@@ -837,7 +837,7 @@ bool verifyDsfGracefulQsfpRestart(
   return verifyDsfQsfpRestart(topologyInfo, true /* triggerGracefulRestart */);
 }
 
-bool verifyDsfUnGracefulQsfpRestart(
+bool verifyDsfUngracefulQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying DSF Ungraceful QSFP Restart";
   return verifyDsfQsfpRestart(topologyInfo, false /* triggerGracefulRestart */);
