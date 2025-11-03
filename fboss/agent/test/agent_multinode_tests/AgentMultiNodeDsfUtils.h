@@ -26,4 +26,9 @@ bool verifyDsfGracefulQsfpRestart(
 bool verifyDsfUngracefulQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
 
+bool verifyDsfGracefulFSDBRestart(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
+bool verifyDsfUngracefulFSDBRestart(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
+
 } // namespace facebook::fboss::utility
