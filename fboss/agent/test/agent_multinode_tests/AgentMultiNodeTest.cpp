@@ -69,11 +69,13 @@ void AgentMultiNodeTest::verifyCluster() const {
 }
 
 void AgentMultiNodeTest::runTestWithVerifyCluster(
-    const std::function<void(const std::unique_ptr<utility::TopologyInfo>&)>&
+    const std::function<bool(const std::unique_ptr<utility::TopologyInfo>&)>&
         testFn) const {
   // Verify cluster before running test
   verifyCluster();
-  testFn(topologyInfo_);
+  // The testFn is expected to contain retries specific to the test logic,
+  // thus, we can ASSERT here.
+  ASSERT_TRUE(testFn(topologyInfo_));
   // Verify cluster is still healthy after test
   verifyCluster();
 }

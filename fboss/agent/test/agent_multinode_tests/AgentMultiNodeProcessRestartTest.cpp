@@ -11,8 +11,7 @@ TEST_F(AgentMultiNodeProcessRestartTest, verifyGracefulAgentRestart) {
   runTestWithVerifyCluster([](const auto& topologyInfo) {
     switch (topologyInfo->getTopologyType()) {
       case utility::TopologyInfo::TopologyType::DSF:
-        utility::verifyDsfGracefulAgentRestart(topologyInfo);
-        break;
+        return utility::verifyDsfGracefulAgentRestart(topologyInfo);
     }
   });
 }
@@ -20,8 +19,7 @@ TEST_F(AgentMultiNodeProcessRestartTest, verifyUngracefulAgentRestart) {
   runTestWithVerifyCluster([](const auto& topologyInfo) {
     switch (topologyInfo->getTopologyType()) {
       case utility::TopologyInfo::TopologyType::DSF:
-        utility::verifyDsfUngracefulAgentRestart(topologyInfo);
-        break;
+        return utility::verifyDsfUngracefulAgentRestart(topologyInfo);
     }
   });
 }

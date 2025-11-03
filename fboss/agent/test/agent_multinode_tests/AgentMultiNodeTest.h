@@ -27,7 +27,7 @@ class AgentMultiNodeTest : public AgentHwTest {
 
   void verifyCluster() const;
   void runTestWithVerifyCluster(
-      const std::function<void(const std::unique_ptr<utility::TopologyInfo>&)>&
+      const std::function<bool(const std::unique_ptr<utility::TopologyInfo>&)>&
           testFn) const;
 
   std::unique_ptr<utility::TopologyInfo> topologyInfo_;
