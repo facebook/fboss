@@ -51,17 +51,11 @@ def main():
         default="INFO",
         help="Set the logging level (default: INFO)",
     )
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        help="Enable verbose output (equivalent to --log-level DEBUG)",
-    )
 
     args = parser.parse_args()
 
-    # Set log level based on verbose flag or explicit log-level
-    log_level = "DEBUG" if args.verbose else args.log_level
+    # Set log level based on the log-level
+    log_level = args.log_level
     logger = setup_logging(log_level)
 
     try:
