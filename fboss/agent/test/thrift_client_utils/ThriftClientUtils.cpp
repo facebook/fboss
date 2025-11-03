@@ -12,6 +12,7 @@
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "common/network/NetworkUtil.h"
+#include "fboss/agent/AddressUtil.h"
 
 namespace facebook::fboss::utility {
 
@@ -262,6 +263,20 @@ void adminDisablePort(const std::string& switchName, int32_t portID) {
 void adminEnablePort(const std::string& switchName, int32_t portID) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   swAgentClient->sync_setPortState(portID, true /* enable port */);
+}
+
+void addNeighbor(
+    const std::string& switchName,
+    const int32_t& interfaceID,
+    const folly::IPAddress& neighborIP,
+    const folly::MacAddress& macAddress,
+    int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_addNeighbor(
+      interfaceID,
+      facebook::network::toBinaryAddress(neighborIP),
+      macAddress.toString(),
+      portID);
 }
 
 } // namespace facebook::fboss::utility

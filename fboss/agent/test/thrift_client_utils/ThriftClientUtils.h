@@ -15,6 +15,8 @@
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
+#include <folly/MacAddress.h>
+
 namespace facebook::fboss::utility {
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::TestCtrl>>
@@ -70,5 +72,12 @@ void triggerUngracefulFsdbRestart(const std::string& switchName);
 
 void adminDisablePort(const std::string& switchName, int32_t portID);
 void adminEnablePort(const std::string& switchName, int32_t portID);
+
+void addNeighbor(
+    const std::string& switchName,
+    const int32_t& interfaceID,
+    const folly::IPAddress& neighborIP,
+    const folly::MacAddress& macAddress,
+    int32_t portID);
 
 } // namespace facebook::fboss::utility

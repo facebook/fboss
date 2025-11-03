@@ -8,10 +8,12 @@ cpp_library(
     headers = ["ThriftClientUtils.h"],
     exported_deps = [
         "//common/network:util",
+        "//fboss/agent:address_utils",
         "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/agent/if:test_ctrl-cpp2-clients",
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/qsfp_service/if:qsfp-cpp2-clients",
+        "//folly:network_address",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
 )
