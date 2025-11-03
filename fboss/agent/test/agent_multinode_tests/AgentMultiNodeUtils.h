@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 
 namespace facebook::fboss::utility {
@@ -17,5 +18,9 @@ namespace facebook::fboss::utility {
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);
+
+std::vector<NdpEntryThrift> getNdpEntriesOfType(
+    const std::string& rdsw,
+    const std::set<std::string>& types);
 
 } // namespace facebook::fboss::utility

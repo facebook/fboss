@@ -25,4 +25,34 @@ bool verifySwSwitchRunState(
       true /* retry on exception */);
 }
 
+void logNdpEntry(
+    const std::string& rdsw,
+    const facebook::fboss::NdpEntryThrift& ndpEntry) {
+  auto ip = folly::IPAddress::fromBinary(
+      folly::ByteRange(
+          folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+  XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
+             << " state: " << ndpEntry.state().value()
+             << " switchId: " << ndpEntry.switchId().value_or(-1);
+}
+
+std::vector<NdpEntryThrift> getNdpEntriesOfType(
+    const std::string& rdsw,
+    const std::set<std::string>& types) {
+  auto ndpEntries = getNdpEntries(rdsw);
+
+  std::vector<NdpEntryThrift> filteredNdpEntries;
+  std::copy_if(
+      ndpEntries.begin(),
+      ndpEntries.end(),
+      std::back_inserter(filteredNdpEntries),
+      [rdsw, &types](const facebook::fboss::NdpEntryThrift& ndpEntry) {
+        logNdpEntry(rdsw, ndpEntry);
+        return types.find(ndpEntry.state().value()) != types.end();
+      });
+
+  return filteredNdpEntries;
+}
+
 } // namespace facebook::fboss::utility
