@@ -19,6 +19,8 @@ void DsfTopologyInfo::populateDsfNodeInfo(
       switchIdToSwitchName_[node->getSwitchId()] = node->getName();
       switchNameToSwitchIds_[node->getName()].insert(node->getSwitchId());
       switchNameToAsicType_[node->getName()] = node->getAsicType();
+      switchNameToSystemPortRanges_[node->getName()] =
+          node->getSystemPortRanges();
 
       if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
         CHECK(node->getClusterId().has_value());

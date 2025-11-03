@@ -61,6 +61,11 @@ class DsfTopologyInfo : public TopologyInfo {
     return switchNameToAsicType_;
   }
 
+  const std::map<std::string, cfg::SystemPortRanges>
+  getSwitchNameToSystemPortRanges() const override {
+    return switchNameToSystemPortRanges_;
+  }
+
  private:
   void populateDsfNodeInfo(
       const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
@@ -74,6 +79,7 @@ class DsfTopologyInfo : public TopologyInfo {
   std::map<SwitchID, std::string> switchIdToSwitchName_;
   std::map<std::string, std::set<SwitchID>> switchNameToSwitchIds_;
   std::map<std::string, cfg::AsicType> switchNameToAsicType_;
+  std::map<std::string, cfg::SystemPortRanges> switchNameToSystemPortRanges_;
 
   std::set<std::string> allRdsws_;
   std::set<std::string> allFdsws_;

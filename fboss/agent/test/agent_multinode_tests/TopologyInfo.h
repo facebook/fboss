@@ -49,6 +49,8 @@ class TopologyInfo {
   getSwitchNameToSwitchIds() const = 0;
   virtual const std::map<std::string, cfg::AsicType>& getSwitchNameToAsicType()
       const = 0;
+  virtual const std::map<std::string, cfg::SystemPortRanges>
+  getSwitchNameToSystemPortRanges() const = 0;
 
  private:
   TopologyType topologyType_;
