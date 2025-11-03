@@ -141,6 +141,7 @@ class NextHopIDManager {
       NextHopIDManagerTest,
       getOrAllocRouteNextHopSetIDSubSetSuperSetNextHops);
   FRIEND_TEST(NextHopIDManagerTest, delOrDecrRouteNextHopSetID);
+  FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
 };
 
 } // namespace facebook::fboss
