@@ -183,4 +183,27 @@ std::string HwSwitchThriftClientTable::getHwDebugDump(SwitchID switchId) {
   return out;
 }
 
+std::vector<phy::PrbsLaneStats> HwSwitchThriftClientTable::getPortAsicPrbsStats(
+    const SwitchID& switchId,
+    const PortID& portId) {
+  std::vector<phy::PrbsLaneStats> prbsStats;
+  return prbsStats;
+}
+void HwSwitchThriftClientTable::clearPortAsicPrbsStats(
+    const SwitchID& switchId,
+    const PortID& portId) {}
+std::vector<prbs::PrbsPolynomial>
+HwSwitchThriftClientTable::getPortPrbsPolynomials(
+    const SwitchID& switchId,
+    const PortID& portId) {
+  std::vector<prbs::PrbsPolynomial> prbsPolynomials;
+  return prbsPolynomials;
+}
+prbs::InterfacePrbsState HwSwitchThriftClientTable::getPortPrbsState(
+    const SwitchID& switchId,
+    const PortID& portId) {
+  prbs::InterfacePrbsState prbsState;
+  return prbsState;
+}
+
 } // namespace facebook::fboss
