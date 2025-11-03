@@ -187,6 +187,13 @@ std::vector<phy::PrbsLaneStats> HwSwitchThriftClientTable::getPortAsicPrbsStats(
     const SwitchID& switchId,
     const PortID& portId) {
   std::vector<phy::PrbsLaneStats> prbsStats;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getPortAsicPrbsStats(prbsStats, portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get port asic prbs stats for switch : " << switchId
+              << " error: " << ex.what();
+  }
   return prbsStats;
 }
 void HwSwitchThriftClientTable::clearPortAsicPrbsStats(

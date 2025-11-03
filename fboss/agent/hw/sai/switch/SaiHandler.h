@@ -116,6 +116,9 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
 
   void getPortPrbsState(prbs::InterfacePrbsState& prbsState, int32_t portId)
       override;
+  void getPortAsicPrbsStats(
+      std::vector<phy::PrbsLaneStats>& prbsStats,
+      int32_t portId) override;
 
  private:
   SaiSwitch* hw_;
