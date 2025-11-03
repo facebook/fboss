@@ -133,6 +133,14 @@ std::vector<facebook::fboss::DsfSessionThrift> getDsfSessions(
   return sessions;
 }
 
+std::map<int64_t, cfg::DsfNode> getSwitchIdToDsfNode(
+    const std::string& switchName) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  std::map<int64_t, cfg::DsfNode> switchIdToDsfNode;
+  swAgentClient->sync_getDsfNodes(switchIdToDsfNode);
+  return switchIdToDsfNode;
+}
+
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);

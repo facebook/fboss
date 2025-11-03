@@ -43,6 +43,9 @@ std::vector<facebook::fboss::NdpEntryThrift> getNdpEntries(
 std::vector<facebook::fboss::DsfSessionThrift> getDsfSessions(
     const std::string& switchName);
 
+std::map<int64_t, cfg::DsfNode> getSwitchIdToDsfNode(
+    const std::string& switchName);
+
 void triggerGracefulAgentRestart(const std::string& switchName);
 
 } // namespace facebook::fboss::utility
