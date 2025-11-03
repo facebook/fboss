@@ -15,14 +15,15 @@
 namespace facebook::fboss::utility {
 
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo);
-void verifyDsfGracefulAgentRestart(
+
+bool verifyDsfGracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
-void verifyDsfUngracefulAgentRestart(
+bool verifyDsfUngracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
 
-void verifyDsfGracefulQsfpRestart(
+bool verifyDsfGracefulQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
-void verifyDsfUngracefulQsfpRestart(
+bool verifyDsfUngracefulQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
 
 } // namespace facebook::fboss::utility

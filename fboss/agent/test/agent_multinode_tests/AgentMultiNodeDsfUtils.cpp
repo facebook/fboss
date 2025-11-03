@@ -792,9 +792,9 @@ bool verifyDsfGracefulAgentRestartForSdsws(
   return true;
 }
 
-void verifyDsfGracefulAgentRestart(
+bool verifyDsfGracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  verifyDsfGracefulAgentRestartForRdsws(topologyInfo) &&
+  return verifyDsfGracefulAgentRestartForRdsws(topologyInfo) &&
       verifyDsfGracefulAgentRestartForFdsws(topologyInfo) &&
       verifyDsfGracefulAgentRestartForSdsws(topologyInfo);
 }
@@ -818,9 +818,9 @@ bool verifyDsfUngracefulAgentRestartForSdsws(
   return true;
 }
 
-void verifyDsfUngracefulAgentRestart(
+bool verifyDsfUngracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  verifyDsfUngracefulAgentRestartForRdsws(topologyInfo) &&
+  return verifyDsfUngracefulAgentRestartForRdsws(topologyInfo) &&
       verifyDsfUngracefulAgentRestartForFdsws(topologyInfo) &&
       verifyDsfUngracefulAgentRestartForSdsws(topologyInfo);
 }
@@ -831,16 +831,16 @@ bool verifyDsfQsfpRestart(
   return true;
 }
 
-void verifyDsfGracefulQsfpRestart(
+bool verifyDsfGracefulQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying DSF Graceful QSFP Restart";
-  verifyDsfQsfpRestart(topologyInfo, true /* triggerGracefulRestart */);
+  return verifyDsfQsfpRestart(topologyInfo, true /* triggerGracefulRestart */);
 }
 
-void verifyDsfUnGracefulQsfpRestart(
+bool verifyDsfUnGracefulQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying DSF Ungraceful QSFP Restart";
-  verifyDsfQsfpRestart(topologyInfo, false /* triggerGracefulRestart */);
+  return verifyDsfQsfpRestart(topologyInfo, false /* triggerGracefulRestart */);
 }
 
 } // namespace facebook::fboss::utility
