@@ -70,6 +70,11 @@ int getNumHwSwitches(const std::string& switchName) {
   return runState.hwIndexToRunState()->size();
 }
 
+QsfpServiceRunState getQsfpServiceRunState(const std::string& switchName) {
+  auto qsfpClient = getQsfpThriftClient(switchName);
+  return qsfpClient->sync_getQsfpServiceRunState();
+}
+
 void runOnAllHwAgents(
     const std::string& switchName,
     const RunForHwAgentFn& fn) {

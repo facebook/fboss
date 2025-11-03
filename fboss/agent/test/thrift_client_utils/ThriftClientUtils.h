@@ -26,6 +26,7 @@ getQsfpThriftClient(const std::string& switchName);
 
 MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName);
 int getNumHwSwitches(const std::string& switchName);
+QsfpServiceRunState getQsfpServiceRunState(const std::string& switchName);
 
 std::map<std::string, FabricEndpoint> getFabricPortToFabricEndpoint(
     const std::string& switchName);
