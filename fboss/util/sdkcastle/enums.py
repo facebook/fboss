@@ -91,10 +91,10 @@ def string_to_enum(value, enum_class):
     """Convert string value to enum"""
     if isinstance(value, str):
         for enum_item in enum_class:
-            print(f"enum_item.value = {enum_item.value}, passed in value = {value}")
+            # print(f"enum_item.value = {enum_item.value}, passed in value = {value}")
             # if enum_item.value == value.lower().replace("-", "_"):
             if enum_item.value == value.lower():
-                print(f"enum_item.value = {enum_item.value}, passed in value = {value}")
+                # print(f"enum_item.value = {enum_item.value}, passed in value = {value}")
                 return enum_item
         raise ValueError(f"Invalid {enum_class.__name__} value: {value}")
     return value

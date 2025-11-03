@@ -8,7 +8,9 @@
 
 import concurrent.futures
 import subprocess
-from typing import Any, Dict, List
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from .config import SdkcastleSpec
 from .enums import RunMode
@@ -21,6 +23,34 @@ class TestExecutor:
     def __init__(self, config: SdkcastleSpec):
         self.config = config
         self.test_runner = create_test_runner(config)
+        self.log_dir: Optional[Path] = None
+
+    def _create_log_directory(self) -> Path:
+        """Create timestamped sdkcastle log directory under testOutDirPath"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_dir_name = f"sdkcastle_{timestamp}"
+
+        base_path = Path(self.config.test_out_dir_path).expanduser()
+        log_dir = base_path / log_dir_name
+
+        log_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Created log directory: {log_dir}")
+
+        return log_dir
+
+    def _save_commands_to_file(
+        self, commands: List[Tuple[List[str], str]], log_dir: Path
+    ) -> None:
+        """Save generated commands to netcastle_commands.txt"""
+        commands_file = log_dir / "netcastle_commands.txt"
+
+        with open(commands_file, "w") as f:
+            for i, (cmd, log_filename) in enumerate(commands, 1):
+                f.write(f"Command {i}:\n")
+                f.write(" ".join(cmd) + "\n")
+                f.write(f"Log file: {log_filename}\n\n")
+
+        print(f"Saved commands to: {commands_file}")
 
     def execute(self) -> Dict[str, Any]:
         """Main execution entry point"""
@@ -41,16 +71,21 @@ class TestExecutor:
         """List all test runner commands without executing them"""
         commands = self._generate_all_test_commands()
 
+        self.log_dir = self._create_log_directory()
+        self._save_commands_to_file(commands, self.log_dir)
+
         print("\n=== Generated Test Runner Commands ===")
-        for i, cmd in enumerate(commands, 1):
+        for i, (cmd, log_filename) in enumerate(commands, 1):
             print(f"\nCommand {i}:")
             print(" ".join(cmd))
+            print(f"Log file: {log_filename}")
 
         return {
             "status": "success",
             "mode": "list-commands-only",
             "total_commands": len(commands),
-            "commands": commands,
+            "commands": [cmd for cmd, _ in commands],
+            "log_directory": str(self.log_dir),
         }
 
     def _execute_all_tests(self) -> Dict[str, Any]:
@@ -65,16 +100,23 @@ class TestExecutor:
                 "results": [],
             }
 
+        self.log_dir = self._create_log_directory()
+        self._save_commands_to_file(commands, self.log_dir)
+
         print(f"\nExecuting {len(commands)} test commands in parallel...")
 
         results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
             future_to_cmd = {
-                executor.submit(self._execute_command, cmd): cmd for cmd in commands
+                executor.submit(self._execute_command, cmd, log_filename): (
+                    cmd,
+                    log_filename,
+                )
+                for cmd, log_filename in commands
             }
 
             for future in concurrent.futures.as_completed(future_to_cmd):
-                cmd = future_to_cmd[future]
+                cmd, log_filename = future_to_cmd[future]
                 try:
                     result = future.result()
                     results.append(result)
@@ -86,8 +128,7 @@ class TestExecutor:
                         "command": cmd,
                         "status": "error",
                         "error": str(exc),
-                        "stdout": "",
-                        "stderr": "",
+                        "log_file": log_filename,
                         "return_code": -1,
                     }
                     results.append(error_result)
@@ -101,6 +142,7 @@ class TestExecutor:
         print(f"Total tests: {len(results)}")
         print(f"Successful: {successful}")
         print(f"Failed: {failed}")
+        print(f"Log directory: {self.log_dir}")
 
         return {
             "status": "success",
@@ -109,43 +151,53 @@ class TestExecutor:
             "successful": successful,
             "failed": failed,
             "results": results,
+            "log_directory": str(self.log_dir),
         }
 
-    def _execute_command(self, cmd: List[str]) -> Dict[str, Any]:
-        """Execute a single command"""
+    def _execute_command(self, cmd: List[str], log_filename: str) -> Dict[str, Any]:
+        """Execute a single command and redirect output to log file"""
+        log_dir = self.log_dir
+        if not log_dir:
+            raise ValueError("Log directory not initialized")
+
+        log_file_path = log_dir / log_filename
+
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=3600,  # 1 hour timeout
-            )
+            with open(log_file_path, "w") as log_file:
+                result = subprocess.run(
+                    cmd,
+                    stdout=log_file,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    timeout=3600,
+                )
 
             return {
                 "command": cmd,
                 "status": "success" if result.returncode == 0 else "failed",
-                "stdout": result.stdout,
-                "stderr": result.stderr,
+                "log_file": str(log_file_path),
                 "return_code": result.returncode,
             }
         except subprocess.TimeoutExpired:
+            with open(log_file_path, "a") as log_file:
+                log_file.write("\n\nCommand timed out after 1 hour\n")
             return {
                 "command": cmd,
                 "status": "timeout",
-                "stdout": "",
-                "stderr": "Command timed out after 1 hour",
+                "log_file": str(log_file_path),
                 "return_code": -1,
             }
         except Exception as e:
+            with open(log_file_path, "a") as log_file:
+                log_file.write(f"\n\nError executing command: {str(e)}\n")
             return {
                 "command": cmd,
                 "status": "error",
-                "stdout": "",
-                "stderr": str(e),
+                "log_file": str(log_file_path),
                 "return_code": -1,
             }
 
-    def _generate_all_test_commands(self) -> List[List[str]]:
+    def _generate_all_test_commands(self) -> List[Tuple[List[str], str]]:
         """Generate all test runner commands based on configuration"""
         commands = []
         test_specs = self.config.test_specs
@@ -162,7 +214,7 @@ class TestExecutor:
 
         return commands
 
-    def _generate_hw_test_commands(self, test_specs) -> List[List[str]]:
+    def _generate_hw_test_commands(self, test_specs) -> List[Tuple[List[str], str]]:
         """Generate hardware test commands"""
         commands = []
         if test_specs.hw_tests:
@@ -178,7 +230,7 @@ class TestExecutor:
                         commands.extend(test_commands)
         return commands
 
-    def _generate_agent_test_commands(self, test_specs) -> List[List[str]]:
+    def _generate_agent_test_commands(self, test_specs) -> List[Tuple[List[str], str]]:
         """Generate agent test commands"""
         commands = []
         if test_specs.agent_tests:
@@ -194,7 +246,9 @@ class TestExecutor:
                         commands.extend(test_commands)
         return commands
 
-    def _generate_warmboot_test_commands(self, test_specs) -> List[List[str]]:
+    def _generate_warmboot_test_commands(
+        self, test_specs
+    ) -> List[Tuple[List[str], str]]:
         """Generate warmboot test commands"""
         commands = []
         if test_specs.n_warmboot_tests:
@@ -210,7 +264,7 @@ class TestExecutor:
                         commands.extend(test_commands)
         return commands
 
-    def _generate_link_test_commands(self, test_specs) -> List[List[str]]:
+    def _generate_link_test_commands(self, test_specs) -> List[Tuple[List[str], str]]:
         """Generate link test commands"""
         commands = []
         if test_specs.link_tests:
@@ -226,7 +280,7 @@ class TestExecutor:
                         commands.extend(test_commands)
         return commands
 
-    def _generate_config_test_commands(self, test_specs) -> List[List[str]]:
+    def _generate_config_test_commands(self, test_specs) -> List[Tuple[List[str], str]]:
         """Generate config test commands"""
         commands = []
         if test_specs.config_tests:
@@ -242,7 +296,9 @@ class TestExecutor:
                         commands.extend(test_commands)
         return commands
 
-    def _generate_benchmark_test_commands(self, test_specs) -> List[List[str]]:
+    def _generate_benchmark_test_commands(
+        self, test_specs
+    ) -> List[Tuple[List[str], str]]:
         """Generate benchmark test commands"""
         commands = []
         if test_specs.benchmark_tests:

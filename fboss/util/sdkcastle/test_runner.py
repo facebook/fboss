@@ -7,7 +7,7 @@
 
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 from .config import (
     AgentTestsSpec,
@@ -32,7 +32,7 @@ class BaseTestRunner(ABC):
     @abstractmethod
     def build_hw_test_commands(
         self, hw_test: HwTestsSpec, asic_type: AsicType, asic_options: AsicTestOptions
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build hardware test commands"""
         pass
 
@@ -42,7 +42,7 @@ class BaseTestRunner(ABC):
         agent_test: AgentTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build agent test commands"""
         pass
 
@@ -52,7 +52,7 @@ class BaseTestRunner(ABC):
         link_test: LinkTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build link test commands"""
         pass
 
@@ -62,7 +62,7 @@ class BaseTestRunner(ABC):
         warmboot_test: NWarmbootTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build n-warmboot test commands"""
         pass
 
@@ -72,7 +72,7 @@ class BaseTestRunner(ABC):
         config_test: SpecTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build config test commands"""
         pass
 
@@ -82,7 +82,7 @@ class BaseTestRunner(ABC):
         benchmark_test: BenchmarkTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build benchmark test commands"""
         pass
 
@@ -92,9 +92,8 @@ class NetcastleTestRunner(BaseTestRunner):
 
     def _build_netcastle_command(
         self, test_type: str, asic_type: AsicType, asic_options: AsicTestOptions
-    ) -> List[str]:
-        """Build netcastle command for meta-internal mode"""
-        # Get team from mapping
+    ) -> Tuple[List[str], str, str, str]:
+        """Build netcastle command and return command, asic, sdk_project_version, npu_mode"""
         team = TEST_TYPE_TEAM_MAPPING.get(test_type, "sai_agent_test")
 
         # Parse SDK version to extract vendor and project version
@@ -159,64 +158,111 @@ class NetcastleTestRunner(BaseTestRunner):
         if asic_options.regex:
             cmd.extend(["--regex", asic_options.regex])
 
-        return cmd
+        return cmd, asic_type.value, sdk_project_version, npu_mode
+
+    def _generate_log_filename(
+        self, test_type: str, asic: str, sdk_project_version: str, npu_mode: str
+    ) -> str:
+        """Generate log filename based on test type and metadata"""
+        if test_type == "agent":
+            return f"{asic}_{sdk_project_version}_agent_{npu_mode}.log"
+        elif test_type == "n-warmboot":
+            return f"{asic}_{sdk_project_version}_n_wb.log"
+        elif test_type == "link":
+            return f"{asic}_{sdk_project_version}_link.log"
+        elif test_type == "config":
+            return f"{asic}_{sdk_project_version}_config.log"
+        elif test_type == "benchmark":
+            return f"{asic}_{sdk_project_version}_bench.log"
+        else:
+            return f"{asic}_{sdk_project_version}_hw.log"
 
     def build_hw_test_commands(
         self, hw_test: HwTestsSpec, asic_type: AsicType, asic_options: AsicTestOptions
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build hardware test commands"""
-        cmd = self._build_netcastle_command("hw", asic_type, asic_options)
-        return [cmd]
+        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
+            "hw", asic_type, asic_options
+        )
+        log_filename = self._generate_log_filename(
+            "hw", asic, sdk_project_version, npu_mode
+        )
+        return [(cmd, log_filename)]
 
     def build_agent_test_commands(
         self,
         agent_test: AgentTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build agent test commands"""
-        cmd = self._build_netcastle_command("agent", asic_type, asic_options)
-        return [cmd]
+        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
+            "agent", asic_type, asic_options
+        )
+        log_filename = self._generate_log_filename(
+            "agent", asic, sdk_project_version, npu_mode
+        )
+        return [(cmd, log_filename)]
 
     def build_link_test_commands(
         self,
         link_test: LinkTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build link test commands"""
-        cmd = self._build_netcastle_command("link", asic_type, asic_options)
-        return [cmd]
+        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
+            "link", asic_type, asic_options
+        )
+        log_filename = self._generate_log_filename(
+            "link", asic, sdk_project_version, npu_mode
+        )
+        return [(cmd, log_filename)]
 
     def build_n_warmboot_test_commands(
         self,
         warmboot_test: NWarmbootTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build n-warmboot test commands"""
-        cmd = self._build_netcastle_command("n-warmboot", asic_type, asic_options)
-        return [cmd]
+        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
+            "n-warmboot", asic_type, asic_options
+        )
+        log_filename = self._generate_log_filename(
+            "n-warmboot", asic, sdk_project_version, npu_mode
+        )
+        return [(cmd, log_filename)]
 
     def build_config_test_commands(
         self,
         config_test: SpecTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build config test commands"""
-        cmd = self._build_netcastle_command("config", asic_type, asic_options)
-        return [cmd]
+        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
+            "config", asic_type, asic_options
+        )
+        log_filename = self._generate_log_filename(
+            "config", asic, sdk_project_version, npu_mode
+        )
+        return [(cmd, log_filename)]
 
     def build_benchmark_test_commands(
         self,
         benchmark_test: BenchmarkTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build benchmark test commands"""
-        cmd = self._build_netcastle_command("benchmark", asic_type, asic_options)
-        return [cmd]
+        cmd, asic, sdk_project_version, npu_mode = self._build_netcastle_command(
+            "benchmark", asic_type, asic_options
+        )
+        log_filename = self._generate_log_filename(
+            "benchmark", asic, sdk_project_version, npu_mode
+        )
+        return [(cmd, log_filename)]
 
 
 class OSSTestRunner(BaseTestRunner):
@@ -269,83 +315,92 @@ class OSSTestRunner(BaseTestRunner):
 
     def build_hw_test_commands(
         self, hw_test: HwTestsSpec, asic_type: AsicType, asic_options: AsicTestOptions
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build hardware test commands"""
         cmd = self._build_oss_command(hw_test.common_test_spec.test_team, asic_options)
         cmd.extend(["--test-type", "hw"])
-        return [cmd]
+        log_filename = f"{asic_type.value}_hw.log"
+        return [(cmd, log_filename)]
 
     def build_agent_test_commands(
         self,
         agent_test: AgentTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build agent test commands"""
         cmd = self._build_oss_command(
             agent_test.common_test_spec.test_team, asic_options
         )
         cmd.extend(["--test-type", "agent"])
 
+        npu_mode = "mono"
         if hasattr(agent_test, "npu_mode") and agent_test.npu_mode:
-            cmd.extend(["--npu-mode", agent_test.npu_mode.value])
+            npu_mode_value = agent_test.npu_mode.value
+            cmd.extend(["--npu-mode", npu_mode_value])
+            npu_mode = npu_mode_value
 
         if hasattr(agent_test, "multi_stage") and agent_test.multi_stage:
             cmd.extend(["--multi-stage", agent_test.multi_stage.value])
 
-        return [cmd]
+        log_filename = f"{asic_type.value}_agent_{npu_mode}.log"
+        return [(cmd, log_filename)]
 
     def build_link_test_commands(
         self,
         link_test: LinkTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build link test commands"""
         cmd = self._build_oss_command(
             link_test.common_test_spec.test_team, asic_options
         )
         cmd.extend(["--test-type", "link"])
-        return [cmd]
+        log_filename = f"{asic_type.value}_link.log"
+        return [(cmd, log_filename)]
 
     def build_n_warmboot_test_commands(
         self,
         warmboot_test: NWarmbootTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build n-warmboot test commands"""
         cmd = self._build_oss_command(
             warmboot_test.common_test_spec.test_team, asic_options
         )
         cmd.extend(["--test-type", "n-warmboot"])
-        return [cmd]
+        log_filename = f"{asic_type.value}_n_wb.log"
+        return [(cmd, log_filename)]
 
     def build_config_test_commands(
         self,
         config_test: SpecTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build config test commands"""
         cmd = self._build_oss_command(
             config_test.common_test_spec.test_team, asic_options
         )
         cmd.extend(["--test-type", "config"])
-        return [cmd]
+        log_filename = f"{asic_type.value}_config.log"
+        return [(cmd, log_filename)]
 
     def build_benchmark_test_commands(
         self,
         benchmark_test: BenchmarkTestsSpec,
         asic_type: AsicType,
         asic_options: AsicTestOptions,
-    ) -> List[List[str]]:
+    ) -> List[Tuple[List[str], str]]:
         """Build benchmark test commands"""
         cmd = self._build_oss_command(
             benchmark_test.common_test_spec.test_team, asic_options
         )
         cmd.extend(["--test-type", "benchmark"])
-        return [cmd]
+        log_filename = f"{asic_type.value}_bench.log"
+        return [(cmd, log_filename)]
 
 
 def create_test_runner(config: SdkcastleSpec) -> BaseTestRunner:
