@@ -9,13 +9,6 @@ namespace facebook::fboss {
 
 class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
  private:
-  struct NeighborInfo {
-    int32_t portID = 0;
-    int32_t intfID = 0;
-    folly::IPAddress ip = folly::IPAddress("::");
-    folly::MacAddress mac = folly::MacAddress("00:00:00:00:00:00");
-  };
-
   // For given RDSWs:
   //    - Find Up Ethernet ports
   //    - Compute InterfaceID corresponding to each of those ports
@@ -24,7 +17,7 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
   //    - Use lower bits of the neighbor IP to derive some neighbor MAC
   //
   // Generate specified number of neighbors and return.
-  std::vector<NeighborInfo> computeNeighborsForRdsw(
+  std::vector<utility::Neighbor> computeNeighborsForRdsw(
       const std::unique_ptr<utility::TopologyInfo>& topologyInfo,
       const std::string& rdsw,
       const int& numNeighbors) const {
@@ -38,7 +31,7 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
           break;
         }
 
-        NeighborInfo neighborInfo;
+        utility::Neighbor neighborInfo;
         neighborInfo.portID = *portInfo.portId();
         neighbors.push_back(neighborInfo);
       }
@@ -124,7 +117,7 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
           }
         };
 
-    std::vector<NeighborInfo> neighbors;
+    std::vector<utility::Neighbor> neighbors;
     populateUpEthernetPorts(neighbors);
     populateIntfIDs(neighbors);
     populateNeighborIpAndMac(neighbors);

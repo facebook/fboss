@@ -13,7 +13,15 @@
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 
+#include <folly/MacAddress.h>
+
 namespace facebook::fboss::utility {
+struct Neighbor {
+  int32_t portID = 0;
+  int32_t intfID = 0;
+  folly::IPAddress ip = folly::IPAddress("::");
+  folly::MacAddress mac = folly::MacAddress("00:00:00:00:00:00");
+};
 
 // Invoke the provided func on every element of a given container
 template <typename Container, typename Callable, typename... Args>
