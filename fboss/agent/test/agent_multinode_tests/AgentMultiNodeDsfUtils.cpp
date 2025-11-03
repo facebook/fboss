@@ -18,6 +18,7 @@ using facebook::fboss::PortActiveState;
 using facebook::fboss::PortInfoThrift;
 using facebook::fboss::RemoteInterfaceType;
 using facebook::fboss::RemoteSystemPortType;
+using facebook::fboss::SystemPortThrift;
 using facebook::fboss::cfg::PortType;
 using facebook::fboss::cfg::Scope;
 
@@ -175,6 +176,23 @@ std::set<std::string> getGlobalSystemPortsOfType(
     }
   }
   return systemPortsOfType;
+}
+
+std::map<std::string, std::vector<SystemPortThrift>> getRdswToSystemPorts(
+    const std::set<std::string>& rdsws) {
+  std::map<std::string, std::vector<SystemPortThrift>> rdswToSystemPorts;
+
+  for (const auto& rdsw : rdsws) {
+    auto systemPortIdToSystemPort = getSystemPortdIdToSystemPort(rdsw);
+
+    std::transform(
+        systemPortIdToSystemPort.begin(),
+        systemPortIdToSystemPort.end(),
+        std::back_inserter(rdswToSystemPorts[rdsw]),
+        [](const auto& pair) { return pair.second; });
+  }
+
+  return rdswToSystemPorts;
 }
 
 std::set<int> getGlobalRifsOfType(
