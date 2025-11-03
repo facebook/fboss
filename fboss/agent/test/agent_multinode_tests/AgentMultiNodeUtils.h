@@ -15,6 +15,19 @@
 
 namespace facebook::fboss::utility {
 
+// Invoke the provided func on every element of a given container
+template <typename Container, typename Callable, typename... Args>
+void forEach(const Container& input, Callable&& func, Args&&... args) {
+  auto argsTuple = std::make_tuple(std::forward<Args>(args)...);
+  for (const auto& elem : input) {
+    std::apply(
+        [&](auto&&... unpackedArgs) {
+          func(elem, std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+        },
+        argsTuple);
+  }
+}
+
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);
