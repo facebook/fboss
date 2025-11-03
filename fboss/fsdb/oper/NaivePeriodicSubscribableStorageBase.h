@@ -17,6 +17,7 @@
 
 DECLARE_int32(storage_thread_heartbeat_ms);
 DECLARE_bool(serveHeartbeats);
+DECLARE_int32(subscriptionServeQueueSize);
 
 namespace facebook::fboss::fsdb {
 
@@ -55,7 +56,11 @@ class NaivePeriodicSubscribableStorageBase {
         bool convertToIDPaths = false,
         bool requireResponseOnInitialSync = false,
         bool exportPerSubscriberMetrics = false,
-        bool serveGetRequestsWithLastPublishedState = true)
+        bool serveGetRequestsWithLastPublishedState = true,
+        int32_t pathSubscriptionServeQueueSize =
+            FLAGS_subscriptionServeQueueSize,
+        int32_t defaultSubscriptionServeQueueSize =
+            FLAGS_subscriptionServeQueueSize)
         : subscriptionServeInterval_(subscriptionServeInterval),
           subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
           trackMetadata_(trackMetadata),
@@ -64,7 +69,10 @@ class NaivePeriodicSubscribableStorageBase {
           requireResponseOnInitialSync_(requireResponseOnInitialSync),
           exportPerSubscriberMetrics_(exportPerSubscriberMetrics),
           serveGetRequestsWithLastPublishedState_(
-              serveGetRequestsWithLastPublishedState) {}
+              serveGetRequestsWithLastPublishedState),
+          pathSubscriptionServeQueueSize_(pathSubscriptionServeQueueSize),
+          defaultSubscriptionServeQueueSize_(
+              defaultSubscriptionServeQueueSize) {}
 
     StorageParams& setServeGetRequestsWithLastPublishedState(bool val) {
       serveGetRequestsWithLastPublishedState_ = val;
@@ -79,6 +87,8 @@ class NaivePeriodicSubscribableStorageBase {
     const bool requireResponseOnInitialSync_;
     const bool exportPerSubscriberMetrics_;
     bool serveGetRequestsWithLastPublishedState_;
+    const int32_t pathSubscriptionServeQueueSize_;
+    const int32_t defaultSubscriptionServeQueueSize_;
   };
 
   explicit NaivePeriodicSubscribableStorageBase(
