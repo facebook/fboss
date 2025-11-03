@@ -746,9 +746,8 @@ bool verifyDsfGracefulAgentRestartForRdsws(
       topologyInfo, true /* triggerGracefulRestart */);
 }
 
-bool verifyDsfGracefulAgentRestartForFdsws(
+bool verifyDsfAgentRestartForFdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for FDSWs";
   auto myHostname = topologyInfo->getMyHostname();
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
 
@@ -777,6 +776,12 @@ bool verifyDsfGracefulAgentRestartForFdsws(
   }
 
   return true;
+}
+
+bool verifyDsfGracefulAgentRestartForFdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for FDSWs";
+  return verifyDsfAgentRestartForFdsws(topologyInfo);
 }
 
 bool verifyDsfGracefulAgentRestartForSdsws(
