@@ -440,4 +440,10 @@ void SaiHandler::getPortAsicPrbsStats(
   prbsStats = hw_->getPortAsicPrbsStats(PortID(portId));
 }
 
+void SaiHandler::clearPortAsicPrbsStats(int32_t portId) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  hw_->clearPortAsicPrbsStats(PortID(portId));
+}
+
 } // namespace facebook::fboss

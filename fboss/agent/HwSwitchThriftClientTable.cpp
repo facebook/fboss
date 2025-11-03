@@ -198,7 +198,15 @@ std::vector<phy::PrbsLaneStats> HwSwitchThriftClientTable::getPortAsicPrbsStats(
 }
 void HwSwitchThriftClientTable::clearPortAsicPrbsStats(
     const SwitchID& switchId,
-    const PortID& portId) {}
+    const PortID& portId) {
+  auto client = getClient(switchId);
+  try {
+    client->sync_clearPortAsicPrbsStats(portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to clear port asic prbs stats for switch : "
+              << switchId << " error: " << ex.what();
+  }
+}
 std::vector<prbs::PrbsPolynomial>
 HwSwitchThriftClientTable::getPortPrbsPolynomials(
     const SwitchID& switchId,
