@@ -266,6 +266,23 @@ bool verifyAllSessionsEstablished(const std::string& rdswToVerify) {
       allSessionsEstablished, 30 /* num retries */);
 }
 
+bool verifyNoSessionsEstablished(const std::string& rdswToVerify) {
+  auto noSessionsEstablished = [rdswToVerify]() {
+    for (const auto& [peer, session] : getPeerToDsfSession(rdswToVerify)) {
+      if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // It may take several (> 15) seconds for ESTABLISHED => CONNECT. Thus,
+  // try for several seconds and check if the session transitions to
+  // CONNECT.
+  return checkWithRetryErrorReturn(noSessionsEstablished, 30 /* num retries */);
+}
+
 std::set<folly::IPAddress> getLoopbackIpsInDsfCluster(
     const std::string& switchName) {
   // Each switch conains DSF Node map. The DSF Node map contains loopbackIP
