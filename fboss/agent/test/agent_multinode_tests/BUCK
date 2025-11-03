@@ -14,6 +14,7 @@ cpp_library(
         "AgentMultiNodeProcessRestartTest.cpp",
         "AgentMultiNodeTest.cpp",
         "AgentMultiNodeUtils.cpp",
+        "AgentMultiNodeVoqSwitchTests.cpp",
         "DsfTopologyInfo.cpp",
         "TopologyInfo.cpp",
     ],
