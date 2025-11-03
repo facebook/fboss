@@ -639,7 +639,22 @@ bool verifyRifs(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 bool verifyStaticNdpEntriesForRdsw(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::string& rdswToVerify) {
-  return true;
+  // Every loopbackIP in the DSF cluster must have STATIC NDP entry in the RDSW.
+  auto loopbackIps = getLoopbackIpsInDsfCluster(topologyInfo->getMyHostname());
+
+  auto staticNdpEntries = getNdpEntriesOfType(rdswToVerify, {"STATIC"});
+  std::set<folly::IPAddress> staticNdpIps;
+  std::transform(
+      staticNdpEntries.begin(),
+      staticNdpEntries.end(),
+      std::inserter(staticNdpIps, staticNdpIps.begin()),
+      [](const auto& ndpEntry) {
+        return folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                folly::StringPiece(ndpEntry.ip().value().addr().value())));
+      });
+
+  return staticNdpIps == loopbackIps;
 }
 
 bool verifyStaticNdpEntries(const std::unique_ptr<TopologyInfo>& topologyInfo) {
