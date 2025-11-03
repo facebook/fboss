@@ -25,6 +25,23 @@ bool verifySwSwitchRunState(
       true /* retry on exception */);
 }
 
+bool verifyQsfpServiceRunState(
+    const std::string& switchName,
+    const QsfpServiceRunState& expectedQsfpRunState) {
+  auto qsfpServiceRunStateMatches = [switchName, expectedQsfpRunState]() {
+    auto gotQsfpServiceRunState = getQsfpServiceRunState(switchName);
+    return gotQsfpServiceRunState == expectedQsfpRunState;
+  };
+
+  // Thrift client queries will throw exception while QSFP is initializing.
+  // Thus, continue to retry while absorbing exceptions.
+  return checkWithRetryErrorReturn(
+      qsfpServiceRunStateMatches,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 void logNdpEntry(
     const std::string& rdsw,
     const facebook::fboss::NdpEntryThrift& ndpEntry) {

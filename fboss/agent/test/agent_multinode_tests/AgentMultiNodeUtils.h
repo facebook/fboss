@@ -18,6 +18,9 @@ namespace facebook::fboss::utility {
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);
+bool verifyQsfpServiceRunState(
+    const std::string& switchName,
+    const QsfpServiceRunState& expectedQsfpRunState);
 
 std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,
