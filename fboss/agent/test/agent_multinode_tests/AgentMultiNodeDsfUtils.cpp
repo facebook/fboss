@@ -1041,9 +1041,34 @@ bool verifyLiveRifs(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 bool verifyDsfGracefulAgentRestartTimeoutRecovery(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying DSF Graceful Agent Restart Timeout and Recovery";
+
+  // This test can be written as:
+  //  - Stop Agent
+  //  - Wait for 120s i.e. GR timeout
+  //  - Verify entries are STALE
+  //  - Start Agent
+  //  - Verify entries are LIVE
+  // However, in order to implement above sequence, we need a mechanism for
+  // the test to invoke "Start Agent" when Agent thrift server is not
+  // running.
+  //
+  // This can be accomplished by test client (this code) logging into the
+  // remote device running Agent. But then the test needs to worry about
+  // login credentials. Alternatively, the remote device can run a Thrift
+  // server for the test purpose along, but that is an overkill for this use
+  // case.
+  //
+  // This test logic solves it with the following approach:
+  //  - Restart Agent API with delay: Test API supported by remote device
+  //    - Stop Agent,
+  //    - Sleep for 120s (GR Timeout) + 60s (time to verify STALE state)
+  //    - Start Agent
+  //  - Validate STALE state... while Agent is stopped.
+  //  - Validate LIVE state.... after Agent has restarted.
   auto restartedRdsws =
       triggerGracefulAgentRestartWithDelayForRdsws(topologyInfo);
 
+  // First: Agent stops, GR times out, Sys ports and Rifs turn STALE.
   if (!verifyStaleSystemPorts(topologyInfo, restartedRdsws)) {
     XLOG(ERR) << "Failed to verify Stale system ports";
     return false;
@@ -1054,6 +1079,7 @@ bool verifyDsfGracefulAgentRestartTimeoutRecovery(
     return false;
   }
 
+  // Later: Agent restarts, Sys ports and Rifs resync and turn LIVE.
   if (!verifyLiveSystemPorts(topologyInfo)) {
     XLOG(ERR) << "Failed to verify Live system ports";
     return false;
