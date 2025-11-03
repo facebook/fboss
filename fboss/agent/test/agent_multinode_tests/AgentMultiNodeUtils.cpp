@@ -42,6 +42,27 @@ bool verifyQsfpServiceRunState(
       true /* retry on exception */);
 }
 
+bool verifyFsdbIsUp(const std::string& switchName) {
+  auto fsdbIsUp = [switchName]() -> bool {
+    // Unlike Agent and QSFP, FSDB lacks notion of "RunState" that can be
+    // queried to confirm whether FSDB has completed initialization.
+    // In the meanwhile, query some FSDB thrift method.
+    // If FSDB has not up yet, this will throw an error and
+    // checkwithRetryErrorReturn will retry the specified number of times.
+    // TODO: T238268316 will add "RunState" to FSDB. Leverage it then.
+    getSubscriberIdToOperSusbscriberInfos(switchName);
+    return true;
+  };
+
+  // Thrift client queries will throw exception while FSDB is initializing.
+  // Thus, continue to retry while absorbing exceptions.
+  return checkWithRetryErrorReturn(
+      fsdbIsUp,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 void logNdpEntry(
     const std::string& rdsw,
     const facebook::fboss::NdpEntryThrift& ndpEntry) {

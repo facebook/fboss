@@ -21,6 +21,7 @@ bool verifySwSwitchRunState(
 bool verifyQsfpServiceRunState(
     const std::string& switchName,
     const QsfpServiceRunState& expectedQsfpRunState);
+bool verifyFsdbIsUp(const std::string& switchName);
 
 std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,
