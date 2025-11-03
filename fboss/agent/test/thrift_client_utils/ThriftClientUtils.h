@@ -56,4 +56,6 @@ void triggerUngracefulAgentRestart(const std::string& switchName);
 void triggerGracefulQsfpRestart(const std::string& switchName);
 void triggerUngracefulQsfpRestart(const std::string& switchName);
 
+void triggerGracefulFsdbRestart(const std::string& switchName);
+
 } // namespace facebook::fboss::utility
