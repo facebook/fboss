@@ -691,7 +691,8 @@ void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 }
 
 bool verifyDsfAgentRestartForRdsws(
-    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    bool triggerGracefulRestart) {
   auto myHostname = topologyInfo->getMyHostname();
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
 
@@ -703,7 +704,8 @@ bool verifyDsfAgentRestartForRdsws(
         continue;
       }
       // Trigger graceful or ungraceful Agent restart
-      triggerGracefulAgentRestart(rdsw);
+      triggerGracefulRestart ? triggerGracefulAgentRestart(rdsw)
+                             : triggerUngracefulAgentRestart(rdsw);
 
       // Wait for the switch to come up
       if (!verifySwSwitchRunState(rdsw, SwitchRunState::CONFIGURED)) {
@@ -740,7 +742,8 @@ bool verifyDsfAgentRestartForRdsws(
 bool verifyDsfGracefulAgentRestartForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for RDSWs";
-  return verifyDsfAgentRestartForRdsws(topologyInfo);
+  return verifyDsfAgentRestartForRdsws(
+      topologyInfo, true /* triggerGracefulRestart */);
 }
 
 bool verifyDsfGracefulAgentRestartForFdsws(
