@@ -151,4 +151,14 @@ void triggerGracefulAgentRestart(const std::string& switchName) {
   }
 }
 
+void triggerUngracefulAgentRestart(const std::string& switchName) {
+  try {
+    auto swAgentClient = getSwAgentThriftClient(switchName);
+    swAgentClient->sync_ungracefullyRestartService("wedge_agent_test");
+  } catch (...) {
+    // Thrift request may throw error as the Agent exits.
+    // Ignore it, as we only wanted to trigger exit.
+  }
+}
+
 } // namespace facebook::fboss::utility

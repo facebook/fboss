@@ -47,5 +47,6 @@ std::map<int64_t, cfg::DsfNode> getSwitchIdToDsfNode(
     const std::string& switchName);
 
 void triggerGracefulAgentRestart(const std::string& switchName);
+void triggerUngracefulAgentRestart(const std::string& switchName);
 
 } // namespace facebook::fboss::utility
