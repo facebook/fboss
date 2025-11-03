@@ -93,4 +93,17 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
   return filteredNdpEntries;
 }
 
+std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
+    const std::string& switchName) {
+  std::map<std::string, PortInfoThrift> upEthernetPortNameToPortInfo;
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
+    if (portInfo.portType().value() == cfg::PortType::INTERFACE_PORT &&
+        portInfo.operState().value() == PortOperState::UP) {
+      upEthernetPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
+    }
+  }
+
+  return upEthernetPortNameToPortInfo;
+}
+
 } // namespace facebook::fboss::utility

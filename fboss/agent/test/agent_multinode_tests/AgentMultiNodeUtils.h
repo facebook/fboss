@@ -40,4 +40,7 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,
     const std::set<std::string>& types);
 
+std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
+    const std::string& switchName);
+
 } // namespace facebook::fboss::utility
