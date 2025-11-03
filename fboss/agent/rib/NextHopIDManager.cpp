@@ -190,4 +190,15 @@ bool NextHopIDManager::decrOrDeallocRouteNextHopSetID(
   return nhopSetIDDeallocated;
 }
 
+NextHopSetID NextHopIDManager::updateRouteNextHopSetID(
+    NextHopSetID nextHopSetID,
+    const RouteNextHopSet& newNextHopSet) {
+  // Call delete route to decrement the reference count for the old
+  decrOrDeallocRouteNextHopSetID(nextHopSetID);
+
+  // Call getRouteNextHopSetID to get the NextHopSetID for the new
+  // NextHopSet
+  return getOrAllocRouteNextHopSetID(newNextHopSet);
+}
+
 } // namespace facebook::fboss

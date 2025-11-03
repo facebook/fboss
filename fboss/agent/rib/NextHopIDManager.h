@@ -71,6 +71,12 @@ class NextHopIDManager {
   // Decrements or deallcoates NextHopSetID for a RouteNextHopSet
   bool decrOrDeallocRouteNextHopSetID(NextHopSetID nextHopSetID);
 
+  // Update from old RouteNextHopSet to new RouteNextHopSet
+  // Decrements old, allocates/increments new
+  NextHopSetID updateRouteNextHopSetID(
+      NextHopSetID oldNextHopSetID,
+      const RouteNextHopSet& newNextHopSet);
+
  private:
   // Structure to hold ID and reference count for NextHops
   // Count will be 0 when initialised
