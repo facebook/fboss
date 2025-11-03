@@ -690,9 +690,8 @@ void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   });
 }
 
-bool verifyDsfGracefulAgentRestartForRdsws(
+bool verifyDsfAgentRestartForRdsws(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for RDSWs";
   auto myHostname = topologyInfo->getMyHostname();
   auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
 
@@ -736,6 +735,12 @@ bool verifyDsfGracefulAgentRestartForRdsws(
   }
 
   return true;
+}
+
+bool verifyDsfGracefulAgentRestartForRdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying DSF Graceful Agent Restart for RDSWs";
+  return verifyDsfAgentRestartForRdsws(topologyInfo);
 }
 
 bool verifyDsfGracefulAgentRestartForFdsws(
