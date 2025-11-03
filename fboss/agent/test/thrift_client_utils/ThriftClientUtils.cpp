@@ -173,6 +173,14 @@ std::map<int64_t, cfg::DsfNode> getSwitchIdToDsfNode(
   return switchIdToDsfNode;
 }
 
+facebook::fboss::fsdb::SubscriberIdToOperSubscriberInfos
+getSubscriberIdToOperSusbscriberInfos(const std::string& switchName) {
+  auto fsdbClient = getFsdbThriftClient(switchName);
+  facebook::fboss::fsdb::SubscriberIdToOperSubscriberInfos subInfos;
+  fsdbClient->sync_getAllOperSubscriberInfos(subInfos);
+  return subInfos;
+}
+
 void triggerGracefulAgentRestart(const std::string& switchName) {
   try {
     auto swAgentClient = getSwAgentThriftClient(switchName);

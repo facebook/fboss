@@ -53,6 +53,9 @@ std::vector<facebook::fboss::DsfSessionThrift> getDsfSessions(
 std::map<int64_t, cfg::DsfNode> getSwitchIdToDsfNode(
     const std::string& switchName);
 
+facebook::fboss::fsdb::SubscriberIdToOperSubscriberInfos
+getSubscriberIdToOperSusbscriberInfos(const std::string& switchName);
+
 void triggerGracefulAgentRestart(const std::string& switchName);
 void triggerUngracefulAgentRestart(const std::string& switchName);
 
