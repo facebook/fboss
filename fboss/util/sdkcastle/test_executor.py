@@ -5,6 +5,7 @@
 # Test executor implementation to orchestrate the execution of different tests
 #
 
+# pyre-unsafe
 
 import concurrent.futures
 import subprocess

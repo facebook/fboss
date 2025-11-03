@@ -5,6 +5,8 @@
 # Enums for sdkcastle configuration based on thrift spec
 #
 
+# pyre-unsafe
+
 from enum import Enum
 
 

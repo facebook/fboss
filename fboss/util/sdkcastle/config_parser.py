@@ -5,6 +5,7 @@
 #
 #
 
+# pyre-unsafe
 
 import json
 import logging

@@ -5,6 +5,7 @@
 # Constants defines for sdkcastle
 #
 
+# pyre-unsafe
 
 # List of ASICs for BRCM DNX platforms
 BRCM_DNX_ASICS = ["jericho3", "ramon3"]

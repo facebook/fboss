@@ -5,6 +5,7 @@
 # Test runner implementation for sdkcastle
 #
 
+# pyre-unsafe
 
 from abc import ABC, abstractmethod
 from typing import List, Tuple

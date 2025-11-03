@@ -4,6 +4,7 @@
 # Main invocation for sdkcastle testing tool
 #
 
+# pyre-unsafe
 
 import argparse
 import logging
