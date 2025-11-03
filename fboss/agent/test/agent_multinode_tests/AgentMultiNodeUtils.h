@@ -28,6 +28,13 @@ void forEach(const Container& input, Callable&& func, Args&&... args) {
   }
 }
 
+std::vector<NdpEntryThrift> getNdpEntriesOfType(
+    const std::string& rdsw,
+    const std::set<std::string>& types);
+
+std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
+    const std::string& switchName);
+
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState);
@@ -35,12 +42,5 @@ bool verifyQsfpServiceRunState(
     const std::string& switchName,
     const QsfpServiceRunState& expectedQsfpRunState);
 bool verifyFsdbIsUp(const std::string& switchName);
-
-std::vector<NdpEntryThrift> getNdpEntriesOfType(
-    const std::string& rdsw,
-    const std::set<std::string>& types);
-
-std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
-    const std::string& switchName);
 
 } // namespace facebook::fboss::utility

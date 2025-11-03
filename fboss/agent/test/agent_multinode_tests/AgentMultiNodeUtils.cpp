@@ -7,6 +7,49 @@
 
 namespace facebook::fboss::utility {
 
+void logNdpEntry(
+    const std::string& rdsw,
+    const facebook::fboss::NdpEntryThrift& ndpEntry) {
+  auto ip = folly::IPAddress::fromBinary(
+      folly::ByteRange(
+          folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+  XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
+             << " state: " << ndpEntry.state().value()
+             << " switchId: " << ndpEntry.switchId().value_or(-1);
+}
+
+std::vector<NdpEntryThrift> getNdpEntriesOfType(
+    const std::string& rdsw,
+    const std::set<std::string>& types) {
+  auto ndpEntries = getNdpEntries(rdsw);
+
+  std::vector<NdpEntryThrift> filteredNdpEntries;
+  std::copy_if(
+      ndpEntries.begin(),
+      ndpEntries.end(),
+      std::back_inserter(filteredNdpEntries),
+      [rdsw, &types](const facebook::fboss::NdpEntryThrift& ndpEntry) {
+        logNdpEntry(rdsw, ndpEntry);
+        return types.find(ndpEntry.state().value()) != types.end();
+      });
+
+  return filteredNdpEntries;
+}
+
+std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
+    const std::string& switchName) {
+  std::map<std::string, PortInfoThrift> upEthernetPortNameToPortInfo;
+  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
+    if (portInfo.portType().value() == cfg::PortType::INTERFACE_PORT &&
+        portInfo.operState().value() == PortOperState::UP) {
+      upEthernetPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
+    }
+  }
+
+  return upEthernetPortNameToPortInfo;
+}
+
 bool verifySwSwitchRunState(
     const std::string& switchName,
     const SwitchRunState& expectedSwitchRunState) {
@@ -61,49 +104,6 @@ bool verifyFsdbIsUp(const std::string& switchName) {
       30 /* num retries */,
       std::chrono::milliseconds(5000) /* sleep between retries */,
       true /* retry on exception */);
-}
-
-void logNdpEntry(
-    const std::string& rdsw,
-    const facebook::fboss::NdpEntryThrift& ndpEntry) {
-  auto ip = folly::IPAddress::fromBinary(
-      folly::ByteRange(
-          folly::StringPiece(ndpEntry.ip().value().addr().value())));
-
-  XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
-             << " state: " << ndpEntry.state().value()
-             << " switchId: " << ndpEntry.switchId().value_or(-1);
-}
-
-std::vector<NdpEntryThrift> getNdpEntriesOfType(
-    const std::string& rdsw,
-    const std::set<std::string>& types) {
-  auto ndpEntries = getNdpEntries(rdsw);
-
-  std::vector<NdpEntryThrift> filteredNdpEntries;
-  std::copy_if(
-      ndpEntries.begin(),
-      ndpEntries.end(),
-      std::back_inserter(filteredNdpEntries),
-      [rdsw, &types](const facebook::fboss::NdpEntryThrift& ndpEntry) {
-        logNdpEntry(rdsw, ndpEntry);
-        return types.find(ndpEntry.state().value()) != types.end();
-      });
-
-  return filteredNdpEntries;
-}
-
-std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
-    const std::string& switchName) {
-  std::map<std::string, PortInfoThrift> upEthernetPortNameToPortInfo;
-  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
-    if (portInfo.portType().value() == cfg::PortType::INTERFACE_PORT &&
-        portInfo.operState().value() == PortOperState::UP) {
-      upEthernetPortNameToPortInfo.emplace(portInfo.name().value(), portInfo);
-    }
-  }
-
-  return upEthernetPortNameToPortInfo;
 }
 
 } // namespace facebook::fboss::utility
