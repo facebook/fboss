@@ -887,8 +887,44 @@ std::set<std::string> triggerGracefulAgentRestartWithDelayForRdsws(
   return restartedRdsws;
 }
 
-bool verifyStaleSystemPorts() {
-  return true;
+bool verifyStaleSystemPorts(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::set<std::string>& restartedRdsws) {
+  auto allRdsws = topologyInfo->getRdsws();
+  auto staleSystemPorts = [allRdsws, restartedRdsws] {
+    // Verify system ports for restarted RDSWs are STALE
+    // Verify system ports for non-restarted RDSWs are LIVE
+    for (const auto& [rdsw, systemPorts] : getRdswToSystemPorts(allRdsws)) {
+      bool isRestarted = restartedRdsws.find(rdsw) != restartedRdsws.end();
+
+      for (const auto& systemPort : systemPorts) {
+        auto livenessStatus = systemPort.remoteSystemPortLivenessStatus();
+        if (!livenessStatus.has_value()) {
+          continue;
+        }
+
+        if (isRestarted) {
+          // Restarted RDSW should have STALE system ports
+          if (livenessStatus.value() != LivenessStatus::STALE) {
+            return false;
+          }
+        } else {
+          // Non-Restarted RDSW should have LIVE system ports
+          if (livenessStatus.value() != LivenessStatus::LIVE) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  };
+
+  return checkWithRetryErrorReturn(
+      staleSystemPorts,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
 }
 
 bool verifyStaleRifs() {
@@ -905,10 +941,16 @@ bool verifyLiveRifs() {
 
 bool verifyDsfGracefulAgentRestartTimeoutRecovery(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  triggerGracefulAgentRestartWithDelayForRdsws(topologyInfo);
+  XLOG(DBG2) << "Verifying DSF Graceful Agent Restart Timeout and Recovery";
+  auto restartedRdsws =
+      triggerGracefulAgentRestartWithDelayForRdsws(topologyInfo);
 
-  return verifyStaleSystemPorts() && verifyStaleRifs() &&
-      verifyLiveSystemPorts() && verifyLiveRifs();
+  if (!verifyStaleSystemPorts(topologyInfo, restartedRdsws)) {
+    XLOG(ERR) << "Failed to verify Stale system ports";
+    return false;
+  }
+
+  return verifyStaleRifs() && verifyLiveSystemPorts() && verifyLiveRifs();
 }
 
 bool verifyDsfQsfpRestart(
