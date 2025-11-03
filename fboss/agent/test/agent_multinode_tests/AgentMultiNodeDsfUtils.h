@@ -20,6 +20,8 @@ bool verifyDsfGracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
 bool verifyDsfUngracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
+bool verifyDsfGracefulAgentRestartTimeoutRecovery(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
 
 bool verifyDsfGracefulQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);

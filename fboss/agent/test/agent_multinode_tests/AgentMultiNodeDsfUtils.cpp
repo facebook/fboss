@@ -842,6 +842,33 @@ bool verifyDsfUngracefulAgentRestart(
       verifyDsfUngracefulAgentRestartForSdsws(topologyInfo);
 }
 
+void triggerGracefulAgentRestartWithDelayForRdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {}
+
+bool verifyStaleSystemPorts() {
+  return true;
+}
+
+bool verifyStaleRifs() {
+  return true;
+}
+
+bool verifyLiveSystemPorts() {
+  return true;
+}
+
+bool verifyLiveRifs() {
+  return true;
+}
+
+bool verifyDsfGracefulAgentRestartTimeoutRecovery(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  triggerGracefulAgentRestartWithDelayForRdsws(topologyInfo);
+
+  return verifyStaleSystemPorts() && verifyStaleRifs() &&
+      verifyLiveSystemPorts() && verifyLiveRifs();
+}
+
 bool verifyDsfQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     bool triggerGracefulRestart) {
