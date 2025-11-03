@@ -212,6 +212,13 @@ HwSwitchThriftClientTable::getPortPrbsPolynomials(
     const SwitchID& switchId,
     const PortID& portId) {
   std::vector<prbs::PrbsPolynomial> prbsPolynomials;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getPortPrbsPolynomials(prbsPolynomials, portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get port prbs polynomials for switch : " << switchId
+              << " error: " << ex.what();
+  }
   return prbsPolynomials;
 }
 prbs::InterfacePrbsState HwSwitchThriftClientTable::getPortPrbsState(

@@ -445,5 +445,12 @@ void SaiHandler::clearPortAsicPrbsStats(int32_t portId) {
   hw_->ensureConfigured(__func__);
   hw_->clearPortAsicPrbsStats(PortID(portId));
 }
+void SaiHandler::getPortPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& prbsPolynomials,
+    int32_t portId) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  prbsPolynomials = hw_->getPortPrbsPolynomials(PortID(portId));
+}
 
 } // namespace facebook::fboss

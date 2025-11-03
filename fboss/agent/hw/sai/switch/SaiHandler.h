@@ -120,6 +120,9 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       std::vector<phy::PrbsLaneStats>& prbsStats,
       int32_t portId) override;
   void clearPortAsicPrbsStats(int32_t portId) override;
+  void getPortPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& prbsPolynomials,
+      int32_t portId) override;
 
  private:
   SaiSwitch* hw_;
