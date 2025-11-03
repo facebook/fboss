@@ -203,6 +203,14 @@ prbs::InterfacePrbsState HwSwitchThriftClientTable::getPortPrbsState(
     const SwitchID& switchId,
     const PortID& portId) {
   prbs::InterfacePrbsState prbsState;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getPortPrbsState(prbsState, portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get port prbs state for switch : " << switchId
+              << " error: " << ex.what();
+  }
+
   return prbsState;
 }
 
