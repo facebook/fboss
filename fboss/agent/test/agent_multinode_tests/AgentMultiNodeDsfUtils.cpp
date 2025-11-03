@@ -783,4 +783,26 @@ void verifyDsfGracefulAgentRestart(
       verifyDsfGracefulAgentRestartForSdsws(topologyInfo);
 }
 
+bool verifyDsfUngracefulAgentRestartForRdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyDsfUngracefulAgentRestartForFdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+bool verifyDsfUngracefulAgentRestartForSdsws(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  return true;
+}
+
+void verifyDsfUngracefulAgentRestart(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  verifyDsfUngracefulAgentRestartForRdsws(topologyInfo) &&
+      verifyDsfUngracefulAgentRestartForFdsws(topologyInfo) &&
+      verifyDsfUngracefulAgentRestartForSdsws(topologyInfo);
+}
+
 } // namespace facebook::fboss::utility

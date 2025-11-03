@@ -17,5 +17,7 @@ namespace facebook::fboss::utility {
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo);
 void verifyDsfGracefulAgentRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo);
+void verifyDsfUngracefulAgentRestart(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
 
 } // namespace facebook::fboss::utility
