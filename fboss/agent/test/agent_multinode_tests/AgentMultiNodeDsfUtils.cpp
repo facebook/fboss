@@ -283,6 +283,21 @@ bool verifyAllSessionsEstablished(const std::string& rdswToVerify) {
       allSessionsEstablished, 30 /* num retries */);
 }
 
+std::set<folly::IPAddress> getLoopbackIpsInDsfCluster(
+    const std::string& switchName) {
+  // Each switch conains DSF Node map. The DSF Node map contains loopbackIP
+  // information for every device in that cluster. Thus, we can build a set of
+  // all the loopbackIPs in the cluster by querying any switch in the cluster.
+  std::set<folly::IPAddress> loopbackIps;
+  for (const auto& [switchId, dsfNode] : getSwitchIdToDsfNode(switchName)) {
+    for (const auto& loopbackIp : *dsfNode.loopbackIps()) {
+      auto network = folly::IPAddress::createNetwork(loopbackIp);
+      loopbackIps.insert(network.first);
+    }
+  }
+  return loopbackIps;
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
