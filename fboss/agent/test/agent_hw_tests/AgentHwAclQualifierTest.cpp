@@ -263,9 +263,9 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   void aclSetupHelper(
       bool isIpV4,
       QualifierType lookupClassType,
-      bool addQualifiers = false,
+      bool enableQualifiers = false,
       SwitchID switchID = SwitchID(0)) {
-    this->addQualifiers = addQualifiers;
+    this->addQualifiers = enableQualifiers;
     auto newCfg = initialConfig(*getAgentEnsemble());
     if (FLAGS_enable_acl_table_group) {
       utility::addAclTableGroup(
@@ -292,7 +292,7 @@ class AgentHwAclQualifierTest : public AgentHwTest {
         defaultQualifiers.clear();
       }
       std::vector<cfg::AclTableActionType> actions = {};
-      std::vector<cfg::AclTableQualifier> qualifiers = addQualifiers
+      std::vector<cfg::AclTableQualifier> qualifiers = enableQualifiers
           ? utility::genAclQualifiersConfig(this->getAsicType())
           : defaultQualifiers;
       utility::addAclTable(

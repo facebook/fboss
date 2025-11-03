@@ -82,8 +82,8 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
 
   auto verify = [this]() {
     // Send traffic through the 5th interface port and verify load balancing
-    const auto kIngressPort = 5;
-    CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
+    const auto kIngressPortIndex = 5;
+    CHECK(masterLogicalInterfacePortIds().size() > kIngressPortIndex + 1);
 
     auto sysPortDescs = getEcmpSysPorts();
     std::function<std::map<SystemPortID, HwSysPortStats>(
@@ -101,7 +101,7 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
               utility::getSendPktFunc(getAgentEnsemble()),
               utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
               std::nullopt /* vlan */,
-              masterLogicalInterfacePortIds()[kIngressPort],
+              masterLogicalInterfacePortIds()[kIngressPortIndex],
               utility::kUdfL4DstPort,
               255 /* hopLimit */,
               std::nullopt /* srcMacAddr */,
