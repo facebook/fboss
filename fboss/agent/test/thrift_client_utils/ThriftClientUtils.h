@@ -66,5 +66,6 @@ void triggerGracefulFsdbRestart(const std::string& switchName);
 void triggerUngracefulFsdbRestart(const std::string& switchName);
 
 void adminDisablePort(const std::string& switchName, int32_t portID);
+void adminEnablePort(const std::string& switchName, int32_t portID);
 
 } // namespace facebook::fboss::utility

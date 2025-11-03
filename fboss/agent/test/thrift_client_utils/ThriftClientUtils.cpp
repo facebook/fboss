@@ -246,4 +246,9 @@ void adminDisablePort(const std::string& switchName, int32_t portID) {
   swAgentClient->sync_setPortState(portID, false /* disable port */);
 }
 
+void adminEnablePort(const std::string& switchName, int32_t portID) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_setPortState(portID, true /* enable port */);
+}
+
 } // namespace facebook::fboss::utility
