@@ -45,6 +45,19 @@ std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> getHwAgentThriftClient(
       std::move(channel));
 }
 
+std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
+getQsfpThriftClient(const std::string& switchName) {
+  folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
+  auto remoteSwitchIp =
+      facebook::network::NetworkUtil::getHostByName(switchName);
+  folly::SocketAddress qsfp(remoteSwitchIp, 5910);
+  auto socket = folly::AsyncSocket::newSocket(eb, qsfp);
+  auto channel =
+      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
+  return std::make_unique<apache::thrift::Client<QsfpService>>(
+      std::move(channel));
+}
+
 MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   MultiSwitchRunState runState;

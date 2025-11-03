@@ -12,6 +12,7 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/if/gen-cpp2/TestCtrlAsyncClient.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 namespace facebook::fboss::utility {
 
@@ -20,6 +21,8 @@ getSwAgentThriftClient(const std::string& switchName);
 std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> getHwAgentThriftClient(
     const std::string& switchName,
     int port);
+std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
+getQsfpThriftClient(const std::string& switchName);
 
 MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName);
 int getNumHwSwitches(const std::string& switchName);
