@@ -169,6 +169,7 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
 
   void* getRegisterReadFuncPtr();
   void* getRegisterWriteFuncPtr();
+  SaiSwitchTraits::CreateAttributes getSwitchAttributes();
 
  protected:
   void dumpImpl() const;
