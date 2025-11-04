@@ -23,6 +23,7 @@ target_link_libraries(platform_check
 add_library(platform_checks
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
+  fboss/platform/platform_checks/checks/PowerResetCheck.cpp
 )
 
 target_link_libraries(platform_checks
@@ -32,6 +33,8 @@ target_link_libraries(platform_checks
   weutil_fboss_eeprom_interface
   weutil_config_utils
   Folly::folly
+  ${RE2}
+  platform_utils
 )
 
 add_executable(mac_address_check_test

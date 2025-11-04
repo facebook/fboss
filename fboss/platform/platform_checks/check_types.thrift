@@ -8,6 +8,9 @@ namespace cpp2 facebook.fboss.platform.platform_checks
 enum CheckType {
   PCI_DEVICE_CHECK = 1,
   MAC_ADDRESS_CHECK = 2,
+  RECENT_MANUAL_REBOOT_CHECK = 3,
+  RECENT_KERNEL_PANIC_CHECK = 4,
+  WATCHDOG_DID_NOT_STOP_CHECK = 5,
 }
 
 /*

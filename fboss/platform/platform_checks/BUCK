@@ -35,14 +35,18 @@ cpp_library(
     srcs = [
         "checks/MacAddressCheck.cpp",
         "checks/PciDeviceCheck.cpp",
+        "checks/PowerResetCheck.cpp",
     ],
     headers = [
         "checks/MacAddressCheck.h",
         "checks/PciDeviceCheck.h",
+        "checks/PowerResetCheck.h",
     ],
     exported_deps = [
+        "fbsource//third-party/re2:re2",
         ":platform_check",
         "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//fboss/platform/weutil:config_utils",
         "//fboss/platform/weutil:fboss_eeprom_lib",
@@ -71,5 +75,18 @@ cpp_unittest(
         "fbsource//third-party/googletest:gmock",
         ":platform_checks",
         "//fboss/platform/helpers:mock_platform_fs_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "power_reset_check_test",
+    srcs = [
+        "tests/PowerResetCheckTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":platform_checks",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/helpers:platform_utils",
     ],
 )
