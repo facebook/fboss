@@ -124,5 +124,6 @@ class ExplorationSummary {
 
   void print(ExplorationStatus finalStatus);
   void publishCounters(ExplorationStatus finalStatus);
+  void publishToScuba(ExplorationStatus finalStatus);
 };
 } // namespace facebook::fboss::platform::platform_manager

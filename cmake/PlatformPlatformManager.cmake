@@ -140,6 +140,14 @@ target_link_libraries(platform_manager_device_path_resolver
   weutil_eeprom_contents_cpp2
 )
 
+add_library(scuba_logger
+  fboss/platform/platform_manager/oss/ScubaLogger.cpp
+)
+
+target_link_libraries(scuba_logger
+  fmt::fmt
+)
+
 add_library(platform_manager_platform_explorer
   fboss/platform/platform_manager/PlatformExplorer.cpp
   fboss/platform/platform_manager/ExplorationSummary.cpp
@@ -159,6 +167,7 @@ target_link_libraries(platform_manager_platform_explorer
   weutil_fboss_eeprom_interface
   ioctl_smbus_eeprom_reader
   Folly::folly
+  scuba_logger
 )
 
 add_library(platform_manager_config_validator
@@ -222,6 +231,7 @@ target_link_libraries(platform_manager
   ${SYSTEMD}
   gpiod_line
   range-v3
+  scuba_logger
 )
 
 install(TARGETS platform_manager)
