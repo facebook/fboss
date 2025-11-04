@@ -17,6 +17,8 @@ class ConfigValidator {
   bool isValidSlotConfig(const SlotConfig& slotConfig);
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
+  bool isValidXcvrCtrlBlockConfig(
+      const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidDevicePath(
@@ -42,7 +44,7 @@ class ConfigValidator {
       const int16_t& startPort,
       std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
-      const std::vector<LedCtrlBlockConfig>& ledCtrlBlockConfigs);
+      const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(

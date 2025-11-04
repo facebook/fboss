@@ -97,6 +97,33 @@ std::optional<SlotType> resolveSlotType(
   return extractSlotType(lastSlotName);
 }
 
+std::vector<XcvrCtrlConfig> getXcvrCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<XcvrCtrlConfig> xcvrCtrlConfigs;
+  const auto xcvrCtrlBlockConfigs = pciDeviceConfig.xcvrCtrlBlockConfigs();
+  for (const auto& xcvrCtrlBlockConfig : *xcvrCtrlBlockConfigs) {
+    int endPort =
+        *xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts();
+    for (int port = *xcvrCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      XcvrCtrlConfig xcvrCtrlConfig;
+      xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+          "{}_XCVR_CTRL_PORT_{}",
+          *xcvrCtrlBlockConfig.pmUnitScopedNamePrefix(),
+          port);
+      xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+          *xcvrCtrlBlockConfig.deviceName();
+      xcvrCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+          Utils().computeHexExpression(
+              *xcvrCtrlBlockConfig.csrOffsetCalc(),
+              port,
+              *xcvrCtrlBlockConfig.startPort());
+      xcvrCtrlConfig.portNumber() = port;
+      xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
+    }
+  }
+  return xcvrCtrlConfigs;
+}
+
 template <typename T>
   requires requires(T t) {
     { *t.pmUnitScopedName() } -> std::convertible_to<std::string>;
@@ -281,6 +308,64 @@ bool ConfigValidator::isValidLedCtrlBlockConfig(
   return true;
 }
 
+bool ConfigValidator::isValidXcvrCtrlBlockConfig(
+    const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig) {
+  if (xcvrCtrlBlockConfig.pmUnitScopedNamePrefix()->empty()) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must be a non-empty string";
+    return false;
+  }
+  if (xcvrCtrlBlockConfig.pmUnitScopedNamePrefix()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must not end with an underscore";
+    return false;
+  }
+  if (xcvrCtrlBlockConfig.deviceName()->empty()) {
+    XLOG(ERR) << "deviceName must be a non-empty string";
+    return false;
+  }
+  if (xcvrCtrlBlockConfig.csrOffsetCalc()->empty()) {
+    XLOG(ERR) << "csrOffsetCalc must be a non-empty string";
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.numPorts() <= 0) {
+    XLOG(ERR) << "numPorts must be a value greater than 0";
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.startPort() <= 0) {
+    XLOG(ERR) << "startPort must be a value greater than 0";
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.numPorts() > numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "numPorts must be less than or equal to {}", numXcvrs_);
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.startPort() > numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "startPort must be less than or equal to {}", numXcvrs_);
+    return false;
+  }
+  if (*xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts() - 1 >
+      numXcvrs_) {
+    XLOG(ERR) << fmt::format(
+        "startPort + numPorts - 1 must be must be less than or equal to {}",
+        numXcvrs_);
+    return false;
+  }
+
+  for (int16_t port = *xcvrCtrlBlockConfig.startPort(); port <
+       *xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts();
+       port++) {
+    if (!isValidCsrOffsetCalc(
+            *xcvrCtrlBlockConfig.csrOffsetCalc(),
+            port,
+            *xcvrCtrlBlockConfig.startPort())) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool ConfigValidator::isValidPciDeviceConfig(
     const PciDeviceConfig& pciDeviceConfig) {
   if (pciDeviceConfig.pmUnitScopedName()->empty()) {
@@ -378,7 +463,25 @@ bool ConfigValidator::isValidPciDeviceConfig(
     }
   }
 
-  if (!isValidPortRanges(*pciDeviceConfig.ledCtrlBlockConfigs())) {
+  std::vector<std::pair<int16_t, int16_t>> ledPortRanges;
+  for (const auto& config : *pciDeviceConfig.ledCtrlBlockConfigs()) {
+    ledPortRanges.emplace_back(*config.startPort(), *config.numPorts());
+  }
+  if (!isValidPortRanges(ledPortRanges)) {
+    return false;
+  }
+
+  for (const auto& config : *pciDeviceConfig.xcvrCtrlBlockConfigs()) {
+    if (!isValidXcvrCtrlBlockConfig(config)) {
+      return false;
+    }
+  }
+
+  std::vector<std::pair<int16_t, int16_t>> xcvrPortRanges;
+  for (const auto& config : *pciDeviceConfig.xcvrCtrlBlockConfigs()) {
+    xcvrPortRanges.emplace_back(*config.startPort(), *config.numPorts());
+  }
+  if (!isValidPortRanges(xcvrPortRanges)) {
     return false;
   }
 
@@ -533,6 +636,7 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.fanTachoPwmConfigs(),
               *pciDeviceConfig.ledCtrlConfigs(),
+              getXcvrCtrlConfigs(pciDeviceConfig),
               *pciDeviceConfig.xcvrCtrlConfigs(),
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.gpioChipConfigs(),
@@ -1007,16 +1111,15 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
 }
 
 bool ConfigValidator::isValidPortRanges(
-    const std::vector<LedCtrlBlockConfig>& ledCtrlBlockConfigs) {
-  if (ledCtrlBlockConfigs.empty()) {
+    const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts) {
+  if (startPortAndNumPorts.empty()) {
     return true; // Empty list is valid
   }
 
   // Create a vector of port ranges (startPort, endPort) for sorting
   std::vector<std::pair<int, int>> portRanges;
-  for (const auto& config : ledCtrlBlockConfigs) {
-    int startPort = *config.startPort();
-    int endPort = startPort + *config.numPorts() - 1;
+  for (const auto& [startPort, numPorts] : startPortAndNumPorts) {
+    int endPort = startPort + numPorts - 1;
     portRanges.emplace_back(startPort, endPort);
   }
 
