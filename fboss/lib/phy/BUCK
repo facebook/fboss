@@ -123,6 +123,9 @@ cpp_library(
 
 cpp_library(
     name = "sai_phy_retimer",
+    srcs = [
+        "SaiPhyRetimer.cpp",
+    ],
     headers = [
         "SaiPhyRetimer.h",
     ],
@@ -140,6 +143,8 @@ cpp_library(
         "//fboss/lib/bsp:bsp_core",
         "//fboss/mdio:mdio",
         "//folly:conv",
+        "//folly:format",
+        "//folly/logging:logging",
     ],
 )
 

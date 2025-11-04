@@ -107,10 +107,7 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
     dumpImpl();
   }
 
-  bool isSupported(Feature feature) const override {
-    // TODO: Implement feature support checks
-    return false;
-  }
+  bool isSupported(Feature feature) const override;
 
   SwitchSaiId getSwitchId() const {
     CHECK(switchId_);
