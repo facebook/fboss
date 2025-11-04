@@ -122,6 +122,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
       return 3;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       throw FbossError(
@@ -162,6 +163,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_CHENAB:
       return cfg::ToCpuAction::TRAP;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:

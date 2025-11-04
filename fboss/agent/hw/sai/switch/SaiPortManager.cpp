@@ -540,6 +540,7 @@ int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_RAMON3:

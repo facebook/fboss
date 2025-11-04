@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/switch_asics/Agera3PhyAsic.h"
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
@@ -115,6 +116,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       CHECK(fabricNodeRole.has_value());
       return std::make_unique<Ramon3Asic>(
           switchId, switchInfo, sdkVersion, fabricNodeRole.value());
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
+      return std::make_unique<Agera3PhyAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       throw FbossError("Unexcepted asic type: ", *switchInfo.asicType());

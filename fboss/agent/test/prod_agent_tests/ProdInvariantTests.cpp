@@ -368,6 +368,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
