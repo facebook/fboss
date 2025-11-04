@@ -155,12 +155,29 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
       const std::string& /*name*/) override {}
   void unregisterStateObserver(StateObserver* /*observer*/) override {}
 
+  BspPhyIO* getXphyIO() {
+    return xphyIO_;
+  }
+
+  phy::PhyAddress getPhyAddr() const {
+    return phyAddr_;
+  }
+
+  static constexpr phy::Cl45DeviceAddress getDeviceAddress() {
+    return kDeviceAddress;
+  }
+
+  void* getRegisterReadFuncPtr();
+  void* getRegisterWriteFuncPtr();
+
  protected:
   void dumpImpl() const;
 
   PhyFwVersion fwVersionImpl() const;
 
  private:
+  static constexpr phy::Cl45DeviceAddress kDeviceAddress = 0x1;
+
   const GlobalXphyID xphyID_;
   const phy::PhyAddress phyAddr_;
   const std::string name_;

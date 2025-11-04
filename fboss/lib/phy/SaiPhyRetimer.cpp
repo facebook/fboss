@@ -20,6 +20,84 @@
 
 namespace facebook::fboss::phy {
 
+namespace {
+constexpr uint32_t kPmdDeviceAddr = 1;
+/*
+ * This is a static function for reading a Phy register. This function will be
+ * passed to the SAI layer. The SAI driver will use this function to read a
+ * phy register. The SAI will call the function with platform context. We are
+ * passing the platform context as the SaiPhyRetimer object pointer during
+ * create switch. When SAI calls this function with platform context then this
+ * function will use that context to get correct SaiPhyRetimer object and then
+ * call that object's XphyIO's readRegister function
+ */
+sai_status_t saiPhyRetimerSwitchRegisterRead(
+    uint64_t platform_context,
+    uint32_t device_addr,
+    uint32_t start_reg_addr,
+    uint32_t number_of_registers,
+    uint32_t* reg_val) {
+  if (device_addr != kPmdDeviceAddr) {
+    XLOG(ERR)
+        << "saiPhyRetimerSwitchRegisterRead failed, bad device address passed";
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  SaiPhyRetimer* retimerObj =
+      reinterpret_cast<SaiPhyRetimer*>(platform_context);
+  CHECK(retimerObj);
+
+  // Finally call that object's XphyIO read register function
+  for (uint32_t i = 0; i < number_of_registers; i++) {
+    uint16_t value = retimerObj->getXphyIO()->readRegister(
+        retimerObj->getPhyAddr(),
+        SaiPhyRetimer::getDeviceAddress(),
+        static_cast<uint16_t>(start_reg_addr + i));
+    reg_val[i] = value;
+  }
+
+  return SAI_STATUS_SUCCESS;
+}
+
+/*
+ * This is a static function for writing a Phy register. This function will be
+ * passed to the SAI layer. The SAI driver will use this function to write a
+ * phy register. The SAI will call the function with platform context. We are
+ * passing the platform context as the SaiPhyRetimer object pointer during
+ * create switch. When SAI calls this function with platform context then this
+ * function will use that context to get correct SaiPhyRetimer object and then
+ * call that object's XphyIO's writeRegister function
+ */
+sai_status_t saiPhyRetimerSwitchRegisterWrite(
+    uint64_t platform_context,
+    uint32_t device_addr,
+    uint32_t start_reg_addr,
+    uint32_t number_of_registers,
+    const uint32_t* reg_val) {
+  if (device_addr != kPmdDeviceAddr) {
+    XLOG(ERR)
+        << "saiPhyRetimerSwitchRegisterWrite failed, bad device address passed";
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  // Find the SaiPhyRetimer object from platform context passed by SAI
+  SaiPhyRetimer* retimerObj =
+      reinterpret_cast<SaiPhyRetimer*>(platform_context);
+  CHECK(retimerObj);
+
+  // Finally call that object's XphyIO write register function
+  for (uint32_t i = 0; i < number_of_registers; i++) {
+    retimerObj->getXphyIO()->writeRegister(
+        retimerObj->getPhyAddr(),
+        SaiPhyRetimer::getDeviceAddress(),
+        static_cast<uint16_t>(start_reg_addr + i),
+        static_cast<uint16_t>(reg_val[i]));
+  }
+
+  return SAI_STATUS_SUCCESS;
+}
+} // namespace
+
 bool SaiPhyRetimer::isSupported(Feature feature) const {
   switch (feature) {
     case Feature::PRBS:
@@ -63,6 +141,14 @@ PhyFwVersion SaiPhyRetimer::fwVersionImpl() const {
                << ", version=" << *versionStr;
   }
   return fw;
+}
+
+void* SaiPhyRetimer::getRegisterReadFuncPtr() {
+  return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterRead);
+}
+
+void* SaiPhyRetimer::getRegisterWriteFuncPtr() {
+  return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterWrite);
 }
 
 } // namespace facebook::fboss::phy
