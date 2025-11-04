@@ -1251,6 +1251,29 @@ bool verifyDsfGracefulFabricLinkUp(
     const std::string& rdswToVerify,
     const std::map<std::string, PortInfoThrift>&
         activeFabricPortNameToPortInfo) {
+  XLOG(DBG2) << "Verifying DSF Graceful Fabric link Up";
+
+  CHECK(activeFabricPortNameToPortInfo.size() > 2);
+  auto firstActivePort = activeFabricPortNameToPortInfo.begin()->first;
+  auto rIter = activeFabricPortNameToPortInfo.rbegin();
+  auto lastActivePort = rIter->first;
+  // Admin Re-enable these fabric ports
+  for (const auto& [portName, portInfo] : activeFabricPortNameToPortInfo) {
+    XLOG(DBG2) << __func__
+               << " Admin enabling port:: " << portInfo.name().value()
+               << " portID: " << portInfo.portId().value();
+    adminEnablePort(rdswToVerify, portInfo.portId().value());
+
+    bool checkPassed = true;
+    if (portName == firstActivePort || portName == lastActivePort) {
+      checkPassed = verifyAllSessionsEstablished(rdswToVerify);
+    }
+
+    if (!checkPassed) {
+      return false;
+    }
+  }
+
   return true;
 }
 
