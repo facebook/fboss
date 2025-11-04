@@ -2,7 +2,7 @@
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
-      "pmUnitName": "TAHANSB_MCB",
+      "pmUnitName": "TAHANSB800BC_MCB",
       "sensors": [
         {
           "name": "MCB_U17_FAN_1_F_RPM",
