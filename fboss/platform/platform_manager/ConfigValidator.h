@@ -39,8 +39,8 @@ class ConfigValidator {
   bool isValidCsrOffsetCalc(
       const std::string& csrOffsetCalc,
       const int16_t& portNum,
-      const int16_t& ledNum,
-      const int16_t& startPort);
+      const int16_t& startPort,
+      std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
       const std::vector<LedCtrlBlockConfig>& ledCtrlBlockConfigs);
 

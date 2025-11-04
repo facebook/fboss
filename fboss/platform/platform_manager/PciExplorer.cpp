@@ -303,8 +303,8 @@ std::vector<LedCtrlConfig> PciExplorer::createLedCtrlConfigs(
             Utils().computeHexExpression(
                 *ledCtrlConfigBlock.csrOffsetCalc(),
                 port,
-                led,
-                *ledCtrlConfigBlock.startPort());
+                *ledCtrlConfigBlock.startPort(),
+                led);
         ledCtrlConfig.portNumber() = port;
         ledCtrlConfig.ledId() = led;
         ledCtrlConfigs.push_back(ledCtrlConfig);

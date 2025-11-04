@@ -154,34 +154,50 @@ int Utils::getGpioLineValue(const std::string& charDevPath, int lineIndex)
   return value;
 };
 
-std::string Utils::computeHexExpression(
+std::string Utils::formatExpression(
     const std::string& expression,
     int port,
-    int led,
-    int startPort) {
-  // Handle mathematical expressions
-  std::string result = fmt::format(
-      fmt::runtime(expression),
-      fmt::arg("portNum", port),
-      fmt::arg("ledNum", led),
-      fmt::arg("startPort", startPort));
+    int startPort,
+    std::optional<int> led) {
+  if (led.has_value()) {
+    return fmt::format(
+        fmt::runtime(expression),
+        fmt::arg("portNum", port),
+        fmt::arg("ledNum", *led),
+        fmt::arg("startPort", startPort));
+  } else {
+    return fmt::format(
+        fmt::runtime(expression),
+        fmt::arg("portNum", port),
+        fmt::arg("startPort", startPort));
+  }
+}
 
-  // Convert hexadecimal literals to decimal since exprtk doesn't support hex
-  result = convertHexLiteralsToDecimal(result);
+std::string Utils::evaluateExpression(const std::string& expression) {
+  std::string decimalExpression = convertHexLiteralsToDecimal(expression);
   exprtk::symbol_table<double> symbolTable;
   exprtk::expression<double> expr;
   expr.register_symbol_table(symbolTable);
   exprtk::parser<double> parser;
 
-  if (!parser.compile(result, expr)) {
+  if (!parser.compile(decimalExpression, expr)) {
     throw std::runtime_error(
-        fmt::format("Failed to parse csrOffset expression: {}", result));
+        fmt::format(
+            "Failed to parse csrOffset expression: {}", decimalExpression));
   }
 
-  // Convert the result back to hexadecimal format since downstream code
-  // expects hex
   uint64_t value = static_cast<uint64_t>(expr.value());
   return fmt::format("0x{:x}", value);
+}
+
+std::string Utils::computeHexExpression(
+    const std::string& expression,
+    int port,
+    int startPort,
+    std::optional<int> led) {
+  std::string formattedExpression =
+      formatExpression(expression, port, startPort, led);
+  return evaluateExpression(formattedExpression);
 }
 
 std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {

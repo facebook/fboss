@@ -271,8 +271,8 @@ bool ConfigValidator::isValidLedCtrlBlockConfig(
       if (!isValidCsrOffsetCalc(
               *ledCtrlBlockConfig.csrOffsetCalc(),
               port,
-              led,
-              *ledCtrlBlockConfig.startPort())) {
+              *ledCtrlBlockConfig.startPort(),
+              led)) {
         return false;
       }
     }
@@ -915,13 +915,13 @@ bool ConfigValidator::isValidXcvrSymlinks(
 bool ConfigValidator::isValidCsrOffsetCalc(
     const std::string& csrOffsetCalc,
     const int16_t& portNum,
-    const int16_t& ledNum,
-    const int16_t& startPort) {
+    const int16_t& startPort,
+    std::optional<int16_t> ledNum) {
   // Test the expression with sample values to see if it's computable
   try {
     // Use Utils to test if the expression can be compiled and evaluated
     auto result =
-        Utils().computeHexExpression(csrOffsetCalc, portNum, ledNum, startPort);
+        Utils().computeHexExpression(csrOffsetCalc, portNum, startPort, ledNum);
 
     // Validate the resulting hex value
     if (result.empty()) {
