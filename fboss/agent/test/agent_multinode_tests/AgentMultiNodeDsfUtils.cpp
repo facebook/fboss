@@ -1140,6 +1140,53 @@ bool verifyDsfUngracefulQsfpRestart(
 bool verifyDsfFSDBRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     bool triggerGracefulRestart) {
+  XLOG(DBG2) << "Verifying DSF "
+             << (triggerGracefulRestart ? "Graceful" : "Ungraceful")
+             << " FSDB Restart";
+
+  auto myHostname = topologyInfo->getMyHostname();
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  // For any one RDSW in every remote cluster issue graceful FSDB restart
+  for (const auto& [_, rdsws] :
+       std::as_const(topologyInfo->getClusterIdToRdsws())) {
+    for (const auto& rdsw : std::as_const(rdsws)) {
+      if (rdsw == myHostname) { // exclude self
+        continue;
+      }
+
+      // Trigger graceful or ungraceful FSDB restart
+      triggerGracefulRestart ? triggerGracefulFsdbRestart(rdsw)
+                             : triggerUngracefulFsdbRestart(rdsw);
+
+      // Wait for FSDB to come up
+      if (!verifyFsdbIsUp(rdsw)) {
+        XLOG(DBG2) << "FSDB failed to come up post restart: " << rdsw;
+        return false;
+      }
+
+      // Sessions to RDSW whose FSDB just restarted are expected to flap.
+      // Verify no other sessions flap.
+      auto expectedPeerToDsfSession = baselinePeerToDsfSession;
+      expectedPeerToDsfSession.erase(rdsw);
+      if (!verifyNoSessionsFlap(
+              myHostname /* rdswToVerify */,
+              expectedPeerToDsfSession,
+              rdsw /* rdswToExclude */)) {
+        return false;
+      }
+
+      // Verify all DSF sessions are established for the RDSW that was
+      // restarted
+      if (!verifyAllSessionsEstablished(rdsw)) {
+        return false;
+      }
+
+      // Restart only one remote RDSW FSDB per cluster
+      break;
+    }
+  }
+
   return true;
 }
 
