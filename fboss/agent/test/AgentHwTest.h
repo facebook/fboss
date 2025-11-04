@@ -138,6 +138,9 @@ class AgentHwTest : public ::testing::Test {
   std::vector<PortID> masterLogicalFabricPortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, switchId);
   }
+  std::vector<PortID> masterLogicalHyperPortIds() const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+  }
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,
       cfg::SwitchDrainState drainState);

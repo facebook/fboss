@@ -350,7 +350,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
   std::vector<PortID> portIdsForTest(bool scaleTest = false) {
-    auto allPorts = masterLogicalInterfacePortIds();
+    auto allPorts = FLAGS_hyper_port ? masterLogicalHyperPortIds()
+                                     : masterLogicalInterfacePortIds();
     int numPorts = scaleTest ? allPorts.size() : 2;
     return std::vector<PortID>(allPorts.begin(), allPorts.begin() + numPorts);
   }
@@ -517,8 +518,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     // pri = 7 => dscp 56
     int dscp = priority * 8;
-    int numPacketsPerFlow = getAgentEnsemble()->getMinPktsForLineRate(
-        masterLogicalInterfacePortIds()[0]);
+    int numPacketsPerFlow =
+        getAgentEnsemble()->getMinPktsForLineRate(portIdsForTest()[0]);
     if (FLAGS_num_packets_to_trigger_pfc > 0) {
       numPacketsPerFlow = FLAGS_num_packets_to_trigger_pfc;
     }
@@ -1152,8 +1153,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
 // Tx disabled. Then we send packets to that IP on a different port (portId),
 // which will eventually cause queues to build up and PFC to trigger.
 TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
-  PortID portId = masterLogicalInterfacePortIds()[0];
-  PortID txOffPortId = masterLogicalInterfacePortIds()[1];
+  PortID portId = portIdsForTest()[0];
+  PortID txOffPortId = portIdsForTest()[1];
   XLOG(DBG3) << "Injection port: " << portDesc(portId);
   XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
   auto ip = getDestinationIps()[0];
@@ -1184,8 +1185,8 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogDetection) {
 // Since the watchdog counters are sw based, upon warm boot
 // we don't expect these counters to be incremented either
 TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
-  PortID portId = masterLogicalInterfacePortIds()[0];
-  PortID txOffPortId = masterLogicalInterfacePortIds()[1];
+  PortID portId = portIdsForTest()[0];
+  PortID txOffPortId = portIdsForTest()[1];
   XLOG(DBG3) << "Injection port: " << portDesc(portId);
   XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
   auto ip = getDestinationIps()[0];
