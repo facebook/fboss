@@ -625,6 +625,18 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
+        pciExplorer_.createXcvrCtrlConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
+        [&](const auto& xcvrCtrlConfig) {
+          auto devicePath = Utils().createDevicePath(
+              slotPath,
+              *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+          auto xcvrCtrlSysfsPath =
+              pciExplorer_.createXcvrCtrl(pciDevice, xcvrCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(devicePath, xcvrCtrlSysfsPath);
+        });
+    createPciSubDevices(
+        slotPath,
         *pciDeviceConfig.xcvrCtrlConfigs(),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
         [&](const auto& xcvrCtrlConfig) {
