@@ -1203,16 +1203,17 @@ bool verifyDsfUngracefulFSDBRestart(
 }
 
 bool verifyDsfGracefulFabricLinkDown(
-    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& rdswToVerify,
+    const std::map<std::string, PortInfoThrift>&
+        activeFabricPortNameToPortInfo) {
   XLOG(DBG2) << "Verifying DSF Graceful Fabric link Down";
-  auto myHostname = topologyInfo->getMyHostname();
-  auto activeFabricPortNameToPortInfo =
-      getActiveFabricPortNameToPortInfo(myHostname);
+
   CHECK(activeFabricPortNameToPortInfo.size() > 2);
   auto rIter = activeFabricPortNameToPortInfo.rbegin();
   auto lastActivePort = rIter->first;
   auto secondLastActivePort = std::next(rIter)->first;
-  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+  auto baselinePeerToDsfSession = getPeerToDsfSession(rdswToVerify);
 
   // Admin disable all Active fabric ports
   // Verify that all sessions stay established till last port is disabled.
@@ -1223,18 +1224,19 @@ bool verifyDsfGracefulFabricLinkDown(
     XLOG(DBG2) << __func__
                << " Admin disabling port:: " << portInfo.name().value()
                << " portID: " << portInfo.portId().value();
-    adminDisablePort(myHostname, portInfo.portId().value());
+    adminDisablePort(rdswToVerify, portInfo.portId().value());
 
     bool checkPassed = true;
     if (portName == lastActivePort) {
-      checkPassed = verifyNoSessionsEstablished(myHostname);
+      checkPassed = verifyNoSessionsEstablished(rdswToVerify);
     } else if (portName == secondLastActivePort) {
       // verify no flaps is expensive.
       // Thus, only verify just before disabling the last port.
       // There is no loss of signal due to this approach as if the sessions
       // flap due to an intermediate port admin disable, it will be detected
       // by this check failure anyway.
-      checkPassed = verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession);
+      checkPassed =
+          verifyNoSessionsFlap(rdswToVerify, baselinePeerToDsfSession);
     }
     if (!checkPassed) {
       return false;
@@ -1245,15 +1247,34 @@ bool verifyDsfGracefulFabricLinkDown(
 }
 
 bool verifyDsfGracefulFabricLinkUp(
-    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& rdswToVerify,
+    const std::map<std::string, PortInfoThrift>&
+        activeFabricPortNameToPortInfo) {
   return true;
 }
 
 bool verifyDsfGracefulFabricLinkDownUp(
     const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying DSF Graceful Fabric link Down then Up";
-  return verifyDsfGracefulFabricLinkDown(topologyInfo) &&
-      verifyDsfGracefulFabricLinkUp(topologyInfo);
+
+  auto myHostname = topologyInfo->getMyHostname();
+  auto activeFabricPortNameToPortInfo =
+      getActiveFabricPortNameToPortInfo(myHostname);
+
+  if (!verifyDsfGracefulFabricLinkDown(
+          topologyInfo, myHostname, activeFabricPortNameToPortInfo)) {
+    XLOG(ERR) << "Failed to verify DSF Graceful Fabric link Down";
+    return false;
+  }
+
+  if (!verifyDsfGracefulFabricLinkUp(
+          topologyInfo, myHostname, activeFabricPortNameToPortInfo)) {
+    XLOG(ERR) << "Failed to verify DSF Ungraceful Fabric link Up";
+    return false;
+  }
+
+  return true;
 }
 
 } // namespace facebook::fboss::utility
