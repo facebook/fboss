@@ -14,5 +14,8 @@ StandardOutput=journal
 Restart=always
 RestartSec=30
 
+# Place in unrestricted workload.slice
+Slice=workload.slice
+
 [Install]
 WantedBy=multi-user.target
