@@ -1096,6 +1096,32 @@ bool verifyDsfGracefulAgentRestartTimeoutRecovery(
 bool verifyDsfQsfpRestart(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     bool triggerGracefulRestart) {
+  XLOG(DBG2) << "Verifying DSF "
+             << (triggerGracefulRestart ? "Graceful" : "Ungraceful")
+             << " QSFP Restart";
+
+  auto myHostname = topologyInfo->getMyHostname();
+  auto baselinePeerToDsfSession = getPeerToDsfSession(myHostname);
+
+  // For every device (RDSW, FDSW, SDSW) issue QSFP graceful restart
+  for (const auto& [switchName, _] : topologyInfo->getSwitchNameToSwitchIds()) {
+    triggerGracefulRestart ? triggerGracefulQsfpRestart(switchName)
+                           : triggerUngracefulQsfpRestart(switchName);
+  }
+
+  // Wait for QSFP service to come up
+  for (const auto& [switchName, _] : topologyInfo->getSwitchNameToSwitchIds()) {
+    if (!verifyQsfpServiceRunState(switchName, QsfpServiceRunState::ACTIVE)) {
+      XLOG(DBG2) << "QSFP failed to come up post warmboot: " << switchName;
+      return false;
+    }
+  }
+
+  // No session flaps are expected for QSFP graceful restart.
+  if (!verifyNoSessionsFlap(myHostname, baselinePeerToDsfSession)) {
+    return false;
+  }
+
   return true;
 }
 
