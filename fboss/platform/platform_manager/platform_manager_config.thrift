@@ -336,6 +336,39 @@ struct XcvrCtrlConfig {
   2: i32 portNumber;
 }
 
+// Defines generic Transceiver Controller block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: XCVR_CTRL, the expanded form would be
+//  XCVR_CTRL_PORT_1, XCVR_CTRL_PORT_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address, port, a starting port number
+//  or index. Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x4"
+//  portNum=1, startPort=1:
+//    csrOffsetCalc: "0x1000 + (1 - 1)*0x4"
+//    csrOffsetCalc: "0x1000"
+//  portNum=2, startPort=1::
+//    csrOffsetCalc: "0x1000 + (2 - 1)*0x4"
+//    csrOffsetCalc: "0x1004"
+//
+// `numPorts`: Number of ports for this block config
+//
+// `startPort`: Starting port for calculation for each block config
+struct XcvrCtrlBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 numPorts;
+  6: i32 startPort;
+}
+
 // Defines the LED Controller block in FPGAs.
 //
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
@@ -445,6 +478,7 @@ struct PciDeviceConfig {
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
   15: optional string desiredDriver;
   16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
+  17: list<XcvrCtrlBlockConfig> xcvrCtrlBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
