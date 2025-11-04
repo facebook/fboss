@@ -639,8 +639,8 @@ void HwSwitchEnsemble::setupEnsemble(
   cfg::Range64 portIdRange;
   portIdRange.minimum() =
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
-  portIdRange.maximum() =
-      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+  portIdRange.maximum() = cfg::switch_config_constants::
+      DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX();
   switchInfo.portIdRange() = portIdRange;
   auto switchIdToSwitchInfo = std::map<int64_t, cfg::SwitchInfo>(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
