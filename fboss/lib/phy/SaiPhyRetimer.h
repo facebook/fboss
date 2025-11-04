@@ -156,15 +156,9 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   void unregisterStateObserver(StateObserver* /*observer*/) override {}
 
  protected:
-  void dumpImpl() const {
-    // TODO: Implement dump
-  }
+  void dumpImpl() const;
 
-  PhyFwVersion fwVersionImpl() const {
-    // TODO: Implement firmware version reading
-    PhyFwVersion fw;
-    return fw;
-  }
+  PhyFwVersion fwVersionImpl() const;
 
  private:
   const GlobalXphyID xphyID_;

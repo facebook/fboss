@@ -132,6 +132,7 @@ cpp_library(
     exported_deps = [
         ":external_phy",
         ":phy-cpp2-types",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hwswitchcallback",
         "//fboss/agent:packet",
