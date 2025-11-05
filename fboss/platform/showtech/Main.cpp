@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include <CLI/CLI.hpp>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -78,11 +79,14 @@ int main(int argc, char** argv) {
   CLI::App app{"Showtech utility for collecting system diagnostics"};
   app.set_version_flag("--version", helpers::getBuildVersion());
 
-  std::vector<std::string> detailsArg = {"all"};
-  app.add_option(
-         "--details", detailsArg, "Comma-separated list of details to print")
-      ->default_val(std::vector<std::string>{"all"})
+  std::vector<std::string> detailsArg = {};
+  app.add_option("--details", detailsArg, folly::stripLeftMargin(R"(
+           Comma-separated list of details to print.
+           Use specific section details to avoid printing too much data.
+           Use 'all' only if necessary. 'all' can take a long time to run.
+         )"))
       ->delimiter(',')
+      ->required()
       ->check(CLI::IsMember(getValidDetailNames()));
 
   try {
