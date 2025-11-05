@@ -3513,15 +3513,17 @@ void SwSwitch::applyConfigImpl(
         }
         return newState;
       });
-  // Since config update can also update ecmp overrides - in
-  // case of config changing ecmp switching mode. Sync these
-  // route overrides to rib
-  updateEventBase_.runInFbossEventBaseThreadAndWait([this]() {
-    if (rib_) {
-      rib_->updateEcmpOverrides(
-          StateDelta(std::make_shared<SwitchState>(), getState()));
-    }
-  });
+  if (FLAGS_enable_ecmp_resource_manager) {
+    // Since config update can also update ecmp overrides - in
+    // case of config changing ecmp switching mode. Sync these
+    // route overrides to rib
+    updateEventBase_.runInFbossEventBaseThreadAndWait([this]() {
+      if (rib_) {
+        rib_->updateEcmpOverrides(
+            StateDelta(std::make_shared<SwitchState>(), getState()));
+      }
+    });
+  }
   // Since we're using blocking state update, once we reach here, the new
   // config should be already applied and programmed into hardware.
   updateConfigAppliedInfo();
