@@ -2,8 +2,8 @@
 // All Rights Reserved.
 #include <algorithm>
 #include <ranges>
-#include <unordered_map>
-#include <unordered_set>
+#include <set>
+#include <vector>
 
 #include <CLI/CLI.hpp>
 #include <folly/String.h>
@@ -22,7 +22,7 @@ using namespace facebook::fboss::platform::showtech_config;
 
 namespace {
 
-const std::unordered_map<std::string, std::function<void(Utils&)>>
+const std::vector<std::pair<std::string, std::function<void(Utils&)>>>
     DETAIL_FUNCTIONS = {
         {"host", [](Utils& util) { util.printHostDetails(); }},
         {"fboss", [](Utils& util) { util.printFbossDetails(); }},
@@ -43,11 +43,11 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
         {"logs", [](Utils& util) { util.printLogs(); }},
 };
 
-std::unordered_set<std::string> getValidDetailNames() {
-  auto keys = std::views::keys(DETAIL_FUNCTIONS) |
-      std::views::transform([](const auto& key) { return key; });
-  std::unordered_set<std::string> result{"all"};
-  result.insert(keys.begin(), keys.end());
+std::set<std::string> getValidDetailNames() {
+  std::set<std::string> result{"all"};
+  for (const auto& [name, func] : DETAIL_FUNCTIONS) {
+    result.insert(name);
+  }
   return result;
 }
 
@@ -64,8 +64,10 @@ void executeRequestedDetails(
     }
   } else {
     for (const auto& requestedDetail : requestedDetails) {
-      if (auto it = DETAIL_FUNCTIONS.find(requestedDetail);
-          it != DETAIL_FUNCTIONS.end()) {
+      auto it = std::ranges::find_if(DETAIL_FUNCTIONS, [&](const auto& pair) {
+        return pair.first == requestedDetail;
+      });
+      if (it != DETAIL_FUNCTIONS.end()) {
         XLOG(INFO) << "Executing: " << requestedDetail;
         it->second(showtechUtil);
       }
