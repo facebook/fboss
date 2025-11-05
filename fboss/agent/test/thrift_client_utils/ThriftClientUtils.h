@@ -29,6 +29,8 @@ getQsfpThriftClient(const std::string& switchName);
 std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
 getFsdbThriftClient(const std::string& switchName);
 
+int64_t getQsfpAliveSinceEpoch(const std::string& switchName);
+
 MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName);
 int getNumHwSwitches(const std::string& switchName);
 QsfpServiceRunState getQsfpServiceRunState(const std::string& switchName);

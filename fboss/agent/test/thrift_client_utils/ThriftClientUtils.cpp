@@ -73,6 +73,11 @@ getFsdbThriftClient(const std::string& switchName) {
       std::move(channel));
 }
 
+int64_t getQsfpAliveSinceEpoch(const std::string& switchName) {
+  auto qsfpClient = getQsfpThriftClient(switchName);
+  return qsfpClient->sync_aliveSince();
+}
+
 MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   MultiSwitchRunState runState;
