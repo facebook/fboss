@@ -6,6 +6,8 @@
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <gtest/gtest.h>
+
 namespace {
 using namespace facebook::fboss::utility;
 using facebook::fboss::checkAlwaysTrueWithRetryErrorReturn;
@@ -732,13 +734,13 @@ bool verifyDsfSessions(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
-    verifyFabricConnectivity(topologyInfo);
-    verifyFabricReachability(topologyInfo);
-    verifyPorts(topologyInfo);
-    verifySystemPorts(topologyInfo);
-    verifyRifs(topologyInfo);
-    verifyStaticNdpEntries(topologyInfo);
-    verifyDsfSessions(topologyInfo);
+    EXPECT_EVENTUALLY_TRUE(verifyFabricConnectivity(topologyInfo));
+    EXPECT_EVENTUALLY_TRUE(verifyFabricReachability(topologyInfo));
+    EXPECT_EVENTUALLY_TRUE(verifyPorts(topologyInfo));
+    EXPECT_EVENTUALLY_TRUE(verifySystemPorts(topologyInfo));
+    EXPECT_EVENTUALLY_TRUE(verifyRifs(topologyInfo));
+    EXPECT_EVENTUALLY_TRUE(verifyStaticNdpEntries(topologyInfo));
+    EXPECT_EVENTUALLY_TRUE(verifyDsfSessions(topologyInfo));
   });
 }
 
