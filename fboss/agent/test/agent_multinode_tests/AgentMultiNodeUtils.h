@@ -12,6 +12,7 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
 
@@ -42,6 +43,10 @@ std::vector<NdpEntryThrift> getNdpEntriesOfType(
 
 std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
     const std::string& switchName);
+
+std::map<std::string, int64_t> getSwitchNameToQsfpAliveSinceEpoch(
+    const std::map<std::string, std::set<facebook::fboss::SwitchID>>&
+        switchNameToSwitchIds);
 
 bool verifySwSwitchRunState(
     const std::string& switchName,
