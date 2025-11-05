@@ -73,6 +73,12 @@ void AgentMultiNodeTest::runTestWithVerifyCluster(
         testFn) const {
   // Verify cluster before running test
   verifyCluster();
+  if (testing::Test::HasNonfatalFailure()) {
+    // Some EXPECT_* asserts in verifyDsfClusterHelper() failed.
+    FAIL()
+        << "Sanity checks in DSF cluster verification failed, can't proceed with test";
+  }
+
   // The testFn is expected to contain retries specific to the test logic,
   // thus, we can ASSERT here.
   ASSERT_TRUE(testFn(topologyInfo_));
