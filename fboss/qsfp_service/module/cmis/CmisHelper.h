@@ -69,7 +69,8 @@ class CmisHelper final {
             facebook::fboss::cfg::PortSpeed::EIGHTHUNDREDG,
             {SMFMediaInterfaceCode::FR8_800G,
              SMFMediaInterfaceCode::DR4_800G,
-             SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G},
+             SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
+             SMFMediaInterfaceCode::ZR_OIF_ZRA_800G},
         }};
     return smfSpeedApplicationMapping_;
   }
@@ -90,6 +91,7 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::DR1_100G, MediaInterfaceCode::DR1_100G},
         {SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
          MediaInterfaceCode::ZR_800G},
+        {SMFMediaInterfaceCode::ZR_OIF_ZRA_800G, MediaInterfaceCode::ZR_800G},
     };
     return smfMediaInterfaceMapping_;
   }
@@ -297,6 +299,10 @@ class CmisHelper final {
         {
             // 800G ZR
             SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
+        },
+        {
+            // 800G ZR OIF ZRA
+            SMFMediaInterfaceCode::ZR_OIF_ZRA_800G,
         },
     };
     return smfOsfpValidSpeedCombinations_;

@@ -645,7 +645,8 @@ void HwTransceiverUtils::verifyOptical800gProfile(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR8_800G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_800G ||
         *mediaId.media()->smfCode() ==
-            SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G);
+            SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::ZR_OIF_ZRA_800G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR8_800G ||
         *mediaId.code() == MediaInterfaceCode::DR4_800G ||
