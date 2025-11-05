@@ -23,6 +23,18 @@ add_fbthrift_cpp_library(
     fboss_cpp2
 )
 
+add_fbthrift_py_library(
+  rackmon_py
+  fboss/platform/rackmon/if/rackmonsvc.thrift
+  NAMESPACE "rackmonsvc.rackmonsvc"
+  SERVICES
+  RackmonCtrl
+  OPTIONS
+    json
+  DEPENDS
+    fb303_py
+    fboss_py
+  )
 
 add_library(rackmon_lib
   fboss/platform/rackmon/RackmonThriftHandler.cpp
@@ -95,3 +107,25 @@ target_compile_definitions(rackmon_test PRIVATE __TEST__=1)
 
 install(TARGETS rackmon_test)
 gtest_discover_tests(rackmon_test)
+
+set(
+  PSU_UPDATE_PY_SRCS
+  "fboss/platform/rackmon/psu_update/pyrmd_thrift.py"
+  "fboss/platform/rackmon/psu_update/psu_update_delta_orv3.py"
+  "fboss/platform/rackmon/psu_update/modbus_update_helper.py"
+  "fboss/platform/rackmon/psu_update/hexfile.py"
+  "fboss/platform/rackmon/psu_update/delta_key.py"
+)
+
+add_fb_python_executable(
+  psu-update-delta-orv3
+  BASE_DIR "${CMAKE_SOURCE_DIR}/fboss/platform/rackmon/psu_update"
+  NAMESPACE ""
+  MAIN_MODULE psu_update_delta_orv3:main
+  SOURCES ${PSU_UPDATE_PY_SRCS}
+  DEPENDS
+    rackmon_py
+    FBThrift::thrift_py
+)
+
+install_fb_python_executable(psu-update-delta-orv3)
