@@ -601,6 +601,9 @@ struct TcvrState {
   27: string tcvrName;
   28: bool lpoModule;
   29: optional TunableLaserStatus tunableLaserStatus;
+  // Will be set to true if the last attempt to read data from this transceiver
+  // was unsuccessful
+  30: bool communicationError;
 }
 
 struct TcvrStats {
