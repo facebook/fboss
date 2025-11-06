@@ -18,7 +18,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2001,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/1/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -37,7 +37,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 52,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -54,7 +54,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2002,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/1/5",
         "description": "",
         "queues_DEPRECATED": [
@@ -73,7 +73,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 52,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -90,7 +90,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2003,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/2/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -109,7 +109,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 52,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -126,7 +126,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 2004,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/2/5",
         "description": "",
         "queues_DEPRECATED": [
@@ -145,7 +145,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 52,
         "portType": 0,
         "expectedNeighborReachability": [
           

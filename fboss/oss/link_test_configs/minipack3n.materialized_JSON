@@ -6658,7 +6658,7 @@
         },
         {
           "rxReason": 7,
-          "queueId": 2
+          "queueId": 0
         },
         {
           "rxReason": 2,
