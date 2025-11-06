@@ -19,6 +19,18 @@ namespace facebook::fboss::utility {
 namespace {
 
 constexpr auto kRdswPerCluster = 128;
+constexpr auto kJangaRdswPerCluster = 256;
+
+int getRdswPerCluster(std::optional<PlatformType> platformType = std::nullopt) {
+  int rdswCount;
+  if (platformType.has_value() &&
+      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
+    rdswCount = kJangaRdswPerCluster;
+  } else {
+    rdswCount = kRdswPerCluster;
+  }
+  return rdswCount;
+}
 
 int getDsfInterfaceNodeCount() {
   return getMaxRdsw() + getMaxEdsw();
@@ -93,6 +105,7 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
       *firstDsfNode.systemPortRanges()->systemPortRanges();
 
   std::string testSwitchNamePrefix = "hwTestSwitch";
+  std::optional<PlatformType> platformType{*firstDsfNode.platformType()};
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
@@ -100,7 +113,7 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     HwAsic& hwAsic = *myAsic;
     if (isDualStage3Q2QMode()) {
       if (remoteSwitchId < getMaxRdsw() * numCores) {
-        clusterId = remoteSwitchId / numCores / kRdswPerCluster;
+        clusterId = remoteSwitchId / numCores / getRdswPerCluster(platformType);
         CHECK(dualStageRdswAsic);
         hwAsic = *dualStageRdswAsic;
         testSwitchNamePrefix = "rdsw";
