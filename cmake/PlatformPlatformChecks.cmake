@@ -24,6 +24,7 @@ add_library(platform_checks
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
   fboss/platform/platform_checks/checks/PowerResetCheck.cpp
+  # Not including KernelVersionCheck since it relies on internal tools
 )
 
 target_link_libraries(platform_checks

@@ -33,11 +33,13 @@ cpp_library(
 cpp_library(
     name = "platform_checks",
     srcs = [
+        "checks/KernelVersionCheck.cpp",
         "checks/MacAddressCheck.cpp",
         "checks/PciDeviceCheck.cpp",
         "checks/PowerResetCheck.cpp",
     ],
     headers = [
+        "checks/KernelVersionCheck.h",
         "checks/MacAddressCheck.h",
         "checks/PciDeviceCheck.h",
         "checks/PowerResetCheck.h",
@@ -45,6 +47,8 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/re2:re2",
         ":platform_check",
+        "//common/config:configerator",
+        "//configerator/structs/fboss/fboss_platform:kernel_versions-cpp2-types",
         "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
@@ -88,5 +92,16 @@ cpp_unittest(
         ":platform_checks",
         "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "kernel_version_check_test",
+    srcs = [
+        "tests/KernelVersionCheckTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":platform_checks",
     ],
 )
