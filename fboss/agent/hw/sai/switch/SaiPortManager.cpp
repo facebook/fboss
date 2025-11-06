@@ -2264,7 +2264,8 @@ void SaiPortManager::updateStats(
   }
   const auto& asic = platform_->getAsic();
   if (updateCableLengths && isPortUp(portId) &&
-      portType == cfg::PortType::FABRIC_PORT &&
+      (portType == cfg::PortType::FABRIC_PORT ||
+       portType == cfg::PortType::HYPER_PORT_MEMBER) &&
       asic->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
     bool cableLenAvailableOnPort = true;
     if (asic->getSwitchType() == cfg::SwitchType::FABRIC &&
