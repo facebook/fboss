@@ -85,24 +85,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -141,6 +177,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -365,6 +410,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -451,6 +505,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -552,7 +615,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 4,
           "name": "eth1/1/4",
-          "controllingPort": 1,
+          "controllingPort": 3,
           "pins": [
             {
               "a": {
@@ -578,6 +641,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -693,24 +765,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -749,6 +857,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -772,12 +889,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -809,24 +944,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -865,6 +1036,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -910,6 +1090,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -930,6 +1119,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -987,6 +1185,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1010,12 +1217,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1042,6 +1267,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1087,6 +1321,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1107,6 +1350,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core56",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1193,24 +1445,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1249,6 +1537,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1473,6 +1770,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1559,6 +1865,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1660,7 +1975,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 12,
           "name": "eth1/2/4",
-          "controllingPort": 9,
+          "controllingPort": 11,
           "pins": [
             {
               "a": {
@@ -1686,6 +2001,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1801,24 +2125,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1857,6 +2217,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1880,12 +2249,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1917,24 +2304,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1973,6 +2396,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2018,6 +2450,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2038,6 +2479,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2095,6 +2545,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2118,12 +2577,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2150,6 +2627,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2195,6 +2681,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2215,6 +2710,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core49",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2301,24 +2805,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2357,6 +2897,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2581,6 +3130,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2667,6 +3225,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2768,7 +3335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 20,
           "name": "eth1/3/4",
-          "controllingPort": 17,
+          "controllingPort": 19,
           "pins": [
             {
               "a": {
@@ -2794,6 +3361,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2909,24 +3485,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2965,6 +3577,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2988,12 +3609,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3025,24 +3664,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3081,6 +3756,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3126,6 +3810,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3146,6 +3839,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3203,6 +3905,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3226,12 +3937,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3258,6 +3987,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3303,6 +4041,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3323,6 +4070,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core57",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3409,24 +4165,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3465,6 +4257,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3689,6 +4490,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3775,6 +4585,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3876,7 +4695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 28,
           "name": "eth1/4/4",
-          "controllingPort": 25,
+          "controllingPort": 27,
           "pins": [
             {
               "a": {
@@ -3902,6 +4721,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4017,24 +4845,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4073,6 +4937,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4096,12 +4969,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4133,24 +5024,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4189,6 +5116,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4234,6 +5170,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4254,6 +5199,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4311,6 +5265,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4334,12 +5297,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4366,6 +5347,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4411,6 +5401,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4431,6 +5430,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core48",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4517,24 +5525,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4573,6 +5617,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4797,6 +5850,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4883,6 +5945,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4984,7 +6055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 36,
           "name": "eth1/5/4",
-          "controllingPort": 33,
+          "controllingPort": 35,
           "pins": [
             {
               "a": {
@@ -5010,6 +6081,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5125,24 +6205,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5181,6 +6297,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5204,12 +6329,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5241,24 +6384,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5297,6 +6476,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5342,6 +6530,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5362,6 +6559,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5419,6 +6625,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5442,12 +6657,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5474,6 +6707,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5519,6 +6761,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5539,6 +6790,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core59",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5625,24 +6885,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5681,6 +6977,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5905,6 +7210,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5991,6 +7305,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6092,7 +7415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 44,
           "name": "eth1/6/4",
-          "controllingPort": 41,
+          "controllingPort": 43,
           "pins": [
             {
               "a": {
@@ -6118,6 +7441,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6233,24 +7565,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6289,6 +7657,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6312,12 +7689,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6349,24 +7744,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6405,6 +7836,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6450,6 +7890,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6470,6 +7919,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6527,6 +7985,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6550,12 +8017,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6582,6 +8067,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6627,6 +8121,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6647,6 +8150,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core50",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6733,24 +8245,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6789,6 +8337,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7013,6 +8570,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7099,6 +8665,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7200,7 +8775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 52,
           "name": "eth1/7/4",
-          "controllingPort": 49,
+          "controllingPort": 51,
           "pins": [
             {
               "a": {
@@ -7226,6 +8801,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7341,24 +8925,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7397,6 +9017,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7420,12 +9049,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7457,24 +9104,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7513,6 +9196,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7558,6 +9250,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7578,6 +9279,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7635,6 +9345,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7658,12 +9377,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7690,6 +9427,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7735,6 +9481,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7755,6 +9510,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core58",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7841,24 +9605,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7897,6 +9697,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8121,6 +9930,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8207,6 +10025,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8308,7 +10135,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 60,
           "name": "eth1/8/4",
-          "controllingPort": 57,
+          "controllingPort": 59,
           "pins": [
             {
               "a": {
@@ -8334,6 +10161,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8449,24 +10285,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8505,6 +10377,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8528,12 +10409,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8565,24 +10464,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8621,6 +10556,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8666,6 +10610,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8686,6 +10639,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8743,6 +10705,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8766,12 +10737,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8798,6 +10787,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8843,6 +10841,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8863,6 +10870,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core51",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8949,24 +10965,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9005,6 +11057,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9229,6 +11290,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9315,6 +11385,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9416,7 +11495,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 68,
           "name": "eth1/9/4",
-          "controllingPort": 65,
+          "controllingPort": 67,
           "pins": [
             {
               "a": {
@@ -9442,6 +11521,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9557,24 +11645,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9613,6 +11737,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9636,12 +11769,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9673,24 +11824,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9729,6 +11916,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9774,6 +11970,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9794,6 +11999,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9851,6 +12065,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9874,12 +12097,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9906,6 +12147,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9951,6 +12201,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9971,6 +12230,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core63",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10057,24 +12325,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10113,6 +12417,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10337,6 +12650,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10423,6 +12745,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10524,7 +12855,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 76,
           "name": "eth1/10/4",
-          "controllingPort": 73,
+          "controllingPort": 75,
           "pins": [
             {
               "a": {
@@ -10550,6 +12881,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10665,24 +13005,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10721,6 +13097,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10744,12 +13129,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10781,24 +13184,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10837,6 +13276,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10882,6 +13330,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10902,6 +13359,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10959,6 +13425,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10982,12 +13457,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11014,6 +13507,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11059,6 +13561,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11079,6 +13590,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core54",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11165,24 +13685,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11221,6 +13777,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11445,6 +14010,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11531,6 +14105,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11632,7 +14215,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 84,
           "name": "eth1/11/4",
-          "controllingPort": 81,
+          "controllingPort": 83,
           "pins": [
             {
               "a": {
@@ -11658,6 +14241,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11773,24 +14365,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11829,6 +14457,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11852,12 +14489,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11889,24 +14544,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11945,6 +14636,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11990,6 +14690,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12010,6 +14719,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12067,6 +14785,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12090,12 +14817,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12122,6 +14867,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12167,6 +14921,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12187,6 +14950,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core62",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12273,24 +15045,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12329,6 +15137,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12553,6 +15370,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12639,6 +15465,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12740,7 +15575,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 92,
           "name": "eth1/12/4",
-          "controllingPort": 89,
+          "controllingPort": 91,
           "pins": [
             {
               "a": {
@@ -12766,6 +15601,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12881,24 +15725,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12937,6 +15817,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12960,12 +15849,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12997,24 +15904,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13053,6 +15996,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13098,6 +16050,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13118,6 +16079,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13175,6 +16145,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13198,12 +16177,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13230,6 +16227,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13275,6 +16281,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13295,6 +16310,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core55",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13381,24 +16405,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13437,6 +16497,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13661,6 +16730,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13747,6 +16825,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13848,7 +16935,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 100,
           "name": "eth1/13/4",
-          "controllingPort": 97,
+          "controllingPort": 99,
           "pins": [
             {
               "a": {
@@ -13874,6 +16961,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13989,24 +17085,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14045,6 +17177,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14068,12 +17209,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14105,24 +17264,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14161,6 +17356,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14206,6 +17410,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14226,6 +17439,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14283,6 +17505,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14306,12 +17537,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14338,6 +17587,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14383,6 +17641,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14403,6 +17670,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core60",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14489,24 +17765,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14545,6 +17857,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14769,6 +18090,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14855,6 +18185,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -14956,7 +18295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 108,
           "name": "eth1/14/4",
-          "controllingPort": 105,
+          "controllingPort": 107,
           "pins": [
             {
               "a": {
@@ -14982,6 +18321,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15097,24 +18445,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15153,6 +18537,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15176,12 +18569,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15213,24 +18624,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15269,6 +18716,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15314,6 +18770,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15334,6 +18799,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15391,6 +18865,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15414,12 +18897,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15446,6 +18947,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15491,6 +19001,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15511,6 +19030,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core53",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15597,24 +19125,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15653,6 +19217,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15877,6 +19450,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -15963,6 +19545,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16064,7 +19655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 116,
           "name": "eth1/15/4",
-          "controllingPort": 113,
+          "controllingPort": 115,
           "pins": [
             {
               "a": {
@@ -16090,6 +19681,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16205,24 +19805,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16261,6 +19897,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16284,12 +19929,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16321,24 +19984,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16377,6 +20076,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16422,6 +20130,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16442,6 +20159,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16499,6 +20225,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16522,12 +20257,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16554,6 +20307,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16599,6 +20361,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16619,6 +20390,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core61",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16705,24 +20485,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16761,6 +20577,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -16985,6 +20810,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17071,6 +20905,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17172,7 +21015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 124,
           "name": "eth1/16/4",
-          "controllingPort": 121,
+          "controllingPort": 123,
           "pins": [
             {
               "a": {
@@ -17198,6 +21041,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17313,24 +21165,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17369,6 +21257,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17392,12 +21289,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17429,24 +21344,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17485,6 +21436,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17530,6 +21490,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17550,6 +21519,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17607,6 +21585,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17630,12 +21617,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17662,6 +21667,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17707,6 +21721,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17727,6 +21750,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core52",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17813,24 +21845,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -17869,6 +21937,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18093,6 +22170,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18179,6 +22265,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18280,7 +22375,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 132,
           "name": "eth1/17/4",
-          "controllingPort": 129,
+          "controllingPort": 131,
           "pins": [
             {
               "a": {
@@ -18306,6 +22401,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18421,24 +22525,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18477,6 +22617,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18500,12 +22649,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18537,24 +22704,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18593,6 +22796,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18638,6 +22850,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18658,6 +22879,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18715,6 +22945,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18738,12 +22977,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18770,6 +23027,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18815,6 +23081,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18835,6 +23110,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18921,24 +23205,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -18977,6 +23297,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19201,6 +23530,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19287,6 +23625,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19388,7 +23735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 140,
           "name": "eth1/18/4",
-          "controllingPort": 137,
+          "controllingPort": 139,
           "pins": [
             {
               "a": {
@@ -19414,6 +23761,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19529,24 +23885,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19585,6 +23977,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19608,12 +24009,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19645,24 +24064,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19701,6 +24156,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19746,6 +24210,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19766,6 +24239,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19823,6 +24305,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19846,12 +24337,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19878,6 +24387,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19923,6 +24441,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -19943,6 +24470,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core9",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20029,24 +24565,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20085,6 +24657,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20309,6 +24890,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20395,6 +24985,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20496,7 +25095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 148,
           "name": "eth1/19/4",
-          "controllingPort": 145,
+          "controllingPort": 147,
           "pins": [
             {
               "a": {
@@ -20522,6 +25121,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20637,24 +25245,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20693,6 +25337,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20716,12 +25369,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20753,24 +25424,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20809,6 +25516,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20854,6 +25570,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20874,6 +25599,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20931,6 +25665,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20954,12 +25697,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -20986,6 +25747,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21031,6 +25801,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21051,6 +25830,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core1",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21137,24 +25925,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21193,6 +26017,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21417,6 +26250,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21503,6 +26345,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21604,7 +26455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 156,
           "name": "eth1/20/4",
-          "controllingPort": 153,
+          "controllingPort": 155,
           "pins": [
             {
               "a": {
@@ -21630,6 +26481,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21745,24 +26605,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21801,6 +26697,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21824,12 +26729,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21861,24 +26784,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21917,6 +26876,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21962,6 +26930,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -21982,6 +26959,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22039,6 +27025,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22062,12 +27057,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22094,6 +27107,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22139,6 +27161,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22159,6 +27190,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22245,24 +27285,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22301,6 +27377,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22525,6 +27610,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22611,6 +27705,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22712,7 +27815,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 164,
           "name": "eth1/21/4",
-          "controllingPort": 161,
+          "controllingPort": 163,
           "pins": [
             {
               "a": {
@@ -22738,6 +27841,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22853,24 +27965,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22909,6 +28057,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22932,12 +28089,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -22969,24 +28144,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23025,6 +28236,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23070,6 +28290,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23090,6 +28319,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23147,6 +28385,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23170,12 +28417,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23202,6 +28467,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23247,6 +28521,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23267,6 +28550,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core3",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23353,24 +28645,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23409,6 +28737,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23633,6 +28970,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23719,6 +29065,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23820,7 +29175,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 172,
           "name": "eth1/22/4",
-          "controllingPort": 169,
+          "controllingPort": 171,
           "pins": [
             {
               "a": {
@@ -23846,6 +29201,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -23961,24 +29325,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24017,6 +29417,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24040,12 +29449,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24077,24 +29504,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24133,6 +29596,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24178,6 +29650,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24198,6 +29679,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24255,6 +29745,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24278,12 +29777,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24310,6 +29827,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24355,6 +29881,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24375,6 +29910,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core10",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24461,24 +30005,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24517,6 +30097,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24741,6 +30330,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24827,6 +30425,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -24928,7 +30535,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 180,
           "name": "eth1/23/4",
-          "controllingPort": 177,
+          "controllingPort": 179,
           "pins": [
             {
               "a": {
@@ -24954,6 +30561,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25069,24 +30685,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25125,6 +30777,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25148,12 +30809,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25185,24 +30864,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25241,6 +30956,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25286,6 +31010,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25306,6 +31039,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25363,6 +31105,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25386,12 +31137,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25418,6 +31187,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25463,6 +31241,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25483,6 +31270,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core2",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25569,24 +31365,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25625,6 +31457,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25849,6 +31690,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -25935,6 +31785,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26036,7 +31895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 188,
           "name": "eth1/24/4",
-          "controllingPort": 185,
+          "controllingPort": 187,
           "pins": [
             {
               "a": {
@@ -26062,6 +31921,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26177,24 +32045,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26233,6 +32137,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26256,12 +32169,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26293,24 +32224,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26349,6 +32316,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26394,6 +32370,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26414,6 +32399,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26471,6 +32465,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26494,12 +32497,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26526,6 +32547,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26571,6 +32601,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26591,6 +32630,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core11",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26677,24 +32725,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26733,6 +32817,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -26957,6 +33050,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27043,6 +33145,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27144,7 +33255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 196,
           "name": "eth1/25/4",
-          "controllingPort": 193,
+          "controllingPort": 195,
           "pins": [
             {
               "a": {
@@ -27170,6 +33281,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27285,24 +33405,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27341,6 +33497,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27364,12 +33529,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27401,24 +33584,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27457,6 +33676,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27502,6 +33730,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27522,6 +33759,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27579,6 +33825,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27602,12 +33857,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27634,6 +33907,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27679,6 +33961,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27699,6 +33990,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core7",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27785,24 +34085,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -27841,6 +34177,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28065,6 +34410,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28151,6 +34505,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28252,7 +34615,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 204,
           "name": "eth1/26/4",
-          "controllingPort": 201,
+          "controllingPort": 203,
           "pins": [
             {
               "a": {
@@ -28278,6 +34641,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28393,24 +34765,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28449,6 +34857,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28472,12 +34889,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28509,24 +34944,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28565,6 +35036,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28610,6 +35090,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28630,6 +35119,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28687,6 +35185,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28710,12 +35217,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28742,6 +35267,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28787,6 +35321,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28807,6 +35350,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core14",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28893,24 +35445,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -28949,6 +35537,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29173,6 +35770,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29259,6 +35865,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29360,7 +35975,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 212,
           "name": "eth1/27/4",
-          "controllingPort": 209,
+          "controllingPort": 211,
           "pins": [
             {
               "a": {
@@ -29386,6 +36001,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29501,24 +36125,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29557,6 +36217,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29580,12 +36249,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29617,24 +36304,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29673,6 +36396,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29718,6 +36450,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29738,6 +36479,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29795,6 +36545,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29818,12 +36577,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29850,6 +36627,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29895,6 +36681,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -29915,6 +36710,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core6",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30001,24 +36805,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30057,6 +36897,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30281,6 +37130,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30367,6 +37225,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30468,7 +37335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 220,
           "name": "eth1/28/4",
-          "controllingPort": 217,
+          "controllingPort": 219,
           "pins": [
             {
               "a": {
@@ -30494,6 +37361,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30609,24 +37485,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30665,6 +37577,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30688,12 +37609,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30725,24 +37664,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30781,6 +37756,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30826,6 +37810,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30846,6 +37839,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30903,6 +37905,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30926,12 +37937,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -30958,6 +37987,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31003,6 +38041,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31023,6 +38070,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core15",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31109,24 +38165,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31165,6 +38257,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31389,6 +38490,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31475,6 +38585,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31576,7 +38695,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 228,
           "name": "eth1/29/4",
-          "controllingPort": 225,
+          "controllingPort": 227,
           "pins": [
             {
               "a": {
@@ -31602,6 +38721,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31717,24 +38845,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31773,6 +38937,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31796,12 +38969,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31833,24 +39024,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31889,6 +39116,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31934,6 +39170,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -31954,6 +39199,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32011,6 +39265,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32034,12 +39297,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32066,6 +39347,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32111,6 +39401,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32131,6 +39430,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32217,24 +39525,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32273,6 +39617,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32497,6 +39850,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32583,6 +39945,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32684,7 +40055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 236,
           "name": "eth1/30/4",
-          "controllingPort": 233,
+          "controllingPort": 235,
           "pins": [
             {
               "a": {
@@ -32710,6 +40081,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32825,24 +40205,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32881,6 +40297,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32904,12 +40329,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32941,24 +40384,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -32997,6 +40476,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33042,6 +40530,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33062,6 +40559,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33119,6 +40625,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33142,12 +40657,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33174,6 +40707,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33219,6 +40761,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33239,6 +40790,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core13",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33325,24 +40885,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33381,6 +40977,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33605,6 +41210,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33691,6 +41305,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33792,7 +41415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 244,
           "name": "eth1/31/4",
-          "controllingPort": 241,
+          "controllingPort": 243,
           "pins": [
             {
               "a": {
@@ -33818,6 +41441,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33933,24 +41565,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -33989,6 +41657,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34012,12 +41689,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34049,24 +41744,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34105,6 +41836,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34150,6 +41890,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34170,6 +41919,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34227,6 +41985,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34250,12 +42017,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34282,6 +42067,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34327,6 +42121,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34347,6 +42150,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core5",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34433,24 +42245,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34489,6 +42337,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34713,6 +42570,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34799,6 +42665,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34900,7 +42775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "mapping": {
           "id": 252,
           "name": "eth1/32/4",
-          "controllingPort": 249,
+          "controllingPort": 251,
           "pins": [
             {
               "a": {
@@ -34926,6 +42801,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35041,24 +42925,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35097,6 +43017,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35120,12 +43049,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35157,24 +43104,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35213,6 +43196,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35258,6 +43250,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35278,6 +43279,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35335,6 +43345,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35358,12 +43377,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35390,6 +43427,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35435,6 +43481,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35455,6 +43510,15 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35525,7 +43589,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0,
+          "portType": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -35538,12 +43602,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 0
                     },
                     "tx": {
-                      "pre": 5,
+                      "pre": 4,
                       "pre2": 0,
                       "main": 31,
-                      "post": 0,
+                      "post": 12,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
@@ -35552,12 +43617,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 1
                     },
                     "tx": {
-                      "pre": 5,
+                      "pre": 4,
                       "pre2": 0,
                       "main": 31,
-                      "post": 0,
+                      "post": 12,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
@@ -35566,12 +43632,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 2
                     },
                     "tx": {
-                      "pre": 5,
+                      "pre": 4,
                       "pre2": 0,
                       "main": 31,
-                      "post": 0,
+                      "post": 12,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
@@ -35580,12 +43647,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "lane": 3
                     },
                     "tx": {
-                      "pre": 5,
+                      "pre": 4,
                       "pre2": 0,
                       "main": 31,
-                      "post": 0,
+                      "post": 12,
                       "post2": 0,
-                      "post3": 0
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35685,24 +43753,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35802,24 +43906,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core16",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -35919,24 +44059,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36036,24 +44212,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core17",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36153,24 +44365,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36270,24 +44518,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core18",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36387,24 +44671,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36504,24 +44824,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core19",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36621,24 +44977,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36738,24 +45130,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core23",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36855,24 +45283,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -36972,24 +45436,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core22",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37089,24 +45589,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37206,24 +45742,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core21",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37323,24 +45895,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37440,24 +46048,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core20",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37557,24 +46201,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37674,24 +46354,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core24",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37791,24 +46507,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -37908,24 +46660,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core25",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38025,24 +46813,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38142,24 +46966,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core26",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38259,24 +47119,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38376,24 +47272,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core27",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38493,24 +47425,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38610,24 +47578,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core31",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38727,24 +47731,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38844,24 +47884,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core30",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -38961,24 +48037,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39078,24 +48190,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core29",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39195,24 +48343,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39312,24 +48496,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core28",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39429,24 +48649,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39546,24 +48802,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core32",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39663,24 +48955,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39780,24 +49108,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core33",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -39897,24 +49261,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40014,24 +49414,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core34",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40131,24 +49567,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40248,24 +49720,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core35",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40365,24 +49873,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40482,24 +50026,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core39",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40599,24 +50179,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40716,24 +50332,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core38",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40833,24 +50485,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -40950,24 +50638,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core37",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41067,24 +50791,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41184,24 +50944,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core36",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41301,24 +51097,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41418,24 +51250,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core40",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41535,24 +51403,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41652,24 +51556,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core41",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41769,24 +51709,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -41886,24 +51862,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core42",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42003,24 +52015,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42120,24 +52168,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core43",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42237,24 +52321,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42354,24 +52474,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core47",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42471,24 +52627,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42588,24 +52780,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core46",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42705,24 +52933,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42822,24 +53086,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core45",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -42939,24 +53239,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43056,24 +53392,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-TH6_NIF-slot1/chip1/core44",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 168,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -43868,7 +54240,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     }
   ]
 })";
-}
+} // namespace
 
 namespace facebook::fboss {
 Icetea800bcPlatformMapping::Icetea800bcPlatformMapping()
