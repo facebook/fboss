@@ -60,12 +60,15 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
  private:
   void timeoutExpired() noexcept override;
   void sendPacketsOnAllFabricPorts();
+  void sendPacketsForPortGroup(int portGroupId);
+  void sendPacketOnPort(const std::shared_ptr<Port>& port, int portGroupId);
   std::unique_ptr<TxPacket> createMonitoringPacket(
       const PortID& portId,
       uint64_t sequenceNumber);
 
   // Get port group ID for a given port (ports are grouped by portID % 4)
   int getPortGroup(PortID portId) const;
+  size_t getOutstandingPacketCountForGroup(int portGroupId) const;
 
   // Per-port statistics for tracking packet transmission and reception
   struct FabricLinkMonPortStats {
@@ -77,12 +80,19 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
     std::deque<uint64_t> pendingSequenceNumbers;
   };
 
+  // Per-port-group statistics for flow control
+  struct PortGroupStats {
+    size_t outstandingPackets{0};
+    size_t lastPortIndex{0};
+  };
+
   SwSwitch* sw_;
   std::chrono::milliseconds intervalMsecs_;
 
   folly::Synchronized<
       std::map<PortID, folly::Synchronized<FabricLinkMonPortStats>>>
       portStats_;
+  folly::Synchronized<std::map<int, PortGroupStats>> portGroupStats_;
   std::map<PortID, int> portToGroupMap_;
   std::map<int, std::vector<PortID>> portGroupToPortsMap_;
 };
