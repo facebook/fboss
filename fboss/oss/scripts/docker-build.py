@@ -238,36 +238,28 @@ def use_stable_hashes():
 
 
 def build_docker_image(docker_dir_path: str):
-    fd, log_path = tempfile.mkstemp(suffix="docker-build.log")
-    print(
-        f"Attempting to build docker image from {docker_dir_path}/Dockerfile. You can run `sudo tail -f {log_path}` in order to follow along."
+    dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
+    shell = os.getenv("SHELL", "/bin/bash")
+    cp = subprocess.run(
+        [
+            "sudo",
+            "docker",
+            "build",
+            ".",
+            "-t",
+            FBOSS_IMAGE_NAME,
+            "-f",
+            dockerfile_path,
+            "--build-arg",
+            f"USERNAME={USERNAME}",
+            "--build-arg",
+            f"USER_UID={os.getuid()}",
+            "--build-arg",
+            f"USER_GID={os.getgid()}",
+            "--build-arg",
+            f"USER_SHELL={shell}",
+        ],
     )
-
-    with os.fdopen(fd, "w") as output:
-        dockerfile_path = os.path.join(docker_dir_path, "Dockerfile")
-        shell = os.getenv("SHELL", "/bin/bash")
-        cp = subprocess.run(
-            [
-                "sudo",
-                "docker",
-                "build",
-                ".",
-                "-t",
-                FBOSS_IMAGE_NAME,
-                "-f",
-                dockerfile_path,
-                "--build-arg",
-                f"USERNAME={USERNAME}",
-                "--build-arg",
-                f"USER_UID={os.getuid()}",
-                "--build-arg",
-                f"USER_GID={os.getgid()}",
-                "--build-arg",
-                f"USER_SHELL={shell}",
-            ],
-            stdout=output,
-            stderr=subprocess.STDOUT,
-        )
     if not cp.returncode == 0:
         errMsg = f"An error occurred while trying to build the FBOSS docker image: {cp.stderr}"
         print(errMsg, file=sys.stderr)
