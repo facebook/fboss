@@ -488,6 +488,7 @@ struct RouteNextHopEntry {
   // endup compressing nexthops due ECMP/DLB resources getting
   // exhausted.
   7: optional list<common.NextHopThrift> overrideNextHops;
+  8: optional i64 normalizedResolvedNextHopSetID;
 }
 
 struct RouteNextHopsMulti {

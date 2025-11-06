@@ -92,6 +92,24 @@ class RouteNextHopEntry
     return std::nullopt;
   }
 
+  const std::optional<NextHopSetID> getNormalizedResolvedNextHopSetID() const {
+    if (auto nhopSetID =
+            safe_cref<switch_state_tags::normalizedResolvedNextHopSetID>()) {
+      return NextHopSetID(nhopSetID->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setNormalizedResolvedNextHopSetID(
+      std::optional<NextHopSetID>& nhopSetID) {
+    if (nhopSetID) {
+      ref<switch_state_tags::normalizedResolvedNextHopSetID>() =
+          static_cast<int64_t>(*nhopSetID);
+    } else {
+      ref<switch_state_tags::normalizedResolvedNextHopSetID>().reset();
+    }
+  }
+
   const std::optional<AclLookupClass> getClassID() const {
     if (auto classID = safe_cref<switch_state_tags::classID>()) {
       return classID->cref();
