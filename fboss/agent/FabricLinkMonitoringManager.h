@@ -54,11 +54,37 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
       folly::MacAddress src,
       folly::io::Cursor cursor);
 
+  // Get the payload pattern for a sequence number
+  static uint32_t getPayloadPattern(uint64_t sequenceNum);
+
  private:
   void timeoutExpired() noexcept override;
+  void sendPacketsOnAllFabricPorts();
+  std::unique_ptr<TxPacket> createMonitoringPacket(
+      const PortID& portId,
+      uint64_t sequenceNumber);
+
+  // Get port group ID for a given port (ports are grouped by portID % 4)
+  int getPortGroup(PortID portId) const;
+
+  // Per-port statistics for tracking packet transmission and reception
+  struct FabricLinkMonPortStats {
+    uint64_t txCount{0};
+    uint64_t rxCount{0};
+    uint64_t droppedCount{0};
+    uint64_t invalidPayloadCount{0};
+    uint64_t noPendingSeqNumCount{0};
+    std::deque<uint64_t> pendingSequenceNumbers;
+  };
 
   SwSwitch* sw_;
   std::chrono::milliseconds intervalMsecs_;
+
+  folly::Synchronized<
+      std::map<PortID, folly::Synchronized<FabricLinkMonPortStats>>>
+      portStats_;
+  std::map<PortID, int> portToGroupMap_;
+  std::map<int, std::vector<PortID>> portGroupToPortsMap_;
 };
 
 } // namespace facebook::fboss
