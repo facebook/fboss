@@ -12,6 +12,9 @@
 
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/PlatformFsUtils.h"
+#ifndef IS_OSS
+#include "fboss/platform/platform_checks/checks/KernelVersionCheck.h"
+#endif // IS_OSS
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
@@ -53,6 +56,21 @@ TEST_F(PlatformHwTest, PCIDevicesPresent) {
     FAIL() << failureMsg;
   }
 }
+
+#ifndef IS_OSS
+TEST_F(PlatformHwTest, KernelVersionTest) {
+  platform_checks::KernelVersionCheck kvCheck;
+  auto result = kvCheck.run();
+
+  if (result.status() != platform_checks::CheckStatus::OK) {
+    std::string failureMsg = "Kernel Version check failed";
+    if (result.errorMessage().has_value()) {
+      failureMsg += ": " + *result.errorMessage();
+    }
+    FAIL() << failureMsg;
+  }
+}
+#endif // IS_OSS
 
 } // namespace facebook::fboss::platform
 
