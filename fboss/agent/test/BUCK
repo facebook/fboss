@@ -23,6 +23,7 @@ cpp_unittest(
         "DsfSubscriptionTests.cpp",
         "EncapIndexAllocatorTest.cpp",
         "FabricConnectivityManagerTests.cpp",
+        "FabricLinkMonitoringManagerTest.cpp",
         "FibHelperTests.cpp",
         "ICMPTest.cpp",
         "IPv4Test.cpp",
