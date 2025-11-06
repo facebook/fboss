@@ -239,6 +239,7 @@ cpp_library(
         "commands/show/facebook/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPostPolicy.h",
         "commands/show/facebook/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPrePolicy.h",
         "commands/show/facebook/bgp/summary/CmdShowBgpSummary.h",
+        "commands/show/facebook/bgp/summary/egress/CmdShowBgpSummaryEgress.h",
         "commands/show/facebook/bgp/table/CmdShowBgpTable.h",
         "commands/show/facebook/bgp/table/CmdShowBgpTableCommunity.h",
         "commands/show/facebook/bgp/table/CmdShowBgpTableDetail.h",
