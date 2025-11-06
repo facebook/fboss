@@ -139,6 +139,21 @@ uint32_t FabricLinkMonitoringManager::getPayloadPattern(uint64_t sequenceNum) {
   }
 }
 
+// Get statistics for a specific port including TX count, RX count, dropped
+// packets, and validation errors. Returns empty stats if port not found.
+// Used primarily for tests/CLI.
+FabricLinkMonitoringManager::FabricLinkMonPortStats
+FabricLinkMonitoringManager::getFabricLinkMonPortStats(
+    const PortID& portId) const {
+  auto lockedStats = portStats_.rlock();
+  auto it = lockedStats->find(portId);
+  if (it == lockedStats->end()) {
+    return FabricLinkMonPortStats{}; // Return empty stats if port not found
+  }
+  auto portStats = it->second.rlock();
+  return *portStats;
+}
+
 // Send monitoring packets on all fabric ports by iterating through all port
 // groups and sending packets on each group's ports while respecting per-group
 // outstanding packet limits to avoid resource issues in VDs.
@@ -397,7 +412,10 @@ void FabricLinkMonitoringManager::handlePacket(
       stats = it->second.wlock();
     }
 
-    if (stats->pendingSequenceNumbers.empty()) {
+    // Receiving a packet when we are not expecting a sequence number
+    // or when we get a sequence number greater than we expect to see.
+    if (stats->pendingSequenceNumbers.empty() ||
+        stats->pendingSequenceNumbers.back() < receivedSequenceNumber) {
       stats->noPendingSeqNumCount++;
       XLOG(DBG4) << "FabricLinkMonitoring: Received packet on port " << portId
                  << " with sequence number " << receivedSequenceNumber

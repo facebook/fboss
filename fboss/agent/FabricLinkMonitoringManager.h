@@ -53,6 +53,19 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   // Get the payload pattern for a sequence number
   static uint32_t getPayloadPattern(uint64_t sequenceNum);
 
+  // Per-port statistics for tracking packet transmission and reception
+  struct FabricLinkMonPortStats {
+    uint64_t txCount{0};
+    uint64_t rxCount{0};
+    uint64_t droppedCount{0};
+    uint64_t invalidPayloadCount{0};
+    uint64_t noPendingSeqNumCount{0};
+    std::deque<uint64_t> pendingSequenceNumbers;
+  };
+
+  // Get statistics for a specific port (for testing)
+  FabricLinkMonPortStats getFabricLinkMonPortStats(const PortID& portId) const;
+
  private:
   void timeoutExpired() noexcept override;
   void sendPacketsOnAllFabricPorts();
@@ -65,16 +78,6 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   // Get port group ID for a given port (ports are grouped by portID % 4)
   int getPortGroup(PortID portId) const;
   size_t getOutstandingPacketCountForGroup(int portGroupId) const;
-
-  // Per-port statistics for tracking packet transmission and reception
-  struct FabricLinkMonPortStats {
-    uint64_t txCount{0};
-    uint64_t rxCount{0};
-    uint64_t droppedCount{0};
-    uint64_t invalidPayloadCount{0};
-    uint64_t noPendingSeqNumCount{0};
-    std::deque<uint64_t> pendingSequenceNumbers;
-  };
 
   // Per-port-group statistics for flow control
   struct PortGroupStats {
