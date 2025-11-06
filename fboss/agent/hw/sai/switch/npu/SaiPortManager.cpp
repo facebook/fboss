@@ -505,6 +505,12 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosDot1pToTcMap{});
+#endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
@@ -847,6 +853,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
         std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -939,6 +946,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // IsHyperPortMember
       std::nullopt, // HyperPortMemberList
       std::nullopt, // PfcMonitorDirection
+      std::nullopt, // QosDot1pToTcMap
   };
 }
 

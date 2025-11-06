@@ -30,6 +30,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, PortVlanId),
     SAI_ATTR_MAP(Port, Mtu),
     SAI_ATTR_MAP(Port, QosDscpToTcMap),
+    SAI_ATTR_MAP(Port, QosDot1pToTcMap),
     SAI_ATTR_MAP(Port, QosTcToQueueMap),
     SAI_ATTR_MAP(Port, DisableTtlDecrement),
     SAI_ATTR_MAP(Port, QosNumberOfQueues),
