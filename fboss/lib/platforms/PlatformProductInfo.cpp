@@ -83,6 +83,10 @@ void PlatformProductInfo::initMode() {
         modelName.find("Wedge800BACT") == 0 ||
         modelName.find("WEDGE800BACT") == 0) {
       type_ = PlatformType::PLATFORM_WEDGE800BACT;
+    } else if (
+        modelName.find("Wedge800CACT") == 0 ||
+        modelName.find("WEDGE800CACT") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800CACT;
     } else if (modelName.find("DARWIN48V") == 0) {
       type_ = PlatformType::PLATFORM_DARWIN48V;
     } else if (
@@ -196,8 +200,6 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
     } else if (modelName.find("ICETEA") == 0) {
       type_ = PlatformType::PLATFORM_ICETEA800BC;
-    } else if (modelName.find("WEDGE800C_ACT") == 0) {
-      type_ = PlatformType::PLATFORM_WEDGE800C_ACT;
     } else if (modelName.find("LADAKH800BCLS") == 0) {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else {
@@ -272,8 +274,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE800BACT;
     } else if (FLAGS_mode == "tahansb800bc") {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
-    } else if (FLAGS_mode == "wedge800ca") {
-      type_ = PlatformType::PLATFORM_WEDGE800C_ACT;
+    } else if (FLAGS_mode == "wedge800cact") {
+      type_ = PlatformType::PLATFORM_WEDGE800CACT;
     } else if (FLAGS_mode == "ladakh800bcls") {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else {
