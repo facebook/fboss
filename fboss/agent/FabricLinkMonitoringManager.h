@@ -48,11 +48,7 @@ class FabricLinkMonitoringManager : private folly::AsyncTimeout {
   void stop();
 
   // Handle received monitoring packet
-  void handlePacket(
-      std::unique_ptr<RxPacket> pkt,
-      folly::MacAddress dst,
-      folly::MacAddress src,
-      folly::io::Cursor cursor);
+  void handlePacket(std::unique_ptr<RxPacket> pkt, folly::io::Cursor cursor);
 
   // Get the payload pattern for a sequence number
   static uint32_t getPayloadPattern(uint64_t sequenceNum);

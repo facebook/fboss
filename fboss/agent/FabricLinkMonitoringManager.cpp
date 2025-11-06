@@ -331,14 +331,121 @@ std::unique_ptr<TxPacket> FabricLinkMonitoringManager::createMonitoringPacket(
   return pkt;
 }
 
+// Handle received monitoring packet. Extracts sequence number and port ID,
+// verifies port ID matches packet source port (detects misrouting), validates
+// payload pattern matches expected value (detects corruption), and processes
+// pending sequence numbers in order. If received sequence number > expected,
+// all earlier pending sequence numbers are marked as dropped given out of
+// order delivery is not possible. Decrements outstanding packet count for
+// the port group for successfully received packets and dropped packets to
+// enable continued transmission.
 void FabricLinkMonitoringManager::handlePacket(
     std::unique_ptr<RxPacket> pkt,
-    folly::MacAddress /*dst*/,
-    folly::MacAddress /*src*/,
-    folly::io::Cursor /*cursor*/) {
-  // Placeholder for packet handling
-  XLOG(DBG4) << "FabricLinkMonitoring: Received packet on port "
-             << pkt->getSrcPort();
+    folly::io::Cursor cursor) {
+  PortID portId = pkt->getSrcPort();
+
+  uint64_t receivedSequenceNumber = cursor.readBE<uint64_t>();
+  uint32_t receivedPortId = cursor.readBE<uint32_t>();
+
+  if (receivedPortId != static_cast<uint32_t>(portId)) {
+    auto lockedStats = portStats_.wlock();
+    auto it = lockedStats->find(portId);
+    if (it != lockedStats->end()) {
+      it->second.wlock()->invalidPayloadCount++;
+    }
+    XLOG(DBG4) << "FabricLinkMonitoring: Port ID mismatch for port " << portId
+               << ", received port ID " << receivedPortId
+               << ", sequence number " << receivedSequenceNumber;
+    return;
+  }
+
+  uint32_t fillPattern = getPayloadPattern(receivedSequenceNumber);
+  size_t payloadSize =
+      kFabricLinkMonitoringPacketSize - sizeof(uint64_t) - sizeof(uint32_t);
+  for (size_t i = 0; i < payloadSize; i += 4) {
+    uint32_t payloadData = cursor.readBE<uint32_t>();
+    if (payloadData != fillPattern) {
+      // Payload is not valid
+      auto lockedStats = portStats_.wlock();
+      auto it = lockedStats->find(portId);
+      if (it != lockedStats->end()) {
+        it->second.wlock()->invalidPayloadCount++;
+      }
+      XLOG(DBG4) << "FabricLinkMonitoring: Payload mismatch on port " << portId
+                 << " for sequence number " << receivedSequenceNumber
+                 << ", data seen 0x" << std::hex << payloadData
+                 << ", expected 0x" << fillPattern;
+      ;
+      return;
+    }
+  }
+
+  size_t droppedPackets = 0;
+  bool packetProcessed = false;
+
+  {
+    folly::Synchronized<FabricLinkMonPortStats>::LockedPtr stats;
+    {
+      auto lockedStats = portStats_.wlock();
+      auto it = lockedStats->find(portId);
+      if (it == lockedStats->end()) {
+        XLOG(DBG4) << "FabricLinkMonitoring: Received packet on port " << portId
+                   << " but no stats found for port!";
+        return;
+      }
+
+      stats = it->second.wlock();
+    }
+
+    if (stats->pendingSequenceNumbers.empty()) {
+      stats->noPendingSeqNumCount++;
+      XLOG(DBG4) << "FabricLinkMonitoring: Received packet on port " << portId
+                 << " with sequence number " << receivedSequenceNumber
+                 << ", but no pending sequence number found!";
+      return;
+    }
+
+    while (!stats->pendingSequenceNumbers.empty() &&
+           stats->pendingSequenceNumbers.front() < receivedSequenceNumber) {
+      uint64_t droppedSeqNum = stats->pendingSequenceNumbers.front();
+      stats->pendingSequenceNumbers.pop_front();
+      stats->droppedCount++;
+      droppedPackets++;
+      XLOG(DBG4) << "FabricLinkMonitoring: Pending sequence number "
+                 << droppedSeqNum << " on port " << portId
+                 << " considered dropped (received later packet "
+                 << "sequence number " << receivedSequenceNumber << " first)";
+    }
+
+    if (!stats->pendingSequenceNumbers.empty() &&
+        stats->pendingSequenceNumbers.front() == receivedSequenceNumber) {
+      stats->pendingSequenceNumbers.pop_front();
+      stats->rxCount++;
+      packetProcessed = true;
+    }
+
+    XLOG(DBG4)
+        << "FabricLinkMonitoring: Successfully received and verified packet on port "
+        << portId << " with sequence number " << receivedSequenceNumber
+        << ". TX count: " << stats->txCount << ", RX count: " << stats->rxCount
+        << ", Dropped count: " << stats->droppedCount
+        << ", Pending: " << stats->pendingSequenceNumbers.size();
+  }
+
+  if (packetProcessed || droppedPackets > 0) {
+    auto groupIt = portToGroupMap_.find(portId);
+    if (groupIt != portToGroupMap_.end()) {
+      int portGroupId = groupIt->second;
+      auto lockedStats = portGroupStats_.wlock();
+      auto& groupStats = (*lockedStats)[portGroupId];
+      size_t packetsToRelease = (packetProcessed ? 1 : 0) + droppedPackets;
+      if (groupStats.outstandingPackets >= packetsToRelease) {
+        groupStats.outstandingPackets -= packetsToRelease;
+      } else {
+        groupStats.outstandingPackets = 0;
+      }
+    }
+  }
 }
 
 } // namespace facebook::fboss
