@@ -97,33 +97,6 @@ std::optional<SlotType> resolveSlotType(
   return extractSlotType(lastSlotName);
 }
 
-std::vector<XcvrCtrlConfig> getXcvrCtrlConfigs(
-    const PciDeviceConfig& pciDeviceConfig) {
-  std::vector<XcvrCtrlConfig> xcvrCtrlConfigs;
-  const auto xcvrCtrlBlockConfigs = pciDeviceConfig.xcvrCtrlBlockConfigs();
-  for (const auto& xcvrCtrlBlockConfig : *xcvrCtrlBlockConfigs) {
-    int endPort =
-        *xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts();
-    for (int port = *xcvrCtrlBlockConfig.startPort(); port < endPort; ++port) {
-      XcvrCtrlConfig xcvrCtrlConfig;
-      xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
-          "{}_XCVR_CTRL_PORT_{}",
-          *xcvrCtrlBlockConfig.pmUnitScopedNamePrefix(),
-          port);
-      xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() =
-          *xcvrCtrlBlockConfig.deviceName();
-      xcvrCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
-          Utils().computeHexExpression(
-              *xcvrCtrlBlockConfig.csrOffsetCalc(),
-              port,
-              *xcvrCtrlBlockConfig.startPort());
-      xcvrCtrlConfig.portNumber() = port;
-      xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
-    }
-  }
-  return xcvrCtrlConfigs;
-}
-
 template <typename T>
   requires requires(T t) {
     { *t.pmUnitScopedName() } -> std::convertible_to<std::string>;
@@ -636,7 +609,7 @@ bool ConfigValidator::isValidDeviceName(
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.fanTachoPwmConfigs(),
               *pciDeviceConfig.ledCtrlConfigs(),
-              getXcvrCtrlConfigs(pciDeviceConfig),
+              Utils().createXcvrCtrlConfigs(pciDeviceConfig),
               *pciDeviceConfig.xcvrCtrlConfigs(),
               *pciDeviceConfig.spiMasterConfigs(),
               *pciDeviceConfig.gpioChipConfigs(),

@@ -625,7 +625,7 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
-        pciExplorer_.createXcvrCtrlConfigs(pciDeviceConfig),
+        Utils().createXcvrCtrlConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
         [&](const auto& xcvrCtrlConfig) {
           auto devicePath = Utils().createDevicePath(

@@ -89,6 +89,7 @@ add_library(platform_manager_utils
 
 target_link_libraries(platform_manager_utils
   gpiod_line
+  platform_manager_config_cpp2
   ${RE2}
   Folly::folly
 )

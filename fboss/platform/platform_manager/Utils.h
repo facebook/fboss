@@ -6,6 +6,7 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -60,6 +61,11 @@ class Utils {
 
   // Replace hex literals with decimal values in expression string
   std::string convertHexLiteralsToDecimal(const std::string& expression);
+
+  // Create the XCVR Controller Config block based on the given xcvrCtrlConfig
+  // residing at the given PciDevice. Throw std::runtime_error on failure.
+  static std::vector<XcvrCtrlConfig> createXcvrCtrlConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

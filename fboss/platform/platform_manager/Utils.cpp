@@ -227,4 +227,31 @@ std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
 
   return result;
 }
+
+std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<XcvrCtrlConfig> xcvrCtrlConfigs;
+  const auto xcvrCtrlBlockConfigs = pciDeviceConfig.xcvrCtrlBlockConfigs();
+  for (const auto& xcvrCtrlBlockConfig : *xcvrCtrlBlockConfigs) {
+    int endPort =
+        *xcvrCtrlBlockConfig.startPort() + *xcvrCtrlBlockConfig.numPorts();
+    for (int port = *xcvrCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      XcvrCtrlConfig xcvrCtrlConfig;
+      xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+          "{}_XCVR_CTRL_PORT_{}",
+          *xcvrCtrlBlockConfig.pmUnitScopedNamePrefix(),
+          port);
+      xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+          *xcvrCtrlBlockConfig.deviceName();
+      xcvrCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+          Utils().computeHexExpression(
+              *xcvrCtrlBlockConfig.csrOffsetCalc(),
+              port,
+              *xcvrCtrlBlockConfig.startPort());
+      xcvrCtrlConfig.portNumber() = port;
+      xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
+    }
+  }
+  return xcvrCtrlConfigs;
+}
 } // namespace facebook::fboss::platform::platform_manager

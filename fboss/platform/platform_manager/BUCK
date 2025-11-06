@@ -201,6 +201,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/exprtk:exprtk",
         "fbsource//third-party/re2:re2",
+        ":platform_manager_config-cpp2-types",
         "//fboss/lib:gpiod_line",
         "//folly/logging:logging",
     ],

@@ -100,11 +100,6 @@ class PciExplorer {
       const XcvrCtrlConfig& xcvrCtrlConfig,
       uint32_t instanceId);
 
-  // Create the XCVR Controller Config block based on the given xcvrCtrlConfig
-  // residing at the given PciDevice. Throw std::runtime_error on failure.
-  static std::vector<XcvrCtrlConfig> createXcvrCtrlConfigs(
-      const PciDeviceConfig& pciDeviceConfig);
-
   // Create the InfoRom block based on the given InfoRomConfig residing at the
   // given PciDevice.
   // Return the created InfoRom sysfs path. Throw std::runtime_error on failure.
