@@ -77,7 +77,7 @@
         "versionType": "sysfs",
         "path": "/sys/devices/virtual/dmi/id/bios_version"
       },
-      "priority": 1
+      "priority": 7
     },
     "CPU_CPLD": {
       "preUpgrade": [
@@ -126,7 +126,7 @@
         "versionType": "sysfs",
         "path": "/run/devmap/cplds/ROOK_CPU_CPLD_INFO_ROM/fw_ver"
       },
-      "priority": 2
+      "priority": 5
     },
     "SC_CPLD": {
       "preUpgrade": [
@@ -175,7 +175,7 @@
         "versionType": "sysfs",
         "path": "/run/devmap/cplds/BLACKHAWK_CPLD/fw_ver"
       },
-      "priority": 7
+      "priority": 6
     },
     "SC_SCD": {
       "upgrade": [
@@ -196,7 +196,7 @@
         "versionType": "sysfs",
         "path": "/run/devmap/fpgas/SCD_FPGA_INFO_ROM/fw_ver"
       },
-      "priority": 3
+      "priority": 4
     },
     "SC_SAT_CPLD0": {
       "preUpgrade": [
@@ -245,7 +245,7 @@
         "versionType": "sysfs",
         "path": "/run/devmap/fpgas/SCD_FPGA/sat0_cpld_fw_ver"
       },
-      "priority": 4
+      "priority": 3
     },
     "SC_SAT_CPLD1": {
       "preUpgrade": [
@@ -294,14 +294,14 @@
         "versionType": "sysfs",
         "path": "/run/devmap/fpgas/SCD_FPGA/sat1_cpld_fw_ver"
       },
-      "priority": 5
+      "priority": 2
     },
     "FAN_CPLD": {
       "version": {
         "versionType": "sysfs",
         "path": "/run/devmap/cplds/FAN_CPLD/*/*/fw_ver"
       },
-      "priority": 6
+      "priority": 1
     }
   }
 }
