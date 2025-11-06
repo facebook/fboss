@@ -4,7 +4,9 @@
 
 #include <chrono>
 #include <functional>
+#include <optional>
 #include <string>
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -40,15 +42,30 @@ class Utils {
   virtual int getGpioLineValue(const std::string& charDevPath, int lineIndex)
       const;
 
+  // Format the expression by substituting port, startPort, and led parameters
+  std::string formatExpression(
+      const std::string& expression,
+      int port,
+      int startPort,
+      std::optional<int> led);
+
+  // Evaluate a mathematical expression and return the result as a hex string
+  std::string evaluateExpression(const std::string& expression);
+
   // Compute the expression and return the result as a string.
   std::string computeHexExpression(
       const std::string& expression,
       int port,
-      int led,
-      int startPort = 1);
+      int startPort = 1,
+      std::optional<int> led = std::nullopt);
 
   // Replace hex literals with decimal values in expression string
   std::string convertHexLiteralsToDecimal(const std::string& expression);
+
+  // Create the XCVR Controller Config block based on the given xcvrCtrlConfig
+  // residing at the given PciDevice. Throw std::runtime_error on failure.
+  static std::vector<XcvrCtrlConfig> createXcvrCtrlConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

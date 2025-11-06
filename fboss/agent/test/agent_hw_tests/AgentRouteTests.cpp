@@ -337,11 +337,12 @@ TYPED_TEST(AgentRouteTest, UnresolvedAndResolvedNextHop) {
     EXPECT_FALSE(*routeInfo.isMultiPath());
 
     auto routePrefix1 = this->kGetRoutePrefix1();
-    EXPECT_TRUE(utility::isRouteToNexthop(
-        routePrefix1.network(),
-        routePrefix1.mask(),
-        ecmpHelper.nhop(ports[1]).ip,
-        *this->getAgentEnsemble()));
+    EXPECT_TRUE(
+        utility::isRouteToNexthop(
+            routePrefix1.network(),
+            routePrefix1.mask(),
+            ecmpHelper.nhop(ports[1]).ip,
+            *this->getAgentEnsemble()));
 
     auto routeInfo1 = utility::getRouteInfo(
         routePrefix1.network(), routePrefix1.mask(), *this->getAgentEnsemble());
@@ -409,32 +410,36 @@ TYPED_TEST(AgentRouteTest, UnresolvedAndResolvedMultiNextHop) {
         this->getProgrammedState(),
         this->getSw()->needL2EntryForNeighbor(),
         this->kRouterID());
-    EXPECT_FALSE(utility::isRouteToNexthop(
-        routePrefix0.network(),
-        routePrefix0.mask(),
-        ecmpHelper.nhop(ports[0]).ip,
-        *this->getAgentEnsemble()));
-    EXPECT_FALSE(utility::isRouteToNexthop(
-        routePrefix0.network(),
-        routePrefix0.mask(),
-        ecmpHelper.nhop(ports[1]).ip,
-        *this->getAgentEnsemble()));
+    EXPECT_FALSE(
+        utility::isRouteToNexthop(
+            routePrefix0.network(),
+            routePrefix0.mask(),
+            ecmpHelper.nhop(ports[0]).ip,
+            *this->getAgentEnsemble()));
+    EXPECT_FALSE(
+        utility::isRouteToNexthop(
+            routePrefix0.network(),
+            routePrefix0.mask(),
+            ecmpHelper.nhop(ports[1]).ip,
+            *this->getAgentEnsemble()));
 
     auto routePrefix1 = this->kGetRoutePrefix1();
     auto routeInfo1 = utility::getRouteInfo(
         routePrefix1.network(), routePrefix1.mask(), *this->getAgentEnsemble());
     EXPECT_FALSE(*routeInfo1.isProgrammedToCpu());
     EXPECT_TRUE(*routeInfo1.isMultiPath());
-    EXPECT_TRUE(utility::isRouteToNexthop(
-        routePrefix1.network(),
-        routePrefix1.mask(),
-        ecmpHelper.nhop(ports[2]).ip,
-        *this->getAgentEnsemble()));
-    EXPECT_TRUE(utility::isRouteToNexthop(
-        routePrefix1.network(),
-        routePrefix1.mask(),
-        ecmpHelper.nhop(ports[3]).ip,
-        *this->getAgentEnsemble()));
+    EXPECT_TRUE(
+        utility::isRouteToNexthop(
+            routePrefix1.network(),
+            routePrefix1.mask(),
+            ecmpHelper.nhop(ports[2]).ip,
+            *this->getAgentEnsemble()));
+    EXPECT_TRUE(
+        utility::isRouteToNexthop(
+            routePrefix1.network(),
+            routePrefix1.mask(),
+            ecmpHelper.nhop(ports[3]).ip,
+            *this->getAgentEnsemble()));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -459,16 +464,18 @@ TYPED_TEST(AgentRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         routePrefix0.network(), routePrefix0.mask(), *this->getAgentEnsemble());
     EXPECT_FALSE(*routeInfo.isProgrammedToCpu());
     EXPECT_TRUE(*routeInfo.isMultiPath());
-    EXPECT_TRUE(utility::isRouteToNexthop(
-        routePrefix0.network(),
-        routePrefix0.mask(),
-        ecmpHelper.nhop(ports[0]).ip,
-        *this->getAgentEnsemble()));
-    EXPECT_TRUE(utility::isRouteToNexthop(
-        routePrefix0.network(),
-        routePrefix0.mask(),
-        ecmpHelper.nhop(ports[1]).ip,
-        *this->getAgentEnsemble()));
+    EXPECT_TRUE(
+        utility::isRouteToNexthop(
+            routePrefix0.network(),
+            routePrefix0.mask(),
+            ecmpHelper.nhop(ports[0]).ip,
+            *this->getAgentEnsemble()));
+    EXPECT_TRUE(
+        utility::isRouteToNexthop(
+            routePrefix0.network(),
+            routePrefix0.mask(),
+            ecmpHelper.nhop(ports[1]).ip,
+            *this->getAgentEnsemble()));
 
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto newState = ecmpHelper.unresolveNextHops(
@@ -580,16 +587,18 @@ TYPED_TEST(AgentRouteTest, verifyHostRouteChange) {
         this->getProgrammedState(),
         this->getSw()->needL2EntryForNeighbor(),
         this->kRouterID());
-    EXPECT_TRUE(utility::isRouteToNexthop(
-        routePrefix.network(),
-        routePrefix.mask(),
-        ecmpHelper.nhop(ports[0]).ip,
-        *this->getAgentEnsemble()));
-    EXPECT_TRUE(utility::isRouteToNexthop(
-        routePrefix.network(),
-        routePrefix.mask(),
-        ecmpHelper.nhop(ports[1]).ip,
-        *this->getAgentEnsemble()));
+    EXPECT_TRUE(
+        utility::isRouteToNexthop(
+            routePrefix.network(),
+            routePrefix.mask(),
+            ecmpHelper.nhop(ports[0]).ip,
+            *this->getAgentEnsemble()));
+    EXPECT_TRUE(
+        utility::isRouteToNexthop(
+            routePrefix.network(),
+            routePrefix.mask(),
+            ecmpHelper.nhop(ports[1]).ip,
+            *this->getAgentEnsemble()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -636,11 +645,12 @@ TYPED_TEST(AgentRouteTest, verifyCpuRouteChange) {
       return newState;
     });
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(utility::isRouteToNexthop(
-          routePrefix.network(),
-          routePrefix.mask(),
-          ecmpHelper.nhop(ports[1]).ip,
-          *this->getAgentEnsemble()));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::isRouteToNexthop(
+              routePrefix.network(),
+              routePrefix.mask(),
+              ecmpHelper.nhop(ports[1]).ip,
+              *this->getAgentEnsemble()));
       if (FLAGS_classid_for_unresolved_routes) {
         auto routeInfo2 = utility::getRouteInfo(
             routePrefix.network(),
@@ -696,11 +706,12 @@ TYPED_TEST(AgentRouteTest, verifyCpuRouteChange) {
       return newState;
     });
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(utility::isRouteToNexthop(
-          routePrefix.network(),
-          routePrefix.mask(),
-          ecmpHelper.nhop(ports[1]).ip,
-          *this->getAgentEnsemble()));
+      EXPECT_EVENTUALLY_TRUE(
+          utility::isRouteToNexthop(
+              routePrefix.network(),
+              routePrefix.mask(),
+              ecmpHelper.nhop(ports[1]).ip,
+              *this->getAgentEnsemble()));
       if (FLAGS_classid_for_unresolved_routes) {
         auto routeInfo4 = utility::getRouteInfo(
             routePrefix.network(),
@@ -770,8 +781,9 @@ TYPED_TEST(AgentMplsRouteTest, StaticIp2MplsRoutes) {
     config.staticIp2MplsRoutes()[0].prefix() = this->kGetRoutePrefix1().str();
 
     NextHopThrift nexthop;
-    nexthop.address() = toBinaryAddress(folly::IPAddress(
-        this->kStaticIp2MplsNextHop().str())); // in prefix 0 subnet
+    nexthop.address() = toBinaryAddress(
+        folly::IPAddress(
+            this->kStaticIp2MplsNextHop().str())); // in prefix 0 subnet
     MplsAction action;
     action.action() = MplsActionCode::PUSH;
     action.pushLabels() = {1001, 1002};
@@ -804,18 +816,20 @@ TYPED_TEST(AgentMplsRouteTest, StaticIp2MplsRoutes) {
   auto verify = [=, this]() {
     // prefix 1 subnet reachable via prefix 0 with mpls stack over this stack
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(verifyProgrammedStack<AddrT>(
-          this->kGetRoutePrefix1(),
-          InterfaceID(utility::kBaseVlanId),
-          {1001, 1002},
-          1,
-          *this->getAgentEnsemble()));
-      EXPECT_EVENTUALLY_TRUE(verifyProgrammedStack<AddrT>(
-          this->kGetRoutePrefix1(),
-          InterfaceID(utility::kBaseVlanId + 1),
-          {1001, 1002},
-          1,
-          *this->getAgentEnsemble()));
+      EXPECT_EVENTUALLY_TRUE(
+          verifyProgrammedStack<AddrT>(
+              this->kGetRoutePrefix1(),
+              InterfaceID(utility::kBaseVlanId),
+              {1001, 1002},
+              1,
+              *this->getAgentEnsemble()));
+      EXPECT_EVENTUALLY_TRUE(
+          verifyProgrammedStack<AddrT>(
+              this->kGetRoutePrefix1(),
+              InterfaceID(utility::kBaseVlanId + 1),
+              {1001, 1002},
+              1,
+              *this->getAgentEnsemble()));
     });
   };
   this->verifyAcrossWarmBoots(setup, verify);

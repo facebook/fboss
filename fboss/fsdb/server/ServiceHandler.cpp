@@ -39,6 +39,16 @@ DEFINE_int32(
     10000,
     "Interval at which stats subscriptions are served");
 
+// queue size for serving stats subscriptions is chosen
+// to accommodate pending updates generated over 1 min interval
+// (6 updates + 2 heartbeats).
+// This limits memory usage on server due to subscription serve
+// queue while not disconnecting subscriber aggressively.
+DEFINE_int32(
+    statsSubscriptionServeQueueSize,
+    8,
+    "Max stats subscription updates to hold in server queue");
+
 DEFINE_int32(
     statsSubscriptionHeartbeat_s,
     30,
@@ -123,8 +133,9 @@ std::string getRequestDetails(const OperRequest& request) {
     std::vector<std::string> pathStrings;
     pathStrings.reserve(request.paths()->size());
     for (const auto& path : *request.paths()) {
-      pathStrings.push_back(fmt::format(
-          "{}:{}", path.first, folly::join("/", *path.second.path())));
+      pathStrings.push_back(
+          fmt::format(
+              "{}:{}", path.first, folly::join("/", *path.second.path())));
     }
     pathStr = folly::join(", ", std::move(pathStrings));
   } else if constexpr (std::is_same_v<OperRequest, OperSubRequestExtended>) {
@@ -271,7 +282,10 @@ ServiceHandler::ServiceHandler(
               "stats",
               options_.serveIdPathSubs,
               true,
-              true)) {
+              true,
+              true /* serveGetRequestsWithLastPublishedState */,
+              FLAGS_statsSubscriptionServeQueueSize /* pathSubscriptionServeQueueSize */,
+              FLAGS_statsSubscriptionServeQueueSize /* defaultSubscriptionServeQueueSize */)) {
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();
@@ -952,7 +966,7 @@ ServiceHandler::co_subscribeOperStatePath(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperState&&> {
+              -> folly::coro::AsyncGenerator<OperState&&> {
             auto generator = makeStateStreamGenerator(
                 std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -993,7 +1007,7 @@ ServiceHandler::co_subscribeOperStatsPath(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperState&&> {
+              -> folly::coro::AsyncGenerator<OperState&&> {
             auto generator = makeStateStreamGenerator(
                 std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1082,7 +1096,7 @@ ServiceHandler::co_subscribeOperStateDelta(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperDelta&&> {
+              -> folly::coro::AsyncGenerator<OperDelta&&> {
             auto generator = makeDeltaStreamGenerator(
                 std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1117,7 +1131,7 @@ ServiceHandler::co_subscribeOperStatePathExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
+              -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
             auto generator = makeExtendedStateStreamGenerator(
                 std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1166,7 +1180,7 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
+              -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
             auto generator = makeExtendedDeltaStreamGenerator(
                 std::move(request), false, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1205,7 +1219,7 @@ ServiceHandler::co_subscribeOperStatsDelta(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperDelta&&> {
+              -> folly::coro::AsyncGenerator<OperDelta&&> {
             auto generator = makeDeltaStreamGenerator(
                 std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1240,7 +1254,7 @@ ServiceHandler::co_subscribeOperStatsPathExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
+              -> folly::coro::AsyncGenerator<OperSubPathUnit&&> {
             auto generator = makeExtendedStateStreamGenerator(
                 std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1289,7 +1303,7 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
            request = std::move(request),
            subId = std::move(subId),
            cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-          -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
+              -> folly::coro::AsyncGenerator<OperSubDeltaUnit&&> {
             auto generator = makeExtendedDeltaStreamGenerator(
                 std::move(request), true, std::move(subId));
             while (auto item = co_await generator.next()) {
@@ -1338,7 +1352,7 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
         return makePatchStreamGenerator(
             std::move(request), false, std::move(subId));
       });
@@ -1379,7 +1393,7 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
         return makePatchStreamGenerator(
             std::move(request), true, std::move(subId));
       });
@@ -1422,7 +1436,7 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
         return makePatchStreamGenerator(
             std::move(request), false, std::move(subId));
       });
@@ -1465,7 +1479,7 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
        request = std::move(request),
        subId = std::move(subId),
        cleanupSubscriber = std::move(cleanupSubscriber)]() mutable
-      -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
+          -> folly::coro::AsyncGenerator<SubscriberMessage&&> {
         return makePatchStreamGenerator(
             std::move(request), true, std::move(subId));
       });

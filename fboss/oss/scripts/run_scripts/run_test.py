@@ -798,7 +798,13 @@ class BcmTestRunner(TestRunner):
 
 class SaiTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser):
-        pass
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
 
     def _get_config_path(self):
         # TOOO Not available in OSS
@@ -838,7 +844,15 @@ class SaiTestRunner(TestRunner):
         return AGENT_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if args.platform_mapping_override_path is not None:
+            args_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+        return args_list
 
     def _setup_coldboot_test(self):
         if args.setup_for_coldboot:
@@ -985,7 +999,6 @@ class LinkTestRunner(TestRunner):
                     args.platform_mapping_override_path,
                 ]
             )
-
         return arg_list
 
     def _setup_coldboot_test(self):
@@ -1037,6 +1050,13 @@ class SaiAgentTestRunner(TestRunner):
             help="Specify asic to filter production feature",
             default="mono",
         )
+        sub_parser.add_argument(
+            OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
+            nargs="?",
+            type=str,
+            help="A file path to a platform mapping JSON file to be used.",
+            default=None,
+        )
 
     def _get_config_path(self):
         # TOOO Not available in OSS
@@ -1076,7 +1096,15 @@ class SaiAgentTestRunner(TestRunner):
         return AGENT_WARMBOOT_CHECK_FILE
 
     def _get_test_run_args(self, conf_file):
-        return ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        args_list = ["--config", conf_file, "--mgmt-if", args.mgmt_if]
+        if args.platform_mapping_override_path is not None:
+            args_list.extend(
+                [
+                    "--platform_mapping_override_path",
+                    args.platform_mapping_override_path,
+                ]
+            )
+        return args_list
 
     def _setup_coldboot_test(self):
         if args.setup_for_coldboot:
@@ -1286,7 +1314,9 @@ if __name__ == "__main__":
 
     # Add subparser for SAI tests
     sai_test_parser = subparsers.add_parser(SUB_CMD_SAI, help="run sai tests")
-    sai_test_parser.set_defaults(func=SaiTestRunner().run_test)
+    sai_test_runner = SaiTestRunner()
+    sai_test_parser.set_defaults(func=sai_test_runner.run_test)
+    sai_test_runner.add_subcommand_arguments(sai_test_parser)
 
     # Add subparser for QSFP tests
     qsfp_test_parser = subparsers.add_parser(SUB_CMD_QSFP, help="run qsfp tests")
@@ -1297,7 +1327,7 @@ if __name__ == "__main__":
     # Add subparser for Link tests
     link_test_parser = subparsers.add_parser(SUB_CMD_LINK, help="run link tests")
     link_test_runner = LinkTestRunner()
-    link_test_parser.set_defaults(func=LinkTestRunner().run_test)
+    link_test_parser.set_defaults(func=link_test_runner.run_test)
     link_test_runner.add_subcommand_arguments(link_test_parser)
 
     # Add subparser for SAI Agent tests

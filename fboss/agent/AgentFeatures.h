@@ -82,7 +82,6 @@ DECLARE_int32(max_ndp_entries);
 DECLARE_int32(max_arp_entries);
 DECLARE_bool(enforce_resource_hw_limits);
 
-DECLARE_bool(fw_drained_unrecoverable_error);
 DECLARE_int32(neighbhor_resource_percentage);
 DECLARE_bool(enable_route_resource_protection);
 DECLARE_int32(max_mac_address_to_block);
@@ -122,3 +121,7 @@ DECLARE_uint32(ecmp_width);
 DECLARE_bool(enable_th5_ars_scale_mode);
 DECLARE_bool(check_wb_handles);
 DECLARE_bool(enable_fabric_link_monitoring);
+DECLARE_bool(enable_state_delta_logging);
+DECLARE_string(state_delta_log_file);
+DECLARE_string(state_delta_log_protocol);
+DECLARE_int32(state_delta_log_timeout_ms);

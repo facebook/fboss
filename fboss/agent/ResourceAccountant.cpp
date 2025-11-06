@@ -43,19 +43,19 @@ bool ResourceAccountant::isEcmp(const RouteNextHopEntry& fwd) const {
   return true;
 }
 
-int ResourceAccountant::computeWeightedEcmpMemberCount(
+size_t ResourceAccountant::computeWeightedEcmpMemberCount(
     const RouteNextHopEntry& fwd,
     const cfg::AsicType& asicType) const {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       // For TH4, UCMP members take 4x of ECMP members in the same table.
-      return 4 * fwd.getNextHopSet().size();
+      return 4 * fwd.normalizedNextHops().size();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       // For TH5, UCMP members take 4x of ECMP members in the same table.
-      return 4 * fwd.getNextHopSet().size();
+      return 4 * fwd.normalizedNextHops().size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
       // Yuba asic natively supports UCMP members with no extra cost.
-      return fwd.getNextHopSet().size();
+      return fwd.normalizedNextHops().size();
     default:
       XLOG(
           WARNING,
@@ -68,10 +68,10 @@ int ResourceAccountant::computeWeightedEcmpMemberCount(
   }
 }
 
-int ResourceAccountant::getMemberCountForEcmpGroup(
+size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const RouteNextHopEntry& fwd) const {
   if (isEcmp(fwd)) {
-    return fwd.getNextHopSet().size();
+    return fwd.normalizedNextHops().size();
   }
   if (nativeWeightedEcmp_) {
     // Different asic supports native WeightedEcmp in different ways.
@@ -79,10 +79,11 @@ int ResourceAccountant::getMemberCountForEcmpGroup(
     const auto asics = asicTable_->getHwAsics();
     const auto asicType = asics.begin()->second->getAsicType();
     // Ensure that all ASICs have the same type.
-    CHECK(std::all_of(
-        asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
-          return idAndAsic.second->getAsicType() == asicType;
-        }));
+    CHECK(
+        std::all_of(
+            asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
+              return idAndAsic.second->getAsicType() == asicType;
+            }));
     return computeWeightedEcmpMemberCount(fwd, asicType);
   }
   // No native weighted ECMP support. Members are replicated to support
@@ -157,10 +158,9 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
     bool add) {
   const auto& fwd = route->getForwardInfo();
 
+  const auto nhSet = fwd.normalizedNextHops();
   // Forwarding to nextHops and more than one nextHop - use ECMP
-  if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
-      fwd.getNextHopSet().size() > 1) {
-    const auto& nhSet = fwd.normalizedNextHops();
+  if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
     if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
       it->second = it->second + (add ? 1 : -1);
       CHECK(it->second >= 0);
@@ -186,10 +186,9 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
     bool add) {
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
     const auto& fwd = route->getForwardInfo();
-
+    const auto nhSet = fwd.normalizedNextHops();
     // Forwarding to nextHops and more than one nextHop - use ECMP
-    if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
-        fwd.getNextHopSet().size() > 1) {
+    if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
       // If ERM were disabled, then arsEcmpGroupRefMap_ and ecmpGroupRefMap_
       // will be identical since primary and backup groups are
       // indistinguishable.
@@ -199,7 +198,6 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
         return true;
       }
-      const auto& nhSet = fwd.normalizedNextHops();
       if (auto it = arsEcmpGroupRefMap_.find(nhSet);
           it != arsEcmpGroupRefMap_.end()) {
         it->second = it->second + (add ? 1 : -1);
@@ -270,18 +268,39 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   processFibsDeltaInHwSwitchOrder(
       delta,
       [&](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
+        if (!oldRoute->isResolved() && !newRoute->isResolved()) {
+          return;
+        }
+        if (oldRoute->isResolved() && !newRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(oldRoute, false /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+          return;
+        }
+        if (!oldRoute->isResolved() && newRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(newRoute, true /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+          return;
+        }
+        // Both old and new are resolved
+        CHECK(oldRoute->isResolved() && newRoute->isResolved());
         validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
         validRouteUpdate &= checkAndUpdateEcmpResource(oldRoute, false);
       },
       [&](RouterID /*rid*/, const auto& newRoute) {
-        validRouteUpdate &=
-            checkAndUpdateEcmpResource(newRoute, true /* add */);
-        validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+        if (newRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(newRoute, true /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
+        }
       },
       [&](RouterID /*rid*/, const auto& delRoute) {
-        validRouteUpdate &=
-            checkAndUpdateEcmpResource(delRoute, false /* add */);
-        validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+        if (delRoute->isResolved()) {
+          validRouteUpdate &=
+              checkAndUpdateEcmpResource(delRoute, false /* add */);
+          validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
+        }
       }
 
   );

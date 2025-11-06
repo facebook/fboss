@@ -17,7 +17,6 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/json/dynamic.h>
 
-DECLARE_int32(subscriptionServeQueueSize);
 DECLARE_bool(forceCloseSlowSubscriber);
 
 namespace facebook::fboss::fsdb {
@@ -149,10 +148,11 @@ class BaseSubscription {
           ret = FsdbErrorCode::SUBSCRIPTION_SERVE_QUEUE_FULL;
           XLOG(INFO) << "Slow subscription: " << subscriberId()
                      << " pipe full. Force closing subscription.";
-          std::move(pipe).close(Utils::createFsdbException(
-              ret.value(),
-              "Force closing slow subscription on pipe-full: ",
-              subscriberId()));
+          std::move(pipe).close(
+              Utils::createFsdbException(
+                  ret.value(),
+                  "Force closing slow subscription on pipe-full: ",
+                  subscriberId()));
         } else {
           XLOG(ERR) << "Slow subscription: " << subscriberId()
                     << " pipe full, update dropped!";
@@ -306,9 +306,10 @@ class PathSubscription : public BasePathSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval) {
-    auto [generator, pipe] = folly::coro::BoundedAsyncPipe<value_type>::create(
-        FLAGS_subscriptionServeQueueSize);
+      std::chrono::milliseconds heartbeatInterval,
+      int32_t pipeCapacity) {
+    auto [generator, pipe] =
+        folly::coro::BoundedAsyncPipe<value_type>::create(pipeCapacity);
     std::vector<std::string> path(begin, end);
     auto subscription = std::make_unique<PathSubscription>(
         std::move(subscriber),
@@ -434,7 +435,8 @@ class DeltaSubscription : public BaseDeltaSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval);
+      std::chrono::milliseconds heartbeatInterval,
+      int32_t pipeCapacity);
 
   DeltaSubscription(
       SubscriptionIdentifier&& subscriber,
@@ -527,7 +529,8 @@ class ExtendedPathSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       OperProtocol protocol,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval);
+      std::chrono::milliseconds heartbeatInterval,
+      int32_t pipeCapacity);
 
   bool shouldConvertToDynamic() const override {
     return false;
@@ -619,7 +622,8 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       OperProtocol protocol,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval);
+      std::chrono::milliseconds heartbeatInterval,
+      int32_t pipeCapacity);
 
   void buffer(TaggedOperDelta&& newVal);
 
@@ -717,7 +721,8 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval);
+      std::chrono::milliseconds heartbeatInterval,
+      int32_t pipeCapacity);
 
   // Multipath
   static std::pair<
@@ -729,7 +734,8 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval);
+      std::chrono::milliseconds heartbeatInterval,
+      int32_t pipeCapacity);
 
   // Extended paths
   static std::pair<
@@ -741,7 +747,8 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       OperProtocol protocol,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval);
+      std::chrono::milliseconds heartbeatInterval,
+      int32_t pipeCapacity);
 
   ExtendedPatchSubscription(
       SubscriptionIdentifier&& subscriber,

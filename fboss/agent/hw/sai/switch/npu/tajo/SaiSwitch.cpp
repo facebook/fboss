@@ -220,4 +220,11 @@ void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
 }
 
 void SaiSwitch::initTechSupport() {}
+
+bool SaiSwitch::sendPacketOutOfPortSyncForPktType(
+    std::unique_ptr<TxPacket> /*pkt*/,
+    const PortID& /*portID*/,
+    TxPacketType /*packetType*/) {
+  throw FbossError("Sending packet over fabric is unsupported for platform!");
+}
 } // namespace facebook::fboss

@@ -88,6 +88,8 @@ class PortManager {
   // Marked virtual for MockPortManager testing.
   virtual phy::PhyInfo getXphyInfo(PortID portId);
 
+  phy::PortPrbsState getXphyPortPrbs(const PortID& portId, phy::Side side);
+
   void updateAllXphyPortsStats();
 
   std::vector<PortID> getMacsecCapablePorts() const;
@@ -309,6 +311,17 @@ class PortManager {
   // This contains refresh logic for TransceiverStateMachine and
   // PortStateMachine.
   void refreshStateMachines();
+
+  bool getXphyNeedResetDataPath(PortID id) const;
+
+  void programXphyPortPrbs(
+      PortID portId,
+      phy::Side side,
+      const phy::PortPrbsState& prbs);
+
+  void getPortStates(
+      std::map<int32_t, PortStateMachineState>& states,
+      std::unique_ptr<std::vector<int32_t>> ids);
 
  protected:
   /*

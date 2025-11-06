@@ -179,7 +179,7 @@ struct WrappedSaiType<std::vector<sai_system_port_config_t>> {
 template <typename T>
 class AclEntryField {
  public:
-  AclEntryField(){};
+  AclEntryField() {};
   AclEntryField(T dataAndMask) : dataAndMask_(dataAndMask) {}
   const T& getDataAndMask() const {
     return dataAndMask_;
@@ -277,7 +277,7 @@ using AclEntryFieldSaiObjectIdT =
 template <typename T>
 class AclEntryAction {
  public:
-  AclEntryAction(){};
+  AclEntryAction() {};
   AclEntryAction(T data) : data_(data) {}
   const T& getData() const {
     return data_;

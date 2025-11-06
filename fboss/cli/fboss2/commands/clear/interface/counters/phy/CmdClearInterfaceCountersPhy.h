@@ -51,8 +51,10 @@ class CmdClearInterfaceCountersPhy : public CmdHandler<
         if (it != portEntries.end()) {
           portsToClear.push_back(it->first);
         } else {
-          throw std::runtime_error(fmt::format(
-              "{} is not a valid interface name on this device", queriedIf));
+          throw std::runtime_error(
+              fmt::format(
+                  "{} is not a valid interface name on this device",
+                  queriedIf));
         }
       }
     } else {

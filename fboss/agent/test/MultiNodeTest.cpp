@@ -106,17 +106,19 @@ void MultiNodeTest::checkNeighborResolved(
     EXPECT_EQ(neighborEntry->getPort(), port);
   };
   if (ip.isV4()) {
-    checkNeighbor(sw()->getState()
-                      ->getVlans()
-                      ->getNodeIf(vlanId)
-                      ->getArpTable()
-                      ->getEntryIf(ip.asV4()));
+    checkNeighbor(
+        sw()->getState()
+            ->getVlans()
+            ->getNodeIf(vlanId)
+            ->getArpTable()
+            ->getEntryIf(ip.asV4()));
   } else {
-    checkNeighbor(sw()->getState()
-                      ->getVlans()
-                      ->getNodeIf(vlanId)
-                      ->getNdpTable()
-                      ->getEntryIf(ip.asV6()));
+    checkNeighbor(
+        sw()->getState()
+            ->getVlans()
+            ->getNodeIf(vlanId)
+            ->getNdpTable()
+            ->getEntryIf(ip.asV6()));
   }
 }
 

@@ -14,6 +14,18 @@ using namespace ::testing;
 
 namespace facebook::fboss {
 
+namespace {
+std::vector<std::string> transceiverStatesToNames(
+    const std::vector<TransceiverStateMachineState>& states) {
+  std::vector<std::string> stateNames;
+  stateNames.reserve(states.size());
+  for (const auto& state : states) {
+    stateNames.push_back(apache::thrift::util::enumNameSafe(state));
+  }
+  return stateNames;
+}
+} // namespace
+
 class OpticsFwUpgradeTest : public HwTest {
  public:
   OpticsFwUpgradeTest(bool setupOverrideTcvrToPortAndProfile = true)
@@ -153,10 +165,32 @@ class OpticsFwUpgradeTest : public HwTest {
     for (auto id : cabledTransceivers) {
       auto curState = wedgeMgr->getCurrentState(TransceiverID(id));
       if (status) {
-        EXPECT_EQ(curState, TransceiverStateMachineState::ACTIVE)
+        auto expectedState = FLAGS_port_manager_mode
+            ? TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED
+            : TransceiverStateMachineState::ACTIVE;
+        EXPECT_EQ(curState, expectedState)
             << "Transceiver:" << id
             << " Actual: " << apache::thrift::util::enumNameSafe(curState)
-            << ", Expected: ACTIVE";
+            << ", Expected: "
+            << apache::thrift::util::enumNameSafe(expectedState);
+
+        if (FLAGS_port_manager_mode) {
+          auto portMgr = qsfpServiceHandler->getPortManager();
+          const auto& portToPortInfo =
+              wedgeMgr->getProgrammedIphyPortToPortInfo(TransceiverID(id));
+          for (const auto& [portId, tcvrPortInfo] : portToPortInfo) {
+            if (!tcvrPortInfo.status.has_value()) {
+              continue;
+            }
+            auto portStatus = tcvrPortInfo.status.value();
+            if (portStatus.portEnabled && portStatus.operState) {
+              auto portState = portMgr->getPortState(portId);
+              EXPECT_EQ(portState, PortStateMachineState::PORT_UP)
+                  << "PortID(" << portId << ") for Transceiver " << id
+                  << " is not UP";
+            }
+          }
+        }
       } else {
         // When forcing link down in tests, we also end up triggering
         // remediation since initial_remediate_interval is set to 0 in HwTest
@@ -166,13 +200,22 @@ class OpticsFwUpgradeTest : public HwTest {
         // transitions from INACTIVE to UPGRADING to NOT_PRESENT and then
         // eventually to IPHY_PORTS_PROGRAMMED state. Therefore expect that too
         // when forcing link down
+        std::vector<TransceiverStateMachineState> expectedStates =
+            FLAGS_port_manager_mode
+            ? std::vector<
+                  TransceiverStateMachineState>{TransceiverStateMachineState::TRANSCEIVER_READY, TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED}
+            : std::vector<TransceiverStateMachineState>{
+                  TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+                  TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
+                  TransceiverStateMachineState::INACTIVE};
+
         EXPECT_TRUE(
-            curState == TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED ||
-            curState == TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED ||
-            curState == TransceiverStateMachineState::INACTIVE)
+            std::find(expectedStates.begin(), expectedStates.end(), curState) !=
+            expectedStates.end())
             << "Transceiver:" << id
             << " Actual: " << apache::thrift::util::enumNameSafe(curState)
-            << ", Expected: IPHY_PORTS_PROGRAMMED or XPHY_PORTS_PROGRAMMED or INACTIVE";
+            << ", Expected one of the states in expectedStates: "
+            << folly::join(",", transceiverStatesToNames(expectedStates));
       }
     }
   }
@@ -186,9 +229,9 @@ class OpticsFwUpgradeTestNoIPhySetup : public OpticsFwUpgradeTest {
 TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
   // In this test, firmware versions in qsfp config is not changed. Hence, the
   // firmware upgrade shouldn't be triggered under any circumstances.
-  // 1. Coldboot init might still trigger firmware upgrade depending on what the
-  // firmware version was before the test started and what the firmware version
-  // is in the qsfp config the test is run with
+  // 1. Coldboot init might still trigger firmware upgrade depending on what
+  // the firmware version was before the test started and what the firmware
+  // version is in the qsfp config the test is run with
   // 2. Warmboot init, verify there were no upgrades done during warm boot.
   // 3. Force links to go down and verify there are no upgrades done
 
@@ -362,8 +405,8 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
 
-  // Lambda to refresh state machine and return true if all transceivers are in
-  // TRANSCEIVER_PROGRAMMED state
+  // Lambda to refresh state machine and return true if all transceivers are
+  // in TRANSCEIVER_PROGRAMMED state
   auto refreshStateMachinesAndCheckTcvrProgrammed = [&]() {
     qsfpServiceHandler->refreshStateMachines();
     for (auto id : tcvrsToTest) {
@@ -401,6 +444,12 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
     gflags::SetCommandLineOptionWithMode(
         "override_program_iphy_ports_for_test", "1", gflags::SET_FLAGS_DEFAULT);
     wedgeMgr->setOverrideTcvrToPortAndProfileForTesting();
+    if (FLAGS_port_manager_mode) {
+      getHwQsfpEnsemble()
+          ->getQsfpServiceHandler()
+          ->setOverrideAgentPortStatusForTesting(
+              false /* up */, true /* enabled */);
+    }
     WITH_RETRIES_N_TIMED(
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,

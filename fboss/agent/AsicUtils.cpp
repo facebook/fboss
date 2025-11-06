@@ -63,6 +63,7 @@ const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
       break;
   }
 
@@ -94,6 +95,7 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
       throw FbossError(
           "Fabric ports are not applicable for: ",
           apache::thrift::util::enumNameSafe(asicType));

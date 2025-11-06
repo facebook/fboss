@@ -59,7 +59,7 @@ class FailSomeUpdates {
  public:
   explicit FailSomeUpdates(std::unordered_set<int> toFail)
       : toFail_(std::move(toFail)) {}
-  std::shared_ptr<SwitchState> operator()(
+  StateDelta operator()(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,

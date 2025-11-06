@@ -28,8 +28,9 @@ class AgentVoqSwitchConditionalEntropyTest : public AgentVoqSwitchTest {
       }
     }
     cfg.switchSettings()->conditionalEntropyRehashPeriodUS() = kRehashPeriodUs;
-    cfg.loadBalancers()->push_back(utility::getEcmpFullHashConfig(
-        ensemble.getHwAsicTable()->getL3Asics()));
+    cfg.loadBalancers()->push_back(
+        utility::getEcmpFullHashConfig(
+            ensemble.getHwAsicTable()->getL3Asics()));
     return cfg;
   }
   std::vector<PortDescriptor> getEcmpSysPorts() {
@@ -81,8 +82,8 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
 
   auto verify = [this]() {
     // Send traffic through the 5th interface port and verify load balancing
-    const auto kIngressPort = 5;
-    CHECK(masterLogicalInterfacePortIds().size() > kIngressPort + 1);
+    const auto kIngressPortIndex = 5;
+    CHECK(masterLogicalInterfacePortIds().size() > kIngressPortIndex + 1);
 
     auto sysPortDescs = getEcmpSysPorts();
     std::function<std::map<SystemPortID, HwSysPortStats>(
@@ -100,7 +101,7 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
               utility::getSendPktFunc(getAgentEnsemble()),
               utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
               std::nullopt /* vlan */,
-              masterLogicalInterfacePortIds()[kIngressPort],
+              masterLogicalInterfacePortIds()[kIngressPortIndex],
               utility::kUdfL4DstPort,
               255 /* hopLimit */,
               std::nullopt /* srcMacAddr */,
@@ -112,8 +113,9 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
         },
         [&]() { clearSysPortStats(sysPortDescs); },
         [&]() {
-          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(
-              sysPortDescs, {}, getSysPortStatsFn, kMaxDeviation, false)));
+          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(
+              utility::isLoadBalanced(
+                  sysPortDescs, {}, getSysPortStatsFn, kMaxDeviation, false)));
           return true;
         });
   };

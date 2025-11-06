@@ -488,6 +488,7 @@ struct RouteNextHopEntry {
   // endup compressing nexthops due ECMP/DLB resources getting
   // exhausted.
   7: optional list<common.NextHopThrift> overrideNextHops;
+  8: optional i64 normalizedResolvedNextHopSetID;
 }
 
 struct RouteNextHopsMulti {
@@ -562,6 +563,7 @@ struct QosPolicyFields {
   6: optional map<i16, i16> trafficClassToPgId;
   7: optional map<i16, i16> pfcPriorityToPgId;
   8: optional map<i16, i16> trafficClassToVoqId;
+  9: optional TrafficClassToQosAttributeMap pcpMap;
 }
 
 struct SocketAddress {

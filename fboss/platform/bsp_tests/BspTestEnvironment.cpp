@@ -6,7 +6,6 @@
 
 #include "fboss/platform/bsp_tests/RuntimeConfigBuilder.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
-#include "fboss/platform/platform_manager/ConfigUtils.h"
 
 namespace facebook::fboss::platform::bsp_tests {
 
@@ -19,14 +18,17 @@ void BspTestEnvironment::SetUp() {}
 
 void BspTestEnvironment::TearDown() {}
 
-BspTestEnvironment::BspTestEnvironment(const std::string& platform) {
+BspTestEnvironment::BspTestEnvironment(
+    const std::string& platform,
+    const std::string& bspTestsConfigJson,
+    const std::string& pmConfigJson) {
   platform_ = platform;
 
   // Load bsp test config
-  testConfig_ = loadTestConfig(platform_);
+  testConfig_ = loadTestConfig(platform_, bspTestsConfigJson);
 
   // Load platform manager configuration
-  platformManagerConfig_ = loadPlatformManagerConfig();
+  platformManagerConfig_ = loadPlatformManagerConfig(platform, pmConfigJson);
 
   pkgManager_ =
       std::make_unique<platform_manager::PkgManager>(platformManagerConfig_);
@@ -51,13 +53,37 @@ const RuntimeConfig& BspTestEnvironment::getRuntimeConfig() const {
   return runtimeConfig_;
 }
 
-platform_manager::PlatformConfig
-BspTestEnvironment::loadPlatformManagerConfig() {
-  return platform::platform_manager::ConfigUtils().getConfig();
+platform_manager::PlatformConfig BspTestEnvironment::loadPlatformManagerConfig(
+    const std::string& platform,
+    const std::string& pmConfigJson) {
+  std::string configJson;
+  if (!pmConfigJson.empty()) {
+    configJson = pmConfigJson;
+  } else {
+    configJson = ConfigLib().getPlatformManagerConfig(platform);
+  }
+  PlatformConfig config;
+  try {
+    apache::thrift::SimpleJSONSerializer::deserialize<PlatformConfig>(
+        configJson, config);
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Failed to deserialize platform config: " << e.what();
+    throw;
+  }
+  XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+      config);
+  return config;
 }
 
-BspTestsConfig BspTestEnvironment::loadTestConfig(const std::string& platform) {
-  std::string configJson = ConfigLib().getBspTestConfig(platform);
+BspTestsConfig BspTestEnvironment::loadTestConfig(
+    const std::string& platform,
+    const std::string& bspTestsConfigJson) {
+  std::string configJson;
+  if (!bspTestsConfigJson.empty()) {
+    configJson = bspTestsConfigJson;
+  } else {
+    configJson = ConfigLib().getBspTestConfig(platform);
+  }
   BspTestsConfig config;
   try {
     apache::thrift::SimpleJSONSerializer::deserialize<BspTestsConfig>(

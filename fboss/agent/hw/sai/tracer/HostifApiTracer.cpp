@@ -44,6 +44,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _HostifPacketMap{
     SAI_ATTR_MAP(TxPacket, EgressQueueIndex),
 };
 
+void handleExtensionAttributes() {
+  SAI_EXT_ATTR_MAP_2(HostifPacket, TxPacket, PacketType)
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -101,6 +105,7 @@ sai_status_t wrap_send_hostif_packet(
 }
 
 sai_hostif_api_t* wrappedHostifApi() {
+  handleExtensionAttributes();
   static sai_hostif_api_t hostifWrappers;
 
   hostifWrappers.create_hostif_trap = &wrap_create_hostif_trap;

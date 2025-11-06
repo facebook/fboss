@@ -661,3 +661,27 @@ TEST_F(SwitchApiTest, setGetPfcDlrPacketAction) {
           switchId, SaiSwitchTraits::Attributes::PfcDlrPacketAction{}),
       SAI_PACKET_ACTION_FORWARD);
 }
+
+TEST_F(SwitchApiTest, testPfcMonitorEnable) {
+  // Test default value
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
+      false);
+
+  // Test setting to true
+  SaiSwitchTraits::Attributes::PfcMonitorEnable pfcMonitorEnable{true};
+  switchApi->setAttribute(switchId, pfcMonitorEnable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
+      true);
+
+  // Test setting to false
+  SaiSwitchTraits::Attributes::PfcMonitorEnable pfcMonitorDisable{false};
+  switchApi->setAttribute(switchId, pfcMonitorDisable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
+      false);
+}

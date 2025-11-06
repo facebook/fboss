@@ -187,6 +187,18 @@ TEST(Route, RouteNextHopsMultiThrift) {
           std::optional<cfg::AclLookupClass>(std::nullopt),
           std::optional<cfg::SwitchingMode>(
               cfg::SwitchingMode::PER_PACKET_RANDOM)));
+
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(4, "4.4.4."),
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          std::optional<cfg::SwitchingMode>(std::nullopt),
+          std::optional<RouteNextHopEntry::NextHopSet>(std::nullopt),
+          std::optional<NextHopSetID>(NextHopSetID(200))));
+
   validateThriftStructNodeSerialization<RouteNextHopsMulti>(nhm1);
 }
 
@@ -250,10 +262,11 @@ TEST(Route, serializeRouteCounterID) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   std::optional<RouteCounterID> counterID("route.counter.0");
-  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
-      makePrefixV4("1.2.3.4/32"),
-      clientId,
-      RouteNextHopEntry(nxtHops, DISTANCE, counterID)));
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"),
+          clientId,
+          RouteNextHopEntry(nxtHops, DISTANCE, counterID)));
   rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, counterID));
   validateThriftStructNodeSerialization(rt);
 }
@@ -264,11 +277,12 @@ TEST(Route, serializeRouteClassID) {
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   std::optional<cfg::AclLookupClass> classID(
       cfg::AclLookupClass::DST_CLASS_L3_DPR);
-  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
-      makePrefixV4("1.2.3.4/32"),
-      clientId,
-      RouteNextHopEntry(
-          nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID)));
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"),
+          clientId,
+          RouteNextHopEntry(
+              nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID)));
   rt.setResolved(RouteNextHopEntry(
       nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID));
   validateNodeSerialization(rt);
@@ -286,8 +300,30 @@ TEST(Route, serializeRouteOverrideEcmpMode) {
       std::optional<RouteCounterID>(),
       std::optional<cfg::AclLookupClass>(),
       switchingMode);
-  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
-      makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
+  rt.setResolved(nhopEntry);
+  validateThriftStructNodeSerialization(rt);
+}
+
+// Serialization/deseralization of Routes with normalizedResolvedNextHopSetID
+TEST(Route, serializeRouteNormalizedResolvedNextHopSetID) {
+  ClientID clientId = ClientID(1);
+  auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
+  std::optional<NextHopSetID> normalizedResolvedNextHopSetID(
+      NextHopSetID(12345));
+  RouteNextHopEntry nhopEntry(
+      nxtHops,
+      DISTANCE,
+      std::optional<RouteCounterID>(),
+      std::optional<cfg::AclLookupClass>(),
+      std::optional<cfg::SwitchingMode>(),
+      std::optional<RouteNextHopEntry::NextHopSet>(),
+      normalizedResolvedNextHopSetID);
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
   rt.setResolved(nhopEntry);
   validateThriftStructNodeSerialization(rt);
 }

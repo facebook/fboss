@@ -14,7 +14,7 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 SlotTypeConfig getValidSlotTypeConfig() {
   auto slotTypeConfig = SlotTypeConfig();
-  slotTypeConfig.pmUnitName() = "FAN_TRAY";
+  slotTypeConfig.pmUnitName() = "SCM";
   slotTypeConfig.idpromConfig() = IdpromConfig();
   slotTypeConfig.idpromConfig()->address() = "0x14";
   return slotTypeConfig;
@@ -69,7 +69,7 @@ TEST(ConfigValidatorTest, ValidConfig) {
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
   EXPECT_TRUE(ConfigValidator().isValid(config));
@@ -77,39 +77,139 @@ TEST(ConfigValidatorTest, ValidConfig) {
 
 TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   auto config = PlatformConfig();
-  // Add pmUnitConfig to make pmUnitConfigName reference valid
-  auto pmUnitConfig = PmUnitConfig();
-  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
-
-  config.platformName() = "MERU400BIU";
+  config.platformName() = "SAMPLE_PLATFORM";
   config.rootSlotType() = "SCM_SLOT";
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
-  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {}}};
+  auto pmUnitConfig = PmUnitConfig();
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+
+  // Test 1: Empty versionedPmUnitConfigs vector
+  config.versionedPmUnitConfigs() = {{"SCM", {}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 2: Negative productSubVersion
   auto versionedPmUnitConfig = VersionedPmUnitConfig();
   versionedPmUnitConfig.productSubVersion() = -1;
-  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {versionedPmUnitConfig}}};
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 3: Mismatched pluggedInSlotType
+  versionedPmUnitConfig.productSubVersion() = 1;
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "PIM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Mismatched outgoingSlotConfigs
+  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  auto slotConfig = SlotConfig();
+  slotConfig.slotType() = "EXTRA_SLOT";
+  versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {
+      {"EXTRA_SLOT@0", slotConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 5: Mismatched pciDeviceConfigs
+  versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {};
+  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {
+      getValidPciDeviceConfig()};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 6: Mismatched embeddedSensorConfigs
+  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {};
+  auto sensorConfig = EmbeddedSensorConfig();
+  sensorConfig.pmUnitScopedName() = "SENSOR_1";
+  versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {
+      sensorConfig};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   auto config = PlatformConfig();
-  // Add pmUnitConfig to make pmUnitConfigName reference valid
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
-  config.pmUnitConfigs() = {{"FAN_TRAY", pmUnitConfig}};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
 
-  config.platformName() = "MERU400BIU";
+  config.platformName() = "SAMPLE_PLATFORM";
   config.rootSlotType() = "SCM_SLOT";
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
-  auto versionedPmUnitConfig = VersionedPmUnitConfig();
-  versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
-  config.versionedPmUnitConfigs() = {{"FAN_TRAY", {versionedPmUnitConfig}}};
+
+  // Test 1: Valid with single versioned config (productSubVersion = 0)
+  auto versionedPmUnitConfig1 = VersionedPmUnitConfig();
+  versionedPmUnitConfig1.productSubVersion() = 0;
+  versionedPmUnitConfig1.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 2: Valid with single versioned config (productSubVersion = 1)
+  auto versionedPmUnitConfig2 = VersionedPmUnitConfig();
+  versionedPmUnitConfig2.productSubVersion() = 1;
+  versionedPmUnitConfig2.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig2}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 3: Valid with multiple versioned configs
+  auto versionedPmUnitConfig3 = VersionedPmUnitConfig();
+  versionedPmUnitConfig3.productSubVersion() = 2;
+  versionedPmUnitConfig3.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {
+      {"SCM",
+       {versionedPmUnitConfig1,
+        versionedPmUnitConfig2,
+        versionedPmUnitConfig3}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 4: Valid with matching pluggedInSlotType
+  versionedPmUnitConfig1.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 5: Valid with matching empty outgoingSlotConfigs
+  versionedPmUnitConfig1.pmUnitConfig()->outgoingSlotConfigs() = {};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 6: Valid with matching pciDeviceConfigs (non-empty)
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {
+      getValidPciDeviceConfig()};
+  pmUnitConfig.pciDeviceConfigs() = {getValidPciDeviceConfig()};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 7: Valid with matching empty embeddedSensorConfigs
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {};
+  versionedPmUnitConfig1.pmUnitConfig()->embeddedSensorConfigs() = {};
+  pmUnitConfig.pciDeviceConfigs() = {};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 8: Valid with large productSubVersion
+  versionedPmUnitConfig1.productSubVersion() = 100;
+  versionedPmUnitConfig1.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 9: Valid with differing i2cDeviceConfigs (allowed to differ)
+  versionedPmUnitConfig1.productSubVersion() = 0;
+  I2cDeviceConfig i2cConfig1, i2cConfig2;
+  i2cConfig1.pmUnitScopedName() = "SCM_EEPROM_V1";
+  i2cConfig1.address() = "0x50";
+  i2cConfig2.pmUnitScopedName() = "SCM_EEPROM_V2";
+  i2cConfig2.address() = "0x51";
+  versionedPmUnitConfig1.pmUnitConfig()->i2cDeviceConfigs() = {i2cConfig1};
+  pmUnitConfig.i2cDeviceConfigs() = {i2cConfig2};
+  pmUnitConfig.pciDeviceConfigs() = {};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
 
@@ -424,8 +524,9 @@ TEST(ConfigValidatorTest, SpiDeviceConfig) {
   auto spiDevConfigCopy = spiDevConfig;
   spiDevConfigCopy.chipSelect() = 0;
   spiDevConfig.chipSelect() = 0;
-  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs(
-      {spiDevConfigCopy, spiDevConfig}));
+  EXPECT_FALSE(
+      ConfigValidator().isValidSpiDeviceConfigs(
+          {spiDevConfigCopy, spiDevConfig}));
   // Empty spiDeviceConfigs
   EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({}));
 }
@@ -505,31 +606,36 @@ TEST(ConfigValidatorTest, DevicePath) {
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/[]"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/COME@SCM_SLOT@0/[idprom]"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
-      config, "/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(
+          config, "/COME_SLOT@SCM_SLOT@0/[SCM_MUX_5]"));
   // Case-2 Topologically incorrect SlotPath
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/SMB_SLOT@0/[sensor1]"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@2/[fpga]"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@1/[IDPROM]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@1/[IDPROM]"));
   // Case-4 Topologically correct SlotPath, incorrect DeviceName
   EXPECT_FALSE(ConfigValidator().isValidDevicePath(config, "/[sensor1]"));
   EXPECT_FALSE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[fpga]"));
-  EXPECT_FALSE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]"));
+  EXPECT_FALSE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]"));
   // Case-5 Corrects
   EXPECT_TRUE(ConfigValidator().isValidDevicePath(config, "/[MCB_MUX_A]"));
   EXPECT_TRUE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@0/[NVME]"));
   EXPECT_TRUE(
       ConfigValidator().isValidDevicePath(config, "/JUMPER_SLOT@1/[NVME]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_SYS_LED]"));
-  EXPECT_TRUE(ConfigValidator().isValidDevicePath(
-      config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA_GPIO_1]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_SYS_LED]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath(
+          config, "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA_GPIO_1]"));
 }
 
 TEST(ConfigValidatorTest, BspRpm) {
@@ -740,13 +846,23 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
     config.ledPerPort() = 2;
     return config;
   };
+  const std::string& configTypeName = "LedCtrlBlockConfig";
+
+  auto getPortRanges = [](const std::vector<LedCtrlBlockConfig>& configs) {
+    std::vector<std::pair<int16_t, int16_t>> ranges;
+    ranges.reserve(configs.size());
+    for (const auto& config : configs) {
+      ranges.emplace_back(*config.startPort(), *config.numPorts());
+    }
+    return ranges;
+  };
 
   // Test case: Empty config list (should be valid)
   EXPECT_TRUE(validator.isValidPortRanges({}));
 
   // Test case: Single config (should be valid)
   configs = {createLedCtrlBlockConfig(1, 8)};
-  EXPECT_TRUE(validator.isValidPortRanges(configs));
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Valid non-overlapping sequential ranges
   configs = {
@@ -754,7 +870,7 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
       createLedCtrlBlockConfig(9, 16), // ports 9-24
       createLedCtrlBlockConfig(25, 8) // ports 25-32
   };
-  EXPECT_TRUE(validator.isValidPortRanges(configs));
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Non-vaild non-overlapping sequential ranges (unsorted input)
   configs = {
@@ -762,56 +878,49 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
       createLedCtrlBlockConfig(1, 8), // ports 1-8
       createLedCtrlBlockConfig(9, 16) // ports 9-24
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Overlapping ranges - same start port
   configs = {
       createLedCtrlBlockConfig(1, 8), // ports 1-8
       createLedCtrlBlockConfig(1, 4) // ports 1-4 (overlaps)
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Overlapping ranges - partial overlap
   configs = {
       createLedCtrlBlockConfig(1, 8), // ports 1-8
       createLedCtrlBlockConfig(5, 8) // ports 5-12 (overlaps 5-8)
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Overlapping ranges - second range completely inside first
   configs = {
       createLedCtrlBlockConfig(1, 16), // ports 1-16
       createLedCtrlBlockConfig(5, 4) // ports 5-8 (inside first range)
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Overlapping ranges - first range completely inside second
   configs = {
       createLedCtrlBlockConfig(5, 4), // ports 5-8
       createLedCtrlBlockConfig(1, 16) // ports 1-16 (contains first range)
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Adjacent ranges touching exactly (should be valid)
   configs = {
       createLedCtrlBlockConfig(1, 8), // ports 1-8
       createLedCtrlBlockConfig(9, 8) // ports 9-16 (touches exactly)
   };
-  EXPECT_TRUE(validator.isValidPortRanges(configs));
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Overlapping by one port
   configs = {
       createLedCtrlBlockConfig(1, 8), // ports 1-8
       createLedCtrlBlockConfig(8, 8) // ports 8-15 (overlaps at port 8)
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
-
-  // Test case: Gap between ranges
-  configs = {
-      createLedCtrlBlockConfig(1, 8), // ports 1-8
-      createLedCtrlBlockConfig(11, 8) // ports 11-18 (gap: missing ports 9-10)
-  };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Multiple overlapping ranges
   configs = {
@@ -819,7 +928,7 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
       createLedCtrlBlockConfig(5, 8), // ports 5-12 (overlaps with first)
       createLedCtrlBlockConfig(10, 8) // ports 10-17 (overlaps with second)
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Complex valid scenario with multiple ranges
   configs = {
@@ -828,7 +937,7 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
       createLedCtrlBlockConfig(33, 16), // ports 33-48
       createLedCtrlBlockConfig(49, 16) // ports 49-64
   };
-  EXPECT_TRUE(validator.isValidPortRanges(configs));
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Complex invalid scenario with one overlap in the middle
   configs = {
@@ -838,7 +947,7 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
           30, 16), // ports 30-45 (overlaps with previous: 30-32)
       createLedCtrlBlockConfig(46, 16) // ports 46-61
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Single port ranges (valid)
   configs = {
@@ -846,21 +955,14 @@ TEST(ConfigValidatorTest, LedCtrlBlockPortRanges) {
       createLedCtrlBlockConfig(2, 1), // port 2
       createLedCtrlBlockConfig(3, 1) // port 3
   };
-  EXPECT_TRUE(validator.isValidPortRanges(configs));
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
 
   // Test case: Single port ranges with overlap
   configs = {
       createLedCtrlBlockConfig(1, 1), // port 1
       createLedCtrlBlockConfig(1, 1) // port 1 (duplicate)
   };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
-
-  // Test case: Single port ranges with gap
-  configs = {
-      createLedCtrlBlockConfig(1, 1), // port 1
-      createLedCtrlBlockConfig(3, 1) // port 3 (missing port 2)
-  };
-  EXPECT_FALSE(validator.isValidPortRanges(configs));
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
 }
 
 TEST(ConfigValidatorTest, CsrOffsetCalc) {
@@ -908,4 +1010,253 @@ TEST(ConfigValidatorTest, CsrOffsetCalc) {
   EXPECT_FALSE(validator.isValidCsrOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
   EXPECT_FALSE(validator.isValidCsrOffsetCalc("0x1000 + {ledNumber}", 1, 1, 1));
   EXPECT_FALSE(validator.isValidCsrOffsetCalc("{ledNum} * 5 abcd 10", 1, 1, 1));
+}
+
+TEST(ConfigValidatorTest, XcvrCtrlBlockConfig) {
+  ConfigValidator validator;
+  XcvrCtrlBlockConfig config;
+
+  // Test case: Valid config
+  config.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+  config.deviceName() = "xcvr_ctrl";
+  config.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x100";
+  config.numPorts() = 32;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 32;
+  EXPECT_TRUE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: Empty pmUnitScopedNamePrefix
+  config.pmUnitScopedNamePrefix() = "";
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+
+  // Test case: pmUnitScopedNamePrefix ends with _
+  config.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR_";
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+
+  // Test case: Empty deviceName
+  config.deviceName() = "";
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.deviceName() = "xcvr_ctrl";
+
+  // Test case: Empty csrOffsetCalc
+  config.csrOffsetCalc() = "";
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x100";
+
+  // Test case: Zero numPorts
+  config.numPorts() = 0;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.numPorts() = 32;
+
+  // Test case: Negative numPorts
+  config.numPorts() = -1;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.numPorts() = 32;
+
+  // Test case: Negative startPort
+  config.startPort() = -1;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.startPort() = 0;
+
+  // Test case: Zero startPort
+  config.startPort() = 0;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.startPort() = 1;
+
+  // Test case: Large valid values
+  config.numPorts() = 128;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 128;
+  EXPECT_TRUE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: More ports than numXcvrs
+  config.numPorts() = 128;
+  config.startPort() = 10;
+  validator.numXcvrs_ = 64;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: startPort greater than numXcvrs
+  config.numPorts() = 32;
+  config.startPort() = 33;
+  validator.numXcvrs_ = 32;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: startPort + numPorts - 1 greater than numXcvrs
+  config.numPorts() = 32;
+  config.startPort() = 1;
+  validator.numXcvrs_ = 31;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+
+  // Test case: startPort + numPorts - 1 > numXcvrs (different scenario)
+  config.startPort() = 2; // 2 + 32 - 1 = 33 > 32
+  config.numPorts() = 32;
+  validator.numXcvrs_ = 32;
+  EXPECT_FALSE(validator.isValidXcvrCtrlBlockConfig(config));
+  config.startPort() = 1;
+}
+
+TEST(ConfigValidatorTest, XcvrCtrlBlockPortRanges) {
+  ConfigValidator validator;
+  std::vector<XcvrCtrlBlockConfig> configs;
+
+  // Helper to create an XcvrCtrlBlockConfig with specific port range
+  auto createXcvrCtrlBlockConfig = [](int startPort, int numPorts) {
+    XcvrCtrlBlockConfig config;
+    config.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+    config.deviceName() = "xcvr_ctrl";
+    config.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x100";
+    config.startPort() = startPort;
+    config.numPorts() = numPorts;
+    return config;
+  };
+  const std::string& configTypeName = "XcvrCtrlBlockConfig";
+
+  auto getPortRanges = [](const std::vector<XcvrCtrlBlockConfig>& configs) {
+    std::vector<std::pair<int16_t, int16_t>> ranges;
+    ranges.reserve(configs.size());
+    for (const auto& config : configs) {
+      ranges.emplace_back(*config.startPort(), *config.numPorts());
+    }
+    return ranges;
+  };
+
+  // Test case: Empty config list (should be valid)
+  EXPECT_TRUE(validator.isValidPortRanges({}));
+
+  // Test case: Single config (should be valid)
+  configs = {createXcvrCtrlBlockConfig(1, 8)};
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Valid non-overlapping sequential ranges
+  configs = {
+      createXcvrCtrlBlockConfig(1, 8), // ports 1-8
+      createXcvrCtrlBlockConfig(9, 16), // ports 9-24
+      createXcvrCtrlBlockConfig(25, 8) // ports 25-32
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Non-valid non-overlapping sequential ranges (unsorted input)
+  configs = {
+      createXcvrCtrlBlockConfig(25, 8), // ports 25-32
+      createXcvrCtrlBlockConfig(1, 8), // ports 1-8
+      createXcvrCtrlBlockConfig(9, 16) // ports 9-24
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Overlapping ranges - same start port
+  configs = {
+      createXcvrCtrlBlockConfig(1, 8), // ports 1-8
+      createXcvrCtrlBlockConfig(1, 4) // ports 1-4 (overlaps)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Overlapping ranges - partial overlap
+  configs = {
+      createXcvrCtrlBlockConfig(1, 8), // ports 1-8
+      createXcvrCtrlBlockConfig(5, 8) // ports 5-12 (overlaps 5-8)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Overlapping ranges - second range completely inside first
+  configs = {
+      createXcvrCtrlBlockConfig(1, 16), // ports 1-16
+      createXcvrCtrlBlockConfig(5, 4) // ports 5-8 (inside first range)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Overlapping ranges - first range completely inside second
+  configs = {
+      createXcvrCtrlBlockConfig(5, 4), // ports 5-8
+      createXcvrCtrlBlockConfig(1, 16) // ports 1-16 (contains first range)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Adjacent ranges touching exactly (should be valid)
+  configs = {
+      createXcvrCtrlBlockConfig(1, 8), // ports 1-8
+      createXcvrCtrlBlockConfig(9, 8) // ports 9-16 (touches exactly)
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Overlapping by one port
+  configs = {
+      createXcvrCtrlBlockConfig(1, 8), // ports 1-8
+      createXcvrCtrlBlockConfig(8, 8) // ports 8-15 (overlaps at port 8)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Multiple overlapping ranges
+  configs = {
+      createXcvrCtrlBlockConfig(1, 8), // ports 1-8
+      createXcvrCtrlBlockConfig(5, 8), // ports 5-12 (overlaps with first)
+      createXcvrCtrlBlockConfig(10, 8) // ports 10-17 (overlaps with second)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Complex valid scenario with multiple ranges
+  configs = {
+      createXcvrCtrlBlockConfig(1, 16), // ports 1-16
+      createXcvrCtrlBlockConfig(17, 16), // ports 17-32
+      createXcvrCtrlBlockConfig(33, 16), // ports 33-48
+      createXcvrCtrlBlockConfig(49, 16) // ports 49-64
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Complex invalid scenario with one overlap in the middle
+  configs = {
+      createXcvrCtrlBlockConfig(1, 16), // ports 1-16
+      createXcvrCtrlBlockConfig(17, 16), // ports 17-32
+      createXcvrCtrlBlockConfig(
+          30, 16), // ports 30-45 (overlaps with previous: 30-32)
+      createXcvrCtrlBlockConfig(46, 16) // ports 46-61
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Single port ranges (valid)
+  configs = {
+      createXcvrCtrlBlockConfig(1, 1), // port 1
+      createXcvrCtrlBlockConfig(2, 1), // port 2
+      createXcvrCtrlBlockConfig(3, 1) // port 3
+  };
+  EXPECT_TRUE(validator.isValidPortRanges(getPortRanges(configs)));
+
+  // Test case: Single port ranges with overlap
+  configs = {
+      createXcvrCtrlBlockConfig(1, 1), // port 1
+      createXcvrCtrlBlockConfig(1, 1) // port 1 (duplicate)
+  };
+  EXPECT_FALSE(validator.isValidPortRanges(getPortRanges(configs)));
+}
+
+TEST(ConfigValidatorTest, PciDeviceConfigWithXcvrCtrlBlockConfigs) {
+  auto pciDevConfig = getValidPciDeviceConfig();
+
+  // Test case: Invalid XcvrCtrlBlockConfig in PciDeviceConfig
+  XcvrCtrlBlockConfig invalidXcvrConfig;
+  invalidXcvrConfig.pmUnitScopedNamePrefix() = ""; // This will make it invalid
+  invalidXcvrConfig.deviceName() = "xcvr_ctrl";
+  invalidXcvrConfig.csrOffsetCalc() = "0x1000";
+  invalidXcvrConfig.numPorts() = 1;
+  invalidXcvrConfig.startPort() = 1;
+  pciDevConfig.xcvrCtrlBlockConfigs() = {invalidXcvrConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+
+  // Test case: Invalid port ranges in XcvrCtrlBlockConfigs
+  XcvrCtrlBlockConfig config1, config2;
+  config1.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+  config1.deviceName() = "xcvr_ctrl";
+  config1.csrOffsetCalc() = "0x1000";
+  config1.numPorts() = 8;
+  config1.startPort() = 1;
+
+  config2.pmUnitScopedNamePrefix() = "SMB_DOM1_XCVR";
+  config2.deviceName() = "xcvr_ctrl";
+  config2.csrOffsetCalc() = "0x1000";
+  config2.numPorts() = 8;
+  config2.startPort() = 5; // This creates an overlap with config1 (1-8)
+
+  pciDevConfig.xcvrCtrlBlockConfigs() = {config1, config2};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }

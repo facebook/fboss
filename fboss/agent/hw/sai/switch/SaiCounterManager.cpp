@@ -34,10 +34,11 @@ std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
     if (routeCounters_.size() > maxRouteCounterIDs_) {
       XLOG(ERR) << "RouteCounterIDs in use " << routeCounters_.size()
                 << " exceed max count " << maxRouteCounterIDs_;
-      throw FbossError(fmt::format(
-          "CounterIDs in use: {} exceeds max: {}",
-          routeCounters_.size(),
-          maxRouteCounterIDs_));
+      throw FbossError(
+          fmt::format(
+              "CounterIDs in use: {} exceeds max: {}",
+              routeCounters_.size(),
+              maxRouteCounterIDs_));
     }
     auto& counterStore = saiStore_->get<SaiCounterTraits>();
     entry->counter = counterStore.setObject(attrs, attrs);

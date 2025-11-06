@@ -388,7 +388,7 @@ std::unique_ptr<TxPacket> makePfcFramePacket(
   folly::MacAddress intfMac =
       utility::getMacForFirstInterfaceWithPorts(ensemble.getProgrammedState());
   MacAddressGenerator::ResourceT srcMac =
-      utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+      utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
   return utility::makeEthTxPacket(
       ensemble.getSw(),
       vlanId,

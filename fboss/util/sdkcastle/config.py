@@ -4,6 +4,7 @@
 # Configuration data classes for sdkcastle based on thrift spec
 #
 
+# pyre-unsafe
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional

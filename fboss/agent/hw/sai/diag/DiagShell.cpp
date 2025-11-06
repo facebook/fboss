@@ -87,17 +87,6 @@ PtySlave::PtySlave(const PtyMaster& ptyMaster)
 TerminalSession::TerminalSession(
     const PtySlave& ptySlave,
     const std::vector<folly::File>& streams) {
-  struct termios oldSettings;
-  int ret = ::tcgetattr(ptySlave.file.fd(), &oldSettings);
-  folly::checkUnixError(ret, "Failed to get current terminal settings");
-
-  auto newSettings = oldSettings;
-  ::cfmakeraw(&newSettings);
-
-  ret = ::tcsetattr(ptySlave.file.fd(), TCSANOW, &newSettings);
-  folly::checkUnixError(
-      ret, "Failed to set new terminal settings on PTY slave");
-
   for (const auto& stream : streams) {
     XLOG(DBG2) << "Redirect stream to PTY slave: " << stream.fd();
     // Save old stream (OWNING File objects!)
@@ -164,6 +153,18 @@ void DiagShell::initTerminal() {
   if (!repl_) {
     // Set up REPL on connect if needed
     repl_ = makeRepl();
+
+    // Set up terminal to raw mode
+    // For python repl, py_main will override the setting so not actually needed
+    struct termios oldSettings{};
+    int ret = ::tcgetattr(ptys_->file.fd(), &oldSettings);
+    folly::checkUnixError(ret, "Failed to get current terminal settings");
+    auto newSettings = oldSettings;
+    ::cfmakeraw(&newSettings);
+    ret = ::tcsetattr(ptys_->file.fd(), TCSANOW, &newSettings);
+    folly::checkUnixError(
+        ret, "Failed to set new terminal settings on PTY slave");
+
     ts_.reset(new detail::TerminalSession(*ptys_, repl_->getStreams()));
     repl_->run();
   } else if (!ts_) {
@@ -195,13 +196,8 @@ bool DiagShell::tryConnect() {
 
 void DiagShell::disconnect() {
   try {
-    // TODO: look into restore stdin/stdout after session closed for PythonRepl.
-    // Currrently, the following sessions from diag_shell_client on tajo
-    // switches might got stuck if terminal session is reset.
-    if (hw_->getPlatform()->getAsic()->getAsicVendor() ==
-        HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
-      ts_.reset();
-    }
+    // Reset terminal session to restore stdin/stdout
+    ts_.reset();
     diagShellLock_.unlock();
   } catch (const std::system_error&) {
     XLOG(WARNING) << "Trying to disconnect when it was never connected";

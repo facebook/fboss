@@ -49,6 +49,10 @@ class AgentVoqSwitchEcmpCompressionTest
         std::make_move_iterator(
             sysPortDescs_.begin() + sysPortStart + getMaxEcmpWidth()));
   }
+  void assertCorrectness() const {
+    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+    assertRibFibEquivalence(getProgrammedState(), getSw()->getRib());
+  }
 
  private:
   boost::container::flat_set<PortDescriptor> sysPortDescs_;
@@ -113,7 +117,7 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addOneRouteOverEcmpLimit) {
   auto verify = [&]() {
     assertNumRoutesWithNhopOverrides(getProgrammedState(), 2);
     EXPECT_EQ(ecmpResourceManager()->getMergedGroups().size(), 1);
-    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+    assertCorrectness();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -138,7 +142,7 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addMaxScaleRoutesOverEcmpLimit) {
     assertNumRoutesWithNhopOverrides(
         getProgrammedState(),
         getPrefixesForGroups(*resourceMgr, mergedGids).size());
-    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+    assertCorrectness();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -163,7 +167,7 @@ TEST_F(AgentVoqSwitchEcmpCompressionTest, addRemoveMaxScaleRoutes) {
     auto mergedGids = resourceMgr->getMergedGids();
     EXPECT_EQ(mergedGids.size(), 0);
     assertNumRoutesWithNhopOverrides(getProgrammedState(), 0);
-    assertResourceMgrCorrectness(*ecmpResourceManager(), getProgrammedState());
+    assertCorrectness();
   };
   verifyAcrossWarmBoots(setup, verify);
 }

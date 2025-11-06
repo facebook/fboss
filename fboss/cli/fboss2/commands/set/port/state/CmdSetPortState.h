@@ -27,10 +27,11 @@ inline std::map<std::string, int32_t> getQueriedPortIds(
     if (entryNames.count(port)) {
       portPairs.emplace(port, entryNames.at(port));
     } else {
-      throw std::runtime_error(folly::to<std::string>(
-          "Error: Invalid value for '[ports]...': ",
-          port,
-          " is not a valid Port"));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "Error: Invalid value for '[ports]...': ",
+              port,
+              " is not a valid Port"));
     }
   }
   return portPairs;

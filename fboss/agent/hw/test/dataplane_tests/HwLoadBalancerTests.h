@@ -112,8 +112,9 @@ class HwLoadBalancerTest
       VERIFY_POSTWB_FN verifyPostWarmboot) override {
     auto verifyFn = [&]() {
       verify();
-      EXPECT_TRUE(utility::isHwDeterministicSeed(
-          getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
+      EXPECT_TRUE(
+          utility::isHwDeterministicSeed(
+              getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
     };
     Test::verifyAcrossWarmBoots(
         setup, verifyFn, setupPostWarmboot, verifyPostWarmboot);

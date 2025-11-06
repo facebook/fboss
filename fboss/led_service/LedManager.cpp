@@ -151,8 +151,10 @@ void LedManager::setExternalLedState(
     // If the PortInfo has not been updated from FSDB yet then the important
     // info like port profile is not available so we need to bail out from
     // this functon
-    throw FbossError(folly::sformat(
-        "setExternalLedState: Port info not available for {:d} yet", portNum));
+    throw FbossError(
+        folly::sformat(
+            "setExternalLedState: Port info not available for {:d} yet",
+            portNum));
   } else {
     portDisplayMap_[portNum].forcedOn =
         ledState == PortLedExternalState::EXTERNAL_FORCE_ON;
@@ -224,8 +226,10 @@ led::PortLedState LedManager::getPortLedState(
   auto portId = platformMapping_->getPortID(swPortName);
   if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
     // If the PortInfo has not been updated from FSDB yet
-    throw FbossError(folly::sformat(
-        "getPortLedState: Port info not available for {:s} yet", swPortName));
+    throw FbossError(
+        folly::sformat(
+            "getPortLedState: Port info not available for {:s} yet",
+            swPortName));
   }
   led::LedState ledState = portDisplayMap_.at(portId).currentLedState;
 

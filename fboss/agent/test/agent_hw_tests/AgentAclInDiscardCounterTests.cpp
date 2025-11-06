@@ -48,7 +48,7 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto pkt = utility::makeUDPTxPacket(
         getSw(),
         vlanId,
@@ -86,8 +86,8 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
     // Assert that other ports did not see any in discard
     // counter increment
     auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
-    for (const auto& [port, otherPortStats] : allPortStats) {
-      if (port == masterLogicalInterfacePortIds()[1]) {
+    for (const auto& [otherPort, otherPortStats] : allPortStats) {
+      if (otherPort == masterLogicalInterfacePortIds()[1]) {
         continue;
       }
       EXPECT_EQ(*otherPortStats.inDiscards_(), 0);

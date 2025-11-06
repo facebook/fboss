@@ -179,6 +179,7 @@ def read_port_profile_mapping(
             parent_port_id = int(row[Column.PARENT_PORT])
         else:
             parent_port_id = None
+        assert global_port_id not in ports
         ports[global_port_id] = Port(
             global_port_id=global_port_id,
             logical_port_id=logical_port_id,

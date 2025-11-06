@@ -49,9 +49,10 @@ target_link_libraries(platform_mapping_utils
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   icecube800bc_platform_mapping
-  wedge800ba_platform_mapping
+  wedge800bact_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
-  wedge800ca_platform_mapping
+  wedge800cact_platform_mapping
+  ladakh800bcls_platform_mapping
   ${RE2}
 )

@@ -14,12 +14,13 @@ StorageBenchmarkHelper::StorageBenchmarkHelper(
     Params params)
     : gen_(gen),
       params_(params),
-      storage_(NaivePeriodicSubscribableCowStorage<RootType>(
-          {},
-          NaivePeriodicSubscribableStorageBase::StorageParams(
-              std::chrono::milliseconds(kSubscriptionServeIntervalMsec))
-              .setServeGetRequestsWithLastPublishedState(
-                  params_.serveGetRequestsWithLastPublishedState))) {
+      storage_(
+          NaivePeriodicSubscribableCowStorage<RootType>(
+              {},
+              NaivePeriodicSubscribableStorageBase::StorageParams(
+                  std::chrono::milliseconds(kSubscriptionServeIntervalMsec))
+                  .setServeGetRequestsWithLastPublishedState(
+                      params_.serveGetRequestsWithLastPublishedState))) {
   storage_.setConvertToIDPaths(true);
   // initialize test data versions
   testData_.emplace_back(gen_.getStateUpdate(0, false));
@@ -76,8 +77,9 @@ auto makeConsumer(
           onDataReceived = onDataReceived,
           nextSubscribedValue]() mutable {
     while (nExpectedValues-- > 0) {
-      auto val = folly::coro::blockingWait(folly::coro::timeout(
-          nextSubscribedValue(generator), std::chrono::seconds(5)));
+      auto val = folly::coro::blockingWait(
+          folly::coro::timeout(
+              nextSubscribedValue(generator), std::chrono::seconds(5)));
       if (onDataReceived.has_value()) {
         onDataReceived.value()();
       }

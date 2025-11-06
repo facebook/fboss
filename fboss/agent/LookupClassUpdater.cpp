@@ -216,9 +216,10 @@ void LookupClassUpdater::updateNeighborClassID(
     } else {
       classID = getClassIDwithQueuePerPhysicalHost(classID2Count, mac);
     }
-    macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
-        std::make_pair(mac, vlanID),
-        std::make_pair(classID, 1 /* initialize refCnt */)));
+    macAndVlan2ClassIDAndRefCnt.insert(
+        std::make_pair(
+            std::make_pair(mac, vlanID),
+            std::make_pair(classID, 1 /* initialize refCnt */)));
     if (!setDropClassID) {
       // classID2Count is maitanined to compute getClassIDwithMinimumNeighbors
       // CLASS_DROP is not part of that computation.
@@ -698,9 +699,10 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
 
   auto iter = macAndVlan2ClassIDAndRefCnt.find(std::make_pair(mac, vlanID));
   if (iter == macAndVlan2ClassIDAndRefCnt.end()) {
-    macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
-        std::make_pair(mac, vlanID),
-        std::make_pair(classID, 1 /* initialize refCnt */)));
+    macAndVlan2ClassIDAndRefCnt.insert(
+        std::make_pair(
+            std::make_pair(mac, vlanID),
+            std::make_pair(classID, 1 /* initialize refCnt */)));
 
     if (!isDropClassID) {
       // classID2Count is maitanined to compute getClassIDwithMinimumNeighbors

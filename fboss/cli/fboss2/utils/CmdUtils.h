@@ -90,10 +90,11 @@ class PortList : public BaseObjectArgType<std::string> {
     static const RE2 exp("([a-z]+)(\\d+)/(\\d+)/(\\d+)");
     for (auto const& port : ports) {
       if (!RE2::FullMatch(port, exp)) {
-        throw std::invalid_argument(folly::to<std::string>(
-            "Invalid port name: ",
-            port,
-            "\nPort name must match 'moduleNum/port/subport' pattern"));
+        throw std::invalid_argument(
+            folly::to<std::string>(
+                "Invalid port name: ",
+                port,
+                "\nPort name must match 'moduleNum/port/subport' pattern"));
       }
     }
     // deduplicate ports while ensuring order
@@ -120,10 +121,11 @@ class SystemPortList : public BaseObjectArgType<std::string> {
     static const RE2 exp("([^:]+):([a-z]+)(\\d+)/(\\d+)/(\\d)");
     for (auto const& port : ports) {
       if (!RE2::FullMatch(port, exp)) {
-        throw std::invalid_argument(folly::to<std::string>(
-            "Invalid port name: ",
-            port,
-            "\nPort name must match 'switch:moduleNum/port/subport' pattern"));
+        throw std::invalid_argument(
+            folly::to<std::string>(
+                "Invalid port name: ",
+                port,
+                "\nPort name must match 'switch:moduleNum/port/subport' pattern"));
       }
     }
     // deduplicate ports while ensuring order
@@ -253,10 +255,11 @@ class PortState : public BaseObjectArgType<std::string> {
           "Incomplete command, expecting 'state <enable|disable>'");
     }
     if (v.size() != 1) {
-      throw std::runtime_error(folly::to<std::string>(
-          "Unexpected state '",
-          folly::join<std::string, std::vector<std::string>>(" ", v),
-          "', expecting 'enable|disable'"));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "Unexpected state '",
+              folly::join<std::string, std::vector<std::string>>(" ", v),
+              "', expecting 'enable|disable'"));
     }
 
     portState = getPortState(v[0]);
@@ -273,8 +276,9 @@ class PortState : public BaseObjectArgType<std::string> {
     if (state == "DISABLE") {
       return false;
     }
-    throw std::runtime_error(folly::to<std::string>(
-        "Unexpected state '", v, "', expecting 'enable|disable'"));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Unexpected state '", v, "', expecting 'enable|disable'"));
   }
 };
 
@@ -286,10 +290,11 @@ class FanPwm : public BaseObjectArgType<std::string> {
           "Incomplete command, expecting 'fanhold <disable>|0|1|..|100'");
     }
     if (v.size() != 1) {
-      throw std::runtime_error(folly::to<std::string>(
-          "Unexpected fanhold '",
-          folly::join<std::string, std::vector<std::string>>(" ", v),
-          "', expecting 'disable|0|1|...|100'"));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "Unexpected fanhold '",
+              folly::join<std::string, std::vector<std::string>>(" ", v),
+              "', expecting 'disable|0|1|...|100'"));
     }
 
     pwm = getPwm(v[0]);
@@ -311,8 +316,9 @@ class FanPwm : public BaseObjectArgType<std::string> {
       }
     }
 
-    throw std::runtime_error(folly::to<std::string>(
-        "Unexpected fanhold '", v, "', expecting 'disable|0|1|...|100'"));
+    throw std::runtime_error(
+        folly::to<std::string>(
+            "Unexpected fanhold '", v, "', expecting 'disable|0|1|...|100'"));
   }
 };
 
@@ -336,8 +342,9 @@ class LinkDirection : public BaseObjectArgType<std::string> {
     } else if (std::find(v.begin(), v.end(), "system") != v.end()) {
       return phy::Direction::TRANSMIT;
     } else {
-      throw std::runtime_error(folly::to<std::string>(
-          "Unexpected direction '", v[0], "', expecting 'system|line'"));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "Unexpected direction '", v[0], "', expecting 'system|line'"));
     }
   }
 };

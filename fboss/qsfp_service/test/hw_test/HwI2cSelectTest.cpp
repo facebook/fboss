@@ -19,6 +19,7 @@ namespace facebook::fboss {
 TEST_F(HwTest, i2cUniqueSerialNumbers) {
   // Get the IDs of all connected transceivers
   auto ensemble = getHwQsfpEnsemble();
+  auto qsfpServiceHandler = ensemble->getQsfpServiceHandler();
   WedgeManager* wedgeManager = ensemble->getWedgeManager();
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(ensemble));
@@ -33,8 +34,8 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
   std::unordered_map<int32_t, std::pair<std::string, std::string>> cabledNames;
 
   for (auto& cabledPairs : utility::getCabledPairs(ensemble)) {
-    auto aPortID = wedgeManager->getPortIDByPortName(cabledPairs.first);
-    auto zPortID = wedgeManager->getPortIDByPortName(cabledPairs.second);
+    auto aPortID = qsfpServiceHandler->getPortIdByPortName(cabledPairs.first);
+    auto zPortID = qsfpServiceHandler->getPortIdByPortName(cabledPairs.second);
     CHECK(aPortID.has_value());
     CHECK(zPortID.has_value());
     auto aTcvrID = wedgeManager->getTransceiverID(*aPortID);

@@ -247,7 +247,7 @@ TEST_F(HwPacketFloodTest, ArpRequestFloodTest) {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(
         getHwSwitch(),

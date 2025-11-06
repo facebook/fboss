@@ -52,10 +52,46 @@ void serializeSflowPort(
     folly::io::RWPrivateCursor* cursor,
     SflowPort sflowPort);
 
+/* Proposed standard sFlow data formats (draft 14) */
+/* Packet Header Data */
+/* header_potocol enumeration */
+enum struct HeaderProtocol : uint32_t {
+  ETHERNET_ISO88023 = 1,
+  ISO88024_TOKENBUS = 2,
+  ISO88025_TOKENRING = 3,
+  FDDI = 4,
+  FRAME_RELAY = 5,
+  X25 = 6,
+  PPP = 7,
+  SMDS = 8,
+  AAL5 = 9,
+  AAL5_IP = 10,
+  IPV4 = 11,
+  IPV6 = 12,
+  MPLS = 13,
+  POS = 14
+};
+
+/* Raw Packet Header */
+/* opaque = flow_data; enterprice = 0; format = 1 */
+struct SampledHeader {
+  HeaderProtocol protocol{};
+  uint32_t frameLength{};
+  uint32_t stripped{};
+  std::vector<uint8_t> header{};
+
+  void serialize(folly::io::RWPrivateCursor* cursor) const;
+  uint32_t size() const;
+  static SampledHeader deserialize(folly::io::Cursor& cursor);
+};
+
+/* Flow data variant - supports different types of flow data */
+using FlowData = std::variant<SampledHeader>;
+
 /* Flow record format */
 struct FlowRecord {
   DataFormat flowFormat;
-  std::vector<uint8_t> flowData;
+  FlowData flowData;
 
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
@@ -141,38 +177,6 @@ struct SampleDatagram {
   void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
   static SampleDatagram deserialize(folly::io::Cursor& cursor);
-};
-
-/* Proposed standard sFlow data formats (draft 14) */
-/* Packet Header Data */
-/* header_potocol enumeration */
-enum struct HeaderProtocol : uint32_t {
-  ETHERNET_ISO88023 = 1,
-  ISO88024_TOKENBUS = 2,
-  ISO88025_TOKENRING = 3,
-  FDDI = 4,
-  FRAME_RELAY = 5,
-  X25 = 6,
-  PPP = 7,
-  SMDS = 8,
-  AAL5 = 9,
-  AAL5_IP = 10,
-  IPV4 = 11,
-  IPV6 = 12,
-  MPLS = 13,
-  POS = 14
-};
-/* Raw Packet Header */
-/* opaque = flow_data; enterprice = 0; format = 1 */
-struct SampledHeader {
-  HeaderProtocol protocol;
-  uint32_t frameLength;
-  uint32_t stripped;
-  uint32_t headerLength;
-  const byte* header;
-
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
-  uint32_t size() const;
 };
 
 // .. We omit the spec definition below (including) "Ethernet Frame Data" on p36

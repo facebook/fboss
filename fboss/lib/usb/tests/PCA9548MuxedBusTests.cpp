@@ -79,9 +79,9 @@ class FakeMuxBus
     return roots;
   }
 
-  void wireUpPorts(typename PCA9548MuxedBus<
-                   pow(MUXES_PER_LAYER* PCA9548::WIDTH, LAYERS)>::PortLeaves&
-                       leaves) override {
+  void wireUpPorts(
+      typename PCA9548MuxedBus<pow(MUXES_PER_LAYER* PCA9548::WIDTH, LAYERS)>::
+          PortLeaves& leaves) override {
     for (const auto&& mux : folly::enumerate(leafMuxes_)) {
       auto start = mux.index * PCA9548::WIDTH;
       this->connectPortsToMux(leaves, *mux, start);

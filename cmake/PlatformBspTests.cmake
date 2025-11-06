@@ -60,7 +60,6 @@ target_link_libraries(bsp_test_environment
   bsp_tests_config_cpp2
   bsp_tests_runtime_config_cpp2
   platform_config_lib
-  platform_manager_config_utils
   platform_manager_pkg_manager
   platform_manager_config_cpp2
   Folly::folly
@@ -84,6 +83,8 @@ target_link_libraries(bsp_tests
   ${LIBGMOCK_LIBRARIES}
   bsp_test_environment
   bsp_test_utils
+  platform_config_lib
+  platform_manager_i2c_explorer
   platform_name_lib
   platform_manager_config_cpp2
   Folly::folly

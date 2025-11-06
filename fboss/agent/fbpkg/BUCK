@@ -2,7 +2,7 @@
 load("//fboss/agent/fbpkg:agent.bzl", "get_all_wedge_agent_nvda_path_actions")
 load(
     "//fboss/agent/fbpkg:test_artifacts.bzl",
-    "build_test_artifacts_fbpkg",
+    "build_test_artifacts_fbpkgs",
     "get_all_agent_test_path_actions",
     "get_all_fsdb_integration_test_path_actions",
     "get_all_hw_test_path_actions",
@@ -153,16 +153,16 @@ fboss_fbpkg_builder(
     split_debuginfo = True,
 )
 
-build_test_artifacts_fbpkg(product_lines = [ProductLine.NVIDIA_SAI_SDK])
+build_test_artifacts_fbpkgs(product_lines = [ProductLine.NVIDIA_SAI_SDK])
 
 #Build LEABA test artifacts fbpkg
-build_test_artifacts_fbpkg(product_lines = [ProductLine.LEABA])
+build_test_artifacts_fbpkgs(product_lines = [ProductLine.LEABA])
 
 #Build BCM test artifacts fbpkg (All three product lines use the same product name (brcm))
-build_test_artifacts_fbpkg(product_lines = [
+build_test_artifacts_fbpkgs(product_lines = [
     ProductLine.SAI_SDK_BCM,
     ProductLine.BCM_DSF_SDK,
 ])
 
 #Build BCM_native_sdk test artifacts fbpkg (native_bcm)
-build_test_artifacts_fbpkg(product_lines = [ProductLine.BCM_NATIVE_SDK])
+build_test_artifacts_fbpkgs(product_lines = [ProductLine.BCM_NATIVE_SDK])

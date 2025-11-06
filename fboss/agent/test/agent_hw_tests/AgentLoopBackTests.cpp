@@ -38,7 +38,7 @@ class AgentLoopBackTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         vlanId,

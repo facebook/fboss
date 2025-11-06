@@ -64,11 +64,12 @@ void checkSwHwAclMatch(
   ASSERT_NE(nullptr, swAcl);
   auto hwAcl = bcmSwitch->getAclTable()->getAclIf(swAcl->getPriority());
   ASSERT_NE(nullptr, hwAcl);
-  ASSERT_TRUE(BcmAclEntry::isStateSame(
-      bcmSwitch,
-      bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
-      hwAcl->getHandle(),
-      swAcl));
+  ASSERT_TRUE(
+      BcmAclEntry::isStateSame(
+          bcmSwitch,
+          bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID(),
+          hwAcl->getHandle(),
+          swAcl));
 }
 
 bool isAclTableEnabled(

@@ -38,7 +38,7 @@ from neteng.fboss.platform_mapping_config.ttypes import (
 
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed
 
-from neteng.fboss.transceiver.ttypes import TransmitterTechnology
+from neteng.fboss.transceiver.ttypes import TransmitterTechnology, Vendor
 
 
 def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
@@ -67,6 +67,7 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.TWOHUNDREDG]
     if profile in [
@@ -74,12 +75,14 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.FOURHUNDREDG]
     if profile in [
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return [PortSpeed.EIGHTHUNDREDG]
     if profile in [
@@ -122,6 +125,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
         PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
     ]:
         return 1
     if profile in [
@@ -132,6 +136,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
     ]:
         return 2
     if profile in [
@@ -143,6 +148,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
     ]:
         return 4
     if profile in [
@@ -485,12 +491,22 @@ def _create_override_from_si_setting(
     chip_type: ChipType,
 ) -> PlatformPortConfigOverride:
     """Create platform port config override from SI setting factor."""
+    si_setting_vendor = si_setting_and_factor.factor.tcvr_override_setting.vendor
+    # we only care about the vendor name and part number for overrides.
+    vendor = Vendor(
+        name=si_setting_vendor.name,
+        oui=b"",
+        partNumber=si_setting_vendor.partNumber,
+        rev="",
+        serialNumber="",
+        dateCode="",
+    )
     override_factor = PlatformPortConfigOverrideFactor(
         ports=[port_id],
         profiles=[profile],
         transceiverManagementInterface=None,
         mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
-        vendor=si_setting_and_factor.factor.tcvr_override_setting.vendor,
+        vendor=vendor,
     )
 
     port_pin_config = PortPinConfig(
@@ -820,6 +836,12 @@ def transmitter_tech_from_profile(
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
     ]:
         return [TransmitterTechnology.COPPER]
+    if profile in [
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
+    ]:
+        return [TransmitterTechnology.COPPER, TransmitterTechnology.BACKPLANE]
     if profile in [PortProfileID.PROFILE_DEFAULT]:
         return [TransmitterTechnology.UNKNOWN]
     raise Exception("Can't figure out transmitter tech for profile ", profile)

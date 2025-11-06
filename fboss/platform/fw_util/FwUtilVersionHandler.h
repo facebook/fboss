@@ -10,7 +10,7 @@ class FwUtilVersionHandler {
       const std::vector<std::pair<std::string, int>>& fwDeviceNamesByPrio,
       const fw_util_config::FwUtilConfig& fwUtilConfig)
       : fwDeviceNamesByPrio_(fwDeviceNamesByPrio),
-        fwUtilConfig_(fwUtilConfig){};
+        fwUtilConfig_(fwUtilConfig) {};
   ~FwUtilVersionHandler() = default;
   void printDarwinVersion(const std::string& fpd);
   std::string getSingleVersion(const std::string& fpd);

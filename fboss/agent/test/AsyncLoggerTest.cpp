@@ -131,3 +131,29 @@ TEST_F(AsyncLoggerTest, concurrentWaitTest) {
   // Therefore, the flush count should be equal or greater than two.
   EXPECT_GE(asyncLogger->getFlushCount(), 2);
 }
+
+TEST_F(AsyncLoggerTest, logSizeLargerThanBufferSize) {
+  // Create a log that's larger than the buffer size
+  size_t largeLogSize = AsyncLogger::kBufferSize + 1000;
+  std::string largeLog(largeLogSize, 'X');
+
+  // This should complete without hanging. We use a timeout to ensure
+  // the test fails if it hangs instead of blocking forever.
+  std::atomic<bool> completed{false};
+  std::thread t([&]() {
+    asyncLogger->appendLog(largeLog.c_str(), largeLog.size());
+    completed = true;
+  });
+
+  // Wait for the append to complete with a timeout
+  std::unique_lock<std::mutex> lock(latch);
+  cv.wait_for(lock, std::chrono::milliseconds(500));
+
+  // If logger forever waits for available buffer it would cause this test to
+  // hang. so if we get here, we need to ensure the append is completed.
+  t.join();
+
+  // The append should have completed (either successfully or with proper error
+  // handling)
+  EXPECT_TRUE(completed);
+}

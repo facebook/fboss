@@ -8,6 +8,7 @@
 #include <gflags/gflags.h>
 
 DECLARE_string(config_file);
+DECLARE_bool(run_in_netos);
 
 namespace facebook::fboss::platform {
 

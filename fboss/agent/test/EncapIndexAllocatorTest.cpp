@@ -49,11 +49,11 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.mac() = "02:00:00:00:00:01";
     nbr.interfaceId() = static_cast<int>(firstIntf->getID());
     nbr.ipaddress() = ip.str();
-    nbr.portId() =
-        PortDescriptor(utility::getFirstMap(getSw()->getState()->getPorts())
+    nbr.portId() = PortDescriptor(
+                       utility::getFirstMap(getSw()->getState()->getPorts())
                            ->cbegin()
                            ->second->getID())
-            .toThrift();
+                       .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
     auto nbrTable = firstIntf->getNdpTable()->toThrift();

@@ -122,11 +122,12 @@ std::string TeFlowEntry::str() const {
   }
   auto prefix = flow.dstPrefix().value();
   folly::IPAddress ipaddr = network::toIPAddress(*prefix.ip());
-  flowString.append(fmt::format(
-      "dstPrefix:{}/{},srcPort:{}",
-      ipaddr.str(),
-      *prefix.prefixLength(),
-      *flow.srcPort()));
+  flowString.append(
+      fmt::format(
+          "dstPrefix:{}/{},srcPort:{}",
+          ipaddr.str(),
+          *prefix.prefixLength(),
+          *flow.srcPort()));
   auto counter = getCounterID();
   flowString.append(
       fmt::format(",counterID:{}", counter ? counter->toThrift() : "null"));

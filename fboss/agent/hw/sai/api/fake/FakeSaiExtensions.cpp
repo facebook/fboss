@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
+#include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/PortApi.h"
@@ -277,6 +278,11 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
+  return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }
@@ -428,6 +434,11 @@ std::optional<sai_attr_id_t> SaiEnhancedRemoteMirrorTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiTxPacketTraits::Attributes::AttributePacketType::operator()() {
   return std::nullopt;
 }
 
@@ -828,6 +839,11 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
@@ -935,6 +951,11 @@ SaiSwitchTraits::Attributes::AttributeDefaultCpuEgressBufferPool::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeModuleIdFabricPortList::operator()() {
   return SAI_SWITCH_ATTR_MODULE_ID_FABRIC_PORT_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
+  return SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE;
 }
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>

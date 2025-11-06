@@ -414,12 +414,13 @@ TYPED_TEST(PathVisitorTests, TraversalModeFull) {
     EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
     EXPECT_THAT(
         op.getVisited(),
-        ::testing::ContainerEq(std::set<std::string>{
-            "/",
-            "/min",
-            "/0/min",
-            "/20/0/min",
-            "/mapOfI32ToListOfStructs/20/0/min"}));
+        ::testing::ContainerEq(
+            std::set<std::string>{
+                "/",
+                "/min",
+                "/0/min",
+                "/20/0/min",
+                "/mapOfI32ToListOfStructs/20/0/min"}));
   }
 }
 

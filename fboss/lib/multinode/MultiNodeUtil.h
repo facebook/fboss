@@ -72,8 +72,9 @@ class MultiNodeUtil {
   void logNdpEntry(
       const std::string& rdsw,
       const facebook::fboss::NdpEntryThrift& ndpEntry) const {
-    auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-        folly::StringPiece(ndpEntry.ip().value().addr().value())));
+    auto ip = folly::IPAddress::fromBinary(
+        folly::ByteRange(
+            folly::StringPiece(ndpEntry.ip().value().addr().value())));
 
     XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
                << " state: " << ndpEntry.state().value()
@@ -85,8 +86,9 @@ class MultiNodeUtil {
           rdswToNdpEntries) const {
     for (const auto& [rdsw, ndpEntries] : rdswToNdpEntries) {
       for (const auto& ndpEntry : ndpEntries) {
-        auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
-            folly::StringPiece(ndpEntry.ip().value().addr().value())));
+        auto ndpEntryIp = folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                folly::StringPiece(ndpEntry.ip().value().addr().value())));
         XLOG(DBG2) << "RDSW:: " << rdsw
                    << " NDP Entry to verify:: port: " << ndpEntry.port().value()
                    << " interfaceID: " << ndpEntry.interfaceID().value()

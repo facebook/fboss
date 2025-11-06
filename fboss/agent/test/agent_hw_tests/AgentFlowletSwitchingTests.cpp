@@ -32,7 +32,10 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    return {ProductionFeature::DLB, ProductionFeature::SINGLE_ACL_TABLE};
+    return {
+        ProductionFeature::DLB,
+        ProductionFeature::UDF_WR_IMMEDIATE_ACL,
+        ProductionFeature::SINGLE_ACL_TABLE};
   }
 
  protected:
@@ -100,6 +103,7 @@ class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
     return {
         ProductionFeature::DLB,
         ProductionFeature::SFLOWv6_SAMPLING,
+        ProductionFeature::UDF_WR_IMMEDIATE_ACL,
         ProductionFeature::INGRESS_MIRRORING,
         ProductionFeature::SINGLE_ACL_TABLE};
   }
@@ -220,6 +224,7 @@ class AgentFlowletSprayTest : public AgentFlowletSwitchingTest {
         ProductionFeature::DLB,
         ProductionFeature::ECMP_RANDOM_SPRAY,
         ProductionFeature::ACL_COUNTER,
+        ProductionFeature::UDF_WR_IMMEDIATE_ACL,
         ProductionFeature::SINGLE_ACL_TABLE};
   }
 };
@@ -575,6 +580,7 @@ class AgentFlowletSwitchingEnhancedScaleTest
     return {
         ProductionFeature::DLB,
         ProductionFeature::ALTERNATE_ARS_MEMBERS,
+        ProductionFeature::UDF_WR_IMMEDIATE_ACL,
         ProductionFeature::SINGLE_ACL_TABLE};
   }
   void setCmdLineFlagOverrides() const override {

@@ -47,6 +47,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
   using CmisModule::getChannelNumFromFrequency;
+  using CmisModule::getTunableLaserStatus;
   using CmisModule::isTunableOptics;
 
  private:
@@ -1233,6 +1234,18 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
       xcvr->getChannelNumFromFrequency(
           193100000, FrequencyGrid::LASER_3P125GHZ),
       0);
+
+  auto tunableLaserStatus = xcvr->getTunableLaserStatus();
+  EXPECT_NE(tunableLaserStatus, std::nullopt);
+  EXPECT_EQ(
+      tunableLaserStatus->laserFrequencyMhz(),
+      CmisModule::kDefaultFrequencyMhz);
+  EXPECT_EQ(
+      tunableLaserStatus->tuningStatus(),
+      LaserStatusBitMask::LASER_TUNE_NOT_IN_PROGRESS);
+  EXPECT_EQ(
+      tunableLaserStatus->wavelengthLockingStatus(),
+      LaserStatusBitMask::WAVELENGTH_LOCKED);
 }
 
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {

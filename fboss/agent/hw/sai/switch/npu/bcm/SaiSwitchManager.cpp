@@ -71,29 +71,10 @@ void fillHwSwitchWatermarkStats(
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
         // TODO (nivinl): Stats ID not yet available in 14.x!
-#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-      // TODO: Remove this once we have
-      // SAI_SWITCH_STAT_EXTENSION_FABRIC_INTER_CELL_JITTER_MAX_IN_NSEC
-      // available in 13.3
-      case SAI_SWITCH_STAT_FABRIC_INTER_CELL_JITTER_MAX_IN_CLOCKS: {
-        // TODO (nivinl): As of now, the stats returned is in CLOCKS,
-        // would like to avoid the conversion from clocks to usec in
-        // FBOSS and waiting for inputs in CS00012409195 if SAI can
-        // provide the watermark in usec.
-        // R3 soc property core_clock_speed_khz is the SOT for the below!
-        constexpr int kCoreClockSpeedKhz = 1350000;
-        constexpr double kClockCycleTimeInUsec =
-            1000000.0 / (kCoreClockSpeedKhz * 1000);
-        hwSwitchWatermarkStats.fabricInterCellJitterWatermarkUsec() =
-            static_cast<uint64_t>(value * kClockCycleTimeInUsec);
-        break;
-      }
-#else
       case SAI_SWITCH_STAT_EXTENSION_FABRIC_INTER_CELL_JITTER_MAX_IN_NSEC: {
         hwSwitchWatermarkStats.fabricInterCellJitterWatermarkUsec() = value;
         break;
       }
-#endif // BRCM_SAI_SDK_DNX_GTE_13_0
 #endif
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);

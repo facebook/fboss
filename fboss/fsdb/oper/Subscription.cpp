@@ -7,22 +7,6 @@
 #include <folly/coro/Sleep.h>
 #include <optional>
 
-// default queue size for subscription serve updates
-// is chosen to be large enough so that in prod we
-// should not see any dropped updates. This value will
-// be tuned to lower value after monitoring and max-scale
-// testing.
-// Rationale for choice of this specific large value:
-// * minimum enqueue interval is state subscription serve interval (50msec).
-// * Thrift streams holds ~100 updates before pipe queue starts building up.
-// So with 1024 default queue size, pipe can get full
-// only in the exceptional scenario where subscriber does not
-// read any update for > 1 min.
-DEFINE_int32(
-    subscriptionServeQueueSize,
-    1024,
-    "Max subscription serve updates to queue, default 1024");
-
 DEFINE_bool(
     forceCloseSlowSubscriber,
     true,
@@ -129,9 +113,10 @@ DeltaSubscription::create(
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
-    std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<OperDelta>::create(
-      FLAGS_subscriptionServeQueueSize);
+    std::chrono::milliseconds heartbeatInterval,
+    int32_t pipeCapacity) {
+  auto [generator, pipe] =
+      folly::coro::BoundedAsyncPipe<OperDelta>::create(pipeCapacity);
   std::vector<std::string> path(begin, end);
   auto subscription = std::make_unique<DeltaSubscription>(
       std::move(subscriber),
@@ -302,9 +287,10 @@ ExtendedPathSubscription::create(
     std::optional<std::string> publisherRoot,
     OperProtocol protocol,
     folly::EventBase* heartbeatEvb,
-    std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<gen_type>::create(
-      FLAGS_subscriptionServeQueueSize);
+    std::chrono::milliseconds heartbeatInterval,
+    int32_t pipeCapacity) {
+  auto [generator, pipe] =
+      folly::coro::BoundedAsyncPipe<gen_type>::create(pipeCapacity);
   auto subscription = std::make_shared<ExtendedPathSubscription>(
       std::move(subscriber),
       makeSimplePathMap(paths),
@@ -365,9 +351,10 @@ ExtendedDeltaSubscription::create(
     std::optional<std::string> publisherRoot,
     OperProtocol protocol,
     folly::EventBase* heartbeatEvb,
-    std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<gen_type>::create(
-      FLAGS_subscriptionServeQueueSize);
+    std::chrono::milliseconds heartbeatInterval,
+    int32_t pipeCapacity) {
+  auto [generator, pipe] =
+      folly::coro::BoundedAsyncPipe<gen_type>::create(pipeCapacity);
   auto subscription = std::make_shared<ExtendedDeltaSubscription>(
       std::move(subscriber),
       makeSimplePathMap(paths),
@@ -480,7 +467,8 @@ ExtendedPatchSubscription::create(
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
-    std::chrono::milliseconds heartbeatInterval) {
+    std::chrono::milliseconds heartbeatInterval,
+    int32_t pipeCapacity) {
   RawOperPath p;
   p.path() = std::move(path);
   return create(
@@ -489,7 +477,8 @@ ExtendedPatchSubscription::create(
       std::move(protocol),
       std::move(publisherRoot),
       std::move(heartbeatEvb),
-      std::move(heartbeatInterval));
+      std::move(heartbeatInterval),
+      pipeCapacity);
 }
 
 std::pair<
@@ -501,7 +490,8 @@ ExtendedPatchSubscription::create(
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
-    std::chrono::milliseconds heartbeatInterval) {
+    std::chrono::milliseconds heartbeatInterval,
+    int32_t pipeCapacity) {
   std::map<SubscriptionKey, ExtendedOperPath> extendedPaths;
   for (auto& [key, path] : paths) {
     std::vector<OperPathElem> extendedPath;
@@ -517,7 +507,8 @@ ExtendedPatchSubscription::create(
       std::move(protocol),
       std::move(publisherRoot),
       std::move(heartbeatEvb),
-      std::move(heartbeatInterval));
+      std::move(heartbeatInterval),
+      pipeCapacity);
 }
 
 std::pair<
@@ -529,9 +520,10 @@ ExtendedPatchSubscription::create(
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
-    std::chrono::milliseconds heartbeatInterval) {
-  auto [generator, pipe] = folly::coro::BoundedAsyncPipe<gen_type>::create(
-      FLAGS_subscriptionServeQueueSize);
+    std::chrono::milliseconds heartbeatInterval,
+    int32_t pipeCapacity) {
+  auto [generator, pipe] =
+      folly::coro::BoundedAsyncPipe<gen_type>::create(pipeCapacity);
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
       std::move(paths),

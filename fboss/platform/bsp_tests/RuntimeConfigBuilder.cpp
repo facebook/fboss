@@ -314,8 +314,9 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
           pmConfig, pmUnitName, *pmDev.busName(), *pmUnit.pluggedInSlotType());
 
       if (adapterPmUnit.empty()) {
-        throw std::runtime_error(fmt::format(
-            "Could not find adapter for {}", *pmDev.pmUnitScopedName()));
+        throw std::runtime_error(
+            fmt::format(
+                "Could not find adapter for {}", *pmDev.pmUnitScopedName()));
       }
 
       // If this is a MUX, it was already added to list of adapters
@@ -399,10 +400,11 @@ RuntimeConfigBuilder::getActualAdapter(
     }
     return std::make_tuple(pmUnitName, actualBusName.substr(0, atPos), busIdx);
   }
-  throw std::runtime_error(fmt::format(
-      "Unable to find adapter for incoming bus: {}, {}",
-      sourceUnitName,
-      busName));
+  throw std::runtime_error(
+      fmt::format(
+          "Unable to find adapter for incoming bus: {}, {}",
+          sourceUnitName,
+          busName));
 }
 
 } // namespace facebook::fboss::platform::bsp_tests

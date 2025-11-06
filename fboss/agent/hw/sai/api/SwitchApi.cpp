@@ -28,6 +28,7 @@ void SwitchApi::registerRxCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_PACKET_EVENT_NOTIFY;
   attr.value.ptr = (void*)rx_cb;
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiApiCheckError(
       rv,
@@ -43,6 +44,7 @@ void SwitchApi::registerPortStateChangeCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_PORT_STATE_CHANGE_NOTIFY;
   attr.value.ptr = (void*)port_state_change_cb;
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiApiCheckError(
       rv,
@@ -58,6 +60,7 @@ void SwitchApi::registerFdbEventCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_FDB_EVENT_NOTIFY;
   attr.value.ptr = (void*)fdb_event_cb;
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiApiCheckError(
       rv,
@@ -73,6 +76,7 @@ void SwitchApi::registerTamEventCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_TAM_EVENT_NOTIFY;
   attr.value.ptr = (void*)tam_event_cb;
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiLogError(
       rv,
@@ -89,6 +93,7 @@ void SwitchApi::registerQueuePfcDeadlockNotificationCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_QUEUE_PFC_DEADLOCK_NOTIFY;
   attr.value.ptr = (void*)queue_pfc_deadlock_notification_cb;
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiLogError(
       rv,
@@ -105,6 +110,7 @@ void SwitchApi::registerTxReadyStatusChangeCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_PORT_HOST_TX_READY_NOTIFY;
   attr.value.ptr = (void*)tx_ready_status_cb;
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiApiCheckError(
       rv,
@@ -123,6 +129,7 @@ void SwitchApi::registerSwitchAsicSdkHealthEventCallback(
   attr.id = SAI_SWITCH_ATTR_SWITCH_ASIC_SDK_HEALTH_EVENT_NOTIFY;
   attr.value.ptr = (void*)function;
 
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiApiCheckError(
       rv,
@@ -140,6 +147,8 @@ void SwitchApi::registerVendorSwitchEventNotifyCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_VENDOR_SWITCH_EVENT_NOTIFY;
   attr.value.ptr = (void*)event_notify_cb;
+
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiApiCheckError(
       rv,
@@ -156,6 +165,7 @@ void SwitchApi::registerSwitchHardResetNotifyCallback(
   sai_attribute_t attr;
   attr.id = SAI_SWITCH_ATTR_SWITCH_HARD_RESET_EVENT_NOTIFY;
   attr.value.ptr = event_notify_cb;
+  auto g{SaiApiLock::getInstance()->lock()};
   auto rv = _setAttribute(id, &attr);
   saiApiCheckError(
       rv,

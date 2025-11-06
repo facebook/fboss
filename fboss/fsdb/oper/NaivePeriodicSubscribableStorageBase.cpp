@@ -30,6 +30,21 @@ DEFINE_bool(
     serveHeartbeats,
     false,
     "Whether or not to serve hearbeats in subscription streams");
+// default queue size for subscription serve updates
+// is chosen to be large enough so that in prod we
+// should not see any dropped updates. This value will
+// be tuned to lower value after monitoring and max-scale
+// testing.
+// Rationale for choice of this specific large value:
+// * minimum enqueue interval is state subscription serve interval (50msec).
+// * Thrift streams holds ~100 updates before pipe queue starts building up.
+// So with 1024 default queue size, pipe can get full
+// only in the exceptional scenario where subscriber does not
+// read any update for > 1 min.
+DEFINE_int32(
+    subscriptionServeQueueSize,
+    1024,
+    "Max subscription serve updates to queue, default 1024");
 
 namespace facebook::fboss::fsdb {
 
@@ -437,7 +452,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
       protocol,
       getPublisherRoot(path.begin(), path.end()),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      heartbeatInterval);
+      heartbeatInterval,
+      params_.pathSubscriptionServeQueueSize_);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -462,7 +478,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       protocol,
       getPublisherRoot(path.begin(), path.end()),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      heartbeatInterval);
+      heartbeatInterval,
+      params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -486,7 +503,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
       std::move(publisherRoot),
       protocol,
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      heartbeatInterval);
+      heartbeatInterval,
+      params_.pathSubscriptionServeQueueSize_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -510,7 +528,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       std::move(publisherRoot),
       protocol,
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      heartbeatInterval);
+      heartbeatInterval,
+      params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -536,7 +555,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       patchOperProtocol_,
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      heartbeatInterval);
+      heartbeatInterval,
+      params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -562,7 +582,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
       patchOperProtocol_,
       std::move(root),
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
-      heartbeatInterval);
+      heartbeatInterval,
+      params_.defaultSubscriptionServeQueueSize_);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }

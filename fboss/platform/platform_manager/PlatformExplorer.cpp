@@ -424,10 +424,11 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     pmUnitName = *slotTypeConfig.pmUnitName();
   }
   if (!pmUnitName) {
-    throw std::runtime_error(fmt::format(
-        "PmUnitName must be configured in SlotTypeConfig::pmUnitName "
-        "or SlotTypeConfig::idpromConfig at {}",
-        slotPath));
+    throw std::runtime_error(
+        fmt::format(
+            "PmUnitName must be configured in SlotTypeConfig::pmUnitName "
+            "or SlotTypeConfig::idpromConfig at {}",
+            slotPath));
   }
   dataStore_.updatePmUnitName(slotPath, *pmUnitName);
   return pmUnitName;
@@ -453,11 +454,12 @@ void PlatformExplorer::exploreI2cDevices(
         auto channelToBusNums =
             i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
         if (channelToBusNums.size() != *i2cDeviceConfig.numOutgoingChannels()) {
-          throw std::runtime_error(fmt::format(
-              "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
-              *i2cDeviceConfig.pmUnitScopedName(),
-              *i2cDeviceConfig.numOutgoingChannels(),
-              channelToBusNums.size()));
+          throw std::runtime_error(
+              fmt::format(
+                  "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
+                  *i2cDeviceConfig.pmUnitScopedName(),
+                  *i2cDeviceConfig.numOutgoingChannels(),
+                  channelToBusNums.size()));
         }
         for (const auto& [channelNum, channelBusNum] : channelToBusNums) {
           dataStore_.updateI2cBusNum(
@@ -620,6 +622,18 @@ void PlatformExplorer::explorePciDevices(
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
         [&](const auto& ledCtrlConfig) {
           pciExplorer_.createLedCtrl(pciDevice, ledCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        Utils().createXcvrCtrlConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
+        [&](const auto& xcvrCtrlConfig) {
+          auto devicePath = Utils().createDevicePath(
+              slotPath,
+              *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+          auto xcvrCtrlSysfsPath =
+              pciExplorer_.createXcvrCtrl(pciDevice, xcvrCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(devicePath, xcvrCtrlSysfsPath);
         });
     createPciSubDevices(
         slotPath,
@@ -799,9 +813,13 @@ void PlatformExplorer::publishHardwareVersions() {
   }
 
   auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
+  auto version = chassisEepromContent.getVersion();
   auto prodState = chassisEepromContent.getProductionState();
   auto prodSubState = chassisEepromContent.getProductionSubState();
   auto variantVersion = chassisEepromContent.getVariantVersion();
+
+  // Report version
+  fb303::fbData->setCounter(fmt::format(kChassisEepromVersion, version), 1);
 
   // Report production state
   if (!prodState.empty()) {

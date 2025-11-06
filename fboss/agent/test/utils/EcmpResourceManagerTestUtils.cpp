@@ -467,7 +467,7 @@ void assertRollbacks(
     const std::shared_ptr<SwitchState>& endState) {
   auto applyDelta = [&newEcmpResourceMgr](
                         const StateDelta& delta, bool failUpdate = false) {
-    auto deltas = newEcmpResourceMgr.consolidate(delta);
+    auto deltas = newEcmpResourceMgr.consolidate(delta, true /*rollingBack*/);
     facebook::fboss::assertDeltasForOverflow(newEcmpResourceMgr, deltas);
     assertResourceMgrCorrectness(newEcmpResourceMgr, deltas.back().newState());
     if (failUpdate) {
@@ -497,5 +497,22 @@ void assertRollbacks(
   auto deltas = applyDelta(StateDelta(startState, endState));
   XLOG(DBG2) << " Rolling back to start state";
   applyDelta(StateDelta(deltas.back().newState(), startState));
+}
+
+void assertRibFibEquivalence(
+    const std::shared_ptr<SwitchState>& state,
+    const RoutingInformationBase* rib) {
+  auto validateFib = [rib](const auto fib) {
+    for (const auto& [_, route] : std::as_const(*fib)) {
+      auto ribRoute = rib->longestMatch(route->prefix().network(), RouterID(0));
+      ASSERT_NE(ribRoute, nullptr);
+      // TODO - check why are the pointers different even though the
+      // forwarding info matches. This is true with or w/o consolidator
+      EXPECT_EQ(ribRoute->getForwardInfo(), route->getForwardInfo());
+    }
+  };
+
+  validateFib(state->getFibs()->getNode(RouterID(0))->getFibV6());
+  validateFib(state->getFibs()->getNode(RouterID(0))->getFibV4());
 }
 } // namespace facebook::fboss

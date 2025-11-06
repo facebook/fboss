@@ -25,9 +25,10 @@ class PlatformExplorer {
       R"((\d{1,3})\.(\d{1,3})\.(\d{1,3}))";
   auto static constexpr kFwVerValidCharsPatternStr = R"([a-zA-Z0-9\.\-_]+)";
 
-  auto static constexpr kFirmwareVersion = "{}.firmware_version";
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
+  auto static constexpr kChassisEepromVersion =
+      "platform_explorer.chassis_eeprom_version.{}";
   auto static constexpr kProductionState =
       "platform_explorer.production_state.{}";
   auto static constexpr kProductionSubState =

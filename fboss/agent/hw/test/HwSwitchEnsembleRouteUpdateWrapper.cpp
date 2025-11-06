@@ -22,7 +22,7 @@
 
 namespace facebook::fboss {
 
-std::shared_ptr<SwitchState> hwSwitchEnsembleFibUpdate(
+StateDelta hwSwitchEnsembleFibUpdate(
     const SwitchIdScopeResolver* resolver,
     facebook::fboss::RouterID vrf,
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -37,7 +37,9 @@ std::shared_ptr<SwitchState> hwSwitchEnsembleFibUpdate(
       ? hwEnsemble->applyNewStateTransaction(
             fibUpdater(hwEnsemble->getProgrammedState()))
       : hwEnsemble->applyNewState(fibUpdater(hwEnsemble->getProgrammedState()));
-  return hwEnsemble->getProgrammedState();
+  auto lastDelta = fibUpdater.getLastDelta();
+  CHECK(lastDelta.has_value());
+  return StateDelta(lastDelta->oldState(), hwEnsemble->getProgrammedState());
 }
 
 HwSwitchEnsembleRouteUpdateWrapper::HwSwitchEnsembleRouteUpdateWrapper(

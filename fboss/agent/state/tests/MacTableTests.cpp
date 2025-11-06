@@ -22,17 +22,19 @@ const auto kTestMac2 = folly::MacAddress("01:02:03:04:05:07");
 
 TEST(MacTableTest, thriftyConversion) {
   MacTable table;
-  table.addEntry(std::make_shared<MacEntry>(
-      kTestMac1,
-      PortDescriptor(PortID(1)),
-      std::optional<cfg::AclLookupClass>(
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0)));
-  table.addEntry(std::make_shared<MacEntry>(
-      kTestMac2,
-      PortDescriptor(PortID(2)),
-      std::optional<cfg::AclLookupClass>(
-          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
-      MacEntryType::STATIC_ENTRY));
+  table.addEntry(
+      std::make_shared<MacEntry>(
+          kTestMac1,
+          PortDescriptor(PortID(1)),
+          std::optional<cfg::AclLookupClass>(
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0)));
+  table.addEntry(
+      std::make_shared<MacEntry>(
+          kTestMac2,
+          PortDescriptor(PortID(2)),
+          std::optional<cfg::AclLookupClass>(
+              cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
+          MacEntryType::STATIC_ENTRY));
 
   auto tableSptr = std::make_shared<MacTable>();
   tableSptr->fromThrift(table.toThrift());

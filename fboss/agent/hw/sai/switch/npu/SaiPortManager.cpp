@@ -91,9 +91,16 @@ SaiPortTraits::AdapterHostKey getPortAdapterHostKeyFromAttr(
   return portKey;
 }
 
-static const std::vector<PfcPriority> allPfcPriorities() {
-  static std::vector<PfcPriority> priorities;
-  if (priorities.empty()) {
+// Return all priorities if PFC is enabled, none if PFC is not enabled
+// for the port. This will ensure that PFC stats are available for all
+// priorities in fb303 for ports with PFC enabled, but not for port
+// with PFC disabled. We can choose to not export PFC stats for all the
+// priorities to ODS, but making it available in fb303 is helpful for
+// debugging.
+static std::vector<PfcPriority> allPfcPriorities(
+    std::optional<cfg::PortPfc> pfc) {
+  std::vector<PfcPriority> priorities;
+  if (pfc.has_value() && (*pfc->rx() || *pfc->tx())) {
     for (int i = 0; i <= cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX();
          i++) {
       priorities.emplace_back(i);
@@ -279,7 +286,10 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
     portStats_.emplace(
         swPort->getID(),
         std::make_unique<HwPortFb303Stats>(
-            swPort->getName(), queueId2Name, allPfcPriorities()));
+            swPort->getName(),
+            queueId2Name,
+            allPfcPriorities(swPort->getPfc()),
+            swPort->getPfc()));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -393,7 +403,10 @@ void SaiPortManager::changePortImpl(
       portStats_.emplace(
           newPort->getID(),
           std::make_unique<HwPortFb303Stats>(
-              newPort->getName(), queueId2Name, newPort->getPfcPriorities()));
+              newPort->getName(),
+              queueId2Name,
+              allPfcPriorities(newPort->getPfc()),
+              newPort->getPfc()));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
@@ -401,7 +414,8 @@ void SaiPortManager::changePortImpl(
     }
     if (oldPort->getPfc() != newPort->getPfc()) {
       portStats_.find(newPort->getID())
-          ->second->pfcPriorityChanged(newPort->getPfcPriorities());
+          ->second->pfcConfigChanged(
+              allPfcPriorities(newPort->getPfc()), newPort->getPfc());
     }
   } else if (oldPort->isEnabled()) {
     // Port transitioned from enabled to disabled, remove stats
@@ -491,6 +505,12 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosDot1pToTcMap{});
+#endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
@@ -832,6 +852,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         staticModuleId,
         std::nullopt, // IsHyperPortMember
         std::nullopt, // HyperPortMemberList
+        std::nullopt, // PfcMonitorDirection
+        std::nullopt, // QosDot1pToTcMap
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -923,6 +945,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       staticModuleId,
       std::nullopt, // IsHyperPortMember
       std::nullopt, // HyperPortMemberList
+      std::nullopt, // PfcMonitorDirection
+      std::nullopt, // QosDot1pToTcMap
   };
 }
 

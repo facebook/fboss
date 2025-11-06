@@ -7,7 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -15,11 +14,8 @@
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/MacEntry.h"
 #include "fboss/agent/state/MacTable.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
-
-#include <string>
 
 #include <gtest/gtest.h>
 
@@ -69,11 +65,11 @@ class FdbManagerTest : public ManagerTestBase {
 
   TestInterface intf0;
 
- private:
   static folly::MacAddress kMac() {
     return folly::MacAddress{"00:11:11:11:11:11"};
   }
 
+ private:
   std::shared_ptr<MacEntry> makeMacEntry(
       folly::MacAddress mac,
       std::optional<sai_uint32_t> classId) {
@@ -134,4 +130,19 @@ TEST_F(FdbManagerTest, doubleRemoveFdbEntry) {
   addMacEntry();
   removeMacEntry();
   EXPECT_THROW(removeMacEntry(), FbossError);
+}
+TEST_F(FdbManagerTest, getL2EntriesTest) {
+  addMacEntry();
+  auto* fdbManager = &saiManagerTable->fdbManager();
+  std::vector<L2EntryThrift> l2Entries = fdbManager->getL2Entries();
+  ASSERT_FALSE(l2Entries.empty());
+
+  bool found = false;
+  for (const auto& entry : l2Entries) {
+    if (*entry.mac() == kMac().toString()) {
+      found = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
 }

@@ -183,4 +183,57 @@ std::string HwSwitchThriftClientTable::getHwDebugDump(SwitchID switchId) {
   return out;
 }
 
+std::vector<phy::PrbsLaneStats> HwSwitchThriftClientTable::getPortAsicPrbsStats(
+    const SwitchID& switchId,
+    const PortID& portId) {
+  std::vector<phy::PrbsLaneStats> prbsStats;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getPortAsicPrbsStats(prbsStats, portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get port asic prbs stats for switch : " << switchId
+              << " error: " << ex.what();
+  }
+  return prbsStats;
+}
+void HwSwitchThriftClientTable::clearPortAsicPrbsStats(
+    const SwitchID& switchId,
+    const PortID& portId) {
+  auto client = getClient(switchId);
+  try {
+    client->sync_clearPortAsicPrbsStats(portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to clear port asic prbs stats for switch : "
+              << switchId << " error: " << ex.what();
+  }
+}
+std::vector<prbs::PrbsPolynomial>
+HwSwitchThriftClientTable::getPortPrbsPolynomials(
+    const SwitchID& switchId,
+    const PortID& portId) {
+  std::vector<prbs::PrbsPolynomial> prbsPolynomials;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getPortPrbsPolynomials(prbsPolynomials, portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get port prbs polynomials for switch : " << switchId
+              << " error: " << ex.what();
+  }
+  return prbsPolynomials;
+}
+prbs::InterfacePrbsState HwSwitchThriftClientTable::getPortPrbsState(
+    const SwitchID& switchId,
+    const PortID& portId) {
+  prbs::InterfacePrbsState prbsState;
+  auto client = getClient(switchId);
+  try {
+    client->sync_getPortPrbsState(prbsState, portId);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get port prbs state for switch : " << switchId
+              << " error: " << ex.what();
+  }
+
+  return prbsState;
+}
+
 } // namespace facebook::fboss

@@ -65,6 +65,16 @@ void PythonRepl::runPythonInterpreter() {
   auto fdopenCmd = folly::sformat("f = os.fdopen({}, 'w')", fd_);
   PyRun_SimpleString(fdopenCmd.c_str());
   PyRun_SimpleString("sys.stderr = f");
+
+  // Override exit() and quit() to print helpful message instead of terminating
+  PyRun_SimpleString(
+      "def _safe_exit(*args):\n"
+      "    print('\\n*** exit() and quit() are disabled in this shell ***')\n"
+      "    print('*** Use Ctrl+C to exit the debug session ***\\n')\n"
+      "import builtins\n"
+      "builtins.exit = _safe_exit\n"
+      "builtins.quit = _safe_exit\n");
+
   XLOG(DBG2) << "Starting interactive Python session";
   Py_Main(argc, argv);
   Py_Finalize();

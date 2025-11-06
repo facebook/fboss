@@ -104,8 +104,9 @@ TEST_F(StateMachineControllerTest, AddExecuteMultipleUpdatesInSameQueue) {
 
 TEST_F(StateMachineControllerTest, BlockingUpdateAddExecuteSingleUpdate) {
   auto result = std::make_shared<BlockingStateMachineUpdateResult>();
-  controller_->enqueueUpdate(std::make_unique<BlockingMockStateMachineUpdate>(
-      MockEvent::EVENT_1, result));
+  controller_->enqueueUpdate(
+      std::make_unique<BlockingMockStateMachineUpdate>(
+          MockEvent::EVENT_1, result));
 
   auto future = std::async(
       std::launch::async, [&]() { controller_->executeSingleUpdate(); });
@@ -117,11 +118,13 @@ TEST_F(StateMachineControllerTest, BlockingUpdateAddExecuteSingleUpdate) {
 
 TEST_F(StateMachineControllerTest, BlockingUpdateAddExecuteMultipleUpdates) {
   auto result = std::make_shared<BlockingStateMachineUpdateResult>();
-  controller_->enqueueUpdate(std::make_unique<BlockingMockStateMachineUpdate>(
-      MockEvent::EVENT_1, result));
+  controller_->enqueueUpdate(
+      std::make_unique<BlockingMockStateMachineUpdate>(
+          MockEvent::EVENT_1, result));
   auto result2 = std::make_shared<BlockingStateMachineUpdateResult>();
-  controller_->enqueueUpdate(std::make_unique<BlockingMockStateMachineUpdate>(
-      MockEvent::EVENT_2, result2));
+  controller_->enqueueUpdate(
+      std::make_unique<BlockingMockStateMachineUpdate>(
+          MockEvent::EVENT_2, result2));
 
   auto future = std::async(std::launch::async, [&]() {
     controller_->executeSingleUpdate();

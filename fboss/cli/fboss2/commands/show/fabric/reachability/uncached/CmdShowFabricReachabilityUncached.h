@@ -29,8 +29,9 @@ class CmdShowFabricReachabilityUncached
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedSwitchNames);
 
-  RetType createModel(std::unordered_map<std::string, std::vector<std::string>>&
-                          reachabilityMatrix);
+  RetType createModel(
+      std::unordered_map<std::string, std::vector<std::string>>&
+          reachabilityMatrix);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 } // namespace facebook::fboss

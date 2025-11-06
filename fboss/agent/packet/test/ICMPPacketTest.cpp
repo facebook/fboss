@@ -114,7 +114,8 @@ void serializedFullIPv4PacketHelper(bool taggedPkt) {
       // Ethernet Header
       "33 33 00 00 00 01" // Destination MAC Address
       "33 33 00 00 00 02");
-  std::string vlanHeader("81 00 00 01" // VLAN: 1
+  std::string vlanHeader(
+      "81 00 00 01" // VLAN: 1
   );
   std::string pktPostVlanHeader(
       "08 00" // EtherType: IPv4
@@ -200,7 +201,8 @@ void serializedFullIPv6PacketHelper(bool taggedPkt) {
       "33 33 00 00 00 01" // Destination MAC Address
       "33 33 00 00 00 02" // Source MAC Address
   );
-  std::string vlanHeader("81 00 00 01" // VLAN: 1
+  std::string vlanHeader(
+      "81 00 00 01" // VLAN: 1
   );
   std::string pktPostVlanHeader(
       "86 dd" // EtherType: IPv6

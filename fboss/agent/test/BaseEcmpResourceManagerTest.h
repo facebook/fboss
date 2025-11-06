@@ -24,6 +24,7 @@
 namespace facebook::fboss {
 
 const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
+auto constexpr kClientID(ClientID::BGPD);
 
 RouteNextHopSet
 makeNextHops(int n, int numNhopsPerIntf = 1, int startOffset = 0);
@@ -140,6 +141,10 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   std::vector<StateDelta> rmRoute(const RoutePrefixV6& prefix6) {
     return rmRoutes({prefix6});
   }
+  std::unique_ptr<std::vector<UnicastRoute>> getClientRoutes(
+      ClientID client) const;
+  void syncFib();
+  void replayAllRoutesViaThrift();
 
   void assertTargetState(
       const std::shared_ptr<SwitchState>& targetState,
@@ -160,6 +165,7 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
   EcmpResourceManager::NextHopGroupIds getAllGroups() const;
 
  private:
+  void assertReplayIsNoOp(bool syncFib);
   std::vector<StateDelta> addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops) {

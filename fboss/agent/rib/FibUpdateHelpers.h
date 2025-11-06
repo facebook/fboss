@@ -11,6 +11,7 @@
 #include "fboss/agent/types.h"
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/state/StateDelta.h"
 
 #include <memory>
 
@@ -19,7 +20,7 @@ namespace facebook::fboss {
 class SwitchState;
 class SwitchIdScopeResolver;
 
-std::shared_ptr<SwitchState> ribToSwitchStateUpdate(
+StateDelta ribToSwitchStateUpdate(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -27,7 +28,7 @@ std::shared_ptr<SwitchState> ribToSwitchStateUpdate(
     const LabelToRouteMap& labelToRoute,
     void* cookie);
 
-std::shared_ptr<SwitchState> noopFibUpdate(
+StateDelta noopFibUpdate(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,

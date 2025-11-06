@@ -811,8 +811,8 @@ cfg::SwitchConfig genPortVlanCfg(
     cfg::Range64 portIdRange;
     portIdRange.minimum() =
         cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
-    portIdRange.maximum() =
-        cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+    portIdRange.maximum() = cfg::switch_config_constants::
+        DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX();
     switchInfo.portIdRange() = portIdRange;
     switchInfo.switchIndex() = 0;
     switchInfo.switchType() = switchType;
@@ -1368,8 +1368,9 @@ void configurePortGroup(
     auto supportedProfiles = *platPortEntry.supportedProfiles();
     auto profile = supportedProfiles.find(profileID.value());
     if (profile == supportedProfiles.end()) {
-      throw std::runtime_error(folly::to<std::string>(
-          "No profile ", profileID.value(), " found for port ", portID));
+      throw std::runtime_error(
+          folly::to<std::string>(
+              "No profile ", profileID.value(), " found for port ", portID));
     }
 
     cfgPort->profileID() = profileID.value();
@@ -1637,10 +1638,11 @@ genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask) {
   auto ipDecimal1 = folly::sformat("{}", ipDecimal % 224);
   auto ipDecimal2 = folly::sformat("{}", ipDecimal / 224);
 
-  auto addr = isV4 ? folly::IPAddress(folly::sformat(
-                         "{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
-                   : folly::IPAddress(folly::sformat(
-                         "{}:{}::{}", ipDecimal1, ipDecimal2, host));
+  auto addr = isV4
+      ? folly::IPAddress(
+            folly::sformat("{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
+      : folly::IPAddress(
+            folly::sformat("{}:{}::{}", ipDecimal1, ipDecimal2, host));
   return folly::sformat("{}/{}", addr.str(), subnetMask);
 }
 } // namespace facebook::fboss::utility

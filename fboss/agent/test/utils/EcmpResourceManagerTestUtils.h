@@ -13,6 +13,7 @@
 
 namespace facebook::fboss {
 class SwitchState;
+class RoutingInformationBase;
 
 std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupIds>
 getNhopsToMergedGroups(const EcmpResourceManager& resourceMgr);
@@ -59,4 +60,8 @@ void assertRollbacks(
     EcmpResourceManager& newEcmpResourceMgr,
     const std::shared_ptr<SwitchState>& startState,
     const std::shared_ptr<SwitchState>& endState);
+
+void assertRibFibEquivalence(
+    const std::shared_ptr<SwitchState>& state,
+    const RoutingInformationBase* rib);
 } // namespace facebook::fboss

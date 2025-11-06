@@ -1884,10 +1884,11 @@ std::vector<MultiNodeUtil::NeighborInfo> MultiNodeUtil::computeNeighborsForRdsw(
     std::map<int32_t, folly::IPAddress> intfIDToIp;
     for (const auto& [_, rif] : getIntfIdToIntf(rdsw)) {
       for (const auto& ipPrefix : *rif.address()) {
-        auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-            reinterpret_cast<const unsigned char*>(
-                ipPrefix.ip()->addr()->data()),
-            ipPrefix.ip()->addr()->size()));
+        auto ip = folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                reinterpret_cast<const unsigned char*>(
+                    ipPrefix.ip()->addr()->data()),
+                ipPrefix.ip()->addr()->size()));
 
         if (!folly::IPAddress(ip).isLinkLocal()) {
           // Pick any one non-local IP per interface
@@ -1953,8 +1954,9 @@ bool MultiNodeUtil::verifyNeighborHelper(
   auto isNeighborPresentHelper = [](const auto& ndpEntries,
                                     const auto& neighbor) {
     for (const auto& ndpEntry : ndpEntries) {
-      auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
-          folly::StringPiece(ndpEntry.ip().value().addr().value())));
+      auto ndpEntryIp = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              folly::StringPiece(ndpEntry.ip().value().addr().value())));
 
       if (ndpEntry.interfaceID().value() == neighbor.intfID &&
           ndpEntryIp == neighbor.ip) {
@@ -2030,8 +2032,9 @@ bool MultiNodeUtil::verifyNeighborLocalPresent(
       auto ndpEntries = getNdpEntries(rdsw);
 
       for (const auto& ndpEntry : ndpEntries) {
-        auto ndpEntryIp = folly::IPAddress::fromBinary(folly::ByteRange(
-            folly::StringPiece(ndpEntry.ip().value().addr().value())));
+        auto ndpEntryIp = folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                folly::StringPiece(ndpEntry.ip().value().addr().value())));
 
         if (ndpEntry.interfaceID().value() == neighbor.intfID &&
             ndpEntryIp == neighbor.ip) {
@@ -2158,10 +2161,11 @@ bool MultiNodeUtil::verifyRoutePresent(
     const int16_t prefixLength) const {
   auto verifyRoutePresentHelper = [rdsw, destPrefix, prefixLength]() {
     for (const auto& route : getAllRoutes(rdsw)) {
-      auto ip = folly::IPAddress::fromBinary(folly::ByteRange(
-          reinterpret_cast<const unsigned char*>(
-              route.dest()->ip()->addr()->data()),
-          route.dest()->ip()->addr()->size()));
+      auto ip = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              reinterpret_cast<const unsigned char*>(
+                  route.dest()->ip()->addr()->data()),
+              route.dest()->ip()->addr()->size()));
       if (ip == destPrefix && *route.dest()->prefixLength() == prefixLength) {
         XLOG(DBG2) << "rdsw: " << rdsw << " Found route:: prefix: " << ip.str()
                    << " prefixLength: " << *route.dest()->prefixLength();

@@ -231,6 +231,7 @@ enum MediaInterfaceCode {
   ZR_800G = 26,
   DR2_400G = 27,
   DR1_100G = 28,
+  CR1_100G = 29,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -371,15 +372,29 @@ enum CmisLaneState {
 
 // Supported frequency grids for tunable optics as per the CMIS spec
 enum FrequencyGrid {
-  LASER_3P125GHZ = 0,
-  LASER_6P25GHZ = 1,
-  LASER_12P5GHZ = 2,
-  LASER_25GHZ = 3,
-  LASER_33GHZ = 4,
-  LASER_50GHZ = 5,
-  LASER_75GHZ = 6,
-  LASER_100GHZ = 7,
-  LASER_150GHZ = 8,
+  LASER_3P125GHZ = 0x0,
+  LASER_6P25GHZ = 0x1,
+  LASER_12P5GHZ = 0x2,
+  LASER_25GHZ = 0x3,
+  LASER_50GHZ = 0x4,
+  LASER_100GHZ = 0x5,
+  LASER_33GHZ = 0x6,
+  LASER_75GHZ = 0x7,
+  LASER_150GHZ = 0x8,
+}
+
+enum LaserStatusBitMask {
+  WAVELENGTH_LOCKED = 0x0,
+  WAVELENGTH_UNLOCKED = 0x1,
+  LASER_TUNE_IN_PROGRESS = 0x2,
+  LASER_TUNE_NOT_IN_PROGRESS = 0x3,
+}
+
+struct TunableLaserStatus {
+  1: LaserStatusBitMask tuningStatus;
+  2: LaserStatusBitMask wavelengthLockingStatus;
+  3: i32 laserStatusFlagsByte;
+  4: i64 laserFrequencyMhz;
 }
 
 struct FirmwareStatus {
@@ -585,6 +600,7 @@ struct TcvrState {
   26: set<string> interfaces;
   27: string tcvrName;
   28: bool lpoModule;
+  29: optional TunableLaserStatus tunableLaserStatus;
 }
 
 struct TcvrStats {
@@ -774,6 +790,8 @@ struct CmisData {
   14: optional IOBuf page25;
   15: optional IOBuf page22;
   16: optional IOBuf page26;
+  17: optional IOBuf page04;
+  18: optional IOBuf page12;
 }
 
 struct TransceiverIOParameters {

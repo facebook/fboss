@@ -51,20 +51,31 @@ class BspTestEnvironment : public ::testing::Environment {
   void printAllRecordedErrors() const;
 
   // Static accessor method for the singleton instance
-  static BspTestEnvironment* GetInstance(const std::string& platform = "") {
+  static BspTestEnvironment* GetInstance(
+      const std::string& platform = "",
+      const std::string& bspTestsConfigJson = "",
+      const std::string& pmConfigJson = "") {
     if (instance_ == nullptr && !platform.empty()) {
-      instance_ = new BspTestEnvironment(platform);
+      instance_ =
+          new BspTestEnvironment(platform, bspTestsConfigJson, pmConfigJson);
     }
     return instance_;
   }
 
  private:
   // Private constructor to enforce singleton pattern
-  explicit BspTestEnvironment(const std::string& platform);
+  explicit BspTestEnvironment(
+      const std::string& platform,
+      const std::string& bspTestsConfigJson,
+      const std::string& pmConfigJson);
 
-  platform_manager::PlatformConfig loadPlatformManagerConfig();
+  platform_manager::PlatformConfig loadPlatformManagerConfig(
+      const std::string& platform,
+      const std::string& pmConfigJson);
 
-  BspTestsConfig loadTestConfig(const std::string& platform);
+  BspTestsConfig loadTestConfig(
+      const std::string& platform,
+      const std::string& bspTestsConfigJson);
 
   // Static instance pointer for singleton pattern
   static BspTestEnvironment* instance_;

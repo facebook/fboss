@@ -765,7 +765,7 @@ std::unique_ptr<TxPacket> makeTCPTxPacket(
     // some arbitrary mac
     srcMac = folly::MacAddress("00:00:01:02:03:04");
   } else {
-    srcMac = folly::MacAddress::fromNBO(dstMac.u64NBO() + 1);
+    srcMac = folly::MacAddress::fromHBO(dstMac.u64HBO() + 1);
   }
 
   // arbit
@@ -829,26 +829,16 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
   sflow::FlowRecord frecord{};
   frecord.flowFormat = 1; // single flow sample
 
-  // Serialize the sampled header directly into the flow record data
+  // Create the sampled header and assign it to the flow record data variant
   sflow::SampledHeader hdr{};
   hdr.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
   hdr.frameLength = 0;
   hdr.stripped = 0;
-  hdr.header = payload.data();
-  hdr.headerLength = payload.size();
+  hdr.header.resize(payload.size());
+  std::copy(payload.begin(), payload.end(), hdr.header.begin());
 
-  // Calculate size needed for serialized header
-  auto hdrSize = hdr.size();
-  if (hdrSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
-    hdrSize = (hdrSize / sflow::XDR_BASIC_BLOCK_SIZE + 1) *
-        sflow::XDR_BASIC_BLOCK_SIZE;
-  }
-
-  // Serialize header into flow record data
-  frecord.flowData.resize(hdrSize);
-  auto hbuf = folly::IOBuf::wrapBuffer(frecord.flowData.data(), hdrSize);
-  auto hc = std::make_shared<folly::io::RWPrivateCursor>(hbuf.get());
-  hdr.serialize(hc.get());
+  // Assign the SampledHeader to the FlowData variant
+  frecord.flowData = std::move(hdr);
 
   // Add flow record to flow sample
   fsample.flowRecords.push_back(frecord);
@@ -944,15 +934,11 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   hdr.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
   hdr.frameLength = 0;
   hdr.stripped = 0;
-  hdr.header = payloadBytes.data();
-  hdr.headerLength = payloadBytes.size();
+  hdr.header.resize(payloadBytes.size());
+  std::copy(payloadBytes.begin(), payloadBytes.end(), hdr.header.begin());
 
-  auto hdrSize = hdr.size();
-  if (hdrSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
-    hdrSize = (hdrSize / sflow::XDR_BASIC_BLOCK_SIZE + 1) *
-        sflow::XDR_BASIC_BLOCK_SIZE;
-  }
-  frecord.flowData.resize(hdrSize);
+  // Assign the SampledHeader to the FlowData variant
+  frecord.flowData = std::move(hdr);
 
   fsample.flowRecords.push_back(frecord);
   record.sampleData.push_back(fsample);
@@ -1035,15 +1021,11 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   hdr.protocol = sflow::HeaderProtocol::ETHERNET_ISO88023;
   hdr.frameLength = 0;
   hdr.stripped = 0;
-  hdr.header = payloadBytes.data();
-  hdr.headerLength = payloadBytes.size();
+  hdr.header.resize(payloadBytes.size());
+  std::copy(payloadBytes.begin(), payloadBytes.end(), hdr.header.begin());
 
-  auto hdrSize = hdr.size();
-  if (hdrSize % sflow::XDR_BASIC_BLOCK_SIZE > 0) {
-    hdrSize = (hdrSize / sflow::XDR_BASIC_BLOCK_SIZE + 1) *
-        sflow::XDR_BASIC_BLOCK_SIZE;
-  }
-  frecord.flowData.resize(hdrSize);
+  // Assign the SampledHeader to the FlowData variant
+  frecord.flowData = std::move(hdr);
 
   fsample.flowRecords.push_back(frecord);
   record.sampleData.push_back(fsample);

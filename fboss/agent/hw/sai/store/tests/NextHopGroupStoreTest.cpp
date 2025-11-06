@@ -134,14 +134,16 @@ TEST_F(NextHopGroupStoreTest, loadNextHopGroup) {
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, weight1));
   k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, weight2));
-  k.nhopMemberSet.insert(std::make_pair(
-      SaiMplsNextHopTraits::AdapterHostKey{
-          42, ip3, std::vector<sai_uint32_t>{102, 103}},
-      weight3));
-  k.nhopMemberSet.insert(std::make_pair(
-      SaiMplsNextHopTraits::AdapterHostKey{
-          42, ip4, std::vector<sai_uint32_t>{201, 203}},
-      weight4));
+  k.nhopMemberSet.insert(
+      std::make_pair(
+          SaiMplsNextHopTraits::AdapterHostKey{
+              42, ip3, std::vector<sai_uint32_t>{102, 103}},
+          weight3));
+  k.nhopMemberSet.insert(
+      std::make_pair(
+          SaiMplsNextHopTraits::AdapterHostKey{
+              42, ip4, std::vector<sai_uint32_t>{201, 203}},
+          weight4));
 
   SaiNextHopGroupTraits::AdapterHostKey k0{k};
   k0.mode = SAI_ARS_MODE_PER_PACKET_QUALITY;
@@ -283,14 +285,16 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, weight1));
   k.nhopMemberSet.insert(
       std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, weight2));
-  k.nhopMemberSet.insert(std::make_pair(
-      SaiMplsNextHopTraits::AdapterHostKey{
-          42, ip3, std::vector<sai_uint32_t>{102, 103}},
-      weight3));
-  k.nhopMemberSet.insert(std::make_pair(
-      SaiMplsNextHopTraits::AdapterHostKey{
-          42, ip4, std::vector<sai_uint32_t>{201, 203}},
-      weight4));
+  k.nhopMemberSet.insert(
+      std::make_pair(
+          SaiMplsNextHopTraits::AdapterHostKey{
+              42, ip3, std::vector<sai_uint32_t>{102, 103}},
+          weight3));
+  k.nhopMemberSet.insert(
+      std::make_pair(
+          SaiMplsNextHopTraits::AdapterHostKey{
+              42, ip4, std::vector<sai_uint32_t>{201, 203}},
+          weight4));
   auto got = store0.get(k);
   EXPECT_TRUE(got);
   auto json = got->adapterHostKeyToFollyDynamic();

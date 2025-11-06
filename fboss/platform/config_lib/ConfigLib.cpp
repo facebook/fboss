@@ -14,6 +14,11 @@ DEFINE_string(
     "Optional configuration file. "
     "If empty we pick the platform default config");
 
+DEFINE_bool(
+    run_in_netos,
+    false,
+    "Setup platform services to run within netos environment");
+
 using namespace facebook::fboss::platform;
 
 namespace {
@@ -24,6 +29,11 @@ std::string getPlatformName(const std::optional<std::string>& platformName) {
       : *helpers::PlatformNameLib().getPlatformName();
   std::transform(
       platformStr.begin(), platformStr.end(), platformStr.begin(), ::tolower);
+  if (platformStr == "darwin" && FLAGS_run_in_netos) {
+    platformStr =
+        "darwin_netos"; // Bypass Darwin config for netos, Remove after all
+                        // Darwin platforms are onboarded to netos
+  }
   XLOG(DBG1) << "The inferred platform is " << platformStr;
   return platformStr;
 }

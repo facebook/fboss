@@ -74,23 +74,23 @@ void serializeSflowPort(RWPrivateCursor* cursor, SflowPort sflowPort) {
 
 void FlowRecord::serialize(RWPrivateCursor* cursor) const {
   serializeDataFormat(cursor, this->flowFormat);
-  // serialize XDR opaque sFlow flow_data
-  cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->flowData.size()));
-  cursor->push(this->flowData.data(), this->flowData.size());
-  if (this->flowData.size() % XDR_BASIC_BLOCK_SIZE != 0) {
-    int fillCnt =
-        XDR_BASIC_BLOCK_SIZE - this->flowData.size() % XDR_BASIC_BLOCK_SIZE;
-    std::vector<byte> crud(XDR_BASIC_BLOCK_SIZE, 0);
-    cursor->push(crud.data(), fillCnt);
-  }
+
+  // Calculate the size of the flow data
+  uint32_t dataSize = std::visit(
+      [](const auto& data) -> uint32_t { return data.size(); }, this->flowData);
+
+  // Write the flow data length
+  cursor->writeBE<uint32_t>(dataSize);
+
+  // Serialize the flow data based on its type
+  std::visit(
+      [cursor](const auto& data) { data.serialize(cursor); }, this->flowData);
 }
 
 uint32_t FlowRecord::size() const {
-  uint32_t dataSize = this->flowData.size();
-  // Add XDR padding to align to 4-byte boundary (same as serialization does)
-  if (dataSize % XDR_BASIC_BLOCK_SIZE != 0) {
-    dataSize += XDR_BASIC_BLOCK_SIZE - (dataSize % XDR_BASIC_BLOCK_SIZE);
-  }
+  uint32_t dataSize = std::visit(
+      [](const auto& data) -> uint32_t { return data.size(); }, this->flowData);
+
   return 4 /* flowFormat */ + 4 /* flowDataLen */ + dataSize;
 }
 
@@ -103,9 +103,21 @@ FlowRecord FlowRecord::deserialize(Cursor& cursor) {
   // Read the flow data length
   uint32_t flowDataLen = cursor.readBE<uint32_t>();
 
-  // Read the flow data
-  flowRecord.flowData.resize(flowDataLen);
-  cursor.pull(flowRecord.flowData.data(), flowDataLen);
+  // For now, we only support SampledHeader (format = 1)
+  // This corresponds to the raw packet header format from sFlow v5 spec
+  if (flowRecord.flowFormat == 1) {
+    // Create a cursor that limits reading to exactly flowDataLen bytes
+    auto limitedBuf = folly::IOBuf::create(flowDataLen);
+    cursor.pull(limitedBuf->writableData(), flowDataLen);
+    limitedBuf->append(flowDataLen);
+
+    folly::io::Cursor limitedCursor(limitedBuf.get());
+    SampledHeader sampledHeader = SampledHeader::deserialize(limitedCursor);
+    flowRecord.flowData = std::move(sampledHeader);
+  } else {
+    throw std::runtime_error(
+        "Unsupported flow format: " + std::to_string(flowRecord.flowFormat));
+  }
 
   // Skip XDR padding if needed
   if (flowDataLen % XDR_BASIC_BLOCK_SIZE != 0) {
@@ -315,19 +327,56 @@ void SampledHeader::serialize(RWPrivateCursor* cursor) const {
   cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->protocol));
   cursor->writeBE<uint32_t>(this->frameLength);
   cursor->writeBE<uint32_t>(this->stripped);
-  cursor->writeBE<uint32_t>(this->headerLength);
-  cursor->push(this->header, this->headerLength);
-  if (this->headerLength % XDR_BASIC_BLOCK_SIZE > 0) {
+  cursor->writeBE<uint32_t>(static_cast<uint32_t>(this->header.size()));
+  cursor->push(this->header.data(), this->header.size());
+  if (this->header.size() % XDR_BASIC_BLOCK_SIZE > 0) {
     int fillCnt =
-        XDR_BASIC_BLOCK_SIZE - this->headerLength % XDR_BASIC_BLOCK_SIZE;
+        XDR_BASIC_BLOCK_SIZE - this->header.size() % XDR_BASIC_BLOCK_SIZE;
     std::vector<byte> crud(XDR_BASIC_BLOCK_SIZE, 0);
     cursor->push(crud.data(), fillCnt);
   }
 }
 
 uint32_t SampledHeader::size() const {
+  uint32_t headerSize = static_cast<uint32_t>(this->header.size());
+  // Add XDR padding to align to 4-byte boundary (same as serialization does)
+  if (headerSize % XDR_BASIC_BLOCK_SIZE > 0) {
+    headerSize += XDR_BASIC_BLOCK_SIZE - (headerSize % XDR_BASIC_BLOCK_SIZE);
+  }
   return 4 /* protocol */ + 4 /* frameLength */ + 4 /* stripped */ +
-      4 /* headerLength */ + this->headerLength;
+      4 /* headerLength */ + headerSize;
+}
+
+SampledHeader SampledHeader::deserialize(Cursor& cursor) {
+  SampledHeader sampledHeader;
+
+  // Read the protocol field
+  sampledHeader.protocol =
+      static_cast<HeaderProtocol>(cursor.readBE<uint32_t>());
+
+  // Read the frame length
+  sampledHeader.frameLength = cursor.readBE<uint32_t>();
+
+  // Read the stripped field
+  sampledHeader.stripped = cursor.readBE<uint32_t>();
+
+  // Read the header length
+  uint32_t headerLength = cursor.readBE<uint32_t>();
+
+  // Read the header data
+  sampledHeader.header.resize(headerLength);
+  if (headerLength > 0) {
+    cursor.pull(sampledHeader.header.data(), headerLength);
+  }
+
+  // Skip XDR padding if needed to align to 4-byte boundary
+  if (headerLength % XDR_BASIC_BLOCK_SIZE > 0) {
+    uint32_t paddingBytes =
+        XDR_BASIC_BLOCK_SIZE - (headerLength % XDR_BASIC_BLOCK_SIZE);
+    cursor.skip(paddingBytes);
+  }
+
+  return sampledHeader;
 }
 
 } // namespace facebook::fboss::sflow

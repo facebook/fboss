@@ -2,10 +2,11 @@
 // All Rights Reserved.
 #include <algorithm>
 #include <ranges>
-#include <unordered_map>
-#include <unordered_set>
+#include <set>
+#include <vector>
 
 #include <CLI/CLI.hpp>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -21,7 +22,7 @@ using namespace facebook::fboss::platform::showtech_config;
 
 namespace {
 
-const std::unordered_map<std::string, std::function<void(Utils&)>>
+const std::vector<std::pair<std::string, std::function<void(Utils&)>>>
     DETAIL_FUNCTIONS = {
         {"host", [](Utils& util) { util.printHostDetails(); }},
         {"fboss", [](Utils& util) { util.printFbossDetails(); }},
@@ -39,13 +40,14 @@ const std::unordered_map<std::string, std::function<void(Utils&)>>
         {"i2c", [](Utils& util) { util.printI2cDetails(); }},
         {"i2cdump", [](Utils& util) { util.printI2cDumpDetails(); }},
         {"nvme", [](Utils& util) { util.printNvmeDetails(); }},
+        {"logs", [](Utils& util) { util.printLogs(); }},
 };
 
-std::unordered_set<std::string> getValidDetailNames() {
-  auto keys = std::views::keys(DETAIL_FUNCTIONS) |
-      std::views::transform([](const auto& key) { return key; });
-  std::unordered_set<std::string> result{"all"};
-  result.insert(keys.begin(), keys.end());
+std::set<std::string> getValidDetailNames() {
+  std::set<std::string> result{"all"};
+  for (const auto& [name, func] : DETAIL_FUNCTIONS) {
+    result.insert(name);
+  }
   return result;
 }
 
@@ -62,8 +64,10 @@ void executeRequestedDetails(
     }
   } else {
     for (const auto& requestedDetail : requestedDetails) {
-      if (auto it = DETAIL_FUNCTIONS.find(requestedDetail);
-          it != DETAIL_FUNCTIONS.end()) {
+      auto it = std::ranges::find_if(DETAIL_FUNCTIONS, [&](const auto& pair) {
+        return pair.first == requestedDetail;
+      });
+      if (it != DETAIL_FUNCTIONS.end()) {
         XLOG(INFO) << "Executing: " << requestedDetail;
         it->second(showtechUtil);
       }
@@ -77,11 +81,14 @@ int main(int argc, char** argv) {
   CLI::App app{"Showtech utility for collecting system diagnostics"};
   app.set_version_flag("--version", helpers::getBuildVersion());
 
-  std::vector<std::string> detailsArg = {"all"};
-  app.add_option(
-         "--details", detailsArg, "Comma-separated list of details to print")
-      ->default_val(std::vector<std::string>{"all"})
+  std::vector<std::string> detailsArg = {};
+  app.add_option("--details", detailsArg, folly::stripLeftMargin(R"(
+           Comma-separated list of details to print.
+           Use specific section details to avoid printing too much data.
+           Use 'all' only if necessary. 'all' can take a long time to run.
+         )"))
       ->delimiter(',')
+      ->required()
       ->check(CLI::IsMember(getValidDetailNames()));
 
   try {

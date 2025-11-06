@@ -895,7 +895,6 @@ void PortManager::
       if (shouldReinitPorts) {
         if (auto result = updateStateBlockingWithoutWait(
                 portId, PortStateMachineEvent::PORT_EV_RESET_TO_INITIALIZED)) {
-          XLOG(ERR) << "Reset port " << portId << " to initialized";
           results.push_back(result);
         }
       }
@@ -998,6 +997,10 @@ void PortManager::triggerAgentConfigChangeEvent() {
 
   transceiverManager_->triggerTransceiverEventsForAgentConfigChangeEvent(
       resetDataPath, newConfigAppliedInfo);
+  for (auto& stateMachine : stateMachineControllers_) {
+    stateMachine.second->getStateMachine().wlock()->get_attribute(
+        xphyNeedResetDataPath) = resetDataPath;
+  }
 
   configAppliedInfo_ = newConfigAppliedInfo;
 }
@@ -1058,14 +1061,15 @@ void PortManager::updateTransceiverPortStatus() noexcept {
       // to update port up / port down status.
       if (arePortTcvrsJustProgrammed || stateMachineState != newState) {
         auto event = getPortStatusChangeEvent(newState);
-        if (auto result = updateStateBlockingWithoutWait(portId, event)) {
+        if (auto result =
+                enqueueStateUpdateForPortWithoutExecuting(portId, event)) {
           ++numActiveStatusChanged;
           results.push_back(result);
         }
       }
     } else if (newPortStatusEnabled) {
       // We need to enable this port in our state machine.
-      if (auto result = updateStateBlockingWithoutWait(
+      if (auto result = enqueueStateUpdateForPortWithoutExecuting(
               portId, PortStateMachineEvent::PORT_EV_INITIALIZE_PORT)) {
         ++numSetToInitialized;
         newPortEnabledStatusForCache.emplace_back(portId, true);
@@ -1073,7 +1077,7 @@ void PortManager::updateTransceiverPortStatus() noexcept {
       }
     } else if (stateMachineEnabled) {
       // We need to disable this port in our state machine.
-      if (auto result = updateStateBlockingWithoutWait(
+      if (auto result = enqueueStateUpdateForPortWithoutExecuting(
               portId, PortStateMachineEvent::PORT_EV_RESET_TO_UNINITIALIZED)) {
         ++numResetToUninitialized;
         portsForReset.insert(portId);
@@ -1083,15 +1087,25 @@ void PortManager::updateTransceiverPortStatus() noexcept {
     }
   }
 
-  waitForAllBlockingStateUpdateDone(results);
+  // TODO(smenta) – Revisit ordering of these updates.
+  // We want to collect the list of transceivers whose state machines need to be
+  // reset based on the ports that are being reset. However, because we embed
+  // updating the enabled ports cache in state machines directly, we need to
+  // collect this list prior to executing the state machine updates.
+  auto tcvrsForReset = getTransceiversWithAllPortsInSet(portsForReset);
+
+  if (!results.empty()) {
+    // Signal the update thread that updates are pending.
+    executeStateUpdates();
+    waitForAllBlockingStateUpdateDone(results);
+  }
 
   // Clear any stale port data in TransceiverManager.
   transceiverManager_->resetProgrammedIphyPortToPortInfoForPorts(portsForReset);
 
   // Update transceiver state machines based on portsForReset. We only reset
   // transceivers that have all their enabled ports in this list.
-  transceiverManager_->triggerResetEvents(
-      getTransceiversWithAllPortsInSet(portsForReset));
+  transceiverManager_->triggerResetEvents(tcvrsForReset);
 
   XLOG_IF(
       DBG2,
@@ -1365,7 +1379,8 @@ std::unordered_set<TransceiverID> PortManager::getTransceiversWithAllPortsInSet(
   std::unordered_set<TransceiverID> transceivers;
   for (const auto& [tcvrID, enabledPorts] : tcvrToInitializedPorts_) {
     auto lockedEnabledPorts = enabledPorts->rlock();
-    if (std::all_of(
+    if (!lockedEnabledPorts->empty() &&
+        std::all_of(
             lockedEnabledPorts->begin(),
             lockedEnabledPorts->end(),
             [&](const PortID& portId) { return ports.contains(portId); })) {
@@ -1537,12 +1552,12 @@ void PortManager::refreshStateMachines() {
   // transceivers and transceiver data.
   transceiverManager_->refreshTransceivers();
 
-  // Step 2: Reset port state machines for ports that have transceivers that are
+  // Step 2: Fetch current port status from wedge_agent.
+  updateTransceiverPortStatus();
+
+  // Step 3: Reset port state machines for ports that have transceivers that are
   // recently discovered to retrigger programming.
   detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
-
-  // Step 3: Fetch current port status from wedge_agent.
-  updateTransceiverPortStatus();
 
   // Step 4: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();
@@ -1562,6 +1577,46 @@ void PortManager::refreshStateMachines() {
   setWarmBootState();
 
   XLOG(INFO) << "refreshStateMachines ended";
+}
+
+bool PortManager::getXphyNeedResetDataPath(PortID id) const {
+  auto stateMachineItr = stateMachineControllers_.find(id);
+  if (stateMachineItr == stateMachineControllers_.end()) {
+    throw FbossError("Port:", id, " doesn't exist");
+  }
+  return stateMachineItr->second->getStateMachine().rlock()->get_attribute(
+      xphyNeedResetDataPath);
+}
+
+void PortManager::programXphyPortPrbs(
+    PortID portId,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  if (!phyManager_) {
+    throw FbossError(
+        "Unable to programXphyPortPrbs when PhyManager is not set");
+  }
+
+  phyManager_->setPortPrbs(portId, side, prbs);
+}
+
+phy::PortPrbsState PortManager::getXphyPortPrbs(
+    const PortID& portId,
+    phy::Side side) {
+  return phyManager_->getPortPrbs(portId, side);
+}
+
+void PortManager::getPortStates(
+    std::map<int32_t, PortStateMachineState>& states,
+    std::unique_ptr<std::vector<int32_t>> ids) {
+  for (const auto& id : *ids) {
+    auto portId = PortID(id);
+    try {
+      states.emplace(id, getPortState(portId));
+    } catch (const FbossError& /* e */) {
+      XLOG(WARN) << "Unrecognized Port:" << portId;
+    }
+  }
 }
 
 } // namespace facebook::fboss

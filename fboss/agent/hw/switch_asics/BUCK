@@ -5,6 +5,7 @@ oncall("fboss_agent_push")
 cpp_library(
     name = "switch_asics",
     srcs = [
+        "Agera3PhyAsic.cpp",
         "BroadcomXgsAsic.cpp",
         "ChenabAsic.cpp",
         "CredoPhyAsic.cpp",
@@ -23,6 +24,7 @@ cpp_library(
         "YubaAsic.cpp",
     ],
     headers = [
+        "Agera3PhyAsic.h",
         "BroadcomAsic.h",
         "ChenabAsic.h",
         "FakeAsic.h",

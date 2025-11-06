@@ -30,7 +30,31 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 
+#include "common/stats/DynamicStats.h"
+
 namespace facebook::fboss {
+
+DEFINE_quantile_stat(
+    buffer_watermark_global_headroom,
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+DEFINE_quantile_stat(
+    buffer_watermark_global_shared,
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+DEFINE_dynamic_quantile_stat(
+    buffer_watermark_pg_headroom,
+    "buffer_watermark_pg_headroom.{}.{}",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
+
+DEFINE_dynamic_quantile_stat(
+    buffer_watermark_pg_shared,
+    "buffer_watermark_pg_shared.{}.{}",
+    facebook::fb303::ExportTypeConsts::kNone,
+    std::array<double, 1>{{1.0}});
 
 namespace {
 uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
@@ -60,6 +84,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
@@ -168,6 +193,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       return SaiApiTable::getInstance()->switchApi().getAttribute(
           switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
@@ -963,4 +989,21 @@ SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(
   return ingressPriorityGroupHandles;
 }
 
+void SaiBufferManager::publishGlobalWatermarks(
+    const uint64_t& globalHeadroomBytes,
+    const uint64_t& globalSharedBytes) const {
+  STATS_buffer_watermark_global_headroom.addValue(globalHeadroomBytes);
+  STATS_buffer_watermark_global_shared.addValue(globalSharedBytes);
+}
+
+void SaiBufferManager::publishPgWatermarks(
+    const std::string& portName,
+    const int& pg,
+    const uint64_t& pgHeadroomBytes,
+    const uint64_t& pgSharedBytes) const {
+  STATS_buffer_watermark_pg_headroom.addValue(
+      pgHeadroomBytes, portName, folly::to<std::string>("pg", pg));
+  STATS_buffer_watermark_pg_shared.addValue(
+      pgSharedBytes, portName, folly::to<std::string>("pg", pg));
+}
 } // namespace facebook::fboss

@@ -62,6 +62,12 @@ class SensorServiceImpl {
       const std::map<std::string, SensorData>& polledData,
       const std::vector<PowerConsumptionConfig>& pcConfigs);
 
+  void processTemperature(
+      const std::map<std::string, SensorData>& polledData,
+      const std::vector<TemperatureConfig>& tempConfigs);
+
+  SensorData processAsicCmd(const AsicCommand& asicCommand);
+
  private:
   SensorData fetchSensorDataImpl(
       const std::string& name,
@@ -77,8 +83,6 @@ class SensorServiceImpl {
   void publishDerivedStats(
       const std::string& entity,
       std::optional<float> value);
-
-  SensorData getAsicTemp(const SwitchAsicTemp& asicTemp);
 
   folly::Synchronized<std::map<std::string, SensorData>> polledData_{};
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;

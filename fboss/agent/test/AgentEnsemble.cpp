@@ -722,8 +722,9 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
       folly::get_default(defaultCommandLineArgs, kMultiSwitch, "") == "true") {
     for (const auto& [_, switchInfo] :
          *newAgentConf.sw()->switchSettings()->switchIdToSwitchInfo()) {
-      agentConfig.dumpConfig(AgentDirectoryUtil().getTestHwAgentConfigFile(
-          *switchInfo.switchIndex()));
+      agentConfig.dumpConfig(
+          AgentDirectoryUtil().getTestHwAgentConfigFile(
+              *switchInfo.switchIndex()));
     }
   }
 }
@@ -850,6 +851,13 @@ std::string AgentEnsemble::getHwDebugDump() {
   std::string out{};
   ThriftHandler(getSw()).getHwDebugDump(out);
   return out;
+}
+
+cfg::SwitchingMode AgentEnsemble::getFwdSwitchingMode(
+    const RoutePrefixV6& prefix) {
+  auto resolvedRoute = findRoute<folly::IPAddressV6>(
+      RouterID(0), {prefix.network(), prefix.mask()}, getProgrammedState());
+  return getFwdSwitchingMode(resolvedRoute->getForwardInfo());
 }
 
 } // namespace facebook::fboss

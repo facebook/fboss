@@ -328,6 +328,45 @@ void LinkAggregationManager::updateHyperPortState(
       return newState;
     };
     sw_->updateStateNoCoalescing("set hyper-port state", std::move(updateFn));
+    if (newPortState == cfg::PortState::DISABLED) {
+      // toggle all enabled member ports after hyper port goes down
+      std::vector<PortID> memberPortsToToggle;
+      for (const auto& subPort : newAggPort->sortedSubports()) {
+        const auto memberPort =
+            sw_->getState()->getPorts()->getNodeIf(subPort.portID);
+        if (memberPort->getAdminState() == cfg::PortState::ENABLED) {
+          memberPortsToToggle.push_back(subPort.portID);
+        }
+      }
+      auto disableMemberPortsFn =
+          [memberPortsToToggle](const std::shared_ptr<SwitchState>& state) {
+            std::shared_ptr<SwitchState> newState{state};
+            for (const auto& portId : memberPortsToToggle) {
+              const auto oldMemberPort = state->getPorts()->getNodeIf(portId);
+              auto newMemberPort = oldMemberPort->modify(&newState);
+              XLOG(DBG2) << "set hyper port member " << (int)portId
+                         << " to state DISABLED";
+              newMemberPort->setAdminState(cfg::PortState::DISABLED);
+            }
+            return newState;
+          };
+      auto enableMemberPortsFn =
+          [memberPortsToToggle](const std::shared_ptr<SwitchState>& state) {
+            std::shared_ptr<SwitchState> newState{state};
+            for (const auto& portId : memberPortsToToggle) {
+              const auto oldMemberPort = state->getPorts()->getNodeIf(portId);
+              auto newMemberPort = oldMemberPort->modify(&newState);
+              XLOG(DBG2) << "set hyper port member " << (int)portId
+                         << " to state ENABLED";
+              newMemberPort->setAdminState(cfg::PortState::ENABLED);
+            }
+            return newState;
+          };
+      sw_->updateStateNoCoalescing(
+          "disable hyper-port members", std::move(disableMemberPortsFn));
+      sw_->updateStateNoCoalescing(
+          "enable hyper-port members", std::move(enableMemberPortsFn));
+    }
   }
 }
 

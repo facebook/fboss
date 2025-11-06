@@ -54,14 +54,24 @@ const std::vector<std::string> l2LinkTestNames = {"trafficRxTx", "ecmpShrink"};
 
 #ifndef IS_OSS
 long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
-  if (platform == facebook::fboss::PlatformType::PLATFORM_MERU800BIA) {
-    return 6 * 1000 * 1000 * 1000L; // 6GB
-  } else if (platform == facebook::fboss::PlatformType::PLATFORM_MONTBLANC) {
-    return 4 * 1000 * 1000 * 1000L; // 4GB
-  } else if (platform == facebook::fboss::PlatformType::PLATFORM_MORGAN800CC) {
-    return 5 * 1000 * 1000 * 1000L; // 5GB
+  switch (platform) {
+    case facebook::fboss::PlatformType::PLATFORM_WEDGE100:
+    case facebook::fboss::PlatformType::PLATFORM_WEDGE400:
+    case facebook::fboss::PlatformType::PLATFORM_WEDGE400C:
+    case facebook::fboss::PlatformType::PLATFORM_DARWIN:
+    case facebook::fboss::PlatformType::PLATFORM_DARWIN48V:
+    case facebook::fboss::PlatformType::PLATFORM_MINIPACK:
+    case facebook::fboss::PlatformType::PLATFORM_YAMP:
+    case facebook::fboss::PlatformType::PLATFORM_FUJI:
+    case facebook::fboss::PlatformType::PLATFORM_ELBERT:
+      return 3 * 1000 * 1000 * 1000L; // 3GB
+    case facebook::fboss::PlatformType::PLATFORM_MORGAN800CC:
+      return 5 * 1000 * 1000 * 1000L; // 5GB
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA:
+      return 6 * 1000 * 1000 * 1000L; // 6GB
+    default:
+      return 4 * 1000 * 1000 * 1000L; // 4GB
   }
-  return 3 * 1000 * 1000 * 1000L; // 3GB
 }
 #endif
 } // namespace
@@ -80,6 +90,8 @@ void AgentEnsembleLinkTest::SetUp() {
   // Wait for all the cabled ports to link up before finishing the setup
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
+  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
+
   XLOG(DBG2) << "Multi Switch Link Test setup ready";
 }
 

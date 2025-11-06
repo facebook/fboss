@@ -12,10 +12,15 @@ FsdbDeltaPublisher::setupStream() {
       [&](const OperPubInitResponse& /* initResponse */) -> bool {
     return !isCancelled();
   };
-  auto result = co_await (
-      isStats() ? client_->co_publishOperStatsDelta(createRequest())
-                : client_->co_publishOperStateDelta(createRequest()));
+  // Workaround for GCC coroutine bug: Keep the request alive and materialize
+  // the Task before co_await to prevent premature destruction.
+  auto request = createRequest();
+  auto task = isStats() ? client_->co_publishOperStatsDelta(request)
+                        : client_->co_publishOperStateDelta(request);
+  auto result = co_await std::move(task);
+
   initResponseReceiver(result.response);
+
   co_return std::move(result.sink);
 }
 

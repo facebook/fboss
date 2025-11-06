@@ -290,6 +290,14 @@ class FakeSwitch {
     return tamObjectId_;
   }
 
+  void setPfcMonitorEnable(bool enable) {
+    pfcMonitorEnable_ = enable;
+  }
+
+  bool getPfcMonitorEnable() {
+    return pfcMonitorEnable_;
+  }
+
   sai_object_id_t id;
 
   sai_status_t setLed(const sai_attribute_t* attr);
@@ -343,6 +351,7 @@ class FakeSwitch {
   uint32_t creditWatchDogMs_{500};
   sai_packet_action_t pfcDlrPacketAction_{SAI_PACKET_ACTION_DROP};
   sai_object_id_t tamObjectId_{SAI_NULL_OBJECT_ID};
+  bool pfcMonitorEnable_{false};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

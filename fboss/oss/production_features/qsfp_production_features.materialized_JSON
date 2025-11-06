@@ -50,6 +50,10 @@
         7,
         8
     ],
+    "icetea800bc": [
+        7,
+        8
+    ],
     "janga800bic": [
         7,
         8
@@ -91,6 +95,10 @@
         8
     ],
     "tahan800bc": [
+        7,
+        8
+    ],
+    "tahansb800bc": [
         7,
         8
     ],
@@ -162,6 +170,10 @@
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],
+    "icetea800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
     "janga800bic": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
@@ -203,6 +215,10 @@
         "BMC_LITE"
     ],
     "tahan800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "tahansb800bc": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],

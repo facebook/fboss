@@ -1009,8 +1009,10 @@ void Selector::restoreState() {
   auto targetLagID = LinkAggregationGroupID::from(
       controller_.actorInfo(), controller_.partnerInfo());
 
-  Selector::portToSelection().insert(std::make_pair(
-      controller_.portID(), Selection(targetLagID, SelectionState::SELECTED)));
+  Selector::portToSelection().insert(
+      std::make_pair(
+          controller_.portID(),
+          Selection(targetLagID, SelectionState::SELECTED)));
 
   XLOG(DBG4) << "Selection[" << controller_.portID() << "]: selected "
              << targetLagID.describe();

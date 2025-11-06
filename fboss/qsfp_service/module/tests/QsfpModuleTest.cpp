@@ -62,14 +62,14 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
   void triggerPortsChanged(
       const TransceiverManager::OverrideTcvrToPortAndProfile&
           newTcvrToPortAndProfile,
-      bool needResetDataPath = false) {
+      bool resetDataPath = false) {
     transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
         newTcvrToPortAndProfile);
     // Refresh once to trigger iphy
     transceiverManager_->refreshStateMachines();
     // Then we can call programTransceiver() directly so that we can check the
     // error case
-    transceiverManager_->programTransceiver(kTcvrID, needResetDataPath);
+    transceiverManager_->programTransceiver(kTcvrID, resetDataPath);
   }
 
   NiceMock<MockTransceiverImpl>* transImpl_;

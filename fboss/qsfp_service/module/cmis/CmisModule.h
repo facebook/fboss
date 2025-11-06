@@ -7,6 +7,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <optional>
@@ -92,6 +93,7 @@ class CmisModule : public QsfpModule {
   static constexpr int kMaxOsfpNumLanes = 8;
   static constexpr int kHostInterfaceCodeOffset = 0;
   static constexpr int kMediaInterfaceCodeOffset = 1;
+  static constexpr int32_t kDefaultFrequencyMhz = 193100000;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -242,6 +244,18 @@ class CmisModule : public QsfpModule {
    */
   virtual void setPowerOverrideIfSupportedLocked(
       PowerControlState currentState) override;
+  /*
+   * Program the tunable optics module
+   * Program following parameters
+   *    1. Frequency
+   *    2. Tx Power - TODO
+   *
+   * Convert the C or L band frequency and grid
+   * to Grid channel number. If channel number is provided directly
+   * pass the channel number directly
+   */
+  void programTunableModule(
+      const cfg::OpticalChannelConfig& opticalChannelConfig);
   /*
    * Set appropriate application code for PortSpeed, if supported
    */
@@ -469,6 +483,11 @@ class CmisModule : public QsfpModule {
    * returns whether optics frequency is tunable or not
    */
   bool isTunableOptics() const;
+
+  /*
+   * returns the tunable optics laser status and laser frequency
+   */
+  std::optional<TunableLaserStatus> getTunableLaserStatus() override;
   /*
    * Returns the ApplicationAdvertisingField corresponding to the application or
    * nullopt if it doesn't exist
@@ -589,6 +608,14 @@ class CmisModule : public QsfpModule {
   MediaInterfaceCode getModuleMediaInterface() const override;
 
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
+
+  /*
+   * Check if the datapath for the specified lanes has been updated to one of
+   * the desired states
+   */
+  bool isDatapathUpdated(
+      uint8_t laneMask,
+      const std::vector<CmisLaneState>& states);
 
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =

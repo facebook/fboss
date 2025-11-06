@@ -122,6 +122,35 @@ cpp_library(
 )
 
 cpp_library(
+    name = "sai_phy_retimer",
+    srcs = [
+        "SaiPhyRetimer.cpp",
+    ],
+    headers = [
+        "SaiPhyRetimer.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":external_phy",
+        ":phy-cpp2-types",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:hwswitchcallback",
+        "//fboss/agent:packet",
+        "//fboss/agent/hw/sai/api:sai_api-fake",
+        "//fboss/agent/hw/sai/api:sai_types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/if:multiswitch_ctrl-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/bsp:bsp_core",
+        "//fboss/mdio:mdio",
+        "//folly:conv",
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "phy_management_base",
     srcs = [
         "PhyManager.cpp",

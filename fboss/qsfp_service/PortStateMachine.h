@@ -49,8 +49,7 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, xphyNeedResetDataPath)
 
 BOOST_MSM_EUML_ACTION(updatePortCache){
     template <class Event, class Fsm, class State>
-    void
-    operator()(const Event& /* event */, Fsm& fsm, State& currState)
+    void operator()(const Event& /* event */, Fsm & fsm, State & currState)
         const {auto portId = fsm.get_attribute(portID);
 auto portMgr = fsm.get_attribute(portMgrPtr);
 auto newState = portStateToStateEnum(currState);
@@ -112,12 +111,14 @@ PortStateMachineState portStateToStateEnum(State& /* state */) {
 
 BOOST_MSM_EUML_ACTION(portLogStateChanged){
     template <class Event, class Fsm, class Source, class Target>
-    void
-    operator()(
+    void operator()(
         const Event& /* event */,
-        Fsm& fsm,
-        Source& source,
-        Target& target) const {auto portId = fsm.get_attribute(portID);
+        Fsm &
+            fsm,
+        Source &
+            source,
+        Target &
+            target) const {auto portId = fsm.get_attribute(portID);
 auto name = fsm.get_attribute(portName);
 XLOG(DBG2) << "[Port: " << name << ", PortID: " << portId
            << "] State changed from "
@@ -130,10 +131,10 @@ XLOG(DBG2) << "[Port: " << name << ", PortID: " << portId
 
 BOOST_MSM_EUML_ACTION(portProgramIphyPorts){
     template <class Event, class Fsm, class Source, class Target>
-    bool
-    operator()(
+    bool operator()(
         const Event& /* ev */,
-        Fsm& fsm,
+        Fsm &
+            fsm,
         Source& /* src */,
         Target& /* trg */){auto portId = fsm.get_attribute(portID);
 auto name = fsm.get_attribute(portName);
@@ -168,10 +169,10 @@ try {
 
 BOOST_MSM_EUML_ACTION(portProgramXphyPorts){
     template <class Event, class Fsm, class Source, class Target>
-    bool
-    operator()(
+    bool operator()(
         const Event& /* ev */,
-        Fsm& fsm,
+        Fsm &
+            fsm,
         Source& /* src */,
         Target& /* trg */){auto portId = fsm.get_attribute(portID);
 auto name = fsm.get_attribute(portName);
@@ -207,10 +208,10 @@ try {
 
 BOOST_MSM_EUML_ACTION(checkTransceiversProgrammed){
     template <class Event, class Fsm, class Source, class Target>
-    bool
-    operator()(
+    bool operator()(
         const Event& /* ev */,
-        Fsm& fsm,
+        Fsm &
+            fsm,
         Source& /* src */,
         Target& /* trg */){auto portId = fsm.get_attribute(portID);
 auto portMgr = fsm.get_attribute(portMgrPtr);
@@ -218,7 +219,11 @@ if (!portMgr) {
   return false;
 }
 
-return portMgr->arePortTcvrsProgrammed(portId);
+if (portMgr->arePortTcvrsProgrammed(portId)) {
+  fsm.get_attribute(xphyNeedResetDataPath) = false;
+  return true;
+}
+return false;
 }
 }
 ;

@@ -73,6 +73,11 @@ class MultiHwSwitchHandler {
       PortID portID,
       std::optional<uint8_t> queue = std::nullopt) noexcept;
 
+  bool sendPacketOutOfPortSyncForPktType(
+      std::unique_ptr<TxPacket> pkt,
+      const PortID& portID,
+      TxPacketType packetType) noexcept;
+
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept;
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;

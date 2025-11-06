@@ -22,10 +22,15 @@ FsdbPatchPublisher::setupStream() {
       [&](const OperPubInitResponse& /* initResponse */) -> bool {
     return !isCancelled();
   };
-  auto result = co_await (
-      isStats() ? client_->co_publishStats(createRequest())
-                : client_->co_publishState(createRequest()));
+  // Workaround for GCC coroutine bug: Keep the request alive and materialize
+  // the Task before co_await to prevent premature destruction.
+  auto request = createRequest();
+  auto task = isStats() ? client_->co_publishStats(request)
+                        : client_->co_publishState(request);
+  auto result = co_await std::move(task);
+
   initResponseReceiver(result.response);
+
   co_return std::move(result.sink);
 }
 

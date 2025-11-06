@@ -363,18 +363,19 @@ cfg::SwitchConfig testConfigBImpl() {
     auto maxPort = (switchIndex == 0) ? 12 : 28;
     CHECK(!myNode.systemPortRanges()->systemPortRanges()->empty());
     auto sysPortRange = *myNode.systemPortRanges()->systemPortRanges()->begin();
-    cfg.switchSettings()->switchIdToSwitchInfo()->emplace(std::make_pair(
-        switchId,
-        createSwitchInfo(
-            cfg::SwitchType::VOQ,
-            cfg::AsicType::ASIC_TYPE_MOCK,
-            minPort, /* port id range min */
-            maxPort, /* port id range max */
-            switchIndex, /* switchIndex */
-            *sysPortRange.minimum(),
-            *sysPortRange.maximum(),
-            "02:00:00:00:0F:0B", /* switchMac */
-            "68:00" /* connection handle */)));
+    cfg.switchSettings()->switchIdToSwitchInfo()->emplace(
+        std::make_pair(
+            switchId,
+            createSwitchInfo(
+                cfg::SwitchType::VOQ,
+                cfg::AsicType::ASIC_TYPE_MOCK,
+                minPort, /* port id range min */
+                maxPort, /* port id range max */
+                switchIndex, /* switchIndex */
+                *sysPortRange.minimum(),
+                *sysPortRange.maximum(),
+                "02:00:00:00:0F:0B", /* switchMac */
+                "68:00" /* connection handle */)));
   }
 
   auto switchId2SwitchInfo = *cfg.switchSettings()->switchIdToSwitchInfo();
@@ -923,8 +924,9 @@ unique_ptr<HwTestHandle> createTestHandle(
       switchIdToSwitchInfo = *config->switchSettings()->switchIdToSwitchInfo();
 
     } else {
-      switchIdToSwitchInfo.emplace(std::make_pair(
-          0, createSwitchInfo(*config->switchSettings()->switchType())));
+      switchIdToSwitchInfo.emplace(
+          std::make_pair(
+              0, createSwitchInfo(*config->switchSettings()->switchType())));
     }
   } else {
     switchIdToSwitchInfo.emplace(
@@ -1338,8 +1340,9 @@ getUcmpNextHops(int maxWidth, int numGroups, uint32_t seed) {
       }
       groupWeight += ucmpWeight;
       ecmpNexthopsCur.insert(ResolvedNextHop(
-          folly::IPAddress(folly::to<std::string>(
-              firstOctet, ".", secondOctet, ".1.", j + 1)),
+          folly::IPAddress(
+              folly::to<std::string>(
+                  firstOctet, ".", secondOctet, ".1.", j + 1)),
           InterfaceID(j + 1),
           ucmpWeight));
       if (groupWeight == maxWidth) {

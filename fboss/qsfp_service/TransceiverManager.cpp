@@ -3312,8 +3312,9 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
   // Get the Transceiver ID
   auto tcvrId = getTransceiverID(portId);
   if (!tcvrId.has_value()) {
-    throw FbossError(folly::sformat(
-        "setInterfaceTxRx: Transceiver not found for port {}", portName));
+    throw FbossError(
+        folly::sformat(
+            "setInterfaceTxRx: Transceiver not found for port {}", portName));
   }
 
   auto lockedTransceivers = transceivers_.rlock();
@@ -3378,14 +3379,16 @@ std::vector<phy::TxRxEnableResponse> TransceiverManager::setInterfaceTxRx(
     }
     if (component != phy::PortComponent::TRANSCEIVER_LINE &&
         component != phy::PortComponent::TRANSCEIVER_SYSTEM) {
-      throw FbossError(folly::sformat(
-          "TransceiverManager::setInterfaceTxRx - component not supported {}",
-          apache::thrift::util::enumNameSafe(component)));
+      throw FbossError(
+          folly::sformat(
+              "TransceiverManager::setInterfaceTxRx - component not supported {}",
+              apache::thrift::util::enumNameSafe(component)));
     }
     if (direction == phy::Direction::RECEIVE) {
-      throw FbossError(folly::sformat(
-          "setInterfaceTxRx: Transceiver Rx lane control not implemented for {}",
-          portName));
+      throw FbossError(
+          folly::sformat(
+              "setInterfaceTxRx: Transceiver Rx lane control not implemented for {}",
+              portName));
     }
 
     XLOG(INFO) << folly::sformat(
@@ -3394,8 +3397,9 @@ std::vector<phy::TxRxEnableResponse> TransceiverManager::setInterfaceTxRx(
     // Get Transceiver ID for this SW Port
     auto tcvrId = getTransceiverID(swPort.value());
     if (!tcvrId.has_value()) {
-      throw FbossError(folly::sformat(
-          "setInterfaceTxRx: Transceiver not found for port {}", portName));
+      throw FbossError(
+          folly::sformat(
+              "setInterfaceTxRx: Transceiver not found for port {}", portName));
     }
 
     // Finally call the transceiver object with SW Port channel list and
@@ -3443,9 +3447,10 @@ void TransceiverManager::getSymbolErrorHistogram(
   // Get Transceiver ID for this SW Port
   auto tcvrId = getTransceiverID(swPort.value());
   if (!tcvrId.has_value()) {
-    throw FbossError(folly::sformat(
-        "getSymbolErrorHistogram: Transceiver not found for port {}",
-        portName));
+    throw FbossError(
+        folly::sformat(
+            "getSymbolErrorHistogram: Transceiver not found for port {}",
+            portName));
   }
 
   // Finally call the transceiver object with for symbol error get function

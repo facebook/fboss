@@ -249,9 +249,10 @@ class BgpIntegrationTest : public AgentIntegrationTest {
         std::for_each(
             routeChunk.begin(), routeChunk.end(), [&](const auto& route) {
               auto ip = *route.dest()->ip();
-              auto addr = folly::IPAddress::fromBinary(folly::ByteRange(
-                  reinterpret_cast<const unsigned char*>(ip.addr()->data()),
-                  ip.addr()->size()));
+              auto addr = folly::IPAddress::fromBinary(
+                  folly::ByteRange(
+                      reinterpret_cast<const unsigned char*>(ip.addr()->data()),
+                      ip.addr()->size()));
               if (addr.isV6()) {
                 checkRoute(addr.asV6(), *route.dest()->prefixLength(), true);
               } else {

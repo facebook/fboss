@@ -270,6 +270,7 @@ TEST_F(AgentVoqSwitchVendorSwitchInterruptTest, blockLevelErrorInterruptsTest) {
     bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 0);
   }
 )";
+    bool hardResetNotifSeen = false;
     WITH_RETRIES({
       runCint(kTriggerBlockWiseInterruptsCintStr);
       auto asicErrors = getVoqAsicErrors();
@@ -313,6 +314,22 @@ TEST_F(AgentVoqSwitchVendorSwitchInterruptTest, blockLevelErrorInterruptsTest) {
         EXPECT_EVENTUALLY_GT(networkInterfaceErrors, 0);
       }
     });
+    // Make sure that hard reset notification callback is working as expected!
+    // Hard reset notification callback should result from the interrupt ID
+    // 1952 used in this test.
+    for (const auto& [switchId, asic] : getAsics()) {
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+      int hardResetNotificationReceived =
+          *getSw()
+               ->getHwSwitchStatsExpensive()[switchIndex]
+               .hardResetStats()
+               ->hard_reset_notification_received();
+      if (hardResetNotificationReceived) {
+        hardResetNotifSeen = true;
+      }
+    }
+    EXPECT_TRUE(hardResetNotifSeen);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }

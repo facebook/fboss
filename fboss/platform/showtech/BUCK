@@ -8,10 +8,7 @@ thrift_library(
     languages = [
         "cpp2",
     ],
-    thrift_cpp2_options = [
-        "json",
-        "reflection",
-    ],
+    thrift_cpp2_options = ["json"],
     thrift_srcs = {"showtech_config.thrift": []},
 )
 

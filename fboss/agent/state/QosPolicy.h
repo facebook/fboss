@@ -97,6 +97,14 @@ class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
       : TrafficClassToQosAttributeMap(map) {}
 };
 
+class PcpMap : public TrafficClassToQosAttributeMap<PCP> {
+ public:
+  PcpMap() = default;
+  explicit PcpMap(const std::vector<cfg::PcpQosMap>& cfg);
+  explicit PcpMap(const state::TrafficClassToQosAttributeMap& map)
+      : TrafficClassToQosAttributeMap(map) {}
+};
+
 USE_THRIFT_COW(QosPolicy)
 
 class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
@@ -106,11 +114,13 @@ class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
       const std::string& name,
       DscpMap dscpMap,
       ExpMap expMap = ExpMap(std::vector<cfg::ExpQosMap>{}),
-      std::map<int16_t, int16_t> trafficClassToQueueId = {}) {
+      const std::map<int16_t, int16_t> trafficClassToQueueId = {},
+      std::optional<PcpMap> pcpMap = std::nullopt) {
     set<switch_state_tags::name>(name);
     setDscpMap(std::move(dscpMap));
     setExpMap(std::move(expMap));
     setTrafficClassToQueueIdMap(std::move(trafficClassToQueueId));
+    setPcpMap(std::move(pcpMap));
   }
 
   const std::string& getName() const {
@@ -131,6 +141,13 @@ class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
 
   const auto& getExpMap() const {
     return cref<switch_state_tags::expMap>();
+  }
+
+  std::optional<PcpMap> getPcpMap() const {
+    if (auto pcpMapData = safe_cref<switch_state_tags::pcpMap>()) {
+      return PcpMap(pcpMapData->toThrift());
+    }
+    return std::nullopt;
   }
 
   const auto& getTrafficClassToQueueId() const {
@@ -155,6 +172,14 @@ class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
 
   void setExpMap(ExpMap expMap) {
     set<switch_state_tags::expMap>(expMap.data());
+  }
+
+  void setPcpMap(std::optional<PcpMap> pcpMap) {
+    if (pcpMap) {
+      set<switch_state_tags::pcpMap>(pcpMap->data());
+    } else {
+      ref<switch_state_tags::pcpMap>().reset();
+    }
   }
 
   void setTrafficClassToQueueIdMap(const std::map<int16_t, int16_t>& tc2Q) {

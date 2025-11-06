@@ -188,14 +188,16 @@ class FsdbSubscriber : public FsdbSubscriberBase {
               handleConnectionState(oldState, newState);
             }),
         operSubUnitUpdate_(operSubUnitUpdate),
-        subscribeLatencyMetric_(folly::sformat(
-            "{}.{}",
-            getCounterPrefix(),
-            kSubscribeLatencyMetric)),
-        clientPubsubLatencyMetric_(folly::sformat(
-            "FsdbClient.{}.{}",
-            (options.subscribeStats_ ? "stats" : "state"),
-            kSubscribeLatencyMetric)),
+        subscribeLatencyMetric_(
+            folly::sformat(
+                "{}.{}",
+                getCounterPrefix(),
+                kSubscribeLatencyMetric)),
+        clientPubsubLatencyMetric_(
+            folly::sformat(
+                "FsdbClient.{}.{}",
+                (options.subscribeStats_ ? "stats" : "state"),
+                kSubscribeLatencyMetric)),
         subscribePaths_(subscribePaths),
         subscriptionOptions_(std::move(options)),
         subscriptionState_(
@@ -205,9 +207,10 @@ class FsdbSubscriber : public FsdbSubscriberBase {
         connectionStateChangeCb_(connectionStateChangeCb),
         subscriptionStateChangeCb_(stateChangeCb),
         heartbeatCb_(heartbeatCb),
-        staleStateTimer_(folly::AsyncTimeout::make(
-            *streamEvb,
-            [this]() noexcept { staleStateTimeoutExpired(); })) {
+        staleStateTimer_(
+            folly::AsyncTimeout::make(*streamEvb, [this]() noexcept {
+              staleStateTimeoutExpired();
+            })) {
     if (subscriptionOptions_.grHoldTimeSec_ > 0) {
       scheduleStaleStateTimeout();
     }

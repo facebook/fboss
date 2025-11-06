@@ -91,6 +91,10 @@ class SimSwitch : public HwSwitch {
     return HwSwitchTemperatureStats{};
   }
 
+  HwSwitchHardResetStats getHwSwitchHardResetStats() const override {
+    return HwSwitchHardResetStats{};
+  }
+
   HwResourceStats getResourceStats() const override {
     return HwResourceStats{};
   }
@@ -103,7 +107,8 @@ class SimSwitch : public HwSwitch {
     return {};
   }
 
-  void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
+  void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/, bool /*sdk*/)
+      const override {
     return;
   }
 

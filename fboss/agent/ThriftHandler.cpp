@@ -831,7 +831,7 @@ void ThriftHandler::syncFibInVrf(
   }
   // Only route updates in first syncFib for each client are logged
   auto firstClientSync =
-      syncedFibClients.find(client) == syncedFibClients.end();
+      syncedFibClients_.find(client) == syncedFibClients_.end();
   auto clientIdentifier = "fboss-agent-warmboot-" + clientName;
   if (firstClientSync && sw_->getBootType() == BootType::WARM_BOOT) {
     sw_->logRouteUpdates("::", 0, clientIdentifier);
@@ -848,7 +848,7 @@ void ThriftHandler::syncFibInVrf(
     sw_->setFibSyncTimeForClient(clientId);
   }
 
-  syncedFibClients.emplace(client);
+  syncedFibClients_.emplace(client);
 }
 
 void ThriftHandler::syncFib(
@@ -928,6 +928,11 @@ static void populateInterfaceDetail(
   }
 
   interfaceDetail.scope() = intf->getScope();
+
+  if (intf->getDesiredPeerAddressIPv6().has_value()) {
+    interfaceDetail.desiredPeerAddressIPv6() =
+        intf->getDesiredPeerAddressIPv6().value();
+  }
 }
 
 void ThriftHandler::getAllInterfaces(
@@ -1341,10 +1346,11 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
   for (const auto& [path, jsonPatch] : *pathToJsonPatch) {
     if (path == "remoteSystemPortMaps") {
       MultiSwitchSystemPortMap mswitchSysPorts;
-      mswitchSysPorts.fromThrift(thrift_cow::deserialize<
-                                 MultiSwitchSystemPortMapTypeClass,
-                                 MultiSwitchSystemPortMapThriftType>(
-          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      mswitchSysPorts.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchSystemPortMapTypeClass,
+              MultiSwitchSystemPortMapThriftType>(
+              fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
       for (const auto& systemPortMap : mswitchSysPorts) {
         // A given port belongs to exactly one switch
         auto matcher = HwSwitchMatcher(systemPortMap.first);
@@ -1352,10 +1358,11 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
       }
     } else if (path == "remoteInterfaceMaps") {
       MultiSwitchInterfaceMap mswitchIntfs;
-      mswitchIntfs.fromThrift(thrift_cow::deserialize<
-                              MultiSwitchInterfaceMapTypeClass,
-                              MultiSwitchInterfaceMapThriftType>(
-          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      mswitchIntfs.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchInterfaceMapTypeClass,
+              MultiSwitchInterfaceMapThriftType>(
+              fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
       for (const auto& remoteIntfMap : mswitchIntfs) {
         auto matcher = HwSwitchMatcher(remoteIntfMap.first);
         // Pick first switchId for now, may need to revise when we support
@@ -2003,11 +2010,12 @@ void ThriftHandler::getRouteCounterBytes(
   for (const auto& statName : *counters) {
     // returns default stat if statName does not exists
     auto statPtr = statMap->getStatPtrNoExport(statName);
-    auto lockedStatPtr = statPtr->lock();
+    auto lockedStatPtr = statPtr->wlock();
+    lockedStatPtr->update(seconds(facebook::fb303::get_legacy_stats_time()));
     auto numLevels = lockedStatPtr->numLevels();
     // Cumulative (ALLTIME) counters are at (numLevels - 1)
     auto value = lockedStatPtr->sum(numLevels - 1);
-    routeCounters.insert(make_pair(statName, value));
+    routeCounters.try_emplace(statName, value);
   }
 }
 

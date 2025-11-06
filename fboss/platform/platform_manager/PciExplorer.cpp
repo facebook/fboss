@@ -57,7 +57,7 @@ bool checkDeviceReadinessWithTimeout(
 fbiob_aux_data getAuxData(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
-  struct fbiob_aux_data auxData {};
+  struct fbiob_aux_data auxData{};
   strcpy(auxData.id.name, fpgaIpBlockConfig.deviceName()->c_str());
   auxData.id.id = instanceId;
   if (!fpgaIpBlockConfig.csrOffset()->empty()) {
@@ -126,14 +126,15 @@ void PciDevice::checkSysfsReadiness() {
     }
   }
   if (sysfsPath_.empty()) {
-    throw std::runtime_error(fmt::format(
-        "No sysfs path found for {} with vendorId: {}, deviceId: {}, "
-        "subSystemVendorId: {}, subSystemDeviceId: {}",
-        name_,
-        vendorId_,
-        deviceId_,
-        subSystemVendorId_,
-        subSystemDeviceId_));
+    throw std::runtime_error(
+        fmt::format(
+            "No sysfs path found for {} with vendorId: {}, deviceId: {}, "
+            "subSystemVendorId: {}, subSystemDeviceId: {}",
+            name_,
+            vendorId_,
+            deviceId_,
+            subSystemVendorId_,
+            subSystemDeviceId_));
   }
 }
 
@@ -155,11 +156,12 @@ void PciDevice::bindDriver(const std::string& desiredDriver) {
 
   fs::path desiredDriverPath = fs::path("/sys/bus/pci/drivers") / desiredDriver;
   if (!fs::exists(desiredDriverPath)) {
-    throw std::runtime_error(fmt::format(
-        "Failed to bind driver {} to device {}: {} does not exist",
-        desiredDriver,
-        name_,
-        desiredDriverPath.string()));
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to bind driver {} to device {}: {} does not exist",
+            desiredDriver,
+            name_,
+            desiredDriverPath.string()));
   }
 
   // Add PCI device ID to the driver's "new_id" file. Check below doc for
@@ -198,13 +200,14 @@ void PciDevice::checkCharDevReadiness() {
               name_,
               kPciWaitSecs.count()),
           kPciWaitSecs)) {
-    throw std::runtime_error(fmt::format(
-        "No character device found at {} for {}. This could either mean the "
-        "FPGA does not show up as PCI device (see lspci output), or the kmods "
-        "are not setting up the character device for the PCI device at {}.",
-        charDevPath_,
-        name_,
-        charDevPath_));
+    throw std::runtime_error(
+        fmt::format(
+            "No character device found at {} for {}. This could either mean the "
+            "FPGA does not show up as PCI device (see lspci output), or the kmods "
+            "are not setting up the character device for the PCI device at {}.",
+            charDevPath_,
+            name_,
+            charDevPath_));
   }
   XLOG(INFO) << fmt::format(
       "Found character device {} for {}", charDevPath_, name_);
@@ -300,8 +303,8 @@ std::vector<LedCtrlConfig> PciExplorer::createLedCtrlConfigs(
             Utils().computeHexExpression(
                 *ledCtrlConfigBlock.csrOffsetCalc(),
                 port,
-                led,
-                *ledCtrlConfigBlock.startPort());
+                *ledCtrlConfigBlock.startPort(),
+                led);
         ledCtrlConfig.portNumber() = port;
         ledCtrlConfig.ledId() = led;
         ledCtrlConfigs.push_back(ledCtrlConfig);
@@ -495,8 +498,9 @@ std::vector<uint16_t> PciExplorer::getI2cAdapterBusNums(
                 "{} does not exist or not a symlink.", channelFile.string()),
             *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
       }
-      busNumbers.push_back(I2cExplorer().extractBusNumFromPath(
-          fs::read_symlink(channelFile).filename()));
+      busNumbers.push_back(
+          I2cExplorer().extractBusNumFromPath(
+              fs::read_symlink(channelFile).filename()));
     }
     return busNumbers;
   } else {

@@ -7,7 +7,6 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
@@ -97,9 +96,10 @@ DsfSubscription::DsfSubscription(
           getConnectionOptions(localIp.str(), remoteIp.str()),
           reconnectEvb,
           subscriberEvb)),
-      validator_(std::make_unique<DsfUpdateValidator>(
-          sw->getSwitchInfoTable().getSwitchIDs(),
-          remoteNodeSwitchIds)),
+      validator_(
+          std::make_unique<DsfUpdateValidator>(
+              sw->getSwitchInfoTable().getSwitchIDs(),
+              remoteNodeSwitchIds)),
       localNodeName_(std::move(localNodeName)),
       remoteNodeName_(std::move(remoteNodeName)),
       remoteNodeSwitchIds_(std::move(remoteNodeSwitchIds)),
@@ -284,17 +284,19 @@ void DsfSubscription::handleFsdbUpdate(fsdb::OperSubPathUnit&& operStateUnit) {
     // Process the actual state changes
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got sys port update from : " << remoteNodeName_;
-      curMswitchSysPorts_.fromThrift(thrift_cow::deserialize<
-                                     MultiSwitchSystemPortMapTypeClass,
-                                     MultiSwitchSystemPortMapThriftType>(
-          fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      curMswitchSysPorts_.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchSystemPortMapTypeClass,
+              MultiSwitchSystemPortMapThriftType>(
+              fsdb::OperProtocol::BINARY, *change.state()->contents()));
       portsOrIntfsChanged = true;
     } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << "Got rif update from : " << remoteNodeName_;
-      curMswitchIntfs_.fromThrift(thrift_cow::deserialize<
-                                  MultiSwitchInterfaceMapTypeClass,
-                                  MultiSwitchInterfaceMapThriftType>(
-          fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      curMswitchIntfs_.fromThrift(
+          thrift_cow::deserialize<
+              MultiSwitchInterfaceMapTypeClass,
+              MultiSwitchInterfaceMapThriftType>(
+              fsdb::OperProtocol::BINARY, *change.state()->contents()));
       portsOrIntfsChanged = true;
     } else if (getDsfSubscriptionsPath(
                    makeRemoteEndpoint(localNodeName_, localIp_))
@@ -566,7 +568,14 @@ void DsfSubscription::processGRHoldTimerExpired() {
     return std::shared_ptr<SwitchState>{};
   };
 
-  hwUpdateEvb_->runInEventBaseThread(
-      [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
+  {
+    // Hold the lock while enqueueing the GR expiry update. This is to avoid
+    // another DSF update comes in at the same time and not being enqueued
+    // because of the non-null nextDsfUpdate_.
+    auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+    hwUpdateEvb_->runInEventBaseThread(
+        [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
+    nextDsfUpdateWlock->reset();
+  }
 }
 } // namespace facebook::fboss

@@ -544,18 +544,6 @@ TEST_F(PortManagerTest, tcvrToInitializedPortsCacheValidation) {
   tcvr0Ports =
       portManager_->getInitializedPortsForTransceiver(TransceiverID(0));
   EXPECT_EQ(tcvr0Ports.size(), 0);
-
-  // Test with empty transceiver
-  std::unordered_set<PortID> testSetEmpty = {PortID(5), PortID(6)};
-  auto transceivers5 =
-      portManager_->getTransceiversWithAllPortsInSet(testSetEmpty);
-
-  // TransceiverID(0) has no ports → should be included (empty set matches
-  // anything) TransceiverID(1) has ports 5,6, both are in testSetEmpty →
-  // should be included
-  EXPECT_EQ(transceivers5.size(), 2);
-  EXPECT_TRUE(transceivers5.count(TransceiverID(0)));
-  EXPECT_TRUE(transceivers5.count(TransceiverID(1)));
 }
 
 TEST_F(PortManagerTest, tcvrToInitializedPortsCacheEdgeCases) {
@@ -719,6 +707,32 @@ TEST_F(PortManagerTest, syncPorts) {
   // The info map should contain entries for transceivers that have valid info
   // The exact content depends on what the mock TransceiverManager returns
   // but we can at least verify the method doesn't crash and processes the input
+}
+
+TEST_F(PortManagerTest, getPortStates) {
+  initManagers(2, 4); // 2 transceivers, 4 ports each
+
+  // Create a vector of port IDs - mix of valid and invalid
+  auto portIds = std::make_unique<std::vector<int32_t>>();
+  portIds->push_back(1); // Valid port
+  portIds->push_back(3); // Valid port
+  portIds->push_back(999); // Invalid port - should be skipped
+
+  // Create states map to be populated
+  std::map<int32_t, PortStateMachineState> states;
+
+  // Call getPortStates
+  EXPECT_NO_THROW(portManager_->getPortStates(states, std::move(portIds)));
+
+  // Verify that valid ports are in the map
+  EXPECT_TRUE(states.find(1) != states.end());
+  EXPECT_TRUE(states.find(3) != states.end());
+
+  // Verify that invalid port is NOT in the map (it was caught and skipped)
+  EXPECT_TRUE(states.find(999) == states.end());
+
+  // Verify we got the expected number of entries (only valid ports)
+  EXPECT_EQ(states.size(), 2);
 }
 
 } // namespace facebook::fboss

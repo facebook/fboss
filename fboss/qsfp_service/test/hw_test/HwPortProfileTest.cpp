@@ -85,7 +85,8 @@ class HwPortProfileTest : public HwTest {
       for (auto& [port, profile] : ports.xphyPorts) {
         // Program the same port with the same profile twice, the second time
         // should be idempotent.
-        getHwQsfpEnsemble()->getWedgeManager()->programXphyPort(port, profile);
+        getHwQsfpEnsemble()->getQsfpServiceHandler()->programXphyPort(
+            port, profile);
       }
     };
     auto verify = [&]() {
@@ -113,7 +114,8 @@ class HwPortProfileTest : public HwTest {
             getHwQsfpEnsemble()->getWedgeManager()->getTransceiverID(port);
         CHECK(transceiverId.has_value());
         auto portName =
-            getHwQsfpEnsemble()->getWedgeManager()->getPortNameByPortId(port);
+            getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortNameByPortId(
+                port);
         CHECK(portName.has_value());
         portToTransceiverInfoMap[*portName] = transceivers[*transceiverId];
       }
@@ -181,6 +183,8 @@ TEST_PROFILE(PROFILE_800G_8_PAM4_RS544X2N_COPPER)
 TEST_PROFILE(PROFILE_400G_2_PAM4_RS544X2N_OPTICAL)
 
 TEST_PROFILE(PROFILE_200G_1_PAM4_RS544X2N_OPTICAL)
+
+TEST_PROFILE(PROFILE_100G_1_PAM4_RS544X2N_COPPER)
 
 // TODO: Enable when we have 800G Profile enabled
 // on Minipack3. Add test as known bad for other platforms.

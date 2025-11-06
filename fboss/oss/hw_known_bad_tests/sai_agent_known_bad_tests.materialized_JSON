@@ -2,9 +2,6 @@
   "known_bad_tests": {
     "brcm/10.0_ea_sim_odp/10.0_ea_sim_odp/tomahawk5/simulator/multi_switch": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -80,9 +77,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -90,9 +84,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -171,9 +162,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -243,6 +231,9 @@
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk/mono": [
@@ -299,9 +290,6 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -383,9 +371,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -466,9 +451,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -542,6 +524,9 @@
         },
         {
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
@@ -606,9 +591,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -684,9 +666,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -694,9 +673,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -777,9 +753,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -825,6 +798,9 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentMacOverFlowTest.*$"
         },
         {
@@ -832,9 +808,6 @@
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/mono": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -911,9 +884,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -984,9 +954,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -1127,6 +1094,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentMacOverFlowTest.*$"
         },
         {
@@ -1137,9 +1107,6 @@
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -1216,9 +1183,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -1226,9 +1190,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -1307,9 +1268,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -1418,6 +1376,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentMacOverFlowTest.*$"
@@ -1494,6 +1455,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -1578,9 +1542,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -1657,9 +1618,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -1811,6 +1769,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -1889,9 +1850,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -1899,9 +1857,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -1980,9 +1935,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -2026,9 +1978,6 @@
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/mono": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -2110,9 +2059,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -2189,9 +2135,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -2254,15 +2197,12 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/multi_switch": [
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -2340,9 +2280,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -2350,9 +2287,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -2431,9 +2365,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -2466,18 +2397,18 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/mono": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/ramon3/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -2554,9 +2485,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -2564,9 +2492,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -2645,9 +2570,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -2696,12 +2618,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -2782,9 +2704,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -2865,9 +2784,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -2928,7 +2844,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
@@ -2939,9 +2855,6 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -3017,9 +2930,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3027,9 +2937,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -3108,9 +3015,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -3143,7 +3047,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
@@ -3152,12 +3056,12 @@
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -3234,9 +3138,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3244,9 +3145,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -3325,9 +3223,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -3376,6 +3271,9 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/11.7.0.0_odp/11.7.0.0_odp/tomahawk5/mono": [
@@ -3434,9 +3332,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -3518,9 +3413,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -3597,9 +3489,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -3738,6 +3627,18 @@
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentSendPacketToMulticastQueueTest.SendPacketOutOfPortToMCQueue$"
@@ -3802,9 +3703,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -3880,9 +3778,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3890,9 +3785,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -3971,9 +3863,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -4084,6 +3973,18 @@
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -4107,9 +4008,6 @@
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -4189,9 +4087,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -4272,9 +4167,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -4335,14 +4227,11 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/mono/fap": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -4422,9 +4311,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -4505,9 +4391,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -4568,7 +4451,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -4585,9 +4468,6 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -4663,9 +4543,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -4673,9 +4550,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -4756,9 +4630,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -4789,7 +4660,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
@@ -4797,9 +4668,6 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -4875,9 +4743,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -4885,9 +4750,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -4968,9 +4830,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -5001,7 +4860,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -5016,23 +4875,29 @@
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe13": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/mono/fe2": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -5108,9 +4973,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5118,9 +4980,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -5201,9 +5060,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -5250,13 +5106,13 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe13": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -5332,9 +5188,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5342,9 +5195,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -5425,9 +5275,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -5474,13 +5321,13 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/12.2.0.0_dnx_odp/ramon3/multi_switch/fe2": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -5556,9 +5403,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5566,9 +5410,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -5649,9 +5490,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -5698,12 +5536,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/mono": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -5786,9 +5624,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -5865,9 +5700,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -5930,7 +5762,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -5938,9 +5770,6 @@
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/jericho3/mono/fap": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -6020,9 +5849,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -6103,9 +5929,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -6166,7 +5989,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -6186,9 +6009,6 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -6264,9 +6084,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -6274,9 +6091,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -6357,9 +6171,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -6390,7 +6201,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -6401,9 +6212,6 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -6479,9 +6287,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -6489,9 +6294,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -6572,9 +6374,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -6605,7 +6404,7 @@
           "test_name_regex": "AgentVoqSwitchTest.verifyDramBufferQuarantine"
         },
         {
-          "test_name_regex": "AgentCoppTest/0.CpuPortIpv6LinkLocalUcastIp"
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -6623,22 +6422,28 @@
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/mono": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/mono/fe13": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/mono/fe2": [
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -6715,9 +6520,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -6725,9 +6527,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -6806,9 +6605,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -6860,13 +6656,13 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/multi_switch/fe13": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -6942,9 +6738,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -6952,9 +6745,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -7035,9 +6825,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -7084,13 +6871,13 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/13.0_ea_dnx_odp/13.0_ea_dnx_odp/ramon3/multi_switch/fe2": [
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -7166,9 +6953,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -7176,9 +6960,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -7259,9 +7040,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -7308,12 +7086,12 @@
         },
         {
           "test_name_regex": "AgentFabricSwitchTest.verifySourceRoutedCellHandling$"
+        },
+        {
+          "test_name_regex": "AgentFabricSwitchSelfLoopTest.portDrained$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk3/mono": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -7390,9 +7168,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -7463,9 +7238,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -7604,12 +7376,12 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk3/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -7686,9 +7458,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -7696,9 +7465,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -7777,9 +7543,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -7888,6 +7651,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk4/mono": [
@@ -7958,6 +7724,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -8042,9 +7811,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -8121,9 +7887,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -8266,6 +8029,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -8344,9 +8110,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -8354,9 +8117,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -8435,9 +8195,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -8526,9 +8283,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -8610,9 +8364,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -8689,9 +8440,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -8830,6 +8578,18 @@
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         }
     ],
     "brcm/13.0_ea_odp/13.0_ea_odp/tomahawk5/multi_switch": [
@@ -8888,9 +8648,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -8966,9 +8723,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -8976,9 +8730,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -9057,9 +8808,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -9170,6 +8918,18 @@
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -9186,9 +8946,6 @@
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/mono": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -9265,9 +9022,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -9338,9 +9092,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -9479,12 +9230,12 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk3/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -9561,9 +9312,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9571,9 +9319,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -9652,9 +9397,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -9763,6 +9505,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk4/mono": [
@@ -9833,6 +9578,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -9917,9 +9665,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -9996,9 +9741,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -10141,6 +9883,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -10219,9 +9964,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -10229,9 +9971,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -10310,9 +10049,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -10401,9 +10137,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -10485,9 +10218,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -10564,9 +10294,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -10705,6 +10432,18 @@
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         }
     ],
     "brcm/13.3.0.0_odp/13.3.0.0_odp/tomahawk5/multi_switch": [
@@ -10761,9 +10500,6 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -10841,9 +10577,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -10851,9 +10584,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -10932,9 +10662,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -11043,6 +10770,18 @@
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentAmIdlesTest.VerifyAmIdles$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentAmIdlesTest.VerifyAmIdles$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -11116,9 +10855,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -11200,9 +10936,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -11279,9 +11012,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -11429,6 +11159,12 @@
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         }
     ],
     "brcm/14.0_ea_odp/14.0_ea_odp/tomahawk6/multi_switch": [
@@ -11485,9 +11221,6 @@
         },
         {
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -11565,9 +11298,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -11575,9 +11305,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -11656,9 +11383,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -11776,6 +11500,12 @@
         },
         {
           "test_name_regex": "AgentIngressBufferTest.validatePGParamChange$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -11849,9 +11579,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -11931,9 +11658,6 @@
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -12014,9 +11738,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -12090,6 +11811,9 @@
         },
         {
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -12163,9 +11887,6 @@
           "test_name_regex": "AgentTrunkLoadBalancerTest.ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -12241,9 +11962,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -12251,9 +11969,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -12334,9 +12049,6 @@
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
-        },
-        {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
         },
         {
@@ -12382,6 +12094,9 @@
           "test_name_regex": "AgentMirroringScaleTest/[67].MaxMirroringTest$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -12398,9 +12113,6 @@
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk3/mono": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -12477,9 +12189,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -12550,9 +12259,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -12693,6 +12399,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -12709,9 +12418,6 @@
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk3/multi_switch": [
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
@@ -12788,9 +12494,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -12798,9 +12501,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -12879,9 +12579,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -12990,6 +12687,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ$"
@@ -13075,6 +12775,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -13159,9 +12862,6 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentNeighborTest/[4-7].*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
-        },
-        {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
         },
         {
@@ -13238,9 +12938,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -13425,6 +13122,9 @@
           "test_name_regex": "AgentAqmTest.verifyWredThreshold$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
@@ -13503,9 +13203,6 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13513,9 +13210,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentMacLearningAndNeighborResolutionTest/[0145].learnMacProgramNeighborsAndAgeMac$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -13594,9 +13288,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentLoopBackTest.VerifyLoopBackSrcEqualDstMac$"
@@ -13741,9 +13432,6 @@
           "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13823,9 +13511,6 @@
           "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
-        },
-        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13903,9 +13588,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -14051,6 +13733,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
@@ -14082,9 +13767,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -14299,6 +13981,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
@@ -14330,9 +14015,6 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].Ttl1PacketToLowPriQ$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -14408,9 +14090,6 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -14556,6 +14235,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -14599,9 +14281,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -14816,6 +14495,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -14859,9 +14541,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -14937,9 +14616,6 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -15133,9 +14809,6 @@
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
-          "test_name_regex": "AgentHwResourceStatsTest.l3Stats$"
-        },
-        {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
         },
         {
@@ -15145,10 +14818,7 @@
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
-        },
-        {
-          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+          "test_name_regex": "warm_boot.AgentPrbsTest.enablePortPrbs$"
         },
         {
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
@@ -15369,9 +15039,6 @@
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
-          "test_name_regex": "AgentHwResourceStatsTest.l3Stats$"
-        },
-        {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
         },
         {
@@ -15381,10 +15048,7 @@
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
-        },
-        {
-          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+          "test_name_regex": "warm_boot.AgentPrbsTest.enablePortPrbs$"
         },
         {
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
@@ -15605,9 +15269,6 @@
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
-          "test_name_regex": "AgentHwResourceStatsTest.l3Stats$"
-        },
-        {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
         },
         {
@@ -15617,10 +15278,7 @@
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
-        },
-        {
-          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+          "test_name_regex": "warm_boot.AgentPrbsTest.enablePortPrbs$"
         },
         {
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
@@ -15841,9 +15499,6 @@
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
-          "test_name_regex": "AgentHwResourceStatsTest.l3Stats$"
-        },
-        {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
         },
         {
@@ -15853,10 +15508,7 @@
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
-        },
-        {
-          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+          "test_name_regex": "warm_boot.AgentPrbsTest.enablePortPrbs$"
         },
         {
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
@@ -16029,6 +15681,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -16072,9 +15727,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -16289,6 +15941,9 @@
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentSflowMirrorWithLineRateTrafficTest.VerifySflowEgressCongestion.*$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
+        },
+        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -16332,9 +15987,6 @@
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnTrafficNoDrop$"
-        },
-        {
-          "test_name_regex": "AgentCoppTest/[01].L3MTUErrorToLowPriQ$"
         },
         {
           "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
@@ -16410,9 +16062,6 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
-        },
-        {
-          "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -16606,9 +16255,6 @@
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
-          "test_name_regex": "AgentHwResourceStatsTest.l3Stats$"
-        },
-        {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
         },
         {
@@ -16618,10 +16264,7 @@
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
-        },
-        {
-          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+          "test_name_regex": "warm_boot.AgentPrbsTest.enablePortPrbs$"
         },
         {
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"
@@ -16842,9 +16485,6 @@
           "test_name_regex": "AgentHundredThousandRouteScaleTest.hundredThousandRouteScaleTest$"
         },
         {
-          "test_name_regex": "AgentHwResourceStatsTest.l3Stats$"
-        },
-        {
           "test_name_regex": "AgentPacketFloodTest.ArpRequestFloodTest$"
         },
         {
@@ -16854,10 +16494,7 @@
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
-          "test_name_regex": "AgentPrbsTest.disablePortPrbs$"
-        },
-        {
-          "test_name_regex": "AgentPrbsTest.enablePortPrbs$"
+          "test_name_regex": "warm_boot.AgentPrbsTest.enablePortPrbs$"
         },
         {
           "test_name_regex": "AgentRouteTest/[01].StaticIp2MplsRoutes$"

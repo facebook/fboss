@@ -24,6 +24,38 @@ const std::map<ExplorationStatus, std::vector<ExplorationStatus>>
         {ExplorationStatus::SUCCEEDED, {}},
         {ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS, {}},
         {ExplorationStatus::FAILED, {}}};
+
+// Find the number of LEDs configured for a given xcvr number.
+int getNumLedsForXcvr(int xcvrNum, const PlatformConfig& platformConfig) {
+  int ledCount = 0;
+
+  for (const auto& [pmUnitName, pmUnitConfig] :
+       *platformConfig.pmUnitConfigs()) {
+    for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs()) {
+      // Check individual LED control configs
+      for (const auto& ledCtrlConfig : *pciDeviceConfig.ledCtrlConfigs()) {
+        if (*ledCtrlConfig.portNumber() == xcvrNum) {
+          ledCount++;
+        }
+      }
+
+      // Check LED control block configs
+      for (const auto& ledBlockConfig :
+           *pciDeviceConfig.ledCtrlBlockConfigs()) {
+        int startPort = *ledBlockConfig.startPort();
+        int numPorts = *ledBlockConfig.numPorts();
+        int ledPerPort = *ledBlockConfig.ledPerPort();
+
+        // Check if xcvrNum falls within this block's port range
+        if (xcvrNum >= startPort && xcvrNum < startPort + numPorts) {
+          ledCount += ledPerPort;
+        }
+      }
+    }
+  }
+
+  return ledCount;
+}
 }; // namespace
 
 namespace fs = std::filesystem;
@@ -196,37 +228,24 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   fs::remove_all("/run/devmap/xcvrs");
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
-  // Note: We are not checking the LED files of the last xcvr (typically the
-  // PIE/Management port). This PIE/Management port has different number of LEDs
-  // on different platforms. We can augment this test later by reading from
-  // `ledCtrlConfigs` and perform this check even for PIE ports.
-  for (auto xcvrNum = 1; xcvrNum < *platformConfig_.numXcvrs(); xcvrNum++) {
-    auto blueLed1 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led1:blue:status", xcvrNum));
-    auto blueLed2 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led2:blue:status", xcvrNum));
-    auto yellowLed1 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led1:yellow:status", xcvrNum));
-    auto yellowLed2 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led2:yellow:status", xcvrNum));
-    auto amberLed1 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led1:amber:status", xcvrNum));
-    auto amberLed2 = fs::path(
-        fmt::format("/sys/class/leds/port{}_led2:amber:status", xcvrNum));
-    std::vector<fs::path> ledDirsToCheck = {blueLed1, blueLed2};
-    if (fs::exists(yellowLed1)) {
-      ledDirsToCheck.push_back(yellowLed1);
-      ledDirsToCheck.push_back(yellowLed2);
-    } else {
-      ledDirsToCheck.push_back(amberLed1);
-      ledDirsToCheck.push_back(amberLed2);
-    }
-    // Now check for yellow OR amber LEDs for each port
-    for (auto& ledDir : ledDirsToCheck) {
+  for (auto xcvrNum = 1; xcvrNum <= *platformConfig_.numXcvrs(); xcvrNum++) {
+    auto numLeds = getNumLedsForXcvr(xcvrNum, platformConfig_);
+    for (auto ledNum = 1; ledNum <= numLeds; ledNum++) {
+      auto blueLedDir = fs::path(
+          fmt::format(
+              "/sys/class/leds/port{}_led{}:blue:status", xcvrNum, ledNum));
+      auto amberLedDir = fs::path(
+          fmt::format(
+              "/sys/class/leds/port{}_led{}:amber:status", xcvrNum, ledNum));
+      XLOG(DBG2) << fmt::format(
+          "Checking {} and {}", blueLedDir.string(), amberLedDir.string());
       for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
-        auto ledFullPath = ledDir / fs::path(ledFile);
-        EXPECT_TRUE(fs::exists(ledFullPath))
-            << fmt::format("{} doesn't exist", ledFullPath.string());
+        auto blueLedFullPath = blueLedDir / fs::path(ledFile);
+        auto amberLedFullPath = amberLedDir / fs::path(ledFile);
+        EXPECT_TRUE(fs::exists(blueLedFullPath))
+            << fmt::format("{} doesn't exist", blueLedFullPath.string());
+        EXPECT_TRUE(fs::exists(amberLedFullPath))
+            << fmt::format("{} doesn't exist", amberLedFullPath.string());
       }
     }
   }
