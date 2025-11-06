@@ -18,6 +18,7 @@
       "verify": {
         "commandType": "flashrom",
         "flashromArgs": {
+          "spi_layout": "3000000:3FFFFFF image",
           "programmer_type": "internal",
           "flashromExtraArgs": [
             "-i",
@@ -29,6 +30,7 @@
       "read": {
         "commandType": "flashrom",
         "flashromArgs": {
+          "spi_layout": "3000000:3FFFFFF image",
           "programmer_type": "internal",
           "flashromExtraArgs": [
             "-i",
