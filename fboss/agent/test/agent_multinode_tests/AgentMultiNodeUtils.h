@@ -47,6 +47,9 @@ std::map<std::string, PortInfoThrift> getUpEthernetPortNameToPortInfo(
 std::map<std::string, int64_t> getSwitchNameToQsfpAliveSinceEpoch(
     const std::map<std::string, std::set<facebook::fboss::SwitchID>>&
         switchNameToSwitchIds);
+std::map<std::string, int64_t> getSwitchNameToFsdbAliveSinceEpoch(
+    const std::map<std::string, std::set<facebook::fboss::SwitchID>>&
+        switchNameToSwitchIds);
 
 bool verifySwSwitchRunState(
     const std::string& switchName,
