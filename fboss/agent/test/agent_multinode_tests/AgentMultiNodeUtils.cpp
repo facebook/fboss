@@ -5,7 +5,7 @@
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-namespace facebook::fboss::utility {
+namespace {
 
 void logNdpEntry(
     const std::string& rdsw,
@@ -18,6 +18,10 @@ void logNdpEntry(
              << " state: " << ndpEntry.state().value()
              << " switchId: " << ndpEntry.switchId().value_or(-1);
 }
+
+} // namespace
+
+namespace facebook::fboss::utility {
 
 std::vector<NdpEntryThrift> getNdpEntriesOfType(
     const std::string& rdsw,
