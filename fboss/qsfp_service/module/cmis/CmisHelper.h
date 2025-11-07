@@ -70,7 +70,8 @@ class CmisHelper final {
             {SMFMediaInterfaceCode::FR8_800G,
              SMFMediaInterfaceCode::DR4_800G,
              SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
-             SMFMediaInterfaceCode::ZR_OIF_ZRA_800G},
+             SMFMediaInterfaceCode::ZR_OIF_ZRA_800G,
+             SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM},
         }};
     return smfSpeedApplicationMapping_;
   }
@@ -92,6 +93,7 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
          MediaInterfaceCode::ZR_800G},
         {SMFMediaInterfaceCode::ZR_OIF_ZRA_800G, MediaInterfaceCode::ZR_800G},
+        {SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM, MediaInterfaceCode::ZR_800G},
     };
     return smfMediaInterfaceMapping_;
   }
@@ -303,6 +305,10 @@ class CmisHelper final {
         {
             // 800G ZR OIF ZRA
             SMFMediaInterfaceCode::ZR_OIF_ZRA_800G,
+        },
+        {
+            // 800G ZR Vendor Custom
+            SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM,
         },
     };
     return smfOsfpValidSpeedCombinations_;
