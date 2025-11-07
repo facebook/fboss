@@ -275,4 +275,38 @@ bool verifyNeighborsPresent(
       true /* retry on exception */);
 }
 
+bool verifyNeighborsAbsent(
+    const std::set<std::string>& allSwitches,
+    const std::vector<Neighbor>& neighbors,
+    const std::set<std::string>& switchesToExclude) {
+  auto verifyNeighborAbsentHelper = [allSwitches,
+                                     neighbors,
+                                     switchesToExclude] {
+    auto getSwitchToAllNdpEntries = [allSwitches, switchesToExclude]() {
+      std::map<std::string, std::vector<NdpEntryThrift>> switchToAllNdpEntries;
+      for (const auto& switchName : allSwitches) {
+        if (switchesToExclude.find(switchName) != switchesToExclude.end()) {
+          continue;
+        }
+
+        switchToAllNdpEntries[switchName] = getNdpEntries(switchName);
+      }
+
+      return switchToAllNdpEntries;
+    };
+
+    auto switchToAllNdpEntries = getSwitchToAllNdpEntries();
+    return verifyNeighborsAllPresentOrAllAbsent(
+        neighbors,
+        switchToAllNdpEntries,
+        false /* allNeighborsMust NOT be present */);
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyNeighborAbsentHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 } // namespace facebook::fboss::utility

@@ -85,4 +85,9 @@ bool verifyNeighborsPresent(
     const std::string& switchToVerify,
     const std::vector<Neighbor>& neighbors);
 
+bool verifyNeighborsAbsent(
+    const std::set<std::string>& allSwitches,
+    const std::vector<Neighbor>& neighbors,
+    const std::set<std::string>& switchesToExclude);
+
 } // namespace facebook::fboss::utility
