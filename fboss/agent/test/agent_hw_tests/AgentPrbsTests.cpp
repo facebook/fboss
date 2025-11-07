@@ -12,6 +12,28 @@ namespace facebook::fboss {
 
 class AgentPrbsTest : public AgentHwTest {
  public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentHwTest::initialConfig(ensemble);
+    if (isYubaAsic(ensemble)) {
+      for (auto& port : *cfg.ports()) {
+        port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+      }
+    }
+    return cfg;
+  }
+
+  bool isYubaAsic(const AgentEnsemble& ensemble) const {
+    if (ensemble.getNumL3Asics() >= 1) {
+      auto l3Asics = ensemble.getL3Asics();
+      auto asic = checkSameAndGetAsic(l3Asics);
+      if (cfg::AsicType::ASIC_TYPE_YUBA == asic->getAsicType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {ProductionFeature::PRBS};
@@ -35,29 +57,9 @@ class AgentPrbsTest : public AgentHwTest {
     return kPrbsPolynomial;
   }
 
-  void setAllTestPortsLoopbackPhy() {
-    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto out = in->clone();
-      for (const auto& portId : getTestPortIds()) {
-        auto port = out->getPorts()->getNodeIf(portId);
-        auto newPort = port->modify(&out);
-        newPort->setLoopbackMode(cfg::PortLoopbackMode::PHY);
-      }
-      return out;
-    });
-  }
-
  protected:
   void testEnablePortPrbs() {
     auto setup = [=, this]() {
-      if (getAgentEnsemble()->getNumL3Asics() >= 1) {
-        auto l3Asics = getAgentEnsemble()->getL3Asics();
-        auto asic = checkSameAndGetAsic(l3Asics);
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
-          XLOG(DBG2) << "Setting all test ports to PHY loopback mode";
-          setAllTestPortsLoopbackPhy();
-        }
-      }
       phy::PortPrbsState prbsState;
       prbsState.enabled() = true;
       prbsState.polynominal() = getPrbsPolynomial();
@@ -84,14 +86,6 @@ class AgentPrbsTest : public AgentHwTest {
 
   void testDisablePortPrbs() {
     auto setup = [=, this]() {
-      if (getAgentEnsemble()->getNumL3Asics() >= 1) {
-        auto l3Asics = getAgentEnsemble()->getL3Asics();
-        auto asic = checkSameAndGetAsic(l3Asics);
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
-          XLOG(DBG2) << "Setting all test ports to PHY loopback mode";
-          setAllTestPortsLoopbackPhy();
-        }
-      }
       phy::PortPrbsState initialPrbsState;
       initialPrbsState.enabled() = true;
       initialPrbsState.polynominal() = getPrbsPolynomial();
