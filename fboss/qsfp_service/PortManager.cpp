@@ -468,6 +468,12 @@ void PortManager::programInternalPhyPorts(TransceiverID id) {
   for (auto [portId, profileID] : programmedIphyPorts) {
     TransceiverManager::TransceiverPortInfo portInfo;
     portInfo.profile = profileID;
+    NpuPortStatus status{};
+    status.portEnabled = true;
+    // Set port down by default, will be changed if / when
+    // updateTransceiverPortStatus brings port up.
+    status.operState = false;
+    portInfo.status = status;
     portToPortInfoWithLock->emplace(PortID(portId), portInfo);
   }
 
@@ -1119,6 +1125,39 @@ void PortManager::updateTransceiverPortStatus() noexcept {
              .count();
 }
 
+void PortManager::updatePortActiveStatusInTransceiverManager() {
+  for (auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
+    std::unordered_set<PortID> activePorts;
+    // Create a copy to avoid holding two locks at once.
+    std::unordered_set<PortID> initializedPorts =
+        *lockedInitializedPorts->rlock();
+    for (const auto& portId : initializedPorts) {
+      auto portState = getPortState(portId);
+      if (portState == PortStateMachineState::PORT_UP) {
+        activePorts.insert(portId);
+      }
+    }
+
+    const auto& portToPortInfoIt =
+        transceiverManager_->getSynchronizedProgrammedIphyPortToPortInfo(
+            tcvrId);
+    if (!portToPortInfoIt) {
+      continue;
+    }
+
+    auto portToPortInfoWithLock = portToPortInfoIt->wlock();
+    for (auto& [portId, portInfo] : *portToPortInfoWithLock) {
+      if (!portInfo.status.has_value()) {
+        portInfo.status = NpuPortStatus{};
+      }
+      portInfo.status->portEnabled =
+          initializedPorts.find(portId) != initializedPorts.end();
+      portInfo.status->operState =
+          activePorts.find(portId) != activePorts.end();
+    }
+  }
+}
+
 void PortManager::restoreAgentConfigAppliedInfo() {
   auto warmbootState = transceiverManager_->getWarmBootState();
   if (warmbootState.isNull()) {
@@ -1547,7 +1586,6 @@ void PortManager::setWarmBootState() {
 
 void PortManager::refreshStateMachines() {
   XLOG(INFO) << "refreshStateMachines started";
-
   // Step 1: Refresh all transceivers so that we can get updated present
   // transceivers and transceiver data.
   transceiverManager_->refreshTransceivers();
@@ -1555,24 +1593,28 @@ void PortManager::refreshStateMachines() {
   // Step 2: Fetch current port status from wedge_agent.
   updateTransceiverPortStatus();
 
-  // Step 3: Reset port state machines for ports that have transceivers that are
+  // Step 3: Update Current Port Statuses in TransceiverManager for Remediation
+  // and Tcvr Insert
+  updatePortActiveStatusInTransceiverManager();
+
+  // Step 4: Reset port state machines for ports that have transceivers that are
   // recently discovered to retrigger programming.
   detectTransceiverDiscoveredAndReinitializeCorrespondingPorts();
 
-  // Step 4: Check whether there's a wedge_agent config change
+  // Step 5: Check whether there's a wedge_agent config change
   triggerAgentConfigChangeEvent();
 
-  // Step 5: Trigger port programming events.
+  // Step 6: Trigger port programming events.
   triggerProgrammingEvents();
 
-  // Step 6: Trigger transceiver programming events.
+  // Step 7: Trigger transceiver programming events.
   transceiverManager_->triggerProgrammingEvents();
 
   // TODO(smenta) – Add support for triggering remediation.
 
   // TODO(smenta) – Need to add support for publishing PIM states.
 
-  // Step 7: Mark full initialization complete.
+  // Step 8: Mark full initialization complete.
   transceiverManager_->completeRefresh();
   setWarmBootState();
 

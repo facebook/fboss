@@ -89,7 +89,10 @@ void operator()(
   fsm.get_attribute(needMarkLastDownTime) = true;
   fsm.get_attribute(needToResetToDiscovered) = false;
   fsm.get_attribute(forceRemoveTransceiver) = false;
-  fsm.get_attribute(transceiverMgrPtr)->resetProgrammedIphyPortToPortInfo(tcvrID);
+  if (!FLAGS_port_manager_mode) {
+    // We want to keep previous port status available for transceivers that reset in the case that ports are active.
+    fsm.get_attribute(transceiverMgrPtr)->resetProgrammedIphyPortToPortInfo(tcvrID);
+  }
 }
 };
 

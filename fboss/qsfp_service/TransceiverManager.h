@@ -799,6 +799,12 @@ class TransceiverManager {
         });
   }
 
+  // Check whether the specified stableTcvrs need remediation and then trigger
+  // the remediation events to remediate such transceivers.
+  void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
+
+  std::set<TransceiverID> getPresentTransceivers() const;
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -889,8 +895,6 @@ class TransceiverManager {
       TransceiverID /* tcvrID */,
       facebook::fboss::TcvrState&& /* newState */) {}
 
-  std::set<TransceiverID> getPresentTransceivers() const;
-
  private:
   // Forbidden copy constructor and assignment operator
   TransceiverManager(TransceiverManager const&) = delete;
@@ -970,10 +974,6 @@ class TransceiverManager {
   // Update the cached PortStatus of TransceiverToPortInfo using wedge_agent
   // getPortStatus() results
   void updateTransceiverPortStatus() noexcept;
-
-  // Check whether the specified stableTcvrs need remediation and then trigger
-  // the remediation events to remediate such transceivers.
-  void triggerRemediateEvents(const std::vector<TransceiverID>& stableTcvrs);
 
   std::string warmBootStateFileName() const;
 
