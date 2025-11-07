@@ -124,8 +124,54 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
 
     return neighbors;
   }
+
+ public:
+  bool verifyNeighborAddRemove(
+      const std::unique_ptr<utility::TopologyInfo>& topologyInfo) {
+    XLOG(DBG2) << "Verifying Neighbor Add/Remove";
+    auto myHostname = topologyInfo->getMyHostname();
+
+    // For any one RDSW in every cluster
+    for (const auto& [_, rdsws] :
+         std::as_const(topologyInfo->getClusterIdToRdsws())) {
+      for (const auto& rdsw : std::as_const(rdsws)) {
+        if (rdsw == myHostname) { // exclude self
+          continue;
+        }
+
+        auto neighbors = computeNeighborsForRdsw(
+            topologyInfo, rdsw, 1 /* number of neighbors */);
+        CHECK_EQ(neighbors.size(), 1);
+
+        utility::addNeighbor(
+            rdsw,
+            neighbors[0].intfID,
+            neighbors[0].ip,
+            neighbors[0].mac,
+            neighbors[0].portID);
+
+        // Verify every neighbor is added/sync'ed to every RDSW
+        if (!utility::verifyNeighborsPresent(
+                topologyInfo->getRdsws(), rdsw, neighbors)) {
+          XLOG(DBG2) << "Neighbor add verification failed: " << rdsw;
+          return false;
+        }
+        // Add neighbor to one remote RDSW per cluster
+        break;
+      }
+    }
+
+    return true;
+  }
 };
 
-TEST_F(AgentMultiNodeVoqSwitchNeighborTest, verifyNeighborAddRemove) {}
+TEST_F(AgentMultiNodeVoqSwitchNeighborTest, verifyNeighborAddRemove) {
+  runTestWithVerifyCluster([this](const auto& topologyInfo) {
+    switch (topologyInfo->getTopologyType()) {
+      case utility::TopologyInfo::TopologyType::DSF:
+        return this->verifyNeighborAddRemove(topologyInfo);
+    }
+  });
+}
 
 } // namespace facebook::fboss
