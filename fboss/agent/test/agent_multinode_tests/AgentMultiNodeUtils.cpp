@@ -8,15 +8,25 @@
 namespace {
 
 void logNdpEntry(
-    const std::string& rdsw,
+    const std::string& switchName,
     const facebook::fboss::NdpEntryThrift& ndpEntry) {
   auto ip = folly::IPAddress::fromBinary(
       folly::ByteRange(
           folly::StringPiece(ndpEntry.ip().value().addr().value())));
 
-  XLOG(DBG2) << "From " << rdsw << " ip: " << ip.str()
+  XLOG(DBG2) << "From " << switchName << " ip: " << ip.str()
              << " state: " << ndpEntry.state().value()
              << " switchId: " << ndpEntry.switchId().value_or(-1);
+}
+
+void logSwitchToNdpEntries(
+    const std::map<std::string, std::vector<facebook::fboss::NdpEntryThrift>>&
+        switchToNdpEntries) {
+  for (const auto& [switchName, ndpEntries] : switchToNdpEntries) {
+    for (const auto& ndpEntry : ndpEntries) {
+      logNdpEntry(switchName, ndpEntry);
+    }
+  }
 }
 
 // if allNeighborsMustBePresent is true, then all neighbors must be present
@@ -264,6 +274,7 @@ bool verifyNeighborsPresent(
     //    - PROBE/REACHABLE for switchToVerify
     //    - DYNAMIC for every other switch.
     auto switchToNdpEntries = getSwitchToNdpEntries();
+    logSwitchToNdpEntries(switchToNdpEntries);
     return verifyNeighborsAllPresentOrAllAbsent(
         neighbors, switchToNdpEntries, true /* allNeighborsMustBePresent */);
   };
@@ -296,6 +307,7 @@ bool verifyNeighborsAbsent(
     };
 
     auto switchToAllNdpEntries = getSwitchToAllNdpEntries();
+    logSwitchToNdpEntries(switchToAllNdpEntries);
     return verifyNeighborsAllPresentOrAllAbsent(
         neighbors,
         switchToAllNdpEntries,
