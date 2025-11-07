@@ -26,6 +26,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _VlanMap{
 std::map<int32_t, std::pair<std::string, std::size_t>> _VlanMemberMap{
     SAI_ATTR_MAP(VlanMember, BridgePortId),
     SAI_ATTR_MAP(VlanMember, VlanId),
+    SAI_ATTR_MAP(VlanMember, VlanTaggingMode),
 };
 
 } // namespace

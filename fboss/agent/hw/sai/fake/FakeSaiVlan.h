@@ -22,6 +22,7 @@ class FakeVlanMember {
   sai_object_id_t vlanId;
   sai_object_id_t bridgePortId;
   sai_object_id_t id;
+  std::optional<sai_int32_t> vlanTaggingMode;
 };
 
 class FakeVlan {
