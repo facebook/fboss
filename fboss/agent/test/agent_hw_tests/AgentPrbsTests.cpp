@@ -1,10 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/AsicUtils.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
-
-#include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
 namespace {
 constexpr auto kPrbsPolynomial = 9;
