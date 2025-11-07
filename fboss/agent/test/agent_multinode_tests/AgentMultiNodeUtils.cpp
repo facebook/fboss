@@ -19,6 +19,53 @@ void logNdpEntry(
              << " switchId: " << ndpEntry.switchId().value_or(-1);
 }
 
+// if allNeighborsMustBePresent is true, then all neighbors must be present
+// for every switch in switchToNdpEntries.
+// if allNeighborsMustBePresent is false, then all neighbors must be absent
+// for every switch in switchToNdpEntries.
+bool verifyNeighborsAllPresentOrAllAbsent(
+    const std::vector<facebook::fboss::utility::Neighbor>& neighbors,
+    const std::map<std::string, std::vector<facebook::fboss::NdpEntryThrift>>&
+        switchToNdpEntries,
+    bool allNeighborsMustBePresent) {
+  auto isNeighborPresentHelper = [](const auto& ndpEntries,
+                                    const auto& neighbor) {
+    for (const auto& ndpEntry : ndpEntries) {
+      auto ndpEntryIp = folly::IPAddress::fromBinary(
+          folly::ByteRange(
+              folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+      if (ndpEntry.interfaceID().value() == neighbor.intfID &&
+          ndpEntryIp == neighbor.ip) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  for (const auto& neighbor : neighbors) {
+    for (const auto& [switchName, ndpEntries] : switchToNdpEntries) {
+      auto isNeighborPresent = isNeighborPresentHelper(ndpEntries, neighbor);
+      if (allNeighborsMustBePresent) {
+        if (!isNeighborPresent) {
+          XLOG(DBG2) << "Switch: " << switchName
+                     << " neighbor missing: " << neighbor.str();
+          return false;
+        }
+      } else { // allNeighborsMust NOT be present
+        if (isNeighborPresent) {
+          XLOG(DBG2) << "Switch: " << switchName
+                     << " excess neighbor: " << neighbor.str();
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
 } // namespace
 
 namespace facebook::fboss::utility {
