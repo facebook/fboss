@@ -145,7 +145,6 @@ cpp_library(
         "//fboss/lib/bsp:bsp_core",
         "//fboss/mdio:mdio",
         "//folly:conv",
-        "//folly:format",
         "//folly/logging:logging",
     ],
 )

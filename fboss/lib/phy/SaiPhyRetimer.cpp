@@ -10,7 +10,6 @@
 
 #include "fboss/lib/phy/SaiPhyRetimer.h"
 
-#include <folly/Format.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
