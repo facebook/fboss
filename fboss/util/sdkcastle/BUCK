@@ -59,6 +59,7 @@ python_library(
         ":config",
         ":enums",
         ":test_runner",
+        ":test_runner_report_generator",
     ],
 )
 
@@ -71,5 +72,12 @@ python_library(
         ":config",
         ":constants",
         ":enums",
+    ],
+)
+
+python_library(
+    name = "test_runner_report_generator",
+    srcs = [
+        "test_runner_report_generator.py",
     ],
 )

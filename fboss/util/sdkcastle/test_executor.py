@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from .config import SdkcastleSpec
 from .enums import RunMode
 from .test_runner import create_test_runner
+from .test_runner_report_generator import create_summary_report_generator
 
 
 class TestExecutor:
@@ -144,6 +145,9 @@ class TestExecutor:
         print(f"Successful: {successful}")
         print(f"Failed: {failed}")
         print(f"Log directory: {self.log_dir}")
+
+        # Generate test summary report
+        self._generate_test_summary_report()
 
         return {
             "status": "success",
@@ -314,3 +318,21 @@ class TestExecutor:
                         )
                         commands.extend(test_commands)
         return commands
+
+    def _generate_test_summary_report(self) -> None:
+        """Generate test summary report from log files based on test runner mode"""
+        log_dir = self.log_dir
+        if not log_dir:
+            print("Warning: Log directory not initialized, skipping summary report")
+            return
+
+        # Create the appropriate summary report generator
+        test_runner_mode = self.config.test_runner_mode
+        if test_runner_mode is None:
+            print("Warning: Test runner mode not set, skipping summary report")
+            return
+
+        report_generator = create_summary_report_generator(test_runner_mode.value)
+
+        # Generate the summary report (file names are determined by the generator)
+        report_generator.generate_summary_report(log_dir)
