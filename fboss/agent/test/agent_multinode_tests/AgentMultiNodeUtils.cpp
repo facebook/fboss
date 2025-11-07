@@ -136,6 +136,37 @@ bool verifyQsfpServiceRunState(
       true /* retry on exception */);
 }
 
+bool verifyFsdbRestarted(
+    const std::map<std::string, std::set<SwitchID>>& switchNameToSwitchIds,
+    const std::map<std::string, int64_t>&
+        baselineSwitchNameToFsdbAliveSinceEpoch) {
+  auto allFsdbRestarted = [switchNameToSwitchIds,
+                           baselineSwitchNameToFsdbAliveSinceEpoch] {
+    auto currentSwitchNameToFsdbAliveSinceEpoch =
+        getSwitchNameToFsdbAliveSinceEpoch(switchNameToSwitchIds);
+    // Verify all FSDBs restarted
+    return std::all_of(
+        currentSwitchNameToFsdbAliveSinceEpoch.begin(),
+        currentSwitchNameToFsdbAliveSinceEpoch.end(),
+        [&](const auto& pair) {
+          const auto& switchName = pair.first;
+          const auto& aliveSinceEpoch = pair.second;
+          auto baselineIt =
+              baselineSwitchNameToFsdbAliveSinceEpoch.find(switchName);
+          CHECK(baselineIt != baselineSwitchNameToFsdbAliveSinceEpoch.end());
+          // If the FSDB has restarted, aliveSince will be greater i.e. later
+          // timestamp.
+          return baselineIt->second < aliveSinceEpoch;
+        });
+  };
+
+  return checkWithRetryErrorReturn(
+      allFsdbRestarted,
+      30 /* num retries */,
+      std::chrono::milliseconds(5000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 bool verifyFsdbIsUp(const std::string& switchName) {
   auto fsdbIsUp = [switchName]() -> bool {
     // Unlike Agent and QSFP, FSDB lacks notion of "RunState" that can be
