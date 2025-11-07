@@ -508,15 +508,16 @@ void ThriftHandler::sendRawCommand(
 
     // Get timeout (optional, defaults to 0)
     int32_t* timeout = apache::thrift::get_pointer(request->timeout());
-    rackmon::ModbusTime tmo = timeout ? rackmon::ModbusTime(*timeout)
-                                      : rackmon::ModbusTime::zero();
+    rackmon::ModbusTime tmo =
+        timeout ? rackmon::ModbusTime(*timeout) : rackmon::ModbusTime::zero();
 
     // Execute raw command
     // Note: uniqueDevAddress is currently ignored in this version of rackmond
     // The device address is already embedded in the raw command bytes
     rackmond_.rawCmd(req, resp, tmo);
 
-    // Copy response bytes to Thrift response (excluding CRC which was added back)
+    // Copy response bytes to Thrift response (excluding CRC which was added
+    // back)
     response.status() = RackmonStatusCode::SUCCESS;
     response.data()->clear();
     // resp.len includes CRC (2 bytes), remove them for clean response
