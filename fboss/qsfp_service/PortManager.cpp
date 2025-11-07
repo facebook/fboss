@@ -364,12 +364,16 @@ PortID PortManager::getLowestIndexedPortForTransceiverPortGroup(
   TransceiverID tcvrId = getLowestIndexedTransceiverForPort(portId);
 
   // Find lowest indexed port assigned to the above transceiver.
-  auto tcvrToPortMapItr = tcvrToPortMap_.find(tcvrId);
-  if (tcvrToPortMapItr == tcvrToPortMap_.end() ||
-      tcvrToPortMapItr->second.size() == 0) {
+  auto tcvrToPortMapItr = tcvrToInitializedPorts_.find(tcvrId);
+  if (tcvrToPortMapItr == tcvrToInitializedPorts_.end()) {
     throw FbossError("No ports found for transceiver ", tcvrId);
   }
-  return tcvrToPortMapItr->second.at(0);
+  auto lockedInitializedPorts = tcvrToPortMapItr->second->rlock();
+  if (lockedInitializedPorts->size() == 0) {
+    throw FbossError("No ports found for transceiver ", tcvrId);
+  }
+
+  return *lockedInitializedPorts->begin();
 }
 
 TransceiverID PortManager::getLowestIndexedTransceiverForPort(
@@ -405,7 +409,7 @@ bool PortManager::hasPortFinishedIphyProgramming(PortID portId) const {
 }
 
 bool PortManager::hasPortFinishedXphyProgramming(PortID portId) const {
-  static const std::array<PortStateMachineState, 5> kPastIphyProgrammedStates{
+  static const std::array<PortStateMachineState, 4> kPastIphyProgrammedStates{
       PortStateMachineState::XPHY_PORTS_PROGRAMMED,
       PortStateMachineState::TRANSCEIVERS_PROGRAMMED,
       PortStateMachineState::PORT_DOWN,
@@ -1129,8 +1133,7 @@ void PortManager::updatePortActiveStatusInTransceiverManager() {
   for (auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
     std::unordered_set<PortID> activePorts;
     // Create a copy to avoid holding two locks at once.
-    std::unordered_set<PortID> initializedPorts =
-        *lockedInitializedPorts->rlock();
+    std::set<PortID> initializedPorts = *lockedInitializedPorts->rlock();
     for (const auto& portId : initializedPorts) {
       auto portState = getPortState(portId);
       if (portState == PortStateMachineState::PORT_UP) {
@@ -1437,8 +1440,7 @@ PortManager::setupTcvrToSynchronizedPortSet() {
        utility::getTransceiverIds(platformMapping_->getChips())) {
     tcvrToPortSet.emplace(
 
-        tcvrId,
-        std::make_unique<folly::Synchronized<std::unordered_set<PortID>>>());
+        tcvrId, std::make_unique<folly::Synchronized<std::set<PortID>>>());
   }
 
   return tcvrToPortSet;

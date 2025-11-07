@@ -888,11 +888,11 @@ enum TransceiverStateMachineEvent {
 enum PortStateMachineState {
   UNINITIALIZED = 0,
   INITIALIZED = 1,
-  IPHY_PORTS_PROGRAMMED = 3,
-  XPHY_PORTS_PROGRAMMED = 4,
-  TRANSCEIVERS_PROGRAMMED = 5,
-  PORT_UP = 6,
-  PORT_DOWN = 7,
+  IPHY_PORTS_PROGRAMMED = 2,
+  XPHY_PORTS_PROGRAMMED = 3,
+  TRANSCEIVERS_PROGRAMMED = 4,
+  PORT_UP = 5,
+  PORT_DOWN = 6,
 }
 
 enum PortStateMachineEvent {

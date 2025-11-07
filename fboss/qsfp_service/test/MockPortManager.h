@@ -41,7 +41,7 @@ class MockPortManager : public PortManager {
   }
 
   // Helper methods for easier test access to cache data
-  std::unordered_set<PortID> getInitializedPortsForTransceiver(
+  std::set<PortID> getInitializedPortsForTransceiver(
       TransceiverID tcvrId) const {
     const auto& cache = getTcvrToInitializedPortsForTest();
     auto it = cache.find(tcvrId);

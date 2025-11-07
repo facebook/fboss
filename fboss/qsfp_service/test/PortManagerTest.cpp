@@ -115,13 +115,23 @@ class PortManagerTest : public ::testing::Test {
 
 TEST_F(PortManagerTest, getLowestIndexedPortForTransceiverPortGroup) {
   // Single Tcvr - Single Port
+  // Initialized
   initManagers(1, 1);
+  portManager_->setPortEnabledStatusInCache(PortID(1), true);
   ASSERT_EQ(
       portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
       PortID(1));
 
+  // Uninitialized
+  initManagers(1, 1);
+  ASSERT_THROW(
+      portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
+      FbossError);
+
   // Single Tcvr – Multi Port
   initManagers(1, 4);
+  portManager_->setPortEnabledStatusInCache(PortID(1), true);
+  portManager_->setPortEnabledStatusInCache(PortID(3), true);
   ASSERT_EQ(
       portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
       PortID(1));
@@ -129,12 +139,31 @@ TEST_F(PortManagerTest, getLowestIndexedPortForTransceiverPortGroup) {
       portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(3)),
       PortID(1));
 
+  // Uninitialized
+  initManagers(1, 4);
+  ASSERT_THROW(
+      portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
+      FbossError);
+  ASSERT_THROW(
+      portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(3)),
+      FbossError);
+
+  initManagers(1, 4);
+  portManager_->setPortEnabledStatusInCache(PortID(3), true);
+  // Not enabled, but this is the expected behavior anyways.
+  ASSERT_EQ(
+      portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(1)),
+      PortID(3));
+  ASSERT_EQ(
+      portManager_->getLowestIndexedPortForTransceiverPortGroup(PortID(3)),
+      PortID(3));
+
   // Multi Tcvr – Single Port (will be added once we validate other use cases)
 }
 
 TEST_F(PortManagerTest, getLowestIndexedTransceiverForPort) {
   // Single Tcvr – Single Port
-  initManagers(1, 4);
+  initManagers(1, 1);
   ASSERT_EQ(
       portManager_->getLowestIndexedTransceiverForPort(PortID(1)),
       TransceiverID(0));
@@ -153,15 +182,42 @@ TEST_F(PortManagerTest, getLowestIndexedTransceiverForPort) {
 
 TEST_F(PortManagerTest, isLowestIndexedPortForTransceiverPortGroup) {
   // Single Tcvr - Single Port
+  // Initialized
   initManagers(1, 1);
+  portManager_->setPortEnabledStatusInCache(PortID(1), true);
   ASSERT_TRUE(
       portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)));
+  // Unitialized
+  initManagers(1, 1);
+  ASSERT_THROW(
+      portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)),
+      FbossError);
 
   // Single Tcvr – Multi Port
+  // Initialized
   initManagers(1, 4);
+  portManager_->setPortEnabledStatusInCache(PortID(1), true);
+  portManager_->setPortEnabledStatusInCache(PortID(3), true);
   ASSERT_TRUE(
       portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)));
   ASSERT_FALSE(
+      portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(3)));
+
+  // Unitialized
+  initManagers(1, 4);
+  ASSERT_THROW(
+      portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)),
+      FbossError);
+  ASSERT_THROW(
+      portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(3)),
+      FbossError);
+
+  initManagers(1, 4);
+  portManager_->setPortEnabledStatusInCache(PortID(3), true);
+  // Not enabled, but this is the expected behavior anyways.
+  ASSERT_FALSE(
+      portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(1)));
+  ASSERT_TRUE(
       portManager_->isLowestIndexedPortForTransceiverPortGroup(PortID(3)));
 
   // Multi Tcvr – Single Port (will be added once we validate other use cases)

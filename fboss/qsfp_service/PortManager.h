@@ -39,7 +39,7 @@ class PortManager {
  public:
   using TcvrToSynchronizedPortSet = std::unordered_map<
       TransceiverID,
-      std::unique_ptr<folly::Synchronized<std::unordered_set<PortID>>>>;
+      std::unique_ptr<folly::Synchronized<std::set<PortID>>>>;
 
  private:
   using TcvrToPortMap = std::unordered_map<TransceiverID, std::vector<PortID>>;
