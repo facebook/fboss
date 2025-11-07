@@ -185,14 +185,18 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
   // First get all expected transceivers based on cabled ports from agent.conf
   const auto& expectedIds =
       utility::getCabledPortTranceivers(getHwQsfpEnsemble());
+  const auto& expectedPorts = utility::getCabledPorts(getHwQsfpEnsemble());
 
   // Due to some platforms are easy to have i2c issue which causes the current
   // refresh not work as expected. Adding enough retries to make sure that we
   // at least can secure TRANSCEIVER_PROGRAMMED after `numRetries` times.
-  auto refreshStateMachinesTillTcvrProgrammed = [this, &expectedIds]() {
+  auto refreshStateMachinesTillTcvrProgrammed = [this,
+                                                 &expectedIds,
+                                                 &expectedPorts]() {
     auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
     getHwQsfpEnsemble()->getQsfpServiceHandler()->refreshStateMachines();
     std::vector<TransceiverID> notProgrammedTcvrs;
+    std::vector<PortID> notProgrammedPorts;
     bool retval{true};
 
     for (auto id : expectedIds) {
@@ -209,6 +213,24 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries) {
     if (!notProgrammedTcvrs.empty()) {
       XLOG(ERR) << "Transceivers that should be programmed but are not: "
                 << folly::join(",", notProgrammedTcvrs);
+    }
+
+    if (FLAGS_port_manager_mode) {
+      auto portManager =
+          getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortManager();
+      for (const auto& portId : expectedPorts) {
+        auto curState = portManager->getPortState(portId);
+        if (setupOverrideTcvrToPortAndProfile_ &&
+            curState != PortStateMachineState::PORT_DOWN) {
+          notProgrammedPorts.push_back(portId);
+          retval = false;
+        }
+      }
+    }
+
+    if (!notProgrammedPorts.empty()) {
+      XLOG(ERR) << "Ports that should be port down but are not: "
+                << folly::join(",", notProgrammedPorts);
     }
 
     return retval;
