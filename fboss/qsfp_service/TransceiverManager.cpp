@@ -2221,35 +2221,46 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
     const std::vector<TransceiverID>& presentXcvrIds) {
   bool firstRefreshAfterColdboot = !canWarmBoot_ && !isFullyInitialized();
   std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
-  for (auto tcvrID : presentXcvrIds) {
-    auto curState = getCurrentState(tcvrID);
+  for (auto tcvrId : presentXcvrIds) {
+    auto curState = getCurrentState(tcvrId);
     if (curState == TransceiverStateMachineState::INACTIVE &&
         FLAGS_firmware_upgrade_on_link_down) {
       // Anytime a module is in inactive state (link down), it's a candidate
       // for fw upgrade.
       XLOG(INFO)
-          << "Transceiver " << static_cast<int>(tcvrID)
+          << "Transceiver " << static_cast<int>(tcvrId)
           << " is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
-      potentialTcvrsForFwUpgrade.insert(tcvrID);
+      potentialTcvrsForFwUpgrade.insert(tcvrId);
     } else if (curState == TransceiverStateMachineState::DISCOVERED) {
       if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state
         XLOG(INFO)
-            << "Transceiver " << static_cast<int>(tcvrID)
+            << "Transceiver " << static_cast<int>(tcvrId)
             << " just did a cold boot and is still in discovered state, adding it to list of potentialTcvrsForFwUpgrade";
-        potentialTcvrsForFwUpgrade.insert(tcvrID);
+        potentialTcvrsForFwUpgrade.insert(tcvrId);
       } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
-        auto stateMachine = stateMachineControllers_.find(tcvrID);
+        if (FLAGS_port_manager_mode) {
+          // In PortManager mode, a transceiver can be in DISCOVERED state while
+          // its PORT is up - this should only happen when we get i2c connection
+          // errors but transceiver is inserted and data is passing through.
+          auto [allPortsDown, downPorts] = areAllPortsDown(tcvrId);
+          if (!allPortsDown) {
+            // Some ports are still up.
+            continue;
+          }
+        }
+
+        auto stateMachine = stateMachineControllers_.find(tcvrId);
         if (stateMachine != stateMachineControllers_.end() &&
             stateMachine->second->getStateMachine().rlock()->get_attribute(
                 newTransceiverInsertedAfterInit)) {
           // Not the first refresh but the module is in discovered state and
           // was just inserted
           XLOG(INFO)
-              << "Transceiver " << static_cast<int>(tcvrID)
+              << "Transceiver " << static_cast<int>(tcvrId)
               << " is in DISCOVERED state and was recently inserted, adding it to list of potentialTcvrsForFwUpgrade";
-          potentialTcvrsForFwUpgrade.insert(tcvrID);
+          potentialTcvrsForFwUpgrade.insert(tcvrId);
         }
       }
     }

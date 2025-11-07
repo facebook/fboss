@@ -1152,4 +1152,87 @@ TEST_F(PortStateMachineTest, verifyDetectingPortStatusOnResetTransceiver) {
   }
 }
 
+TEST_F(PortStateMachineTest, ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues) {
+  /*
+   * This test is meant to mimic the case where an inserted transceiver with
+   * ports up starts suddenly having i2c connection issues which makes
+   * TransceiverManager think it's not present. We need to ensure we don't
+   * reprogram or trigger firmware upgrade on accident.
+   */
+  std::string kTestName = "ensureNoFwUpgradeOnPortUpAndI2cConnectionIssues";
+
+  initManagers();
+  XLOG(INFO) << "Verifying " << kTestName;
+
+  // Execute refresh loop to get to TRANSCEIVER_PROGRAMMED / PORT_UP.
+  xcvr_ = overrideTransceiver(false, true);
+  setState(
+      TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
+      {PortStateMachineState::PORT_UP, std::nullopt},
+      false);
+
+  gflags::SetCommandLineOptionWithMode(
+      "firmware_upgrade_on_tcvr_insert", "t", gflags::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "firmware_upgrade_supported", "t", gflags::SET_FLAGS_DEFAULT);
+
+  // Mark transceiver as not present.
+  setMockCmisPresence(false);
+  setMockCmisTransceiverReady(false);
+
+  // Refresh cycle a few more times and ensure that port stays up, transceiver
+  // reaches transceiver ready, but transceiver isn't present.
+  for (int i = 0; i < 5; i++) {
+    refreshAndTriggerProgramming();
+  }
+  assertCurrentStateEquals(
+      TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_READY,
+          {PortStateMachineState::PORT_UP, std::nullopt}});
+  ASSERT_FALSE(isTransceiverPresent(tcvrId_));
+
+  // Mark transceiver as present.
+  setMockCmisPresence(true);
+  setMockCmisTransceiverReady(true);
+
+  // Mocking aggregate refreshTransceivers() call to determine which
+  // transceivers are candidates for fw upgrade.
+  std::unordered_set<TransceiverID> emptyTcvrs{};
+  const auto& refreshedTcvrs =
+      static_cast<TransceiverManager*>(transceiverManager_.get())
+          ->refreshTransceivers(emptyTcvrs);
+  const auto& tcvrsForFwUpgrade =
+      transceiverManager_->findPotentialTcvrsForFirmwareUpgrade(refreshedTcvrs);
+  ASSERT_FALSE(tcvrsForFwUpgrade.contains(tcvrId_));
+
+  // Ensure the state is as expected.
+  assertCurrentStateEquals(
+      TcvrPortStatePair{
+          TransceiverStateMachineState::DISCOVERED,
+          {PortStateMachineState::PORT_UP, std::nullopt}});
+
+  // Ensure all ports are still up. If allPortsDown is false while
+  // TransceiverManager was refreshingTransceivers, the
+  // FLAGS_firmware_upgrade_on_tcvr_insert case should have been hit.
+  auto [allPortsDown, _] = transceiverManager_->areAllPortsDown(tcvrId_);
+  ASSERT_FALSE(allPortsDown);
+
+  // Refresh a few more times and guarantee transceiver reaches
+  // TRANSCEIVER_READY
+  for (int i = 0; i < 5; i++) {
+    refreshAndTriggerProgramming();
+  }
+  assertCurrentStateEquals(
+      TcvrPortStatePair{
+          TransceiverStateMachineState::TRANSCEIVER_READY,
+          {PortStateMachineState::PORT_UP, std::nullopt}});
+  ASSERT_TRUE(isTransceiverPresent(tcvrId_));
+
+  gflags::SetCommandLineOptionWithMode(
+      "firmware_upgrade_on_tcvr_insert", "f", gflags::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "firmware_upgrade_supported", "f", gflags::SET_FLAGS_DEFAULT);
+  resetManagers();
+}
+
 } // namespace facebook::fboss
