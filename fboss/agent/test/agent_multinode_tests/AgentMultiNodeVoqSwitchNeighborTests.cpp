@@ -140,15 +140,18 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
         }
 
         auto neighbors = computeNeighborsForRdsw(
-            topologyInfo, rdsw, 1 /* number of neighbors */);
-        CHECK_EQ(neighbors.size(), 1);
+            topologyInfo, rdsw, 2 /* number of neighbors */);
+        CHECK_EQ(neighbors.size(), 2);
+        auto firstNeighbor = neighbors[0];
 
-        utility::addNeighbor(
-            rdsw,
-            neighbors[0].intfID,
-            neighbors[0].ip,
-            neighbors[0].mac,
-            neighbors[0].portID);
+        for (const auto& neighbor : neighbors) {
+          utility::addNeighbor(
+              rdsw,
+              neighbor.intfID,
+              neighbor.ip,
+              neighbor.mac,
+              neighbor.portID);
+        }
 
         // Verify every neighbor is added/sync'ed to every RDSW
         if (!utility::verifyNeighborsPresent(
@@ -156,6 +159,18 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
           XLOG(DBG2) << "Neighbor add verification failed: " << rdsw;
           return false;
         }
+
+        // Remove first neighbor and verify it is removed from every RDSW
+        utility::removeNeighbor(rdsw, firstNeighbor.intfID, firstNeighbor.ip);
+        if (!utility::verifyNeighborsAbsent(
+                topologyInfo->getRdsws(),
+                {firstNeighbor},
+                {} /* exclude none */)) {
+          XLOG(DBG2) << "Neighbor remove verification failed: " << rdsw
+                     << " neighbor: " << firstNeighbor.str();
+          return false;
+        }
+
         // Add neighbor to one remote RDSW per cluster
         break;
       }
