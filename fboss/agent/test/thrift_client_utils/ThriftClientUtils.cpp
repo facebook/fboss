@@ -289,4 +289,13 @@ void addNeighbor(
       portID);
 }
 
+void removeNeighbor(
+    const std::string& switchName,
+    const int32_t& interfaceID,
+    const folly::IPAddress& neighborIP) {
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_flushNeighborEntry(
+      facebook::network::toBinaryAddress(neighborIP), interfaceID);
+}
+
 } // namespace facebook::fboss::utility

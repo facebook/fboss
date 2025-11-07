@@ -83,4 +83,9 @@ void addNeighbor(
     const folly::MacAddress& macAddress,
     int32_t portID);
 
+void removeNeighbor(
+    const std::string& switchName,
+    const int32_t& interfaceID,
+    const folly::IPAddress& neighborIP);
+
 } // namespace facebook::fboss::utility
