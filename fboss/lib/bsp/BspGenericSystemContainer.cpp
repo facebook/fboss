@@ -5,6 +5,7 @@
 #include <folly/Singleton.h>
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
+#include "fboss/lib/bsp/darwin/DarwinBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
@@ -172,6 +173,15 @@ template <>
 std::shared_ptr<Ladakh800bclsSystemContainer>
 Ladakh800bclsSystemContainer::getInstance() {
   return _Ladakh800bclsSystemContainer.try_get();
+}
+
+using DarwinSystemContainer =
+    BspGenericSystemContainer<DarwinBspPlatformMapping>;
+folly::Singleton<DarwinSystemContainer> _darwinSystemContainer;
+template <>
+std::shared_ptr<DarwinSystemContainer>
+DarwinSystemContainer::getInstance() {
+  return _darwinSystemContainer.try_get();
 }
 
 } // namespace fboss
