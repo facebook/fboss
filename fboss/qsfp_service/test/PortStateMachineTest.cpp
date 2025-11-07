@@ -186,6 +186,8 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       TransceiverStateMachineState tcvrState,
       PortStates portStates,
       bool multiPort) {
+    // Set tcvr & port overrides - assumes port up is desired, which can be
+    // overridden below.
     if (multiPort) {
       transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
           overrideMultiPortTcvrToPortAndProfile_);
@@ -197,19 +199,36 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
       portManager_->setOverrideAgentPortStatusForTesting(
           {portId1_}, {portId1_});
     }
-    if (tcvrState == TransceiverStateMachineState::DISCOVERED &&
-        portStates.first == PortStateMachineState::INITIALIZED &&
-        portStates.second ==
-            optionalPortState(multiPort, PortStateMachineState::INITIALIZED)) {
+
+    // Current use case requires both ports to be in the same state.
+    if (tcvrState == TransceiverStateMachineState::NOT_PRESENT &&
+        portStates.first == PortStateMachineState::UNINITIALIZED) {
+      // Default state - no action needed.
+    } else if (
+        tcvrState == TransceiverStateMachineState::NOT_PRESENT &&
+        portStates.first == PortStateMachineState::INITIALIZED) {
+      portManager_->updateTransceiverPortStatus();
+    } else if (
+        tcvrState == TransceiverStateMachineState::DISCOVERED &&
+        portStates.first == PortStateMachineState::INITIALIZED) {
       initializePortsThroughRefresh();
     } else if (
         tcvrState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED &&
-        portStates.first == PortStateMachineState::PORT_UP &&
-        portStates.second ==
-            optionalPortState(multiPort, PortStateMachineState::PORT_UP)) {
+        portStates.first == PortStateMachineState::PORT_UP) {
       for (int i = 0; i < 5; ++i) {
         refreshAndTriggerProgramming();
       }
+    } else if (
+        tcvrState == TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED &&
+        portStates.first == PortStateMachineState::PORT_DOWN) {
+      portManager_->setOverrideAgentPortStatusForTesting(
+          {}, {portId1_, portId3_});
+      for (int i = 0; i < 5; ++i) {
+        refreshAndTriggerProgramming();
+      }
+    } else {
+      // Ensure test setup is as expected.
+      throw FbossError("Unsupported initial state.");
     }
 
     XLOG(INFO) << "setState changed state to "
@@ -253,6 +272,14 @@ class PortStateMachineTest : public TransceiverManagerTestHelper {
     // Sleep 1s to avoid the state machine handling the event too fast
     /* sleep override */
     sleep(1);
+  }
+
+  void assertCurrentStateEquals(TcvrPortStatePair expectedState) {
+    auto currentState = getCurrentState(false);
+    ASSERT_EQ(currentState, expectedState)
+        << "Intermediate state doesn't match expected after transceiver down, "
+        << "expected=" << logState(expectedState)
+        << ", actual=" << logState(currentState);
   }
 
   template <
@@ -672,14 +699,6 @@ TEST_F(PortStateMachineTest, fullSimpleRefreshCycle) {
 TEST_F(
     PortStateMachineTest,
     transceiverDownReinitializesPortThenTransceiverUp) {
-  auto assertCurrentStateEquals = [this](TcvrPortStatePair expectedState) {
-    auto currentState = getCurrentState(false);
-    ASSERT_EQ(currentState, expectedState)
-        << "Intermediate state doesn't match expected after transceiver down, "
-        << "expected=" << logState(expectedState)
-        << ", actual=" << logState(currentState);
-  };
-
   initManagers();
 
   // Set the original state.
