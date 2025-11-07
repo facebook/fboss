@@ -1277,7 +1277,7 @@ bool verifyDsfGracefulFabricLinkUp(
         activeFabricPortNameToPortInfo) {
   XLOG(DBG2) << "Verifying DSF Graceful Fabric link Up";
 
-  CHECK(activeFabricPortNameToPortInfo.size() > 2);
+  CHECK_GT(activeFabricPortNameToPortInfo.size(), 2);
   auto firstActivePort = activeFabricPortNameToPortInfo.begin()->first;
   auto rIter = activeFabricPortNameToPortInfo.rbegin();
   auto lastActivePort = rIter->first;

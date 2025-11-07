@@ -61,7 +61,7 @@ class AgentMultiNodeVoqSwitchNeighborTest : public AgentMultiNodeTest {
       }
     };
 
-    auto getIntfIDToIp = [this, rdsw]() {
+    auto getIntfIDToIp = [rdsw]() {
       std::map<int32_t, folly::IPAddress> intfIDToIp;
       for (const auto& [_, rif] : utility::getIntfIdToIntf(rdsw)) {
         for (const auto& ipPrefix : *rif.address()) {
