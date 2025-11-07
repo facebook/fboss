@@ -510,6 +510,10 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosDot1pToTcMap{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosTcAndColorToDot1pMap{});
 #endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
@@ -854,6 +858,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // HyperPortMemberList
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -947,6 +952,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // HyperPortMemberList
       std::nullopt, // PfcMonitorDirection
       std::nullopt, // QosDot1pToTcMap
+      std::nullopt, // QosTcAndColorToDot1pMap
   };
 }
 

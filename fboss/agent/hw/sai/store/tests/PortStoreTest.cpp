@@ -85,6 +85,7 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // HyperPortMemberList
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
+        std::nullopt, // QosTcAndColorToDot1pMap
     };
   }
 
