@@ -321,4 +321,41 @@ bool verifyNeighborsAbsent(
       true /* retry on exception */);
 }
 
+bool verifyNeighborsLocallyPresent(
+    const std::string& switchName,
+    const std::vector<Neighbor>& neighbors) {
+  auto verifyNeighborLocalPresentHelper = [switchName, neighbors]() {
+    auto isLocalNeighborPresent = [switchName](const auto& neighbor) {
+      auto ndpEntries = getNdpEntriesOfType(switchName, {"PROBE", "REACHABLE"});
+
+      for (const auto& ndpEntry : ndpEntries) {
+        auto ndpEntryIp = folly::IPAddress::fromBinary(
+            folly::ByteRange(
+                folly::StringPiece(ndpEntry.ip().value().addr().value())));
+
+        if (ndpEntry.interfaceID().value() == neighbor.intfID &&
+            ndpEntryIp == neighbor.ip) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    for (const auto& neighbor : neighbors) {
+      if (isLocalNeighborPresent(neighbor)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyNeighborLocalPresentHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 } // namespace facebook::fboss::utility

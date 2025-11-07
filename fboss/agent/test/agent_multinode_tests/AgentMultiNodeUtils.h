@@ -90,4 +90,10 @@ bool verifyNeighborsAbsent(
     const std::vector<Neighbor>& neighbors,
     const std::set<std::string>& switchesToExclude);
 
+// Return true only if every neighbor in neighbors is present
+// as local entry on the given switch.
+bool verifyNeighborsLocallyPresent(
+    const std::string& switchName,
+    const std::vector<Neighbor>& neighbors);
+
 } // namespace facebook::fboss::utility
