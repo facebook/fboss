@@ -96,4 +96,11 @@ bool verifyNeighborsLocallyPresent(
     const std::string& switchName,
     const std::vector<Neighbor>& neighbors);
 
+// Return true only if every neighbor in neighbors is locally
+// present but absent from every remote.
+bool verifyNeighborsLocallyPresentRemoteAbsent(
+    const std::set<std::string>& allSwitches,
+    const std::vector<Neighbor>& neighbors,
+    const std::string& switchName);
+
 } // namespace facebook::fboss::utility

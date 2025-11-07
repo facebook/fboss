@@ -358,4 +358,17 @@ bool verifyNeighborsLocallyPresent(
       true /* retry on exception */);
 }
 
+bool verifyNeighborsLocallyPresentRemoteAbsent(
+    const std::set<std::string>& allSwitches,
+    const std::vector<Neighbor>& neighbors,
+    const std::string& switchName) {
+  // verify neighbor entry is present on local RDSW, but absent
+  // from all remote RDSWs
+  if (verifyNeighborsLocallyPresent(switchName, neighbors)) {
+    return verifyNeighborsAbsent(allSwitches, neighbors, {switchName});
+  }
+
+  return false;
+}
+
 } // namespace facebook::fboss::utility
