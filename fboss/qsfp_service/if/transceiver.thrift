@@ -299,6 +299,7 @@ enum SMFMediaInterfaceCode {
   ZR_OROADM_FLEXO_6E_DPO_600G = 0x6A,
   ZR_OROADM_FLEXO_4E_DO_400G = 0x64,
   ZR_OPENZRP_OFEC_400G = 0x36,
+  ZR_VENDOR_CUSTOM = 0xF7,
 }
 
 enum Ethernet10GComplianceCode {
