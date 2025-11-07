@@ -78,6 +78,11 @@ int64_t getQsfpAliveSinceEpoch(const std::string& switchName) {
   return qsfpClient->sync_aliveSince();
 }
 
+int64_t getFsdbAliveSinceEpoch(const std::string& switchName) {
+  auto fsdbClient = getFsdbThriftClient(switchName);
+  return fsdbClient->sync_aliveSince();
+}
+
 MultiSwitchRunState getMultiSwitchRunState(const std::string& switchName) {
   auto swAgentClient = getSwAgentThriftClient(switchName);
   MultiSwitchRunState runState;
