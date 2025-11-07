@@ -489,78 +489,21 @@
               ]
             }
           ],
-          "xcvrCtrlConfigs": [
+          "xcvrCtrlConfigs": [],
+          "xcvrCtrlBlockConfigs": [
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_1",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40200"
-              },
-              "portNumber": 1
+              "pmUnitScopedNamePrefix": "MCB_DOM",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x40200 + ({portNum} - {startPort})*0x4",
+              "numPorts": 8,
+              "startPort": 1
             },
             {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_2",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40204"
-              },
-              "portNumber": 2
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_3",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40208"
-              },
-              "portNumber": 3
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_4",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4020c"
-              },
-              "portNumber": 4
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_5",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40210"
-              },
-              "portNumber": 5
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_6",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40214"
-              },
-              "portNumber": 6
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_7",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x40218"
-              },
-              "portNumber": 7
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "MCB_DOM_XCVR_CTRL_PORT_8",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x4021c"
-              },
-              "portNumber": 8
-            },
-            {
-              "fpgaIpBlockConfig": {
-                "pmUnitScopedName": "IOB_XCVR_CTRL_PORT_9",
-                "deviceName": "xcvr_ctrl",
-                "csrOffset": "0x1030"
-              },
-              "portNumber": 9
+              "pmUnitScopedNamePrefix": "IOB",
+              "deviceName": "xcvr_ctrl",
+              "csrOffsetCalc": "0x1030 + ({portNum} - {startPort})*0x0",
+              "numPorts": 1,
+              "startPort": 9
             }
           ],
           "ledCtrlConfigs": [],
