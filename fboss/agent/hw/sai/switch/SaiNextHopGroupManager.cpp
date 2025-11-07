@@ -141,6 +141,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   nextHopGroupHandle->saiStore_ = saiStore_;
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
+  nextHopGroupHandle->platform_ = platform_;
 
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
@@ -556,22 +557,22 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
   }
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-  // TODO(zecheng): Pass in pointer to platform and check if ASIC supports bulk
-  // add and remove.
-  //  For now it's okay since J3 is the only DNX asic that will program ECMP
-  //  members.
-  std::vector<SaiNextHopGroupMemberTraits::AdapterKey> adapterKeys;
-  for (const auto& member : members_) {
-    auto obj = member->getObject();
-    if (obj) {
-      obj->setSkipRemove(true);
-      adapterKeys.emplace_back(obj->adapterKey());
+  if (platform_ &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
+    std::vector<SaiNextHopGroupMemberTraits::AdapterKey> adapterKeys;
+    for (const auto& member : members_) {
+      auto obj = member->getObject();
+      if (obj) {
+        obj->setSkipRemove(true);
+        adapterKeys.emplace_back(obj->adapterKey());
+      }
     }
-  }
 
-  if (adapterKeys.size()) {
-    SaiApiTable::getInstance()->getApi<NextHopGroupApi>().bulkRemove(
-        adapterKeys);
+    if (adapterKeys.size()) {
+      SaiApiTable::getInstance()->getApi<NextHopGroupApi>().bulkRemove(
+          adapterKeys);
+    }
   }
 #endif
 

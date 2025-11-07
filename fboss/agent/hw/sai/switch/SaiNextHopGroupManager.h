@@ -210,6 +210,7 @@ struct SaiNextHopGroupHandle {
   uint32_t maxVariableWidthEcmpSize;
   std::optional<cfg::SwitchingMode> desiredArsMode_;
   SaiStore* saiStore_;
+  const SaiPlatform* platform_;
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
