@@ -239,4 +239,40 @@ bool verifyFsdbIsUp(const std::string& switchName) {
       true /* retry on exception */);
 }
 
+bool verifyNeighborsPresent(
+    const std::set<std::string>& allSwitches,
+    const std::string& switchToVerify,
+    const std::vector<Neighbor>& neighbors) {
+  auto verifyNeighborPresentHelper = [allSwitches, switchToVerify, neighbors] {
+    auto getSwitchToNdpEntries = [allSwitches, switchToVerify]() {
+      std::map<std::string, std::vector<NdpEntryThrift>> switchToNdpEntries;
+      for (const auto& switchName : allSwitches) {
+        if (switchName ==
+            switchToVerify) { // PROBE/REACHABLE for switchToVerify
+          switchToNdpEntries[switchName] =
+              getNdpEntriesOfType(switchToVerify, {"PROBE", "REACHABLE"});
+        } else { // DYNAMIC for every remote switch
+          switchToNdpEntries[switchName] =
+              getNdpEntriesOfType(switchName, {"DYNAMIC"});
+        }
+      }
+
+      return switchToNdpEntries;
+    };
+
+    // Every neighbor added to switchToVerify, the neighbor must be:
+    //    - PROBE/REACHABLE for switchToVerify
+    //    - DYNAMIC for every other switch.
+    auto switchToNdpEntries = getSwitchToNdpEntries();
+    return verifyNeighborsAllPresentOrAllAbsent(
+        neighbors, switchToNdpEntries, true /* allNeighborsMustBePresent */);
+  };
+
+  return checkWithRetryErrorReturn(
+      verifyNeighborPresentHelper,
+      10 /* num retries */,
+      std::chrono::milliseconds(1000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
 } // namespace facebook::fboss::utility

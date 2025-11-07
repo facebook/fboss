@@ -80,4 +80,9 @@ bool verifyFsdbRestarted(
         baselineSwitchNameToFsdbAliveSinceEpoch);
 bool verifyFsdbIsUp(const std::string& switchName);
 
+bool verifyNeighborsPresent(
+    const std::set<std::string>& allSwitches,
+    const std::string& switchToVerify,
+    const std::vector<Neighbor>& neighbors);
+
 } // namespace facebook::fboss::utility
